@@ -65,6 +65,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # stay seeded; without this gate a deploy could ship an empty registry and
     # the catalog's "9 world scales" claim becomes silent theater.
     ("scripts/verify_grading_scale_registry_coverage.py", "ci.yml"),
+    # Config SOT (Wave A, target #2) — lock the three-store resolver's invariants
+    # so a config field can never silently skip the per-tenant override merge.
+    # Owner-map sync is stdlib (architectural-boundaries); live-model parity is
+    # Django-aware (ci.yml).
+    ("scripts/verify_domain_ownership_exact_storage.py", "architectural-boundaries.yml"),
+    ("scripts/verify_runtime_defaults_model_parity.py", "ci.yml"),
 )
 
 

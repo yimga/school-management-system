@@ -665,7 +665,7 @@ msgid "APIs & integrations"
 msgstr ""
 
 msgid "About"
-msgstr ""
+msgstr "परिचय"
 
 msgid "About the operator control model"
 msgstr ""
@@ -680,7 +680,7 @@ msgid "Absences & tardies"
 msgstr ""
 
 msgid "Absent"
-msgstr ""
+msgstr "अनुपस्थित"
 
 msgid "Academic"
 msgstr ""
@@ -804,7 +804,7 @@ msgid "Accessible on low bandwidth — same thread as parents."
 msgstr ""
 
 msgid "Account"
-msgstr ""
+msgstr "खाता"
 
 msgid "Account balance summary"
 msgstr ""
@@ -843,7 +843,7 @@ msgid "Actionable insights"
 msgstr ""
 
 msgid "Actions"
-msgstr ""
+msgstr "कार्रवाइयाँ"
 
 msgid "Actions & admin"
 msgstr ""
@@ -895,7 +895,7 @@ msgid "Activation, import, configuration"
 msgstr ""
 
 msgid "Active"
-msgstr ""
+msgstr "सक्रिय"
 
 msgid "Active (live)"
 msgstr ""
@@ -999,7 +999,7 @@ msgid "Actor, tenant, reason, and proposed change captured."
 msgstr ""
 
 msgid "Add"
-msgstr ""
+msgstr "जोड़ें"
 
 msgid "Add ?school_id=&lt;uuid&gt; to compare policy layers for a school."
 msgstr ""
@@ -1144,7 +1144,7 @@ msgid "Adjust school website blocks and visual presets."
 msgstr ""
 
 msgid "Admin"
-msgstr ""
+msgstr "प्रशासन"
 
 msgid "Admin & backend (staff):"
 msgstr ""
@@ -1448,7 +1448,7 @@ msgid "Align report packs with policy blueprints and metadata lineage."
 msgstr ""
 
 msgid "All"
-msgstr ""
+msgstr "सभी"
 
 msgid "All Systems Operational"
 msgstr ""
@@ -1639,7 +1639,7 @@ msgid "Amber band"
 msgstr ""
 
 msgid "Amount"
-msgstr ""
+msgstr "राशि"
 
 msgid "Amount (high to low)"
 msgstr ""
@@ -1678,7 +1678,7 @@ msgid "Analytics dashboard"
 msgstr ""
 
 msgid "Announcement"
-msgstr ""
+msgstr "घोषणा"
 
 msgid "Announcement published successfully."
 msgstr ""
@@ -1692,7 +1692,7 @@ msgid "Announcement updated successfully."
 msgstr ""
 
 msgid "Announcements"
-msgstr ""
+msgstr "घोषणाएँ"
 
 msgid "Announcements get lost across groups and email"
 msgstr ""
@@ -1885,7 +1885,7 @@ msgid ""
 msgstr ""
 
 msgid "Apply"
-msgstr ""
+msgstr "लागू करें"
 
 msgid "Apply (live)"
 msgstr ""
@@ -2009,7 +2009,7 @@ msgid "Approve selected comments"
 msgstr ""
 
 msgid "Approved"
-msgstr ""
+msgstr "स्वीकृत"
 
 msgid "Approximate student count"
 msgstr ""
@@ -2215,7 +2215,7 @@ msgid "Attempts"
 msgstr ""
 
 msgid "Attendance"
-msgstr ""
+msgstr "उपस्थिति"
 
 msgid "Attendance & Discipline"
 msgstr ""
@@ -2484,7 +2484,7 @@ msgid "Awards and recognition"
 msgstr ""
 
 msgid "Back"
-msgstr ""
+msgstr "वापस"
 
 msgid "Back to API Center"
 msgstr ""
@@ -2734,7 +2734,7 @@ msgid "Badges for {{ name }}"
 msgstr ""
 
 msgid "Balance"
-msgstr ""
+msgstr "शेष राशि"
 
 msgid "Balance after"
 msgstr ""
@@ -2849,7 +2849,7 @@ msgid "Between the bells · Sent by RunMyCampus"
 msgstr ""
 
 msgid "Billing"
-msgstr ""
+msgstr "बिलिंग"
 
 msgid "Billing / purchase path"
 msgstr ""
@@ -3272,7 +3272,7 @@ msgid "Bundle surfaces"
 msgstr ""
 
 msgid "Bursar"
-msgstr ""
+msgstr "कोषाध्यक्ष"
 
 msgid "Bursar Entries Report"
 msgstr ""
@@ -3367,7 +3367,7 @@ msgid ""
 msgstr ""
 
 msgid "Calendar"
-msgstr ""
+msgstr "कैलेंडर"
 
 msgid "Calendar & Homework"
 msgstr ""
@@ -3411,7 +3411,7 @@ msgid "Can't find a time? Contact us and we'll arrange a call."
 msgstr ""
 
 msgid "Cancel"
-msgstr ""
+msgstr "रद्द करें"
 
 msgid ""
 "Cannot delete: schools or other records still reference this region. "
@@ -4012,7 +4012,7 @@ msgid "Clinic log"
 msgstr ""
 
 msgid "Close"
-msgstr ""
+msgstr "बंद करें"
 
 msgid "Close dialog, sheet, or palette"
 msgstr ""
@@ -4166,7 +4166,7 @@ msgid "Commercial tier (packaging)"
 msgstr ""
 
 msgid "Common questions"
-msgstr ""
+msgstr "सामान्य प्रश्न"
 
 msgid "Communicate with parents and staff at scale"
 msgstr ""
@@ -4284,7 +4284,7 @@ msgid "Complete your profile"
 msgstr ""
 
 msgid "Completed"
-msgstr ""
+msgstr "पूर्ण"
 
 msgid "Completed (production PSP signal)"
 msgstr ""
@@ -4626,7 +4626,7 @@ msgid ""
 msgstr ""
 
 msgid "Contact"
-msgstr ""
+msgstr "संपर्क"
 
 msgid "Contact IT support or refer to the"
 msgstr ""
@@ -4656,13 +4656,13 @@ msgid "Contact school"
 msgstr ""
 
 msgid "Contact support"
-msgstr ""
+msgstr "सहायता से संपर्क करें"
 
 msgid "Contact the school administration for any questions."
 msgstr ""
 
 msgid "Contact us"
-msgstr ""
+msgstr "हमसे संपर्क करें"
 
 msgid "Content"
 msgstr ""
@@ -4686,7 +4686,7 @@ msgid "Context photograph"
 msgstr ""
 
 msgid "Continue"
-msgstr ""
+msgstr "जारी रखें"
 
 msgid "Contrast safety: needs attention"
 msgstr ""
@@ -4847,7 +4847,7 @@ msgid "Countries:"
 msgstr ""
 
 msgid "Country"
-msgstr ""
+msgstr "देश"
 
 msgid "Country code"
 msgstr ""
@@ -4910,7 +4910,7 @@ msgid "Covering (optional)"
 msgstr ""
 
 msgid "Create"
-msgstr ""
+msgstr "बनाएँ"
 
 msgid "Create API key"
 msgstr ""
@@ -5036,7 +5036,7 @@ msgid ""
 msgstr ""
 
 msgid "Created"
-msgstr ""
+msgstr "बनाया गया"
 
 msgid "Created At"
 msgstr ""
@@ -5194,7 +5194,7 @@ msgid "Curriculum, assessment, and reporting on one spine."
 msgstr ""
 
 msgid "Custom"
-msgstr ""
+msgstr "कस्टम"
 
 msgid "Custom Domain"
 msgstr ""
@@ -5296,7 +5296,7 @@ msgid "Dark"
 msgstr ""
 
 msgid "Dashboard"
-msgstr ""
+msgstr "डैशबोर्ड"
 
 msgid "Dashboard / lifecycle signals"
 msgstr ""
@@ -5462,7 +5462,7 @@ msgid "Dataset"
 msgstr ""
 
 msgid "Date"
-msgstr ""
+msgstr "तारीख"
 
 msgid "Date (newest first)"
 msgstr ""
@@ -5645,7 +5645,7 @@ msgid "Delayed parent follow-up and unclear next steps"
 msgstr ""
 
 msgid "Delete"
-msgstr ""
+msgstr "हटाएँ"
 
 msgid "Delete Document"
 msgstr ""
@@ -5799,7 +5799,7 @@ msgid ""
 msgstr ""
 
 msgid "Description"
-msgstr ""
+msgstr "विवरण"
 
 msgid "Description (for AI)"
 msgstr ""
@@ -5907,7 +5907,7 @@ msgid "Developer public API"
 msgstr ""
 
 msgid "Developers"
-msgstr ""
+msgstr "डेवलपर"
 
 msgid "Device / session"
 msgstr ""
@@ -6269,7 +6269,7 @@ msgid "Donors & advancement"
 msgstr ""
 
 msgid "Download"
-msgstr ""
+msgstr "डाउनलोड करें"
 
 msgid "Download CSV"
 msgstr ""
@@ -6480,7 +6480,7 @@ msgid "Due Mon 24 Mar · invoice INV-2403"
 msgstr ""
 
 msgid "Due date"
-msgstr ""
+msgstr "नियत तारीख"
 
 msgid "Due date (earliest first)"
 msgstr ""
@@ -6604,7 +6604,7 @@ msgid "Ecosystem (N18–N20)"
 msgstr ""
 
 msgid "Edit"
-msgstr ""
+msgstr "संपादित करें"
 
 msgid ""
 "Edit GradingScale and GradingScaleBand rows for this tenant after product "
@@ -6743,7 +6743,7 @@ msgid "Elevates risk"
 msgstr ""
 
 msgid "Email"
-msgstr ""
+msgstr "ईमेल"
 
 msgid "Email &amp; SMS delivery"
 msgstr ""
@@ -6913,7 +6913,7 @@ msgid ""
 msgstr ""
 
 msgid "Enterprise"
-msgstr ""
+msgstr "एंटरप्राइज़"
 
 msgid "Enterprise SLA, operator command center access."
 msgstr ""
@@ -7039,7 +7039,7 @@ msgid "Evaluations: student, class, subject, evidence, and score components"
 msgstr ""
 
 msgid "Event"
-msgstr ""
+msgstr "कार्यक्रम"
 
 msgid "Event Timeline"
 msgstr ""
@@ -7072,7 +7072,7 @@ msgid "Event-scale analytics"
 msgstr ""
 
 msgid "Events"
-msgstr ""
+msgstr "कार्यक्रम"
 
 msgid "Events & webinars"
 msgstr ""
@@ -7165,7 +7165,7 @@ msgid ""
 msgstr ""
 
 msgid "Exam"
-msgstr ""
+msgstr "परीक्षा"
 
 msgid ""
 "Example workflow: grade drop triggers teacher and parent notification then "
@@ -7182,7 +7182,7 @@ msgid "Exchange code"
 msgstr ""
 
 msgid "Excused"
-msgstr ""
+msgstr "अवकाश स्वीकृत"
 
 msgid "Execution Log"
 msgstr ""
@@ -7374,7 +7374,7 @@ msgid "Exploring the demo?"
 msgstr ""
 
 msgid "Export"
-msgstr ""
+msgstr "निर्यात करें"
 
 msgid "Export & APIs"
 msgstr ""
@@ -7807,7 +7807,7 @@ msgid "Feeds attendance, fees, and reports without re-keying."
 msgstr ""
 
 msgid "Fees"
-msgstr ""
+msgstr "शुल्क"
 
 msgid "Fees & Payments"
 msgstr ""
@@ -7897,7 +7897,7 @@ msgid "Fill Value"
 msgstr ""
 
 msgid "Filter"
-msgstr ""
+msgstr "फ़िल्टर करें"
 
 msgid "Filter Evaluations"
 msgstr ""
@@ -7950,7 +7950,7 @@ msgid ""
 msgstr ""
 
 msgid "Finance"
-msgstr ""
+msgstr "वित्त"
 
 msgid "Finance & Billing"
 msgstr ""
@@ -8605,7 +8605,7 @@ msgid "Geography — Region packs by continent (Wedges 7–13)"
 msgstr ""
 
 msgid "Get Started"
-msgstr ""
+msgstr "शुरू करें"
 
 msgid ""
 "Get help, find your campus, or continue to login. This page is shared/public"
@@ -9070,7 +9070,7 @@ msgid "Growing networks"
 msgstr ""
 
 msgid "Growth"
-msgstr ""
+msgstr "ग्रोथ"
 
 msgid "Growth analytics"
 msgstr ""
@@ -9162,7 +9162,7 @@ msgid "Head of School · Cedar Ridge Academy"
 msgstr ""
 
 msgid "Head of school"
-msgstr ""
+msgstr "स्कूल प्रमुख"
 
 msgid "Head-to-head"
 msgstr ""
@@ -9228,7 +9228,7 @@ msgid "Hello, I need help with the school portal."
 msgstr ""
 
 msgid "Help"
-msgstr ""
+msgstr "सहायता"
 
 msgid "Help & Knowledge Base"
 msgstr ""
@@ -9259,7 +9259,7 @@ msgid "Help audience"
 msgstr ""
 
 msgid "Help center"
-msgstr ""
+msgstr "सहायता केंद्र"
 
 msgid "Help: Entity import"
 msgstr ""
@@ -9337,7 +9337,7 @@ msgid "Hollow Creek"
 msgstr ""
 
 msgid "Home"
-msgstr ""
+msgstr "होम"
 
 msgid "Home — control plane"
 msgstr ""
@@ -9346,7 +9346,7 @@ msgid "Home-school (19):"
 msgstr ""
 
 msgid "Homework"
-msgstr ""
+msgstr "गृहकार्य"
 
 msgid "Homework & Upcoming"
 msgstr ""
@@ -9502,7 +9502,7 @@ msgid "IT firefights when SSO drops; nobody knew until staff did."
 msgstr ""
 
 msgid "IT lead"
-msgstr ""
+msgstr "आईटी प्रमुख"
 
 msgid ""
 "IT operations health view showing tenant uptime, single sign-on, payments, "
@@ -9792,7 +9792,7 @@ msgid "In-product factory"
 msgstr ""
 
 msgid "Inactive"
-msgstr ""
+msgstr "निष्क्रिय"
 
 msgid ""
 "Inbound deliveries that didn't pass HMAC verification or the rate limit. "
@@ -10671,7 +10671,7 @@ msgid "Last: {{ day }} {{ time }}"
 msgstr ""
 
 msgid "Late"
-msgstr ""
+msgstr "देर से"
 
 msgid "Late patterns surfaced before the office phones."
 msgstr ""
@@ -11186,7 +11186,7 @@ msgid "Loading preview..."
 msgstr ""
 
 msgid "Loading..."
-msgstr ""
+msgstr "लोड हो रहा है..."
 
 msgid "Loading…"
 msgstr ""
@@ -11230,7 +11230,7 @@ msgid "Locked"
 msgstr ""
 
 msgid "Log in"
-msgstr ""
+msgstr "लॉग इन करें"
 
 msgid "Log intervention"
 msgstr ""
@@ -11260,7 +11260,7 @@ msgid "Logo present"
 msgstr ""
 
 msgid "Logout"
-msgstr ""
+msgstr "लॉगआउट"
 
 msgid ""
 "Long-running process runs (admissions, re-enrollment, fee follow-up, "
@@ -11378,7 +11378,7 @@ msgid ""
 msgstr ""
 
 msgid "Manage"
-msgstr ""
+msgstr "प्रबंधित करें"
 
 msgid "Manage Users"
 msgstr ""
@@ -11477,7 +11477,7 @@ msgid ""
 msgstr ""
 
 msgid "Map your data"
-msgstr ""
+msgstr "अपना डेटा मैप करें"
 
 msgid "Mapping"
 msgstr ""
@@ -11581,7 +11581,7 @@ msgid "Marketplace app version compat (native app)"
 msgstr ""
 
 msgid "Marketplace apps"
-msgstr ""
+msgstr "मार्केटप्लेस ऐप्स"
 
 msgid "Marketplace apps (admin)"
 msgstr ""
@@ -11801,7 +11801,7 @@ msgid ""
 msgstr ""
 
 msgid "Messages"
-msgstr ""
+msgstr "संदेश"
 
 msgid "Messages from School"
 msgstr ""
@@ -12364,7 +12364,7 @@ msgid "NL assistant"
 msgstr ""
 
 msgid "Name"
-msgstr ""
+msgstr "नाम"
 
 msgid "Name or code…"
 msgstr ""
@@ -12549,7 +12549,7 @@ msgid "Newsletters"
 msgstr ""
 
 msgid "Next"
-msgstr ""
+msgstr "अगला"
 
 msgid "Next action"
 msgstr ""
@@ -12623,7 +12623,7 @@ msgid "Nine-second roll marks."
 msgstr ""
 
 msgid "No"
-msgstr ""
+msgstr "नहीं"
 
 msgid "No (exception applies)"
 msgstr ""
@@ -13612,7 +13612,7 @@ msgid "Non-destructive simulation (Automation)"
 msgstr ""
 
 msgid "None"
-msgstr ""
+msgstr "कोई नहीं"
 
 msgid "None (root tenant)"
 msgstr ""
@@ -13743,7 +13743,7 @@ msgid "Nothing to mark — your inbox is already clear."
 msgstr ""
 
 msgid "Notification"
-msgstr ""
+msgstr "सूचना"
 
 msgid "Notification list"
 msgstr ""
@@ -13758,7 +13758,7 @@ msgid "Notification severity"
 msgstr ""
 
 msgid "Notifications"
-msgstr ""
+msgstr "सूचनाएँ"
 
 msgid "Notifications and queues"
 msgstr ""
@@ -14846,7 +14846,7 @@ msgid ""
 msgstr ""
 
 msgid "Optional"
-msgstr ""
+msgstr "वैकल्पिक"
 
 msgid "Optional plan slug restriction; blank = all plans."
 msgstr ""
@@ -15014,7 +15014,7 @@ msgid "Overall parity:"
 msgstr ""
 
 msgid "Overdue"
-msgstr ""
+msgstr "बकाया"
 
 msgid "Overdue by classroom"
 msgstr ""
@@ -15041,7 +15041,7 @@ msgid "Override the canonical field"
 msgstr ""
 
 msgid "Overview"
-msgstr ""
+msgstr "अवलोकन"
 
 msgid "Overview (chart reference)"
 msgstr ""
@@ -15249,7 +15249,7 @@ msgid "Page {{ p }} of {{ n }}"
 msgstr ""
 
 msgid "Paid"
-msgstr ""
+msgstr "भुगतान किया गया"
 
 msgid "Paid (YTD)"
 msgstr ""
@@ -15291,7 +15291,7 @@ msgid ""
 msgstr ""
 
 msgid "Parent"
-msgstr ""
+msgstr "अभिभावक"
 
 msgid "Parent & Teacher Active"
 msgstr ""
@@ -15345,7 +15345,7 @@ msgid "Parent, teacher, and student command centers."
 msgstr ""
 
 msgid "Parents"
-msgstr ""
+msgstr "अभिभावक"
 
 msgid "Parents & guardians"
 msgstr ""
@@ -15440,7 +15440,7 @@ msgid "Passport school invites"
 msgstr ""
 
 msgid "Password"
-msgstr ""
+msgstr "पासवर्ड"
 
 msgid "Password changed"
 msgstr ""
@@ -15518,7 +15518,7 @@ msgid "Payload student_id"
 msgstr ""
 
 msgid "Payment"
-msgstr ""
+msgstr "भुगतान"
 
 msgid "Payment Method"
 msgstr ""
@@ -15571,7 +15571,7 @@ msgid "Payment success (ledger)"
 msgstr ""
 
 msgid "Payments"
-msgstr ""
+msgstr "भुगतान"
 
 msgid "Payments &amp; reconciliation"
 msgstr ""
@@ -15610,7 +15610,7 @@ msgid "Peer operator email (four-eyes)"
 msgstr ""
 
 msgid "Pending"
-msgstr ""
+msgstr "लंबित"
 
 msgid "Pending Review"
 msgstr ""
@@ -15796,7 +15796,7 @@ msgid ""
 msgstr ""
 
 msgid "Permissions"
-msgstr ""
+msgstr "अनुमतियाँ"
 
 msgid "Personalize your portal."
 msgstr ""
@@ -15848,7 +15848,7 @@ msgid ""
 msgstr ""
 
 msgid "Phone"
-msgstr ""
+msgstr "फ़ोन"
 
 msgid "Photo received. You can close this page."
 msgstr ""
@@ -16735,10 +16735,10 @@ msgid ""
 msgstr ""
 
 msgid "Premium support"
-msgstr ""
+msgstr "प्रीमियम सहायता"
 
 msgid "Present"
-msgstr ""
+msgstr "उपस्थित"
 
 msgid "Present today"
 msgstr ""
@@ -16888,7 +16888,7 @@ msgid "Preview/install gated — upgrade plan"
 msgstr ""
 
 msgid "Previous"
-msgstr ""
+msgstr "पिछला"
 
 msgid "Previous applicant page"
 msgstr ""
@@ -16955,7 +16955,7 @@ msgid "Primary/accent colors, logo, heading"
 msgstr ""
 
 msgid "Print"
-msgstr ""
+msgstr "प्रिंट करें"
 
 msgid "Print fee statement"
 msgstr ""
@@ -16986,7 +16986,7 @@ msgid "Priority support · 4-hour weekday response"
 msgstr ""
 
 msgid "Privacy"
-msgstr ""
+msgstr "गोपनीयता"
 
 msgid "Privacy Policy"
 msgstr ""
@@ -17051,7 +17051,7 @@ msgid ""
 msgstr ""
 
 msgid "Product"
-msgstr ""
+msgstr "उत्पाद"
 
 msgid "Product configuration links"
 msgstr ""
@@ -17105,7 +17105,7 @@ msgid "Productized /api/ai/* endpoints"
 msgstr ""
 
 msgid "Profile"
-msgstr ""
+msgstr "प्रोफ़ाइल"
 
 msgid "Profile updated."
 msgstr ""
@@ -18050,7 +18050,7 @@ msgid "Referral rewards"
 msgstr ""
 
 msgid "Refresh"
-msgstr ""
+msgstr "रीफ़्रेश करें"
 
 msgid "Refresh evaluation"
 msgstr ""
@@ -18219,7 +18219,7 @@ msgid "Reject selected FAQs"
 msgstr ""
 
 msgid "Rejected"
-msgstr ""
+msgstr "अस्वीकृत"
 
 msgid "Rejection Reason"
 msgstr ""
@@ -18273,7 +18273,7 @@ msgid "Related wedge — same execution rules as above."
 msgstr ""
 
 msgid "Release notes"
-msgstr ""
+msgstr "रिलीज़ नोट्स"
 
 msgid "Released"
 msgstr ""
@@ -18377,7 +18377,7 @@ msgid "Replay platform event"
 msgstr ""
 
 msgid "Report"
-msgstr ""
+msgstr "रिपोर्ट"
 
 msgid "Report & pack graph"
 msgstr ""
@@ -18531,7 +18531,7 @@ msgid "Reported"
 msgstr ""
 
 msgid "Reports"
-msgstr ""
+msgstr "रिपोर्ट"
 
 msgid "Reports & Transcripts"
 msgstr ""
@@ -18655,7 +18655,7 @@ msgid "Require Signature"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "आवश्यक"
 
 msgid "Required fields: {{ fields }}"
 msgstr ""
@@ -18681,7 +18681,7 @@ msgid "Resend Now"
 msgstr ""
 
 msgid "Reset"
-msgstr ""
+msgstr "रीसेट करें"
 
 msgid "Reset filters"
 msgstr ""
@@ -18742,7 +18742,7 @@ msgid "Resource areas"
 msgstr ""
 
 msgid "Resources"
-msgstr ""
+msgstr "संसाधन"
 
 msgid "Resources hub"
 msgstr ""
@@ -18763,7 +18763,7 @@ msgid "Restore colors to their saved values."
 msgstr ""
 
 msgid "Results"
-msgstr ""
+msgstr "परिणाम"
 
 msgid "Results are not published yet. Please check back later."
 msgstr ""
@@ -19057,7 +19057,7 @@ msgid "Roadmap"
 msgstr ""
 
 msgid "Role"
-msgstr ""
+msgstr "भूमिका"
 
 msgid "Role created successfully."
 msgstr ""
@@ -19114,7 +19114,7 @@ msgid "Role-specific surfaces, one sign-in story."
 msgstr ""
 
 msgid "Roles"
-msgstr ""
+msgstr "भूमिकाएँ"
 
 msgid "Roles and permissions for staff."
 msgstr ""
@@ -19699,7 +19699,7 @@ msgid "Sandbox: synthetic roster (no PII)"
 msgstr ""
 
 msgid "Save"
-msgstr ""
+msgstr "सहेजें"
 
 msgid "Save Permissions"
 msgstr ""
@@ -19830,7 +19830,7 @@ msgid "Scan to verify"
 msgstr ""
 
 msgid "Schedule"
-msgstr ""
+msgstr "समय-सारणी"
 
 msgid "Schedule a demo"
 msgstr ""
@@ -20009,7 +20009,7 @@ msgid "School memberships"
 msgstr ""
 
 msgid "School name"
-msgstr ""
+msgstr "स्कूल का नाम"
 
 msgid "School network positioning"
 msgstr ""
@@ -20071,7 +20071,7 @@ msgid "School theme"
 msgstr ""
 
 msgid "School type"
-msgstr ""
+msgstr "स्कूल का प्रकार"
 
 msgid "School website blocks"
 msgstr ""
@@ -20246,7 +20246,7 @@ msgid ""
 msgstr ""
 
 msgid "Search"
-msgstr ""
+msgstr "खोजें"
 
 msgid "Search (e.g. invoice, theme, finance...)"
 msgstr ""
@@ -20369,7 +20369,7 @@ msgid "Secret (HMAC signing)"
 msgstr ""
 
 msgid "Section"
-msgstr ""
+msgstr "अनुभाग"
 
 msgid "Section divider"
 msgstr ""
@@ -20378,7 +20378,7 @@ msgid "Section flourish"
 msgstr ""
 
 msgid "Sections"
-msgstr ""
+msgstr "अनुभाग"
 
 msgid "Sector"
 msgstr ""
@@ -20821,7 +20821,7 @@ msgid "Setting"
 msgstr ""
 
 msgid "Settings"
-msgstr ""
+msgstr "सेटिंग्स"
 
 msgid "Settings categories"
 msgstr ""
@@ -21022,7 +21022,7 @@ msgid "Sign by Friday 5 p.m. · Bus leaves 9:15"
 msgstr ""
 
 msgid "Sign in"
-msgstr ""
+msgstr "साइन इन करें"
 
 msgid "Sign in to continue"
 msgstr ""
@@ -21047,7 +21047,7 @@ msgid ""
 msgstr ""
 
 msgid "Sign out"
-msgstr ""
+msgstr "साइन आउट करें"
 
 msgid "Sign-in form"
 msgstr ""
@@ -21626,7 +21626,7 @@ msgid "Started"
 msgstr ""
 
 msgid "Starter"
-msgstr ""
+msgstr "स्टार्टर"
 
 msgid ""
 "Starter and region packs: installable via Create School or Setup Studio. One"
@@ -21660,7 +21660,7 @@ msgid "Statistics"
 msgstr ""
 
 msgid "Status"
-msgstr ""
+msgstr "स्थिति"
 
 msgid "Status & Publishing"
 msgstr ""
@@ -21813,7 +21813,7 @@ msgid "Stubs"
 msgstr ""
 
 msgid "Student"
-msgstr ""
+msgstr "छात्र"
 
 msgid "Student 360"
 msgstr ""
@@ -22065,7 +22065,7 @@ msgid ""
 msgstr ""
 
 msgid "Subject"
-msgstr ""
+msgstr "विषय"
 
 msgid "Subject Assignment"
 msgstr ""
@@ -22083,7 +22083,7 @@ msgid "Subjects that need attention this term."
 msgstr ""
 
 msgid "Submit"
-msgstr ""
+msgstr "सबमिट करें"
 
 msgid "Submit Report"
 msgstr ""
@@ -22671,7 +22671,7 @@ msgid "Taxes withheld: {{ amt }}"
 msgstr ""
 
 msgid "Teacher"
-msgstr ""
+msgstr "शिक्षक"
 
 msgid "Teacher / parent portals — attendance, marks, and messaging."
 msgstr ""
@@ -22722,7 +22722,7 @@ msgid "Teacher workspace"
 msgstr ""
 
 msgid "Teachers"
-msgstr ""
+msgstr "शिक्षक"
 
 msgid "Teachers CSV"
 msgstr ""
@@ -23534,7 +23534,7 @@ msgid "Timestamps"
 msgstr ""
 
 msgid "Timetable"
-msgstr ""
+msgstr "समय-सारणी"
 
 msgid "Timetable, assignments, and grades in one calm surface."
 msgstr ""
@@ -23568,7 +23568,7 @@ msgid "Tips (optional)"
 msgstr ""
 
 msgid "Title"
-msgstr ""
+msgstr "शीर्षक"
 
 msgid "Title (optional)"
 msgstr ""
@@ -23741,7 +23741,7 @@ msgid "Top-performing metrics will appear once marks are entered."
 msgstr ""
 
 msgid "Total"
-msgstr ""
+msgstr "कुल"
 
 msgid "Total Blocked"
 msgstr ""
@@ -23885,7 +23885,7 @@ msgid ""
 msgstr ""
 
 msgid "Transport"
-msgstr ""
+msgstr "परिवहन"
 
 msgid "Transport routes"
 msgstr ""
@@ -24010,7 +24010,7 @@ msgid ""
 msgstr ""
 
 msgid "Type"
-msgstr ""
+msgstr "प्रकार"
 
 msgid "Type ROLLBACK in the confirmation field to acknowledge impact."
 msgstr ""
@@ -24268,7 +24268,7 @@ msgid "Update via API"
 msgstr ""
 
 msgid "Updated"
-msgstr ""
+msgstr "अद्यतन किया गया"
 
 msgid "Updated - Pending Review"
 msgstr ""
@@ -24302,7 +24302,7 @@ msgid "Upgrade toward {{ t }}"
 msgstr ""
 
 msgid "Upload"
-msgstr ""
+msgstr "अपलोड करें"
 
 msgid "Upload PDF or image"
 msgstr ""
@@ -24551,7 +24551,7 @@ msgid "Useful for signed invoices or external receipts."
 msgstr ""
 
 msgid "User"
-msgstr ""
+msgstr "उपयोगकर्ता"
 
 msgid "User #%s"
 msgstr ""
@@ -24578,10 +24578,10 @@ msgid "User with role EMPLOYER."
 msgstr ""
 
 msgid "Username"
-msgstr ""
+msgstr "उपयोगकर्ता नाम"
 
 msgid "Users"
-msgstr ""
+msgstr "उपयोगकर्ता"
 
 msgid "Users (admin)"
 msgstr ""
@@ -24716,7 +24716,7 @@ msgid "Video Hub"
 msgstr ""
 
 msgid "View"
-msgstr ""
+msgstr "देखें"
 
 msgid "View / Edit"
 msgstr ""
@@ -25180,7 +25180,7 @@ msgid "Weights"
 msgstr ""
 
 msgid "Welcome"
-msgstr ""
+msgstr "स्वागत है"
 
 msgid "Welcome back"
 msgstr ""
@@ -25498,7 +25498,7 @@ msgid "Within SLA"
 msgstr ""
 
 msgid "Work email"
-msgstr ""
+msgstr "कार्य ईमेल"
 
 msgid "Work modes"
 msgstr ""
@@ -25713,7 +25713,7 @@ msgid "Year-end rollover"
 msgstr ""
 
 msgid "Yes"
-msgstr ""
+msgstr "हाँ"
 
 msgid "Yes (measurements satisfy gates)"
 msgstr ""
@@ -25946,7 +25946,7 @@ msgid ""
 msgstr ""
 
 msgid "Your name"
-msgstr ""
+msgstr "आपका नाम"
 
 msgid "Your next step"
 msgstr ""
@@ -29284,7 +29284,7 @@ msgid ""
 msgstr ""
 
 msgid "Students"
-msgstr ""
+msgstr "छात्र"
 
 msgid "Visual theme builder"
 msgstr ""
@@ -29326,7 +29326,7 @@ msgid "Date of Birth"
 msgstr ""
 
 msgid "Gender"
-msgstr ""
+msgstr "लिंग"
 
 msgid "Login credentials"
 msgstr ""
@@ -29981,7 +29981,7 @@ msgid ""
 msgstr ""
 
 msgid "City"
-msgstr ""
+msgstr "शहर"
 
 msgid ""
 "Clear upgrade path from Starter → Growth → Enterprise without re-platforming"
@@ -31442,7 +31442,7 @@ msgid "Mechanism"
 msgstr ""
 
 msgid "Message"
-msgstr ""
+msgstr "संदेश"
 
 msgid "Message the platform team"
 msgstr ""
@@ -33105,7 +33105,7 @@ msgid ""
 msgstr ""
 
 msgid "Staff"
-msgstr ""
+msgstr "स्टाफ़"
 
 msgid "Stage a live-source bundle"
 msgstr ""
@@ -33304,7 +33304,7 @@ msgid "Term trend"
 msgstr ""
 
 msgid "Terms"
-msgstr ""
+msgstr "शर्तें"
 
 msgid "Thank you for trusting us with your school's data,"
 msgstr ""
@@ -35744,7 +35744,7 @@ msgid ""
 msgstr ""
 
 msgid "Class"
-msgstr ""
+msgstr "कक्षा"
 
 msgid "Class 5B reached 30-day perfect attendance"
 msgstr ""
@@ -35756,7 +35756,7 @@ msgid "Class:"
 msgstr ""
 
 msgid "Classes"
-msgstr ""
+msgstr "कक्षाएँ"
 
 msgid "Classes & sections"
 msgstr ""
@@ -35954,7 +35954,7 @@ msgid "Confirm open"
 msgstr ""
 
 msgid "Confirm password"
-msgstr ""
+msgstr "पासवर्ड की पुष्टि करें"
 
 msgid "Confirm password, MFA, and contact details for this quarter."
 msgstr ""
@@ -36371,7 +36371,7 @@ msgid "Email & notifications"
 msgstr ""
 
 msgid "Email address"
-msgstr ""
+msgstr "ईमेल पता"
 
 msgid "Email delivery"
 msgstr ""
@@ -36743,7 +36743,7 @@ msgid "Forecast · next 7 days"
 msgstr ""
 
 msgid "Forgot password?"
-msgstr ""
+msgstr "पासवर्ड भूल गए?"
 
 msgid "Four steps to your first operational win."
 msgstr ""
@@ -36893,7 +36893,7 @@ msgid "Grace period"
 msgstr ""
 
 msgid "Grade"
-msgstr ""
+msgstr "ग्रेड"
 
 msgid "Grade / level"
 msgstr ""
@@ -36908,7 +36908,7 @@ msgid "Gradebooks that morph to your framework."
 msgstr ""
 
 msgid "Grades"
-msgstr ""
+msgstr "ग्रेड"
 
 msgid ""
 "Gradient signup banner above the footer. Empty submit_url disables CSRF "
@@ -37114,7 +37114,7 @@ msgid "Impersonation & proxy (recent)"
 msgstr ""
 
 msgid "Import"
-msgstr ""
+msgstr "आयात करें"
 
 msgid "Import help"
 msgstr ""
@@ -39303,7 +39303,7 @@ msgid "Regional residency readiness"
 msgstr ""
 
 msgid "Register"
-msgstr ""
+msgstr "पंजीकरण करें"
 
 msgid ""
 "Register truth + tenant Integration — verified_live only with evidence on "
@@ -39346,7 +39346,7 @@ msgid "Remark"
 msgstr ""
 
 msgid "Remove"
-msgstr ""
+msgstr "हटाएँ"
 
 msgid ""
 "Remove a tenant safely: restrict access, export a portability pack, optional"
@@ -39489,7 +39489,7 @@ msgid "Restrict access (wind-down)"
 msgstr ""
 
 msgid "Result"
-msgstr ""
+msgstr "परिणाम"
 
 msgid "Revenue cohort retention chart"
 msgstr ""
@@ -39690,7 +39690,7 @@ msgid "Saudi Arabia"
 msgstr ""
 
 msgid "Save changes"
-msgstr ""
+msgstr "परिवर्तन सहेजें"
 
 msgid "Save configuration"
 msgstr ""
@@ -39929,7 +39929,7 @@ msgid ""
 msgstr ""
 
 msgid "Select"
-msgstr ""
+msgstr "चुनें"
 
 msgid "Select a school to continue."
 msgstr ""
@@ -39961,7 +39961,7 @@ msgid "Semantic {{ t }} search"
 msgstr ""
 
 msgid "Send"
-msgstr ""
+msgstr "भेजें"
 
 msgid "Send test email to {{ addr }}"
 msgstr ""
@@ -42227,7 +42227,7 @@ msgid "Begin offboarding"
 msgstr ""
 
 msgid "Confirm"
-msgstr ""
+msgstr "पुष्टि करें"
 
 msgid "Confirm bulk action"
 msgstr ""
@@ -42696,7 +42696,7 @@ msgid ""
 msgstr ""
 
 msgid "Assignment"
-msgstr ""
+msgstr "असाइनमेंट"
 
 msgid "Atom feed"
 msgstr ""
@@ -42825,7 +42825,7 @@ msgid "Country localization — wedge-scoped"
 msgstr ""
 
 msgid "Course"
-msgstr ""
+msgstr "पाठ्यक्रम"
 
 msgid "Course ID"
 msgstr ""
@@ -43172,7 +43172,7 @@ msgid "Neutral"
 msgstr ""
 
 msgid "New"
-msgstr ""
+msgstr "नया"
 
 msgid "Next wedge"
 msgstr ""
@@ -46718,7 +46718,7 @@ msgid "Email or username"
 msgstr ""
 
 msgid "First name"
-msgstr ""
+msgstr "पहला नाम"
 
 msgid "Get a new link"
 msgstr ""
@@ -46733,7 +46733,7 @@ msgid "Just signed up and didn’t get your verification email?"
 msgstr ""
 
 msgid "Last name"
-msgstr ""
+msgstr "अंतिम नाम"
 
 msgid ""
 "Let’s finish creating your account. Tell us your name and choose a password "
@@ -46851,7 +46851,7 @@ msgid ""
 msgstr ""
 
 msgid "Forgot your password?"
-msgstr ""
+msgstr "क्या आप अपना पासवर्ड भूल गए?"
 
 msgid "Hide password"
 msgstr ""
@@ -46963,7 +46963,7 @@ msgid "Student 360 sections"
 msgstr ""
 
 msgid "Subjects"
-msgstr ""
+msgstr "विषय"
 
 msgid "That school record no longer exists."
 msgstr ""

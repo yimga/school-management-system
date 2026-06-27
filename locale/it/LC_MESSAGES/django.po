@@ -701,7 +701,7 @@ msgid "APIs & integrations"
 msgstr ""
 
 msgid "About"
-msgstr ""
+msgstr "Informazioni"
 
 msgid "About the operator control model"
 msgstr ""
@@ -716,7 +716,7 @@ msgid "Absences & tardies"
 msgstr ""
 
 msgid "Absent"
-msgstr ""
+msgstr "Assente"
 
 msgid "Academic"
 msgstr ""
@@ -840,7 +840,7 @@ msgid "Accessible on low bandwidth — same thread as parents."
 msgstr ""
 
 msgid "Account"
-msgstr ""
+msgstr "Account"
 
 msgid "Account balance summary"
 msgstr ""
@@ -879,7 +879,7 @@ msgid "Actionable insights"
 msgstr ""
 
 msgid "Actions"
-msgstr ""
+msgstr "Azioni"
 
 msgid "Actions & admin"
 msgstr ""
@@ -931,7 +931,7 @@ msgid "Activation, import, configuration"
 msgstr ""
 
 msgid "Active"
-msgstr ""
+msgstr "Attivo"
 
 msgid "Active (live)"
 msgstr ""
@@ -1035,7 +1035,7 @@ msgid "Actor, tenant, reason, and proposed change captured."
 msgstr ""
 
 msgid "Add"
-msgstr ""
+msgstr "Aggiungi"
 
 msgid "Add ?school_id=&lt;uuid&gt; to compare policy layers for a school."
 msgstr ""
@@ -1180,7 +1180,7 @@ msgid "Adjust school website blocks and visual presets."
 msgstr ""
 
 msgid "Admin"
-msgstr ""
+msgstr "Amministrazione"
 
 msgid "Admin & backend (staff):"
 msgstr ""
@@ -1484,7 +1484,7 @@ msgid "Align report packs with policy blueprints and metadata lineage."
 msgstr ""
 
 msgid "All"
-msgstr ""
+msgstr "Tutti"
 
 msgid "All Systems Operational"
 msgstr ""
@@ -1672,7 +1672,7 @@ msgid "Amber band"
 msgstr ""
 
 msgid "Amount"
-msgstr ""
+msgstr "Importo"
 
 msgid "Amount (high to low)"
 msgstr ""
@@ -1711,7 +1711,7 @@ msgid "Analytics dashboard"
 msgstr ""
 
 msgid "Announcement"
-msgstr ""
+msgstr "Annuncio"
 
 msgid "Announcement published successfully."
 msgstr ""
@@ -1725,7 +1725,7 @@ msgid "Announcement updated successfully."
 msgstr ""
 
 msgid "Announcements"
-msgstr ""
+msgstr "Annunci"
 
 msgid "Announcements get lost across groups and email"
 msgstr ""
@@ -1918,7 +1918,7 @@ msgid ""
 msgstr ""
 
 msgid "Apply"
-msgstr ""
+msgstr "Applica"
 
 msgid "Apply (live)"
 msgstr ""
@@ -2042,7 +2042,7 @@ msgid "Approve selected comments"
 msgstr ""
 
 msgid "Approved"
-msgstr ""
+msgstr "Approvato"
 
 msgid "Approximate student count"
 msgstr ""
@@ -2248,7 +2248,7 @@ msgid "Attempts"
 msgstr ""
 
 msgid "Attendance"
-msgstr ""
+msgstr "Presenze"
 
 msgid "Attendance & Discipline"
 msgstr ""
@@ -2517,7 +2517,7 @@ msgid "Awards and recognition"
 msgstr ""
 
 msgid "Back"
-msgstr ""
+msgstr "Indietro"
 
 msgid "Back to API Center"
 msgstr ""
@@ -2767,7 +2767,7 @@ msgid "Badges for {{ name }}"
 msgstr ""
 
 msgid "Balance"
-msgstr ""
+msgstr "Saldo"
 
 msgid "Balance after"
 msgstr ""
@@ -2882,7 +2882,7 @@ msgid "Between the bells · Sent by RunMyCampus"
 msgstr ""
 
 msgid "Billing"
-msgstr ""
+msgstr "Fatturazione"
 
 msgid "Billing / purchase path"
 msgstr ""
@@ -3305,7 +3305,7 @@ msgid "Bundle surfaces"
 msgstr ""
 
 msgid "Bursar"
-msgstr ""
+msgstr "Economo"
 
 msgid "Bursar Entries Report"
 msgstr ""
@@ -3400,7 +3400,7 @@ msgid ""
 msgstr ""
 
 msgid "Calendar"
-msgstr ""
+msgstr "Calendario"
 
 msgid "Calendar & Homework"
 msgstr ""
@@ -3444,7 +3444,7 @@ msgid "Can't find a time? Contact us and we'll arrange a call."
 msgstr ""
 
 msgid "Cancel"
-msgstr ""
+msgstr "Annulla"
 
 msgid ""
 "Cannot delete: schools or other records still reference this region. "
@@ -4045,7 +4045,7 @@ msgid "Clinic log"
 msgstr ""
 
 msgid "Close"
-msgstr ""
+msgstr "Chiudi"
 
 msgid "Close dialog, sheet, or palette"
 msgstr ""
@@ -4196,7 +4196,7 @@ msgid "Commercial tier (packaging)"
 msgstr ""
 
 msgid "Common questions"
-msgstr ""
+msgstr "Domande frequenti"
 
 msgid "Communicate with parents and staff at scale"
 msgstr ""
@@ -4314,7 +4314,7 @@ msgid "Complete your profile"
 msgstr ""
 
 msgid "Completed"
-msgstr ""
+msgstr "Completato"
 
 msgid "Completed (production PSP signal)"
 msgstr ""
@@ -4656,7 +4656,7 @@ msgid ""
 msgstr ""
 
 msgid "Contact"
-msgstr ""
+msgstr "Contatto"
 
 msgid "Contact IT support or refer to the"
 msgstr ""
@@ -4686,13 +4686,13 @@ msgid "Contact school"
 msgstr ""
 
 msgid "Contact support"
-msgstr ""
+msgstr "Contatta l'assistenza"
 
 msgid "Contact the school administration for any questions."
 msgstr ""
 
 msgid "Contact us"
-msgstr ""
+msgstr "Contattaci"
 
 msgid "Content"
 msgstr ""
@@ -4716,7 +4716,7 @@ msgid "Context photograph"
 msgstr ""
 
 msgid "Continue"
-msgstr ""
+msgstr "Continua"
 
 msgid "Contrast safety: needs attention"
 msgstr ""
@@ -4877,7 +4877,7 @@ msgid "Countries:"
 msgstr ""
 
 msgid "Country"
-msgstr ""
+msgstr "Paese"
 
 msgid "Country code"
 msgstr ""
@@ -4940,7 +4940,7 @@ msgid "Covering (optional)"
 msgstr ""
 
 msgid "Create"
-msgstr ""
+msgstr "Crea"
 
 msgid "Create API key"
 msgstr ""
@@ -5066,7 +5066,7 @@ msgid ""
 msgstr ""
 
 msgid "Created"
-msgstr ""
+msgstr "Creato"
 
 msgid "Created At"
 msgstr ""
@@ -5224,7 +5224,7 @@ msgid "Curriculum, assessment, and reporting on one spine."
 msgstr ""
 
 msgid "Custom"
-msgstr ""
+msgstr "Personalizzato"
 
 msgid "Custom Domain"
 msgstr ""
@@ -5326,7 +5326,7 @@ msgid "Dark"
 msgstr ""
 
 msgid "Dashboard"
-msgstr ""
+msgstr "Dashboard"
 
 msgid "Dashboard / lifecycle signals"
 msgstr ""
@@ -5492,7 +5492,7 @@ msgid "Dataset"
 msgstr ""
 
 msgid "Date"
-msgstr ""
+msgstr "Data"
 
 msgid "Date (newest first)"
 msgstr ""
@@ -5675,7 +5675,7 @@ msgid "Delayed parent follow-up and unclear next steps"
 msgstr ""
 
 msgid "Delete"
-msgstr ""
+msgstr "Elimina"
 
 msgid "Delete Document"
 msgstr ""
@@ -5829,7 +5829,7 @@ msgid ""
 msgstr ""
 
 msgid "Description"
-msgstr ""
+msgstr "Descrizione"
 
 msgid "Description (for AI)"
 msgstr ""
@@ -5937,7 +5937,7 @@ msgid "Developer public API"
 msgstr ""
 
 msgid "Developers"
-msgstr ""
+msgstr "Sviluppatori"
 
 msgid "Device / session"
 msgstr ""
@@ -6299,7 +6299,7 @@ msgid "Donors & advancement"
 msgstr ""
 
 msgid "Download"
-msgstr ""
+msgstr "Scarica"
 
 msgid "Download CSV"
 msgstr ""
@@ -6510,7 +6510,7 @@ msgid "Due Mon 24 Mar · invoice INV-2403"
 msgstr ""
 
 msgid "Due date"
-msgstr ""
+msgstr "Data di scadenza"
 
 msgid "Due date (earliest first)"
 msgstr ""
@@ -6634,7 +6634,7 @@ msgid "Ecosystem (N18–N20)"
 msgstr ""
 
 msgid "Edit"
-msgstr ""
+msgstr "Modifica"
 
 msgid ""
 "Edit GradingScale and GradingScaleBand rows for this tenant after product "
@@ -6773,7 +6773,7 @@ msgid "Elevates risk"
 msgstr ""
 
 msgid "Email"
-msgstr ""
+msgstr "E-mail"
 
 msgid "Email &amp; SMS delivery"
 msgstr ""
@@ -6943,7 +6943,7 @@ msgid ""
 msgstr ""
 
 msgid "Enterprise"
-msgstr ""
+msgstr "Enterprise"
 
 msgid "Enterprise SLA, operator command center access."
 msgstr ""
@@ -7069,7 +7069,7 @@ msgid "Evaluations: student, class, subject, evidence, and score components"
 msgstr ""
 
 msgid "Event"
-msgstr ""
+msgstr "Evento"
 
 msgid "Event Timeline"
 msgstr ""
@@ -7102,7 +7102,7 @@ msgid "Event-scale analytics"
 msgstr ""
 
 msgid "Events"
-msgstr ""
+msgstr "Eventi"
 
 msgid "Events & webinars"
 msgstr ""
@@ -7195,7 +7195,7 @@ msgid ""
 msgstr ""
 
 msgid "Exam"
-msgstr ""
+msgstr "Esame"
 
 msgid ""
 "Example workflow: grade drop triggers teacher and parent notification then "
@@ -7212,7 +7212,7 @@ msgid "Exchange code"
 msgstr ""
 
 msgid "Excused"
-msgstr ""
+msgstr "Giustificato"
 
 msgid "Execution Log"
 msgstr ""
@@ -7404,7 +7404,7 @@ msgid "Exploring the demo?"
 msgstr ""
 
 msgid "Export"
-msgstr ""
+msgstr "Esporta"
 
 msgid "Export & APIs"
 msgstr ""
@@ -7834,7 +7834,7 @@ msgid "Feeds attendance, fees, and reports without re-keying."
 msgstr ""
 
 msgid "Fees"
-msgstr ""
+msgstr "Rette"
 
 msgid "Fees & Payments"
 msgstr ""
@@ -7924,7 +7924,7 @@ msgid "Fill Value"
 msgstr ""
 
 msgid "Filter"
-msgstr ""
+msgstr "Filtra"
 
 msgid "Filter Evaluations"
 msgstr ""
@@ -7977,7 +7977,7 @@ msgid ""
 msgstr ""
 
 msgid "Finance"
-msgstr ""
+msgstr "Finanza"
 
 msgid "Finance & Billing"
 msgstr ""
@@ -8632,7 +8632,7 @@ msgid "Geography — Region packs by continent (Wedges 7–13)"
 msgstr ""
 
 msgid "Get Started"
-msgstr ""
+msgstr "Inizia"
 
 msgid ""
 "Get help, find your campus, or continue to login. This page is shared/public"
@@ -9097,7 +9097,7 @@ msgid "Growing networks"
 msgstr ""
 
 msgid "Growth"
-msgstr ""
+msgstr "Crescita"
 
 msgid "Growth analytics"
 msgstr ""
@@ -9189,7 +9189,7 @@ msgid "Head of School · Cedar Ridge Academy"
 msgstr ""
 
 msgid "Head of school"
-msgstr ""
+msgstr "Dirigente scolastico"
 
 msgid "Head-to-head"
 msgstr ""
@@ -9255,7 +9255,7 @@ msgid "Hello, I need help with the school portal."
 msgstr ""
 
 msgid "Help"
-msgstr ""
+msgstr "Aiuto"
 
 msgid "Help & Knowledge Base"
 msgstr ""
@@ -9286,7 +9286,7 @@ msgid "Help audience"
 msgstr ""
 
 msgid "Help center"
-msgstr ""
+msgstr "Centro assistenza"
 
 msgid "Help: Entity import"
 msgstr ""
@@ -9364,7 +9364,7 @@ msgid "Hollow Creek"
 msgstr ""
 
 msgid "Home"
-msgstr ""
+msgstr "Home"
 
 msgid "Home — control plane"
 msgstr ""
@@ -9373,7 +9373,7 @@ msgid "Home-school (19):"
 msgstr ""
 
 msgid "Homework"
-msgstr ""
+msgstr "Compiti a casa"
 
 msgid "Homework & Upcoming"
 msgstr ""
@@ -9529,7 +9529,7 @@ msgid "IT firefights when SSO drops; nobody knew until staff did."
 msgstr ""
 
 msgid "IT lead"
-msgstr ""
+msgstr "Responsabile IT"
 
 msgid ""
 "IT operations health view showing tenant uptime, single sign-on, payments, "
@@ -9816,7 +9816,7 @@ msgid "In-product factory"
 msgstr ""
 
 msgid "Inactive"
-msgstr ""
+msgstr "Inattivo"
 
 msgid ""
 "Inbound deliveries that didn't pass HMAC verification or the rate limit. "
@@ -10695,7 +10695,7 @@ msgid "Last: {{ day }} {{ time }}"
 msgstr ""
 
 msgid "Late"
-msgstr ""
+msgstr "In ritardo"
 
 msgid "Late patterns surfaced before the office phones."
 msgstr ""
@@ -11210,7 +11210,7 @@ msgid "Loading preview..."
 msgstr ""
 
 msgid "Loading..."
-msgstr ""
+msgstr "Caricamento..."
 
 msgid "Loading…"
 msgstr ""
@@ -11254,7 +11254,7 @@ msgid "Locked"
 msgstr ""
 
 msgid "Log in"
-msgstr ""
+msgstr "Accedi"
 
 msgid "Log intervention"
 msgstr ""
@@ -11284,7 +11284,7 @@ msgid "Logo present"
 msgstr ""
 
 msgid "Logout"
-msgstr ""
+msgstr "Esci"
 
 msgid ""
 "Long-running process runs (admissions, re-enrollment, fee follow-up, "
@@ -11402,7 +11402,7 @@ msgid ""
 msgstr ""
 
 msgid "Manage"
-msgstr ""
+msgstr "Gestisci"
 
 msgid "Manage Users"
 msgstr ""
@@ -11501,7 +11501,7 @@ msgid ""
 msgstr ""
 
 msgid "Map your data"
-msgstr ""
+msgstr "Mappa i tuoi dati"
 
 msgid "Mapping"
 msgstr ""
@@ -11605,7 +11605,7 @@ msgid "Marketplace app version compat (native app)"
 msgstr ""
 
 msgid "Marketplace apps"
-msgstr ""
+msgstr "App del marketplace"
 
 msgid "Marketplace apps (admin)"
 msgstr ""
@@ -11825,7 +11825,7 @@ msgid ""
 msgstr ""
 
 msgid "Messages"
-msgstr ""
+msgstr "Messaggi"
 
 msgid "Messages from School"
 msgstr ""
@@ -12388,7 +12388,7 @@ msgid "NL assistant"
 msgstr ""
 
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 msgid "Name or code…"
 msgstr ""
@@ -12573,7 +12573,7 @@ msgid "Newsletters"
 msgstr ""
 
 msgid "Next"
-msgstr ""
+msgstr "Avanti"
 
 msgid "Next action"
 msgstr ""
@@ -12647,7 +12647,7 @@ msgid "Nine-second roll marks."
 msgstr ""
 
 msgid "No"
-msgstr ""
+msgstr "No"
 
 msgid "No (exception applies)"
 msgstr ""
@@ -13636,7 +13636,7 @@ msgid "Non-destructive simulation (Automation)"
 msgstr ""
 
 msgid "None"
-msgstr ""
+msgstr "Nessuno"
 
 msgid "None (root tenant)"
 msgstr ""
@@ -13767,7 +13767,7 @@ msgid "Nothing to mark — your inbox is already clear."
 msgstr ""
 
 msgid "Notification"
-msgstr ""
+msgstr "Notifica"
 
 msgid "Notification list"
 msgstr ""
@@ -13782,7 +13782,7 @@ msgid "Notification severity"
 msgstr ""
 
 msgid "Notifications"
-msgstr ""
+msgstr "Notifiche"
 
 msgid "Notifications and queues"
 msgstr ""
@@ -14862,7 +14862,7 @@ msgid ""
 msgstr ""
 
 msgid "Optional"
-msgstr ""
+msgstr "Facoltativo"
 
 msgid "Optional plan slug restriction; blank = all plans."
 msgstr ""
@@ -15030,7 +15030,7 @@ msgid "Overall parity:"
 msgstr ""
 
 msgid "Overdue"
-msgstr ""
+msgstr "Scaduto"
 
 msgid "Overdue by classroom"
 msgstr ""
@@ -15057,7 +15057,7 @@ msgid "Override the canonical field"
 msgstr ""
 
 msgid "Overview"
-msgstr ""
+msgstr "Panoramica"
 
 msgid "Overview (chart reference)"
 msgstr ""
@@ -15265,7 +15265,7 @@ msgid "Page {{ p }} of {{ n }}"
 msgstr ""
 
 msgid "Paid"
-msgstr ""
+msgstr "Pagato"
 
 msgid "Paid (YTD)"
 msgstr ""
@@ -15307,7 +15307,7 @@ msgid ""
 msgstr ""
 
 msgid "Parent"
-msgstr ""
+msgstr "Genitore"
 
 msgid "Parent & Teacher Active"
 msgstr ""
@@ -15361,7 +15361,7 @@ msgid "Parent, teacher, and student command centers."
 msgstr ""
 
 msgid "Parents"
-msgstr ""
+msgstr "Genitori"
 
 msgid "Parents & guardians"
 msgstr ""
@@ -15456,7 +15456,7 @@ msgid "Passport school invites"
 msgstr ""
 
 msgid "Password"
-msgstr ""
+msgstr "Password"
 
 msgid "Password changed"
 msgstr ""
@@ -15534,7 +15534,7 @@ msgid "Payload student_id"
 msgstr ""
 
 msgid "Payment"
-msgstr ""
+msgstr "Pagamento"
 
 msgid "Payment Method"
 msgstr ""
@@ -15587,7 +15587,7 @@ msgid "Payment success (ledger)"
 msgstr ""
 
 msgid "Payments"
-msgstr ""
+msgstr "Pagamenti"
 
 msgid "Payments &amp; reconciliation"
 msgstr ""
@@ -15626,7 +15626,7 @@ msgid "Peer operator email (four-eyes)"
 msgstr ""
 
 msgid "Pending"
-msgstr ""
+msgstr "In sospeso"
 
 msgid "Pending Review"
 msgstr ""
@@ -15812,7 +15812,7 @@ msgid ""
 msgstr ""
 
 msgid "Permissions"
-msgstr ""
+msgstr "Autorizzazioni"
 
 msgid "Personalize your portal."
 msgstr ""
@@ -15864,7 +15864,7 @@ msgid ""
 msgstr ""
 
 msgid "Phone"
-msgstr ""
+msgstr "Telefono"
 
 msgid "Photo received. You can close this page."
 msgstr ""
@@ -16751,10 +16751,10 @@ msgid ""
 msgstr ""
 
 msgid "Premium support"
-msgstr ""
+msgstr "Assistenza premium"
 
 msgid "Present"
-msgstr ""
+msgstr "Presente"
 
 msgid "Present today"
 msgstr ""
@@ -16904,7 +16904,7 @@ msgid "Preview/install gated — upgrade plan"
 msgstr ""
 
 msgid "Previous"
-msgstr ""
+msgstr "Precedente"
 
 msgid "Previous applicant page"
 msgstr ""
@@ -16971,7 +16971,7 @@ msgid "Primary/accent colors, logo, heading"
 msgstr ""
 
 msgid "Print"
-msgstr ""
+msgstr "Stampa"
 
 msgid "Print fee statement"
 msgstr ""
@@ -17002,7 +17002,7 @@ msgid "Priority support · 4-hour weekday response"
 msgstr ""
 
 msgid "Privacy"
-msgstr ""
+msgstr "Privacy"
 
 msgid "Privacy Policy"
 msgstr ""
@@ -17067,7 +17067,7 @@ msgid ""
 msgstr ""
 
 msgid "Product"
-msgstr ""
+msgstr "Prodotto"
 
 msgid "Product configuration links"
 msgstr ""
@@ -17121,7 +17121,7 @@ msgid "Productized /api/ai/* endpoints"
 msgstr ""
 
 msgid "Profile"
-msgstr ""
+msgstr "Profilo"
 
 msgid "Profile updated."
 msgstr ""
@@ -18066,7 +18066,7 @@ msgid "Referral rewards"
 msgstr ""
 
 msgid "Refresh"
-msgstr ""
+msgstr "Aggiorna"
 
 msgid "Refresh evaluation"
 msgstr ""
@@ -18235,7 +18235,7 @@ msgid "Reject selected FAQs"
 msgstr ""
 
 msgid "Rejected"
-msgstr ""
+msgstr "Rifiutato"
 
 msgid "Rejection Reason"
 msgstr ""
@@ -18289,7 +18289,7 @@ msgid "Related wedge — same execution rules as above."
 msgstr ""
 
 msgid "Release notes"
-msgstr ""
+msgstr "Note di rilascio"
 
 msgid "Released"
 msgstr ""
@@ -18393,7 +18393,7 @@ msgid "Replay platform event"
 msgstr ""
 
 msgid "Report"
-msgstr ""
+msgstr "Report"
 
 msgid "Report & pack graph"
 msgstr ""
@@ -18547,7 +18547,7 @@ msgid "Reported"
 msgstr ""
 
 msgid "Reports"
-msgstr ""
+msgstr "Report"
 
 msgid "Reports & Transcripts"
 msgstr ""
@@ -18668,7 +18668,7 @@ msgid "Require Signature"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Obbligatorio"
 
 msgid "Required fields: {{ fields }}"
 msgstr ""
@@ -18694,7 +18694,7 @@ msgid "Resend Now"
 msgstr ""
 
 msgid "Reset"
-msgstr ""
+msgstr "Reimposta"
 
 msgid "Reset filters"
 msgstr ""
@@ -18755,7 +18755,7 @@ msgid "Resource areas"
 msgstr ""
 
 msgid "Resources"
-msgstr ""
+msgstr "Risorse"
 
 msgid "Resources hub"
 msgstr ""
@@ -18776,7 +18776,7 @@ msgid "Restore colors to their saved values."
 msgstr ""
 
 msgid "Results"
-msgstr ""
+msgstr "Risultati"
 
 msgid "Results are not published yet. Please check back later."
 msgstr ""
@@ -19070,7 +19070,7 @@ msgid "Roadmap"
 msgstr ""
 
 msgid "Role"
-msgstr ""
+msgstr "Ruolo"
 
 msgid "Role created successfully."
 msgstr ""
@@ -19127,7 +19127,7 @@ msgid "Role-specific surfaces, one sign-in story."
 msgstr ""
 
 msgid "Roles"
-msgstr ""
+msgstr "Ruoli"
 
 msgid "Roles and permissions for staff."
 msgstr ""
@@ -19712,7 +19712,7 @@ msgid "Sandbox: synthetic roster (no PII)"
 msgstr ""
 
 msgid "Save"
-msgstr ""
+msgstr "Salva"
 
 msgid "Save Permissions"
 msgstr ""
@@ -19843,7 +19843,7 @@ msgid "Scan to verify"
 msgstr ""
 
 msgid "Schedule"
-msgstr ""
+msgstr "Orario"
 
 msgid "Schedule a demo"
 msgstr ""
@@ -20022,7 +20022,7 @@ msgid "School memberships"
 msgstr ""
 
 msgid "School name"
-msgstr ""
+msgstr "Nome della scuola"
 
 msgid "School network positioning"
 msgstr ""
@@ -20084,7 +20084,7 @@ msgid "School theme"
 msgstr ""
 
 msgid "School type"
-msgstr ""
+msgstr "Tipo di scuola"
 
 msgid "School website blocks"
 msgstr ""
@@ -20259,7 +20259,7 @@ msgid ""
 msgstr ""
 
 msgid "Search"
-msgstr ""
+msgstr "Cerca"
 
 msgid "Search (e.g. invoice, theme, finance...)"
 msgstr ""
@@ -20382,7 +20382,7 @@ msgid "Secret (HMAC signing)"
 msgstr ""
 
 msgid "Section"
-msgstr ""
+msgstr "Sezione"
 
 msgid "Section divider"
 msgstr ""
@@ -20391,7 +20391,7 @@ msgid "Section flourish"
 msgstr ""
 
 msgid "Sections"
-msgstr ""
+msgstr "Sezioni"
 
 msgid "Sector"
 msgstr ""
@@ -20834,7 +20834,7 @@ msgid "Setting"
 msgstr ""
 
 msgid "Settings"
-msgstr ""
+msgstr "Impostazioni"
 
 msgid "Settings categories"
 msgstr ""
@@ -21035,7 +21035,7 @@ msgid "Sign by Friday 5 p.m. · Bus leaves 9:15"
 msgstr ""
 
 msgid "Sign in"
-msgstr ""
+msgstr "Accedi"
 
 msgid "Sign in to continue"
 msgstr ""
@@ -21060,7 +21060,7 @@ msgid ""
 msgstr ""
 
 msgid "Sign out"
-msgstr ""
+msgstr "Esci"
 
 msgid "Sign-in form"
 msgstr ""
@@ -21639,7 +21639,7 @@ msgid "Started"
 msgstr ""
 
 msgid "Starter"
-msgstr ""
+msgstr "Starter"
 
 msgid ""
 "Starter and region packs: installable via Create School or Setup Studio. One"
@@ -21673,7 +21673,7 @@ msgid "Statistics"
 msgstr ""
 
 msgid "Status"
-msgstr ""
+msgstr "Stato"
 
 msgid "Status & Publishing"
 msgstr ""
@@ -21826,7 +21826,7 @@ msgid "Stubs"
 msgstr ""
 
 msgid "Student"
-msgstr ""
+msgstr "Studente"
 
 msgid "Student 360"
 msgstr ""
@@ -22078,7 +22078,7 @@ msgid ""
 msgstr ""
 
 msgid "Subject"
-msgstr ""
+msgstr "Materia"
 
 msgid "Subject Assignment"
 msgstr ""
@@ -22096,7 +22096,7 @@ msgid "Subjects that need attention this term."
 msgstr ""
 
 msgid "Submit"
-msgstr ""
+msgstr "Invia"
 
 msgid "Submit Report"
 msgstr ""
@@ -22684,7 +22684,7 @@ msgid "Taxes withheld: {{ amt }}"
 msgstr ""
 
 msgid "Teacher"
-msgstr ""
+msgstr "Insegnante"
 
 msgid "Teacher / parent portals — attendance, marks, and messaging."
 msgstr ""
@@ -22735,7 +22735,7 @@ msgid "Teacher workspace"
 msgstr ""
 
 msgid "Teachers"
-msgstr ""
+msgstr "Insegnanti"
 
 msgid "Teachers CSV"
 msgstr ""
@@ -23544,7 +23544,7 @@ msgid "Timestamps"
 msgstr ""
 
 msgid "Timetable"
-msgstr ""
+msgstr "Orario delle lezioni"
 
 msgid "Timetable, assignments, and grades in one calm surface."
 msgstr ""
@@ -23578,7 +23578,7 @@ msgid "Tips (optional)"
 msgstr ""
 
 msgid "Title"
-msgstr ""
+msgstr "Titolo"
 
 msgid "Title (optional)"
 msgstr ""
@@ -23751,7 +23751,7 @@ msgid "Top-performing metrics will appear once marks are entered."
 msgstr ""
 
 msgid "Total"
-msgstr ""
+msgstr "Totale"
 
 msgid "Total Blocked"
 msgstr ""
@@ -23895,7 +23895,7 @@ msgid ""
 msgstr ""
 
 msgid "Transport"
-msgstr ""
+msgstr "Trasporto"
 
 msgid "Transport routes"
 msgstr ""
@@ -24017,7 +24017,7 @@ msgid ""
 msgstr ""
 
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 msgid "Type ROLLBACK in the confirmation field to acknowledge impact."
 msgstr ""
@@ -24275,7 +24275,7 @@ msgid "Update via API"
 msgstr ""
 
 msgid "Updated"
-msgstr ""
+msgstr "Aggiornato"
 
 msgid "Updated - Pending Review"
 msgstr ""
@@ -24309,7 +24309,7 @@ msgid "Upgrade toward {{ t }}"
 msgstr ""
 
 msgid "Upload"
-msgstr ""
+msgstr "Carica"
 
 msgid "Upload PDF or image"
 msgstr ""
@@ -24558,7 +24558,7 @@ msgid "Useful for signed invoices or external receipts."
 msgstr ""
 
 msgid "User"
-msgstr ""
+msgstr "Utente"
 
 msgid "User #%s"
 msgstr ""
@@ -24585,10 +24585,10 @@ msgid "User with role EMPLOYER."
 msgstr ""
 
 msgid "Username"
-msgstr ""
+msgstr "Nome utente"
 
 msgid "Users"
-msgstr ""
+msgstr "Utenti"
 
 msgid "Users (admin)"
 msgstr ""
@@ -24723,7 +24723,7 @@ msgid "Video Hub"
 msgstr ""
 
 msgid "View"
-msgstr ""
+msgstr "Visualizza"
 
 msgid "View / Edit"
 msgstr ""
@@ -25187,7 +25187,7 @@ msgid "Weights"
 msgstr ""
 
 msgid "Welcome"
-msgstr ""
+msgstr "Benvenuto"
 
 msgid "Welcome back"
 msgstr ""
@@ -25505,7 +25505,7 @@ msgid "Within SLA"
 msgstr ""
 
 msgid "Work email"
-msgstr ""
+msgstr "E-mail di lavoro"
 
 msgid "Work modes"
 msgstr ""
@@ -25720,7 +25720,7 @@ msgid "Year-end rollover"
 msgstr ""
 
 msgid "Yes"
-msgstr ""
+msgstr "Sì"
 
 msgid "Yes (measurements satisfy gates)"
 msgstr ""
@@ -25953,7 +25953,7 @@ msgid ""
 msgstr ""
 
 msgid "Your name"
-msgstr ""
+msgstr "Il tuo nome"
 
 msgid "Your next step"
 msgstr ""
@@ -29288,7 +29288,7 @@ msgid ""
 msgstr ""
 
 msgid "Students"
-msgstr ""
+msgstr "Studenti"
 
 msgid "Visual theme builder"
 msgstr ""
@@ -29330,7 +29330,7 @@ msgid "Date of Birth"
 msgstr ""
 
 msgid "Gender"
-msgstr ""
+msgstr "Sesso"
 
 msgid "Login credentials"
 msgstr ""
@@ -29985,7 +29985,7 @@ msgid ""
 msgstr ""
 
 msgid "City"
-msgstr ""
+msgstr "Città"
 
 msgid ""
 "Clear upgrade path from Starter → Growth → Enterprise without re-platforming"
@@ -31446,7 +31446,7 @@ msgid "Mechanism"
 msgstr ""
 
 msgid "Message"
-msgstr ""
+msgstr "Messaggio"
 
 msgid "Message the platform team"
 msgstr ""
@@ -33109,7 +33109,7 @@ msgid ""
 msgstr ""
 
 msgid "Staff"
-msgstr ""
+msgstr "Personale"
 
 msgid "Stage a live-source bundle"
 msgstr ""
@@ -33308,7 +33308,7 @@ msgid "Term trend"
 msgstr ""
 
 msgid "Terms"
-msgstr ""
+msgstr "Termini"
 
 msgid "Thank you for trusting us with your school's data,"
 msgstr ""
@@ -35748,7 +35748,7 @@ msgid ""
 msgstr ""
 
 msgid "Class"
-msgstr ""
+msgstr "Classe"
 
 msgid "Class 5B reached 30-day perfect attendance"
 msgstr ""
@@ -35760,7 +35760,7 @@ msgid "Class:"
 msgstr ""
 
 msgid "Classes"
-msgstr ""
+msgstr "Classi"
 
 msgid "Classes & sections"
 msgstr ""
@@ -35958,7 +35958,7 @@ msgid "Confirm open"
 msgstr ""
 
 msgid "Confirm password"
-msgstr ""
+msgstr "Conferma password"
 
 msgid "Confirm password, MFA, and contact details for this quarter."
 msgstr ""
@@ -36375,7 +36375,7 @@ msgid "Email & notifications"
 msgstr ""
 
 msgid "Email address"
-msgstr ""
+msgstr "Indirizzo e-mail"
 
 msgid "Email delivery"
 msgstr ""
@@ -36747,7 +36747,7 @@ msgid "Forecast · next 7 days"
 msgstr ""
 
 msgid "Forgot password?"
-msgstr ""
+msgstr "Password dimenticata?"
 
 msgid "Four steps to your first operational win."
 msgstr ""
@@ -36897,7 +36897,7 @@ msgid "Grace period"
 msgstr ""
 
 msgid "Grade"
-msgstr ""
+msgstr "Voto"
 
 msgid "Grade / level"
 msgstr ""
@@ -36912,7 +36912,7 @@ msgid "Gradebooks that morph to your framework."
 msgstr ""
 
 msgid "Grades"
-msgstr ""
+msgstr "Voti"
 
 msgid ""
 "Gradient signup banner above the footer. Empty submit_url disables CSRF "
@@ -37118,7 +37118,7 @@ msgid "Impersonation & proxy (recent)"
 msgstr ""
 
 msgid "Import"
-msgstr ""
+msgstr "Importa"
 
 msgid "Import help"
 msgstr ""
@@ -39307,7 +39307,7 @@ msgid "Regional residency readiness"
 msgstr ""
 
 msgid "Register"
-msgstr ""
+msgstr "Registrati"
 
 msgid ""
 "Register truth + tenant Integration — verified_live only with evidence on "
@@ -39350,7 +39350,7 @@ msgid "Remark"
 msgstr ""
 
 msgid "Remove"
-msgstr ""
+msgstr "Rimuovi"
 
 msgid ""
 "Remove a tenant safely: restrict access, export a portability pack, optional"
@@ -39493,7 +39493,7 @@ msgid "Restrict access (wind-down)"
 msgstr ""
 
 msgid "Result"
-msgstr ""
+msgstr "Risultato"
 
 msgid "Revenue cohort retention chart"
 msgstr ""
@@ -39694,7 +39694,7 @@ msgid "Saudi Arabia"
 msgstr ""
 
 msgid "Save changes"
-msgstr ""
+msgstr "Salva modifiche"
 
 msgid "Save configuration"
 msgstr ""
@@ -39933,7 +39933,7 @@ msgid ""
 msgstr ""
 
 msgid "Select"
-msgstr ""
+msgstr "Seleziona"
 
 msgid "Select a school to continue."
 msgstr ""
@@ -39965,7 +39965,7 @@ msgid "Semantic {{ t }} search"
 msgstr ""
 
 msgid "Send"
-msgstr ""
+msgstr "Invia"
 
 msgid "Send test email to {{ addr }}"
 msgstr ""
@@ -42231,7 +42231,7 @@ msgid "Begin offboarding"
 msgstr ""
 
 msgid "Confirm"
-msgstr ""
+msgstr "Conferma"
 
 msgid "Confirm bulk action"
 msgstr ""
@@ -42700,7 +42700,7 @@ msgid ""
 msgstr ""
 
 msgid "Assignment"
-msgstr ""
+msgstr "Compito"
 
 msgid "Atom feed"
 msgstr ""
@@ -42829,7 +42829,7 @@ msgid "Country localization — wedge-scoped"
 msgstr ""
 
 msgid "Course"
-msgstr ""
+msgstr "Corso"
 
 msgid "Course ID"
 msgstr ""
@@ -43176,7 +43176,7 @@ msgid "Neutral"
 msgstr ""
 
 msgid "New"
-msgstr ""
+msgstr "Nuovo"
 
 msgid "Next wedge"
 msgstr ""
@@ -46722,7 +46722,7 @@ msgid "Email or username"
 msgstr ""
 
 msgid "First name"
-msgstr ""
+msgstr "Nome"
 
 msgid "Get a new link"
 msgstr ""
@@ -46737,7 +46737,7 @@ msgid "Just signed up and didn’t get your verification email?"
 msgstr ""
 
 msgid "Last name"
-msgstr ""
+msgstr "Cognome"
 
 msgid ""
 "Let’s finish creating your account. Tell us your name and choose a password "
@@ -46855,7 +46855,7 @@ msgid ""
 msgstr ""
 
 msgid "Forgot your password?"
-msgstr ""
+msgstr "Hai dimenticato la password?"
 
 msgid "Hide password"
 msgstr ""
@@ -46967,7 +46967,7 @@ msgid "Student 360 sections"
 msgstr ""
 
 msgid "Subjects"
-msgstr ""
+msgstr "Materie"
 
 msgid "That school record no longer exists."
 msgstr ""

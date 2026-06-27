@@ -175,6 +175,70 @@ SLOS: tuple[SLODefinition, ...] = (
         owner="customer_success",
         sentry_transactions=(),
     ),
+    # === 2026-06-26 wave #18: close genuinely-important flows that had only a
+    # latency/freshness SLO (or none) — login can be FAST yet error out; a
+    # payment write succeeding matters more than its p95; report-card render and
+    # sync-apply latency, and probe freshness, had no objective at all. The
+    # transactions backing the not-yet-traced flows are named to the existing
+    # dotted convention; per the prometheus_alert_rules honesty contract such
+    # rules stay INERT (never fabricated) until the emit site lands. ===
+    SLODefinition(
+        key="auth.login.availability",
+        label="Login availability (error-free authentication rate)",
+        kind="availability",
+        # A login that is fast but 5xx's is a worse outage than a slow one —
+        # availability is the floor the latency SLO (`auth.login`) sits on top of.
+        target=99.9,
+        window_days=30,
+        owner="identity",
+        sentry_transactions=("auth.login",),
+    ),
+    SLODefinition(
+        key="finance.payment_record.availability",
+        label="Payment record write availability (idempotency-aware)",
+        kind="availability",
+        # Money writes must not silently fail; ledger integrity > tail latency.
+        target=99.9,
+        window_days=30,
+        owner="finance",
+        sentry_transactions=("finance.payment.record",),
+    ),
+    SLODefinition(
+        key="reports.report_card.render",
+        label="Report-card render p95 latency",
+        kind="latency_p95",
+        # PDF/HTML render of a term report card (weasy term_report.html). Heavier
+        # than a dashboard render, so a more generous threshold than parent.dashboard.
+        target=95.0,
+        threshold_ms=2500,  # magic-number-allow: slo-latency-threshold-ms
+        window_days=7,
+        owner="academics",
+        sentry_transactions=("reports.report_card.render",),
+    ),
+    SLODefinition(
+        key="sync.delta_apply.latency",
+        label="Offline sync delta-apply p95 latency",
+        kind="latency_p95",
+        # Latency of the same `sync.delta_apply` transaction whose freshness the
+        # `sync.conflict_pending` SLO already governs — a fresh-but-slow apply
+        # still degrades the offline-first experience.
+        target=95.0,
+        threshold_ms=1500,  # magic-number-allow: slo-latency-threshold-ms
+        window_days=7,
+        owner="sync",
+        sentry_transactions=("sync.delta_apply",),
+    ),
+    SLODefinition(
+        key="healthz.freshness",
+        label="Health-probe freshness (synthetic probe heartbeat)",
+        kind="freshness",
+        # The external/synthetic healthz probe must report recently; a stale probe
+        # means we are flying blind on liveness, not necessarily down.
+        target=99.0,
+        window_days=7,
+        owner="platform",
+        sentry_transactions=("healthz.probe",),
+    ),
 )
 
 

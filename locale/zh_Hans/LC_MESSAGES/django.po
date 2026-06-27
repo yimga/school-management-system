@@ -665,7 +665,7 @@ msgid "APIs & integrations"
 msgstr ""
 
 msgid "About"
-msgstr ""
+msgstr "关于"
 
 msgid "About the operator control model"
 msgstr ""
@@ -680,7 +680,7 @@ msgid "Absences & tardies"
 msgstr ""
 
 msgid "Absent"
-msgstr ""
+msgstr "缺勤"
 
 msgid "Academic"
 msgstr ""
@@ -804,7 +804,7 @@ msgid "Accessible on low bandwidth — same thread as parents."
 msgstr ""
 
 msgid "Account"
-msgstr ""
+msgstr "账户"
 
 msgid "Account balance summary"
 msgstr ""
@@ -843,7 +843,7 @@ msgid "Actionable insights"
 msgstr ""
 
 msgid "Actions"
-msgstr ""
+msgstr "操作"
 
 msgid "Actions & admin"
 msgstr ""
@@ -895,7 +895,7 @@ msgid "Activation, import, configuration"
 msgstr ""
 
 msgid "Active"
-msgstr ""
+msgstr "启用"
 
 msgid "Active (live)"
 msgstr ""
@@ -999,7 +999,7 @@ msgid "Actor, tenant, reason, and proposed change captured."
 msgstr ""
 
 msgid "Add"
-msgstr ""
+msgstr "添加"
 
 msgid "Add ?school_id=&lt;uuid&gt; to compare policy layers for a school."
 msgstr ""
@@ -1144,7 +1144,7 @@ msgid "Adjust school website blocks and visual presets."
 msgstr ""
 
 msgid "Admin"
-msgstr ""
+msgstr "管理"
 
 msgid "Admin & backend (staff):"
 msgstr ""
@@ -1448,7 +1448,7 @@ msgid "Align report packs with policy blueprints and metadata lineage."
 msgstr ""
 
 msgid "All"
-msgstr ""
+msgstr "全部"
 
 msgid "All Systems Operational"
 msgstr ""
@@ -1639,7 +1639,7 @@ msgid "Amber band"
 msgstr ""
 
 msgid "Amount"
-msgstr ""
+msgstr "金额"
 
 msgid "Amount (high to low)"
 msgstr ""
@@ -1678,7 +1678,7 @@ msgid "Analytics dashboard"
 msgstr ""
 
 msgid "Announcement"
-msgstr ""
+msgstr "公告"
 
 msgid "Announcement published successfully."
 msgstr ""
@@ -1692,7 +1692,7 @@ msgid "Announcement updated successfully."
 msgstr ""
 
 msgid "Announcements"
-msgstr ""
+msgstr "公告"
 
 msgid "Announcements get lost across groups and email"
 msgstr ""
@@ -1885,7 +1885,7 @@ msgid ""
 msgstr ""
 
 msgid "Apply"
-msgstr ""
+msgstr "应用"
 
 msgid "Apply (live)"
 msgstr ""
@@ -2009,7 +2009,7 @@ msgid "Approve selected comments"
 msgstr ""
 
 msgid "Approved"
-msgstr ""
+msgstr "已批准"
 
 msgid "Approximate student count"
 msgstr ""
@@ -2215,7 +2215,7 @@ msgid "Attempts"
 msgstr ""
 
 msgid "Attendance"
-msgstr ""
+msgstr "考勤"
 
 msgid "Attendance & Discipline"
 msgstr ""
@@ -2484,7 +2484,7 @@ msgid "Awards and recognition"
 msgstr ""
 
 msgid "Back"
-msgstr ""
+msgstr "返回"
 
 msgid "Back to API Center"
 msgstr ""
@@ -2734,7 +2734,7 @@ msgid "Badges for {{ name }}"
 msgstr ""
 
 msgid "Balance"
-msgstr ""
+msgstr "余额"
 
 msgid "Balance after"
 msgstr ""
@@ -2849,7 +2849,7 @@ msgid "Between the bells · Sent by RunMyCampus"
 msgstr ""
 
 msgid "Billing"
-msgstr ""
+msgstr "账单"
 
 msgid "Billing / purchase path"
 msgstr ""
@@ -3272,7 +3272,7 @@ msgid "Bundle surfaces"
 msgstr ""
 
 msgid "Bursar"
-msgstr ""
+msgstr "财务主管"
 
 msgid "Bursar Entries Report"
 msgstr ""
@@ -3367,7 +3367,7 @@ msgid ""
 msgstr ""
 
 msgid "Calendar"
-msgstr ""
+msgstr "日历"
 
 msgid "Calendar & Homework"
 msgstr ""
@@ -3411,7 +3411,7 @@ msgid "Can't find a time? Contact us and we'll arrange a call."
 msgstr ""
 
 msgid "Cancel"
-msgstr ""
+msgstr "取消"
 
 msgid ""
 "Cannot delete: schools or other records still reference this region. "
@@ -4012,7 +4012,7 @@ msgid "Clinic log"
 msgstr ""
 
 msgid "Close"
-msgstr ""
+msgstr "关闭"
 
 msgid "Close dialog, sheet, or palette"
 msgstr ""
@@ -4166,7 +4166,7 @@ msgid "Commercial tier (packaging)"
 msgstr ""
 
 msgid "Common questions"
-msgstr ""
+msgstr "常见问题"
 
 msgid "Communicate with parents and staff at scale"
 msgstr ""
@@ -4284,7 +4284,7 @@ msgid "Complete your profile"
 msgstr ""
 
 msgid "Completed"
-msgstr ""
+msgstr "已完成"
 
 msgid "Completed (production PSP signal)"
 msgstr ""
@@ -4626,7 +4626,7 @@ msgid ""
 msgstr ""
 
 msgid "Contact"
-msgstr ""
+msgstr "联系"
 
 msgid "Contact IT support or refer to the"
 msgstr ""
@@ -4656,13 +4656,13 @@ msgid "Contact school"
 msgstr ""
 
 msgid "Contact support"
-msgstr ""
+msgstr "联系支持"
 
 msgid "Contact the school administration for any questions."
 msgstr ""
 
 msgid "Contact us"
-msgstr ""
+msgstr "联系我们"
 
 msgid "Content"
 msgstr ""
@@ -4686,7 +4686,7 @@ msgid "Context photograph"
 msgstr ""
 
 msgid "Continue"
-msgstr ""
+msgstr "继续"
 
 msgid "Contrast safety: needs attention"
 msgstr ""
@@ -4847,7 +4847,7 @@ msgid "Countries:"
 msgstr ""
 
 msgid "Country"
-msgstr ""
+msgstr "国家/地区"
 
 msgid "Country code"
 msgstr ""
@@ -4910,7 +4910,7 @@ msgid "Covering (optional)"
 msgstr ""
 
 msgid "Create"
-msgstr ""
+msgstr "创建"
 
 msgid "Create API key"
 msgstr ""
@@ -5036,7 +5036,7 @@ msgid ""
 msgstr ""
 
 msgid "Created"
-msgstr ""
+msgstr "已创建"
 
 msgid "Created At"
 msgstr ""
@@ -5194,7 +5194,7 @@ msgid "Curriculum, assessment, and reporting on one spine."
 msgstr ""
 
 msgid "Custom"
-msgstr ""
+msgstr "自定义"
 
 msgid "Custom Domain"
 msgstr ""
@@ -5296,7 +5296,7 @@ msgid "Dark"
 msgstr ""
 
 msgid "Dashboard"
-msgstr ""
+msgstr "仪表板"
 
 msgid "Dashboard / lifecycle signals"
 msgstr ""
@@ -5462,7 +5462,7 @@ msgid "Dataset"
 msgstr ""
 
 msgid "Date"
-msgstr ""
+msgstr "日期"
 
 msgid "Date (newest first)"
 msgstr ""
@@ -5645,7 +5645,7 @@ msgid "Delayed parent follow-up and unclear next steps"
 msgstr ""
 
 msgid "Delete"
-msgstr ""
+msgstr "删除"
 
 msgid "Delete Document"
 msgstr ""
@@ -5799,7 +5799,7 @@ msgid ""
 msgstr ""
 
 msgid "Description"
-msgstr ""
+msgstr "描述"
 
 msgid "Description (for AI)"
 msgstr ""
@@ -5907,7 +5907,7 @@ msgid "Developer public API"
 msgstr ""
 
 msgid "Developers"
-msgstr ""
+msgstr "开发者"
 
 msgid "Device / session"
 msgstr ""
@@ -6269,7 +6269,7 @@ msgid "Donors & advancement"
 msgstr ""
 
 msgid "Download"
-msgstr ""
+msgstr "下载"
 
 msgid "Download CSV"
 msgstr ""
@@ -6480,7 +6480,7 @@ msgid "Due Mon 24 Mar · invoice INV-2403"
 msgstr ""
 
 msgid "Due date"
-msgstr ""
+msgstr "截止日期"
 
 msgid "Due date (earliest first)"
 msgstr ""
@@ -6604,7 +6604,7 @@ msgid "Ecosystem (N18–N20)"
 msgstr ""
 
 msgid "Edit"
-msgstr ""
+msgstr "编辑"
 
 msgid ""
 "Edit GradingScale and GradingScaleBand rows for this tenant after product "
@@ -6743,7 +6743,7 @@ msgid "Elevates risk"
 msgstr ""
 
 msgid "Email"
-msgstr ""
+msgstr "电子邮件"
 
 msgid "Email &amp; SMS delivery"
 msgstr ""
@@ -6913,7 +6913,7 @@ msgid ""
 msgstr ""
 
 msgid "Enterprise"
-msgstr ""
+msgstr "企业版"
 
 msgid "Enterprise SLA, operator command center access."
 msgstr ""
@@ -7039,7 +7039,7 @@ msgid "Evaluations: student, class, subject, evidence, and score components"
 msgstr ""
 
 msgid "Event"
-msgstr ""
+msgstr "活动"
 
 msgid "Event Timeline"
 msgstr ""
@@ -7072,7 +7072,7 @@ msgid "Event-scale analytics"
 msgstr ""
 
 msgid "Events"
-msgstr ""
+msgstr "活动"
 
 msgid "Events & webinars"
 msgstr ""
@@ -7165,7 +7165,7 @@ msgid ""
 msgstr ""
 
 msgid "Exam"
-msgstr ""
+msgstr "考试"
 
 msgid ""
 "Example workflow: grade drop triggers teacher and parent notification then "
@@ -7182,7 +7182,7 @@ msgid "Exchange code"
 msgstr ""
 
 msgid "Excused"
-msgstr ""
+msgstr "已请假"
 
 msgid "Execution Log"
 msgstr ""
@@ -7374,7 +7374,7 @@ msgid "Exploring the demo?"
 msgstr ""
 
 msgid "Export"
-msgstr ""
+msgstr "导出"
 
 msgid "Export & APIs"
 msgstr ""
@@ -7807,7 +7807,7 @@ msgid "Feeds attendance, fees, and reports without re-keying."
 msgstr ""
 
 msgid "Fees"
-msgstr ""
+msgstr "费用"
 
 msgid "Fees & Payments"
 msgstr ""
@@ -7897,7 +7897,7 @@ msgid "Fill Value"
 msgstr ""
 
 msgid "Filter"
-msgstr ""
+msgstr "筛选"
 
 msgid "Filter Evaluations"
 msgstr ""
@@ -7950,7 +7950,7 @@ msgid ""
 msgstr ""
 
 msgid "Finance"
-msgstr ""
+msgstr "财务"
 
 msgid "Finance & Billing"
 msgstr ""
@@ -8605,7 +8605,7 @@ msgid "Geography — Region packs by continent (Wedges 7–13)"
 msgstr ""
 
 msgid "Get Started"
-msgstr ""
+msgstr "开始使用"
 
 msgid ""
 "Get help, find your campus, or continue to login. This page is shared/public"
@@ -9070,7 +9070,7 @@ msgid "Growing networks"
 msgstr ""
 
 msgid "Growth"
-msgstr ""
+msgstr "成长版"
 
 msgid "Growth analytics"
 msgstr ""
@@ -9162,7 +9162,7 @@ msgid "Head of School · Cedar Ridge Academy"
 msgstr ""
 
 msgid "Head of school"
-msgstr ""
+msgstr "校长"
 
 msgid "Head-to-head"
 msgstr ""
@@ -9228,7 +9228,7 @@ msgid "Hello, I need help with the school portal."
 msgstr ""
 
 msgid "Help"
-msgstr ""
+msgstr "帮助"
 
 msgid "Help & Knowledge Base"
 msgstr ""
@@ -9259,7 +9259,7 @@ msgid "Help audience"
 msgstr ""
 
 msgid "Help center"
-msgstr ""
+msgstr "帮助中心"
 
 msgid "Help: Entity import"
 msgstr ""
@@ -9337,7 +9337,7 @@ msgid "Hollow Creek"
 msgstr ""
 
 msgid "Home"
-msgstr ""
+msgstr "首页"
 
 msgid "Home — control plane"
 msgstr ""
@@ -9346,7 +9346,7 @@ msgid "Home-school (19):"
 msgstr ""
 
 msgid "Homework"
-msgstr ""
+msgstr "家庭作业"
 
 msgid "Homework & Upcoming"
 msgstr ""
@@ -9502,7 +9502,7 @@ msgid "IT firefights when SSO drops; nobody knew until staff did."
 msgstr ""
 
 msgid "IT lead"
-msgstr ""
+msgstr "IT 负责人"
 
 msgid ""
 "IT operations health view showing tenant uptime, single sign-on, payments, "
@@ -9792,7 +9792,7 @@ msgid "In-product factory"
 msgstr ""
 
 msgid "Inactive"
-msgstr ""
+msgstr "未启用"
 
 msgid ""
 "Inbound deliveries that didn't pass HMAC verification or the rate limit. "
@@ -10671,7 +10671,7 @@ msgid "Last: {{ day }} {{ time }}"
 msgstr ""
 
 msgid "Late"
-msgstr ""
+msgstr "迟到"
 
 msgid "Late patterns surfaced before the office phones."
 msgstr ""
@@ -11186,7 +11186,7 @@ msgid "Loading preview..."
 msgstr ""
 
 msgid "Loading..."
-msgstr ""
+msgstr "加载中…"
 
 msgid "Loading…"
 msgstr ""
@@ -11230,7 +11230,7 @@ msgid "Locked"
 msgstr ""
 
 msgid "Log in"
-msgstr ""
+msgstr "登录"
 
 msgid "Log intervention"
 msgstr ""
@@ -11260,7 +11260,7 @@ msgid "Logo present"
 msgstr ""
 
 msgid "Logout"
-msgstr ""
+msgstr "退出登录"
 
 msgid ""
 "Long-running process runs (admissions, re-enrollment, fee follow-up, "
@@ -11378,7 +11378,7 @@ msgid ""
 msgstr ""
 
 msgid "Manage"
-msgstr ""
+msgstr "管理"
 
 msgid "Manage Users"
 msgstr ""
@@ -11477,7 +11477,7 @@ msgid ""
 msgstr ""
 
 msgid "Map your data"
-msgstr ""
+msgstr "映射您的数据"
 
 msgid "Mapping"
 msgstr ""
@@ -11581,7 +11581,7 @@ msgid "Marketplace app version compat (native app)"
 msgstr ""
 
 msgid "Marketplace apps"
-msgstr ""
+msgstr "应用市场应用"
 
 msgid "Marketplace apps (admin)"
 msgstr ""
@@ -11801,7 +11801,7 @@ msgid ""
 msgstr ""
 
 msgid "Messages"
-msgstr ""
+msgstr "消息"
 
 msgid "Messages from School"
 msgstr ""
@@ -12364,7 +12364,7 @@ msgid "NL assistant"
 msgstr ""
 
 msgid "Name"
-msgstr ""
+msgstr "名称"
 
 msgid "Name or code…"
 msgstr ""
@@ -12549,7 +12549,7 @@ msgid "Newsletters"
 msgstr ""
 
 msgid "Next"
-msgstr ""
+msgstr "下一步"
 
 msgid "Next action"
 msgstr ""
@@ -12623,7 +12623,7 @@ msgid "Nine-second roll marks."
 msgstr ""
 
 msgid "No"
-msgstr ""
+msgstr "否"
 
 msgid "No (exception applies)"
 msgstr ""
@@ -13612,7 +13612,7 @@ msgid "Non-destructive simulation (Automation)"
 msgstr ""
 
 msgid "None"
-msgstr ""
+msgstr "无"
 
 msgid "None (root tenant)"
 msgstr ""
@@ -13743,7 +13743,7 @@ msgid "Nothing to mark — your inbox is already clear."
 msgstr ""
 
 msgid "Notification"
-msgstr ""
+msgstr "通知"
 
 msgid "Notification list"
 msgstr ""
@@ -13758,7 +13758,7 @@ msgid "Notification severity"
 msgstr ""
 
 msgid "Notifications"
-msgstr ""
+msgstr "通知"
 
 msgid "Notifications and queues"
 msgstr ""
@@ -14846,7 +14846,7 @@ msgid ""
 msgstr ""
 
 msgid "Optional"
-msgstr ""
+msgstr "可选"
 
 msgid "Optional plan slug restriction; blank = all plans."
 msgstr ""
@@ -15014,7 +15014,7 @@ msgid "Overall parity:"
 msgstr ""
 
 msgid "Overdue"
-msgstr ""
+msgstr "逾期"
 
 msgid "Overdue by classroom"
 msgstr ""
@@ -15041,7 +15041,7 @@ msgid "Override the canonical field"
 msgstr ""
 
 msgid "Overview"
-msgstr ""
+msgstr "概览"
 
 msgid "Overview (chart reference)"
 msgstr ""
@@ -15249,7 +15249,7 @@ msgid "Page {{ p }} of {{ n }}"
 msgstr ""
 
 msgid "Paid"
-msgstr ""
+msgstr "已支付"
 
 msgid "Paid (YTD)"
 msgstr ""
@@ -15291,7 +15291,7 @@ msgid ""
 msgstr ""
 
 msgid "Parent"
-msgstr ""
+msgstr "家长"
 
 msgid "Parent & Teacher Active"
 msgstr ""
@@ -15345,7 +15345,7 @@ msgid "Parent, teacher, and student command centers."
 msgstr ""
 
 msgid "Parents"
-msgstr ""
+msgstr "家长"
 
 msgid "Parents & guardians"
 msgstr ""
@@ -15440,7 +15440,7 @@ msgid "Passport school invites"
 msgstr ""
 
 msgid "Password"
-msgstr ""
+msgstr "密码"
 
 msgid "Password changed"
 msgstr ""
@@ -15518,7 +15518,7 @@ msgid "Payload student_id"
 msgstr ""
 
 msgid "Payment"
-msgstr ""
+msgstr "付款"
 
 msgid "Payment Method"
 msgstr ""
@@ -15571,7 +15571,7 @@ msgid "Payment success (ledger)"
 msgstr ""
 
 msgid "Payments"
-msgstr ""
+msgstr "付款"
 
 msgid "Payments &amp; reconciliation"
 msgstr ""
@@ -15610,7 +15610,7 @@ msgid "Peer operator email (four-eyes)"
 msgstr ""
 
 msgid "Pending"
-msgstr ""
+msgstr "待处理"
 
 msgid "Pending Review"
 msgstr ""
@@ -15796,7 +15796,7 @@ msgid ""
 msgstr ""
 
 msgid "Permissions"
-msgstr ""
+msgstr "权限"
 
 msgid "Personalize your portal."
 msgstr ""
@@ -15848,7 +15848,7 @@ msgid ""
 msgstr ""
 
 msgid "Phone"
-msgstr ""
+msgstr "电话"
 
 msgid "Photo received. You can close this page."
 msgstr ""
@@ -16735,10 +16735,10 @@ msgid ""
 msgstr ""
 
 msgid "Premium support"
-msgstr ""
+msgstr "高级支持"
 
 msgid "Present"
-msgstr ""
+msgstr "出勤"
 
 msgid "Present today"
 msgstr ""
@@ -16888,7 +16888,7 @@ msgid "Preview/install gated — upgrade plan"
 msgstr ""
 
 msgid "Previous"
-msgstr ""
+msgstr "上一步"
 
 msgid "Previous applicant page"
 msgstr ""
@@ -16955,7 +16955,7 @@ msgid "Primary/accent colors, logo, heading"
 msgstr ""
 
 msgid "Print"
-msgstr ""
+msgstr "打印"
 
 msgid "Print fee statement"
 msgstr ""
@@ -16986,7 +16986,7 @@ msgid "Priority support · 4-hour weekday response"
 msgstr ""
 
 msgid "Privacy"
-msgstr ""
+msgstr "隐私"
 
 msgid "Privacy Policy"
 msgstr ""
@@ -17051,7 +17051,7 @@ msgid ""
 msgstr ""
 
 msgid "Product"
-msgstr ""
+msgstr "产品"
 
 msgid "Product configuration links"
 msgstr ""
@@ -17105,7 +17105,7 @@ msgid "Productized /api/ai/* endpoints"
 msgstr ""
 
 msgid "Profile"
-msgstr ""
+msgstr "个人资料"
 
 msgid "Profile updated."
 msgstr ""
@@ -18050,7 +18050,7 @@ msgid "Referral rewards"
 msgstr ""
 
 msgid "Refresh"
-msgstr ""
+msgstr "刷新"
 
 msgid "Refresh evaluation"
 msgstr ""
@@ -18219,7 +18219,7 @@ msgid "Reject selected FAQs"
 msgstr ""
 
 msgid "Rejected"
-msgstr ""
+msgstr "已拒绝"
 
 msgid "Rejection Reason"
 msgstr ""
@@ -18273,7 +18273,7 @@ msgid "Related wedge — same execution rules as above."
 msgstr ""
 
 msgid "Release notes"
-msgstr ""
+msgstr "发行说明"
 
 msgid "Released"
 msgstr ""
@@ -18377,7 +18377,7 @@ msgid "Replay platform event"
 msgstr ""
 
 msgid "Report"
-msgstr ""
+msgstr "报告"
 
 msgid "Report & pack graph"
 msgstr ""
@@ -18531,7 +18531,7 @@ msgid "Reported"
 msgstr ""
 
 msgid "Reports"
-msgstr ""
+msgstr "报告"
 
 msgid "Reports & Transcripts"
 msgstr ""
@@ -18655,7 +18655,7 @@ msgid "Require Signature"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "必填"
 
 msgid "Required fields: {{ fields }}"
 msgstr ""
@@ -18681,7 +18681,7 @@ msgid "Resend Now"
 msgstr ""
 
 msgid "Reset"
-msgstr ""
+msgstr "重置"
 
 msgid "Reset filters"
 msgstr ""
@@ -18742,7 +18742,7 @@ msgid "Resource areas"
 msgstr ""
 
 msgid "Resources"
-msgstr ""
+msgstr "资源"
 
 msgid "Resources hub"
 msgstr ""
@@ -18763,7 +18763,7 @@ msgid "Restore colors to their saved values."
 msgstr ""
 
 msgid "Results"
-msgstr ""
+msgstr "结果"
 
 msgid "Results are not published yet. Please check back later."
 msgstr ""
@@ -19057,7 +19057,7 @@ msgid "Roadmap"
 msgstr ""
 
 msgid "Role"
-msgstr ""
+msgstr "角色"
 
 msgid "Role created successfully."
 msgstr ""
@@ -19114,7 +19114,7 @@ msgid "Role-specific surfaces, one sign-in story."
 msgstr ""
 
 msgid "Roles"
-msgstr ""
+msgstr "角色"
 
 msgid "Roles and permissions for staff."
 msgstr ""
@@ -19699,7 +19699,7 @@ msgid "Sandbox: synthetic roster (no PII)"
 msgstr ""
 
 msgid "Save"
-msgstr ""
+msgstr "保存"
 
 msgid "Save Permissions"
 msgstr ""
@@ -19830,7 +19830,7 @@ msgid "Scan to verify"
 msgstr ""
 
 msgid "Schedule"
-msgstr ""
+msgstr "课程表"
 
 msgid "Schedule a demo"
 msgstr ""
@@ -20009,7 +20009,7 @@ msgid "School memberships"
 msgstr ""
 
 msgid "School name"
-msgstr ""
+msgstr "学校名称"
 
 msgid "School network positioning"
 msgstr ""
@@ -20071,7 +20071,7 @@ msgid "School theme"
 msgstr ""
 
 msgid "School type"
-msgstr ""
+msgstr "学校类型"
 
 msgid "School website blocks"
 msgstr ""
@@ -20246,7 +20246,7 @@ msgid ""
 msgstr ""
 
 msgid "Search"
-msgstr ""
+msgstr "搜索"
 
 msgid "Search (e.g. invoice, theme, finance...)"
 msgstr ""
@@ -20369,7 +20369,7 @@ msgid "Secret (HMAC signing)"
 msgstr ""
 
 msgid "Section"
-msgstr ""
+msgstr "分组"
 
 msgid "Section divider"
 msgstr ""
@@ -20378,7 +20378,7 @@ msgid "Section flourish"
 msgstr ""
 
 msgid "Sections"
-msgstr ""
+msgstr "分组"
 
 msgid "Sector"
 msgstr ""
@@ -20821,7 +20821,7 @@ msgid "Setting"
 msgstr ""
 
 msgid "Settings"
-msgstr ""
+msgstr "设置"
 
 msgid "Settings categories"
 msgstr ""
@@ -21022,7 +21022,7 @@ msgid "Sign by Friday 5 p.m. · Bus leaves 9:15"
 msgstr ""
 
 msgid "Sign in"
-msgstr ""
+msgstr "登录"
 
 msgid "Sign in to continue"
 msgstr ""
@@ -21047,7 +21047,7 @@ msgid ""
 msgstr ""
 
 msgid "Sign out"
-msgstr ""
+msgstr "退出登录"
 
 msgid "Sign-in form"
 msgstr ""
@@ -21626,7 +21626,7 @@ msgid "Started"
 msgstr ""
 
 msgid "Starter"
-msgstr ""
+msgstr "入门版"
 
 msgid ""
 "Starter and region packs: installable via Create School or Setup Studio. One"
@@ -21660,7 +21660,7 @@ msgid "Statistics"
 msgstr ""
 
 msgid "Status"
-msgstr ""
+msgstr "状态"
 
 msgid "Status & Publishing"
 msgstr ""
@@ -21813,7 +21813,7 @@ msgid "Stubs"
 msgstr ""
 
 msgid "Student"
-msgstr ""
+msgstr "学生"
 
 msgid "Student 360"
 msgstr ""
@@ -22065,7 +22065,7 @@ msgid ""
 msgstr ""
 
 msgid "Subject"
-msgstr ""
+msgstr "科目"
 
 msgid "Subject Assignment"
 msgstr ""
@@ -22083,7 +22083,7 @@ msgid "Subjects that need attention this term."
 msgstr ""
 
 msgid "Submit"
-msgstr ""
+msgstr "提交"
 
 msgid "Submit Report"
 msgstr ""
@@ -22671,7 +22671,7 @@ msgid "Taxes withheld: {{ amt }}"
 msgstr ""
 
 msgid "Teacher"
-msgstr ""
+msgstr "教师"
 
 msgid "Teacher / parent portals — attendance, marks, and messaging."
 msgstr ""
@@ -22722,7 +22722,7 @@ msgid "Teacher workspace"
 msgstr ""
 
 msgid "Teachers"
-msgstr ""
+msgstr "教师"
 
 msgid "Teachers CSV"
 msgstr ""
@@ -23534,7 +23534,7 @@ msgid "Timestamps"
 msgstr ""
 
 msgid "Timetable"
-msgstr ""
+msgstr "课程表"
 
 msgid "Timetable, assignments, and grades in one calm surface."
 msgstr ""
@@ -23568,7 +23568,7 @@ msgid "Tips (optional)"
 msgstr ""
 
 msgid "Title"
-msgstr ""
+msgstr "标题"
 
 msgid "Title (optional)"
 msgstr ""
@@ -23741,7 +23741,7 @@ msgid "Top-performing metrics will appear once marks are entered."
 msgstr ""
 
 msgid "Total"
-msgstr ""
+msgstr "合计"
 
 msgid "Total Blocked"
 msgstr ""
@@ -23885,7 +23885,7 @@ msgid ""
 msgstr ""
 
 msgid "Transport"
-msgstr ""
+msgstr "交通"
 
 msgid "Transport routes"
 msgstr ""
@@ -24010,7 +24010,7 @@ msgid ""
 msgstr ""
 
 msgid "Type"
-msgstr ""
+msgstr "类型"
 
 msgid "Type ROLLBACK in the confirmation field to acknowledge impact."
 msgstr ""
@@ -24268,7 +24268,7 @@ msgid "Update via API"
 msgstr ""
 
 msgid "Updated"
-msgstr ""
+msgstr "已更新"
 
 msgid "Updated - Pending Review"
 msgstr ""
@@ -24302,7 +24302,7 @@ msgid "Upgrade toward {{ t }}"
 msgstr ""
 
 msgid "Upload"
-msgstr ""
+msgstr "上传"
 
 msgid "Upload PDF or image"
 msgstr ""
@@ -24551,7 +24551,7 @@ msgid "Useful for signed invoices or external receipts."
 msgstr ""
 
 msgid "User"
-msgstr ""
+msgstr "用户"
 
 msgid "User #%s"
 msgstr ""
@@ -24578,10 +24578,10 @@ msgid "User with role EMPLOYER."
 msgstr ""
 
 msgid "Username"
-msgstr ""
+msgstr "用户名"
 
 msgid "Users"
-msgstr ""
+msgstr "用户"
 
 msgid "Users (admin)"
 msgstr ""
@@ -24716,7 +24716,7 @@ msgid "Video Hub"
 msgstr ""
 
 msgid "View"
-msgstr ""
+msgstr "查看"
 
 msgid "View / Edit"
 msgstr ""
@@ -25180,7 +25180,7 @@ msgid "Weights"
 msgstr ""
 
 msgid "Welcome"
-msgstr ""
+msgstr "欢迎"
 
 msgid "Welcome back"
 msgstr ""
@@ -25498,7 +25498,7 @@ msgid "Within SLA"
 msgstr ""
 
 msgid "Work email"
-msgstr ""
+msgstr "工作邮箱"
 
 msgid "Work modes"
 msgstr ""
@@ -25713,7 +25713,7 @@ msgid "Year-end rollover"
 msgstr ""
 
 msgid "Yes"
-msgstr ""
+msgstr "是"
 
 msgid "Yes (measurements satisfy gates)"
 msgstr ""
@@ -25946,7 +25946,7 @@ msgid ""
 msgstr ""
 
 msgid "Your name"
-msgstr ""
+msgstr "您的姓名"
 
 msgid "Your next step"
 msgstr ""
@@ -29284,7 +29284,7 @@ msgid ""
 msgstr ""
 
 msgid "Students"
-msgstr ""
+msgstr "学生"
 
 msgid "Visual theme builder"
 msgstr ""
@@ -29326,7 +29326,7 @@ msgid "Date of Birth"
 msgstr ""
 
 msgid "Gender"
-msgstr ""
+msgstr "性别"
 
 msgid "Login credentials"
 msgstr ""
@@ -29981,7 +29981,7 @@ msgid ""
 msgstr ""
 
 msgid "City"
-msgstr ""
+msgstr "城市"
 
 msgid ""
 "Clear upgrade path from Starter → Growth → Enterprise without re-platforming"
@@ -31442,7 +31442,7 @@ msgid "Mechanism"
 msgstr ""
 
 msgid "Message"
-msgstr ""
+msgstr "消息"
 
 msgid "Message the platform team"
 msgstr ""
@@ -33105,7 +33105,7 @@ msgid ""
 msgstr ""
 
 msgid "Staff"
-msgstr ""
+msgstr "教职工"
 
 msgid "Stage a live-source bundle"
 msgstr ""
@@ -33304,7 +33304,7 @@ msgid "Term trend"
 msgstr ""
 
 msgid "Terms"
-msgstr ""
+msgstr "条款"
 
 msgid "Thank you for trusting us with your school's data,"
 msgstr ""
@@ -35744,7 +35744,7 @@ msgid ""
 msgstr ""
 
 msgid "Class"
-msgstr ""
+msgstr "班级"
 
 msgid "Class 5B reached 30-day perfect attendance"
 msgstr ""
@@ -35756,7 +35756,7 @@ msgid "Class:"
 msgstr ""
 
 msgid "Classes"
-msgstr ""
+msgstr "班级"
 
 msgid "Classes & sections"
 msgstr ""
@@ -35954,7 +35954,7 @@ msgid "Confirm open"
 msgstr ""
 
 msgid "Confirm password"
-msgstr ""
+msgstr "确认密码"
 
 msgid "Confirm password, MFA, and contact details for this quarter."
 msgstr ""
@@ -36371,7 +36371,7 @@ msgid "Email & notifications"
 msgstr ""
 
 msgid "Email address"
-msgstr ""
+msgstr "电子邮件地址"
 
 msgid "Email delivery"
 msgstr ""
@@ -36743,7 +36743,7 @@ msgid "Forecast · next 7 days"
 msgstr ""
 
 msgid "Forgot password?"
-msgstr ""
+msgstr "忘记密码？"
 
 msgid "Four steps to your first operational win."
 msgstr ""
@@ -36893,7 +36893,7 @@ msgid "Grace period"
 msgstr ""
 
 msgid "Grade"
-msgstr ""
+msgstr "成绩"
 
 msgid "Grade / level"
 msgstr ""
@@ -36908,7 +36908,7 @@ msgid "Gradebooks that morph to your framework."
 msgstr ""
 
 msgid "Grades"
-msgstr ""
+msgstr "成绩"
 
 msgid ""
 "Gradient signup banner above the footer. Empty submit_url disables CSRF "
@@ -37114,7 +37114,7 @@ msgid "Impersonation & proxy (recent)"
 msgstr ""
 
 msgid "Import"
-msgstr ""
+msgstr "导入"
 
 msgid "Import help"
 msgstr ""
@@ -39303,7 +39303,7 @@ msgid "Regional residency readiness"
 msgstr ""
 
 msgid "Register"
-msgstr ""
+msgstr "注册"
 
 msgid ""
 "Register truth + tenant Integration — verified_live only with evidence on "
@@ -39346,7 +39346,7 @@ msgid "Remark"
 msgstr ""
 
 msgid "Remove"
-msgstr ""
+msgstr "移除"
 
 msgid ""
 "Remove a tenant safely: restrict access, export a portability pack, optional"
@@ -39489,7 +39489,7 @@ msgid "Restrict access (wind-down)"
 msgstr ""
 
 msgid "Result"
-msgstr ""
+msgstr "结果"
 
 msgid "Revenue cohort retention chart"
 msgstr ""
@@ -39690,7 +39690,7 @@ msgid "Saudi Arabia"
 msgstr ""
 
 msgid "Save changes"
-msgstr ""
+msgstr "保存更改"
 
 msgid "Save configuration"
 msgstr ""
@@ -39929,7 +39929,7 @@ msgid ""
 msgstr ""
 
 msgid "Select"
-msgstr ""
+msgstr "选择"
 
 msgid "Select a school to continue."
 msgstr ""
@@ -39961,7 +39961,7 @@ msgid "Semantic {{ t }} search"
 msgstr ""
 
 msgid "Send"
-msgstr ""
+msgstr "发送"
 
 msgid "Send test email to {{ addr }}"
 msgstr ""
@@ -42227,7 +42227,7 @@ msgid "Begin offboarding"
 msgstr ""
 
 msgid "Confirm"
-msgstr ""
+msgstr "确认"
 
 msgid "Confirm bulk action"
 msgstr ""
@@ -42696,7 +42696,7 @@ msgid ""
 msgstr ""
 
 msgid "Assignment"
-msgstr ""
+msgstr "作业"
 
 msgid "Atom feed"
 msgstr ""
@@ -42825,7 +42825,7 @@ msgid "Country localization — wedge-scoped"
 msgstr ""
 
 msgid "Course"
-msgstr ""
+msgstr "课程"
 
 msgid "Course ID"
 msgstr ""
@@ -43172,7 +43172,7 @@ msgid "Neutral"
 msgstr ""
 
 msgid "New"
-msgstr ""
+msgstr "新建"
 
 msgid "Next wedge"
 msgstr ""
@@ -46718,7 +46718,7 @@ msgid "Email or username"
 msgstr ""
 
 msgid "First name"
-msgstr ""
+msgstr "名字"
 
 msgid "Get a new link"
 msgstr ""
@@ -46733,7 +46733,7 @@ msgid "Just signed up and didn’t get your verification email?"
 msgstr ""
 
 msgid "Last name"
-msgstr ""
+msgstr "姓氏"
 
 msgid ""
 "Let’s finish creating your account. Tell us your name and choose a password "
@@ -46851,7 +46851,7 @@ msgid ""
 msgstr ""
 
 msgid "Forgot your password?"
-msgstr ""
+msgstr "忘记密码了吗？"
 
 msgid "Hide password"
 msgstr ""
@@ -46963,7 +46963,7 @@ msgid "Student 360 sections"
 msgstr ""
 
 msgid "Subjects"
-msgstr ""
+msgstr "科目"
 
 msgid "That school record no longer exists."
 msgstr ""

@@ -270,6 +270,20 @@ jobs:
         run: |
           python scripts/scan_print_statements.py --compare
 
+  config-sot-domain-ownership:
+    name: Config SOT — domain-ownership exact-storage parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify first-class tuple <-> owner-map parity
+        run: |
+          python scripts/verify_domain_ownership_exact_storage.py
+
   bare-except:
     name: "Bare except: clause boundary"
     runs-on: ubuntu-latest

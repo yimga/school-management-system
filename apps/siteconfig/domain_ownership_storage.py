@@ -25,6 +25,18 @@ VIRTUAL_ONLY_EXACT_FIELDS: Final[frozenset[str]] = frozenset(
         "auto_tag_photos_from_exif",
         "favicon",
         "teacher_reminder_time_of_day",
+        # Notification-intelligence wizard defaults: payload-backed keys (in
+        # runtime_defaults_first_class._WIZARD_RUNTIME_DEFAULT_KEYS, no typed
+        # column), read via the SITE facade. They carry an EXACT brand_experience
+        # owner that intentionally overrides the bare "notify_" prefix (which is
+        # owned by policies_rules), so they need an explicit virtual-only
+        # registration here. Surfaced 2026-06-27 when the Wave A config-SOT work
+        # wired verify_domain_ownership_exact_storage into CI for the first time
+        # (it had only ever run indirectly, so this classification drift was silent).
+        "notify_intelligence",
+        "notify_bell_preview",
+        "notify_inline_actions",
+        "notify_toast_sync",
     }
 )
 

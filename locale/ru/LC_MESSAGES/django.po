@@ -659,7 +659,7 @@ msgid "APIs & integrations"
 msgstr ""
 
 msgid "About"
-msgstr ""
+msgstr "О нас"
 
 msgid "About the operator control model"
 msgstr ""
@@ -674,7 +674,7 @@ msgid "Absences & tardies"
 msgstr ""
 
 msgid "Absent"
-msgstr ""
+msgstr "Отсутствует"
 
 msgid "Academic"
 msgstr ""
@@ -798,7 +798,7 @@ msgid "Accessible on low bandwidth — same thread as parents."
 msgstr ""
 
 msgid "Account"
-msgstr ""
+msgstr "Аккаунт"
 
 msgid "Account balance summary"
 msgstr ""
@@ -837,7 +837,7 @@ msgid "Actionable insights"
 msgstr ""
 
 msgid "Actions"
-msgstr ""
+msgstr "Действия"
 
 msgid "Actions & admin"
 msgstr ""
@@ -889,7 +889,7 @@ msgid "Activation, import, configuration"
 msgstr ""
 
 msgid "Active"
-msgstr ""
+msgstr "Активно"
 
 msgid "Active (live)"
 msgstr ""
@@ -993,7 +993,7 @@ msgid "Actor, tenant, reason, and proposed change captured."
 msgstr ""
 
 msgid "Add"
-msgstr ""
+msgstr "Добавить"
 
 msgid "Add ?school_id=&lt;uuid&gt; to compare policy layers for a school."
 msgstr ""
@@ -1138,7 +1138,7 @@ msgid "Adjust school website blocks and visual presets."
 msgstr ""
 
 msgid "Admin"
-msgstr ""
+msgstr "Администрирование"
 
 msgid "Admin & backend (staff):"
 msgstr ""
@@ -1442,7 +1442,7 @@ msgid "Align report packs with policy blueprints and metadata lineage."
 msgstr ""
 
 msgid "All"
-msgstr ""
+msgstr "Все"
 
 msgid "All Systems Operational"
 msgstr ""
@@ -1501,7 +1501,7 @@ msgid "All keyboard shortcuts"
 msgstr ""
 
 msgid "All major SIS imports"
-msgstr ""
+msgstr "Импорт из всех основных SIS"
 
 msgid "All packs"
 msgstr ""
@@ -1633,7 +1633,7 @@ msgid "Amber band"
 msgstr ""
 
 msgid "Amount"
-msgstr ""
+msgstr "Сумма"
 
 msgid "Amount (high to low)"
 msgstr ""
@@ -1675,7 +1675,7 @@ msgid "Animation suspends under prefers-reduced-motion automatically."
 msgstr ""
 
 msgid "Announcement"
-msgstr ""
+msgstr "Объявление"
 
 msgid "Announcement published successfully."
 msgstr ""
@@ -1689,7 +1689,7 @@ msgid "Announcement updated successfully."
 msgstr ""
 
 msgid "Announcements"
-msgstr ""
+msgstr "Объявления"
 
 msgid "Announcements get lost across groups and email"
 msgstr ""
@@ -1882,7 +1882,7 @@ msgid ""
 msgstr ""
 
 msgid "Apply"
-msgstr ""
+msgstr "Применить"
 
 msgid "Apply (live)"
 msgstr ""
@@ -2006,7 +2006,7 @@ msgid "Approve selected comments"
 msgstr ""
 
 msgid "Approved"
-msgstr ""
+msgstr "Одобрено"
 
 msgid "Approximate student count"
 msgstr ""
@@ -2212,7 +2212,7 @@ msgid "Attempts"
 msgstr ""
 
 msgid "Attendance"
-msgstr ""
+msgstr "Посещаемость"
 
 msgid "Attendance & Discipline"
 msgstr ""
@@ -2481,7 +2481,7 @@ msgid "Awards and recognition"
 msgstr ""
 
 msgid "Back"
-msgstr ""
+msgstr "Назад"
 
 msgid "Back to API Center"
 msgstr ""
@@ -2731,7 +2731,7 @@ msgid "Badges for {{ name }}"
 msgstr ""
 
 msgid "Balance"
-msgstr ""
+msgstr "Баланс"
 
 msgid "Balance after"
 msgstr ""
@@ -2846,7 +2846,7 @@ msgid "Between the bells · Sent by RunMyCampus"
 msgstr ""
 
 msgid "Billing"
-msgstr ""
+msgstr "Оплата"
 
 msgid "Billing / purchase path"
 msgstr ""
@@ -3069,7 +3069,7 @@ msgid "Book a demo"
 msgstr ""
 
 msgid "Book a demo →"
-msgstr ""
+msgstr "Записаться на демо →"
 
 msgid ""
 "Book a guided walkthrough, validate your architecture, and align rollout "
@@ -3275,7 +3275,7 @@ msgid "Bundle surfaces"
 msgstr ""
 
 msgid "Bursar"
-msgstr ""
+msgstr "Казначей"
 
 msgid "Bursar Entries Report"
 msgstr ""
@@ -3370,7 +3370,7 @@ msgid ""
 msgstr ""
 
 msgid "Calendar"
-msgstr ""
+msgstr "Календарь"
 
 msgid "Calendar & Homework"
 msgstr ""
@@ -3414,7 +3414,7 @@ msgid "Can't find a time? Contact us and we'll arrange a call."
 msgstr ""
 
 msgid "Cancel"
-msgstr ""
+msgstr "Отмена"
 
 msgid ""
 "Cannot delete: schools or other records still reference this region. "
@@ -4015,7 +4015,7 @@ msgid "Clinic log"
 msgstr ""
 
 msgid "Close"
-msgstr ""
+msgstr "Закрыть"
 
 msgid "Close dialog, sheet, or palette"
 msgstr ""
@@ -4133,7 +4133,7 @@ msgid ""
 msgstr ""
 
 msgid "Coming from somewhere else?"
-msgstr ""
+msgstr "Переходите с другой платформы?"
 
 msgid "Command Center"
 msgstr ""
@@ -4174,7 +4174,7 @@ msgid "Commercial tier (packaging)"
 msgstr ""
 
 msgid "Common questions"
-msgstr ""
+msgstr "Частые вопросы"
 
 msgid "Communicate with parents and staff at scale"
 msgstr ""
@@ -4292,7 +4292,7 @@ msgid "Complete your profile"
 msgstr ""
 
 msgid "Completed"
-msgstr ""
+msgstr "Завершено"
 
 msgid "Completed (production PSP signal)"
 msgstr ""
@@ -4634,7 +4634,7 @@ msgid ""
 msgstr ""
 
 msgid "Contact"
-msgstr ""
+msgstr "Контакты"
 
 msgid "Contact IT support or refer to the"
 msgstr ""
@@ -4664,13 +4664,13 @@ msgid "Contact school"
 msgstr ""
 
 msgid "Contact support"
-msgstr ""
+msgstr "Связаться с поддержкой"
 
 msgid "Contact the school administration for any questions."
 msgstr ""
 
 msgid "Contact us"
-msgstr ""
+msgstr "Свяжитесь с нами"
 
 msgid "Content"
 msgstr ""
@@ -4694,7 +4694,7 @@ msgid "Context photograph"
 msgstr ""
 
 msgid "Continue"
-msgstr ""
+msgstr "Продолжить"
 
 msgid "Contrast safety: needs attention"
 msgstr ""
@@ -4855,7 +4855,7 @@ msgid "Countries:"
 msgstr ""
 
 msgid "Country"
-msgstr ""
+msgstr "Страна"
 
 msgid "Country code"
 msgstr ""
@@ -4918,7 +4918,7 @@ msgid "Covering (optional)"
 msgstr ""
 
 msgid "Create"
-msgstr ""
+msgstr "Создать"
 
 msgid "Create API key"
 msgstr ""
@@ -5044,7 +5044,7 @@ msgid ""
 msgstr ""
 
 msgid "Created"
-msgstr ""
+msgstr "Создано"
 
 msgid "Created At"
 msgstr ""
@@ -5202,7 +5202,7 @@ msgid "Curriculum, assessment, and reporting on one spine."
 msgstr ""
 
 msgid "Custom"
-msgstr ""
+msgstr "Индивидуально"
 
 msgid "Custom Domain"
 msgstr ""
@@ -5304,7 +5304,7 @@ msgid "Dark"
 msgstr ""
 
 msgid "Dashboard"
-msgstr ""
+msgstr "Панель"
 
 msgid "Dashboard / lifecycle signals"
 msgstr ""
@@ -5470,7 +5470,7 @@ msgid "Dataset"
 msgstr ""
 
 msgid "Date"
-msgstr ""
+msgstr "Дата"
 
 msgid "Date (newest first)"
 msgstr ""
@@ -5653,7 +5653,7 @@ msgid "Delayed parent follow-up and unclear next steps"
 msgstr ""
 
 msgid "Delete"
-msgstr ""
+msgstr "Удалить"
 
 msgid "Delete Document"
 msgstr ""
@@ -5807,7 +5807,7 @@ msgid ""
 msgstr ""
 
 msgid "Description"
-msgstr ""
+msgstr "Описание"
 
 msgid "Description (for AI)"
 msgstr ""
@@ -5915,7 +5915,7 @@ msgid "Developer public API"
 msgstr ""
 
 msgid "Developers"
-msgstr ""
+msgstr "Разработчики"
 
 msgid "Device / session"
 msgstr ""
@@ -6277,7 +6277,7 @@ msgid "Donors & advancement"
 msgstr ""
 
 msgid "Download"
-msgstr ""
+msgstr "Скачать"
 
 msgid "Download CSV"
 msgstr ""
@@ -6488,7 +6488,7 @@ msgid "Due Mon 24 Mar · invoice INV-2403"
 msgstr ""
 
 msgid "Due date"
-msgstr ""
+msgstr "Срок"
 
 msgid "Due date (earliest first)"
 msgstr ""
@@ -6612,7 +6612,7 @@ msgid "Ecosystem (N18–N20)"
 msgstr ""
 
 msgid "Edit"
-msgstr ""
+msgstr "Изменить"
 
 msgid ""
 "Edit GradingScale and GradingScaleBand rows for this tenant after product "
@@ -6754,7 +6754,7 @@ msgid "Elevates risk"
 msgstr ""
 
 msgid "Email"
-msgstr ""
+msgstr "Эл. почта"
 
 msgid "Email &amp; SMS delivery"
 msgstr ""
@@ -6924,7 +6924,7 @@ msgid ""
 msgstr ""
 
 msgid "Enterprise"
-msgstr ""
+msgstr "Корпоративный"
 
 msgid "Enterprise SLA, operator command center access."
 msgstr ""
@@ -7050,7 +7050,7 @@ msgid "Evaluations: student, class, subject, evidence, and score components"
 msgstr ""
 
 msgid "Event"
-msgstr ""
+msgstr "Событие"
 
 msgid "Event Timeline"
 msgstr ""
@@ -7083,7 +7083,7 @@ msgid "Event-scale analytics"
 msgstr ""
 
 msgid "Events"
-msgstr ""
+msgstr "События"
 
 msgid "Events & webinars"
 msgstr ""
@@ -7179,7 +7179,7 @@ msgid ""
 msgstr ""
 
 msgid "Exam"
-msgstr ""
+msgstr "Экзамен"
 
 msgid ""
 "Example workflow: grade drop triggers teacher and parent notification then "
@@ -7196,7 +7196,7 @@ msgid "Exchange code"
 msgstr ""
 
 msgid "Excused"
-msgstr ""
+msgstr "Уважительная причина"
 
 msgid "Execution Log"
 msgstr ""
@@ -7388,7 +7388,7 @@ msgid "Exploring the demo?"
 msgstr ""
 
 msgid "Export"
-msgstr ""
+msgstr "Экспорт"
 
 msgid "Export & APIs"
 msgstr ""
@@ -7592,7 +7592,7 @@ msgid "FERPA §99.32 disclosure record"
 msgstr ""
 
 msgid "FERPA · GDPR · POPIA aligned"
-msgstr ""
+msgstr "Соответствие FERPA · GDPR · POPIA"
 
 msgid "Facilities"
 msgstr ""
@@ -7821,7 +7821,7 @@ msgid "Feeds attendance, fees, and reports without re-keying."
 msgstr ""
 
 msgid "Fees"
-msgstr ""
+msgstr "Сборы"
 
 msgid "Fees & Payments"
 msgstr ""
@@ -7911,7 +7911,7 @@ msgid "Fill Value"
 msgstr ""
 
 msgid "Filter"
-msgstr ""
+msgstr "Фильтр"
 
 msgid "Filter Evaluations"
 msgstr ""
@@ -7964,7 +7964,7 @@ msgid ""
 msgstr ""
 
 msgid "Finance"
-msgstr ""
+msgstr "Финансы"
 
 msgid "Finance & Billing"
 msgstr ""
@@ -8619,7 +8619,7 @@ msgid "Geography — Region packs by continent (Wedges 7–13)"
 msgstr ""
 
 msgid "Get Started"
-msgstr ""
+msgstr "Начать"
 
 msgid ""
 "Get help, find your campus, or continue to login. This page is shared/public"
@@ -9084,7 +9084,7 @@ msgid "Growing networks"
 msgstr ""
 
 msgid "Growth"
-msgstr ""
+msgstr "Рост"
 
 msgid "Growth analytics"
 msgstr ""
@@ -9176,7 +9176,7 @@ msgid "Head of School · Cedar Ridge Academy"
 msgstr ""
 
 msgid "Head of school"
-msgstr ""
+msgstr "Директор школы"
 
 msgid "Head-to-head"
 msgstr ""
@@ -9242,7 +9242,7 @@ msgid "Hello, I need help with the school portal."
 msgstr ""
 
 msgid "Help"
-msgstr ""
+msgstr "Помощь"
 
 msgid "Help & Knowledge Base"
 msgstr ""
@@ -9273,7 +9273,7 @@ msgid "Help audience"
 msgstr ""
 
 msgid "Help center"
-msgstr ""
+msgstr "Центр помощи"
 
 msgid "Help: Entity import"
 msgstr ""
@@ -9351,7 +9351,7 @@ msgid "Hollow Creek"
 msgstr ""
 
 msgid "Home"
-msgstr ""
+msgstr "Главная"
 
 msgid "Home — control plane"
 msgstr ""
@@ -9360,7 +9360,7 @@ msgid "Home-school (19):"
 msgstr ""
 
 msgid "Homework"
-msgstr ""
+msgstr "Домашнее задание"
 
 msgid "Homework & Upcoming"
 msgstr ""
@@ -9516,7 +9516,7 @@ msgid "IT firefights when SSO drops; nobody knew until staff did."
 msgstr ""
 
 msgid "IT lead"
-msgstr ""
+msgstr "Руководитель ИТ"
 
 msgid ""
 "IT operations health view showing tenant uptime, single sign-on, payments, "
@@ -9687,7 +9687,7 @@ msgid "Implementation & operations"
 msgstr ""
 
 msgid "Implementation assurance"
-msgstr ""
+msgstr "Гарантия внедрения"
 
 msgid "Implementation checklist"
 msgstr ""
@@ -9806,7 +9806,7 @@ msgid "In-product factory"
 msgstr ""
 
 msgid "Inactive"
-msgstr ""
+msgstr "Неактивно"
 
 msgid ""
 "Inbound deliveries that didn't pass HMAC verification or the rate limit. "
@@ -10690,7 +10690,7 @@ msgid "Last: {{ day }} {{ time }}"
 msgstr ""
 
 msgid "Late"
-msgstr ""
+msgstr "Опоздание"
 
 msgid "Late patterns surfaced before the office phones."
 msgstr ""
@@ -11205,7 +11205,7 @@ msgid "Loading preview..."
 msgstr ""
 
 msgid "Loading..."
-msgstr ""
+msgstr "Загрузка..."
 
 msgid "Loading…"
 msgstr ""
@@ -11249,7 +11249,7 @@ msgid "Locked"
 msgstr ""
 
 msgid "Log in"
-msgstr ""
+msgstr "Войти"
 
 msgid "Log intervention"
 msgstr ""
@@ -11279,7 +11279,7 @@ msgid "Logo present"
 msgstr ""
 
 msgid "Logout"
-msgstr ""
+msgstr "Выйти"
 
 msgid ""
 "Long-running process runs (admissions, re-enrollment, fee follow-up, "
@@ -11397,7 +11397,7 @@ msgid ""
 msgstr ""
 
 msgid "Manage"
-msgstr ""
+msgstr "Управление"
 
 msgid "Manage Users"
 msgstr ""
@@ -11496,7 +11496,7 @@ msgid ""
 msgstr ""
 
 msgid "Map your data"
-msgstr ""
+msgstr "Сопоставьте свои данные"
 
 msgid "Mapping"
 msgstr ""
@@ -11600,7 +11600,7 @@ msgid "Marketplace app version compat (native app)"
 msgstr ""
 
 msgid "Marketplace apps"
-msgstr ""
+msgstr "Приложения маркетплейса"
 
 msgid "Marketplace apps (admin)"
 msgstr ""
@@ -11823,7 +11823,7 @@ msgid ""
 msgstr ""
 
 msgid "Messages"
-msgstr ""
+msgstr "Сообщения"
 
 msgid "Messages from School"
 msgstr ""
@@ -12386,7 +12386,7 @@ msgid "NL assistant"
 msgstr ""
 
 msgid "Name"
-msgstr ""
+msgstr "Имя"
 
 msgid "Name or code…"
 msgstr ""
@@ -12571,7 +12571,7 @@ msgid "Newsletters"
 msgstr ""
 
 msgid "Next"
-msgstr ""
+msgstr "Далее"
 
 msgid "Next action"
 msgstr ""
@@ -12645,7 +12645,7 @@ msgid "Nine-second roll marks."
 msgstr ""
 
 msgid "No"
-msgstr ""
+msgstr "Нет"
 
 msgid "No (exception applies)"
 msgstr ""
@@ -13634,7 +13634,7 @@ msgid "Non-destructive simulation (Automation)"
 msgstr ""
 
 msgid "None"
-msgstr ""
+msgstr "Нет"
 
 msgid "None (root tenant)"
 msgstr ""
@@ -13765,7 +13765,7 @@ msgid "Nothing to mark — your inbox is already clear."
 msgstr ""
 
 msgid "Notification"
-msgstr ""
+msgstr "Уведомление"
 
 msgid "Notification list"
 msgstr ""
@@ -13780,7 +13780,7 @@ msgid "Notification severity"
 msgstr ""
 
 msgid "Notifications"
-msgstr ""
+msgstr "Уведомления"
 
 msgid "Notifications and queues"
 msgstr ""
@@ -13927,7 +13927,7 @@ msgid ""
 msgstr ""
 
 msgid "Offline-first where the network drops"
-msgstr ""
+msgstr "Работа офлайн там, где пропадает сеть"
 
 msgid "Offline-ready education operating system"
 msgstr ""
@@ -14092,7 +14092,7 @@ msgstr ""
 msgid ""
 "One quiet system behind admissions, classrooms, fees, and the message you "
 "send a parent at 8:14 a.m."
-msgstr ""
+msgstr "Одна незаметная система за приёмом, классами, оплатой и сообщением, которое вы отправляете родителю в 8:14 утра."
 
 msgid "One quiet system, behind everything your school does."
 msgstr ""
@@ -14873,7 +14873,7 @@ msgid ""
 msgstr ""
 
 msgid "Optional"
-msgstr ""
+msgstr "Необязательно"
 
 msgid "Optional plan slug restriction; blank = all plans."
 msgstr ""
@@ -15041,7 +15041,7 @@ msgid "Overall parity:"
 msgstr ""
 
 msgid "Overdue"
-msgstr ""
+msgstr "Просрочено"
 
 msgid "Overdue by classroom"
 msgstr ""
@@ -15068,7 +15068,7 @@ msgid "Override the canonical field"
 msgstr ""
 
 msgid "Overview"
-msgstr ""
+msgstr "Обзор"
 
 msgid "Overview (chart reference)"
 msgstr ""
@@ -15276,7 +15276,7 @@ msgid "Page {{ p }} of {{ n }}"
 msgstr ""
 
 msgid "Paid"
-msgstr ""
+msgstr "Оплачено"
 
 msgid "Paid (YTD)"
 msgstr ""
@@ -15318,7 +15318,7 @@ msgid ""
 msgstr ""
 
 msgid "Parent"
-msgstr ""
+msgstr "Родитель"
 
 msgid "Parent & Teacher Active"
 msgstr ""
@@ -15372,7 +15372,7 @@ msgid "Parent, teacher, and student command centers."
 msgstr ""
 
 msgid "Parents"
-msgstr ""
+msgstr "Родители"
 
 msgid "Parents & guardians"
 msgstr ""
@@ -15467,7 +15467,7 @@ msgid "Passport school invites"
 msgstr ""
 
 msgid "Password"
-msgstr ""
+msgstr "Пароль"
 
 msgid "Password changed"
 msgstr ""
@@ -15545,7 +15545,7 @@ msgid "Payload student_id"
 msgstr ""
 
 msgid "Payment"
-msgstr ""
+msgstr "Платёж"
 
 msgid "Payment Method"
 msgstr ""
@@ -15598,7 +15598,7 @@ msgid "Payment success (ledger)"
 msgstr ""
 
 msgid "Payments"
-msgstr ""
+msgstr "Платежи"
 
 msgid "Payments &amp; reconciliation"
 msgstr ""
@@ -15637,7 +15637,7 @@ msgid "Peer operator email (four-eyes)"
 msgstr ""
 
 msgid "Pending"
-msgstr ""
+msgstr "В ожидании"
 
 msgid "Pending Review"
 msgstr ""
@@ -15823,7 +15823,7 @@ msgid ""
 msgstr ""
 
 msgid "Permissions"
-msgstr ""
+msgstr "Разрешения"
 
 msgid "Personalize your portal."
 msgstr ""
@@ -15875,7 +15875,7 @@ msgid ""
 msgstr ""
 
 msgid "Phone"
-msgstr ""
+msgstr "Телефон"
 
 msgid "Photo received. You can close this page."
 msgstr ""
@@ -16765,10 +16765,10 @@ msgid ""
 msgstr ""
 
 msgid "Premium support"
-msgstr ""
+msgstr "Премиум-поддержка"
 
 msgid "Present"
-msgstr ""
+msgstr "Присутствует"
 
 msgid "Present today"
 msgstr ""
@@ -16918,7 +16918,7 @@ msgid "Preview/install gated — upgrade plan"
 msgstr ""
 
 msgid "Previous"
-msgstr ""
+msgstr "Назад"
 
 msgid "Previous applicant page"
 msgstr ""
@@ -16985,7 +16985,7 @@ msgid "Primary/accent colors, logo, heading"
 msgstr ""
 
 msgid "Print"
-msgstr ""
+msgstr "Печать"
 
 msgid "Print fee statement"
 msgstr ""
@@ -17016,7 +17016,7 @@ msgid "Priority support · 4-hour weekday response"
 msgstr ""
 
 msgid "Privacy"
-msgstr ""
+msgstr "Конфиденциальность"
 
 msgid "Privacy Policy"
 msgstr ""
@@ -17081,7 +17081,7 @@ msgid ""
 msgstr ""
 
 msgid "Product"
-msgstr ""
+msgstr "Продукт"
 
 msgid "Product configuration links"
 msgstr ""
@@ -17135,7 +17135,7 @@ msgid "Productized /api/ai/* endpoints"
 msgstr ""
 
 msgid "Profile"
-msgstr ""
+msgstr "Профиль"
 
 msgid "Profile updated."
 msgstr ""
@@ -18080,7 +18080,7 @@ msgid "Referral rewards"
 msgstr ""
 
 msgid "Refresh"
-msgstr ""
+msgstr "Обновить"
 
 msgid "Refresh evaluation"
 msgstr ""
@@ -18249,7 +18249,7 @@ msgid "Reject selected FAQs"
 msgstr ""
 
 msgid "Rejected"
-msgstr ""
+msgstr "Отклонено"
 
 msgid "Rejection Reason"
 msgstr ""
@@ -18303,7 +18303,7 @@ msgid "Related wedge — same execution rules as above."
 msgstr ""
 
 msgid "Release notes"
-msgstr ""
+msgstr "Примечания к выпуску"
 
 msgid "Released"
 msgstr ""
@@ -18407,7 +18407,7 @@ msgid "Replay platform event"
 msgstr ""
 
 msgid "Report"
-msgstr ""
+msgstr "Отчёт"
 
 msgid "Report & pack graph"
 msgstr ""
@@ -18561,7 +18561,7 @@ msgid "Reported"
 msgstr ""
 
 msgid "Reports"
-msgstr ""
+msgstr "Отчёты"
 
 msgid "Reports & Transcripts"
 msgstr ""
@@ -18664,7 +18664,7 @@ msgid "Request photo for"
 msgstr ""
 
 msgid "Request security packet"
-msgstr ""
+msgstr "Запросить пакет по безопасности"
 
 msgid "Request subscription waiver"
 msgstr ""
@@ -18685,7 +18685,7 @@ msgid "Require Signature"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Обязательно"
 
 msgid "Required fields: {{ fields }}"
 msgstr ""
@@ -18711,7 +18711,7 @@ msgid "Resend Now"
 msgstr ""
 
 msgid "Reset"
-msgstr ""
+msgstr "Сбросить"
 
 msgid "Reset filters"
 msgstr ""
@@ -18772,7 +18772,7 @@ msgid "Resource areas"
 msgstr ""
 
 msgid "Resources"
-msgstr ""
+msgstr "Ресурсы"
 
 msgid "Resources hub"
 msgstr ""
@@ -18793,7 +18793,7 @@ msgid "Restore colors to their saved values."
 msgstr ""
 
 msgid "Results"
-msgstr ""
+msgstr "Результаты"
 
 msgid "Results are not published yet. Please check back later."
 msgstr ""
@@ -19087,7 +19087,7 @@ msgid "Roadmap"
 msgstr ""
 
 msgid "Role"
-msgstr ""
+msgstr "Роль"
 
 msgid "Role created successfully."
 msgstr ""
@@ -19144,7 +19144,7 @@ msgid "Role-specific surfaces, one sign-in story."
 msgstr ""
 
 msgid "Roles"
-msgstr ""
+msgstr "Роли"
 
 msgid "Roles and permissions for staff."
 msgstr ""
@@ -19729,7 +19729,7 @@ msgid "Sandbox: synthetic roster (no PII)"
 msgstr ""
 
 msgid "Save"
-msgstr ""
+msgstr "Сохранить"
 
 msgid "Save Permissions"
 msgstr ""
@@ -19860,7 +19860,7 @@ msgid "Scan to verify"
 msgstr ""
 
 msgid "Schedule"
-msgstr ""
+msgstr "Расписание"
 
 msgid "Schedule a demo"
 msgstr ""
@@ -20039,7 +20039,7 @@ msgid "School memberships"
 msgstr ""
 
 msgid "School name"
-msgstr ""
+msgstr "Название школы"
 
 msgid "School network positioning"
 msgstr ""
@@ -20101,7 +20101,7 @@ msgid "School theme"
 msgstr ""
 
 msgid "School type"
-msgstr ""
+msgstr "Тип школы"
 
 msgid "School website blocks"
 msgstr ""
@@ -20276,7 +20276,7 @@ msgid ""
 msgstr ""
 
 msgid "Search"
-msgstr ""
+msgstr "Поиск"
 
 msgid "Search (e.g. invoice, theme, finance...)"
 msgstr ""
@@ -20399,7 +20399,7 @@ msgid "Secret (HMAC signing)"
 msgstr ""
 
 msgid "Section"
-msgstr ""
+msgstr "Раздел"
 
 msgid "Section divider"
 msgstr ""
@@ -20408,7 +20408,7 @@ msgid "Section flourish"
 msgstr ""
 
 msgid "Sections"
-msgstr ""
+msgstr "Разделы"
 
 msgid "Sector"
 msgstr ""
@@ -20851,7 +20851,7 @@ msgid "Setting"
 msgstr ""
 
 msgid "Settings"
-msgstr ""
+msgstr "Настройки"
 
 msgid "Settings categories"
 msgstr ""
@@ -21052,7 +21052,7 @@ msgid "Sign by Friday 5 p.m. · Bus leaves 9:15"
 msgstr ""
 
 msgid "Sign in"
-msgstr ""
+msgstr "Войти"
 
 msgid "Sign in to continue"
 msgstr ""
@@ -21077,7 +21077,7 @@ msgid ""
 msgstr ""
 
 msgid "Sign out"
-msgstr ""
+msgstr "Выйти"
 
 msgid "Sign-in form"
 msgstr ""
@@ -21662,7 +21662,7 @@ msgid "Started"
 msgstr ""
 
 msgid "Starter"
-msgstr ""
+msgstr "Начальный"
 
 msgid ""
 "Starter and region packs: installable via Create School or Setup Studio. One"
@@ -21696,7 +21696,7 @@ msgid "Statistics"
 msgstr ""
 
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
 msgid "Status & Publishing"
 msgstr ""
@@ -21849,7 +21849,7 @@ msgid "Stubs"
 msgstr ""
 
 msgid "Student"
-msgstr ""
+msgstr "Ученик"
 
 msgid "Student 360"
 msgstr ""
@@ -22101,7 +22101,7 @@ msgid ""
 msgstr ""
 
 msgid "Subject"
-msgstr ""
+msgstr "Предмет"
 
 msgid "Subject Assignment"
 msgstr ""
@@ -22119,7 +22119,7 @@ msgid "Subjects that need attention this term."
 msgstr ""
 
 msgid "Submit"
-msgstr ""
+msgstr "Отправить"
 
 msgid "Submit Report"
 msgstr ""
@@ -22707,7 +22707,7 @@ msgid "Taxes withheld: {{ amt }}"
 msgstr ""
 
 msgid "Teacher"
-msgstr ""
+msgstr "Учитель"
 
 msgid "Teacher / parent portals — attendance, marks, and messaging."
 msgstr ""
@@ -22758,7 +22758,7 @@ msgid "Teacher workspace"
 msgstr ""
 
 msgid "Teachers"
-msgstr ""
+msgstr "Учителя"
 
 msgid "Teachers CSV"
 msgstr ""
@@ -23071,7 +23071,7 @@ msgid ""
 msgstr ""
 
 msgid "That page isn't here."
-msgstr ""
+msgstr "Этой страницы здесь нет."
 
 msgid "The active workspace for the mode you selected."
 msgstr ""
@@ -23570,7 +23570,7 @@ msgid "Timestamps"
 msgstr ""
 
 msgid "Timetable"
-msgstr ""
+msgstr "Расписание"
 
 msgid "Timetable, assignments, and grades in one calm surface."
 msgstr ""
@@ -23604,7 +23604,7 @@ msgid "Tips (optional)"
 msgstr ""
 
 msgid "Title"
-msgstr ""
+msgstr "Заголовок"
 
 msgid "Title (optional)"
 msgstr ""
@@ -23777,7 +23777,7 @@ msgid "Top-performing metrics will appear once marks are entered."
 msgstr ""
 
 msgid "Total"
-msgstr ""
+msgstr "Итого"
 
 msgid "Total Blocked"
 msgstr ""
@@ -23921,7 +23921,7 @@ msgid ""
 msgstr ""
 
 msgid "Transport"
-msgstr ""
+msgstr "Транспорт"
 
 msgid "Transport routes"
 msgstr ""
@@ -24022,7 +24022,7 @@ msgid "Tuesday · 18 March · 942 of 1,002 students expected"
 msgstr ""
 
 msgid "Tuesday · Cedar Ridge Academy"
-msgstr ""
+msgstr "Вторник · Cedar Ridge Academy"
 
 msgid "Tuition, fees, aid — Finance dashboard and admissions workflows."
 msgstr ""
@@ -24046,7 +24046,7 @@ msgid ""
 msgstr ""
 
 msgid "Type"
-msgstr ""
+msgstr "Тип"
 
 msgid "Type ROLLBACK in the confirmation field to acknowledge impact."
 msgstr ""
@@ -24304,7 +24304,7 @@ msgid "Update via API"
 msgstr ""
 
 msgid "Updated"
-msgstr ""
+msgstr "Обновлено"
 
 msgid "Updated - Pending Review"
 msgstr ""
@@ -24338,7 +24338,7 @@ msgid "Upgrade toward {{ t }}"
 msgstr ""
 
 msgid "Upload"
-msgstr ""
+msgstr "Загрузить"
 
 msgid "Upload PDF or image"
 msgstr ""
@@ -24590,7 +24590,7 @@ msgid "Useful for signed invoices or external receipts."
 msgstr ""
 
 msgid "User"
-msgstr ""
+msgstr "Пользователь"
 
 msgid "User #%s"
 msgstr ""
@@ -24617,10 +24617,10 @@ msgid "User with role EMPLOYER."
 msgstr ""
 
 msgid "Username"
-msgstr ""
+msgstr "Имя пользователя"
 
 msgid "Users"
-msgstr ""
+msgstr "Пользователи"
 
 msgid "Users (admin)"
 msgstr ""
@@ -24758,7 +24758,7 @@ msgid "Video Hub"
 msgstr ""
 
 msgid "View"
-msgstr ""
+msgstr "Просмотр"
 
 msgid "View / Edit"
 msgstr ""
@@ -25222,7 +25222,7 @@ msgid "Weights"
 msgstr ""
 
 msgid "Welcome"
-msgstr ""
+msgstr "Добро пожаловать"
 
 msgid "Welcome back"
 msgstr ""
@@ -25540,7 +25540,7 @@ msgid "Within SLA"
 msgstr ""
 
 msgid "Work email"
-msgstr ""
+msgstr "Рабочая эл. почта"
 
 msgid "Work modes"
 msgstr ""
@@ -25755,7 +25755,7 @@ msgid "Year-end rollover"
 msgstr ""
 
 msgid "Yes"
-msgstr ""
+msgstr "Да"
 
 msgid "Yes (measurements satisfy gates)"
 msgstr ""
@@ -25988,7 +25988,7 @@ msgid ""
 msgstr ""
 
 msgid "Your name"
-msgstr ""
+msgstr "Ваше имя"
 
 msgid "Your next step"
 msgstr ""
@@ -26043,7 +26043,7 @@ msgid ""
 msgstr ""
 
 msgid "Your school's hour. Your school's currency. Your school's calendar."
-msgstr ""
+msgstr "Время вашей школы. Валюта вашей школы. Календарь вашей школы."
 
 msgid "Your security activity"
 msgstr ""
@@ -29284,7 +29284,7 @@ msgid ""
 msgstr ""
 
 msgid "Students"
-msgstr ""
+msgstr "Ученики"
 
 msgid "Visual theme builder"
 msgstr ""
@@ -29326,7 +29326,7 @@ msgid "Date of Birth"
 msgstr ""
 
 msgid "Gender"
-msgstr ""
+msgstr "Пол"
 
 msgid "Login credentials"
 msgstr ""
@@ -29981,7 +29981,7 @@ msgid ""
 msgstr ""
 
 msgid "City"
-msgstr ""
+msgstr "Город"
 
 msgid ""
 "Clear upgrade path from Starter → Growth → Enterprise without re-platforming"
@@ -31442,7 +31442,7 @@ msgid "Mechanism"
 msgstr ""
 
 msgid "Message"
-msgstr ""
+msgstr "Сообщение"
 
 msgid "Message the platform team"
 msgstr ""
@@ -33105,7 +33105,7 @@ msgid ""
 msgstr ""
 
 msgid "Staff"
-msgstr ""
+msgstr "Персонал"
 
 msgid "Stage a live-source bundle"
 msgstr ""
@@ -33304,7 +33304,7 @@ msgid "Term trend"
 msgstr ""
 
 msgid "Terms"
-msgstr ""
+msgstr "Условия"
 
 msgid "Thank you for trusting us with your school's data,"
 msgstr ""
@@ -35744,7 +35744,7 @@ msgid ""
 msgstr ""
 
 msgid "Class"
-msgstr ""
+msgstr "Класс"
 
 msgid "Class 5B reached 30-day perfect attendance"
 msgstr ""
@@ -35756,7 +35756,7 @@ msgid "Class:"
 msgstr ""
 
 msgid "Classes"
-msgstr ""
+msgstr "Классы"
 
 msgid "Classes & sections"
 msgstr ""
@@ -35954,7 +35954,7 @@ msgid "Confirm open"
 msgstr ""
 
 msgid "Confirm password"
-msgstr ""
+msgstr "Подтвердите пароль"
 
 msgid "Confirm password, MFA, and contact details for this quarter."
 msgstr ""
@@ -36371,7 +36371,7 @@ msgid "Email & notifications"
 msgstr ""
 
 msgid "Email address"
-msgstr ""
+msgstr "Адрес эл. почты"
 
 msgid "Email delivery"
 msgstr ""
@@ -36743,7 +36743,7 @@ msgid "Forecast · next 7 days"
 msgstr ""
 
 msgid "Forgot password?"
-msgstr ""
+msgstr "Забыли пароль?"
 
 msgid "Four steps to your first operational win."
 msgstr ""
@@ -36893,7 +36893,7 @@ msgid "Grace period"
 msgstr ""
 
 msgid "Grade"
-msgstr ""
+msgstr "Оценка"
 
 msgid "Grade / level"
 msgstr ""
@@ -36908,7 +36908,7 @@ msgid "Gradebooks that morph to your framework."
 msgstr ""
 
 msgid "Grades"
-msgstr ""
+msgstr "Оценки"
 
 msgid ""
 "Gradient signup banner above the footer. Empty submit_url disables CSRF "
@@ -37114,7 +37114,7 @@ msgid "Impersonation & proxy (recent)"
 msgstr ""
 
 msgid "Import"
-msgstr ""
+msgstr "Импорт"
 
 msgid "Import help"
 msgstr ""
@@ -39303,7 +39303,7 @@ msgid "Regional residency readiness"
 msgstr ""
 
 msgid "Register"
-msgstr ""
+msgstr "Зарегистрироваться"
 
 msgid ""
 "Register truth + tenant Integration — verified_live only with evidence on "
@@ -39346,7 +39346,7 @@ msgid "Remark"
 msgstr ""
 
 msgid "Remove"
-msgstr ""
+msgstr "Удалить"
 
 msgid ""
 "Remove a tenant safely: restrict access, export a portability pack, optional"
@@ -39489,7 +39489,7 @@ msgid "Restrict access (wind-down)"
 msgstr ""
 
 msgid "Result"
-msgstr ""
+msgstr "Результат"
 
 msgid "Revenue cohort retention chart"
 msgstr ""
@@ -39690,7 +39690,7 @@ msgid "Saudi Arabia"
 msgstr ""
 
 msgid "Save changes"
-msgstr ""
+msgstr "Сохранить изменения"
 
 msgid "Save configuration"
 msgstr ""
@@ -39929,7 +39929,7 @@ msgid ""
 msgstr ""
 
 msgid "Select"
-msgstr ""
+msgstr "Выбрать"
 
 msgid "Select a school to continue."
 msgstr ""
@@ -39961,7 +39961,7 @@ msgid "Semantic {{ t }} search"
 msgstr ""
 
 msgid "Send"
-msgstr ""
+msgstr "Отправить"
 
 msgid "Send test email to {{ addr }}"
 msgstr ""
@@ -42227,7 +42227,7 @@ msgid "Begin offboarding"
 msgstr ""
 
 msgid "Confirm"
-msgstr ""
+msgstr "Подтвердить"
 
 msgid "Confirm bulk action"
 msgstr ""
@@ -42696,7 +42696,7 @@ msgid ""
 msgstr ""
 
 msgid "Assignment"
-msgstr ""
+msgstr "Задание"
 
 msgid "Atom feed"
 msgstr ""
@@ -42825,7 +42825,7 @@ msgid "Country localization — wedge-scoped"
 msgstr ""
 
 msgid "Course"
-msgstr ""
+msgstr "Курс"
 
 msgid "Course ID"
 msgstr ""
@@ -43172,7 +43172,7 @@ msgid "Neutral"
 msgstr ""
 
 msgid "New"
-msgstr ""
+msgstr "Новый"
 
 msgid "Next wedge"
 msgstr ""
@@ -46718,7 +46718,7 @@ msgid "Email or username"
 msgstr ""
 
 msgid "First name"
-msgstr ""
+msgstr "Имя"
 
 msgid "Get a new link"
 msgstr ""
@@ -46733,7 +46733,7 @@ msgid "Just signed up and didn’t get your verification email?"
 msgstr ""
 
 msgid "Last name"
-msgstr ""
+msgstr "Фамилия"
 
 msgid ""
 "Let’s finish creating your account. Tell us your name and choose a password "
@@ -46851,7 +46851,7 @@ msgid ""
 msgstr ""
 
 msgid "Forgot your password?"
-msgstr ""
+msgstr "Забыли пароль?"
 
 msgid "Hide password"
 msgstr ""
@@ -46963,7 +46963,7 @@ msgid "Student 360 sections"
 msgstr ""
 
 msgid "Subjects"
-msgstr ""
+msgstr "Предметы"
 
 msgid "That school record no longer exists."
 msgstr ""
