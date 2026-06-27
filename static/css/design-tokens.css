@@ -1001,6 +1001,18 @@ h3, .h3, h4, .h4 { letter-spacing: var(--tracking-heading); }
    full-width via #cp-main-content .cp-evidence-page { max-width:none !important }). */
 :root { --rmc-report-measure: 58rem; }
 
+/* LAY-3: width-utilization contract (page-aware, tenant-wide).
+   --rmc-measure       : readable centered measure for genuinely narrow single forms
+                         (profile/settings) where a full-width input would be unreadable.
+   --rmc-horizon-aside : the right-hand "aside" column width for the page-horizon layout
+                         that relocates vertically-stacked content into the empty right
+                         gutter so long pages collapse to short side-by-side ones.
+   Change here to retune the whole platform; never hardcode these widths per page. */
+:root {
+  --rmc-measure: min(1080px, 100%);
+  --rmc-horizon-aside: 340px;
+}
+
 .eyebrow, .ds-eyebrow {
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow);

@@ -12,12 +12,13 @@
 {% comment %} Pass 8 Wave 2: migrated to components/form_field + form_actions partials. 5
    hand-rolled <div data-rmc-scroll-policy="paginate" class="col-*"> field blocks replaced with form_field includes.
    Removed visually-hidden injected h1 (page_header partial owns the H1). {% endcomment %}
-<div class="container py-4" data-page-archetype="record-detail">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      {% url 'portal:signature_requests_manage' as list_url %}
-      {% include "studio_os/components/page_header.html" with title=_("Create signature request") subtitle=_("Request a parent to sign a form electronically.") action_url=list_url action_text=_("Back to list") %}
+<div class="container-fluid px-3 px-lg-4 py-4" data-page-archetype="record-detail">
+  {% url 'portal:signature_requests_manage' as list_url %}
+  {% include "studio_os/components/page_header.html" with title=_("Create signature request") subtitle=_("Request a parent to sign a form electronically.") action_url=list_url action_text=_("Back to list") %}
 
+  {# width-to-width: form fills the main zone; the right gutter explains the request flow so the page is balanced (was a lone centered col-lg-8). #}
+  <div class="rmc-page-horizon rmc-page-horizon--sticky-aside">
+    <div class="rmc-page-horizon__main">
       <div class="card shadow-sm">
         <div class="card-body">
           <form method="post">
@@ -54,6 +55,19 @@
         </div>
       </div>
     </div>
+    <aside class="rmc-page-horizon__aside">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-2"><i class="bi bi-info-circle me-1"></i>{% trans "How it works" %}</h2>
+          <ul class="small text-muted mb-0 ps-3">
+            <li class="mb-1">{% trans "Pick the form document the parent needs to sign." %}</li>
+            <li class="mb-1">{% trans "Choose the student and the parent who will sign." %}</li>
+            <li class="mb-1">{% trans "Set an optional expiry — after it passes the link stops working." %}</li>
+            <li class="mb-1">{% trans "The parent gets a secure link to sign electronically." %}</li>
+          </ul>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>
 {% endblock %}

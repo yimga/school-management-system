@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-  <div data-rmc-scroll-policy="paginate" class="container py-4">
+  <div data-rmc-scroll-policy="paginate" class="container-fluid px-3 px-lg-4 py-4">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         {% for b in breadcrumbs %}
@@ -19,8 +19,9 @@
         {% endfor %}
       </ol>
     </nav>
-    <div class="row justify-content-center">
-      <div class="col-lg-6">
+    {# width-to-width: form fills the main zone; the right gutter carries real eligibility/next-step guidance so the short form is balanced, not adrift in whitespace (was a lone centered col-lg-6). #}
+    <div class="rmc-page-horizon rmc-page-horizon--sticky-aside">
+      <div class="rmc-page-horizon__main">
         <div class="card shadow-sm">
           <div class="card-body">
             <h1 class="h4 mb-3">{% trans "Request subscription waiver" %}</h1>
@@ -48,6 +49,19 @@
           </div>
         </div>
       </div>
+      <aside class="rmc-page-horizon__aside">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h6 mb-2"><i class="bi bi-info-circle me-1"></i>{% trans "Before you submit" %}</h2>
+            <ul class="small text-muted mb-3 ps-3">
+              <li class="mb-1">{% trans "Explain clearly why the subscription fee should be waived." %}</li>
+              <li class="mb-1">{% trans "Attach proof where you can — e.g. registered NGO or non-profit status." %}</li>
+              <li class="mb-1">{% trans "Platform support reviews each request individually." %}</li>
+            </ul>
+            <p class="small text-muted mb-0"><i class="bi bi-wifi-off me-1"></i>{% trans "Offline-safe: your request is saved as a draft and syncs when you reconnect." %}</p>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
 {% endblock %}

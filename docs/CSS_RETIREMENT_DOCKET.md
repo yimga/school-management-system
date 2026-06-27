@@ -1,6 +1,61 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-26 (empty-state shim retirement — `cp_empty.html` / `tp_empty.html` / `world_class_empty_state.html` deleted; see § below. Prior: 2026-06-20 Flow Thread Phase 1+2.)
+**Last updated:** 2026-06-26 (width-to-width primitives + Ask-AI dock fallback; see § below. Prior: empty-state shim retirement; 2026-06-20 Flow Thread Phase 1+2.)
+
+## 2026-06-26 — Width-to-width contract: page-aware primitives + Ask-AI dock fallback (W1 foundation + W2)
+
+**Context:** tenant + control-plane pages with sparse single-column content cluster LEFT, leaving a dead right
+gutter on wide screens (owner report). The fix is page-aware (FILL vs CENTER) AND, per owner refinement,
+should *use* the right gutter to relocate stacked content sideways so pages get SHORTER — not just center
+(which leaves symmetric empty space). Design SOT: `docs/generated/blueprint_width_fix_proposals.html` +
+`var/design-previews/tenant-surface-world-class-proposal.html`. AUDIT-FIRST confirmed `.cp-grid`/`cp-grid-2/3`
+(auto-fit) + `.content-max-*` already exist and several catalogs (`blueprint_marketplace`, `package_rollout`)
+were already converted; `governance_console`'s `.cp-list` is correct (queue rows in side-by-side panels).
+
+**What landed (foundation — net-new primitives, all token-driven):**
+- `static/css/design-tokens.css`: new `--rmc-measure` (centered measure for narrow forms) + `--rmc-horizon-aside`
+  (right-aside width) tokens (LAY-3 block) — retune platform-wide from one place, never hardcode per page.
+- `static/css/rmc-class-grammar.css`: `.content-measure` (page-aware CENTER), `.cp-form-grid` (responsive field
+  grid — FILL for config forms) + `.cp-form-grid__full`, and the star **`.rmc-page-horizon`** (+ `__main`/`__aside`,
+  `--sticky-aside`, `--detail`) — relocates vertically-stacked content into the empty right gutter so long pages
+  collapse to short side-by-side ones; auto-stacks <900px; sticky-aside uses internal scroll (no sticky-overflow trap).
+**OWNER CLARIFICATION:** "width to width" = literal FULL WIDTH (edge to edge). Centering is NOT a cure (it just
+moves the dead space to both sides). So every converted page is now `container-fluid` (no centered `.container`/
+`col-lg-* mx-auto`/`offset-*` cap). The `.rmc-page-horizon` is how a SPARSE form goes full width without
+stretching one input to an unreadable line — form in `__main`, useful content in `__aside`. `.content-measure`
+is now reserved ONLY for the bounded Ask-with-AI help dock (the one element the design review requires bounded).
+
+- **14 full-width conversions.** Two shapes: (a) **horizon** for sparse forms (form fills main + REAL aside —
+  no fabrication; content moved from the form's own stacked help blocks or derived from its field semantics):
+  `portal/document_upload.html`, `portal/faq_submit.html`, `portal/kb_article_submit.html`,
+  `accounts/request_waiver.html`, `accounts/delegation_form.html`, `portal/signature_request_create.html`,
+  `evals/extend_deadline.html`. (b) **uncap to full width** (non-fluid `.container`/`offset`/`mx-auto` cap →
+  `container-fluid`, existing multi-col content fills): `evals/resolve_offline_conflict.html`,
+  `finance/payment_readiness_setup.html`, `finance/marketplace_integration_credentials.html`,
+  `portal/user_contributions.html`, `finance/global_payment_command_center.html`, `evals/evaluation_drilldown.html`,
+  `portal/education_pack_teacher.html`.
+- **Deliberately LEFT (intentional narrow/measure, not offenders):** `portal/signature_sign.html` (already
+  balanced 2-pane), `portal/digital_id_staff.html`/`digital_id_student.html` (ID cards), `portal/photo_upload_disabled.html`/
+  `photo_upload_expired.html` (one-line status), `portal/faq_detail.html`/`runmycampus_guide.html` (long-form
+  reading wants a measure), `marketplace/publisher_signup.html` (signup = onboarding). AUDIT-FIRST also rejected
+  `cockpit_configure`/`governance_console`/`package_rollout` as already width-correct.
+- **Still genuine (next sweep increment):** `academics/ca_marks_input.html`, `marketplace/publisher_dashboard.html`,
+  `marketplace/webhook_endpoints.html`, `marketplace/public_app_detail.html` + the broader control-plane list.
+- `templates/partials/help_module_inline_assistant.html` (**W2 Ask-AI**): the inline KB panel is the FALLBACK
+  shown only when the copilot rail is off (`not cockpit.ai_copilot_rail.enabled`) — the canonical bounded dock is
+  the rail Help tab. Made the fallback **closed-by-default** (dropped `<details open>` → `<details>`) and
+  **bounded** (`.content-measure`) so it can never render as the always-open full-width post-footer frame the
+  design review flagged. The rail Help tab (bounded, closed) is untouched and remains primary.
+
+**Gates:** `scan_undefined_css_classes` 0 (new classes all defined), `scan_inline_style_off_token` 0,
+`audit_template_render_safety` 0, no scanner baselines dirtied. No new `{% url %}`/`{% include %}` refs →
+reference-integrity family unaffected. **SW bump PENDING** — `static/js/service-worker.js` is peer-uncommitted
+(Cursor-dirty); bump must be coordinated, not stepped on.
+
+**Deliverables (this session):** two ready-to-run prompts at `docs/generated/PROMPT_1_TENANT_WIDTH_AND_INTELLIGENT_SURFACE.md`
+(full W1–W4 width/intelligent-surface implementation) + `docs/generated/PROMPT_2_TENANT_DEEP_AUDIT_AND_REARCHITECT.md`
+(12-target tenant audit), plus the Prompt-2 triage at `docs/generated/TENANT_ARCHITECTURE_AUDIT_2026_06_26.md`.
+The full ~35-page width-adoption sweep + the deep audit are the follow-on (best in a fresh session).
 
 ## 2026-06-26 — Empty-state shim retirement (cp_empty / tp_empty / world_class_empty_state)
 

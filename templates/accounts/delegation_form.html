@@ -13,9 +13,10 @@
    custom scope-checkbox block is kept as-is since it iterates widget.choices
    directly (form_field assumes a single widget); only the surrounding label+help+errors
    chrome was moved into form-system grammar. {% endcomment %}
-  <div data-rmc-scroll-policy="paginate" class="container py-4">
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
+  <div data-rmc-scroll-policy="paginate" class="container-fluid px-3 px-lg-4 py-4">
+    {# width-to-width: form fills the main zone; the right gutter explains the delegation fields so the page is balanced, not adrift (was a lone centered col-lg-8). #}
+    <div class="rmc-page-horizon rmc-page-horizon--sticky-aside">
+      <div class="rmc-page-horizon__main">
         <div class="card shadow-sm">
           <div class="card-body">
             <h1 class="h4 mb-3">{% if is_edit %}{% trans "Edit delegation" %}{% else %}{% trans "Add delegation" %}{% endif %}</h1>
@@ -65,6 +66,18 @@
           </div>
         </div>
       </div>
+      <aside class="rmc-page-horizon__aside">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h6 mb-2"><i class="bi bi-info-circle me-1"></i>{% trans "About delegation" %}</h2>
+            <ul class="small text-muted mb-0 ps-3">
+              <li class="mb-1">{% trans "Delegate — the person who can act on your behalf while the delegation is active." %}</li>
+              <li class="mb-1">{% trans "Start / end date — the window the delegation is in effect." %}</li>
+              <li class="mb-1">{% trans "Scope — which areas they can act in; leave empty to cover all of yours." %}</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
 {% endblock %}

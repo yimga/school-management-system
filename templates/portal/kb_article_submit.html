@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div data-rmc-scroll-policy="paginate" class="container mt-5 mb-5">
+<div data-rmc-scroll-policy="paginate" class="container-fluid px-3 px-lg-4 mt-4 mb-5">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -19,8 +19,9 @@
         </ol>
     </nav>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+    {# width-to-width: the form fills the main zone; contribution benefits + guidelines move into the right gutter so the page is shorter and balanced (was a lone centered col-lg-8). #}
+    <div class="rmc-page-horizon rmc-page-horizon--sticky-aside">
+        <div class="rmc-page-horizon__main">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h1 class="h4 mb-0">
@@ -181,11 +182,11 @@
                             <label>
                                 <strong>Attachments</strong> - Screenshots, Images, or Files
                             </label>
-                            <div class="upload-area border-2 border-dashed p-4 text-center bg-light rounded" 
+                            <div class="upload-area border-2 border-dashed p-4 text-center bg-light rounded"
                                  id="uploadArea">
                                 <i class="bi bi-cloud-upload text-muted mb-3" style="font-size:var(--type-size-headline-xl);"></i><br>
                                 <p class="text-muted">Drag and drop files here or click to browse</p>
-                                <input type="file" id="fileInput" name="attachments" multiple accept="image/*,.pdf,.doc,.docx" 
+                                <input type="file" id="fileInput" name="attachments" multiple accept="image/*,.pdf,.doc,.docx"
                                        style="display: none;">
                                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fileInput').click()">
                                     <i class="bi bi-folder2-open"></i> Choose Files
@@ -195,20 +196,6 @@
                             <small class="form-text text-muted d-block mt-2">
                                 Supported: Images (JPG, PNG, GIF), PDF, Word documents. Max 10MB per file.
                             </small>
-                        </div>
-
-                        <!-- Info Box -->
-                        <div class="rmc-banner rmc-banner--info" role="alert">
-                            <h6 class="alert-heading">
-                                <i class="bi bi-info-circle"></i> Benefits of Contributing
-                            </h6>
-                            <ul class="small mb-0">
-                                <li>Earn <strong>20 points</strong> for every approved article</li>
-                                <li>Build your reputation as a knowledge expert</li>
-                                <li>Help thousands of users</li>
-                                <li>Get featured on the KB homepage</li>
-                                <li>Contribute bonus points for popular articles</li>
-                            </ul>
                         </div>
 
                         <!-- Form Actions -->
@@ -224,24 +211,42 @@
                             </a>
                         </div>
                     </form>
-
-                    <!-- Guidelines -->
-                    <div class="mt-4 p-3 bg-light border rounded">
-                        <h6>
-                            <i class="bi bi-check2-circle text-success"></i> Guidelines for Quality Articles
-                        </h6>
-                        <ul class="small mb-0">
-                            <li><strong>Be comprehensive:</strong> Cover the topic thoroughly</li>
-                            <li><strong>Use examples:</strong> Include real-world use cases</li>
-                            <li><strong>Add visuals:</strong> Screenshots help users understand better</li>
-                            <li><strong>Format well:</strong> Use headings, lists, and paragraphs</li>
-                            <li><strong>Be accurate:</strong> Double-check all instructions and code</li>
-                            <li><strong>Link related content:</strong> Connect to other articles</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </div>
+
+        <aside class="rmc-page-horizon__aside">
+            <!-- Info Box -->
+            <div class="rmc-banner rmc-banner--info" role="alert">
+                <h6 class="alert-heading">
+                    <i class="bi bi-info-circle"></i> Benefits of Contributing
+                </h6>
+                <ul class="small mb-0">
+                    <li>Earn <strong>20 points</strong> for every approved article</li>
+                    <li>Build your reputation as a knowledge expert</li>
+                    <li>Help thousands of users</li>
+                    <li>Get featured on the KB homepage</li>
+                    <li>Contribute bonus points for popular articles</li>
+                </ul>
+            </div>
+
+            <!-- Guidelines -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>
+                        <i class="bi bi-check2-circle text-success"></i> Guidelines for Quality Articles
+                    </h6>
+                    <ul class="small mb-0">
+                        <li><strong>Be comprehensive:</strong> Cover the topic thoroughly</li>
+                        <li><strong>Use examples:</strong> Include real-world use cases</li>
+                        <li><strong>Add visuals:</strong> Screenshots help users understand better</li>
+                        <li><strong>Format well:</strong> Use headings, lists, and paragraphs</li>
+                        <li><strong>Be accurate:</strong> Double-check all instructions and code</li>
+                        <li><strong>Link related content:</strong> Connect to other articles</li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
     </div>
 </div>
 

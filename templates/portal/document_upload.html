@@ -9,17 +9,18 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div data-rmc-scroll-policy="paginate" class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 class="h4 mb-1">{% if is_edit %}Edit{% else %}Upload{% endif %} Document</h1>
-          <p class="text-muted mb-0">{% if is_edit %}Update document information{% else %}Add a new document to the library{% endif %}</p>
-        </div>
-        <a href="{% url 'portal:document_library_manage' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Library</a>
-      </div>
+<div data-rmc-scroll-policy="paginate" class="container-fluid px-3 px-lg-4 py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h4 mb-1">{% if is_edit %}Edit{% else %}Upload{% endif %} Document</h1>
+      <p class="text-muted mb-0">{% if is_edit %}Update document information{% else %}Add a new document to the library{% endif %}</p>
+    </div>
+    <a href="{% url 'portal:document_library_manage' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Library</a>
+  </div>
 
+  {# width-to-width: form fills the main zone; the previously-empty right gutter now carries a real upload guide (was a lone centered col-lg-8). #}
+  <div class="rmc-page-horizon rmc-page-horizon--sticky-aside">
+    <div class="rmc-page-horizon__main">
       <div class="card shadow-sm">
         <div class="card-body">
           <form method="post" enctype="multipart/form-data">
@@ -157,6 +158,24 @@
         </div>
       </div>
     </div>
+    <aside class="rmc-page-horizon__aside">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-2"><i class="bi bi-info-circle me-1"></i>Upload guide</h2>
+          <ul class="small text-muted mb-3 ps-3">
+            <li class="mb-1">Accepted files: PDF, Word (.doc, .docx), Excel (.xls, .xlsx).</li>
+            <li class="mb-1">Maximum size: 10MB per file.</li>
+            <li class="mb-1">No file to hand? Paste an external link instead.</li>
+          </ul>
+          <h3 class="h6 mb-2">Signatures and visibility</h3>
+          <ul class="small text-muted mb-0 ps-3">
+            <li class="mb-1">Only FORM documents can require an electronic signature.</li>
+            <li class="mb-1">Set who can see it under Visible To — leave empty for all signed-in users.</li>
+            <li class="mb-1">Uncheck Active to save a draft that users cannot see yet.</li>
+          </ul>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>
 

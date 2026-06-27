@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div data-rmc-scroll-policy="paginate" class="container mt-5 mb-5">
+<div data-rmc-scroll-policy="paginate" class="container-fluid px-3 px-lg-4 mt-4 mb-5">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -19,8 +19,9 @@
         </ol>
     </nav>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+    {# width-to-width: the form fills the main zone; the "what happens next" + guidelines blocks move into the right gutter so the page is shorter and balanced (was a lone centered col-lg-8). #}
+    <div class="rmc-page-horizon rmc-page-horizon--sticky-aside">
+        <div class="rmc-page-horizon__main">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h1 class="h4 mb-0">
@@ -110,19 +111,6 @@
                             {% endif %}
                         </div>
 
-                        <!-- Info Box -->
-                        <div class="rmc-banner rmc-banner--info" role="alert">
-                            <h6 class="alert-heading">
-                                <i class="bi bi-info-circle"></i> What happens next?
-                            </h6>
-                            <ul class="small mb-0">
-                                <li>Your submission will be reviewed by our team</li>
-                                <li>You'll earn <strong>5 points</strong> for every approved question</li>
-                                <li>Featured questions may earn bonus points</li>
-                                <li>See your contributions on your <a href="{% url 'kb:user_contributions' %}">dashboard</a></li>
-                            </ul>
-                        </div>
-
                         <!-- Form Actions -->
                         <div class="mb-3">
                             <button type="submit" class="btn btn-primary">
@@ -133,23 +121,40 @@
                             </a>
                         </div>
                     </form>
-
-                    <!-- Guidelines -->
-                    <div class="mt-4 p-3 bg-light border rounded">
-                        <h6>
-                            <i class="bi bi-check2-circle text-success"></i> Guidelines for Quality Questions
-                        </h6>
-                        <ul class="small mb-0">
-                            <li><strong>Be specific:</strong> Clear, detailed questions get better answers</li>
-                            <li><strong>Be helpful:</strong> Think about what would help other users</li>
-                            <li><strong>Avoid duplicates:</strong> Search before submitting</li>
-                            <li><strong>Use clear language:</strong> Easy to read and understand</li>
-                            <li><strong>Format nicely:</strong> Use paragraphs and lists</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </div>
+
+        <aside class="rmc-page-horizon__aside">
+            <!-- Info Box -->
+            <div class="rmc-banner rmc-banner--info" role="alert">
+                <h6 class="alert-heading">
+                    <i class="bi bi-info-circle"></i> What happens next?
+                </h6>
+                <ul class="small mb-0">
+                    <li>Your submission will be reviewed by our team</li>
+                    <li>You'll earn <strong>5 points</strong> for every approved question</li>
+                    <li>Featured questions may earn bonus points</li>
+                    <li>See your contributions on your <a href="{% url 'kb:user_contributions' %}">dashboard</a></li>
+                </ul>
+            </div>
+
+            <!-- Guidelines -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>
+                        <i class="bi bi-check2-circle text-success"></i> Guidelines for Quality Questions
+                    </h6>
+                    <ul class="small mb-0">
+                        <li><strong>Be specific:</strong> Clear, detailed questions get better answers</li>
+                        <li><strong>Be helpful:</strong> Think about what would help other users</li>
+                        <li><strong>Avoid duplicates:</strong> Search before submitting</li>
+                        <li><strong>Use clear language:</strong> Easy to read and understand</li>
+                        <li><strong>Format nicely:</strong> Use paragraphs and lists</li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
     </div>
 </div>
 

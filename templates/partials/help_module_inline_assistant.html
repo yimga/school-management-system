@@ -1,7 +1,7 @@
 {% load i18n static %}
 {% if show_module_inline_help_assistant and not cockpit.ai_copilot_rail.enabled %}
-<section class="rmc-module-inline-help mb-4" data-rmc-module-inline-help data-rmc-module="{{ help_module_slug|default:'' }}">
-  <details class="card border-0 shadow-sm" open>
+<section class="rmc-module-inline-help mb-4 content-measure" data-rmc-module-inline-help data-rmc-module="{{ help_module_slug|default:'' }}">
+  <details class="card border-0 shadow-sm">
     <summary class="card-header py-2 fw-semibold user-select-none">
       <i class="bi bi-stars me-1"></i>{% trans "Module help copilot" %}
       {% if help_module_slug %}<span class="rmc-badge rmc-badge--muted ms-1">{{ help_module_slug }}</span>{% endif %}

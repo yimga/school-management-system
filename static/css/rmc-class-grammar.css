@@ -33,6 +33,61 @@
 .content-max-960  { max-inline-size: min(1440px, 100%); margin-inline: auto; } /* generous — was bug class */
 .content-max-1200 { max-inline-size: min(1200px, 100%); margin-inline: auto; }
 
+/* content-measure — the page-aware CENTER cure. One token (`--rmc-measure`) so the
+   readable measure is tuned platform-wide, never hardcoded per page. Use ONLY for
+   genuinely narrow single forms / settings toggles where full-width is unreadable;
+   catalogs and dashboards FILL instead (see .cp-grid / .rmc-page-horizon below). */
+.content-measure { max-inline-size: var(--rmc-measure, min(1080px, 100%)); margin-inline: auto; min-width: 0; }
+
+/* cp-form-grid — page-aware FILL cure for operator/config FORMS. Flows fields into
+   2–4 responsive columns so a tall single-column form fills the width AND shortens.
+   Drop it around a set of .form-field / .mb-3 field rows. */
+.cp-form-grid {
+  display: grid;
+  gap: var(--space-4, 1rem) var(--space-5, 1.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  align-items: start;
+  min-width: 0;
+}
+/* a field that must span the full row inside a cp-form-grid (textarea, legend, actions) */
+.cp-form-grid > .cp-form-grid__full { grid-column: 1 / -1; }
+
+/* ============================================================ */
+/* rmc-page-horizon — INTELLIGENT "use the right gutter" layout  */
+/* Relocates vertically-stacked content sideways into the empty   */
+/* right space so long pages collapse to short, scannable,        */
+/* side-by-side ones. Author a page as a primary zone + an aside   */
+/* zone; it auto-stacks on narrow screens. Simple to adopt,        */
+/* dramatic on wide screens — the width-to-width contract.        */
+/* ============================================================ */
+.rmc-page-horizon {
+  display: grid;
+  gap: var(--space-5, 1.25rem);
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, var(--rmc-horizon-aside, 340px));
+  min-width: 0;
+}
+.rmc-page-horizon > .rmc-page-horizon__main,
+.rmc-page-horizon > .rmc-page-horizon__aside {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+}
+/* a sticky aside keeps context (summary / actions / preview) in view while the
+   primary column scrolls — uses internal scroll, never overflow:hidden (sticky trap). */
+.rmc-page-horizon--sticky-aside > .rmc-page-horizon__aside {
+  position: sticky;
+  top: var(--space-4, 1rem);
+}
+/* wider aside variant for master-detail catalogs where the detail is the focus */
+.rmc-page-horizon--detail { grid-template-columns: minmax(0, var(--rmc-horizon-aside, 340px)) minmax(0, 1fr); }
+@media (max-width: 900px) {
+  .rmc-page-horizon,
+  .rmc-page-horizon--detail { grid-template-columns: 1fr; }
+  .rmc-page-horizon--sticky-aside > .rmc-page-horizon__aside { position: static; }
+}
+
 /* ============================================================ */
 /* 2. cp-*  —  control plane (manager.runmycampus.com)            */
 /* ============================================================ */
