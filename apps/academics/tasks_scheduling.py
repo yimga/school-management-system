@@ -41,7 +41,7 @@ def run_scheduling_solver_task(self, school_id: int, *, use_ortools: bool = True
     if term is None:
         return {"ok": False, "error": "no_term"}
 
-    created_by = User.objects.filter(is_staff=True).order_by("pk").first()
+    created_by = User.objects.filter(is_staff=True).order_by("pk").first()  # tenant-isolation-allow: system-actor-attribution-user-is-staff-not-tenant-scoped
     if created_by is None:
         return {"ok": False, "error": "no_staff_user"}
 

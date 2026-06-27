@@ -16,7 +16,7 @@ def capture_tenant_immutable_snapshots_daily() -> int:
     from apps.schools.models import School
 
     count = 0
-    for school in School.objects.filter(is_active=True, deleted_at__isnull=True).iterator():
+    for school in School.objects.filter(is_active=True, deleted_at__isnull=True).iterator():  # tenant-isolation-allow: cross-tenant-dr-snapshot-sweep-all-active-schools
         try:
             capture_daily_snapshot(school)
             count += 1

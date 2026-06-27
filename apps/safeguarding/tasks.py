@@ -19,13 +19,13 @@ def audit_privilege_context_task(self) -> dict:
     cutoff = timezone.now() - timedelta(hours=24)
     flagged = 0
     scanned = 0
-    for school in School.objects.filter(is_active=True).only("id", "settings")[:500]:
+    for school in School.objects.filter(is_active=True).only("id", "settings")[:500]:  # tenant-isolation-allow: cross-tenant-privilege-audit-sweep-each-iteration-school-scoped
         scanned += 1
         settings = dict(school.settings or {})
         sg = dict(settings.get("safeguarding") or {})
         inbox = list(sg.get("dsl_inbox") or [])
         stale_roles = (
-            SchoolMembership.objects.filter(
+            SchoolMembership.objects.filter(  # tenant-isolation-allow: school-scoped-via-school-kwarg-on-continuation-line
                 school=school,
                 role__in=("ADMIN", "IT_ADMIN"),  # role-string-allow: registry-backed SchoolMembership.role values (no enum; see schools.models._get_role_choices)
                 user__last_login__isnull=False,

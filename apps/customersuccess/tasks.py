@@ -54,7 +54,7 @@ def deliver_onboarding_day_n_nudges(*, limit: int = 50) -> dict:
 
     sent = 0
     scanned = 0
-    for school in School.objects.filter(is_active=True).order_by("id")[: max(1, limit)]:
+    for school in School.objects.filter(is_active=True).order_by("id")[: max(1, limit)]:  # tenant-isolation-allow: cross-tenant-sweep-active-schools-each-iteration-school-scoped
         scanned += 1
         settings_blob = dict(getattr(school, "settings", None) or {})
         cs = dict(settings_blob.get("customersuccess") or {})
@@ -88,7 +88,7 @@ def sweep_tenant_health_scores(*, limit: int = 200) -> dict:
     from apps.schools.models import School
 
     updated = 0
-    for school in School.objects.filter(is_active=True).order_by("id")[: max(1, limit)]:
+    for school in School.objects.filter(is_active=True).order_by("id")[: max(1, limit)]:  # tenant-isolation-allow: cross-tenant-sweep-active-schools-each-iteration-school-scoped
         ensure_health_score_record(school)
         updated += 1
     return {"updated": updated}
@@ -104,7 +104,7 @@ def compute_maturity_scores(*, limit: int = 200) -> dict:
     from apps.schools.models import School
 
     written = 0
-    for school in School.objects.filter(is_active=True).order_by("id")[: max(1, limit)]:
+    for school in School.objects.filter(is_active=True).order_by("id")[: max(1, limit)]:  # tenant-isolation-allow: cross-tenant-sweep-active-schools-each-iteration-school-scoped
         _score, dimensions = compute_tenant_health_score(school)
         for dim_key, dim_val in dimensions.items():
             TenantMaturityScore.objects.update_or_create(
