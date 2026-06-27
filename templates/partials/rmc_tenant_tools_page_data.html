@@ -27,6 +27,7 @@ Pairs with rmc-operator-tools-tray.js on tenant portal shells (not manager host)
     "actions": "{% filter escapejs %}{% trans 'Actions' %}{% endfilter %}"
   },
   "urls": {
+    "help_center": "{% filter escapejs %}{% url 'feedback:help_center' %}{% endfilter %}",
     "kb_home": "{% filter escapejs %}{% url 'kb:kb_home' %}{% endfilter %}",
     "security_posture": "{% filter escapejs %}{% url 'accounts:security_posture_review' %}{% endfilter %}",
     "messages": "{% filter escapejs %}{% url 'accounts:user_messages' %}{% endfilter %}"

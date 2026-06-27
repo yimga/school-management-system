@@ -35,6 +35,9 @@ on:
       - "apps/portal/tests/test_offline_authenticated_api_replay.py"
       - "apps/platform_runtime/**"
       - "apps/sync_engine/**"
+      - "apps/evals/**"
+      - "apps/finance/**"
+      - "apps/compliance/**"
 
       - "scripts/run_postgres_booking_proof.sh"
 
@@ -195,6 +198,10 @@ jobs:
             apps.sync_engine.tests.test_crdt_live_rail_convergence \
             apps.lifecycle.tests.test_tenant_dr_snapshot \
             apps.lifecycle.tests.test_tenant_dr_snapshot_restore_roundtrip \
+            apps.evals.tests.test_query_counts_rankings \
+            apps.academics.tests.test_query_counts_homework_gradebook \
+            apps.finance.tests.test_query_counts_family_billing \
+            apps.compliance.tests.test_data_residency_border_lock \
 
             --settings=config.settings \
 

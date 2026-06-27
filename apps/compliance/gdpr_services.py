@@ -658,11 +658,12 @@ def fulfill_pending_erasure(
     advance the row to COMPLETED. Closes the gap where the admin action
     flipped status without actually erasing data.
 
-    The function is the *only* sanctioned transition from APPROVED→COMPLETED
-    for student subjects. Non-student subjects (teacher / parent / staff users)
-    are not yet handled and return a structured "unsupported_subject_kind"
-    response so callers can surface a clear message instead of silently
-    no-oping.
+    The function is the *only* sanctioned transition from APPROVED→COMPLETED.
+    Every PII-bearing User subject in the tenant is now covered: student (via
+    ``gdpr_scrub_student``), teacher/staff, and parent/guardian (via
+    ``apps.compliance.dsar_subjects.scrub_user_subject``). A structured
+    "unsupported_subject_kind" response is returned ONLY when the subject User
+    has no PII relationship at all in this tenant (e.g. a cross-tenant mismatch).
     """
     EraseRequest = _get_model("compliance", "EraseRequest")
     StudentProfile = _get_model("people", "StudentProfile")
@@ -685,19 +686,13 @@ def fulfill_pending_erasure(
             "status": er.status,
         }
 
-    student = StudentProfile.objects.filter(
-        school_id=er.school_id, user_id=er.subject_user_id
-    ).first()
-    if not student:
-        return {
-            "ok": False,
-            "error": "unsupported_subject_kind: only student subjects are currently supported.",
-            "subject_user_id": er.subject_user_id,
-        }
+    # Route to the correct subject handler (student / staff / guardian), all
+    # tenant-scoped on er.school_id so a cross-tenant subject is invisible.
+    from apps.compliance.dsar_subjects import scrub_user_subject
 
-    result = gdpr_scrub_student(
+    result = scrub_user_subject(
         er.school_id,
-        student.pk,
+        er.subject_user_id,
         dry_run=dry_run,
         requested_by_user_id=fulfilled_by_user_id,
     )

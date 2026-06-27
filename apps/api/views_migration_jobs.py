@@ -23,6 +23,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.throttling import ApiReadThrottle, ApiSoftWarnHeaderMixin
+
 
 @extend_schema(
     tags=["Migration"],
@@ -34,8 +36,11 @@ from rest_framework.views import APIView
     ),
     responses={200: dict, 404: dict},
 )
-class MigrationJobStatusView(APIView):
+class MigrationJobStatusView(ApiSoftWarnHeaderMixin, APIView):
     permission_classes = [IsAuthenticated]
+    # Polled every 2-3s by the wizard progress bar — the 600/min read budget
+    # is generous headroom for that cadence while still capping a runaway loop.
+    throttle_classes = [ApiReadThrottle]
 
     def get(self, request, job_id: str):
         try:
@@ -74,10 +79,11 @@ def _split_row_and_message(message: str) -> tuple[str, str]:
         503: OpenApiResponse(description="migration_async backend unavailable"),
     },
 )
-class MigrationJobErrorsCsvView(APIView):
+class MigrationJobErrorsCsvView(ApiSoftWarnHeaderMixin, APIView):
     """Pass 8.D: download `errors` from the migration_job snapshot as CSV."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ApiReadThrottle]
 
     @extend_schema(
         tags=["Migration"],

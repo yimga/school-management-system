@@ -188,6 +188,9 @@
     if (slotId === "messages" && urls.messages && urls.messages !== "#") {
       return urls.messages;
     }
+    if (slotId === "help" && urls.help_center && urls.help_center !== "#") {
+      return urls.help_center;
+    }
     return "";
   }
 
@@ -204,6 +207,9 @@
       urls.security_posture !== "#"
     ) {
       return urls.security_posture;
+    }
+    if (slotId === "help" && urls.help_center && urls.help_center !== "#") {
+      return urls.help_center;
     }
     return "";
   }
@@ -606,6 +612,10 @@
         }
         if (window.rmcPageHelp && typeof window.rmcPageHelp.open === "function") {
           window.rmcPageHelp.open();
+          return;
+        }
+        if (urls.help_center && urls.help_center !== "#") {
+          window.location.href = urls.help_center;
         }
       });
     }

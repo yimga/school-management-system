@@ -94,18 +94,21 @@ class FulfillPendingErasureTests(TestCase):
         self.assertFalse(result["ok"])
         self.assertEqual(result["error"], "EraseRequest not found")
 
-    def test_non_student_subject_returns_unsupported(self):
-        # Teacher / parent / staff users are not yet handled.
-        teacher_user = User.objects.create_user(
-            username="fpe_teacher",
-            email="teacher@example.com",
+    def test_subject_with_no_tenant_relationship_returns_unsupported(self):
+        # A User with NO student / staff / guardian relationship in the tenant
+        # (e.g. a bare account) has no PII to erase here → unsupported_subject_kind.
+        # (Teacher / parent subjects WITH a profile/link are covered — see
+        # test_dsar_subject_coverage.py.)
+        bare_user = User.objects.create_user(
+            username="fpe_bare",
+            email="bare@example.com",
             password="pass",
             role=User.Role.TEACHER,
         )
         er = EraseRequest.objects.create(
             school=self.school,
             requested_by=self.operator,
-            subject_user=teacher_user,
+            subject_user=bare_user,
             status=EraseRequest.Status.PENDING,
         )
         result = fulfill_pending_erasure(er.pk)

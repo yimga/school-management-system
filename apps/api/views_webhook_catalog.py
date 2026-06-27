@@ -14,6 +14,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.throttling import (
+    ApiPublicReadThrottle,
+    ApiReadThrottle,
+    ApiSoftWarnHeaderMixin,
+)
+
 
 @extend_schema(
     tags=["Webhooks"],
@@ -27,9 +33,11 @@ from rest_framework.views import APIView
     auth=[],
     responses={200: dict},
 )
-class WebhookEventTypesView(APIView):
+class WebhookEventTypesView(ApiSoftWarnHeaderMixin, APIView):
     permission_classes = [AllowAny]
     authentication_classes: list = []
+    # Anonymous callers limited per-IP; authenticated callers per-user.
+    throttle_classes = [ApiPublicReadThrottle, ApiReadThrottle]
 
     def get(self, request):
         try:

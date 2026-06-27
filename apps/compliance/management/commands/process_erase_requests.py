@@ -1,8 +1,11 @@
 """Wave G (2026-05-15): process APPROVED GDPR EraseRequest rows.
 
 Bridges the existing ``EraseRequest`` model (status APPROVED → COMPLETED)
-to the existing ``gdpr_scrub_student`` service, with two additions that
-were missing from the manual / admin-action-only flow:
+to the DSAR scrub services. As of the multi-subject DSAR wave it dispatches
+through ``apps.compliance.dsar_subjects.scrub_user_subject`` so EVERY
+PII-bearing User subject is covered — student, teacher/staff, and
+parent/guardian — not only students. Two additions over the manual /
+admin-action-only flow:
 
 * **Automated runner** — call from cron / Celery beat so an approved
   request that sits unprocessed past its SLA gets flagged.
@@ -27,14 +30,17 @@ import logging
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from apps.compliance.gdpr_services import gdpr_scrub_student
+from apps.compliance.dsar_subjects import scrub_user_subject
 from apps.compliance.models import EraseRequest
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Process APPROVED GDPR EraseRequest rows via the gdpr_scrub_student service."
+    help = (
+        "Process APPROVED GDPR EraseRequest rows via the multi-subject DSAR "
+        "scrub dispatcher (student / staff / guardian)."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument("--school", default="", help="Optional school slug filter.")
@@ -61,26 +67,20 @@ class Command(BaseCommand):
         failed = 0
         for req in qs:
             processed += 1
-            student_id = self._resolve_student_id(req)
-            if student_id is None:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"req#{req.pk} school={req.school_id} subject={req.subject_user_id} "
-                        f"→ no StudentProfile, skipping"
-                    )
-                )
-                failed += 1
-                continue
-            result = gdpr_scrub_student(
-                school_id=req.school_id,
-                student_id=student_id,
+            # Dispatch to the correct subject handler (student / staff / guardian).
+            # All paths are tenant-scoped on req.school_id, so a cross-tenant
+            # subject resolves to "unsupported_subject_kind" and is skipped.
+            result = scrub_user_subject(
+                req.school_id,
+                req.subject_user_id,
                 dry_run=dry_run,
                 requested_by_user_id=req.requested_by_id,
             )
             if not result.get("ok"):
                 failed += 1
                 self.stdout.write(self.style.ERROR(
-                    f"req#{req.pk} → FAIL ({result.get('error', 'unknown')})"
+                    f"req#{req.pk} school={req.school_id} subject={req.subject_user_id} "
+                    f"→ FAIL ({result.get('error', 'unknown')})"
                 ))
                 continue
             scrubbed += 1
@@ -97,21 +97,3 @@ class Command(BaseCommand):
         if dry_run:
             summary += "  (dry-run, no changes saved)"
         self.stdout.write(self.style.SUCCESS(summary))
-
-    def _resolve_student_id(self, erase_request: EraseRequest) -> int | None:
-        """Map the request's ``subject_user`` to that user's StudentProfile.id within the tenant."""
-        try:
-            from django.apps import apps as django_apps
-
-            StudentProfile = django_apps.get_model("people", "StudentProfile")
-        except (LookupError, RuntimeError):
-            return None
-        profile = (
-            StudentProfile.objects.filter(
-                school_id=erase_request.school_id,
-                user_id=erase_request.subject_user_id,
-            )
-            .only("id")
-            .first()
-        )
-        return profile.id if profile else None

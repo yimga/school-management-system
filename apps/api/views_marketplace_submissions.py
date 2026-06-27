@@ -23,6 +23,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.throttling import ApiSoftWarnHeaderMixin, ApiSubmissionThrottle
+
 
 _REQUIRED_FIELDS = ("slug", "name", "version")
 _VALID_KINDS = {"first_party", "third_party", "premium", "tenant_private", "connector"}
@@ -53,8 +55,10 @@ def _validate_payload(data: dict) -> tuple[bool, dict]:
     request=dict,
     responses={201: dict, 400: dict},
 )
-class MarketplaceSubmissionView(APIView):
+class MarketplaceSubmissionView(ApiSoftWarnHeaderMixin, APIView):
     permission_classes = [IsAuthenticated]
+    # Publisher submission is a rare, expensive write — tight per-user budget.
+    throttle_classes = [ApiSubmissionThrottle]
 
     def post(self, request):
         data = request.data if isinstance(request.data, dict) else {}

@@ -17,6 +17,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.throttling import (
+    ApiPublicReadThrottle,
+    ApiReadThrottle,
+    ApiSoftWarnHeaderMixin,
+)
+
 
 @extend_schema(
     tags=["Marketplace"],
@@ -30,9 +36,11 @@ from rest_framework.views import APIView
     auth=[],
     responses={200: dict},
 )
-class MarketplaceAppsListView(APIView):
+class MarketplaceAppsListView(ApiSoftWarnHeaderMixin, APIView):
     permission_classes = [AllowAny]
     authentication_classes: list = []
+    # Anonymous callers limited per-IP; authenticated callers per-user.
+    throttle_classes = [ApiPublicReadThrottle, ApiReadThrottle]
 
     def get(self, request):
         try:
@@ -64,9 +72,11 @@ class MarketplaceAppsListView(APIView):
     auth=[],
     responses={200: dict},
 )
-class MarketplaceScopesListView(APIView):
+class MarketplaceScopesListView(ApiSoftWarnHeaderMixin, APIView):
     permission_classes = [AllowAny]
     authentication_classes: list = []
+    # Anonymous callers limited per-IP; authenticated callers per-user.
+    throttle_classes = [ApiPublicReadThrottle, ApiReadThrottle]
 
     def get(self, request):
         try:

@@ -53,24 +53,22 @@ class ProcessEraseRequestsTests(TestCase):
             status=EraseRequest.Status.APPROVED,
         )
 
-    def test_no_studentprofile_skipped_as_failure(self):
+    def test_no_subject_relationship_skipped_as_failure(self):
+        # A subject User with no student/staff/guardian relationship in the
+        # tenant resolves to unsupported_subject_kind and is not completed.
         req = self._approved_request()
         out = StringIO()
         call_command("process_erase_requests", "--dry-run", stdout=out)
         body = out.getvalue()
         self.assertIn(f"req#{req.pk}", body)
-        self.assertIn("no StudentProfile", body)
+        self.assertIn("FAIL", body)
         req.refresh_from_db()
         self.assertEqual(req.status, EraseRequest.Status.APPROVED)  # untouched
 
     def test_dry_run_does_not_mutate(self):
         req = self._approved_request()
         with mock.patch(
-            "apps.compliance.management.commands.process_erase_requests."
-            "Command._resolve_student_id",
-            return_value=42,
-        ), mock.patch(
-            "apps.compliance.management.commands.process_erase_requests.gdpr_scrub_student",
+            "apps.compliance.management.commands.process_erase_requests.scrub_user_subject",
             return_value={"ok": True, "scrubbed": 1},
         ):
             out = StringIO()
@@ -82,11 +80,7 @@ class ProcessEraseRequestsTests(TestCase):
     def test_live_run_marks_completed(self):
         req = self._approved_request()
         with mock.patch(
-            "apps.compliance.management.commands.process_erase_requests."
-            "Command._resolve_student_id",
-            return_value=42,
-        ), mock.patch(
-            "apps.compliance.management.commands.process_erase_requests.gdpr_scrub_student",
+            "apps.compliance.management.commands.process_erase_requests.scrub_user_subject",
             return_value={"ok": True, "scrubbed": 1},
         ):
             out = StringIO()
@@ -98,11 +92,7 @@ class ProcessEraseRequestsTests(TestCase):
     def test_failed_scrub_keeps_status_approved(self):
         req = self._approved_request()
         with mock.patch(
-            "apps.compliance.management.commands.process_erase_requests."
-            "Command._resolve_student_id",
-            return_value=42,
-        ), mock.patch(
-            "apps.compliance.management.commands.process_erase_requests.gdpr_scrub_student",
+            "apps.compliance.management.commands.process_erase_requests.scrub_user_subject",
             return_value={"ok": False, "error": "boom"},
         ):
             out = StringIO()
@@ -120,11 +110,7 @@ class ProcessEraseRequestsTests(TestCase):
             status=EraseRequest.Status.APPROVED,
         )
         with mock.patch(
-            "apps.compliance.management.commands.process_erase_requests."
-            "Command._resolve_student_id",
-            return_value=42,
-        ), mock.patch(
-            "apps.compliance.management.commands.process_erase_requests.gdpr_scrub_student",
+            "apps.compliance.management.commands.process_erase_requests.scrub_user_subject",
             return_value={"ok": True, "scrubbed": 1},
         ):
             out = StringIO()
