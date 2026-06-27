@@ -120,13 +120,29 @@ def all_catalog_country_codes() -> list[str]:
     return sorted(set(codes))
 
 
+def _catalog_country_names() -> dict[str, str]:
+    """ISO alpha-2 -> display name from the global geo catalog (best-effort)."""
+    names: dict[str, str] = {}
+    for item in GlobalGeoCatalog.list_countries():
+        code = str(item.get("code_alpha2") or item.get("code") or "").strip().upper()
+        if len(code) == 2 and item.get("name"):
+            names[code] = str(item["name"])
+    return names
+
+
 def expand_seed_to_all_countries(*, using: str = "default") -> dict[str, Any]:
-    """Seed curated rows, then default 1.0× Zone B for every catalog country missing a row."""
+    """Seed curated rows, then default 1.0× Zone B for every catalog country missing a row.
+
+    Backfilled rows carry the catalog country name so operators see a readable list
+    rather than blank rows; multiplier/tax stay at the neutral default until an
+    operator (or a richer seed) tunes the country in the control plane.
+    """
     from django.apps import apps
 
     CountryMultiplier = apps.get_model("siteconfig", "CountryMultiplier")
 
     summary = seed_country_multipliers(using=using)
+    names = _catalog_country_names()
     backfilled = 0
     for code in all_catalog_country_codes():
         if CountryMultiplier.objects.using(using).filter(country_code__iexact=code).exists():
@@ -137,7 +153,7 @@ def expand_seed_to_all_countries(*, using: str = "default") -> dict[str, Any]:
             multiplier=Decimal("1.0000"),
             tax_rate=Decimal("0.0000"),
             tax_code="",
-            name="",
+            name=names.get(code, ""),
             is_active=True,
         )
         backfilled += 1
