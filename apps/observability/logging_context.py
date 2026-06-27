@@ -14,6 +14,17 @@ _request_id_ctx: ContextVar[str] = ContextVar("request_id", default="")
 _tenant_id_ctx: ContextVar[str] = ContextVar("tenant_id", default="")
 _user_id_ctx: ContextVar[str] = ContextVar("user_id", default="")
 _school_id_ctx: ContextVar[str] = ContextVar("school_id", default="")
+# Operator-impersonation markers (Wave C #4 Phase 2). When a platform operator is
+# acting inside a tenant via the impersonation session, request.user IS the operator
+# (it is not swapped to the tenant user), so the audit actor is already correct — these
+# flag the "during impersonation of school X" fact so mutations can be told apart from
+# the operator's normal actions. Default False/"" outside impersonation.
+_during_impersonation_ctx: ContextVar[bool] = ContextVar(
+    "during_impersonation", default=False
+)
+_impersonated_school_id_ctx: ContextVar[str] = ContextVar(
+    "impersonated_school_id", default=""
+)
 _http_method_ctx: ContextVar[str] = ContextVar("http_method", default="")
 _request_path_ctx: ContextVar[str] = ContextVar("request_path", default="")
 _remote_addr_ctx: ContextVar[str] = ContextVar("remote_addr", default="")
@@ -158,6 +169,8 @@ def clear_request_logging_context() -> None:
     _tenant_id_ctx.set("")
     _user_id_ctx.set("")
     _school_id_ctx.set("")
+    _during_impersonation_ctx.set(False)
+    _impersonated_school_id_ctx.set("")
     _http_method_ctx.set("")
     _request_path_ctx.set("")
     _remote_addr_ctx.set("")
@@ -196,6 +209,30 @@ def get_current_school_id() -> str:
     Companion to :func:`get_current_user_id`; same request-context source.
     """
     return _school_id_ctx.get()
+
+
+def set_impersonation_logging_context(
+    during_impersonation: bool, impersonated_school_id: str = ""
+) -> None:
+    """Mark the current request as an operator-impersonation session.
+
+    Called by ``RequestIdLoggingMiddleware`` when ``request.session`` carries an
+    ``"impersonation"`` block. Read by the compliance audit signals so a mutation
+    made while impersonating a tenant is stamped with that fact (the operator is
+    already the request user, hence already the audit actor).
+    """
+    _during_impersonation_ctx.set(bool(during_impersonation))
+    _impersonated_school_id_ctx.set((impersonated_school_id or "")[:64])
+
+
+def get_current_during_impersonation() -> bool:
+    """True when the current request is an operator-impersonation session."""
+    return bool(_during_impersonation_ctx.get())
+
+
+def get_current_impersonated_school_id() -> str:
+    """School PK (string) being impersonated this request, or "" if none."""
+    return _impersonated_school_id_ctx.get()
 
 
 class RequestContextFilter(logging.Filter):

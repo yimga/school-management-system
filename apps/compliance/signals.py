@@ -79,6 +79,30 @@ def _current_actor_id():
     return None
 
 
+def _impersonation_audit_fields() -> dict:
+    """Operator-impersonation provenance for an audit row, or {} when not impersonating.
+
+    Wave C #4 Phase 2: request.user is already the operator during impersonation
+    (Phase 1 attributes the row to them), so this only adds the "during impersonation
+    of school X" fact. Returns {} outside impersonation so the model defaults
+    (during_impersonation=False) apply unchanged. Never raises.
+    """
+    try:
+        from apps.observability.logging_context import (
+            get_current_during_impersonation,
+            get_current_impersonated_school_id,
+        )
+
+        if get_current_during_impersonation():
+            return {
+                "during_impersonation": True,
+                "impersonated_school_id": (get_current_impersonated_school_id() or "")[:64],
+            }
+    except Exception:  # noqa: BLE001 — provenance is best-effort, never fatal
+        return {}
+    return {}
+
+
 @receiver(post_save)
 def log_model_save(sender, instance, created, **kwargs):
     """Auto-log model CREATE and UPDATE via AuditLog."""
@@ -125,6 +149,7 @@ def log_model_save(sender, instance, created, **kwargs):
         new_values=new_values,
         changed_fields=changed_fields,
         sensitivity=sensitivity,
+        **_impersonation_audit_fields(),
     )
 
 
@@ -165,6 +190,7 @@ def log_model_delete(sender, instance, **kwargs):
         app_label=sender.__module__.split(".")[1],
         old_values=_serialize_instance(instance),
         sensitivity=sensitivity,
+        **_impersonation_audit_fields(),
     )
 
 

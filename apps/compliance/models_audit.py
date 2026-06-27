@@ -87,6 +87,18 @@ class AuditLog(AppendOnlyModelMixin, models.Model):
     # Context & metadata
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
     app_label = models.CharField(max_length=100, db_index=True)
+    # Wave C #4 Phase 2: operator-impersonation provenance. True when this mutation
+    # was made by a platform operator acting inside a tenant via the impersonation
+    # session (the operator is the `user` above — request.user is not swapped during
+    # impersonation). Lets compliance forensically separate operator-while-
+    # impersonating actions from a tenant user's own.
+    during_impersonation = models.BooleanField(default=False, db_index=True)
+    impersonated_school_id = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text="School PK impersonated when during_impersonation is True.",
+    )
     reason = models.CharField(
         max_length=255,
         blank=True,

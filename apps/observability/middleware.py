@@ -10,6 +10,7 @@ from django.utils.deprecation import MiddlewareMixin
 
 from apps.observability.logging_context import (
     set_request_logging_context,
+    set_impersonation_logging_context,
     clear_request_logging_context,
 )
 
@@ -51,6 +52,21 @@ class RequestIdLoggingMiddleware(MiddlewareMixin):
         ):
             user_id = str(request.user.pk)
         request.user_id = user_id
+        # Wave C #4 Phase 2: operator-impersonation marker. request.user is the
+        # operator (not swapped); request.session["impersonation"] carries the
+        # impersonated tenant. Surface it for the compliance audit signal.
+        during_impersonation = False
+        impersonated_school_id = ""
+        try:
+            session = getattr(request, "session", None)
+            imp = session.get("impersonation") if session is not None else None
+            if isinstance(imp, dict) and imp.get("school_id"):
+                during_impersonation = True
+                impersonated_school_id = str(imp.get("school_id") or "")
+        except Exception:  # noqa: BLE001 — logging context must never break the request
+            during_impersonation = False
+            impersonated_school_id = ""
+        set_impersonation_logging_context(during_impersonation, impersonated_school_id)
         school_id = ""
         school = getattr(request, "school", None)
         if school is not None and getattr(school, "pk", None) is not None:
