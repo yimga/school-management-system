@@ -15,7 +15,7 @@ Every action writes a compliance AuditLog entry via log_control_plane_action.
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 
 from django.contrib import messages
 from django.shortcuts import redirect, render
@@ -23,10 +23,12 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 
-from apps.billing.models import PlatformLedgerEntry, TenantSubscription
+from apps.billing.models import PlatformLedgerEntry, SubscriptionGrant, TenantSubscription
 from apps.billing.services import (
+    apply_subscription_waiver,
     ensure_subscription_for_school,
     platform_account_balance,
+    preview_subscription_commercial_terms,
     sync_subscription_entitlements,
 )
 from apps.compliance.models_audit import AuditLog
@@ -52,6 +54,7 @@ _OPERATOR_SETTABLE_STATUSES = (
 )
 
 _MAX_TRIAL_EXTENSION_DAYS = 365  # magic-number-allow: operator manual trial-extension ceiling = 1 year (days)
+_MAX_WAIVER_DAYS = 3650  # magic-number-allow: operator commercial waiver ceiling = 10 years (days)
 
 # How many recent ledger rows to surface inline so an operator can see a tenant's
 # platform billing history without dropping to Django admin.
@@ -97,6 +100,12 @@ def tenant_subscription_manage(request, school_id):
     # have to fall back to Django admin to see what a tenant was charged.
     ledger_entries = []
     account_balance = None
+    commercial_terms = preview_subscription_commercial_terms(subscription)
+    active_grants = list(
+        SubscriptionGrant.objects.select_related("promotion")
+        .filter(school=school, status=SubscriptionGrant.Status.ACTIVE)
+        .order_by("-starts_at", "-created_at")[:10]
+    )
     if billing_account is not None:
         ledger_entries = list(
             PlatformLedgerEntry.objects.filter(
@@ -115,6 +124,8 @@ def tenant_subscription_manage(request, school_id):
         "trial_end_date": getattr(school, "trial_end_date", None),
         "ledger_entries": ledger_entries,
         "account_balance": account_balance,
+        "commercial_terms": commercial_terms,
+        "active_grants": active_grants,
         "back_url": reverse("super:billing_dashboard"),
     }
     return render(request, "schools/super/tenant_subscription_manage.html", context)
@@ -132,6 +143,8 @@ def _handle_action(request, school, subscription):
         _action_extend_trial(request, school, subscription)
     elif action == "set_status":
         _action_set_status(request, school, subscription)
+    elif action == "apply_waiver":
+        _action_apply_waiver(request, school, subscription)
     else:
         messages.error(request, "Unknown action.")
     return redirect(redirect_url)
@@ -250,3 +263,76 @@ def _action_set_status(request, school, subscription):
         changed_fields=["status"],
     )
     messages.success(request, f"Subscription status set to {new_status}.")
+
+
+def _aware_start_of_day(value):
+    dt = datetime.combine(value, time.min)
+    return timezone.make_aware(dt, timezone.get_current_timezone())
+
+
+def _aware_end_of_day(value):
+    dt = datetime.combine(value, time.max)
+    return timezone.make_aware(dt, timezone.get_current_timezone())
+
+
+def _action_apply_waiver(request, school, subscription):
+    raw_days = (request.POST.get("waiver_days") or "").strip()
+    raw_end_date = (request.POST.get("waiver_end_date") or "").strip()
+    indefinite = bool(request.POST.get("waiver_indefinite"))
+    include_addons = bool(request.POST.get("include_addons"))
+    reason = (request.POST.get("reason") or "").strip()
+    if not reason:
+        messages.error(request, "Waiver reason is required for audit.")
+        return
+
+    days = None
+    ends_at = None
+    if indefinite:
+        ends_at = None
+    elif raw_end_date:
+        end_date = parse_date(raw_end_date)
+        if end_date is None:
+            messages.error(request, "Invalid waiver end date. Use YYYY-MM-DD.")
+            return
+        ends_at = _aware_end_of_day(end_date)
+    else:
+        try:
+            days = int(raw_days or "365")
+        except (TypeError, ValueError):
+            messages.error(request, "Waiver days must be a whole number.")
+            return
+        if days <= 0 or days > _MAX_WAIVER_DAYS:
+            messages.error(request, f"Waiver must be 1-{_MAX_WAIVER_DAYS} days.")
+            return
+
+    starts_at = _aware_start_of_day(timezone.now().date())
+    grant = apply_subscription_waiver(
+        school,
+        starts_at=starts_at,
+        ends_at=ends_at,
+        days=days,
+        include_addons=include_addons,
+        reason=reason,
+        user=request.user,
+    )
+
+    log_control_plane_action(
+        request,
+        AuditLog.Action.CREATE,
+        "billing.SubscriptionGrant",
+        str(grant.pk),
+        object_repr=f"{school.name} waiver {grant.pk}",
+        reason=_operator_reason(request, "Operator applied subscription waiver"),
+        sensitivity=AuditLog.Sensitivity.HIGH,
+        old_values={},
+        new_values={
+            "grant_type": grant.grant_type,
+            "percent_off": str(grant.percent_off),
+            "starts_at": grant.starts_at.isoformat(),
+            "ends_at": grant.ends_at.isoformat() if grant.ends_at else None,
+            "include_addons": grant.include_addons,
+        },
+        changed_fields=["subscription_grant"],
+    )
+    end_label = grant.ends_at.date().isoformat() if grant.ends_at else "indefinite"
+    messages.success(request, f"Subscription waiver applied through {end_label}.")

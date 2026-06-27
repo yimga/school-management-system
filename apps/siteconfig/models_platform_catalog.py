@@ -532,6 +532,56 @@ class Plan(models.Model):
             "repriced without changing the global pricing formula."
         ),
     )
+    display_order = models.PositiveIntegerField(
+        default=0,
+        db_index=True,
+        help_text="Product packaging order for tenant-facing plan comparisons.",
+    )
+    audience = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Plain tenant segment, e.g. '1-50 students' or 'district networks'.",
+    )
+    tenant_summary = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="One-sentence tenant-facing explanation of what this plan is for.",
+    )
+    billing_cycle_options = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Allowed cycles for this plan, e.g. monthly, annual, school_year, custom_contract.",
+    )
+    payment_method_options = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Allowed payment rails for this plan, e.g. card, bank, mobile_money, invoice.",
+    )
+    included_usage = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Tenant-readable included limits such as students, staff, storage, messages, AI credits, API calls.",
+    )
+    support_policy = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Support tier, SLA, onboarding, migration, and success-manager policy for this plan.",
+    )
+    tenant_visible = models.BooleanField(
+        default=True,
+        db_index=True,
+        help_text="Show this plan in tenant-facing plan comparisons.",
+    )
+    requires_quote = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Use quote/contract flow instead of self-serve checkout.",
+    )
+    configuration_schema = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Operator-maintained knobs for this plan: usage packs, procurement, data residency, contract rules.",
+    )
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(
         default=False,
@@ -545,7 +595,7 @@ class Plan(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["display_order", "name"]
         verbose_name = "Plan"
         verbose_name_plural = "Plans"
         constraints = [
@@ -679,27 +729,87 @@ class SyncConflict(models.Model):
 
 
 class PlanAddon(models.Model):
+    class BillingUnit(models.TextChoices):
+        PER_TENANT = "PER_TENANT", "Per tenant"
+        PER_SCHOOL = "PER_SCHOOL", "Per school"
+        PER_STUDENT = "PER_STUDENT", "Per student"
+        PER_USER = "PER_USER", "Per user"
+        USAGE_BASED = "USAGE_BASED", "Usage based"
+        ONE_TIME = "ONE_TIME", "One time"
+        CUSTOM_CONTRACT = "CUSTOM_CONTRACT", "Custom contract"
+
     code = models.SlugField(
         max_length=80, unique=True, help_text="Feature code e.g. design_studio"
     )
     name = models.CharField(max_length=120, help_text="Display name")
+    description = models.TextField(blank=True)
+    category = models.CharField(
+        max_length=80,
+        blank=True,
+        db_index=True,
+        help_text="Commercial category, e.g. communication, analytics, compliance, services.",
+    )
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
         help_text="Monthly price in base currency (before PPP multiplier)",
     )
+    billing_unit = models.CharField(
+        max_length=20,
+        choices=BillingUnit.choices,
+        default=BillingUnit.PER_TENANT,
+    )
+    included_in_plan_codes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Plan slugs where this add-on is already included.",
+    )
+    available_to_plan_codes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional plan slugs that can buy this add-on. Empty means broadly available.",
+    )
+    regional_price_overrides = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Per-country add-on price overrides keyed by ISO alpha-2 country code.",
+    )
+    configuration_schema = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Operator-maintained add-on knobs, usage packs, approval rules, and provisioning notes.",
+    )
+    display_order = models.PositiveIntegerField(default=0, db_index=True)
+    tenant_visible = models.BooleanField(default=True, db_index=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["display_order", "name"]
         verbose_name = "Plan add-on"
         verbose_name_plural = "Plan add-ons"
 
     def __str__(self):
         return f"{self.name} ({self.code})"
+
+    def regional_price_override_for(self, country_code):
+        if not country_code:
+            return None
+        overrides = self.regional_price_overrides
+        if not isinstance(overrides, dict):
+            return None
+        raw = overrides.get(country_code.upper(), overrides.get(country_code))
+        if raw is None or raw == "":
+            return None
+        from decimal import Decimal, InvalidOperation
+
+        try:
+            value = Decimal(str(raw).strip().replace(",", ""))
+        except (InvalidOperation, ValueError, TypeError):
+            return None
+        return value if value >= 0 else None
 
 
 class CountryMultiplier(models.Model):

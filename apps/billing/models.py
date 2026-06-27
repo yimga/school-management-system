@@ -133,6 +133,262 @@ class TenantSubscription(models.Model):
         return f"{self.school.name} subscription"
 
 
+class BillingPromotion(models.Model):
+    """Platform commercial offer template.
+
+    Promotions are reusable campaign definitions. Applying one to a tenant
+    creates a ``SubscriptionGrant`` so the billing trail records exactly which
+    tenant received which commercial terms and for how long.
+    """
+
+    class DiscountType(models.TextChoices):
+        PERCENT = "PERCENT", "Percentage"
+        FIXED = "FIXED", "Fixed amount"
+
+    class Scope(models.TextChoices):
+        GLOBAL = "GLOBAL", "Global"
+        REGION = "REGION", "Region"
+        PLAN = "PLAN", "Plan"
+        TENANT = "TENANT", "Tenant"
+        PARTNER = "PARTNER", "Partner"
+
+    code = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=160)  # magic-number-allow: field-max-length
+    description = models.TextField(blank=True)
+    discount_type = models.CharField(
+        max_length=12, choices=DiscountType.choices, default=DiscountType.PERCENT
+    )
+    percent_off = models.DecimalField(
+        max_digits=6, decimal_places=3, default=Decimal("0.000")
+    )
+    fixed_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    scope = models.CharField(max_length=16, choices=Scope.choices, default=Scope.GLOBAL)
+    applies_to_plan = models.ForeignKey(
+        "siteconfig.Plan",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="billing_promotions",
+    )
+    country_codes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional ISO country codes this promotion applies to.",
+    )
+    starts_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    max_redemptions = models.PositiveIntegerField(null=True, blank=True)
+    redemption_count = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["code"]
+        verbose_name = "Billing promotion"
+        verbose_name_plural = "Billing promotions"
+
+    def __str__(self):
+        return self.name or self.code
+
+
+class CountryBillingProfile(models.Model):
+    """Configurable commercial policy for one country/market.
+
+    CountryMultiplier decides regional price math. This profile decides how the
+    tenant can buy: cycles, payment rails, invoice behavior, and whether pricing
+    is published, localized, or quote-only.
+    """
+
+    class MarketTier(models.TextChoices):
+        A = "A", "Tier A"
+        B = "B", "Tier B"
+        C = "C", "Tier C"
+
+    class PublicPriceMode(models.TextChoices):
+        PUBLISHED = "PUBLISHED", "Published"
+        LOCALIZED = "LOCALIZED", "Localized"
+        QUOTE = "QUOTE", "Quote"
+        CUSTOM_CONTRACT = "CUSTOM_CONTRACT", "Custom contract"
+
+    class TaxBehavior(models.TextChoices):
+        EXCLUSIVE = "EXCLUSIVE", "Tax exclusive"
+        INCLUSIVE = "INCLUSIVE", "Tax inclusive"
+        REVERSE_CHARGE = "REVERSE_CHARGE", "Reverse charge"
+        MANUAL = "MANUAL", "Manual review"
+
+    country_code = models.CharField(
+        max_length=3,
+        unique=True,
+        db_index=True,
+        help_text="Canonical ISO 3166-1 alpha-2 country code where possible.",
+    )
+    country_name = models.CharField(max_length=120, blank=True)
+    currency_code = models.CharField(max_length=3, default=_platform_default_currency)
+    market_tier = models.CharField(
+        max_length=1, choices=MarketTier.choices, default=MarketTier.B
+    )
+    price_zone = models.CharField(
+        max_length=1,
+        blank=True,
+        help_text="Usually mirrors CountryMultiplier.zone; kept editable for commercial policy.",
+    )
+    public_price_mode = models.CharField(
+        max_length=20,
+        choices=PublicPriceMode.choices,
+        default=PublicPriceMode.LOCALIZED,
+    )
+    default_billing_cycles = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Market-default cycles such as monthly, annual, school_year, custom_contract.",
+    )
+    payment_methods = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Market-default payment rails such as card, bank, mobile_money, invoice, purchase_order.",
+    )
+    tax_behavior = models.CharField(
+        max_length=20, choices=TaxBehavior.choices, default=TaxBehavior.EXCLUSIVE
+    )
+    invoice_locale = models.CharField(max_length=16, blank=True)
+    checkout_copy = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Tenant-facing wording for checkout, procurement, mobile money, tax, or invoice caveats.",
+    )
+    procurement_policy = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="PO, wire, government, NGO, offline, and contract approval rules for this country.",
+    )
+    promotion_policy = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Market promotion knobs such as annual discount, launch offers, sponsorship defaults.",
+    )
+    addon_policy = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Market add-on rules such as usage bundles, hidden add-ons, and required approvals.",
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["country_code"]
+        verbose_name = "Country billing profile"
+        verbose_name_plural = "Country billing profiles"
+
+    def __str__(self):
+        return f"{self.country_code}: {self.currency_code} ({self.public_price_mode})"
+
+
+class SubscriptionGrant(models.Model):
+    """Applied discount, credit, or waiver for one tenant subscription."""
+
+    class GrantType(models.TextChoices):
+        PROMOTION = "PROMOTION", "Promotion"
+        DISCOUNT = "DISCOUNT", "Manual discount"
+        WAIVER = "WAIVER", "Subscription waiver"
+        CREDIT = "CREDIT", "Account credit"
+        SPONSORSHIP = "SPONSORSHIP", "Sponsorship"
+        INTERNAL = "INTERNAL", "Internal/demo"
+
+    class Status(models.TextChoices):
+        ACTIVE = "ACTIVE", "Active"
+        EXPIRED = "EXPIRED", "Expired"
+        REVOKED = "REVOKED", "Revoked"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="subscription_grants",
+    )
+    billing_account = models.ForeignKey(
+        BillingAccount,
+        on_delete=models.CASCADE,
+        related_name="subscription_grants",
+    )
+    subscription = models.ForeignKey(
+        TenantSubscription,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="commercial_grants",
+    )
+    promotion = models.ForeignKey(
+        BillingPromotion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="subscription_grants",
+    )
+    grant_type = models.CharField(
+        max_length=16, choices=GrantType.choices, default=GrantType.DISCOUNT
+    )
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.ACTIVE, db_index=True
+    )
+    percent_off = models.DecimalField(
+        max_digits=6, decimal_places=3, default=Decimal("0.000")
+    )
+    fixed_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    include_addons = models.BooleanField(default=True)
+    cycle_limit = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Optional maximum number of billing renewals this grant can affect.",
+    )
+    cycles_applied = models.PositiveIntegerField(default=0)
+    starts_at = models.DateTimeField()
+    ends_at = models.DateTimeField(null=True, blank=True)
+    reason = models.CharField(max_length=255, blank=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_subscription_grants",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_subscription_grants",
+    )
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-starts_at", "-created_at"]
+        verbose_name = "Subscription grant"
+        verbose_name_plural = "Subscription grants"
+        indexes = [
+            models.Index(
+                fields=["school", "status", "starts_at", "ends_at"],
+                name="bill_grant_school_status_idx",
+            ),
+            models.Index(
+                fields=["subscription", "status"],
+                name="billing_grant_sub_status_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.school_id}:{self.grant_type}:{self.status}"
+
+
 class Entitlement(models.Model):
     """
     Materialized tenant entitlement.

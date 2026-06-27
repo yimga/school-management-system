@@ -11,12 +11,14 @@ from django.utils import timezone
 
 from apps.billing.models import (
     BillingAccount,
+    BillingPromotion,
     Entitlement,
     PlatformBillingProcessorConfig,
     BillingProcessorSyncEvent,
     PlatformLedgerEntry,
     Quote,
     RevenueSharePayout,
+    SubscriptionGrant,
     TenantSubscription,
     UsageMeter,
 )
@@ -99,6 +101,217 @@ def _subscription_amount(subscription: TenantSubscription) -> Decimal:
     return Decimal(str(subscription.base_amount or "0")) + Decimal(
         str(subscription.addons_amount or "0")
     )
+
+
+def _money(value) -> Decimal:
+    return Decimal(str(value or "0")).quantize(Decimal("0.01"))
+
+
+def _active_subscription_grants(
+    subscription: TenantSubscription, *, as_of: datetime | None = None
+) -> list[SubscriptionGrant]:
+    as_of = as_of or timezone.now()
+    # tenant-isolation-allow: school + billing_account are explicit subscription FKs.
+    qs = (
+        SubscriptionGrant.objects.select_related("promotion")
+        .filter(
+            school=subscription.school,
+            billing_account=subscription.billing_account,
+            status=SubscriptionGrant.Status.ACTIVE,
+            starts_at__lte=as_of,
+        )
+        .filter(models.Q(ends_at__isnull=True) | models.Q(ends_at__gte=as_of))
+        .filter(
+            models.Q(subscription__isnull=True) | models.Q(subscription=subscription)
+        )
+        .filter(models.Q(cycle_limit__isnull=True) | models.Q(cycles_applied__lt=models.F("cycle_limit")))
+        .order_by("created_at", "pk")
+    )
+    return list(qs)
+
+
+def preview_subscription_commercial_terms(
+    subscription: TenantSubscription,
+    *,
+    gross_amount: Decimal | str | int | None = None,
+    as_of: datetime | None = None,
+) -> dict:
+    """Return gross/net charge terms after active promotions, credits, and waivers.
+
+    Pure read except for lazy queryset evaluation. Renewal posting calls
+    ``mark_subscription_grants_applied`` after the ledger rows are created.
+    """
+    as_of = as_of or timezone.now()
+    gross = _money(gross_amount if gross_amount is not None else _subscription_amount(subscription))
+    remaining = gross
+    discount_amount = Decimal("0.00")
+    waiver_amount = Decimal("0.00")
+    applied = []
+
+    for grant in _active_subscription_grants(subscription, as_of=as_of):
+        if remaining <= 0:
+            break
+        eligible_base = gross
+        if not grant.include_addons:
+            eligible_base = min(gross, _money(subscription.base_amount))
+        percent = Decimal(str(grant.percent_off or "0"))
+        fixed = _money(grant.fixed_amount)
+        if grant.grant_type in {
+            SubscriptionGrant.GrantType.WAIVER,
+            SubscriptionGrant.GrantType.SPONSORSHIP,
+            SubscriptionGrant.GrantType.INTERNAL,
+        } and percent <= 0 and fixed <= 0:
+            percent = Decimal("100")
+        amount = Decimal("0.00")
+        if percent > 0:
+            amount += _money(eligible_base * (percent / Decimal("100")))
+        if fixed > 0:
+            amount += fixed
+        amount = min(_money(amount), remaining)
+        if amount <= 0:
+            continue
+        remaining = _money(remaining - amount)
+        bucket = (
+            "waiver"
+            if grant.grant_type
+            in {
+                SubscriptionGrant.GrantType.WAIVER,
+                SubscriptionGrant.GrantType.SPONSORSHIP,
+                SubscriptionGrant.GrantType.INTERNAL,
+            }
+            else "discount"
+        )
+        if bucket == "waiver":
+            waiver_amount = _money(waiver_amount + amount)
+        else:
+            discount_amount = _money(discount_amount + amount)
+        applied.append(
+            {
+                "grant_id": grant.pk,
+                "grant_type": grant.grant_type,
+                "promotion_code": getattr(grant.promotion, "code", "") or "",
+                "amount": amount,
+                "bucket": bucket,
+                "reason": grant.reason,
+            }
+        )
+
+    return {
+        "gross_amount": gross,
+        "discount_amount": discount_amount,
+        "waiver_amount": waiver_amount,
+        "net_amount": remaining,
+        "applied_grants": applied,
+    }
+
+
+def mark_subscription_grants_applied(
+    subscription: TenantSubscription, applied_grants: list[dict]
+) -> None:
+    grant_ids = [row.get("grant_id") for row in applied_grants if row.get("grant_id")]
+    if not grant_ids:
+        return
+    for grant in SubscriptionGrant.objects.filter(pk__in=grant_ids):
+        grant.cycles_applied = int(grant.cycles_applied or 0) + 1
+        update_fields = ["cycles_applied", "updated_at"]
+        if grant.cycle_limit and grant.cycles_applied >= grant.cycle_limit:
+            grant.status = SubscriptionGrant.Status.EXPIRED
+            update_fields.append("status")
+        grant.save(update_fields=update_fields)
+
+
+def apply_subscription_waiver(
+    school,
+    *,
+    starts_at: datetime | None = None,
+    ends_at: datetime | None = None,
+    days: int | None = None,
+    percent_off=Decimal("100"),
+    fixed_amount=Decimal("0.00"),
+    include_addons: bool = True,
+    reason: str = "",
+    user=None,
+    grant_type: str = SubscriptionGrant.GrantType.WAIVER,
+) -> SubscriptionGrant:
+    """Create an auditable tenant subscription grant for a waiver or sponsorship."""
+    account, subscription, _ = ensure_subscription_for_school(school)
+    starts_at = starts_at or timezone.now()
+    if ends_at is None and days:
+        ends_at = starts_at + timedelta(days=max(1, int(days)))
+    grant = SubscriptionGrant.objects.create(
+        school=school,
+        billing_account=account,
+        subscription=subscription,
+        grant_type=grant_type,
+        status=SubscriptionGrant.Status.ACTIVE,
+        percent_off=Decimal(str(percent_off or "0")),
+        fixed_amount=_money(fixed_amount),
+        include_addons=include_addons,
+        starts_at=starts_at,
+        ends_at=ends_at,
+        reason=str(reason or "")[:255],
+        created_by=user if getattr(user, "is_authenticated", False) else None,
+        approved_by=user if getattr(user, "is_authenticated", False) else None,
+        metadata={
+            "source": "operator_waiver",
+            "custom_days": days,
+            "indefinite": ends_at is None,
+        },
+    )
+    return grant
+
+
+def apply_promotion_to_subscription(
+    school,
+    promotion_code: str,
+    *,
+    user=None,
+    starts_at: datetime | None = None,
+    ends_at: datetime | None = None,
+    cycle_limit: int | None = None,
+    reason: str = "",
+) -> SubscriptionGrant:
+    """Redeem a reusable promotion into a tenant-scoped grant."""
+    account, subscription, _ = ensure_subscription_for_school(school)
+    now = timezone.now()
+    code = str(promotion_code or "").strip()
+    promotion = BillingPromotion.objects.filter(code=code, is_active=True).first()
+    if promotion is None:
+        raise ValueError("Promotion was not found or is inactive.")
+    if promotion.starts_at and promotion.starts_at > now:
+        raise ValueError("Promotion has not started yet.")
+    if promotion.ends_at and promotion.ends_at < now:
+        raise ValueError("Promotion has expired.")
+    if promotion.applies_to_plan_id and promotion.applies_to_plan_id != subscription.plan_id:
+        raise ValueError("Promotion does not apply to this plan.")
+    country_codes = promotion.country_codes if isinstance(promotion.country_codes, list) else []
+    school_country = str(getattr(school, "country_code", "") or "").upper()
+    if country_codes and school_country not in {str(c).upper() for c in country_codes}:
+        raise ValueError("Promotion does not apply to this country.")
+    if promotion.max_redemptions and promotion.redemption_count >= promotion.max_redemptions:
+        raise ValueError("Promotion redemption limit reached.")
+    grant = SubscriptionGrant.objects.create(
+        school=school,
+        billing_account=account,
+        subscription=subscription,
+        promotion=promotion,
+        grant_type=SubscriptionGrant.GrantType.PROMOTION,
+        status=SubscriptionGrant.Status.ACTIVE,
+        percent_off=promotion.percent_off,
+        fixed_amount=promotion.fixed_amount,
+        include_addons=True,
+        cycle_limit=cycle_limit,
+        starts_at=starts_at or now,
+        ends_at=ends_at or promotion.ends_at,
+        reason=(reason or promotion.name)[:255],
+        created_by=user if getattr(user, "is_authenticated", False) else None,
+        approved_by=user if getattr(user, "is_authenticated", False) else None,
+        metadata={"source": "promotion_redemption", "promotion_code": promotion.code},
+    )
+    BillingPromotion.objects.filter(pk=promotion.pk).update(
+        redemption_count=models.F("redemption_count") + 1
+    )
+    return grant
 
 
 def _period_reference(
@@ -1237,6 +1450,9 @@ def run_platform_billing_lifecycle(
     summary = {
         "trial_converted": 0,
         "charges_created": 0,
+        "credits_created": 0,
+        "discount_amount": Decimal("0.00"),
+        "waiver_amount": Decimal("0.00"),
         "renewed": 0,
         "past_due": 0,
         "suspended": 0,
@@ -1299,7 +1515,11 @@ def run_platform_billing_lifecycle(
                 reference=reference,
                 status=PlatformLedgerEntry.Status.POSTED,
             ).exists():
-                amount = _subscription_amount(subscription)
+                gross_amount = _subscription_amount(subscription)
+                terms = preview_subscription_commercial_terms(
+                    subscription, gross_amount=gross_amount, as_of=as_of
+                )
+                amount = terms["gross_amount"]
                 if amount > 0:
                     record_platform_charge(
                         school=school,
@@ -1310,9 +1530,40 @@ def run_platform_billing_lifecycle(
                         metadata={
                             "period_start": period_start.isoformat(),
                             "period_end": period_end.isoformat(),
+                            "commercial_terms": _json_safe(terms),
                         },
                     )
                     summary["charges_created"] += 1
+                    for applied in terms["applied_grants"]:
+                        credit_ref = f"{reference}-GRANT-{applied['grant_id']}"
+                        record_platform_charge(
+                            school=school,
+                            amount=applied["amount"],
+                            entry_type=PlatformLedgerEntry.EntryType.CREDIT,
+                            description=(
+                                "Subscription commercial grant "
+                                f"({applied['grant_type']})"
+                            ),
+                            reference=credit_ref,
+                            source="billing_lifecycle_grant",
+                            source_ref=str(applied["grant_id"]),
+                            metadata={
+                                "period_start": period_start.isoformat(),
+                                "period_end": period_end.isoformat(),
+                                "grant": _json_safe(applied),
+                            },
+                        )
+                        summary["credits_created"] += 1
+                    if terms["discount_amount"] > 0 or terms["waiver_amount"] > 0:
+                        summary["discount_amount"] = _money(
+                            summary["discount_amount"] + terms["discount_amount"]
+                        )
+                        summary["waiver_amount"] = _money(
+                            summary["waiver_amount"] + terms["waiver_amount"]
+                        )
+                        mark_subscription_grants_applied(
+                            subscription, terms["applied_grants"]
+                        )
             subscription.last_invoiced_at = as_of
             subscription.current_period_start = period_end
             subscription.current_period_end = period_end + cycle_delta
@@ -1371,6 +1622,8 @@ def run_platform_billing_lifecycle(
         reconcile_subscription_entitlements(subscription, as_of=as_of)
         sync_billing_incident_state(subscription)
 
+    summary["discount_amount"] = str(_money(summary["discount_amount"]))
+    summary["waiver_amount"] = str(_money(summary["waiver_amount"]))
     return summary
 
 

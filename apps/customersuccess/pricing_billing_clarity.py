@@ -104,6 +104,12 @@ def pricing_clarity_crosswalk(*, school=None) -> dict[str, Any]:
 
 def tenant_billing_estimate_context(*, school) -> dict[str, Any]:
     crosswalk = pricing_clarity_crosswalk(school=school)
+    try:
+        from apps.billing.tenant_pricing import tenant_pricing_options
+
+        global_pricing = tenant_pricing_options(school)
+    except Exception:
+        global_pricing = {}
     crosswalk["tenant_billing_estimate"] = {
         "monthly": crosswalk["monthly_estimate_display"],
         "annual": crosswalk["annual_estimate_display"],
@@ -115,4 +121,5 @@ def tenant_billing_estimate_context(*, school) -> dict[str, Any]:
             else None
         ),
     }
+    crosswalk["global_pricing"] = global_pricing
     return crosswalk

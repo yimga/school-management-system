@@ -5,21 +5,24 @@ from django.db import DatabaseError
 
 from config.admin import platform_admin_site
 
-logger = logging.getLogger(__name__)
-
 from apps.billing.models import (
     BillingAccount,
+    CountryBillingProfile,
     BillingProcessorSyncEvent,
+    BillingPromotion,
     Entitlement,
     PlatformLedgerEntry,
     PlatformBillingProcessorConfig,
     Quote,
     RevenueSharePayout,
+    SubscriptionGrant,
     StripePlanPrice,
     TenantSubscription,
     UsageMeter,
 )
 from apps.billing.models_usage_caps import UsageCap
+
+logger = logging.getLogger(__name__)
 
 
 @admin.register(BillingAccount, site=platform_admin_site)
@@ -78,6 +81,70 @@ class TenantSubscriptionAdmin(admin.ModelAdmin):
                 obj.pk,
                 exc_info=True,
             )
+
+
+@admin.register(BillingPromotion, site=platform_admin_site)
+class BillingPromotionAdmin(admin.ModelAdmin):
+    list_display = (
+        "code",
+        "name",
+        "discount_type",
+        "percent_off",
+        "fixed_amount",
+        "scope",
+        "applies_to_plan",
+        "is_active",
+        "starts_at",
+        "ends_at",
+        "redemption_count",
+    )
+    list_filter = ("discount_type", "scope", "is_active")
+    search_fields = ("code", "name", "description")
+    readonly_fields = ("redemption_count", "created_at", "updated_at")
+
+
+@admin.register(SubscriptionGrant, site=platform_admin_site)
+class SubscriptionGrantAdmin(admin.ModelAdmin):
+    list_display = (
+        "school",
+        "grant_type",
+        "status",
+        "promotion",
+        "percent_off",
+        "fixed_amount",
+        "include_addons",
+        "starts_at",
+        "ends_at",
+        "cycles_applied",
+    )
+    list_filter = ("grant_type", "status", "include_addons")
+    search_fields = ("school__name", "promotion__code", "reason")
+    readonly_fields = ("cycles_applied", "created_at", "updated_at", "revoked_at")
+
+
+@admin.register(CountryBillingProfile, site=platform_admin_site)
+class CountryBillingProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "country_code",
+        "country_name",
+        "currency_code",
+        "market_tier",
+        "price_zone",
+        "public_price_mode",
+        "tax_behavior",
+        "is_active",
+        "updated_at",
+    )
+    list_filter = (
+        "market_tier",
+        "price_zone",
+        "public_price_mode",
+        "tax_behavior",
+        "is_active",
+        "currency_code",
+    )
+    search_fields = ("country_code", "country_name", "currency_code")
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(Entitlement, site=platform_admin_site)

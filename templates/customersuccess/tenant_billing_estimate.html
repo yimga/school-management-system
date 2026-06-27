@@ -69,5 +69,165 @@
       </div>
     </div>
   </section>
+
+  {% if global_pricing %}
+  <section class="card shadow-sm mb-3" data-global-pricing-summary="1">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+        <div>
+          <h3 class="h6 mb-1">{% trans "Country billing setup" %}</h3>
+          <p class="small text-muted mb-0">
+            {{ global_pricing.country.country_name }}{% if global_pricing.country.country_code %} ({{ global_pricing.country.country_code }}){% endif %}
+            Â· {{ global_pricing.country.currency_code }}
+            Â· {% trans "price mode" %}: {{ global_pricing.country.public_price_mode }}
+          </p>
+        </div>
+        <div class="small text-muted">
+          {% blocktrans with discount=global_pricing.annual_discount_percent %}Annual prepay discount: {{ discount }}%{% endblocktrans %}
+        </div>
+      </div>
+
+      {% if global_pricing.current_terms %}
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <div class="border rounded p-3 h-100">
+            <div class="small text-muted">{% trans "Gross renewal" %}</div>
+            <div class="fw-semibold">{{ global_pricing.current_terms.gross_amount|format_currency }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="border rounded p-3 h-100">
+            <div class="small text-muted">{% trans "Discounts" %}</div>
+            <div class="fw-semibold">{{ global_pricing.current_terms.discount_amount|format_currency }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="border rounded p-3 h-100">
+            <div class="small text-muted">{% trans "Waivers" %}</div>
+            <div class="fw-semibold">{{ global_pricing.current_terms.waiver_amount|format_currency }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="border rounded p-3 h-100">
+            <div class="small text-muted">{% trans "Net renewal" %}</div>
+            <div class="fw-semibold">{{ global_pricing.current_terms.net_amount|format_currency }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <h4 class="h6">{% trans "Ways to pay" %}</h4>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            {% for method in global_pricing.country.payment_methods %}
+            <span class="badge text-bg-light border">{{ method }}</span>
+            {% empty %}
+            <span class="small text-muted">{% trans "Operator configured" %}</span>
+            {% endfor %}
+          </div>
+          <h4 class="h6">{% trans "Billing cycles" %}</h4>
+          <div class="d-flex flex-wrap gap-2">
+            {% for cycle in global_pricing.country.default_billing_cycles %}
+            <span class="badge text-bg-light border">{{ cycle }}</span>
+            {% empty %}
+            <span class="small text-muted">{% trans "Operator configured" %}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <h4 class="h6">{% trans "Configurable policy" %}</h4>
+          <dl class="row small mb-0">
+            <dt class="col-sm-4">{% trans "Tax" %}</dt>
+            <dd class="col-sm-8">{{ global_pricing.country.tax_behavior }}</dd>
+            <dt class="col-sm-4">{% trans "Invoice locale" %}</dt>
+            <dd class="col-sm-8">{{ global_pricing.country.invoice_locale }}</dd>
+            <dt class="col-sm-4">{% trans "Profile" %}</dt>
+            <dd class="col-sm-8">
+              {% if global_pricing.country.is_configured %}{% trans "Configured" %}{% else %}{% trans "Fallback defaults" %}{% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card shadow-sm mb-3" data-global-plan-options="1">
+    <div class="card-body">
+      <h3 class="h6 mb-3">{% trans "Plans available in your country" %}</h3>
+      <div class="row g-3">
+        {% for plan in global_pricing.plans %}
+        <div class="col-lg-4">
+          <div class="border rounded p-3 h-100">
+            <div class="d-flex justify-content-between gap-2">
+              <div>
+                <div class="fw-semibold">{{ plan.name }}</div>
+                <div class="small text-muted">{{ plan.audience }}</div>
+              </div>
+              {% if plan.requires_quote %}
+              <span class="badge text-bg-secondary">{% trans "Quote" %}</span>
+              {% endif %}
+            </div>
+            <p class="small text-muted mt-2 mb-2">{{ plan.summary }}</p>
+            {% if plan.requires_quote %}
+            <div class="h6 mb-2">{% trans "Custom contract" %}</div>
+            {% else %}
+            <div class="h6 mb-2">
+              {{ plan.monthly_total|format_currency }} <span class="small text-muted">/ {% trans "month" %}</span>
+            </div>
+            <div class="small text-muted mb-2">
+              {{ plan.annual_total|format_currency }} / {% trans "year" %}
+            </div>
+            {% endif %}
+            <div class="small text-muted">
+              {% trans "Payment" %}: {{ plan.payment_methods|join:", " }}<br>
+              {% trans "Cycles" %}: {{ plan.billing_cycles|join:", " }}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <p class="small text-muted mb-0">{% trans "Plans are being configured for this country." %}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="card shadow-sm" data-global-addon-options="1">
+    <div class="card-body">
+      <h3 class="h6 mb-3">{% trans "Optional add-ons" %}</h3>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>{% trans "Add-on" %}</th>
+              <th>{% trans "Category" %}</th>
+              <th>{% trans "Billing" %}</th>
+              <th class="text-end">{% trans "Estimate" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for addon in global_pricing.addons %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ addon.name }}</div>
+                <div class="small text-muted">{{ addon.description }}</div>
+              </td>
+              <td>{{ addon.category }}</td>
+              <td>{{ addon.billing_unit }}</td>
+              <td class="text-end">{{ addon.monthly_total|format_currency }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="text-muted">{% trans "Add-ons are being configured for this country." %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}

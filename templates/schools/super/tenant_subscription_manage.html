@@ -40,6 +40,15 @@
             <dt class="col-6">{% trans "Billed amount" %}</dt>
             <dd class="col-6 text-end">{{ subscription.billed_amount|default:"0.00" }} {{ billing_account.currency_code|default:"USD" }}</dd>
 
+            <dt class="col-6">{% trans "Discounts" %}</dt>
+            <dd class="col-6 text-end">-{{ commercial_terms.discount_amount|default:"0.00" }} {{ billing_account.currency_code|default:"USD" }}</dd>
+
+            <dt class="col-6">{% trans "Waivers" %}</dt>
+            <dd class="col-6 text-end">-{{ commercial_terms.waiver_amount|default:"0.00" }} {{ billing_account.currency_code|default:"USD" }}</dd>
+
+            <dt class="col-6">{% trans "Net renewal" %}</dt>
+            <dd class="col-6 text-end fw-semibold">{{ commercial_terms.net_amount|default:"0.00" }} {{ billing_account.currency_code|default:"USD" }}</dd>
+
             <dt class="col-6">{% trans "Trial ends" %}</dt>
             <dd class="col-6 text-end">{{ trial_end_date|default:"—" }}</dd>
 
@@ -108,6 +117,47 @@
         </div>
       </div>
 
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">{% trans "Waiver / sponsorship" %}</div>
+        <div class="card-body">
+          <form method="post" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="apply_waiver">
+            <div class="col-sm-4">
+              <label class="form-label small">{% trans "Preset" %}</label>
+              <select name="waiver_days" class="form-select">
+                <option value="30">{% trans "1 month" %}</option>
+                <option value="90">{% trans "3 months" %}</option>
+                <option value="180">{% trans "6 months" %}</option>
+                <option value="365" selected>{% trans "1 year" %}</option>
+              </select>
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label small">{% trans "Custom end date" %}</label>
+              <input type="date" name="waiver_end_date" class="form-control">
+            </div>
+            <div class="col-sm-4">
+              <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" name="waiver_indefinite" value="1" id="waiverIndefinite">
+                <label class="form-check-label small" for="waiverIndefinite">{% trans "Indefinite" %}</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="include_addons" value="1" id="waiverAddons" checked>
+                <label class="form-check-label small" for="waiverAddons">{% trans "Include add-ons" %}</label>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">{% trans "Reason (required, audited)" %}</label>
+              <input type="text" name="reason" maxlength="200" class="form-control form-control-sm" required placeholder="{% trans 'Hardship, pilot, launch founder, internal demo, sponsorship...' %}">
+            </div>
+            <div class="col-sm-4">
+              <button type="submit" class="btn btn-outline-success w-100">{% trans "Apply waiver" %}</button>
+            </div>
+          </form>
+          <div class="form-text">{% trans "Creates a billing grant. Renewal invoices keep the list price and post a matching credit so waived revenue remains reportable." %}</div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header fw-semibold">{% trans "Subscription status" %}</div>
         <div class="card-body">
@@ -133,6 +183,42 @@
           <div class="form-text">{% trans "Suspend / cancel disables entitlements; reactivate re-enables them. Past-due is processor-driven and not settable here." %}</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="card-header fw-semibold">{% trans "Active commercial grants" %}</div>
+    <div class="card-body p-0">
+      {% if active_grants %}
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 small align-middle">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Type" %}</th>
+              <th scope="col">{% trans "Promotion" %}</th>
+              <th scope="col" class="text-end">{% trans "Percent" %}</th>
+              <th scope="col" class="text-end">{% trans "Fixed" %}</th>
+              <th scope="col">{% trans "Window" %}</th>
+              <th scope="col">{% trans "Reason" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for grant in active_grants %}
+            <tr>
+              <td>{{ grant.get_grant_type_display|default:grant.grant_type }}</td>
+              <td><code class="small">{{ grant.promotion.code|default:"-" }}</code></td>
+              <td class="text-end">{{ grant.percent_off }}%</td>
+              <td class="text-end">{{ grant.fixed_amount }}</td>
+              <td>{{ grant.starts_at|date:"Y-m-d" }} - {% if grant.ends_at %}{{ grant.ends_at|date:"Y-m-d" }}{% else %}{% trans "Indefinite" %}{% endif %}</td>
+              <td>{{ grant.reason|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted small mb-0 p-3">{% trans "No active promotions, waivers, credits, or sponsorships are applied." %}</p>
+      {% endif %}
     </div>
   </div>
 

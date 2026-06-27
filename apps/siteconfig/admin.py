@@ -2092,18 +2092,37 @@ class PlanAdmin(ModelAdmin):
     list_display = (
         "name",
         "slug",
+        "display_order",
         "billing_model",
         "max_students",
         "max_staff",
+        "tenant_visible",
+        "requires_quote",
+        "is_default",
         "is_active",
         "created_at",
     )
-    list_filter = ("billing_model", "is_active")
-    search_fields = ("name", "slug")
+    list_filter = ("billing_model", "tenant_visible", "requires_quote", "is_default", "is_active")
+    search_fields = ("name", "slug", "audience", "tenant_summary")
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ("created_at", "updated_at")
     fieldsets = (
-        (None, {"fields": ("name", "slug", "is_active")}),
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "slug",
+                    "display_order",
+                    "audience",
+                    "tenant_summary",
+                    "tenant_visible",
+                    "requires_quote",
+                    "is_default",
+                    "is_active",
+                )
+            },
+        ),
         ("Limits", {"fields": ("max_students", "max_staff", "included_features")}),
         (
             "Billing",
@@ -2113,17 +2132,30 @@ class PlanAdmin(ModelAdmin):
                     "base_price",
                     "price_per_student",
                     "tier_rules",
+                    "regional_sku_overrides",
+                    "billing_cycle_options",
+                    "payment_method_options",
                 )
             },
         ),
+        ("Tenant packaging", {"fields": ("included_usage", "support_policy", "configuration_schema")}),
         ("Meta", {"fields": ("created_at", "updated_at")}),
     )
 
 
 class PlanAddonAdmin(ModelAdmin):
-    list_display = ("code", "name", "price", "is_active", "created_at")
-    list_filter = ("is_active",)
-    search_fields = ("code", "name")
+    list_display = (
+        "code",
+        "name",
+        "category",
+        "billing_unit",
+        "price",
+        "tenant_visible",
+        "is_active",
+        "created_at",
+    )
+    list_filter = ("category", "billing_unit", "tenant_visible", "is_active")
+    search_fields = ("code", "name", "description")
 
 
 class CountryMultiplierAdmin(ModelAdmin):

@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import User
-from apps.billing.models import TenantSubscription
+from apps.billing.models import SubscriptionGrant, TenantSubscription
 from apps.compliance.models_audit import AuditLog
 from apps.schools.models import School
 from apps.schools.tests.manager_client import login_manager_control_plane
@@ -84,6 +84,24 @@ class OperatorSubscriptionManageTests(TestCase):
         self.assertGreaterEqual(
             self.school.trial_end_date, (timezone.now() + timedelta(days=29)).date()
         )
+
+    def test_apply_one_year_waiver(self):
+        resp = self.client.post(
+            self.url,
+            {
+                "action": "apply_waiver",
+                "waiver_days": "365",
+                "include_addons": "1",
+                "reason": "Founding school one-year pilot",
+            },
+            HTTP_HOST=_HOST,
+        )
+        self.assertEqual(resp.status_code, 302)
+        grant = SubscriptionGrant.objects.get(school=self.school)
+        self.assertEqual(grant.grant_type, SubscriptionGrant.GrantType.WAIVER)
+        self.assertEqual(grant.percent_off, Decimal("100"))
+        self.assertTrue(grant.include_addons)
+        self.assertIsNotNone(grant.ends_at)
 
     def test_invalid_status_rejected(self):
         # Establish the subscription first (GET materializes it).
