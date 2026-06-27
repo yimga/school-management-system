@@ -158,3 +158,4 @@ var/shard*_nohup.*
 var/subagent_nohup.out
 var/smoke-results-multi/
 var/tenant-abrupt-end-e2e.lock
+var/*.partial.json
