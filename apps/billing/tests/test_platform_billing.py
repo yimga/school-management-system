@@ -17,6 +17,7 @@ from apps.billing.models import (
     Entitlement,
     PlatformBillingProcessorConfig,
     BillingProcessorSyncEvent,
+    PlatformInvoice,
     PlatformLedgerEntry,
     Quote,
     RevenueSharePayout,
@@ -996,3 +997,100 @@ class RenewalReminderTests(TestCase):
         summary = run_subscription_renewal_reminders(warning_days=7)
         self.assertEqual(summary["published"], 0)
         self.assertEqual(summary["skipped_no_email"], 1)
+
+
+class PlatformInvoiceTests(TestCase):
+    def setUp(self):
+        self.plan = Plan.objects.create(
+            name="Invoice Plan",
+            slug="invoice-plan",
+            base_price=Decimal("100.00"),
+            is_active=True,
+        )
+        self.school = School.objects.create(
+            name="Invoice School",
+            slug="invoice-school",
+            subdomain="invoice-school",
+            is_active=True,
+            plan=self.plan,
+            billing_type=School.BillingType.REGULAR,
+        )
+
+    def test_issue_invoice_is_idempotent_and_gapless(self):
+        from apps.billing.services import issue_platform_invoice
+
+        account, _sub, _ = ensure_subscription_for_school(self.school)
+        common = dict(
+            school=self.school,
+            billing_account=account,
+            period_start=None,
+            period_end=None,
+            subtotal="100.00",
+            discount_amount="0.00",
+            tax_amount="16.00",
+            total="116.00",
+            currency_code="USD",
+        )
+        inv1 = issue_platform_invoice(reference_stem="STEM-A", **common)
+        inv1_again = issue_platform_invoice(reference_stem="STEM-A", **common)
+        self.assertEqual(inv1.pk, inv1_again.pk)  # idempotent on reference_stem
+        inv2 = issue_platform_invoice(reference_stem="STEM-B", **common)
+        self.assertEqual(inv2.sequence, inv1.sequence + 1)  # gapless
+        self.assertTrue(inv1.number.startswith("INV-"))
+        self.assertEqual(inv1.total, Decimal("116.00"))
+
+    def test_run_lifecycle_issues_numbered_invoice(self):
+        account, subscription, _ = ensure_subscription_for_school(self.school)
+        subscription.status = TenantSubscription.Status.ACTIVE
+        subscription.current_period_start = timezone.now() - timedelta(days=31)
+        subscription.current_period_end = timezone.now() - timedelta(days=1)
+        subscription.billed_amount = Decimal("100.00")
+        subscription.save(
+            update_fields=[
+                "status",
+                "current_period_start",
+                "current_period_end",
+                "billed_amount",
+                "updated_at",
+            ]
+        )
+
+        summary = run_platform_billing_lifecycle(
+            as_of=timezone.now(), grace_days=7, suspension_days=30
+        )
+
+        self.assertEqual(summary["invoices_issued"], 1)
+        inv = PlatformInvoice.objects.filter(school=self.school).first()
+        self.assertIsNotNone(inv)
+        self.assertEqual(inv.subtotal, Decimal("100.00"))
+        self.assertTrue(inv.number.startswith("INV-"))
+
+    def test_backfill_issues_invoice_from_existing_ledger(self):
+        from apps.billing.services import backfill_platform_invoices
+
+        record_platform_charge(
+            school=self.school,
+            amount=Decimal("100.00"),
+            description="Platform subscription renewal",
+            reference="SUBP-1",
+            source="billing_lifecycle",
+            metadata={},
+        )
+        record_platform_charge(
+            school=self.school,
+            amount=Decimal("16.00"),
+            description="Platform subscription tax",
+            reference="SUBP-1-TAX",
+            source="billing_lifecycle_tax",
+        )
+
+        summary = backfill_platform_invoices()
+
+        self.assertGreaterEqual(summary["issued"], 1)
+        inv = PlatformInvoice.objects.get(reference_stem="SUBP-1")
+        self.assertEqual(inv.subtotal, Decimal("100.00"))
+        self.assertEqual(inv.tax_amount, Decimal("16.00"))
+        self.assertEqual(inv.total, Decimal("116.00"))
+        # Idempotent: a second run issues nothing new.
+        again = backfill_platform_invoices()
+        self.assertEqual(again["issued"], 0)

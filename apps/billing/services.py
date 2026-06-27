@@ -1201,6 +1201,122 @@ def record_platform_charge(
     )
 
 
+_INVOICE_NUMBER_PREFIX = "INV"
+
+
+def issue_platform_invoice(
+    *,
+    school,
+    billing_account,
+    reference_stem: str,
+    period_start: datetime | None,
+    period_end: datetime | None,
+    subtotal,
+    discount_amount,
+    tax_amount,
+    total,
+    currency_code: str,
+    issued_at: datetime | None = None,
+):
+    """Create (or return the existing) per-period PlatformInvoice for a charge.
+
+    Idempotent on ``reference_stem`` — re-running the billing sweep never
+    double-issues. Assigns a gapless ``INV-<year>-<seq>`` number on create under a
+    row lock so concurrent issuance can't reuse a sequence. Returns the invoice, or
+    None when no billing_account is available.
+    """
+    if billing_account is None or not reference_stem:
+        return None
+    from apps.billing.models import PlatformInvoice
+
+    issued_at = issued_at or timezone.now()
+    existing = PlatformInvoice.objects.filter(reference_stem=reference_stem).first()
+    if existing is not None:
+        return existing
+    with transaction.atomic():
+        last = PlatformInvoice.objects.select_for_update().order_by("-sequence").first()
+        seq = (last.sequence if last else 0) + 1
+        number = f"{_INVOICE_NUMBER_PREFIX}-{issued_at:%Y}-{seq:06d}"
+        invoice, _created = PlatformInvoice.objects.get_or_create(
+            reference_stem=reference_stem,
+            defaults={
+                "billing_account": billing_account,
+                "school": school,
+                "number": number,
+                "sequence": seq,
+                "period_start": period_start,
+                "period_end": period_end,
+                "currency_code": (currency_code or "USD").upper()[:3],
+                "subtotal": _money(subtotal),
+                "discount_amount": _money(discount_amount),
+                "tax_amount": _money(tax_amount),
+                "total": _money(total),
+                "issued_at": issued_at,
+            },
+        )
+    return invoice
+
+
+def backfill_platform_invoices(*, limit: int | None = None) -> dict:
+    """Issue PlatformInvoices for historical renewal charges that predate the
+    invoice layer. Groups by the renewal charge reference and derives the figures
+    from the sibling ledger lines (grant credits + the tax line). Idempotent:
+    references already invoiced are skipped. Returns a summary dict.
+    """
+    from django.utils.dateparse import parse_datetime
+
+    from apps.billing.models import PlatformInvoice
+
+    summary = {"scanned": 0, "issued": 0, "skipped_existing": 0}
+    charges = PlatformLedgerEntry.objects.filter(
+        source="billing_lifecycle",
+        entry_type=PlatformLedgerEntry.EntryType.CHARGE,
+        status=PlatformLedgerEntry.Status.POSTED,
+    ).order_by("happened_at", "id")
+    if limit:
+        charges = charges[: max(1, int(limit))]
+    existing = set(PlatformInvoice.objects.values_list("reference_stem", flat=True))
+    for charge in charges:
+        summary["scanned"] += 1
+        stem = charge.reference
+        if not stem or stem in existing:
+            summary["skipped_existing"] += 1
+            continue
+        siblings = PlatformLedgerEntry.objects.filter(school=charge.school).filter(
+            models.Q(reference=stem) | models.Q(reference__startswith=f"{stem}-")
+        )
+        gross = _money(charge.amount)
+        discount = Decimal("0.00")
+        tax = Decimal("0.00")
+        for sib in siblings:
+            if sib.reference == stem:
+                continue
+            if sib.source == "billing_lifecycle_tax":
+                tax += _money(sib.amount)
+            elif sib.entry_type == PlatformLedgerEntry.EntryType.CREDIT:
+                discount += _money(sib.amount)
+        meta = charge.metadata or {}
+        ps = parse_datetime(str(meta.get("period_start") or "")) or None
+        pe = parse_datetime(str(meta.get("period_end") or "")) or None
+        invoice = issue_platform_invoice(
+            school=charge.school,
+            billing_account=charge.billing_account,
+            reference_stem=stem,
+            period_start=ps,
+            period_end=pe,
+            subtotal=gross,
+            discount_amount=discount,
+            tax_amount=tax,
+            total=_money(gross - discount + tax),
+            currency_code=charge.currency_code,
+            issued_at=charge.happened_at,
+        )
+        if invoice is not None:
+            summary["issued"] += 1
+            existing.add(stem)
+    return summary
+
+
 def apply_processor_snapshot(
     *,
     school,
@@ -1672,6 +1788,7 @@ def run_platform_billing_lifecycle(
         "waiver_amount": Decimal("0.00"),
         "tax_charges_created": 0,
         "tax_amount": Decimal("0.00"),
+        "invoices_issued": 0,
         "renewed": 0,
         "past_due": 0,
         "suspended": 0,
@@ -1811,6 +1928,25 @@ def run_platform_billing_lifecycle(
                         summary["tax_amount"] = _money(
                             summary["tax_amount"] + tax["tax_amount"]
                         )
+                    # Issue the numbered per-period invoice that documents this
+                    # period's charge + discounts + tax. Idempotent on the charge
+                    # reference, so a re-run never double-issues.
+                    issue_platform_invoice(
+                        school=school,
+                        billing_account=account,
+                        reference_stem=reference,
+                        period_start=period_start,
+                        period_end=period_end,
+                        subtotal=terms["gross_amount"],
+                        discount_amount=_money(
+                            terms["discount_amount"] + terms["waiver_amount"]
+                        ),
+                        tax_amount=tax["tax_amount"],
+                        total=_money(terms["net_amount"] + tax["tax_amount"]),
+                        currency_code=account.currency_code,
+                        issued_at=as_of,
+                    )
+                    summary["invoices_issued"] = summary.get("invoices_issued", 0) + 1
             subscription.last_invoiced_at = as_of
             subscription.current_period_start = period_end
             subscription.current_period_end = period_end + cycle_delta

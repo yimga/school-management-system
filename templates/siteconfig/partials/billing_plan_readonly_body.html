@@ -244,6 +244,32 @@
   </div>
   {% endif %}
 
+  {% if school and invoices %}
+  <div class="card border-0 shadow-sm mb-3" data-rmc-billing-invoices="1">
+    <div class="card-header bg-light fw-semibold">{% trans "Invoices" %}</div>
+    <div class="card-body small p-0">
+      <div class="table-responsive">
+        <table class="table table-family table-sm mb-0 align-middle rmc-data-table">
+          <caption class="visually-hidden">{% trans "Platform invoices" %}</caption>
+          <thead class="table-light"><tr><th scope="col">{% trans "Invoice" %}</th><th scope="col">{% trans "Period" %}</th><th scope="col" class="text-end">{% trans "Total" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col" class="text-end">{% trans "Document" %}</th></tr></thead>
+          <tbody>
+            {% for inv in invoices %}
+            <tr>
+              <td class="text-nowrap"><code>{{ inv.number }}</code></td>
+              <td class="text-nowrap">{% if inv.period_start and inv.period_end %}{{ inv.period_start|date:"Y-m-d" }} – {{ inv.period_end|date:"Y-m-d" }}{% else %}{{ inv.issued_at|date:"Y-m-d" }}{% endif %}</td>
+              <td class="text-end text-nowrap">{{ inv.total|format_currency }}</td>
+              <td>{{ inv.get_status_display }}</td>
+              <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:billing_invoice_pdf' number=inv.number %}">{% trans "PDF" %}</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer small text-muted">{% trans "Each renewal period is documented as a numbered invoice. Download a PDF for your records." %}</div>
+  </div>
+  {% endif %}
+
   {% if school and ledger_entries %}
   <div class="card border-0 shadow-sm mb-3" data-rmc-billing-history="1">
     <div class="card-header bg-light fw-semibold">{% trans "Billing history &amp; receipts" %}</div>

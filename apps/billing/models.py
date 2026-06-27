@@ -544,6 +544,69 @@ class PlatformLedgerEntry(models.Model):
         return f"{self.school.name} {self.entry_type} {self.amount}"
 
 
+class PlatformInvoice(models.Model):
+    """A per-period platform billing INVOICE — the numbered document that groups
+    one subscription period's ledger lines (the subscription charge + tax + any
+    commercial credits, all sharing a reference stem) under a single gapless
+    invoice number. The PlatformLedgerEntry rows remain the immutable money record;
+    this is the human-facing document over them.
+    """
+
+    class Status(models.TextChoices):
+        ISSUED = "ISSUED", "Issued"
+        PAID = "PAID", "Paid"
+        VOID = "VOID", "Void"
+
+    billing_account = models.ForeignKey(
+        BillingAccount,
+        on_delete=models.CASCADE,
+        related_name="invoices",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="platform_invoices",
+    )
+    # Gapless, human-facing identifier (e.g. INV-2026-000123) + its raw counter.
+    number = models.CharField(max_length=32, unique=True, db_index=True)
+    sequence = models.PositiveIntegerField(unique=True)
+    # The charge reference this invoice documents — unique, so issuance is
+    # idempotent (a re-run of the billing sweep never double-issues).
+    reference_stem = models.CharField(
+        max_length=120, unique=True, db_index=True  # magic-number-allow: field-max-length
+    )
+    period_start = models.DateTimeField(null=True, blank=True)
+    period_end = models.DateTimeField(null=True, blank=True)
+    currency_code = models.CharField(max_length=3, default=_platform_default_currency)
+    subtotal = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    discount_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    tax_amount = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    total = models.DecimalField(
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
+    )
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.ISSUED, db_index=True
+    )
+    issued_at = models.DateTimeField(db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-sequence"]
+        verbose_name = "Platform invoice"
+        verbose_name_plural = "Platform invoices"
+
+    def __str__(self):
+        return self.number
+
+
 class BillingProcessorSyncEvent(models.Model):
     class Status(models.TextChoices):
         APPLIED = "APPLIED", "Applied"

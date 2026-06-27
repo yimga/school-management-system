@@ -13,6 +13,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
 from apps.billing.models import (
+    PlatformInvoice,
     PlatformLedgerEntry,
     StripePlanPrice,
     TenantSubscription,
@@ -133,6 +134,7 @@ def _billing_plan_context(request: HttpRequest) -> dict:
     platform_subscription = None
     usage_meters: list = []
     ledger_entries: list = []
+    invoices: list = []
     stripe_processor_configured = False
     stripe_customer_linked = False
     has_stripe_price_for_current_plan = False
@@ -167,6 +169,10 @@ def _billing_plan_context(request: HttpRequest) -> dict:
                 "-happened_at", "-id"
             )[:24]
         )
+        # Numbered per-period invoice documents over that ledger.
+        invoices = list(
+            PlatformInvoice.objects.filter(school=school).order_by("-sequence")[:24]
+        )
 
     # Localized, plain-language pricing for the tenant's own country: current
     # terms + a plan comparison the tenant can actually read (prices, not codes).
@@ -197,6 +203,7 @@ def _billing_plan_context(request: HttpRequest) -> dict:
         "platform_subscription": platform_subscription,
         "usage_meters": usage_meters,
         "ledger_entries": ledger_entries,
+        "invoices": invoices,
         "stripe_processor_configured": stripe_processor_configured,
         "stripe_customer_linked": stripe_customer_linked,
         "has_stripe_price_for_current_plan": has_stripe_price_for_current_plan,
@@ -292,4 +299,103 @@ th{{background:#f5f5f5;}} td.amt,th.amt{{text-align:right;white-space:nowrap;}}
     pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
     resp = HttpResponse(pdf, content_type="application/pdf")
     resp["Content-Disposition"] = 'attachment; filename="billing_statement.pdf"'
+    return resp
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["GET"])
+def billing_invoice_pdf(request: HttpRequest, number: str) -> HttpResponse:
+    """Downloadable numbered per-period invoice document. Groups the ledger lines
+    that share the invoice's reference stem (subscription charge + tax + commercial
+    credits) under the gapless invoice number. School-scoped; WeasyPrint with a
+    graceful 503 when the renderer is unavailable.
+    """
+    from django.db.models import Q
+    from django.utils.html import escape
+
+    school = getattr(request, "school", None)
+    if school is None:
+        return HttpResponse(_("No school in context."), status=404)
+
+    invoice = PlatformInvoice.objects.filter(school=school, number=number).first()
+    if invoice is None:
+        return HttpResponse(_("Invoice not found."), status=404)
+
+    lines = list(
+        PlatformLedgerEntry.objects.filter(school=school)
+        .filter(
+            Q(reference=invoice.reference_stem)
+            | Q(reference__startswith=f"{invoice.reference_stem}-")
+        )
+        .order_by("happened_at", "id")
+    )
+
+    try:
+        from weasyprint import HTML
+    except (ImportError, OSError):
+        return HttpResponse(_("PDF export requires WeasyPrint."), status=503)
+
+    cur = escape((invoice.currency_code or "").strip())
+
+    def _amt(value, *, credit=False):
+        return f"{cur} {'-' if credit else ''}{value}".strip()
+
+    line_rows = "".join(
+        f"<tr><td>{escape(e.description or e.reference or '')}</td>"
+        f"<td class='amt'>{_amt(e.amount, credit=(e.entry_type == PlatformLedgerEntry.EntryType.CREDIT))}</td></tr>"
+        for e in lines
+    )
+    if not line_rows:
+        line_rows = (
+            f"<tr><td>{escape(str(_('Subscription charge')))}</td>"
+            f"<td class='amt'>{_amt(invoice.subtotal)}</td></tr>"
+        )
+
+    def _period(inv) -> str:
+        if inv.period_start and inv.period_end:
+            return f"{inv.period_start:%Y-%m-%d} – {inv.period_end:%Y-%m-%d}"
+        return ""
+
+    number_e = escape(invoice.number)
+    school_name = escape(getattr(school, "name", "") or "")
+    title = escape(str(_("Invoice")))
+    issued = escape(invoice.issued_at.strftime("%Y-%m-%d") if invoice.issued_at else "")
+    period = escape(_period(invoice))
+    l_invoice = escape(str(_("Invoice no.")))
+    l_issued = escape(str(_("Issued")))
+    l_period = escape(str(_("Period")))
+    l_billto = escape(str(_("Billed to")))
+    th_desc = escape(str(_("Description")))
+    th_amt = escape(str(_("Amount")))
+    l_subtotal = escape(str(_("Subtotal")))
+    l_discount = escape(str(_("Discounts")))
+    l_tax = escape(str(_("Tax")))
+    l_total = escape(str(_("Total")))
+
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><title>{title} {number_e}</title>
+<style>body{{font-family:system-ui,sans-serif;font-size:10pt;margin:14mm;color:#1a1a2e;}}
+h1{{font-size:18pt;margin:0 0 2px;}} .muted{{color:#555;font-size:9pt;}}
+table{{width:100%;border-collapse:collapse;margin-top:14px;}}
+th,td{{border:1px solid #ddd;padding:6px 8px;text-align:left;}}
+th{{background:#f5f5f5;}} td.amt,th.amt{{text-align:right;white-space:nowrap;}}
+.header{{margin-bottom:10px;border-bottom:2px solid #1a1a2e;padding-bottom:8px;}}
+.totals{{margin-top:10px;width:46%;margin-left:auto;}}
+.totals td{{border:none;padding:3px 8px;}} .totals .grand{{font-weight:700;border-top:2px solid #1a1a2e;}}</style></head>
+<body><div class="header"><h1>{title} {number_e}</h1>
+<div class="muted">{l_invoice}: {number_e}</div>
+<div class="muted">{l_issued}: {issued}{f' &middot; {l_period}: {period}' if period else ''}</div>
+<div class="muted">{l_billto}: {school_name}</div></div>
+<table><thead><tr><th>{th_desc}</th><th class="amt">{th_amt}</th></tr></thead>
+<tbody>{line_rows}</tbody></table>
+<table class="totals"><tbody>
+<tr><td>{l_subtotal}</td><td class="amt">{_amt(invoice.subtotal)}</td></tr>
+<tr><td>{l_discount}</td><td class="amt">{_amt(invoice.discount_amount, credit=True)}</td></tr>
+<tr><td>{l_tax}</td><td class="amt">{_amt(invoice.tax_amount)}</td></tr>
+<tr class="grand"><td>{l_total}</td><td class="amt">{_amt(invoice.total)}</td></tr>
+</tbody></table></body></html>"""
+
+    pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    resp["Content-Disposition"] = f'attachment; filename="{invoice.number}.pdf"'
     return resp
