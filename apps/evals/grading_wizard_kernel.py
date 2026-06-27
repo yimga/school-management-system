@@ -63,6 +63,21 @@ _SCALE_TYPE_MAP = {
     "t-score": "standard_score_t",
     "standard_score_t": "standard_score_t",
     "hensachi": "standard_score_t",
+    # International curriculum scales — let the wizard pick them by canonical key or a
+    # human alias so a tenant can durably adopt one (apply_assessment_metrics writes the
+    # mapped scale_type onto the school's wizard-default GradingScale row).
+    "uk_gcse_9_1": "uk_gcse_9_1",
+    "uk_gcse": "uk_gcse_9_1",
+    "gcse": "uk_gcse_9_1",
+    "ib_1_7": "ib_1_7",
+    "ib": "ib_1_7",
+    "german_1_6": "german_1_6",
+    "german": "german_1_6",
+    "cbse_10": "cbse_10",
+    "cbse": "cbse_10",
+    "french_0_20": "french_0_20",
+    "french": "french_0_20",
+    "us_letter": "us_letter",
 }
 
 

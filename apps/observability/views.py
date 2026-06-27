@@ -387,6 +387,76 @@ def _check_celery_broker_liveness() -> dict:
         return {"status": "degraded", "error": str(exc)[:120]}
 
 
+# Queue-depth alert threshold. A configured-but-deep backlog is "degraded"
+# (operators alert), not "ok": a worker may be down or saturated while the
+# broker keeps accepting work. Env-tunable; never hardcoded into the contract.
+def _queue_depth_warn_threshold() -> int:
+    raw = getattr(settings, "HEALTHZ_QUEUE_DEPTH_WARN", None)
+    if raw is None:
+        raw = os.getenv("HEALTHZ_QUEUE_DEPTH_WARN", "1000")
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 1000
+    return value if value > 0 else 1000  # magic-number-allow: env-tunable backlog alert default
+
+
+def _check_celery_queue_depth() -> dict:
+    """Best-effort BROKER queue-depth (backlog) probe for /healthz/.
+
+    DISTINCT from `_check_celery_broker_liveness` (reachability) and from
+    public_status._probe_celery_queue_depth (which counts tasks already
+    reserved/active ON workers via an inspect broadcast — that reports ~0 when
+    no worker is up even if the broker holds thousands of unconsumed tasks).
+    This probe asks the broker directly how many messages are sitting in the
+    primary queue (`queue_declare(passive=True).message_count`), which is the
+    AMQP-compatible call kombu maps to BOTH Redis/Valkey (LLEN) and RabbitMQ —
+    so it works for whichever broker is configured and reports the TRUE backlog
+    a down/saturated worker would let pile up.
+
+    Fail-SOFT contract: never raises; on any failure (broker unreachable, probe
+    error, transport without a depth API) it returns a benign status
+    ("unavailable"/"unknown") + short detail, so /healthz keeps its normal
+    response and NEVER becomes a 500. A bounded connect/socket timeout means a
+    down broker cannot hang the endpoint.
+    """
+    try:
+        broker = (getattr(settings, "CELERY_BROKER_URL", "") or "").strip()
+        if not broker:
+            # No broker provisioned: tasks run inline (eager). There is no
+            # queue to back up, so report unavailable, not degraded.
+            return {"status": "unavailable", "detail": "broker not configured (eager mode)"}
+
+        from config.celery import app as celery_app
+
+        queue_name = (
+            getattr(celery_app.conf, "task_default_queue", None) or "celery"
+        )
+
+        conn = celery_app.connection()
+        try:
+            # Bound the connect so a down broker can't hang /healthz.
+            conn.ensure_connection(max_retries=1, timeout=2)
+            channel = conn.default_channel
+            # passive=True: never CREATE the queue, only read its current
+            # message_count. Works on Redis/Valkey + RabbitMQ via kombu.
+            declared = channel.queue_declare(queue=queue_name, passive=True)
+            depth = int(getattr(declared, "message_count", 0))
+        finally:
+            try:
+                conn.release()
+            except Exception:  # noqa: BLE001 - connection release is best-effort
+                pass
+
+        if depth < 0:
+            return {"status": "unknown", "queue": queue_name}
+        threshold = _queue_depth_warn_threshold()
+        status = "degraded" if depth >= threshold else "ok"
+        return {"status": status, "depth": depth, "queue": queue_name}
+    except Exception as exc:  # noqa: BLE001 - backlog probe must never crash the endpoint
+        return {"status": "unavailable", "error": str(exc)[:120]}
+
+
 @require_GET
 def csrf_token_refresh(request):
     """Offline foundational: return a freshly-rotated CSRF token.
@@ -436,10 +506,13 @@ def healthz(request):
         )
         return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
-    # Cache (Redis) + Celery broker are best-effort: a degraded result is
-    # reported but does NOT fail the healthz (liveness) response.
+    # Cache (Redis) + Celery broker (liveness + queue depth) are best-effort: a
+    # degraded result is reported but does NOT fail the healthz (liveness)
+    # response. The queue-depth probe surfaces task backlog (a silent worker
+    # outage) as a structured sub-field without ever turning /healthz into a 500.
     cache_result = _check_cache_liveness()
     broker_result = _check_celery_broker_liveness()
+    queue_depth_result = _check_celery_queue_depth()
 
     return JsonResponse(
         {
@@ -447,6 +520,7 @@ def healthz(request):
             "database": "ok",
             "cache": cache_result.get("status", "unknown"),
             "celery_broker": broker_result.get("status", "unknown"),
+            "celery_queue_depth": queue_depth_result,
         }
     )
 

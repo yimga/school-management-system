@@ -91,7 +91,15 @@ class WorldScaleCoverageKeystoneTests(SimpleTestCase):
             self.assertIn(scale_type, ASSESSMENT_WEIGHTS_SCALE_MAP, msg=code)
             self.assertIn(scale_type, valid_scale_type_values, msg=code)
 
-    def test_all_nine_operationally_resolvable(self):
-        # End-to-end smell test: 9 distinct registry codes -> 9 distinct operational types.
-        self.assertEqual(len(REGISTRY_SCALE_TYPE_MAP), 9)
-        self.assertEqual(len(set(REGISTRY_SCALE_TYPE_MAP.values())), 9)
+    def test_all_world_scales_operationally_resolvable(self):
+        # End-to-end smell test: every registry code -> a DISTINCT operational scale_type
+        # (no two world scales collapse onto the same engine type). The bridge must stay
+        # 1:1 with the registry's REQUIRED_CODES — it grew from 9 to the full world set
+        # when the four international curriculum scales (UK GCSE / IB / German / CBSE,
+        # plus French + US) were wired through the operational engine.
+        required = _gate_required_codes()
+        self.assertEqual(len(REGISTRY_SCALE_TYPE_MAP), len(required))
+        self.assertEqual(
+            len(set(REGISTRY_SCALE_TYPE_MAP.values())),
+            len(REGISTRY_SCALE_TYPE_MAP),
+        )

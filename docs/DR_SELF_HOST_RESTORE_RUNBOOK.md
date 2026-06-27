@@ -21,49 +21,75 @@ so a blob is cryptographically bound to both the platform secret and the owning
 tenant. Tamper, wrong key, or wrong tenant → the restore **fails closed before
 any database write**.
 
-Payload `schema_version` is `2.0`. It carries two things:
+Payload `schema_version` is `2.1`. It carries two things:
 
 | Key | Meaning |
 |---|---|
 | `counts` | Aggregate row counts (memberships, students, teachers, invoices, payments). Kept for a cheap post-restore sanity check. |
-| `tables` | **Real, restorable row data** for the self-contained tenant config core, serialized with Django's `json` serializer (preserves dates / decimals / JSON / FK-by-pk). |
+| `tables` | **Real, restorable row data**, serialized with Django's `json` serializer (preserves dates / decimals / JSON / FK-by-pk). |
 
-### Restored automatically (the config core)
+> **Schema 2.1 vs 2.0 (backward-compatible):** 2.1 is a pure *superset* — it only
+> ADDS table keys (`accounts.User`, `finance.ComplianceProfile`,
+> `people.TeacherProfile`, `finance.Invoice`, `finance.Payment`). A legacy 2.0
+> blob restores unchanged: the new restore specs simply find no rows for their
+> keys and are no-ops. No re-signing or migration of existing snapshots is needed.
 
-These tables are self-contained — no dependency on the auth `User` table / PII,
-and no `PROTECT` foreign key to an out-of-scope parent — so they restore cleanly
-into an empty target tenant:
+### Restored automatically (config core + staff + finance ledger)
+
+The plan is strictly FK-dependency ordered — **parents precede children** so each
+intra-snapshot foreign key is rewritten to the freshly restored parent pk, and
+the restored graph is internally consistent. Restore is **idempotent**:
+re-running it upserts by natural key rather than duplicating rows.
 
 | Table | Natural key (idempotency) | FK handling on restore |
 |---|---|---|
 | `schools.School` (the tenant row) | `slug` (upsert) | — |
+| `accounts.User` *(shared, non-tenant)* | `username` | password **hash restored verbatim** (DR keeps credentials); groups / permissions M2M not re-applied |
+| `finance.ComplianceProfile` *(shared, non-tenant)* | `name` + `country_code` | — (referenced by `Invoice.profile`) |
 | `academics.AcademicYear` | `school` + `name` | — |
 | `academics.Department` | `school` + `code` | — |
 | `academics.Term` | `school` + `academic_year` + `name` | `academic_year` remapped to restored parent |
 | `academics.Classroom` | `school` + `code` | `academic_year`, `department` remapped |
 | `people.StudentProfile` | `school` + `student_code` | `user` FK **cleared** (re-link out of scope) |
+| `people.TeacherProfile` | `school` + `user` | `user` remapped to a restored `accounts.User` (required OneToOne); `department` / `reports_to` remapped; `pay_scale`, `profile_photo` **cleared** |
+| `finance.Invoice` | `school` + `payment_code` | `profile` remapped to restored `ComplianceProfile`; `student`, `academic_year` remapped; `counterparty`, `currency`, `created_by`, `updated_by`, file fields **cleared**; `full_clean` bypassed (faithful historical row) |
+| `finance.Payment` | `school` + `reference_number` (falls back to `invoice` + `amount` + `paid_at` when blank) | `invoice`, `student` remapped; `payment_method`, `currency`, `region`, `created_by`, `processed_by`, receipt file **cleared**; `full_clean` bypassed |
 
-Intra-snapshot foreign keys are rewritten to the freshly restored parent pks, in
-dependency order, so the restored graph is internally consistent. Restore is
-**idempotent**: re-running it upserts by natural key rather than duplicating rows.
+**Why `accounts.User` and `finance.ComplianceProfile` are in scope now.** They
+are *not* tenant-owned config — they are the two **required parents** that the
+newly-restorable child rows cannot exist without:
 
-### Captured for counts, but NOT auto-restored (roadmap)
+- `TeacherProfile.user` is a **non-nullable** `OneToOne` to the auth `User`, so —
+  unlike `StudentProfile.user`, which is nullable and is cleared — it cannot be
+  nulled. The restore therefore captures the closure: the specific `User` rows
+  behind *this school's* teachers (by referenced pk only, never the whole user
+  table), keyed by `username`, with the password hash preserved so a recovered
+  teacher keeps their credentials.
+- `Invoice.profile` is a **PROTECT** FK to `ComplianceProfile` (a platform/region
+  config row, not school-scoped). The Invoice row is invalid without it, so the
+  referenced profiles are captured and upserted by `(name, country_code)`.
 
-Honest about the gaps — these are visible in `counts` but are **not** in `tables`
-and are **not** materialized by `restore_from_snapshot`:
+`Invoice.counterparty` is `SET_NULL` (optional) and is cleared; the ledger row,
+its amounts, its student/profile/year links, and its payments are all real.
 
-- **`people.TeacherProfile`** — has a non-nullable `OneToOne` to the auth `User`.
-  Restoring it requires restoring users first, which pulls in the auth/PII
-  surface and a credential-recovery story. Deferred.
-- **`finance.Invoice` / `finance.Payment`** — `Invoice` has `PROTECT` foreign
-  keys to `ComplianceProfile` and `Counterparty`, which are out of the current
-  self-contained scope. Restoring the financial ledger needs those parents and a
-  reconciliation pass. Deferred.
+### Captured for counts, but still NOT auto-restored (honest gaps)
+
+These are visible in `counts` but are **not** materialized by
+`restore_from_snapshot`:
+
 - **Attendance, grades/evaluations, messaging, files/media** — not captured.
+- **Uploaded binaries** — invoice attachments / payment proofs / profile photos
+  are file *references*; the field is cleared on restore (the blob lives in media
+  storage, recovered by your media-backup, not this JSON snapshot).
+- **Auth M2M (groups / permissions / access roles)** for restored `User` rows —
+  the identity + password hash are restored, but role/permission re-assignment is
+  out of band.
 
-This snapshot is therefore a **config-core recovery**, not a full tenant clone.
-Treat it as "rebuild the school's structural skeleton (years, terms, classes,
-students) on a clean instance", then re-onboard staff + finance separately.
+This snapshot is therefore a **config-core + staff + finance-ledger recovery**,
+not a full tenant clone. Treat it as "rebuild the school's structural skeleton
+(years, terms, classes, students), its staff identities, and its invoice/payment
+ledger on a clean instance", then re-attach media, attendance, grades, and
+re-establish credentials (password reset) out of band.
 
 ---
 
@@ -195,23 +221,26 @@ After restore, sanity-check against the snapshot's `counts` and spot-check rows:
 ```bash
 python manage.py shell -c "
 from apps.academics.models import AcademicYear, Term, Classroom
-from apps.people.models import StudentProfile
+from apps.people.models import StudentProfile, TeacherProfile
+from apps.finance.models import Invoice, Payment
 from apps.schools.models import School
 s = School.objects.get(slug='your-school-slug')
 print('years     :', AcademicYear.objects.filter(school=s).count())
 print('terms     :', Term.objects.filter(school=s).count())
 print('classrooms:', Classroom.objects.filter(school=s).count())
 print('students  :', StudentProfile.objects.filter(school=s).count())
+print('teachers  :', TeacherProfile.objects.filter(school=s).count())
+print('invoices  :', Invoice.objects.filter(school=s).count())
+print('payments  :', Payment.objects.filter(school=s).count())
 "
 ```
 
-The student / academic-year / classroom counts should match the config-core
-portion of the snapshot's `counts`. (TeacherProfile / finance counts will read 0
-until those roadmap surfaces are recovered separately — see §1.)
-
-Then log in to the tenant and verify the academic structure (years → terms →
-classes) and the student roster render. Re-link staff users and re-import finance
-out of band.
+The student / academic-year / classroom / **teacher / invoice / payment** counts
+should match the snapshot's `counts` (schema 2.1 restores all of these). Then log
+in to the tenant and verify the academic structure (years → terms → classes), the
+student roster, the staff list, and the finance ledger render. Re-establish staff
+credentials (password reset) and re-attach media / attendance / grades out of band
+— see §1 for what is still out of scope.
 
 ---
 
@@ -240,11 +269,13 @@ in `var/dr-drill-schedule.json`.
 ## 8. What this runbook does and does NOT prove
 
 - ✅ The config core (school → years → terms → departments → classrooms →
-  students) is captured as real rows and restores onto a clean instance.
+  students), **staff identities + teacher profiles**, and the **invoice / payment
+  ledger** are captured as real rows and restore onto a clean instance.
 - ✅ Restore is signature-verified (fail-closed), transactional, and idempotent.
 - ✅ Recoverability can be drilled without mutating production.
-- ❌ It does **not** restore staff users, finance ledger, attendance, grades,
-  messaging, or media — those are roadmap (see §1).
+- ❌ It does **not** restore attendance, grades, messaging, uploaded media, or
+  re-establish staff credentials / auth permissions — those are out of scope
+  (see §1).
 - ❌ It does **not** stand up application runtime (web/worker processes, DNS,
   TLS, env config). "Working school" here means *the tenant's data skeleton is
   present and consistent on a running instance*, not a turnkey cloud bring-up.

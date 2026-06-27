@@ -79,15 +79,53 @@ EXTENDED_GRADE_BANDS: dict[str, dict] = {
             ("Beginning", 0),
         ],
     },
+    # UK GCSE 9–1: scored on the 1–9 grade axis (score_scale=9), 9 best … 1 worst.
+    # Each whole grade is its own band (full 9…1), so a "6" displays "6", not a
+    # collapsed "4". DESCENDING by min_score like every other ascending-direction scale.
     "uk_gcse_9_1": {
         "score_scale": 9,
         "kind": "numeric",
-        "bands": [("9", 9), ("7", 7), ("4", 4), ("1", 1)],
+        "bands": [
+            ("9", 9), ("8", 8), ("7", 7), ("6", 6), ("5", 5),
+            ("4", 4), ("3", 3), ("2", 2), ("1", 1),
+        ],
     },
+    # IB Diploma subject grade: 1–7 axis (score_scale=7), 7 best … 1 worst. Full
+    # whole-grade bands (7…1) so a "5" shows "5" rather than a collapsed lower band.
     "ib_1_7": {
         "score_scale": 7,
         "kind": "numeric",
-        "bands": [("7", 7), ("6", 6), ("5", 5), ("4", 4), ("3", 1)],
+        "bands": [
+            ("7", 7), ("6", 6), ("5", 5), ("4", 4),
+            ("3", 3), ("2", 2), ("1", 1),
+        ],
+    },
+    # CBSE board letter grades on the 0–10 grade-point axis (score_scale=10, the
+    # registry's cbse_10 range). A1=10 … D=4 are the canonical CBSE grade points; the
+    # two failing tiers E1/E2 sit below the pass mark (D, GP 4). DESCENDING (10 best).
+    "cbse_10": {
+        "score_scale": 10,
+        "kind": "letter",
+        "bands": [
+            ("A1", 10), ("A2", 9), ("B1", 8), ("B2", 7), ("C1", 6),
+            ("C2", 5), ("D", 4), ("E1", 2), ("E2", 0),
+        ],
+    },
+    # German 1–6 is INVERTED: 1 (sehr gut) is best, 6 (ungenügend) is worst, so a
+    # LOWER score is a better grade — the only extended family that does not read
+    # "higher score ⇒ higher band". ``direction: ascending`` flips resolve_extended_band_label
+    # to "value <= max_score" semantics over bands ordered worst→best. Boundaries are the
+    # standard rounding model for German averages (1: ≤1.49, 2: ≤2.49 … 6: ≤6.0). Pass at 4.
+    "german_1_6": {
+        "score_scale": 6,
+        "kind": "numeric",
+        "direction": "ascending",  # lower score = better grade
+        # Ordered BEST→WORST by ceiling (like the descending families list best first),
+        # each pair is (label, max_score) — the inclusive UPPER bound of that grade.
+        "bands": [
+            ("1", 1.49), ("2", 2.49), ("3", 3.49),
+            ("4", 4.49), ("5", 5.49), ("6", 6.0),
+        ],
     },
 }
 
@@ -98,10 +136,23 @@ def default_bands_for_scale(scale: str) -> dict[str, float]:
 
 
 def resolve_extended_band_label(scale: str, score) -> Optional[str]:
-    """Rich band label for a non-5-band scale (WAEC / Pass-Fail / qualitative), else None.
+    """Rich band label for a non-5-band scale, else None.
 
-    Returns None for scales that use the ordinary 5-band A–E model (callers fall back to
-    GradeConverter.numeric_to_letter). Never raises — a bad score yields the lowest band.
+    Covers the world-scale families whose grade label does not fit the ordinary
+    5-band A–E numeric model: WAEC (A1…F9), Pass/Fail, qualitative descriptors,
+    UK GCSE 9–1, IB 1–7, CBSE A1–E2, and German 1–6.
+
+    Direction matters. Most scales are "higher score ⇒ better band" (``direction``
+    absent / ``"descending"``): bands are listed best→worst by ``min_score`` and we
+    return the first band the value clears (``value >= min_score``), flooring at the
+    lowest band. German 1–6 is INVERTED (``direction == "ascending"`` — a LOWER score
+    is the BETTER grade): its bands are listed worst→best by ``max_score`` and we
+    return the first band whose ceiling the value is within (``value <= max_score``),
+    capping at the worst band.
+
+    Returns None for scales that use the ordinary 5-band A–E model (callers fall back
+    to GradeConverter.numeric_to_letter). Never raises — an out-of-range score yields
+    the boundary band on the appropriate side.
     """
     spec = EXTENDED_GRADE_BANDS.get(scale)
     if not spec or score is None:
@@ -110,8 +161,18 @@ def resolve_extended_band_label(scale: str, score) -> Optional[str]:
         value = float(score)
     except (TypeError, ValueError):
         return None
-    label = spec["bands"][-1][0]  # lowest band is the floor
-    for band_label, min_score in spec["bands"]:
+    bands = spec["bands"]
+    if spec.get("direction") == "ascending":
+        # Inverted scales (German 1–6): bands ordered best→worst by ceiling; a lower
+        # score is a better grade, so return the first band whose ceiling contains the
+        # value (the best band's ceiling also floors tiny/negative scores to the best
+        # grade). A value above the worst ceiling caps at the worst (last) band.
+        for band_label, max_score in bands:
+            if value <= float(max_score):
+                return band_label
+        return bands[-1][0]  # above the worst ceiling ⇒ worst band
+    label = bands[-1][0]  # lowest band is the floor
+    for band_label, min_score in bands:
         if value >= float(min_score):
             return band_label
     return label
@@ -334,6 +395,15 @@ class GradingScale(models.Model):
         PASS_FAIL = "pass_fail", "Pass / Fail"
         QUALITATIVE_PD = "qualitative_pd", "Qualitative descriptors"
         STANDARD_SCORE_T = "standard_score_t", "T-score (East Asia)"
+        # International curriculum scales — match the AssessmentWeights.grading_scale
+        # choices, the registry REQUIRED_CODES, and the EXTENDED_GRADE_BANDS families,
+        # so a per-school GradingScale row can durably select any of them.
+        UK_GCSE_9_1 = "uk_gcse_9_1", "UK GCSE 9–1"
+        IB_1_7 = "ib_1_7", "IB 1–7"
+        GERMAN_1_6 = "german_1_6", "German 1–6"
+        CBSE_10 = "cbse_10", "CBSE 10-point (A1–E2)"
+        FRENCH_0_20 = "french_0_20", "French 0–20"
+        US_LETTER = "us_letter", "US letter A–F"
 
     school = models.ForeignKey(
         "schools.School",

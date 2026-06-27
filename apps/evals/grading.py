@@ -194,6 +194,21 @@ ASSESSMENT_WEIGHTS_SCALE_MAP = {
     "qualitative_pd": "0-100",
     # T-score: raw entry on 0–100; the T value is cohort-relative (cohort_t_scores).
     "standard_score_t": "0-100",
+    # World scales whose DISPLAYED grade comes from EXTENDED_GRADE_BANDS (rich band
+    # label resolved by resolve_extended_band_label), so this entry only feeds the
+    # cross-scale convert_score / coarse-letter FALLBACK path, never the shown label:
+    #   - IB 1–7 maps to the existing ib-7 display scale (exact 1–7 axis).
+    #   - UK GCSE 9–1 + CBSE 10-point ride the 0–10 numeric display axis.
+    #   - French 0–20 + US letter ride their natural 0–20 / 0–100 axes.
+    #   - German 1–6 is inverted, so cross-conversion is not meaningful; the band
+    #     label is always authoritative for it. The 0–10 entry is a structural home
+    #     only (the operational↔display contract requires every scale to map).
+    "uk_gcse_9_1": "0-10",
+    "ib_1_7": "ib-7",
+    "german_1_6": "0-10",
+    "cbse_10": "0-10",
+    "french_0_20": "0-20",
+    "us_letter": "0-100",
 }
 
 # THE bridge between the two grading systems: each registries.GradeScaleRegistry
@@ -201,6 +216,7 @@ ASSESSMENT_WEIGHTS_SCALE_MAP = {
 # → the operational AssessmentWeights scale_type that actually computes it. Keeping
 # this explicit (not implicit) is what makes "the catalog advertises N scales" and
 # "teachers can grade on N scales" provably the same set — enforced by a coverage test.
+# Must stay 1:1 with REQUIRED_CODES; the world-coverage keystone test fails on any drift.
 REGISTRY_SCALE_TYPE_MAP = {
     "0-20": "numeric_0_20",
     "0-100": "percentage",
@@ -211,6 +227,16 @@ REGISTRY_SCALE_TYPE_MAP = {
     "WAEC_LETTER": "waec_letter",
     "STANDARD_SCORE_T": "standard_score_t",
     "QUALITATIVE_PD": "qualitative_pd",
+    # International curriculum scales — registry + seed defaults already advertised
+    # these (GRADE_SCALE_SEED_DEFAULTS / migration 0008 / REQUIRED_CODES = 15) but the
+    # operational bridge had drifted behind at 9, so they were registry-known yet not
+    # provably computable. Wiring them here closes the bridge so each resolves a band.
+    "UK_GCSE_9_1": "uk_gcse_9_1",
+    "IB_1_7": "ib_1_7",
+    "GERMAN_1_6": "german_1_6",
+    "CBSE_10": "cbse_10",
+    "FRENCH_0_20": "french_0_20",
+    "US_LETTER": "us_letter",
 }
 
 # RegionConfig / migration profile aliases → GRADING_SCALES keys

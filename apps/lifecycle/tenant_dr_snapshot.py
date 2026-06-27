@@ -6,27 +6,45 @@ to both the platform secret and the owning tenant. ``restore_from_snapshot``
 verifies the signature *before* parsing or materializing anything (fail closed
 on tamper).
 
-Payload contract (``schema_version`` "2.0"):
+Payload contract (``schema_version`` "2.1"):
 
 - ``counts`` — aggregate row counts (kept for backward compatibility and for a
   cheap restore-integrity check).
-- ``tables`` — REAL restorable row data for the self-contained tenant config
-  core, captured via ``django.core.serializers`` (``python`` format), which
-  preserves field types (dates / decimals / JSON / FK-by-pk) faithfully.
+- ``tables`` — REAL restorable row data, captured via
+  ``django.core.serializers`` (``json`` format), which preserves field types
+  (dates / decimals / JSON / FK-by-pk) faithfully.
 
-Restorable scope (self-contained: no auth-User / PII dependency, no PROTECT FK
-to an out-of-scope parent — see ``docs/DR_SELF_HOST_RESTORE_RUNBOOK.md``):
+Restorable scope (see ``docs/DR_SELF_HOST_RESTORE_RUNBOOK.md``). The plan is
+strictly FK-dependency ordered — parents precede children so an intra-snapshot
+FK can be rewritten to the freshly restored parent pk:
 
-    schools.School (the target config row, upserted by slug)
+    schools.School           (the target config row, upserted by slug)
+    accounts.User            (staff identity required by TeacherProfile.user;
+                              NOT school-scoped — keyed by username; password
+                              HASH restored verbatim so DR keeps credentials)
+    finance.ComplianceProfile(required PROTECT parent of Invoice.profile;
+                              NOT school-scoped — keyed by name + country_code)
     academics.AcademicYear   (natural key: school + name)
-    academics.Department     (natural key: code)
-    academics.Term           (natural key: academic_year + name)
-    academics.Classroom      (natural key: code)
-    people.StudentProfile    (natural key: student_code; ``user`` FK nulled)
+    academics.Department     (natural key: school + code)
+    academics.Term           (natural key: school + academic_year + name)
+    academics.Classroom      (natural key: school + code)
+    people.StudentProfile    (natural key: school + student_code; ``user`` nulled)
+    people.TeacherProfile    (natural key: school + user; ``user`` remapped to a
+                              restored accounts.User; payroll/photo FKs nulled)
+    finance.Invoice          (natural key: school + payment_code; ``profile`` /
+                              ``student`` / ``academic_year`` remapped; out-of-
+                              scope optional FKs nulled; full_clean bypassed)
+    finance.Payment          (natural key: school + reference_number, with an
+                              amount/paid_at fallback when blank; ``invoice`` /
+                              ``student`` remapped; full_clean bypassed)
 
-Captured for counts but NOT auto-restored (documented in the runbook):
-TeacherProfile (non-null User FK), Invoice / Payment (PROTECT FK to
-ComplianceProfile / Counterparty). Those remain a roadmap item.
+The fail-closed HMAC signature guarantee is unchanged: ``restore_from_snapshot``
+verifies the signature (and the bound school id) BEFORE opening any transaction
+or writing any row, for the FULL expanded payload above.
+
+Schema 2.1 is a pure superset of 2.0 — it only ADDS table keys. Older 2.0
+snapshots restore unchanged (the new specs find no rows for their keys and
+are no-ops), so reading legacy blobs stays backward-compatible.
 """
 
 from __future__ import annotations
@@ -46,7 +64,7 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-SNAPSHOT_SCHEMA_VERSION = "2.0"
+SNAPSHOT_SCHEMA_VERSION = "2.1"
 
 
 @dataclass(frozen=True)
@@ -60,6 +78,24 @@ class _RestoreSpec:
     snapshot references are rewritten to freshly restored pks. ``null_fields``
     are FK columns deliberately cleared on restore (out-of-scope dependency,
     e.g. ``StudentProfile.user``).
+
+    ``school_scoped`` (default ``True``) controls two things: whether the row's
+    ``school`` FK is forced onto the target tenant, and whether the idempotency
+    lookup is scoped by ``school=``. Shared, NON-tenant parents that a tenant's
+    rows merely reference (``accounts.User`` behind a teacher, the platform-level
+    ``finance.ComplianceProfile`` behind an invoice) set this ``False`` so they
+    upsert by their own global natural key without a (nonexistent) school filter.
+
+    ``fallback_natural_key`` is consulted only when EVERY value of the primary
+    ``natural_key`` is empty/None (e.g. a ``Payment`` with a blank
+    ``reference_number``) so such rows still upsert idempotently rather than
+    duplicating on re-run.
+
+    ``raw_save`` bypasses an overridden ``Model.save`` (calling
+    ``models.Model.save`` directly) for ledger tables whose ``save()`` runs
+    ``full_clean`` / interactive-create validation (invoice-balance checks,
+    payment_code autogen) that must not re-fire when faithfully restoring an
+    already-validated historical row.
     """
 
     app_label: str
@@ -67,6 +103,9 @@ class _RestoreSpec:
     natural_key: tuple[str, ...]
     remap_fk: dict[str, tuple[str, str]]
     null_fields: tuple[str, ...] = ()
+    school_scoped: bool = True
+    fallback_natural_key: tuple[str, ...] = ()
+    raw_save: bool = False
 
     @property
     def label(self) -> str:
@@ -75,7 +114,35 @@ class _RestoreSpec:
 
 # Dependency-ordered restore plan. Parents precede children so FK remap targets
 # already exist when a child is restored.
+#
+# FK-ordering rationale (each entry's remap targets appear ABOVE it):
+#   User, ComplianceProfile  -> no in-scope parents (shared, global).
+#   AcademicYear/Department   -> only School (resolved at the top of restore).
+#   Term -> AcademicYear; Classroom -> AcademicYear + Department.
+#   StudentProfile -> only School (user nulled).
+#   TeacherProfile -> User (above) + Department (above); reports_to self-FK
+#                     handled in-table via pk_map of the same label.
+#   Invoice -> ComplianceProfile (above) + StudentProfile + AcademicYear (above).
+#   Payment -> Invoice (above) + StudentProfile (above).
 RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
+    # --- Shared, non-tenant parents required by the children below -----------
+    _RestoreSpec(
+        app_label="accounts",
+        model_name="User",
+        # AbstractUser.username is globally unique — the stable identity key.
+        natural_key=("username",),
+        remap_fk={},
+        school_scoped=False,
+    ),
+    _RestoreSpec(
+        app_label="finance",
+        model_name="ComplianceProfile",
+        # Not school-scoped; (name, country_code) identifies the regional profile.
+        natural_key=("name", "country_code"),
+        remap_fk={},
+        school_scoped=False,
+    ),
+    # --- Academic config core ------------------------------------------------
     _RestoreSpec(
         app_label="academics",
         model_name="AcademicYear",
@@ -104,12 +171,68 @@ RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
             "department": ("academics", "Department"),
         },
     ),
+    # --- People --------------------------------------------------------------
     _RestoreSpec(
         app_label="people",
         model_name="StudentProfile",
         natural_key=("student_code",),
         remap_fk={},
         null_fields=("user",),
+    ),
+    _RestoreSpec(
+        app_label="people",
+        model_name="TeacherProfile",
+        # TeacherProfile has no school-scoped unique scalar; the OneToOne ``user``
+        # (remapped to a restored accounts.User) is the stable identity key.
+        natural_key=("user",),
+        remap_fk={
+            "user": ("accounts", "User"),
+            "department": ("academics", "Department"),
+            "reports_to": ("people", "TeacherProfile"),
+        },
+        # ``user`` is non-nullable (so it is remapped, never nulled). pay_scale
+        # (payroll) + the profile photo are out of the config-core scope.
+        null_fields=("pay_scale", "profile_photo"),
+    ),
+    # --- Finance ledger ------------------------------------------------------
+    _RestoreSpec(
+        app_label="finance",
+        model_name="Invoice",
+        natural_key=("payment_code",),  # unique per Invoice
+        remap_fk={
+            "profile": ("finance", "ComplianceProfile"),
+            "student": ("people", "StudentProfile"),
+            "academic_year": ("academics", "AcademicYear"),
+        },
+        # Out-of-scope optional FKs / files cleared; the ledger row itself is real.
+        null_fields=(
+            "counterparty",
+            "currency",
+            "created_by",
+            "updated_by",
+            "attachment",
+            "payment_proof",
+        ),
+        raw_save=True,
+    ),
+    _RestoreSpec(
+        app_label="finance",
+        model_name="Payment",
+        natural_key=("reference_number",),  # unique when present
+        fallback_natural_key=("invoice", "amount", "paid_at"),
+        remap_fk={
+            "invoice": ("finance", "Invoice"),
+            "student": ("people", "StudentProfile"),
+        },
+        null_fields=(
+            "payment_method",
+            "currency",
+            "region",
+            "created_by",
+            "processed_by",
+            "receipt_file",
+        ),
+        raw_save=True,
     ),
 )
 
@@ -164,9 +287,10 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
     check; ``tables`` carries the actual rows that ``restore_from_snapshot``
     materializes.
     """
+    from apps.accounts.models import User
     from apps.schools.models import SchoolMembership
     from apps.people.models import StudentProfile, TeacherProfile
-    from apps.finance.models import Invoice, Payment
+    from apps.finance.models import ComplianceProfile, Invoice, Payment
     from apps.academics.models import AcademicYear, Classroom, Department, Term
 
     sid = str(school.pk)
@@ -181,7 +305,37 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
         type(school).objects.filter(pk=school.pk)
     )
 
+    # --- Tenant-scoped row sets ---------------------------------------------
+    teachers_qs = TeacherProfile.objects.filter(school=school)
+    invoices_qs = Invoice.objects.filter(school=school)
+    payments_qs = Payment.objects.filter(school=school)
+
+    # Shared, non-tenant PARENTS pulled in only because a tenant row references
+    # them (closure of the FK graph above), restored by their global natural key:
+    #   * the staff Users behind this school's teachers (TeacherProfile.user is
+    #     a required OneToOne — non-nullable, so it cannot be cleared on restore);
+    #   * the ComplianceProfiles behind this school's invoices (Invoice.profile
+    #     is a PROTECT FK — the row cannot exist without its profile parent).
+    teacher_user_ids = [
+        uid for uid in teachers_qs.values_list("user_id", flat=True) if uid is not None
+    ]
+    invoice_profile_ids = [
+        pid
+        for pid in invoices_qs.values_list("profile_id", flat=True)
+        if pid is not None
+    ]
+    # tenant-isolation-allow: closure-of-tenant-fk-graph-restricted-to-referenced-pks
+    referenced_users_qs = User.objects.filter(pk__in=set(teacher_user_ids))
+    # tenant-isolation-allow: closure-of-tenant-fk-graph-restricted-to-referenced-pks
+    referenced_profiles_qs = ComplianceProfile.objects.filter(
+        pk__in=set(invoice_profile_ids)
+    )
+
     tables: dict[str, list[dict[str, Any]]] = {
+        # Parents first (restore order is driven by RESTORE_PLAN, not dict order,
+        # but keep capture readable in dependency order).
+        "accounts.User": _serialize_rows(referenced_users_qs),
+        "finance.ComplianceProfile": _serialize_rows(referenced_profiles_qs),
         "academics.AcademicYear": _serialize_rows(
             AcademicYear.objects.filter(school=school)
         ),
@@ -195,6 +349,9 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
         "people.StudentProfile": _serialize_rows(
             StudentProfile.objects.filter(school=school)
         ),
+        "people.TeacherProfile": _serialize_rows(teachers_qs),
+        "finance.Invoice": _serialize_rows(invoices_qs),
+        "finance.Payment": _serialize_rows(payments_qs),
     }
 
     return {
@@ -329,12 +486,27 @@ def _resolve_target_school(payload: dict[str, Any], target_school):
     return school
 
 
+def _key_all_empty(fields: dict[str, Any], keys: tuple[str, ...]) -> bool:
+    """True when every value for ``keys`` is None or an empty string."""
+    return all((fields.get(k) in (None, "")) for k in keys)
+
+
 def _natural_lookup(spec: _RestoreSpec, fields: dict[str, Any], school) -> dict[str, Any]:
-    lookup: dict[str, Any] = {}
-    for key in spec.natural_key:
-        lookup[key] = fields.get(key)
-    # Always scope idempotency to the target school when the model is school-scoped.
-    lookup["school"] = school
+    """Idempotent-upsert lookup for one row.
+
+    Uses the primary ``natural_key``; if every primary-key value is blank/None
+    (e.g. a Payment with no ``reference_number``) it falls back to
+    ``fallback_natural_key`` so re-running restore still upserts rather than
+    duplicating. School-scoped models also pin ``school=`` so idempotency never
+    bleeds across tenants.
+    """
+    keys = spec.natural_key
+    if spec.fallback_natural_key and _key_all_empty(fields, spec.natural_key):
+        keys = spec.fallback_natural_key
+    lookup: dict[str, Any] = {key: fields.get(key) for key in keys}
+    # Scope idempotency to the target school only when the model is school-scoped.
+    if spec.school_scoped:
+        lookup["school"] = school
     return lookup
 
 
@@ -395,15 +567,20 @@ def restore_from_snapshot(
                 for nf in spec.null_fields:
                     fields[nf] = None
 
-                # Force tenant ownership onto the target school.
+                # Force tenant ownership onto the target school — only for
+                # school-scoped models. Shared parents (accounts.User,
+                # finance.ComplianceProfile) keep their own (non-tenant) values.
                 from django.core.exceptions import FieldDoesNotExist
 
-                try:
-                    school_field = model._meta.get_field("school")
-                except FieldDoesNotExist:  # pragma: no cover - model without school FK
-                    school_field = None
-                if school_field is not None and getattr(school_field, "concrete", False):
-                    fields["school"] = school.pk
+                if spec.school_scoped:
+                    try:
+                        school_field = model._meta.get_field("school")
+                    except FieldDoesNotExist:  # pragma: no cover - no school FK
+                        school_field = None
+                    if school_field is not None and getattr(
+                        school_field, "concrete", False
+                    ):
+                        fields["school"] = school.pk
 
                 lookup = _natural_lookup(spec, fields, school)
                 existing = model.objects.filter(**lookup).first()
@@ -425,7 +602,17 @@ def restore_from_snapshot(
                     instance.pk = None
                     instance.id = None
                     created += 1
-                instance.save()
+                # Ledger tables (Invoice / Payment) carry an overridden ``save``
+                # that runs interactive-create validation (full_clean, balance
+                # checks, payment_code autogen). A faithfully restored historical
+                # row was already valid at capture time, so bypass it and write
+                # the row as-is via the base ``Model.save``.
+                if spec.raw_save:
+                    from django.db import models as _dj_models
+
+                    _dj_models.Model.save(instance)
+                else:
+                    instance.save()
                 pk_map[spec.label][old_pk] = instance.pk
 
             report["tables"][spec.label] = {"created": created, "updated": updated}
