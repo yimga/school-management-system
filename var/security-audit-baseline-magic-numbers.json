@@ -97,7 +97,7 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 912,
+  "finding_count": 979,
   "findings": [
     {
       "line": 126,
@@ -112,33 +112,51 @@
       "value": 240
     },
     {
-      "line": 236,
+      "line": 256,
       "path": "apps/academics/lesson_homework_kernel.py",
       "snippet": "title=str(data.get(\"title\") or \"\")[:240],",
       "value": 240
     },
     {
-      "line": 237,
+      "line": 257,
       "path": "apps/academics/lesson_homework_kernel.py",
       "snippet": "instructions=str(data.get(\"instructions\") or \"\")[:4000],",
       "value": 4000
     },
     {
-      "line": 273,
+      "line": 293,
       "path": "apps/academics/lesson_homework_kernel.py",
       "snippet": "title=title.strip()[:240],",
       "value": 240
     },
     {
-      "line": 274,
+      "line": 294,
       "path": "apps/academics/lesson_homework_kernel.py",
       "snippet": "instructions=instructions.strip()[:4000],",
       "value": 4000
     },
     {
-      "line": 354,
+      "line": 374,
       "path": "apps/academics/lesson_homework_kernel.py",
       "snippet": "submission_text=(submission_text or \"\")[:8000],",
+      "value": 8000
+    },
+    {
+      "line": 62,
+      "path": "apps/academics/lms_services.py",
+      "snippet": "_MAX_CONTENT_CHARS = 8000",
+      "value": 8000
+    },
+    {
+      "line": 142,
+      "path": "apps/academics/lms_services.py",
+      "snippet": "submission.feedback = (feedback or \"\")[:8000]",
+      "value": 8000
+    },
+    {
+      "line": 356,
+      "path": "apps/academics/lms_services.py",
+      "snippet": "instructions=(instructions or \"\")[:8000],",
       "value": 8000
     },
     {
@@ -146,6 +164,18 @@
       "path": "apps/academics/timetable_solver.py",
       "snippet": "max_search_steps: int = 50_000,",
       "value": 50000
+    },
+    {
+      "line": 76,
+      "path": "apps/academics/views_discipline_api.py",
+      "snippet": "description = str(fields.get(\"description\") or \"\")[:4000]",
+      "value": 4000
+    },
+    {
+      "line": 80,
+      "path": "apps/academics/views_discipline_api.py",
+      "snippet": "description = (description + \" \" + marker).strip()[:4000]",
+      "value": 4000
     },
     {
       "line": 51,
@@ -226,7 +256,7 @@
       "value": 6371
     },
     {
-      "line": 166,
+      "line": 168,
       "path": "apps/accounts/security_posture_notifications.py",
       "snippet": "\"duration_ms\": 120000,",
       "value": 120000
@@ -406,19 +436,19 @@
       "value": 250
     },
     {
-      "line": 248,
+      "line": 250,
       "path": "apps/analytics/ml_predictions.py",
       "snippet": "AdvancedAnalyticsService.get_performance_trends(student_profile, days=270)",
       "value": 270
     },
     {
-      "line": 452,
+      "line": 454,
       "path": "apps/analytics/ml_predictions.py",
       "snippet": "days_since_login = (timezone.now() - last_login).days if last_login else 999",
       "value": 999
     },
     {
-      "line": 460,
+      "line": 462,
       "path": "apps/analytics/ml_predictions.py",
       "snippet": "days_since_login = 999",
       "value": 999
@@ -706,13 +736,13 @@
       "value": 150
     },
     {
-      "line": 133,
+      "line": 144,
       "path": "apps/communication/channels.py",
       "snippet": "\"text\": {\"body\": (body or \"\")[:4096]},",
       "value": 4096
     },
     {
-      "line": 789,
+      "line": 1017,
       "path": "apps/communication/models.py",
       "snippet": "contact_name = models.CharField(max_length=160)",
       "value": 160
@@ -844,7 +874,7 @@
       "value": 8192
     },
     {
-      "line": 618,
+      "line": 619,
       "path": "apps/dashboard/admin_context.py",
       "snippet": "cache_ttl_seconds=600,",
       "value": 600
@@ -880,7 +910,7 @@
       "value": 1024
     },
     {
-      "line": 165,
+      "line": 177,
       "path": "apps/evals/grading.py",
       "snippet": "cache.set(cache_key, result, 3600)  # Cache for 1 hour",
       "value": 3600
@@ -988,7 +1018,7 @@
       "value": 180
     },
     {
-      "line": 119,
+      "line": 145,
       "path": "apps/finance/advanced_payments.py",
       "snippet": "return current + timedelta(days=365)",
       "value": 365
@@ -1000,7 +1030,7 @@
       "value": 280
     },
     {
-      "line": 540,
+      "line": 539,
       "path": "apps/finance/api_views.py",
       "snippet": "timeout=86400,",
       "value": 86400
@@ -1012,7 +1042,37 @@
       "value": 5000
     },
     {
-      "line": 315,
+      "line": 26,
+      "path": "apps/finance/gateway_http.py",
+      "snippet": "raw = resp.read(65536) or b\"\"",
+      "value": 65536
+    },
+    {
+      "line": 33,
+      "path": "apps/finance/gateway_http.py",
+      "snippet": "raw = exc.read(65536) if hasattr(exc, \"read\") else b\"\"",
+      "value": 65536
+    },
+    {
+      "line": 57,
+      "path": "apps/finance/gateway_http.py",
+      "snippet": "raw = resp.read(65536) or b\"\"",
+      "value": 65536
+    },
+    {
+      "line": 76,
+      "path": "apps/finance/gateways/mtn_momo.py",
+      "snippet": "\"payerMessage\": (description or \"School fees\")[:160],",
+      "value": 160
+    },
+    {
+      "line": 77,
+      "path": "apps/finance/gateways/mtn_momo.py",
+      "snippet": "\"payeeNote\": reference[:160],",
+      "value": 160
+    },
+    {
+      "line": 330,
       "path": "apps/finance/models.py",
       "snippet": "name = models.CharField(max_length=160)",
       "value": 160
@@ -1030,7 +1090,7 @@
       "value": 165
     },
     {
-      "line": 177,
+      "line": 178,
       "path": "apps/finance/views_dashboard.py",
       "snippet": "\"hint\": str(getattr(n, \"message\", \"\") or \"\")[:140],",
       "value": 140
@@ -2230,7 +2290,13 @@
       "value": 3600
     },
     {
-      "line": 417,
+      "line": 42,
+      "path": "apps/observability/views.py",
+      "snippet": "WEATHER_PROVIDER_BACKOFF_SECONDS = 600",
+      "value": 600
+    },
+    {
+      "line": 558,
       "path": "apps/observability/views.py",
       "snippet": "stack = str(payload.get(\"stack\") or \"\")[:4000]",
       "value": 4000
@@ -2248,37 +2314,37 @@
       "value": 280
     },
     {
-      "line": 371,
+      "line": 387,
       "path": "apps/people/views_backend.py",
       "snippet": "for c in qs[:10000]:",
       "value": 10000
     },
     {
-      "line": 524,
+      "line": 540,
       "path": "apps/people/views_backend.py",
       "snippet": "for s in qs[:10000]:  # cap for safety",
       "value": 10000
     },
     {
-      "line": 830,
+      "line": 846,
       "path": "apps/people/views_backend.py",
       "snippet": "for t in qs[:10000]:",
       "value": 10000
     },
     {
-      "line": 1026,
+      "line": 1056,
       "path": "apps/people/views_backend.py",
       "snippet": "for a in qs[:10000]:",
       "value": 10000
     },
     {
-      "line": 1195,
+      "line": 1225,
       "path": "apps/people/views_backend.py",
       "snippet": "note=(request.POST.get(\"note\") or \"\")[:240],",
       "value": 240
     },
     {
-      "line": 1326,
+      "line": 1356,
       "path": "apps/people/views_backend.py",
       "snippet": "for g in qs[:10000]:",
       "value": 10000
@@ -2452,49 +2518,49 @@
       "value": 3600
     },
     {
-      "line": 171,
+      "line": 175,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=1024,",
       "value": 1024
     },
     {
-      "line": 612,
+      "line": 671,
       "path": "apps/platform_runtime/models.py",
       "snippet": "max_length=320,",
       "value": 320
     },
     {
-      "line": 1443,
+      "line": 1511,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=160, db_index=True)",
       "value": 160
     },
     {
-      "line": 1521,
+      "line": 1589,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=180, db_index=True)",
       "value": 180
     },
     {
-      "line": 1574,
+      "line": 1642,
       "path": "apps/platform_runtime/models.py",
       "snippet": "target_key = models.CharField(max_length=160, db_index=True)",
       "value": 160
     },
     {
-      "line": 1627,
+      "line": 1695,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=180, blank=True, default=\"\", db_index=True)",
       "value": 180
     },
     {
-      "line": 1902,
+      "line": 1970,
       "path": "apps/platform_runtime/models.py",
       "snippet": "idempotency_key = models.CharField(max_length=160, unique=True)",
       "value": 160
     },
     {
-      "line": 2141,
+      "line": 2211,
       "path": "apps/platform_runtime/models.py",
       "snippet": "title = models.CharField(max_length=240)",
       "value": 240
@@ -2524,9 +2590,15 @@
       "value": 50000
     },
     {
-      "line": 889,
+      "line": 1016,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "body=message[:8000],",
+      "value": 8000
+    },
+    {
+      "line": 1069,
+      "path": "apps/platform_runtime/offline_queue.py",
+      "snippet": "content = str(payload.get(\"content\") or payload.get(\"submission_text\") or \"\")[:8000]",
       "value": 8000
     },
     {
@@ -2644,10 +2716,172 @@
       "value": 3600
     },
     {
+      "line": 475,
+      "path": "apps/platform_runtime/views_workflow_progress.py",
+      "snippet": "result.setdefault(\"healing_poll_ms\", 2500)",
+      "value": 2500
+    },
+    {
       "line": 141,
       "path": "apps/platform_runtime/workflow_autopilot.py",
       "snippet": "_STUCK_WINDOW_SECONDS = 3600",
       "value": 3600
+    },
+    {
+      "line": 429,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 467,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 499,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 512,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "if len(lock_key) > 250 or any(ch.isspace() for ch in lock_key):",
+      "value": 250
+    },
+    {
+      "line": 521,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 557,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 582,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 605,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"stdout\": stdout.getvalue()[-1200:],",
+      "value": -1200
+    },
+    {
+      "line": 606,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"stderr\": stderr.getvalue()[-1200:],",
+      "value": -1200
+    },
+    {
+      "line": 608,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 625,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"stdout\": stdout.getvalue()[-1200:],",
+      "value": -1200
+    },
+    {
+      "line": 626,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"stderr\": stderr.getvalue()[-1200:],",
+      "value": -1200
+    },
+    {
+      "line": 628,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 638,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 705,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 736,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 756,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 766,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "if len(lock_key) > 220 or any(part in lock_key for part in (\"\\n\", \"\\r\", \"\\x00\")):",
+      "value": 220
+    },
+    {
+      "line": 775,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 811,
+      "path": "apps/platform_runtime/workflow_fix_handlers.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 157,
+      "path": "apps/platform_runtime/workflow_healing.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 184,
+      "path": "apps/platform_runtime/workflow_healing.py",
+      "snippet": "\"healing_poll_ms\": 2500,",
+      "value": 2500
+    },
+    {
+      "line": 81,
+      "path": "apps/platform_runtime/workflow_healing_ai.py",
+      "snippet": "f\"error_message: {error_message[:600]}\\n\"",
+      "value": 600
+    },
+    {
+      "line": 133,
+      "path": "apps/platform_runtime/workflow_healing_ai.py",
+      "snippet": "\"title\": str(parsed.get(\"title\") or fingerprint.human_title)[:160],",
+      "value": 160
+    },
+    {
+      "line": 99,
+      "path": "apps/platform_runtime/workflow_healing_session.py",
+      "snippet": "session[\"current_step_label\"] = current_step_label[:240]",
+      "value": 240
+    },
+    {
+      "line": 106,
+      "path": "apps/platform_runtime/workflow_incident_actions.py",
+      "snippet": "\"healing_poll_ms\": 2500 if applied > 0 else 0,",
+      "value": 2500
     },
     {
       "line": 579,
@@ -2722,7 +2956,7 @@
       "value": 1024
     },
     {
-      "line": 272,
+      "line": 316,
       "path": "apps/portal/ai_chrome_config.py",
       "snippet": "getattr(settings, \"LOCAL_VOICE_MAX_AUDIO_BYTES\", 2_000_000)",
       "value": 2000000
@@ -2888,6 +3122,12 @@
       "path": "apps/portal/services.py",
       "snippet": "cache.set(cache_key, result, 600)  # Cache 10 minutes",
       "value": 600
+    },
+    {
+      "line": 107,
+      "path": "apps/portal/student_dashboard_data.py",
+      "snippet": "\"soon\": (assignment.due_at - now).total_seconds() < 86400 * 2,",
+      "value": 86400
     },
     {
       "line": 30,
@@ -3136,6 +3376,30 @@
       "value": 160
     },
     {
+      "line": 694,
+      "path": "apps/registries/services.py",
+      "snippet": "\"sort_order\": 110,",
+      "value": 110
+    },
+    {
+      "line": 731,
+      "path": "apps/registries/services.py",
+      "snippet": "\"sort_order\": 130,",
+      "value": 130
+    },
+    {
+      "line": 740,
+      "path": "apps/registries/services.py",
+      "snippet": "\"sort_order\": 140,",
+      "value": 140
+    },
+    {
+      "line": 749,
+      "path": "apps/registries/services.py",
+      "snippet": "\"sort_order\": 150,",
+      "value": 150
+    },
+    {
       "line": 19,
       "path": "apps/registries/tenant_registry_models.py",
       "snippet": "label = models.CharField(max_length=160)",
@@ -3250,13 +3514,13 @@
       "value": 430
     },
     {
-      "line": 400,
+      "line": 413,
       "path": "apps/reports/services.py",
       "snippet": "cache.set(cache_key, \"1\", timeout=dedupe_hours * 3600)",
       "value": 3600
     },
     {
-      "line": 1031,
+      "line": 1107,
       "path": "apps/reports/services.py",
       "snippet": "value = signer.unsign(token, max_age=int(REPORT_SHARE_DAYS * 86400))",
       "value": 86400
@@ -3364,19 +3628,19 @@
       "value": 499
     },
     {
-      "line": 1862,
+      "line": 1883,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "port = int(cfg.get(\"port\") or 587)",
       "value": 587
     },
     {
-      "line": 1893,
+      "line": 1914,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "if port == 465:",
       "value": 465
     },
     {
-      "line": 1896,
+      "line": 1917,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "if port == 465:",
       "value": 465
@@ -3484,49 +3748,49 @@
       "value": 320
     },
     {
-      "line": 163,
+      "line": 166,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "1, min(9999, int(request.POST.get(\"copies_total\") or 1))",
       "value": 9999
     },
     {
-      "line": 272,
+      "line": 281,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "qty = max(0, min(10_000_000, int(request.POST.get(\"quantity\") or 0)))",
       "value": 10000000
     },
     {
-      "line": 343,
+      "line": 364,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": ".order_by(\"-recorded_at\")[:150]",
       "value": 150
     },
     {
-      "line": 540,
+      "line": 641,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "VisitorCheckIn.objects.filter(school=school).order_by(\"-checked_in_at\")[:150]",
       "value": 150
     },
     {
-      "line": 594,
+      "line": 765,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "description=(request.POST.get(\"description\") or \"\").strip()[:4000],",
       "value": 4000
     },
     {
-      "line": 625,
+      "line": 810,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": ".order_by(\"-created_at\")[:5000]",
       "value": 5000
     },
     {
-      "line": 677,
+      "line": 862,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": ".order_by(\"-created_at\")[:5000]",
       "value": 5000
     },
     {
-      "line": 740,
+      "line": 925,
       "path": "apps/schoolops/views_tenant_ops.py",
       "snippet": "qty = max(1, min(9999, int(request.POST.get(\"quantity\") or 1)))",
       "value": 9999
@@ -3814,13 +4078,13 @@
       "value": 5000
     },
     {
-      "line": 33,
+      "line": 32,
       "path": "apps/schools/pending_tenant_discovery.py",
       "snippet": "def list_active_schools_for_public_login(*, limit: int = 250) -> list[dict[str, str]]:",
       "value": 250
     },
     {
-      "line": 78,
+      "line": 87,
       "path": "apps/schools/portal_ready_corner_notifications.py",
       "snippet": "\"duration_ms\": 180000,",
       "value": 180000
@@ -3904,13 +4168,13 @@
       "value": 180
     },
     {
-      "line": 51,
+      "line": 52,
       "path": "apps/schools/signup_views.py",
       "snippet": "return \"\".join(chr(0x1F1E6 + (ord(ch) - ord(\"A\"))) for ch in value)",
       "value": 127462
     },
     {
-      "line": 282,
+      "line": 307,
       "path": "apps/schools/signup_views.py",
       "snippet": "window = int(getattr(settings, \"SIGNUP_RATE_WINDOW_SECONDS\", 3600))",
       "value": 3600
@@ -3982,7 +4246,7 @@
       "value": 12000
     },
     {
-      "line": 37,
+      "line": 42,
       "path": "apps/schools/tenant_offboarding_policy.py",
       "snippet": "return max(7, min(days, 365))",
       "value": 365
@@ -3994,25 +4258,25 @@
       "value": 253
     },
     {
-      "line": 78,
+      "line": 102,
       "path": "apps/schools/views_advancement.py",
       "snippet": "email=(request.POST.get(\"email\") or \"\").strip()[:254],",
       "value": 254
     },
     {
-      "line": 80,
+      "line": 104,
       "path": "apps/schools/views_advancement.py",
       "snippet": "notes=(request.POST.get(\"notes\") or \"\").strip()[:4000],",
       "value": 4000
     },
     {
-      "line": 118,
+      "line": 143,
       "path": "apps/schools/views_advancement.py",
       "snippet": "donor.email = (request.POST.get(\"email\") or \"\").strip()[:254]",
       "value": 254
     },
     {
-      "line": 120,
+      "line": 145,
       "path": "apps/schools/views_advancement.py",
       "snippet": "donor.notes = (request.POST.get(\"notes\") or \"\").strip()[:4000]",
       "value": 4000
@@ -4096,7 +4360,7 @@
       "value": 600
     },
     {
-      "line": 531,
+      "line": 563,
       "path": "apps/siteconfig/cockpit_context.py",
       "snippet": "\"interval_ms\": 7000,",
       "value": 7000
@@ -4114,181 +4378,181 @@
       "value": 420
     },
     {
-      "line": 155,
+      "line": 160,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 140
     },
     {
-      "line": 155,
+      "line": 160,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 160
     },
     {
-      "line": 155,
+      "line": 160,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 180
     },
     {
-      "line": 155,
+      "line": 160,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 220
     },
     {
-      "line": 155,
+      "line": 160,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 26], [140, 22], [160, 20], [180, 18], [200, 16], [220, 14], [240, 12]],",
       "value": 240
     },
     {
-      "line": 169,
+      "line": 174,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 140
     },
     {
-      "line": 169,
+      "line": 174,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 160
     },
     {
-      "line": 169,
+      "line": 174,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 180
     },
     {
-      "line": 169,
+      "line": 174,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 220
     },
     {
-      "line": 169,
+      "line": 174,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 32], [140, 30], [160, 26], [180, 22], [200, 20], [220, 18], [240, 16]],",
       "value": 240
     },
     {
-      "line": 183,
+      "line": 188,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 140
     },
     {
-      "line": 183,
+      "line": 188,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 160
     },
     {
-      "line": 183,
+      "line": 188,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 180
     },
     {
-      "line": 183,
+      "line": 188,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 220
     },
     {
-      "line": 183,
+      "line": 188,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "\"future_points\": [[120, 28], [140, 28], [160, 26], [180, 28], [200, 30], [220, 28], [240, 26]],",
       "value": 240
     },
     {
-      "line": 230,
+      "line": 235,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "base_actives = {\"healthy\": 1180, \"okay\": 540, \"warn\": 240, \"danger\": 90, \"idle\": 0}",
       "value": 240
     },
     {
-      "line": 230,
+      "line": 235,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "base_actives = {\"healthy\": 1180, \"okay\": 540, \"warn\": 240, \"danger\": 90, \"idle\": 0}",
       "value": 540
     },
     {
-      "line": 230,
+      "line": 235,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "base_actives = {\"healthy\": 1180, \"okay\": 540, \"warn\": 240, \"danger\": 90, \"idle\": 0}",
       "value": 1180
     },
     {
-      "line": 242,
+      "line": 247,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "offset = (i * 37) % 211",
       "value": 211
     },
     {
-      "line": 276,
+      "line": 281,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"start\", \"label\": _(\"Starting MRR\"), \"value\": \"$39.2k\", \"x\": 40, \"y\": 80, \"width\": 100, \"height\": 140, \"gradient_id\": \"lx-wf-anchor\", \"value_color\": \"var(--text-primary)\"},",
       "value": 140
     },
     {
-      "line": 278,
+      "line": 283,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"expansion\", \"label\": _(\"Expansion\"), \"value\": \"+$1.6k\", \"x\": 360, \"y\": 48, \"width\": 100, \"height\": 18, \"gradient_id\": \"lx-wf-up\", \"value_color\": \"var(--success, #22c55e)\"},",
       "value": 360
     },
     {
-      "line": 279,
+      "line": 284,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"churn\", \"label\": _(\"Churn\"), \"value\": \"-$2.5k\", \"x\": 520, \"y\": 66, \"width\": 100, \"height\": 32, \"gradient_id\": \"lx-wf-down\", \"value_color\": \"var(--danger, #ef4444)\"},",
       "value": 520
     },
     {
-      "line": 280,
+      "line": 285,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"end\", \"label\": _(\"Ending MRR\"), \"value\": \"$42.1k\", \"x\": 680, \"y\": 70, \"width\": 100, \"height\": 150, \"gradient_id\": \"lx-wf-anchor\", \"value_color\": \"var(--text-primary)\"},",
       "value": 150
     },
     {
-      "line": 280,
+      "line": 285,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"slug\": \"end\", \"label\": _(\"Ending MRR\"), \"value\": \"$42.1k\", \"x\": 680, \"y\": 70, \"width\": 100, \"height\": 150, \"gradient_id\": \"lx-wf-anchor\", \"value_color\": \"var(--text-primary)\"},",
       "value": 680
     },
     {
-      "line": 283,
+      "line": 288,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 140, \"y1\": 80, \"x2\": 200, \"y2\": 60},",
       "value": 140
     },
     {
-      "line": 284,
+      "line": 289,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 300, \"y1\": 60, \"x2\": 360, \"y2\": 48},",
       "value": 360
     },
     {
-      "line": 285,
+      "line": 290,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 460, \"y1\": 48, \"x2\": 520, \"y2\": 66},",
       "value": 460
     },
     {
-      "line": 285,
+      "line": 290,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 460, \"y1\": 48, \"x2\": 520, \"y2\": 66},",
       "value": 520
     },
     {
-      "line": 286,
+      "line": 291,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 620, \"y1\": 66, \"x2\": 680, \"y2\": 70},",
       "value": 620
     },
     {
-      "line": 286,
+      "line": 291,
       "path": "apps/siteconfig/cockpit_manager_200x_preview_data.py",
       "snippet": "{\"x1\": 620, \"y1\": 66, \"x2\": 680, \"y2\": 70},",
       "value": 680
@@ -4348,67 +4612,139 @@
       "value": 170
     },
     {
-      "line": 552,
+      "line": 123,
+      "path": "apps/siteconfig/fleet_context_service.py",
+      "snippet": "line = \" \".join(text.split())[:160]",
+      "value": 160
+    },
+    {
+      "line": 554,
       "path": "apps/siteconfig/forms.py",
       "snippet": "attrs={\"class\": \"form-control\", \"min\": 1, \"max\": 365}",
       "value": 365
     },
     {
-      "line": 1014,
+      "line": 1016,
       "path": "apps/siteconfig/forms.py",
       "snippet": "attrs={\"class\": \"form-control\", \"min\": 20, \"max\": 180, \"step\": 1}",
       "value": 180
     },
     {
-      "line": 1225,
+      "line": 1227,
       "path": "apps/siteconfig/forms.py",
       "snippet": "attrs={\"class\": \"form-control\", \"min\": 30, \"max\": 600}",
       "value": 600
     },
     {
+      "line": 2063,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "\"sidebar_default_width\": cleaned.get(\"txp_sidebar_default_width\") or 280,",
+      "value": 280
+    },
+    {
+      "line": 2065,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "\"sidebar_max_width\": cleaned.get(\"txp_sidebar_max_width\") or 420,",
+      "value": 420
+    },
+    {
+      "line": 2341,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "initial=280,",
+      "value": 280
+    },
+    {
+      "line": 2343,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "max_value=420,",
+      "value": 420
+    },
+    {
+      "line": 2351,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "max_value=420,",
+      "value": 420
+    },
+    {
+      "line": 2357,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "initial=420,",
+      "value": 420
+    },
+    {
       "line": 2359,
       "path": "apps/siteconfig/forms_cockpit.py",
-      "snippet": "max_length=240,",
-      "value": 240
+      "snippet": "max_value=420,",
+      "value": 420
     },
     {
-      "line": 2852,
+      "line": 2969,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=240,",
       "value": 240
     },
     {
-      "line": 3007,
+      "line": 3462,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "max_length=240,",
+      "value": 240
+    },
+    {
+      "line": 3617,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=160,",
       "value": 160
     },
     {
-      "line": 3349,
+      "line": 3998,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=600,",
       "value": 600
     },
     {
-      "line": 3433,
+      "line": 4082,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=240,",
       "value": 240
     },
     {
-      "line": 3545,
+      "line": 4194,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=320,",
       "value": 320
     },
     {
-      "line": 3606,
+      "line": 4255,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "max_length=240,",
       "value": 240
     },
     {
-      "line": 4497,
+      "line": 4384,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "max_length=240,",
+      "value": 240
+    },
+    {
+      "line": 4407,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "max_length=320,",
+      "value": 320
+    },
+    {
+      "line": 4413,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "max_length=320,",
+      "value": 320
+    },
+    {
+      "line": 4419,
+      "path": "apps/siteconfig/forms_cockpit.py",
+      "snippet": "max_length=320,",
+      "value": 320
+    },
+    {
+      "line": 5577,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "\"interval_ms\": cleaned.get(\"testimonial_interval_ms\") or 7000,",
       "value": 7000
@@ -4630,6 +4966,42 @@
       "value": 160
     },
     {
+      "line": 45,
+      "path": "apps/siteconfig/operator_fleet_snapshot.py",
+      "snippet": "cache.set(OPERATOR_FLEET_REVISION_KEY, rev, timeout=604800)",
+      "value": 604800
+    },
+    {
+      "line": 71,
+      "path": "apps/siteconfig/operator_fleet_snapshot.py",
+      "snippet": "if delta < 3600:",
+      "value": 3600
+    },
+    {
+      "line": 73,
+      "path": "apps/siteconfig/operator_fleet_snapshot.py",
+      "snippet": "if delta < 86400:",
+      "value": 86400
+    },
+    {
+      "line": 74,
+      "path": "apps/siteconfig/operator_fleet_snapshot.py",
+      "snippet": "return str(_(\"{hrs}h\").format(hrs=delta // 3600))",
+      "value": 3600
+    },
+    {
+      "line": 75,
+      "path": "apps/siteconfig/operator_fleet_snapshot.py",
+      "snippet": "return str(_(\"{days}d\").format(days=delta // 86400))",
+      "value": 86400
+    },
+    {
+      "line": 326,
+      "path": "apps/siteconfig/operator_fleet_snapshot.py",
+      "snippet": "cache.set(cache_key, current, timeout=604800)",
+      "value": 604800
+    },
+    {
       "line": 15,
       "path": "apps/siteconfig/repositories/database_recovery_repository.py",
       "snippet": "_MAX_SQLITE_INTEGRITY_DB_PATH_LEN = 4096",
@@ -4732,6 +5104,18 @@
       "value": -4000
     },
     {
+      "line": 10,
+      "path": "apps/siteconfig/tenant_experience_policy.py",
+      "snippet": "_SIDEBAR_DEFAULT_WIDTH = 280",
+      "value": 280
+    },
+    {
+      "line": 12,
+      "path": "apps/siteconfig/tenant_experience_policy.py",
+      "snippet": "_SIDEBAR_MAX_WIDTH = 420",
+      "value": 420
+    },
+    {
       "line": 91,
       "path": "apps/siteconfig/tenant_studio_day1.py",
       "snippet": "DAY1_DEFAULT_LOGO_MAX_BYTES = 1_500_000",
@@ -4804,13 +5188,13 @@
       "value": 150
     },
     {
-      "line": 1405,
+      "line": 1479,
       "path": "apps/siteconfig/views.py",
       "snippet": "BULK_LETTER_BODY_MAX_LENGTH = 100_000",
       "value": 100000
     },
     {
-      "line": 2175,
+      "line": 2249,
       "path": "apps/siteconfig/views.py",
       "snippet": "if gate.get(\"slug\") != slug or (time.time() - gate_ts > 900):",
       "value": 900
@@ -4820,6 +5204,18 @@
       "path": "apps/siteconfig/views_academic_years_evidence.py",
       "snippet": "base.order_by(\"-start_date\", \"name\", \"id\")[:150]",
       "value": 150
+    },
+    {
+      "line": 589,
+      "path": "apps/siteconfig/views_cockpit_admin.py",
+      "snippet": "\"error_message\": f\"image exceeds {max_bytes // 1024} KB cap\",",
+      "value": 1024
+    },
+    {
+      "line": 600,
+      "path": "apps/siteconfig/views_cockpit_admin.py",
+      "snippet": "\"error_message\": f\"image exceeds {max_bytes // 1024} KB cap\",",
+      "value": 1024
     },
     {
       "line": 114,
@@ -4840,16 +5236,22 @@
       "value": 86400
     },
     {
-      "line": 1367,
+      "line": 1375,
       "path": "apps/siteconfig/views_feature_control.py",
       "snippet": "if import_data.size > 2 * 1024 * 1024:  # 2MB max",
       "value": 1024
     },
     {
-      "line": 1367,
+      "line": 1375,
       "path": "apps/siteconfig/views_feature_control.py",
       "snippet": "if import_data.size > 2 * 1024 * 1024:  # 2MB max",
       "value": 1024
+    },
+    {
+      "line": 124,
+      "path": "apps/siteconfig/views_live_banner_studio.py",
+      "snippet": "announcement[\"text\"] = text.strip()[:280]",
+      "value": 280
     },
     {
       "line": 33,
@@ -4900,55 +5302,55 @@
       "value": 4000
     },
     {
-      "line": 95,
+      "line": 126,
       "path": "apps/siteconfig/world_map_geo.py",
       "snippet": "\"North America\": {\"svg_x\": 112, \"svg_y\": 96},",
       "value": 112
     },
     {
-      "line": 96,
+      "line": 127,
       "path": "apps/siteconfig/world_map_geo.py",
       "snippet": "\"Europe\": {\"svg_x\": 214, \"svg_y\": 92},",
       "value": 214
     },
     {
-      "line": 97,
+      "line": 128,
       "path": "apps/siteconfig/world_map_geo.py",
       "snippet": "\"West Africa\": {\"svg_x\": 244, \"svg_y\": 132},",
       "value": 132
     },
     {
-      "line": 97,
+      "line": 128,
       "path": "apps/siteconfig/world_map_geo.py",
       "snippet": "\"West Africa\": {\"svg_x\": 244, \"svg_y\": 132},",
       "value": 244
     },
     {
-      "line": 98,
+      "line": 129,
       "path": "apps/siteconfig/world_map_geo.py",
       "snippet": "\"Asia \u00b7 Oceania\": {\"svg_x\": 416, \"svg_y\": 118},",
       "value": 118
     },
     {
-      "line": 99,
+      "line": 130,
       "path": "apps/siteconfig/world_map_geo.py",
       "snippet": "\"Other\": {\"svg_x\": 300, \"svg_y\": 148},",
       "value": 148
     },
     {
-      "line": 399,
+      "line": 499,
       "path": "apps/siteconfig/world_map_geo.py",
       "snippet": "\"dwell_ms\": 3200,",
       "value": 3200
     },
     {
-      "line": 543,
+      "line": 702,
       "path": "apps/siteconfig/world_map_geo.py",
       "snippet": "\"poll_interval_ms\": 5000,",
       "value": 5000
     },
     {
-      "line": 544,
+      "line": 703,
       "path": "apps/siteconfig/world_map_geo.py",
       "snippet": "\"sse_reconnect_ms\": 4000,",
       "value": 4000
@@ -5068,25 +5470,25 @@
       "value": 280
     },
     {
-      "line": 1554,
+      "line": 1558,
       "path": "apps/studio_os/services.py",
       "snippet": ")[:240]",
       "value": 240
     },
     {
-      "line": 1556,
+      "line": 1560,
       "path": "apps/studio_os/services.py",
       "snippet": "summary[\"risk_summary\"] = str(first)[:240]",
       "value": 240
     },
     {
-      "line": 1558,
+      "line": 1562,
       "path": "apps/studio_os/services.py",
       "snippet": "summary[\"risk_summary\"] = str(payload.get(\"health_summary\"))[:240]",
       "value": 240
     },
     {
-      "line": 1595,
+      "line": 1599,
       "path": "apps/studio_os/services.py",
       "snippet": "\"detail\": str(run.error_message)[:180],",
       "value": 180
@@ -5122,19 +5524,19 @@
       "value": 1024
     },
     {
-      "line": 56,
+      "line": 57,
       "path": "apps/wal_stream/consumers.py",
       "snippet": "await self.close(code=4401)",
       "value": 4401
     },
     {
-      "line": 59,
+      "line": 60,
       "path": "apps/wal_stream/consumers.py",
       "snippet": "await self.close(code=4403)",
       "value": 4403
     },
     {
-      "line": 177,
+      "line": 178,
       "path": "apps/wal_stream/consumers.py",
       "snippet": "maxlen=10_000,",
       "value": 10000
@@ -5494,31 +5896,31 @@
       "value": 4000
     },
     {
-      "line": 103,
+      "line": 106,
       "path": "services/messaging_ai.py",
       "snippet": "f\"line, no numbering.\\n\\nMessage:\\n{body_excerpt[:1500]}\\n\"",
       "value": 1500
     },
     {
-      "line": 175,
+      "line": 178,
       "path": "services/messaging_ai.py",
       "snippet": "f\"Message:\\n{body[:600]}\\n\"",
       "value": 600
     },
     {
-      "line": 258,
+      "line": 261,
       "path": "services/messaging_ai.py",
       "snippet": "f\"Message:\\n{body[:1800]}\\n\"",
       "value": 1800
     },
     {
-      "line": 284,
+      "line": 287,
       "path": "services/messaging_ai.py",
       "snippet": "f\"A parent sent a school office this message:\\n\\\"{inbound_text[:800]}\\\"\\n\"",
       "value": 800
     },
     {
-      "line": 326,
+      "line": 329,
       "path": "services/messaging_ai.py",
       "snippet": "f\"Message:\\n{body[:800]}\\n\"",
       "value": 800
@@ -5572,7 +5974,7 @@
       "value": 16384
     }
   ],
-  "generated_at": "2026-06-18T20:26:42+00:00",
+  "generated_at": "2026-06-27T03:07:55+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

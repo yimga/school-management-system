@@ -9,7 +9,8 @@ without legal review.
 **Audience:** RunMyCampus operator / security operator handling DSAR
 intake for a tenant.
 
-**Last updated:** v3.33.0, 2026-05-18.
+**Last updated:** 2026-06-26 — multi-subject DSAR coverage (teacher/staff,
+parent/guardian, applicant) added; see §1a coverage matrix.
 
 ---
 
@@ -28,6 +29,40 @@ redaction / deletion to the controller within **7 business days** of
 the controller's instruction, regardless of jurisdiction. This keeps
 the controller well inside the statutory window with margin to handle
 clarification or appeal.
+
+---
+
+## 1a. Data-Subject Coverage Matrix
+
+A DSAR can be raised by **any** person whose Personal Data the tenant holds —
+not only students. Every subject type below has both an **export** (Art.15/20)
+and an **erase/anonymize** (Art.17) code path. All paths are tenant-scoped on
+`school=` so one tenant's DSAR can never read or erase another tenant's PII, and
+each writes a best-effort `compliance.ComplianceAuditLog` row.
+
+| Subject type | Models holding PII | Export | Erase | Service |
+|---|---|---|---|---|
+| Student | `people.StudentProfile` (+ linked `User`), `StudentGuardian`, `Attendance`/`Incident`/`Evaluation` notes, `Invoice`/`Payment`, matching `Applicant` | ✅ | ✅ | `gdpr_services.export_student_data_portability` / `gdpr_scrub_student` |
+| Teacher / staff | linked `User` (name/email/username/photo), `people.TeacherProfile` (staff_id, phone, position_title, pay_grade, paystub_notes, photo), `finance.Counterparty` contact PII | ✅ | ✅ | `dsar_subjects.export_staff_data` / `gdpr_scrub_staff` |
+| Parent / guardian | linked `User`, every tenant `people.StudentGuardian` row (phone/email/whatsapp/address), `finance.Counterparty` contact PII | ✅ | ✅ | `dsar_subjects.export_guardian_data` / `gdpr_scrub_guardian` |
+| Applicant | `people.Applicant` (first/last name, email, lead_source, exam_marker, extra_data) | ✅ | ✅ | `dsar_subjects.export_applicant_data` / `gdpr_scrub_applicant` |
+
+**Erase strategy is anonymize-in-place, never hard-delete.** Rows are kept so
+academic/financial/audit FK referential integrity is preserved; the direct PII
+columns are nulled/redacted and the linked `User` (where solely owned by the
+subject) is deactivated with an unusable password and a pseudonymous
+username/email. For User-keyed `EraseRequest` rows the correct handler is chosen
+automatically by `dsar_subjects.scrub_user_subject` (resolves student → staff →
+guardian within the tenant), so `python manage.py process_erase_requests` and the
+admin "fulfill" action now cover all three User subject kinds — previously only
+students were erased and teacher/parent requests silently no-oped.
+
+**Retention gate (§9).** Erasure of a staff subject is blocked while an open
+Accounts-Payable invoice (unsettled payroll/stipend) exists; a guardian erasure
+is blocked while a student they are financially responsible for has an unpaid
+invoice. The block is overridable with `force=True` once the controller has
+assessed there is no retention obligation. Applicants carry no financial
+obligation, so no retention gate applies.
 
 ---
 
@@ -206,11 +241,21 @@ Audit reference: <INSERT TICKET ID>
 [ ] If retention is required, controller informs subject + RunMyCampus
     flags the row as 'erasure-deferred' with the legal basis.
 [ ] If erasure proceeds: log an EraseRequest, approve it, then fulfil it via
-    `python manage.py process_erase_requests` (batch) — or call
-    `apps.compliance.gdpr_services.gdpr_scrub_student(school_id, student_id,
-    dry_run=False)` directly. This anonymizes the StudentProfile + linked User,
-    guardians, attendance/incident/evaluation notes, and matching applicants.
-    (Run with `dry_run=True` first to preview.)
+    `python manage.py process_erase_requests` (batch) — it now dispatches to the
+    correct subject handler (student / staff / guardian) automatically. Or call
+    the subject-specific service directly (run with `dry_run=True` first to
+    preview):
+      - Student: `gdpr_services.gdpr_scrub_student(school_id, student_id)` —
+        anonymizes StudentProfile + linked User + guardians +
+        attendance/incident/evaluation notes + matching applicants.
+      - Teacher/staff: `dsar_subjects.gdpr_scrub_staff(school_id, user_id)` —
+        anonymizes the User + TeacherProfile + finance Counterparty PII.
+      - Parent/guardian: `dsar_subjects.gdpr_scrub_guardian(school_id, user_id)`
+        — redacts every tenant StudentGuardian contact row (+ shared User when
+        the person is solely a guardian) + Counterparty PII.
+      - Applicant: `dsar_subjects.gdpr_scrub_applicant(school_id, applicant_id)`.
+    Staff/guardian erasure is blocked when a financial retention obligation
+    applies (§1a); pass `force=True` once the controller has assessed none does.
 [ ] Migration artifacts (raw bundle ciphertext, intake files) are
     deleted per the 90-day retention in the MAA (Section 6 of v2.0).
 [ ] Confirm via re-run of the access export that the subject's data

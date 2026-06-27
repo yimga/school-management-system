@@ -173,7 +173,7 @@ def _redact_counterparty_pii(school_id: int, user_id: int) -> int:
     return qs.update(name="Redacted", email="", phone="", address="")
 
 
-def _anonymize_user_core(user, *, scrubbed_at) -> bool:
+def _anonymize_user_core(user) -> bool:
     """Anonymize the direct PII on a ``User`` in place. Returns True if mutated.
 
     Never deletes the row (the User OneToOne/FK to TeacherProfile / guardian
@@ -320,9 +320,8 @@ def gdpr_scrub_staff(
     if dry_run:
         return summary
 
-    scrubbed_at = timezone.now()
     with transaction.atomic():
-        _anonymize_user_core(getattr(teacher, "user", None), scrubbed_at=scrubbed_at)
+        _anonymize_user_core(getattr(teacher, "user", None))
         if getattr(teacher, "profile_photo", None):
             try:
                 teacher.profile_photo.delete(save=False)
@@ -487,7 +486,6 @@ def gdpr_scrub_guardian(
     if dry_run:
         return summary
 
-    scrubbed_at = timezone.now()
     with transaction.atomic():
         links.update(
             phone="",
@@ -502,7 +500,7 @@ def gdpr_scrub_guardian(
         if anonymize_user:
             User = _get_model("accounts", "User")
             user = User.objects.filter(pk=user_id).first() if User else None
-            _anonymize_user_core(user, scrubbed_at=scrubbed_at)
+            _anonymize_user_core(user)
             _redact_counterparty_pii(school_id, user_id)
 
     _log_compliance_event(

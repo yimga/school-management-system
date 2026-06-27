@@ -8,10 +8,10 @@ raises. These tests prove (a) the field is present + structured on success and
 (b) a probe that raises NEVER turns /healthz into a 500.
 """
 
+import json
 from unittest.mock import MagicMock, patch
 
-from django.test import SimpleTestCase
-from django.urls import reverse
+from django.test import RequestFactory, SimpleTestCase
 
 from apps.observability.views import _check_celery_queue_depth
 
@@ -80,7 +80,22 @@ class HealthzQueueDepthHelperTests(SimpleTestCase):
 
 
 class HealthzEndpointQueueDepthTests(SimpleTestCase):
-    """End-to-end /healthz contract: the new field is present and fail-soft."""
+    """End-to-end /healthz contract: the new field is present and fail-soft.
+
+    The view is invoked directly via RequestFactory (NOT self.client) so the test
+    exercises healthz()'s own contract without running the middleware stack — the
+    middleware queries the DB, which is forbidden in a SimpleTestCase. With its
+    sub-probes mocked, the view itself touches no database, so this stays a true
+    no-DB unit test that runs in any lane.
+    """
+
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def _call_healthz(self):
+        from apps.observability.views import healthz
+
+        return healthz(self.factory.get("/healthz/"))
 
     def test_healthz_includes_queue_depth_field_on_success(self):
         with patch("apps.observability.views.check_db_liveness", return_value=_DB_HEALTHY), \
@@ -90,10 +105,10 @@ class HealthzEndpointQueueDepthTests(SimpleTestCase):
                     "apps.observability.views._check_celery_queue_depth",
                     return_value={"status": "ok", "depth": 3, "queue": "celery"},
                 ):
-            response = self.client.get(reverse("healthz"))
+            response = self._call_healthz()
 
         self.assertEqual(response.status_code, 200)
-        payload = response.json()
+        payload = json.loads(response.content)
         self.assertEqual(payload["status"], "ok")
         # Pre-existing keys preserved (no payload restructure).
         self.assertEqual(payload["database"], "ok")
@@ -118,10 +133,10 @@ class HealthzEndpointQueueDepthTests(SimpleTestCase):
                 patch("apps.observability.views._check_celery_broker_liveness", return_value={"status": "ok"}), \
                 patch("apps.observability.views.settings.CELERY_BROKER_URL", "redis://x:6379/0", create=True), \
                 patch.dict("sys.modules", {"config.celery": MagicMock(app=celery_app)}):
-            response = self.client.get(reverse("healthz"))
+            response = self._call_healthz()
 
         self.assertEqual(response.status_code, 200)
-        payload = response.json()
+        payload = json.loads(response.content)
         self.assertEqual(payload["status"], "ok")
         self.assertEqual(payload["celery_queue_depth"]["status"], "unavailable")
         self.assertIn("error", payload["celery_queue_depth"])
@@ -141,9 +156,9 @@ class HealthzEndpointQueueDepthTests(SimpleTestCase):
                 patch("apps.observability.views._check_celery_broker_liveness", return_value={"status": "ok"}), \
                 patch("apps.observability.views.settings.CELERY_BROKER_URL", "redis://x:6379/0", create=True), \
                 patch.dict("sys.modules", {"config.celery": MagicMock(app=celery_app)}):
-            response = self.client.get(reverse("healthz"))
+            response = self._call_healthz()
 
         self.assertEqual(response.status_code, 200)
-        payload = response.json()
+        payload = json.loads(response.content)
         self.assertEqual(payload["status"], "ok")
         self.assertEqual(payload["celery_queue_depth"]["status"], "unavailable")
