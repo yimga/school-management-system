@@ -37,26 +37,30 @@
       <span class="cp-panel-eyebrow">apply_stage = sandbox</span>
       <h2 class="cp-panel-title">{% trans "Sandbox packages" %}</h2>
     </div>
-    <div class="cp-list">
+    {% comment %} v4.05.x width-fill: sandbox package rows -> responsive .cp-grid cards
+       so the list fills the full-width canvas instead of clustering left (was .cp-list). {% endcomment %}
+    {% if packages %}
+    <div class="cp-grid cp-grid-3">
       {% for pkg in packages %}
-      <div class="cp-list-row d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="cp-card d-flex flex-column gap-2">
         <div>
           <strong>{{ pkg.package_id }}</strong>
           <span class="text-muted small ms-1">v{{ pkg.version }}</span>
           <span class="rmc-badge ms-1">{{ pkg.get_package_type_display }}</span>
           <span class="rmc-badge ms-1">@ {{ pkg.school.name }}</span>
-          <span class="small text-muted">applied {{ pkg.applied_at|timesince }} ago</span>
+          <span class="small text-muted d-block mt-1">applied {{ pkg.applied_at|timesince }} ago</span>
         </div>
-        <form method="post" action="{% url 'super:package_promote' %}" class="d-inline">
+        <form method="post" action="{% url 'super:package_promote' %}" class="mt-auto">
           {% csrf_token %}
           <input type="hidden" name="installed_id" value="{{ pkg.pk }}">
           <button type="submit" class="btn btn-primary btn-sm" title="{% trans 'Promote to production (staged rollout)' %}">{% trans "Promote to production" %}</button>
         </form>
       </div>
-      {% empty %}
-      <div class="cp-list-row text-muted">{% trans "No sandbox packages." %}</div>
       {% endfor %}
     </div>
+    {% else %}
+    <div class="cp-list-row text-muted">{% trans "No sandbox packages." %}</div>
+    {% endif %}
   </section>
 </div>
 {% endblock %}

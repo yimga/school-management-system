@@ -45,28 +45,32 @@
       <span class="cp-panel-eyebrow">install_phase = sandbox</span>
       <h2 class="cp-panel-title">{% trans "Sandbox installations" %}</h2>
     </div>
-    <div class="cp-list">
+    {% comment %} v4.05.x width-fill: installation rows -> responsive .cp-grid cards
+       so the list fills the full-width canvas instead of clustering left (was .cp-list). {% endcomment %}
+    {% if installations %}
+    <div class="cp-grid cp-grid-3">
       {% for inst in installations %}
-      <div class="cp-list-row d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="cp-card d-flex flex-column gap-2">
         <div>
           <strong>{{ inst.app.name }}</strong>
           <span class="text-muted small ms-1">({{ inst.app.slug }})</span>
           <span class="rmc-badge ms-1">@ {{ inst.school.name }}</span>
-          <span class="small text-muted">{% blocktrans with ago=inst.installed_at|timesince %}installed {{ ago }} ago{% endblocktrans %}</span>
+          <span class="small text-muted d-block mt-1">{% blocktrans with ago=inst.installed_at|timesince %}installed {{ ago }} ago{% endblocktrans %}</span>
         </div>
-        <form method="post" action="{% url 'super:marketplace_activate_sandbox' %}" class="d-inline">
+        <form method="post" action="{% url 'super:marketplace_activate_sandbox' %}" class="mt-auto">
           {% csrf_token %}
           <input type="hidden" name="installation_id" value="{{ inst.pk }}">
           <button type="submit" class="btn btn-primary btn-sm">{% trans "Promote to production" %}</button>
         </form>
       </div>
-      {% empty %}
-      <div class="py-3 px-2">
-        {% url 'super:app_catalog' as catalog_url %}
-        {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No sandbox installations.") message=_("Install apps from the catalog to sandbox first.") action_url=catalog_url action_text=_("App catalog") %}
-      </div>
       {% endfor %}
     </div>
+    {% else %}
+    <div class="py-3 px-2">
+      {% url 'super:app_catalog' as catalog_url %}
+      {% include "components/dashboard_empty_state.html" with icon="bi-box-seam" title=_("No sandbox installations.") message=_("Install apps from the catalog to sandbox first.") action_url=catalog_url action_text=_("App catalog") %}
+    </div>
+    {% endif %}
     {% include "components/pagination.html" %}
   </section>
 </div>
