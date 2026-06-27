@@ -15,6 +15,11 @@ from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 
 from apps.platform_runtime.helpers import get_effective_flags
+from apps.platform_runtime.role_registry import (
+    ROLE_PARENT,
+    ROLE_STUDENT,
+    ROLE_TEACHER,
+)
 from apps.schools.host_routing import (
     get_canonical_base_domain,
     is_public_host,
@@ -1210,11 +1215,74 @@ FROZEN_EXEMPT_PREFIXES = (
     "/authentication/logout/",
 )
 
+# Section 8.6 — "do no harm" carve-out (billing/subscription program).
+# HTTP methods that cannot mutate state. During a commercial freeze ONLY these
+# are permitted for learner roles — the load-bearing write-protection invariant.
+# POST/PUT/PATCH/DELETE always fall through to the freeze block, so no write path
+# is ever opened while a school is frozen.
+FROZEN_SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+
+# Learner roles that keep READ-ONLY access during a commercial freeze, so a
+# school's billing/storage lapse never locks students, parents, and teachers out
+# of learning, grades, attendance, and messages. Sourced from the role registry
+# (no hardcoded role strings). Admin / owner / finance roles are deliberately
+# ABSENT — they must hit the freeze block and act on the overdue account.
+FROZEN_READONLY_ROLES = frozenset(
+    {ROLE_STUDENT, ROLE_PARENT, ROLE_TEACHER}
+)
+
+# Commercial freeze reasons eligible for the do-no-harm carve-out. Both current
+# reasons (BILLING / STORAGE) and the unspecified default are non-punitive; a
+# future legal/abuse freeze reason would NOT inherit read-only access.
+FROZEN_DO_NO_HARM_REASONS = frozenset({"BILLING", "STORAGE", ""})
+
+
+def frozen_readonly_access_allowed(request, school):
+    """True when a frozen-school request qualifies for the do-no-harm read-only
+    carve-out: the operator has it enabled, the freeze reason is a commercial one
+    (billing/storage), the request is a safe (non-mutating) method, AND the
+    authenticated user holds a learner role. Never opens a write path — writes are
+    rejected by the safe-method gate before any other check matters.
+
+    Config/billing/admin surfaces need no path denylist here: they already require
+    ``settings.manage`` (or staff), which learner roles lack, so RBAC returns 403
+    independently. The shared role-aware backend dashboard is intentionally
+    reachable so teachers keep read access during a lapse.
+    """
+    if not getattr(settings, "BILLING_FREEZE_DO_NO_HARM", True):
+        return False
+    reason = (getattr(school, "frozen_reason", "") or "").strip().upper()
+    configured = getattr(settings, "BILLING_FREEZE_DO_NO_HARM_REASONS", None)
+    eligible = (
+        frozenset(str(r).strip().upper() for r in configured)
+        if configured is not None
+        else FROZEN_DO_NO_HARM_REASONS
+    )
+    if reason not in eligible:
+        return False
+    method = (getattr(request, "method", "") or "").upper()
+    if method not in FROZEN_SAFE_METHODS:
+        return False
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    role = (getattr(user, "role", "") or "").strip().upper()
+    return role in FROZEN_READONLY_ROLES
+
 
 class TenantFreezeMiddleware(MiddlewareMixin):
     """
     Section 8.6: When request.school is set and school.is_frozen is True, redirect to
     /account-frozen/ except for exempt paths. Staff/superuser can bypass to access billing/super.
+
+    Do-no-harm carve-out: during a commercial freeze (billing/storage), learner
+    roles (student/parent/teacher) keep READ-ONLY access — safe-method requests
+    pass through so a school's lapse never locks students, parents, and teachers
+    out of learning, grades, attendance, and messages. Any write, and any
+    admin/owner/finance role, still hits the freeze block and is redirected to the
+    account-frozen page (which explains how to restore the account). The carve-out
+    is operator-configurable via ``BILLING_FREEZE_DO_NO_HARM`` (default on).
+
     Must run after TenantMiddleware and AuthenticationMiddleware.
     """
 
@@ -1231,6 +1299,10 @@ class TenantFreezeMiddleware(MiddlewareMixin):
                 return None
         school = getattr(request, "school", None)
         if not school or not getattr(school, "is_frozen", False):
+            return None
+        # Do-no-harm: learner roles keep read-only access during a commercial
+        # freeze; writes and admin roles fall through to the block below.
+        if frozen_readonly_access_allowed(request, school):
             return None
         from django.shortcuts import redirect
 

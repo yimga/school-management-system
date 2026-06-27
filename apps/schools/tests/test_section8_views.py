@@ -754,3 +754,75 @@ class TenantFreezeMiddlewareTests(TestCase):
         mw = TenantFreezeMiddleware(get_response)
         response = mw(request)
         self.assertEqual(response.status_code, 200)
+
+    # --- Do-no-harm carve-out (billing/subscription program) ---------------
+    # Learner roles (student/parent/teacher) keep READ-ONLY access during a
+    # commercial freeze; writes and admin roles still hit the freeze block.
+
+    @staticmethod
+    def _user(role, *, authenticated=True, is_staff=False):
+        return type(
+            "User",
+            (),
+            {
+                "is_authenticated": authenticated,
+                "is_staff": is_staff,
+                "is_superuser": False,
+                "role": role,
+            },
+        )()
+
+    def _run(self, request, user):
+        from apps.schools.middleware import TenantFreezeMiddleware
+        from django.http import HttpResponse
+
+        request.school = self.school
+        request.user = user
+        mw = TenantFreezeMiddleware(lambda r: HttpResponse("ok"))
+        return mw(request)
+
+    def test_learner_get_is_readonly_allowed(self):
+        # Student GET on a frozen (STORAGE) school passes through read-only.
+        for role in ("STUDENT", "PARENT", "TEACHER"):
+            with self.subTest(role=role):
+                resp = self._run(self.factory.get("/portal/"), self._user(role))
+                self.assertEqual(resp.status_code, 200)
+
+    def test_learner_write_is_blocked(self):
+        # A write (POST/PUT/PATCH/DELETE) by a learner still hits the freeze block.
+        for verb in ("post", "put", "patch", "delete"):
+            with self.subTest(verb=verb):
+                request = getattr(self.factory, verb)("/portal/")
+                resp = self._run(request, self._user("STUDENT"))
+                self.assertEqual(resp.status_code, 302)
+                self.assertIn("account-frozen", resp["Location"])
+
+    def test_admin_role_still_blocked(self):
+        # Admin / owner / finance roles are NOT in the carve-out: they must act on
+        # the overdue account, so even a GET is redirected to the frozen page.
+        for role in ("ADMIN", "PROPRIETOR", "BURSAR"):
+            with self.subTest(role=role):
+                resp = self._run(self.factory.get("/portal/"), self._user(role))
+                self.assertEqual(resp.status_code, 302)
+                self.assertIn("account-frozen", resp["Location"])
+
+    def test_anonymous_learnerless_still_blocked(self):
+        # Anonymous users have no learner role → redirect (regression guard).
+        resp = self._run(
+            self.factory.get("/portal/"), self._user("", authenticated=False)
+        )
+        self.assertEqual(resp.status_code, 302)
+
+    @override_settings(BILLING_FREEZE_DO_NO_HARM=False)
+    def test_carveout_disabled_blocks_learner(self):
+        # Operator can turn the carve-out OFF to freeze everyone (config override).
+        resp = self._run(self.factory.get("/portal/"), self._user("STUDENT"))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("account-frozen", resp["Location"])
+
+    @override_settings(BILLING_FREEZE_DO_NO_HARM_REASONS=["BILLING"])
+    def test_ineligible_freeze_reason_blocks_learner(self):
+        # School is frozen for STORAGE but operator restricted the carve-out to
+        # BILLING only → learner is blocked (reason not eligible).
+        resp = self._run(self.factory.get("/portal/"), self._user("STUDENT"))
+        self.assertEqual(resp.status_code, 302)
