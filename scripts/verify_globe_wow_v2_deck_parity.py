@@ -68,6 +68,13 @@ def main() -> int:
         if needle in _read(rel):
             failures.append(f"{rel}: retired above-globe chrome still present ({needle!r})")
 
+    rail_right = _read("templates/partials/cockpit/_globe_deck_rail_right.html")
+    if "default:row.title" in rail_right:
+        failures.append(
+            "templates/partials/cockpit/_globe_deck_rail_right.html: "
+            "uses default:row.title (Django resolves fallback args eagerly; use firstof)"
+        )
+
     if failures:
         print("FAIL: globe WOW v2 deck parity", file=sys.stderr)
         for f in failures:

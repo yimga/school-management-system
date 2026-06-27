@@ -200,4 +200,6 @@
       }
     }
   }
+
+  root.setAttribute("data-rmc-auth-immersive-ready", "1");
 })();

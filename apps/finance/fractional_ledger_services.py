@@ -92,3 +92,40 @@ def enrollment_clearance_for_invoice(invoice: Invoice, *, school) -> bool:
     invoice_total = _invoice_total(invoice)
     paid = _ledger_paid_total(invoice)
     return paid >= _clearance_threshold(school, invoice_total)
+
+
+def student_enrollment_blocked_for_unpaid(student, academic_year, *, school=None) -> bool:
+    """Whether a student should be blocked/flagged for unpaid fees this year.
+
+    Enrollment / result-visibility gating consults BOTH ledgers:
+      * the regular ``Invoice.computed_balance`` (Payment-model receipts), and
+      * the fractional sub-ledger (irregular cash / mobile-money partial posts).
+
+    A student is blocked when at least one non-void invoice still carries a
+    positive regular balance AND that same invoice has NOT met the tenant's
+    fractional enrollment-clearance threshold. An invoice whose partial posts
+    have reached the threshold no longer blocks, even if the regular Payment
+    ledger has not been reconciled — this is the headline micro-finance loop
+    (pay enough irregular instalments → clear to enroll / see results).
+
+    Tenant-scoped: every invoice query is constrained to ``school`` (resolved
+    from the student when not passed explicitly) so a clearance computed for one
+    tenant can never leak across schools.
+    """
+    resolved_school = school if school is not None else getattr(student, "school", None)
+    if resolved_school is None:
+        return False
+
+    invoices = Invoice.objects.filter(
+        school=resolved_school,
+        student=student,
+        academic_year=academic_year,
+    ).exclude(status=Invoice.Status.VOID)
+
+    for inv in invoices:
+        if inv.computed_balance <= Decimal("0.00"):
+            continue
+        if enrollment_clearance_for_invoice(inv, school=resolved_school):
+            continue
+        return True
+    return False

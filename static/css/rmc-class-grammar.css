@@ -5792,6 +5792,9 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-tbl-bar__count {
   font-size: var(--type-size-xs, 0.75rem);
   color: var(--text-tertiary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .rmc-tbl-seg { display: inline-flex; border: 1px solid var(--hairline); border-radius: var(--radius-sm, 0.5rem); overflow: hidden; }

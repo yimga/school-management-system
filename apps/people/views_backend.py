@@ -902,12 +902,24 @@ def backend_applicant_create(request):
         blocked = block_if_wind_down_commerce(request)
         if blocked is not None:
             return blocked
-        form = ApplicantCreateForm(request.POST)
+        form = ApplicantCreateForm(request.POST, school=school)
         if form.is_valid():
             try:
-                applicant = form.save(commit=False)
-                applicant.school = school
-                applicant.save()
+                with transaction.atomic():
+                    applicant = form.save(commit=False)
+                    applicant.school = school
+                    applicant.save()
+
+                    from apps.metadata.dynamic_forms import (
+                        save_dynamic_fields_for_model,
+                    )
+
+                    save_dynamic_fields_for_model(
+                        form,
+                        instance=applicant,
+                        school=school or getattr(applicant, "school", None),
+                        model=Applicant,
+                    )
                 FormDraft.objects.filter(
                     school=school,
                     user=request.user,
@@ -928,7 +940,9 @@ def backend_applicant_create(request):
     else:
         initial, draft_updated_at, has_draft = _application_form_draft_initial(request)
         form = (
-            ApplicantCreateForm(initial=initial) if initial else ApplicantCreateForm()
+            ApplicantCreateForm(initial=initial, school=school)
+            if initial
+            else ApplicantCreateForm(school=school)
         )
     if request.method == "POST":
         has_draft, draft_updated_at = False, None

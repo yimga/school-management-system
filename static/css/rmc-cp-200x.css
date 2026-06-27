@@ -750,7 +750,11 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-app-shell > [data-rmc-operator-not
   backdrop-filter: blur(18px) saturate(150%);
 }
 .lx-world__glass-dock-metric {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--text-primary);
   font-size: 11px;
   font-weight: 800;

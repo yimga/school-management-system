@@ -163,6 +163,22 @@ class TransportWiringTests(SimpleTestCase):
         self.assertIn("portal:copilot_rail_send", tpl)
         self.assertIn("studio_os:copilot_rail_context", tpl)  # manager branch preserved
 
+    def test_ask_with_ai_is_integrated_into_copilot_rail(self):
+        tpl = (_REPO_ROOT / "templates" / "partials" / "cockpit" / "_ai_copilot_rail.html").read_text(encoding="utf-8")
+        self.assertIn('data-rmc-copilot-tab="help"', tpl)
+        self.assertIn('data-rmc-copilot-pane="help"', tpl)
+        self.assertIn("data-rmc-kb-ai-panel", tpl)
+        self.assertIn("rmc-kb-ai-assistant.js", tpl)
+
+    def test_portal_shell_no_longer_mounts_bottom_ai_panel(self):
+        tpl = (_REPO_ROOT / "templates" / "portal_base.html").read_text(encoding="utf-8")
+        self.assertIn("rmc-copilot-help-mode.css", tpl)
+        self.assertNotIn('include "partials/help_module_inline_assistant.html"', tpl)
+
+    def test_inline_assistant_is_suppressed_when_copilot_rail_enabled(self):
+        tpl = (_REPO_ROOT / "templates" / "partials" / "help_module_inline_assistant.html").read_text(encoding="utf-8")
+        self.assertIn("not cockpit.ai_copilot_rail.enabled", tpl)
+
     def test_routes_reverse(self):
         from django.urls import reverse
         for name in ("context", "insights", "send", "send_stream"):

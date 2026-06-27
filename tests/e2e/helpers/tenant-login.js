@@ -288,6 +288,44 @@ function resolveTenantLoginRole(username, roleOverride) {
   return 'staff';
 }
 
+/** Immersive login wizard hides creds until a role row is picked (batch 1728 E2E). */
+async function advanceImmersiveLoginStep(page, loginRole) {
+  const immersiveRoot = page.locator('[data-rmc-auth-immersive]');
+  if (!(await immersiveRoot.count())) {
+    return;
+  }
+  await page
+    .waitForFunction(
+      () =>
+        document.querySelector('[data-rmc-auth-immersive][data-rmc-auth-immersive-ready="1"]') &&
+        document.querySelector("[data-rmc-auth-step='role']"),
+      { timeout: 60000 },
+    )
+    .catch(() => {});
+  const credsVisible = page.locator("[data-rmc-auth-step='creds'].is-on");
+  if (await credsVisible.count()) {
+    return;
+  }
+  const roleButton = page.locator(`[data-rmc-auth-role="${loginRole}"]`).first();
+  await roleButton.waitFor({ state: 'visible', timeout: 30000 });
+  await roleButton.click({ timeout: 15000 });
+  await page
+    .waitForFunction(
+      () => {
+        const creds = document.querySelector("[data-rmc-auth-step='creds']");
+        return Boolean(creds && creds.classList.contains('is-on'));
+      },
+      { timeout: 30000 },
+    )
+    .catch(async () => {
+      await roleButton.click({ timeout: 15000, force: true }).catch(() => {});
+    });
+  await page
+    .locator('#login-username, input[name="username"], input[name="email"]')
+    .first()
+    .waitFor({ state: 'visible', timeout: 60000 });
+}
+
 async function completeTenantSecurityPostureIfPresent(page) {
   let pathname = '';
   try {
@@ -453,6 +491,7 @@ async function loginTenant(page, opts = {}) {
       break;
     }
     await waitForRevealArmed(page);
+    await advanceImmersiveLoginStep(page, loginRole);
     const userField = page
       .locator('#login-username, input[name="username"], input[name="email"]')
       .first();

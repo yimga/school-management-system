@@ -227,6 +227,26 @@ function removeSqliteDbFiles(dbPath) {
   }
 }
 
+function sqliteIntegrityOk(dbPath) {
+  if (!fs.existsSync(dbPath)) {
+    return false;
+  }
+  const result = spawnSync(
+    py,
+    [
+      '-c',
+      `import sqlite3, sys
+conn = sqlite3.connect(sys.argv[1], timeout=30)
+row = conn.execute("PRAGMA integrity_check").fetchone()
+conn.close()
+sys.exit(0 if row and row[0] == "ok" else 1)`,
+      dbPath,
+    ],
+    { cwd: repo, stdio: 'pipe', shell: false },
+  );
+  return result.status === 0;
+}
+
 /** Copy gate snapshot via sqlite backup API (avoids malformed WAL copies). */
 function seedGateSnapshot(src, dest) {
   removeSqliteDbFiles(dest);
@@ -279,17 +299,33 @@ runSync(
 
 if (!skipBoot) {
 console.log('=== tenant abrupt-end e2e: migrate ===');
-removeSqliteDbFiles(dbFile);
 let usedGate = false;
-if (
-  process.env.RMC_E2E_SKIP_GATE !== '1' &&
-  gateSnapshot &&
-  fs.existsSync(gateSnapshot)
+if (process.env.RMC_E2E_KEEP_DB === '1' && sqliteIntegrityOk(dbFile)) {
+  console.log(`reusing e2e db ${dbFile} (RMC_E2E_KEEP_DB=1)`);
+} else if (
+  process.env.RMC_E2E_KEEP_DB === '1' &&
+  fs.existsSync(dbFile) &&
+  !sqliteIntegrityOk(dbFile)
 ) {
-  usedGate = seedGateSnapshot(gateSnapshot, dbFile);
+  console.warn(`e2e db failed integrity_check — recreating ${dbFile}`);
+  removeSqliteDbFiles(dbFile);
+} else if (process.env.RMC_E2E_KEEP_DB !== '1' && fs.existsSync(dbFile)) {
+  removeSqliteDbFiles(dbFile);
+  console.log(`removed stale e2e db ${dbFile}`);
+} else {
+  removeSqliteDbFiles(dbFile);
 }
-if (!usedGate) {
-  console.log('=== tenant abrupt-end e2e: fresh migrate (no gate snapshot) ===');
+if (!sqliteIntegrityOk(dbFile)) {
+  if (
+    process.env.RMC_E2E_SKIP_GATE !== '1' &&
+    gateSnapshot &&
+    fs.existsSync(gateSnapshot)
+  ) {
+    usedGate = seedGateSnapshot(gateSnapshot, dbFile);
+  }
+  if (!usedGate) {
+    console.log('=== tenant abrupt-end e2e: fresh migrate (no gate snapshot) ===');
+  }
 }
 migrateDatabase(seedEnv);
 

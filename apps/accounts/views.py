@@ -4449,6 +4449,7 @@ def login_view(request):
     template = (
         "auth/manager_login.html" if operator_login_surface else "auth/login.html"
     )
+    context["RMC_AUTH_LANDING_LITE"] = template == "auth/login.html"
     return render(request, template, context)
 
 

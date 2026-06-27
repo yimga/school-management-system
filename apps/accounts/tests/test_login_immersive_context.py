@@ -147,6 +147,25 @@ class LoginImmersiveContextTests(SimpleTestCase):
             context = mock_render.call_args[0][2]
         self.assertEqual(context["post_role"], "staff")
 
+    def test_tenant_login_sets_auth_landing_lite_flag(self):
+        request = RequestFactory().get("/authentication/login/")
+        request.school = None
+        request.user = type("U", (), {"is_authenticated": False})()
+        request.session = {}
+        request.public_host_kind = None
+        request.META = {
+            "REMOTE_ADDR": "127.0.0.1",
+            "SERVER_NAME": "testserver",
+            "SERVER_PORT": "80",
+        }
+
+        with patch("apps.accounts.views.render") as mock_render:
+            login_view(request)
+            context = mock_render.call_args[0][2]
+            template = mock_render.call_args[0][1]
+        self.assertEqual(template, "auth/login.html")
+        self.assertTrue(context.get("RMC_AUTH_LANDING_LITE"))
+
     def test_marquee_hero_requires_pro_entitlement(self):
         request = RequestFactory().get("/siteconfig/super/configure/cockpit/")
         pro = login_canvas_pro_enabled(request, {"pro_enabled": False})

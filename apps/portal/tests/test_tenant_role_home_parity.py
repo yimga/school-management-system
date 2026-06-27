@@ -289,3 +289,16 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
     def test_profile_page_wires_tenant_experience_command_strip(self):
         text = (ROOT / "templates/accounts/profile.html").read_text(encoding="utf-8")
         self.assertIn("experience_command_strip.html", text)
+
+    def test_mission_strip_lives_in_dashboard_surface_not_header(self):
+        portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
+        self.assertIn('data-rmc-tp-mission-surface="1"', portal)
+        header_chunk = portal.split("tp-primary-nav-bandrow", 1)[1].split(
+            "portal_shell_header_ticker_tenant", 1
+        )[0]
+        self.assertNotIn("tp_mission_strip.html", header_chunk)
+        canvas_css = (
+            ROOT / "static/css/rmc-tenant-workspace-canvas.css"
+        ).read_text(encoding="utf-8")
+        self.assertIn("max-height: 100% !important", canvas_css)
+        self.assertIn("overflow-y: auto !important", canvas_css)

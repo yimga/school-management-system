@@ -1,0 +1,174 @@
+/* Copilot Help/KB mode: hosts "Ask with AI" inside the existing rail. */
+
+.lx-copilot__collapsed {
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.lx-copilot__collapsed::-webkit-scrollbar {
+  display: none;
+}
+
+.lx-copilot__tabs {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.lx-copilot__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.lx-copilot__tab {
+  flex: 0 0 auto;
+}
+
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="help"] .lx-copilot__thread,
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="help"] .lx-copilot__input-wrap {
+  display: none;
+}
+
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="help"] .lx-copilot__pane[data-rmc-copilot-pane="help"] {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="help"] .lx-copilot__tab[data-rmc-copilot-tab="help"] {
+  color: var(--cp-chrome-text, #f4f4f5);
+  border-bottom-color: var(--school-accent, #10b981);
+}
+
+.lx-copilot__pane--help {
+  padding: 12px 14px 14px !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.lx-copilot__help-head {
+  display: grid;
+  gap: 4px;
+}
+
+.lx-copilot__help-eyebrow {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--school-accent, #10b981) 42%, transparent);
+  background: color-mix(in srgb, var(--school-accent, #10b981) 14%, transparent);
+  color: var(--cp-chrome-text, #f4f4f5);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lx-copilot__help-title {
+  margin: 0;
+  color: var(--cp-chrome-text, #f4f4f5);
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.lx-copilot__help-copy {
+  margin: 0;
+  color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.7));
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.lx-copilot__help-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.lx-copilot__help-panel textarea {
+  width: 100%;
+  min-height: 96px;
+  max-height: 180px;
+  resize: vertical;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--surface-canvas, #0f172a) 88%, #3a2a18 12%);
+  color: var(--cp-chrome-text, #f4f4f5);
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.lx-copilot__help-panel textarea::placeholder {
+  color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.5));
+}
+
+.lx-copilot__help-actions,
+.lx-copilot__help-csat {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.lx-copilot__help-actions {
+  justify-content: space-between;
+}
+
+.lx-copilot__help-actions .btn,
+.lx-copilot__help-csat .btn {
+  min-height: 30px;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 12px;
+}
+
+.lx-copilot__help-answer {
+  max-height: 220px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 10px;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.10));
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 70%, transparent);
+  color: var(--cp-chrome-text, #f4f4f5);
+}
+
+.lx-copilot__help-banner {
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.72));
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.lx-copilot__help-banner--warning {
+  border-color: color-mix(in srgb, var(--text-warning, #fbbf24) 45%, transparent);
+  background: color-mix(in srgb, var(--text-warning, #fbbf24) 12%, transparent);
+  color: var(--cp-chrome-text, #f4f4f5);
+}
+
+.lx-copilot__help-link {
+  color: var(--cp-chrome-text, #f4f4f5);
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.lx-copilot__help-link:hover,
+.lx-copilot__help-link:focus-visible {
+  text-decoration: underline;
+}
+
+@media (max-width: 575.98px) {
+  .lx-copilot__pane--help {
+    max-height: min(78vh, 520px);
+  }
+}

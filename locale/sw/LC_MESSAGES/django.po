@@ -214,13 +214,13 @@ msgid "APIs & integrations"
 msgstr ""
 
 msgid "About"
-msgstr ""
+msgstr "Kuhusu"
 
 msgid "Absences & tardies"
 msgstr ""
 
 msgid "Absent"
-msgstr ""
+msgstr "Hayupo"
 
 msgid "Academic"
 msgstr ""
@@ -262,7 +262,7 @@ msgid "Actionable insights"
 msgstr ""
 
 msgid "Actions"
-msgstr ""
+msgstr "Vitendo"
 
 msgid "Activate"
 msgstr ""
@@ -279,7 +279,7 @@ msgid ""
 msgstr ""
 
 msgid "Active"
-msgstr ""
+msgstr "Inatumika"
 
 msgid "Active (not expired)"
 msgstr ""
@@ -345,7 +345,7 @@ msgid "Actor"
 msgstr ""
 
 msgid "Add"
-msgstr ""
+msgstr "Ongeza"
 
 msgid "Add ?school_id=&lt;uuid&gt; to compare policy layers for a school."
 msgstr ""
@@ -439,7 +439,7 @@ msgid "Adjust school website blocks and visual presets."
 msgstr ""
 
 msgid "Admin"
-msgstr ""
+msgstr "Utawala"
 
 msgid "Admin & backend (staff):"
 msgstr ""
@@ -568,7 +568,7 @@ msgid "Align report packs with policy blueprints and metadata lineage."
 msgstr ""
 
 msgid "All"
-msgstr ""
+msgstr "Zote"
 
 msgid "All Types"
 msgstr ""
@@ -672,7 +672,7 @@ msgid "Amber"
 msgstr ""
 
 msgid "Amount"
-msgstr ""
+msgstr "Kiasi"
 
 msgid "Amount (high to low)"
 msgstr ""
@@ -699,7 +699,7 @@ msgid "Analytics dashboard"
 msgstr ""
 
 msgid "Announcements"
-msgstr ""
+msgstr "Matangazo"
 
 msgid "Announcements, achievements, and interventions."
 msgstr ""
@@ -809,7 +809,7 @@ msgid ""
 msgstr ""
 
 msgid "Apply"
-msgstr ""
+msgstr "Tumia"
 
 msgid "Apply Palette to Form"
 msgstr ""
@@ -862,7 +862,7 @@ msgid "Approve sensitive scopes so installed apps can use them."
 msgstr ""
 
 msgid "Approved"
-msgstr ""
+msgstr "Imeidhinishwa"
 
 msgid "Apps"
 msgstr ""
@@ -933,7 +933,7 @@ msgid "Assignment ID"
 msgstr ""
 
 msgid "Assignments"
-msgstr ""
+msgstr "Kazi"
 
 msgid ""
 "At least one sector (Primary sector or Education system types) is required."
@@ -960,7 +960,7 @@ msgid "Attachment"
 msgstr ""
 
 msgid "Attendance"
-msgstr ""
+msgstr "Mahudhurio"
 
 msgid "Attendance & Discipline"
 msgstr ""
@@ -1044,7 +1044,7 @@ msgid "Awards and recognition"
 msgstr ""
 
 msgid "Back"
-msgstr ""
+msgstr "Rudi"
 
 msgid "Back to API Center"
 msgstr ""
@@ -1225,7 +1225,7 @@ msgid "Badges for {{ name }}"
 msgstr ""
 
 msgid "Balance"
-msgstr ""
+msgstr "Salio"
 
 msgid "Balance after"
 msgstr ""
@@ -1277,7 +1277,7 @@ msgid "Best guess"
 msgstr ""
 
 msgid "Billing"
-msgstr ""
+msgstr "Bili"
 
 msgid "Billing account"
 msgstr ""
@@ -1565,7 +1565,7 @@ msgid "Cache"
 msgstr ""
 
 msgid "Calendar"
-msgstr ""
+msgstr "Kalenda"
 
 msgid "Calendar system registry (platform admin)"
 msgstr ""
@@ -1583,7 +1583,7 @@ msgid "Can't find a time? Contact us and we'll arrange a call."
 msgstr ""
 
 msgid "Cancel"
-msgstr ""
+msgstr "Ghairi"
 
 msgid ""
 "Cannot delete: schools or other records still reference this region. "
@@ -1807,7 +1807,7 @@ msgid "Claim invite"
 msgstr ""
 
 msgid "Class"
-msgstr ""
+msgstr "Darasa"
 
 msgid "Class Syllabus"
 msgstr ""
@@ -1898,7 +1898,7 @@ msgid "Clinic log"
 msgstr ""
 
 msgid "Close"
-msgstr ""
+msgstr "Funga"
 
 msgid "Close the loop (wedges 1–10)"
 msgstr ""
@@ -2020,7 +2020,7 @@ msgid "Complete your profile"
 msgstr ""
 
 msgid "Completed"
-msgstr ""
+msgstr "Imekamilika"
 
 msgid "Completeness meter"
 msgstr ""
@@ -2152,7 +2152,7 @@ msgid ""
 msgstr ""
 
 msgid "Contact"
-msgstr ""
+msgstr "Mawasiliano"
 
 msgid "Contact School"
 msgstr ""
@@ -2173,7 +2173,7 @@ msgid "Context"
 msgstr ""
 
 msgid "Continue"
-msgstr ""
+msgstr "Endelea"
 
 msgid "Contrast safety: needs attention"
 msgstr ""
@@ -2280,7 +2280,7 @@ msgid "Countries:"
 msgstr ""
 
 msgid "Country"
-msgstr ""
+msgstr "Nchi"
 
 msgid "Country (optional)"
 msgstr ""
@@ -2325,7 +2325,7 @@ msgid "Covering (optional)"
 msgstr ""
 
 msgid "Create"
-msgstr ""
+msgstr "Unda"
 
 msgid "Create API key"
 msgstr ""
@@ -2404,7 +2404,7 @@ msgid ""
 msgstr ""
 
 msgid "Created"
-msgstr ""
+msgstr "Imeundwa"
 
 msgid "Created At"
 msgstr ""
@@ -2523,7 +2523,7 @@ msgid "Dark"
 msgstr ""
 
 msgid "Dashboard"
-msgstr ""
+msgstr "Dashibodi"
 
 msgid "Dashboard Configuration Hub"
 msgstr ""
@@ -2616,7 +2616,7 @@ msgid "Data visualization"
 msgstr ""
 
 msgid "Date"
-msgstr ""
+msgstr "Tarehe"
 
 msgid "Date (newest first)"
 msgstr ""
@@ -2690,7 +2690,7 @@ msgid "Degree audit and graduate research (plan addons)"
 msgstr ""
 
 msgid "Delete"
-msgstr ""
+msgstr "Futa"
 
 msgid "Delete Document"
 msgstr ""
@@ -2769,7 +2769,7 @@ msgid ""
 msgstr ""
 
 msgid "Description"
-msgstr ""
+msgstr "Maelezo"
 
 msgid "Description (for AI)"
 msgstr ""
@@ -3031,7 +3031,7 @@ msgid "Donors & advancement"
 msgstr ""
 
 msgid "Download"
-msgstr ""
+msgstr "Pakua"
 
 msgid "Download CSV"
 msgstr ""
@@ -3160,7 +3160,7 @@ msgid "Ecosystem (N18–N20)"
 msgstr ""
 
 msgid "Edit"
-msgstr ""
+msgstr "Hariri"
 
 msgid "Edit country multiplier %s"
 msgstr ""
@@ -3231,7 +3231,7 @@ msgid "Eight steps, no hidden setup debt."
 msgstr ""
 
 msgid "Email"
-msgstr ""
+msgstr "Barua pepe"
 
 msgid "Email Discovery"
 msgstr ""
@@ -3353,7 +3353,7 @@ msgid "Evaluations (admin)"
 msgstr ""
 
 msgid "Event"
-msgstr ""
+msgstr "Tukio"
 
 msgid "Event types (comma-separated; empty = all)"
 msgstr ""
@@ -3365,7 +3365,7 @@ msgid "Event-driven automations"
 msgstr ""
 
 msgid "Events"
-msgstr ""
+msgstr "Matukio"
 
 msgid "Events & webinars"
 msgstr ""
@@ -3393,7 +3393,7 @@ msgid "Everything you need to run your school"
 msgstr ""
 
 msgid "Exam"
-msgstr ""
+msgstr "Mtihani"
 
 msgid ""
 "Example workflow: grade drop triggers teacher and parent notification then "
@@ -3499,7 +3499,7 @@ msgid "Explore other solution pages that complement this one."
 msgstr ""
 
 msgid "Export"
-msgstr ""
+msgstr "Hamisha"
 
 msgid "Export CSV"
 msgstr ""
@@ -3736,7 +3736,7 @@ msgid "File/Link"
 msgstr ""
 
 msgid "Filter"
-msgstr ""
+msgstr "Chuja"
 
 msgid "Filter by sector:"
 msgstr ""
@@ -3760,7 +3760,7 @@ msgid "Filter theme packs"
 msgstr ""
 
 msgid "Finance"
-msgstr ""
+msgstr "Fedha"
 
 msgid "Finance & leave"
 msgstr ""
@@ -3810,7 +3810,7 @@ msgid "First 200 accounts (by school name)."
 msgstr ""
 
 msgid "First name"
-msgstr ""
+msgstr "Jina la kwanza"
 
 msgid "First stop (optional)"
 msgstr ""
@@ -4280,7 +4280,7 @@ msgid "Healthy"
 msgstr ""
 
 msgid "Help"
-msgstr ""
+msgstr "Msaada"
 
 msgid "Help & Knowledge Base"
 msgstr ""
@@ -4331,7 +4331,7 @@ msgid "Holder:"
 msgstr ""
 
 msgid "Home"
-msgstr ""
+msgstr "Nyumbani"
 
 msgid "Home — control plane"
 msgstr ""
@@ -4518,7 +4518,7 @@ msgid "In the demo environment and live walkthrough:"
 msgstr ""
 
 msgid "Inactive"
-msgstr ""
+msgstr "Haitumiki"
 
 msgid "Incidents"
 msgstr ""
@@ -4932,7 +4932,7 @@ msgid "Last fail"
 msgstr ""
 
 msgid "Last name"
-msgstr ""
+msgstr "Jina la mwisho"
 
 msgid "Last publish:"
 msgstr ""
@@ -5012,7 +5012,7 @@ msgid "Learn about AI &amp; analytics"
 msgstr ""
 
 msgid "Learn more"
-msgstr ""
+msgstr "Jifunze zaidi"
 
 msgid "Learn more in the Help centre"
 msgstr ""
@@ -5091,7 +5091,7 @@ msgid "Libraries & help"
 msgstr ""
 
 msgid "Library"
-msgstr ""
+msgstr "Maktaba"
 
 msgid "Library catalog"
 msgstr ""
@@ -5219,7 +5219,7 @@ msgid "Loading preview..."
 msgstr ""
 
 msgid "Loading..."
-msgstr ""
+msgstr "Inapakia..."
 
 msgid "Loading…"
 msgstr ""
@@ -5237,16 +5237,16 @@ msgid "Location"
 msgstr ""
 
 msgid "Log in"
-msgstr ""
+msgstr "Ingia"
 
 msgid "Log intervention"
 msgstr ""
 
 msgid "Log out"
-msgstr ""
+msgstr "Toka"
 
 msgid "Login"
-msgstr ""
+msgstr "Ingia"
 
 msgid "Login Activity"
 msgstr ""
@@ -5261,7 +5261,7 @@ msgid "Logo present"
 msgstr ""
 
 msgid "Logout"
-msgstr ""
+msgstr "Toka"
 
 msgid ""
 "Long-running process runs (admissions, re-enrollment, fee follow-up, "
@@ -5306,7 +5306,7 @@ msgid ""
 msgstr ""
 
 msgid "Manage"
-msgstr ""
+msgstr "Simamia"
 
 msgid "Manage Users"
 msgstr ""
@@ -5479,13 +5479,13 @@ msgid "Merge letters to classrooms (full window)."
 msgstr ""
 
 msgid "Message"
-msgstr ""
+msgstr "Ujumbe"
 
 msgid "Message groups"
 msgstr ""
 
 msgid "Messages"
-msgstr ""
+msgstr "Ujumbe"
 
 msgid "Metadata"
 msgstr ""
@@ -5729,7 +5729,7 @@ msgid "NGO (21):"
 msgstr ""
 
 msgid "Name"
-msgstr ""
+msgstr "Jina"
 
 msgid "Name or code…"
 msgstr ""
@@ -5816,7 +5816,7 @@ msgid "New route"
 msgstr ""
 
 msgid "Next"
-msgstr ""
+msgstr "Ifuatayo"
 
 msgid "Next action over tool menu"
 msgstr ""
@@ -5857,7 +5857,7 @@ msgid ""
 msgstr ""
 
 msgid "No"
-msgstr ""
+msgstr "Hapana"
 
 msgid ""
 "No API keys yet. Create one above to authenticate external API requests."
@@ -6310,7 +6310,7 @@ msgid "No, not helpful"
 msgstr ""
 
 msgid "None"
-msgstr ""
+msgstr "Hakuna"
 
 msgid "None declared"
 msgstr ""
@@ -6818,7 +6818,7 @@ msgid ""
 msgstr ""
 
 msgid "Optional"
-msgstr ""
+msgstr "Si lazima"
 
 msgid "Or scan this QR code on the phone:"
 msgstr ""
@@ -6916,7 +6916,7 @@ msgid "Override sources"
 msgstr ""
 
 msgid "Overview"
-msgstr ""
+msgstr "Muhtasari"
 
 msgid "Overview (chart reference)"
 msgstr ""
@@ -7047,7 +7047,7 @@ msgid "Page {{ num }} of {{ total }}"
 msgstr ""
 
 msgid "Paid"
-msgstr ""
+msgstr "Imelipwa"
 
 msgid "Paid (FCFA)"
 msgstr ""
@@ -7056,7 +7056,7 @@ msgid "Pan by dragging; zoom with the mouse wheel."
 msgstr ""
 
 msgid "Parent"
-msgstr ""
+msgstr "Mzazi"
 
 msgid "Parent & contact"
 msgstr ""
@@ -7080,7 +7080,7 @@ msgid "Parent tenant dashboard"
 msgstr ""
 
 msgid "Parents"
-msgstr ""
+msgstr "Wazazi"
 
 msgid "Parity"
 msgstr ""
@@ -7119,7 +7119,7 @@ msgid "Passport school invites"
 msgstr ""
 
 msgid "Password"
-msgstr ""
+msgstr "Nenosiri"
 
 msgid "Pattern"
 msgstr ""
@@ -7149,7 +7149,7 @@ msgid "Payload keys"
 msgstr ""
 
 msgid "Payment"
-msgstr ""
+msgstr "Malipo"
 
 msgid "Payment code"
 msgstr ""
@@ -7170,7 +7170,7 @@ msgid "Payment reminders"
 msgstr ""
 
 msgid "Payments"
-msgstr ""
+msgstr "Malipo"
 
 msgid "Payments, LMS, SSO, messaging"
 msgstr ""
@@ -7182,7 +7182,7 @@ msgid "Peer operator email (four-eyes)"
 msgstr ""
 
 msgid "Pending"
-msgstr ""
+msgstr "Inasubiri"
 
 msgid "Pending Review"
 msgstr ""
@@ -7745,7 +7745,7 @@ msgid "Preview, compare, and publish from the canvas."
 msgstr ""
 
 msgid "Previous"
-msgstr ""
+msgstr "Iliyotangulia"
 
 msgid "Previous month"
 msgstr ""
@@ -7754,7 +7754,7 @@ msgid "Price"
 msgstr ""
 
 msgid "Pricing"
-msgstr ""
+msgstr "Bei"
 
 msgid "Primary"
 msgstr ""
@@ -7772,7 +7772,7 @@ msgid "Primary/accent colors, logo, heading"
 msgstr ""
 
 msgid "Print"
-msgstr ""
+msgstr "Chapisha"
 
 msgid "Print fee statement"
 msgstr ""
@@ -7872,7 +7872,7 @@ msgid "Productized /api/ai/* endpoints"
 msgstr ""
 
 msgid "Profile"
-msgstr ""
+msgstr "Wasifu"
 
 msgid "Program start date is required for active enrollments in your region."
 msgstr ""
@@ -8249,7 +8249,7 @@ msgid "Referral rewards"
 msgstr ""
 
 msgid "Refresh"
-msgstr ""
+msgstr "Onyesha upya"
 
 msgid "Refresh readiness"
 msgstr ""
@@ -8323,7 +8323,7 @@ msgid "Reject selected FAQs"
 msgstr ""
 
 msgid "Rejected"
-msgstr ""
+msgstr "Imekataliwa"
 
 msgid "Rejection Reason"
 msgstr ""
@@ -8475,7 +8475,7 @@ msgid "Reported"
 msgstr ""
 
 msgid "Reports"
-msgstr ""
+msgstr "Ripoti"
 
 msgid ""
 "Reports and documents inherit school and theme branding (primary color, "
@@ -8549,7 +8549,7 @@ msgid "Require Signature"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Inahitajika"
 
 msgid "Required permissions:"
 msgstr ""
@@ -8596,7 +8596,7 @@ msgid "Restore colors to their saved values."
 msgstr ""
 
 msgid "Results"
-msgstr ""
+msgstr "Matokeo"
 
 msgid "Results are not published yet. Please check back later."
 msgstr ""
@@ -8720,7 +8720,7 @@ msgid "Roadmap"
 msgstr ""
 
 msgid "Role"
-msgstr ""
+msgstr "Jukumu"
 
 msgid "Role dashboard preview"
 msgstr ""
@@ -8753,7 +8753,7 @@ msgid "Role-ready extensions"
 msgstr ""
 
 msgid "Roles"
-msgstr ""
+msgstr "Majukumu"
 
 msgid "Roles and permissions for staff."
 msgstr ""
@@ -9091,7 +9091,7 @@ msgid "Sandbox: synthetic roster (no PII)"
 msgstr ""
 
 msgid "Save"
-msgstr ""
+msgstr "Hifadhi"
 
 msgid "Save and print, or open in browser and use Save as PDF."
 msgstr ""
@@ -9354,7 +9354,7 @@ msgid ""
 msgstr ""
 
 msgid "Search"
-msgstr ""
+msgstr "Tafuta"
 
 msgid "Search (e.g. invoice, theme, finance...)"
 msgstr ""
@@ -9428,7 +9428,7 @@ msgid "Secret (HMAC signing)"
 msgstr ""
 
 msgid "Sections"
-msgstr ""
+msgstr "Sehemu"
 
 msgid "Sector"
 msgstr ""
@@ -9639,7 +9639,7 @@ msgid "Set up MFA (TOTP) to protect your account. Free and quick."
 msgstr ""
 
 msgid "Settings"
-msgstr ""
+msgstr "Mipangilio"
 
 msgid "Settings sections"
 msgstr ""
@@ -9739,7 +9739,7 @@ msgid "Sidebar user block"
 msgstr ""
 
 msgid "Sign in"
-msgstr ""
+msgstr "Ingia"
 
 msgid "Sign in with your platform operator account."
 msgstr ""
@@ -9753,7 +9753,7 @@ msgid ""
 msgstr ""
 
 msgid "Sign out"
-msgstr ""
+msgstr "Toka"
 
 msgid "Sign up your school"
 msgstr ""
@@ -10016,7 +10016,7 @@ msgid "Starter stack"
 msgstr ""
 
 msgid "Status"
-msgstr ""
+msgstr "Hali"
 
 msgid "Status & Publishing"
 msgstr ""
@@ -10063,7 +10063,7 @@ msgid "Stubs"
 msgstr ""
 
 msgid "Student"
-msgstr ""
+msgstr "Mwanafunzi"
 
 msgid "Student 360"
 msgstr ""
@@ -10111,7 +10111,7 @@ msgid "Student user"
 msgstr ""
 
 msgid "Students"
-msgstr ""
+msgstr "Wanafunzi"
 
 msgid "Students CSV"
 msgstr ""
@@ -10191,13 +10191,13 @@ msgid "Subdomain"
 msgstr ""
 
 msgid "Subject"
-msgstr ""
+msgstr "Somo"
 
 msgid "Subject results"
 msgstr ""
 
 msgid "Submit"
-msgstr ""
+msgstr "Wasilisha"
 
 msgid ""
 "Submit a reason and optional proof (e.g. NGO status). Platform support will "
@@ -10466,7 +10466,7 @@ msgid ""
 msgstr ""
 
 msgid "Teacher"
-msgstr ""
+msgstr "Mwalimu"
 
 msgid "Teacher / staff digital ID"
 msgstr ""
@@ -10496,7 +10496,7 @@ msgid "Teacher remark"
 msgstr ""
 
 msgid "Teachers"
-msgstr ""
+msgstr "Walimu"
 
 msgid "Teachers CSV"
 msgstr ""
@@ -10882,7 +10882,7 @@ msgid "Tips (optional)"
 msgstr ""
 
 msgid "Title"
-msgstr ""
+msgstr "Kichwa"
 
 msgid "To <strong>create a new school/site</strong>, use"
 msgstr ""
@@ -10938,7 +10938,7 @@ msgid "Topical landing clusters"
 msgstr ""
 
 msgid "Total"
-msgstr ""
+msgstr "Jumla"
 
 msgid "Total Coef"
 msgstr ""
@@ -10995,7 +10995,7 @@ msgid "Transcript snapshot summary"
 msgstr ""
 
 msgid "Transport"
-msgstr ""
+msgstr "Usafiri"
 
 msgid "Transport routes"
 msgstr ""
@@ -11045,7 +11045,7 @@ msgid "Tuition, fees, aid — Finance dashboard and admissions workflows."
 msgstr ""
 
 msgid "Type"
-msgstr ""
+msgstr "Aina"
 
 msgid "Type ROLLBACK in the confirmation field to acknowledge impact."
 msgstr ""
@@ -11178,7 +11178,7 @@ msgid "Upcoming deadlines"
 msgstr ""
 
 msgid "Updated"
-msgstr ""
+msgstr "Imesasishwa"
 
 msgid "Updated - Pending Review"
 msgstr ""
@@ -11193,7 +11193,7 @@ msgid "Upgrade progress"
 msgstr ""
 
 msgid "Upload"
-msgstr ""
+msgstr "Pakia"
 
 msgid ""
 "Upload a CSV using the template headers. You can preview before applying."
@@ -11343,7 +11343,7 @@ msgid "Use-case pages for high-intent school management searches."
 msgstr ""
 
 msgid "User"
-msgstr ""
+msgstr "Mtumiaji"
 
 msgid "User #%s"
 msgstr ""
@@ -11367,7 +11367,7 @@ msgid "User with role EMPLOYER."
 msgstr ""
 
 msgid "Username"
-msgstr ""
+msgstr "Jina la mtumiaji"
 
 msgid "VALID – Attestation of Effective Presence"
 msgstr ""
@@ -11436,7 +11436,7 @@ msgid "Video"
 msgstr ""
 
 msgid "View"
-msgstr ""
+msgstr "Tazama"
 
 msgid "View / Edit"
 msgstr ""
@@ -11946,7 +11946,7 @@ msgid "Year"
 msgstr ""
 
 msgid "Yes"
-msgstr ""
+msgstr "Ndiyo"
 
 msgid "Yes, delete permanently"
 msgstr ""
@@ -13527,7 +13527,7 @@ msgid "No finance access requests at the moment."
 msgstr ""
 
 msgid "Notification"
-msgstr ""
+msgstr "Arifa"
 
 msgid "Operator curated links"
 msgstr ""
@@ -14224,7 +14224,7 @@ msgid "No term publish status rows for this school yet."
 msgstr ""
 
 msgid "OK"
-msgstr ""
+msgstr "Sawa"
 
 msgid "Open Configuration Control Center"
 msgstr ""
@@ -14727,7 +14727,7 @@ msgid ""
 msgstr ""
 
 msgid "Phone"
-msgstr ""
+msgstr "Simu"
 
 msgid "Sales pipeline"
 msgstr ""
@@ -15483,7 +15483,7 @@ msgid "GPA"
 msgstr ""
 
 msgid "Grade"
-msgstr ""
+msgstr "Daraja"
 
 msgid "Missing or insufficient data"
 msgstr ""
@@ -17906,7 +17906,7 @@ msgid "Replay platform event"
 msgstr ""
 
 msgid "Reset"
-msgstr ""
+msgstr "Weka upya"
 
 msgid "Resolution audit trail"
 msgstr ""
@@ -18438,7 +18438,7 @@ msgid "Contact form"
 msgstr ""
 
 msgid "Contact us"
-msgstr ""
+msgstr "Wasiliana nasi"
 
 msgid "Each tile opens the matching RunMyCampus capability page."
 msgstr ""
@@ -19178,7 +19178,7 @@ msgid "Repeatable modules for every new campus"
 msgstr ""
 
 msgid "Report"
-msgstr ""
+msgstr "Ripoti"
 
 msgid ""
 "Request a security packet for artefact-level detail under NDA — we do not "
@@ -20238,7 +20238,7 @@ msgid "School Configuration Center"
 msgstr ""
 
 msgid "Section"
-msgstr ""
+msgstr "Sehemu"
 
 msgid ""
 "Shows affected roles, workflows, dashboards, policies, billing posture, "
@@ -20542,7 +20542,7 @@ msgid "Accesses"
 msgstr ""
 
 msgid "Account"
-msgstr ""
+msgstr "Akaunti"
 
 msgid "Account balance summary"
 msgstr ""
@@ -21125,7 +21125,7 @@ msgid "Class Ranking"
 msgstr ""
 
 msgid "Classes"
-msgstr ""
+msgstr "Madarasa"
 
 msgid "Clear"
 msgstr ""
@@ -21568,7 +21568,7 @@ msgid "Due Mon 24 Mar · invoice INV-2403"
 msgstr ""
 
 msgid "Due date"
-msgstr ""
+msgstr "Tarehe ya mwisho"
 
 msgid "Due {{ amt }}"
 msgstr ""
@@ -21826,7 +21826,7 @@ msgid "Fee status"
 msgstr ""
 
 msgid "Fees"
-msgstr ""
+msgstr "Ada"
 
 msgid "Fees + Stripe / GoCardless / bank transfer"
 msgstr ""
@@ -21985,7 +21985,7 @@ msgid "Generate term reports and export to Ministry format"
 msgstr ""
 
 msgid "Get Started"
-msgstr ""
+msgstr "Anza"
 
 msgid "Get notified instantly when grades are published"
 msgstr ""
@@ -22109,7 +22109,7 @@ msgid "Hollow Creek"
 msgstr ""
 
 msgid "Homework"
-msgstr ""
+msgstr "Kazi ya nyumbani"
 
 msgid "Homework & Upcoming"
 msgstr ""
@@ -22402,7 +22402,7 @@ msgid "Last: {{ day }} {{ time }}"
 msgstr ""
 
 msgid "Late"
-msgstr ""
+msgstr "Amechelewa"
 
 msgid "Latest reply"
 msgstr ""
@@ -23101,7 +23101,7 @@ msgid "Nothing to flag."
 msgstr ""
 
 msgid "Notifications"
-msgstr ""
+msgstr "Arifa"
 
 msgid "OHADA / DSF package summary"
 msgstr ""
@@ -23534,7 +23534,7 @@ msgid ""
 msgstr ""
 
 msgid "Permissions"
-msgstr ""
+msgstr "Ruhusa"
 
 msgid ""
 "Pick a starter blueprint pack. This sets curriculum, grading scale, and "
@@ -23617,7 +23617,7 @@ msgid "Preferred channel: {{ method }}"
 msgstr ""
 
 msgid "Present"
-msgstr ""
+msgstr "Yupo"
 
 msgid "Present today"
 msgstr ""
@@ -24119,7 +24119,7 @@ msgid "Scan the QR code with your authenticator app."
 msgstr ""
 
 msgid "Schedule"
-msgstr ""
+msgstr "Ratiba"
 
 msgid "Scheduled maintenance"
 msgstr ""
@@ -24438,7 +24438,7 @@ msgid "Stack posture"
 msgstr ""
 
 msgid "Staff"
-msgstr ""
+msgstr "Wafanyakazi"
 
 msgid "Stale backlog"
 msgstr ""
@@ -24559,7 +24559,7 @@ msgid "Subject Assignment"
 msgstr ""
 
 msgid "Subjects"
-msgstr ""
+msgstr "Masomo"
 
 msgid "Subjects below the selected threshold."
 msgstr ""
@@ -24874,7 +24874,7 @@ msgid "Timeline"
 msgstr ""
 
 msgid "Timetable"
-msgstr ""
+msgstr "Ratiba"
 
 msgid "Today metrics"
 msgstr ""
@@ -25168,7 +25168,7 @@ msgid "Useful for signed invoices or external receipts."
 msgstr ""
 
 msgid "Users"
-msgstr ""
+msgstr "Watumiaji"
 
 msgid "Users by Role"
 msgstr ""
@@ -25341,7 +25341,7 @@ msgid "Weekly schedule"
 msgstr ""
 
 msgid "Welcome"
-msgstr ""
+msgstr "Karibu"
 
 msgid "Welcome back, {{ name }}."
 msgstr ""
@@ -25927,7 +25927,7 @@ msgid "All-campuses rollup"
 msgstr ""
 
 msgid "Announcement"
-msgstr ""
+msgstr "Tangazo"
 
 msgid ""
 "Any platform, any size. Known competitors auto-detect; unknown vendors and "
@@ -30802,7 +30802,7 @@ msgid "Date of Birth"
 msgstr ""
 
 msgid "Gender"
-msgstr ""
+msgstr "Jinsia"
 
 msgid "Login credentials"
 msgstr ""
@@ -31454,7 +31454,7 @@ msgid ""
 msgstr ""
 
 msgid "City"
-msgstr ""
+msgstr "Jiji"
 
 msgid ""
 "Clear upgrade path from Starter → Growth → Enterprise without re-platforming"
@@ -37403,7 +37403,7 @@ msgid "Confirm open"
 msgstr ""
 
 msgid "Confirm password"
-msgstr ""
+msgstr "Thibitisha nenosiri"
 
 msgid "Confirm password, MFA, and contact details for this quarter."
 msgstr ""
@@ -37820,7 +37820,7 @@ msgid "Email & notifications"
 msgstr ""
 
 msgid "Email address"
-msgstr ""
+msgstr "Anwani ya barua pepe"
 
 msgid "Email delivery"
 msgstr ""
@@ -38192,7 +38192,7 @@ msgid "Forecast · next 7 days"
 msgstr ""
 
 msgid "Forgot password?"
-msgstr ""
+msgstr "Umesahau nenosiri?"
 
 msgid "Four steps to your first operational win."
 msgstr ""
@@ -38354,7 +38354,7 @@ msgid "Gradebooks that morph to your framework."
 msgstr ""
 
 msgid "Grades"
-msgstr ""
+msgstr "Madaraja"
 
 msgid ""
 "Gradient signup banner above the footer. Empty submit_url disables CSRF "
@@ -38560,7 +38560,7 @@ msgid "Impersonation & proxy (recent)"
 msgstr ""
 
 msgid "Import"
-msgstr ""
+msgstr "Ingiza"
 
 msgid "Import help"
 msgstr ""
@@ -40737,7 +40737,7 @@ msgid "Regional residency readiness"
 msgstr ""
 
 msgid "Register"
-msgstr ""
+msgstr "Jisajili"
 
 msgid ""
 "Register truth + tenant Integration — verified_live only with evidence on "
@@ -40780,7 +40780,7 @@ msgid "Remark"
 msgstr ""
 
 msgid "Remove"
-msgstr ""
+msgstr "Ondoa"
 
 msgid ""
 "Remove a tenant safely: restrict access, export a portability pack, optional"
@@ -40923,7 +40923,7 @@ msgid "Restrict access (wind-down)"
 msgstr ""
 
 msgid "Result"
-msgstr ""
+msgstr "Matokeo"
 
 msgid "Revenue cohort retention chart"
 msgstr ""
@@ -41124,7 +41124,7 @@ msgid "Saudi Arabia"
 msgstr ""
 
 msgid "Save changes"
-msgstr ""
+msgstr "Hifadhi mabadiliko"
 
 msgid "Save configuration"
 msgstr ""
@@ -41363,7 +41363,7 @@ msgid ""
 msgstr ""
 
 msgid "Select"
-msgstr ""
+msgstr "Chagua"
 
 msgid "Select a school to continue."
 msgstr ""
@@ -41395,7 +41395,7 @@ msgid "Semantic {{ t }} search"
 msgstr ""
 
 msgid "Send"
-msgstr ""
+msgstr "Tuma"
 
 msgid "Send test email to {{ addr }}"
 msgstr ""
@@ -43652,7 +43652,7 @@ msgid "Begin offboarding"
 msgstr ""
 
 msgid "Confirm"
-msgstr ""
+msgstr "Thibitisha"
 
 msgid "Confirm bulk action"
 msgstr ""
@@ -44121,7 +44121,7 @@ msgid ""
 msgstr ""
 
 msgid "Assignment"
-msgstr ""
+msgstr "Kazi"
 
 msgid "Atom feed"
 msgstr ""
@@ -44250,7 +44250,7 @@ msgid "Country localization — wedge-scoped"
 msgstr ""
 
 msgid "Course"
-msgstr ""
+msgstr "Kozi"
 
 msgid "Course ID"
 msgstr ""
@@ -44597,7 +44597,7 @@ msgid "Neutral"
 msgstr ""
 
 msgid "New"
-msgstr ""
+msgstr "Mpya"
 
 msgid "Next wedge"
 msgstr ""
@@ -48270,7 +48270,7 @@ msgid ""
 msgstr ""
 
 msgid "Forgot your password?"
-msgstr ""
+msgstr "Umesahau nenosiri lako?"
 
 msgid "Hide password"
 msgstr ""

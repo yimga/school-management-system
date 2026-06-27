@@ -116,6 +116,15 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  padding: 0.65rem 0.5rem 1rem;
+  scroll-padding-block: 0.5rem;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col > .tp-sidebar-inner::after {
+  content: "";
+  display: block;
+  height: 0.75rem;
+  pointer-events: none;
 }
 
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col > .rmc-nav-sidebar__toolbar {
@@ -140,16 +149,40 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar
 }
 
 /* ── 4. Main canvas — sole vertical scroll surface ── */
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-layout-wrap #main-content,
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] #main-content.portal-main-col,
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-main-col.rmc-shell-main {
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
   overscroll-behavior: contain;
-  min-height: 0;
-  height: 100%;
-  max-height: 100%;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  flex: 1 1 auto !important;
   -webkit-overflow-scrolling: touch;
   scroll-padding-top: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 42%, transparent) transparent;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] #main-content::-webkit-scrollbar,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-main-col::-webkit-scrollbar {
+  width: 10px;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] #main-content::-webkit-scrollbar-thumb,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-main-col::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-tertiary) 38%, transparent); /* off-token-allow: main-scroll-thumb */
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  min-height: 48px;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] #main-content::-webkit-scrollbar-thumb:hover,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-main-col::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--text-tertiary) 55%, transparent); /* off-token-allow: main-scroll-thumb-hover */
+  background-clip: padding-box;
 }
 
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-main-col > .page-wrap {
@@ -177,6 +210,40 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-layout-
   background: var(--surface-elevated);
   border-right: 1px solid var(--hairline);
   box-shadow: none;
+}
+
+/* Sidebar v8 polish — scrollable nav with calm hierarchy */
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col .cp-sidebar-nav--tenant {
+  gap: 0.35rem;
+  padding-bottom: 0.25rem;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col .cp-sidebar__section {
+  font-size: var(--type-size-micro, 0.6875rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  padding: 0.85rem 0.65rem 0.35rem;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col .cp-sidebar__item {
+  border-radius: var(--radius-lg, 10px);
+  margin-inline: 0.15rem;
+  transition: background var(--motion-fast, 160ms) var(--ease-out, ease-out),
+              color var(--motion-fast, 160ms) var(--ease-out, ease-out);
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col .cp-sidebar__item--current {
+  background: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 14%, transparent);
+  box-shadow: inset 3px 0 0 var(--school-primary, var(--brand-primary));
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col .rmc-nav-sidebar__toolbar {
+  border-bottom: 1px solid var(--hairline);
+  padding-block: 0.35rem;
+  margin-bottom: 0.15rem;
+  flex-shrink: 0;
 }
 
 /* Copilot rail fills viewport below header (manager /admin/ parity) */

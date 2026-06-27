@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Boot Django + seed demo-school/report-card, then run tenant moat Playwright suite.
- * Windows-safe alternative to Playwright webServer (migrate+seed can exceed 2 min).
+ * Boot Django on tenant subdomain host, then run Lighthouse CI (lighthouserc-tenant.cjs).
+ * Usage: npm run lighthouse:tenant
+ * Strict A+: LHCI_TENANT_STRICT=1 npm run lighthouse:tenant
  */
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -10,11 +11,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const port = (process.env.VISUAL_QA_TENANT_PHASE_PORT || process.env.VISUAL_QA_PORT || '8016').trim();
+if (process.env.npm_lifecycle_event === 'lighthouse:tenant:strict') {
+  process.env.LHCI_TENANT_STRICT = '1';
+}
+const port = (process.env.VISUAL_QA_TENANT_PHASE_PORT || process.env.VISUAL_QA_PORT || '8124').trim();
 const slug = (process.env.TENANT_SLUG || 'demo-school').trim();
-const password = process.env.E2E_TENANT_PASSWORD || 'Test1234';
-const loginUrl = `http://${slug}.runmycampus.com:${port}/authentication/login/`;
-const probeLoginUrl = `http://127.0.0.1:${port}/authentication/login/`;
+const loginUrl = `http://127.0.0.1:${port}/authentication/login/`;
 
 function resolvePython() {
   if (process.env.VISUAL_QA_PYTHON) {
@@ -76,8 +78,8 @@ function probeTenantUrl(url) {
 }
 
 function probe(url) {
-  if (url.includes('.runmycampus.com')) {
-    return probeTenantUrl(url);
+  if (url.includes('/authentication/login')) {
+    return probeTenantUrl(`http://${slug}.runmycampus.com:${port}/authentication/login/`);
   }
   return new Promise((resolve) => {
     const req = http.get(url, (res) => {
@@ -92,18 +94,15 @@ function probe(url) {
   });
 }
 
-async function waitForServer(maxSeconds = 240) {
+async function waitForServer(maxSeconds = 180) {
   for (let i = 0; i < maxSeconds; i += 1) {
-    const code = await probeTenantUrl(
-      `http://${slug}.runmycampus.com:${port}/authentication/login/`,
-    );
-    // 301/302 to subdomain canonical host breaks Playwright on 127.0.0.1 — require 200.
+    const code = await probe(loginUrl);
     if (code === 200) {
       return;
     }
     await new Promise((r) => setTimeout(r, 1000));
   }
-  console.error(`run_tenant_moat_e2e: server not ready at ${loginUrl}`);
+  console.error(`run_lighthouse_tenant: server not ready at ${loginUrl}`);
   process.exit(1);
 }
 
@@ -114,7 +113,6 @@ const baseEnv = {
   SECURE_SSL_REDIRECT: '0',
   DEBUG: '1',
   LOGIN_POW_ENABLED: '0',
-  RMC_E2E_BYPASS_MFA: '1',
   CSRF_COOKIE_SECURE: '0',
   SESSION_COOKIE_SECURE: '0',
   ALLOWED_HOSTS: '127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com',
@@ -122,38 +120,21 @@ const baseEnv = {
   VISUAL_QA_PORT: port,
   VISUAL_QA_TENANT_PHASE_PORT: port,
   TENANT_SLUG: slug,
-  E2E_TENANT_PASSWORD: password,
-  RMC_E2E_SEED_REPORT_CARD: '1',
 };
 
-console.log('=== tenant moat e2e: migrate ===');
+console.log('=== lighthouse tenant: migrate ===');
 runSync(['manage.py', 'migrate', '--noinput'], baseEnv);
 
-console.log('=== tenant moat e2e: ensure demo-school ===');
+console.log('=== lighthouse tenant: ensure demo-school ===');
 runSync(['manage.py', 'ensure_developer_sandbox_tenant', `--school-slug=${slug}`], baseEnv);
 
-console.log('=== tenant moat e2e: seed report-card fixture ===');
-runSync(
-  [
-    'manage.py',
-    'seed_report_card_e2e',
-    `--school-slug=${slug}`,
-    `--password=${password}`,
-  ],
-  baseEnv,
-);
-
-console.log(`=== tenant moat e2e: runserver 127.0.0.1:${port} ===`);
-const server = spawn(
-  py,
-  ['manage.py', 'runserver', `127.0.0.1:${port}`, '--noreload'],
-  {
-    cwd: repo,
-    env: { ...process.env, ...baseEnv, PYTHONUNBUFFERED: '1' },
-    stdio: 'inherit',
-    shell: false,
-  },
-);
+console.log(`=== lighthouse tenant: runserver 127.0.0.1:${port} ===`);
+const server = spawn(py, ['manage.py', 'runserver', `127.0.0.1:${port}`, '--noreload'], {
+  cwd: repo,
+  env: { ...process.env, ...baseEnv, PYTHONUNBUFFERED: '1' },
+  stdio: 'inherit',
+  shell: false,
+});
 
 const killServer = () => {
   if (server.pid) {
@@ -168,47 +149,22 @@ process.on('exit', killServer);
 
 await waitForServer();
 
-console.log('=== tenant moat e2e: Playwright (offline multiday serverless) ===');
-const pwCli = path.join(repo, 'node_modules', '@playwright', 'test', 'cli.js');
-const multiday = spawnSync(
-  process.execPath,
-  [pwCli, 'test', 'tests/e2e/offline-multiday-indexeddb.spec.js', '--project=offline-indexeddb-chromium'],
-  { cwd: repo, env: { ...process.env, ...baseEnv, CI: '1' }, stdio: 'inherit', shell: false },
-);
-if (multiday.status !== 0) {
-  killServer();
-  process.exit(multiday.status ?? 1);
-}
+const lhciEnv = {
+  ...process.env,
+  ...baseEnv,
+  LHCI_TENANT_URL: loginUrl,
+  LHCI_TENANT_HOST: `${slug}.runmycampus.com`,
+  LHCI_TENANT_AUTO_EXTRAS: process.env.LHCI_TENANT_AUTO_EXTRAS ?? "0",
+};
 
-console.log('=== tenant moat e2e: Playwright (auth + report-card + axe) ===');
-const pw = spawnSync(
-  process.execPath,
-  [
-    pwCli,
-    'test',
-    'tests/e2e/offline-authenticated-sync.spec.js',
-    'tests/e2e/report-card-hash-parent.spec.js',
-    'tests/e2e/tenant-shell-a11y.spec.js',
-    '--project=offline-sync-chromium',
-  ],
-  {
-    cwd: repo,
-    env: {
-      ...process.env,
-      ...baseEnv,
-      CI: '1',
-      RMC_E2E_EXTERNAL_SERVER: '1',
-      TENANT_E2E_SUBDOMAIN: '1',
-      PLAYWRIGHT_TENANT_BASE_URL: `http://${slug}.runmycampus.com:${port}`,
-    },
-    stdio: 'inherit',
-    shell: false,
-  },
+console.log(`=== lighthouse tenant: LHCI (${loginUrl}) ===`);
+const lhci = spawnSync(
+  process.platform === 'win32' ? 'npx.cmd' : 'npx',
+  ['@lhci/cli@0.13.x', 'autorun', '--config=lighthouserc-tenant.cjs'],
+  { cwd: repo, env: lhciEnv, stdio: 'inherit', shell: true },
 );
 
 killServer();
-
-if (pw.status === 0) {
-  console.log('TENANT_MOAT_E2E_PASS');
+if (lhci.status !== 0) {
+  process.exit(lhci.status ?? 1);
 }
-process.exit(pw.status ?? 1);

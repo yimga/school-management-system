@@ -271,10 +271,14 @@ class ApplicantCreateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         from apps.metadata.dynamic_forms import attach_dynamic_fields_for_model
 
+        # Applicant EAV fields are keyed on entity_type "people.applicant".
+        # Passing TeacherProfile here rendered/saved TEACHER custom fields on
+        # the Applicant form (entity_type "people.teacherprofile"); use the
+        # Applicant model so admissions-defined custom fields surface instead.
         attach_dynamic_fields_for_model(
             self,
             school=self._school,
-            model=TeacherProfile,
+            model=Applicant,
             instance=self.instance,
         )
         self.fields["lead_source"].required = False

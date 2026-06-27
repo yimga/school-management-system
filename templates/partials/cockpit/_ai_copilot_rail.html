@@ -39,6 +39,15 @@
 {% else %}
   {% url 'feedback:help_center' as rmc_copilot_page_help_url %}
 {% endif %}
+{% url 'api:ai-support-assistant' as support_assistant_url %}
+{% url 'api:ai-support-assistant-stream' as support_assistant_stream_url %}
+{% url 'api:ai-support-session-rating' as support_session_rating_url %}
+{% url 'siteconfig:ai_center' as rmc_copilot_ai_center_url %}
+{% if request.public_host_kind == 'manager' %}
+  {% url 'manager_support_request' as rmc_copilot_escalate_url %}
+{% else %}
+  {% url 'portal:support_request' as rmc_copilot_escalate_url %}
+{% endif %}
 <aside class="rmc-app-shell__copilot"
        aria-label="{% trans 'AI copilot' %}"
        data-rmc-copilot-rail
@@ -76,16 +85,16 @@
               data-rmc-copilot-tab="context"
               title="{% trans 'Context — about this page' %}"
               aria-label="{% trans 'Context — about this page' %}">◈</button>
+      <button class="lx-copilot__rail-icon lx-copilot__rail-icon--help" type="button"
+              data-rmc-copilot-tab="help"
+              title="{% trans 'Ask with AI help for this page' %}"
+              aria-label="{% trans 'Ask with AI help for this page' %}">?</button>
       {% if request.public_host_kind == 'manager' %}
       <button class="lx-copilot__rail-icon" type="button"
               data-rmc-operator-notebook-toggle
               title="{% trans 'Toggle operator notebook' %}"
               aria-label="{% trans 'Toggle operator notebook' %}">✎</button>
       {% endif %}
-      <a class="lx-copilot__rail-icon lx-copilot__rail-icon--help" href="{{ rmc_copilot_page_help_url }}"
-              data-rmc-page-help
-              title="{% trans 'Need help on this page?' %}"
-              aria-label="{% trans 'Need help on this page?' %}">?</a>
       <div class="lx-copilot__kbd" aria-hidden="true">⌘ K</div>
     </div>
 
@@ -126,6 +135,7 @@
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="shortcuts" role="tab">{% trans 'Shortcuts' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="today" role="tab">{% trans 'Today' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="context" role="tab">{% trans 'Context' %}</button>
+        <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="help" role="tab">{% trans 'Help' %}</button>
       </nav>
 
       {% comment %} v4.00.18 copilot quick-stats strip (SSR + bridge hydration). {% endcomment %}
@@ -256,6 +266,52 @@
       {% comment %} Threads pane — recent threads (server-rendered or "no threads yet" empty state). {% endcomment %}
       <div class="lx-copilot__pane" data-rmc-copilot-pane="threads">
         <p class="lx-copilot__threads-empty">{% trans 'Recent threads will appear here once you have chatted with the copilot.' %}</p>
+      </div>
+
+      {% comment %} Ask with AI lives inside the existing copilot rail. This replaces
+         the legacy shell-level inline helper on rail-enabled tenants, preventing
+         duplicate AI textareas and the full-width bottom-frame takeover. {% endcomment %}
+      <div class="lx-copilot__pane lx-copilot__pane--help" data-rmc-copilot-pane="help">
+        <div class="lx-copilot__help-head">
+          <span class="lx-copilot__help-eyebrow">{% trans "Ask with AI" %}</span>
+          <h2 class="lx-copilot__help-title">{% trans "Help for this page" %}</h2>
+          <p class="lx-copilot__help-copy">{% trans "Grounded in published KB articles and live route topology. Use this rail instead of a separate bottom panel." %}</p>
+        </div>
+        <section class="lx-copilot__help-panel"
+                 data-rmc-kb-ai-panel
+                 data-rmc-support-error-boundary
+                 {% if support_assistant_url %}data-support-assistant-url="{{ support_assistant_url }}"{% endif %}
+                 {% if support_assistant_stream_url %}data-support-assistant-stream-url="{{ support_assistant_stream_url }}"{% endif %}
+                 {% if rmc_copilot_escalate_url %}data-escalate-url="{{ rmc_copilot_escalate_url }}"{% endif %}
+                 {% if support_session_rating_url %}data-support-session-rating-url="{{ support_session_rating_url }}"{% endif %}>
+          <label class="visually-hidden" for="rmc-copilot-help-prompt">{% trans "Question" %}</label>
+          <textarea id="rmc-copilot-help-prompt"
+                    data-rmc-kb-ai-prompt
+                    maxlength="8000"
+                    placeholder="{% trans 'e.g. How do I rotate encryption keys on the control plane?' %}"></textarea>
+          <div class="lx-copilot__help-actions">
+            {% if rmc_copilot_ai_center_url %}
+            <a class="lx-copilot__help-link" href="{{ rmc_copilot_ai_center_url }}?focus=help">{% trans "Open AI Center" %}</a>
+            {% endif %}
+            <button type="button" class="btn btn-primary btn-sm" data-rmc-kb-ai-ask>{% trans "Ask" %}</button>
+            <a class="btn btn-outline-danger btn-sm d-none" href="{{ rmc_copilot_escalate_url }}" data-rmc-kb-ai-escalate>{% trans "Escalate" %}</a>
+          </div>
+          <div class="lx-copilot__help-answer d-none" data-rmc-kb-ai-answer role="status" aria-live="polite"></div>
+          <div class="lx-copilot__help-csat d-none" data-rmc-kb-ai-csat role="group" aria-label="{% trans 'Rate this answer' %}">
+            <span class="small text-secondary">{% trans "Helpful?" %}</span>
+            <button type="button" class="btn btn-sm btn-outline-success" data-rmc-kb-ai-csat-up>{% trans "Yes" %}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-kb-ai-csat-down>{% trans "No" %}</button>
+          </div>
+          <div class="lx-copilot__help-banner lx-copilot__help-banner--warning d-none" data-rmc-kb-ai-fallback role="alert">
+            {% trans "AI is temporarily unavailable. Use the Help Center or open a support request." %}
+          </div>
+          <div class="lx-copilot__help-banner d-none" data-rmc-kb-ai-offline role="status">
+            <i class="bi bi-wifi-off me-1"></i>{% trans "Offline help mode - search KB articles and runbooks; AI answers resume when connectivity returns." %}
+          </div>
+          {% if rmc_copilot_page_help_url %}
+          <a class="lx-copilot__help-link" href="{{ rmc_copilot_page_help_url }}" data-rmc-page-help>{% trans "Browse Help Center for this page" %}</a>
+          {% endif %}
+        </section>
       </div>
 
       {% comment %} v4.00.18 copilot shortcuts pane (role-aware pinned destinations). {% endcomment %}
@@ -446,4 +502,5 @@
         data-send-stream-url="{{ copilot_rail_send_stream_url }}"
         data-current-mode="{% if request.public_host_kind == 'manager' %}operator{% else %}experience{% endif %}"></span>
 </aside>
+<script src="{% static 'js/rmc-kb-ai-assistant.js' %}" defer></script>
 {% endif %}

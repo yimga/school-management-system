@@ -21,6 +21,7 @@
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+{% include "components/next_action_strip.html" %}
 
 {% url 'accounts:password_reset' as password_reset_url %}
 {% url 'portal:link_child' as portal_claim_url %}
@@ -45,7 +46,7 @@
 
   <div class="rmc-auth-immersive__bg" aria-hidden="true">
     {% if TENANT_WALLPAPER_URL %}
-      <img class="rmc-auth-immersive__wallpaper" src="{{ TENANT_WALLPAPER_URL }}" alt="" width="1600" height="900" decoding="async" loading="eager">
+      <img class="rmc-auth-immersive__wallpaper" src="{{ TENANT_WALLPAPER_URL }}" alt="" width="1600" height="900" decoding="async" loading="lazy" fetchpriority="low">
     {% endif %}
     <div class="rmc-auth-immersive__mesh"></div>
   </div>

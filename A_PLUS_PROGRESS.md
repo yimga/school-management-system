@@ -1,7 +1,7 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-06-26 (wave 10 pushed + moat E2E subdomain fix)  
-**Commit on main:** `2eaf72f2e` (wave 10) · follow-up moat fix pending push  
+**Last refreshed:** 2026-06-26 (auth landing lite + lighthouse tenant runner)  
+**Commit on main:** pending local batch (auth perf + `npm run lighthouse:tenant`)  
 **Loop:** PROMPT A continuing → PROMPT B **NO-GO**
 
 ---
@@ -15,7 +15,8 @@
 | Local `pre_deploy_gate` (SKIP_VISUAL_QA=1) | dev | **PASS** | exit 0 |
 | Local Postgres test bundle (SQLite) | dev | **46/47 OK** | hash ledger test fixed in follow-up |
 | Local `test:e2e:offline-multiday` | dev | **1/1 PASS** | serverless fixture |
-| Local `test:e2e:tenant-moat:armed` | dev | **PARTIAL** | multiday OK; auth suite failed on path-tenant 301 → fixed subdomain + host rules |
+| Local `test:e2e:tenant-moat:armed` | dev | **IN PROGRESS** | armed runner (subdomain + HTTP 200 probe); prior partial run fixed |
+| Local `npm run lighthouse:tenant` | dev | **WIRED** | auth landing lite head; subdomain default URL |
 
 **Action:** Increase GitHub Actions budget or use self-hosted runner to confirm CI green.
 
@@ -29,7 +30,7 @@
 | 2 | Define undefined CSS classes | **DONE** | `scan_undefined_css_classes --compare` → **PASS (0 new)** |
 | 3 | Offline-multiday Playwright IndexedDB | **DONE** | `npm run test:e2e:offline-multiday` → **1/1** (serverless fixture on `:8777`) |
 | 4 | Green `django-tests-postgres.yml` + `tenant-moat-e2e.yml` on GitHub | **PENDING** | Workflows wired; needs GitHub Actions run |
-| 5 | Lighthouse ≥98 → `LHCI_TENANT_STRICT=1` | **PENDING** | `lighthouserc-tenant.cjs` strict path ready; perf tuning needed |
+| 5 | Lighthouse ≥98 → `LHCI_TENANT_STRICT=1` | **IN PROGRESS** | `RMC_AUTH_LANDING_LITE` strips dashboard chrome on login; `npm run lighthouse:tenant` + `:strict` |
 | 6 | PSP sandbox charges (CI secrets) | **WIRED** | `.github/workflows/psp-sandbox-ci.yml` + `test_psp_sandbox_live.py` (skips without secrets) |
 | 7 | Re-run PROMPT B → 28/28 ≥98 | **NEXT** | After #4–5 on CI |
 

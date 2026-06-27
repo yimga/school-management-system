@@ -37,6 +37,8 @@
     "check:images": "python scripts/check_image_dimensions.py",
     "perf": "npm run check:images -- && echo 'Lighthouse: run in Chrome DevTools (Lighthouse tab) or npm run lighthouse. See docs/PERFORMANCE_BUDGET.md'",
     "lighthouse": "npx @lhci/cli@0.13.x autorun --config=lighthouserc.js",
+    "lighthouse:tenant": "node scripts/run_lighthouse_tenant.mjs",
+    "lighthouse:tenant:strict": "node scripts/run_lighthouse_tenant.mjs",
     "vendor:dexie": "node -e \"require('fs').mkdirSync('static/js/vendor',{recursive:true})\" && npx copyfiles -f node_modules/dexie/dist/dexie.min.js static/js/vendor/",
     "vendor:tesseract": "python scripts/vendor_tesseract_ocr.py",
     "smoke:tesseract-browser": "node scripts/smoke_tesseract_browser_ocr.mjs",

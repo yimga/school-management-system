@@ -322,3 +322,32 @@ class CockpitManager200xBleedPreventionTests(SimpleTestCase):
                     f"{entry['template']} bled into portal host, got: {stripped[:80]!r}",
                 )
                 self.assertNotIn(entry["marker"], rendered)
+
+
+class GlobeDeckRailRightTrustNutritionTests(SimpleTestCase):
+    """Trust rows use `label` only — never resolve missing `title` via |default:."""
+
+    def test_trust_rows_with_label_only_render_without_title_key(self):
+        cockpit = {
+            "live_world_map": {"enabled": True, "fleet_snapshot": {}, "schools_live": "12"},
+            "trust_nutrition": {
+                "enabled": True,
+                "rows": [
+                    {
+                        "label": "Audit chain integrity",
+                        "value": "verified",
+                        "status": "ok",
+                    }
+                ],
+            },
+        }
+        rendered = render_to_string(
+            "partials/cockpit/_globe_deck_rail_right.html",
+            context={
+                "cockpit": cockpit,
+                "csrf_token": "test-token",
+                "fleet_summary_label": "Fleet summary",
+            },
+        )
+        self.assertIn("Audit chain integrity", rendered)
+        self.assertIn("verified", rendered)

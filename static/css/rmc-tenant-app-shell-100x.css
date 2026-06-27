@@ -117,7 +117,8 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
     align-self: flex-start;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-x: clip;
+    overflow-y: visible;
     z-index: 1020;
     border-right: 1px solid var(--hairline);
     background:

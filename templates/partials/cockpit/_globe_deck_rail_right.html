@@ -60,7 +60,7 @@
     <div class="rmc-globe-deck-v2__trust-feed" data-rmc-scroll-policy="paginate">
       {% for row in cockpit.trust_nutrition.rows|slice:":5" %}
       <div class="rmc-globe-deck-v2__trust-row">
-        <span>{{ row.label|default:row.title }}</span>
+        <span>{% firstof row.label row.title %}</span>
         <span class="rmc-globe-deck-v2__trust-pill rmc-globe-deck-v2__trust-pill--{{ row.status|default:'neutral' }}">{{ row.value|default:"—" }}</span>
       </div>
       {% endfor %}

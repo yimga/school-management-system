@@ -34,6 +34,7 @@ on:
       - ".github/workflows/tenant-moat-e2e.yml"
       - "apps/portal/tests/test_offline_authenticated_api_replay.py"
       - "apps/platform_runtime/**"
+      - "apps/sync_engine/**"
 
       - "scripts/run_postgres_booking_proof.sh"
 
@@ -191,7 +192,9 @@ jobs:
             apps.platform_runtime.tests.test_frontier_moat_runtime_proof \
             apps.platform_runtime.tests.test_offline_multiday_replay_simulation \
             apps.portal.tests.test_offline_authenticated_api_replay \
+            apps.sync_engine.tests.test_crdt_live_rail_convergence \
             apps.lifecycle.tests.test_tenant_dr_snapshot \
+            apps.lifecycle.tests.test_tenant_dr_snapshot_restore_roundtrip \
 
             --settings=config.settings \
 

@@ -306,7 +306,7 @@
   transform: translate(-50%, -50%);
   font-size: 0.6rem;
   letter-spacing: 0.15em;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: fixed-size comparison slider grip */
   padding: 0.35rem 0.5rem;
   border-radius: 999px;
   background: rgba(3, 3, 8, 0.85);

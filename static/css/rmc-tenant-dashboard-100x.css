@@ -175,11 +175,16 @@
 .rmc-dh-attention--good .rmc-dh-attn-row { border-top-color: color-mix(in oklab, var(--rmc-dh-accent) 22%, transparent); }
 .rmc-dh-attn-row:first-of-type { border-top: none; }
 .rmc-dh-attn-row__go {
+  flex: 0 1 auto;
+  max-width: 45%;
+  min-width: 0;
   margin-left: auto;
   font-size: var(--text-xs, 0.75rem);
   font-weight: 700;
   color: var(--rmc-dh-warn);
   text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .rmc-dh-attention--good .rmc-dh-attn-row__go { color: var(--rmc-dh-accent); }
@@ -258,7 +263,7 @@
 .rmc-dh-panel--brand-tint { background: linear-gradient(135deg, color-mix(in oklab, var(--rmc-dh-brand) 12%, transparent), var(--surface-canvas)); }
 .rmc-dh-mt-0 { margin: 0 0 0.5rem; }
 .rmc-dh-panel__head { display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.75rem; }
-.rmc-dh-panel__head h3 { margin: 0; font-size: var(--text-base, 0.9375rem); font-weight: 700; color: var(--text-primary); }
+.rmc-dh-panel__head h3 { margin: 0; min-width: 0; font-size: var(--text-base, 0.9375rem); font-weight: 700; color: var(--text-primary); }
 .rmc-dh-panel__icon {
   flex: none;
   width: 28px;
@@ -271,11 +276,16 @@
   background: var(--surface-elevated);
 }
 .rmc-dh-panel__more {
+  flex: 0 1 auto;
+  max-width: 45%;
+  min-width: 0;
   margin-left: auto;
   font-size: var(--text-xs, 0.75rem);
   font-weight: 700;
   color: var(--rmc-dh-brand);
   text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .rmc-dh-panel__more:hover { text-decoration: underline; }
@@ -359,10 +369,10 @@
 .rmc-dh-lead__rk { flex: none; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: var(--text-xs, 0.6875rem); font-weight: 700; color: var(--text-secondary); background: var(--surface-elevated); }
 .rmc-dh-lead__rk--top { color: #241a00; /* off-token-allow: podium-contrast-ink-on-gold */ background: linear-gradient(135deg, var(--rmc-dh-warn), #fbbf24); }
 .rmc-dh-lead__av { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: var(--text-xs, 0.6875rem); font-weight: 700; color: var(--text-on-brand, #fff); background: var(--rmc-dh-brand); }
-.rmc-dh-lead__main { min-width: 0; }
+.rmc-dh-lead__main { flex: 1 1 auto; min-width: 0; }
 .rmc-dh-lead__nm { font-weight: 600; color: var(--text-primary); }
 .rmc-dh-lead__sub { color: var(--text-tertiary); font-size: var(--text-xs, 0.71875rem); }
-.rmc-dh-lead__rt { margin-left: auto; font-weight: 700; white-space: nowrap; color: var(--text-secondary); }
+.rmc-dh-lead__rt { flex: 0 1 auto; max-width: 40%; min-width: 0; margin-left: auto; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); }
 .rmc-dh-lead__rt--up { color: var(--rmc-dh-accent); }
 .rmc-dh-lead__rt--down { color: var(--rmc-dh-danger); }
 
@@ -471,7 +481,7 @@
 .rmc-dh-timeline li { display: flex; gap: 0.6875rem; padding: 0.5rem 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-secondary); }
 .rmc-dh-timeline__t { flex: none; width: 7px; height: 7px; margin-top: 0.375rem; border-radius: 50%; background: var(--rmc-dh-brand-2); }
 .rmc-dh-timeline__t--done { background: var(--rmc-dh-accent); }
-.rmc-dh-timeline__when { margin-left: auto; font-size: var(--text-xs, 0.6875rem); color: var(--text-tertiary); white-space: nowrap; }
+.rmc-dh-timeline__when { flex: 0 1 auto; max-width: 40%; min-width: 0; margin-left: auto; font-size: var(--text-xs, 0.6875rem); color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ============================ Timetable rows ============================ */
 .rmc-dh-tt {
@@ -493,7 +503,7 @@
 }
 .rmc-dh-tt__when--now { color: var(--rmc-dh-accent); font-weight: 700; }
 .rmc-dh-tt__subject { min-width: 0; flex: 1; color: var(--text-primary); font-weight: 600; }
-.rmc-dh-tt__room { margin-left: auto; font-size: var(--text-xs, 0.6875rem); color: var(--text-tertiary); white-space: nowrap; }
+.rmc-dh-tt__room { flex: 0 1 auto; max-width: 35%; min-width: 0; margin-left: auto; font-size: var(--text-xs, 0.6875rem); color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ============================ Labeled progress rows ============================ */
 .rmc-dh-progress { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5625rem; }

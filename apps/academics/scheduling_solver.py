@@ -1,7 +1,27 @@
 """
 Phase 9 (+ v2.90): OR-tools timetabling solver.
 
-Constraint set the CP-SAT model enforces (hard, fail-if-violated):
+DEPLOYMENT REALITY — READ THIS FIRST
+------------------------------------
+``ortools`` is NOT a declared dependency of this project (it is intentionally
+absent from ``requirements.txt``), so in every deployed environment
+``_ortools_available()`` returns ``False`` and the CP-SAT path
+(``_solve_with_ortools``) DOES NOT RUN. The real, wired production solver for
+``generate_timetable_with_solver`` is the Django-model CSP generator
+``apps.academics.scheduling.TimetableGenerator.generate_schedule`` — that is
+what the Celery task, the ``solve_timetable`` management command, and the v1
+REST endpoint actually execute today.
+
+The CP-SAT code below is kept as a real, ready implementation that activates
+ONLY if an operator deliberately installs ``ortools`` into their own
+environment. It is dormant-by-default, not dead theater: when ortools is
+absent ``generate_timetable_with_solver`` transparently and intentionally uses
+``TimetableGenerator``. (Note: ``apps.academics.timetable_solver`` is a
+SEPARATE in-memory backtracking solver serving the ``TimetableBuildView``
+surface; it is NOT the fallback for this module.)
+
+Constraint set the CP-SAT model enforces WHEN ortools is installed (hard,
+fail-if-violated):
   1. Each demand assigned exactly once
   2. Each (slot, room) holds at most one demand
   3. Same teacher cannot be in two slots simultaneously
@@ -9,13 +29,10 @@ Constraint set the CP-SAT model enforces (hard, fail-if-violated):
   5. Teacher cannot be assigned to a `TeacherAvailability(is_available=False)` slot
   6. Room capacity must meet classroom student count (drops infeasible rooms)
 
-Soft objective (maximised):
+Soft objective (maximised, ortools path only):
   Sum of `TeacherAvailability.preference_level` (1-10, default 5) across all
   picked (demand, slot) pairs. The solver picks among feasible solutions the
   one that respects teachers' stated slot preferences most heavily.
-
-Falls back to `TimetableGenerator` (heuristic CSP) when ortools is not
-installed.
 """
 
 from __future__ import annotations
@@ -50,8 +67,14 @@ def generate_timetable_with_solver(
     use_ortools: bool = True,
 ) -> Schedule:
     """
-    Generate a timetable. If use_ortools=True and ortools is installed, use CP-SAT solver;
-    else use TimetableGenerator (constraint satisfaction).
+    Generate a timetable.
+
+    If ``use_ortools=True`` AND ``ortools`` is actually installed, the CP-SAT
+    solver runs. In the project's default deployment ortools is NOT installed
+    (see module docstring), so this transparently uses the real production
+    solver ``TimetableGenerator`` (Django-model CSP). The fallback is the
+    intended behavior, not an error path — hence the explicit ``logger.info``
+    rather than a silent pass.
     """
     try:
         if use_ortools and _ortools_available():
@@ -59,14 +82,36 @@ def generate_timetable_with_solver(
             schedule = _solve_with_ortools(academic_year, term, created_by)
             if schedule is not None:
                 return schedule
+        elif use_ortools:
+            logger.info(
+                "scheduling_solver ortools requested but not installed — "
+                "using TimetableGenerator (CSP). Install ortools to enable CP-SAT."
+            )
     except ImportError:
-        pass
+        # ortools disappeared between the find_spec probe and import — same
+        # honest outcome: fall back to the wired CSP generator.
+        logger.info(
+            "scheduling_solver ortools import failed at solve time — "
+            "using TimetableGenerator (CSP)."
+        )
     gen = TimetableGenerator(academic_year=academic_year, term=term)
     return gen.generate_schedule(created_by=created_by)
 
 
 def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
-    """Use OR-Tools CP-SAT to assign classes to (room, time_slot). Returns Schedule or None."""
+    """Use OR-Tools CP-SAT to assign classes to (room, time_slot). Returns Schedule or None.
+
+    Only callable when ortools is installed. ``generate_timetable_with_solver``
+    gates this behind ``_ortools_available()``; calling it directly without
+    ortools present raises ``ImportError`` explicitly (no silent no-op) so the
+    dormant path can never masquerade as having run.
+    """
+    if not _ortools_available():
+        raise ImportError(
+            "ortools is not installed; _solve_with_ortools cannot run. "
+            "Use generate_timetable_with_solver(), which falls back to "
+            "TimetableGenerator (the wired CSP solver), or install ortools."
+        )
     from apps.academics.models import SubjectAssignment
     from apps.evals.models import TeacherAssignment
     from .scheduling import (

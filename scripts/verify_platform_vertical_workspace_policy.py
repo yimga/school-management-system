@@ -69,6 +69,11 @@ def main() -> int:
         findings.append("portal_base.html: missing portal_landing_activity_ticker block")
     if "tenant_role_home_landing" not in portal:
         findings.append("portal_base.html: legacy role-home Tier-2 must use tenant_role_home_landing")
+    if 'data-rmc-tp-mission-surface="1"' not in portal:
+        findings.append("portal_base.html: mission strip must render in tp-mission-surface (dashboard body)")
+    header_chunk = portal.split("tp-primary-nav-bandrow", 1)[1].split("portal_shell_header_ticker_tenant", 1)[0]
+    if "tp_mission_strip.html" in header_chunk:
+        findings.append("portal_base.html: tp_mission_strip must not live in header chrome")
 
     inline_partial = _read("templates/partials/cockpit/_activity_ticker_inline.html")
     if "tenant_activity_ticker" not in inline_partial:

@@ -518,6 +518,14 @@
 
   document.querySelectorAll("[data-rmc-kb-ai-panel]").forEach(function (panel) {
 
+    if (panel.getAttribute("data-rmc-kb-ai-bound") === "1") {
+
+      return;
+
+    }
+
+    panel.setAttribute("data-rmc-kb-ai-bound", "1");
+
     var cfg0 = readConfig(panel);
 
     var upBtn = panel.querySelector("[data-rmc-kb-ai-csat-up]");
@@ -554,7 +562,7 @@
 
     var askBtn = panel.querySelector("[data-rmc-kb-ai-ask]");
 
-    var input = panel.querySelector("#rmc-kb-ai-prompt");
+    var input = panel.querySelector("[data-rmc-kb-ai-prompt], #rmc-kb-ai-prompt");
 
     var answerEl = panel.querySelector("[data-rmc-kb-ai-answer]");
 

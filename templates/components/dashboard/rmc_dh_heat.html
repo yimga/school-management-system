@@ -5,7 +5,7 @@
   (WCAG 1.4.1): it drives a native hover tooltip and is folded into the wrapper
   aria-label for screen readers. dh_aria (opt).
 {% endcomment %}
-<div class="rmc-dh-heat" role="img" aria-label="{{ dh_aria|default:'attendance' }}{% if dh_cells %}: {% for cell in dh_cells %}{{ cell.title|default:cell.label }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}">
+<div class="rmc-dh-heat" role="img" aria-label="{{ dh_aria|default:'attendance' }}{% if dh_cells %}: {% for cell in dh_cells %}{% firstof cell.title cell.label %}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}">
   {% for cell in dh_cells %}
   <div class="rmc-dh-heat__col">
     <div class="rmc-dh-heat__cell{% if cell.level %} rmc-dh-heat__cell--{{ cell.level }}{% endif %}"{% if cell.title %} title="{{ cell.title }}"{% endif %}></div>

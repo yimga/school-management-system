@@ -2,7 +2,8 @@
 {% comment %}
 Zero-friction mission strip — ≤3 clicks to the next milestone.
 TENANT SCHOOL SURFACE ONLY (never manager /super/ or operator control plane).
-Shown on tp_v3 tenant shell when tenant_experience_command is enabled.
+Rendered inside `.tp-mission-surface` on role-home dashboard landings only
+(portal_base `tenant_dashboard_mission_surface` block), not header chrome.
 {% endcomment %}
 {% if tenant_experience_command.enabled and tenant_experience_command.primary_action.url %}
 <section class="tp-mission" data-rmc-tp-mission="1" aria-label="{% trans 'Next best action' %}" style="--tp-mission-pct: {{ tenant_experience_command.score|default:0 }}%;">

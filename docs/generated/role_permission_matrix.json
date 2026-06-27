@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-26T18:41:06.684503+00:00",
+  "generated_at": "2026-06-26T22:02:39.946596+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
   "row_count": 1634,
   "views_indexed": 2670,
@@ -4693,7 +4693,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/analytics/urls.py",
-      "view_file": "apps/analytics/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -15618,7 +15618,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/finance/urls.py",
-      "view_file": "apps/analytics/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -20046,7 +20046,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/payroll/urls.py",
-      "view_file": "apps/analytics/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"

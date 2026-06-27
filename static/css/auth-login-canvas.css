@@ -151,7 +151,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 .rmc-auth-immersive__ticker-track {
   display: flex;
   gap: 3rem;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: marquee track is clipped by parent ticker */
   animation: rmc-auth-ticker 32s linear infinite;
   padding-left: 100%;
 }
@@ -293,7 +293,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 .rmc-auth-immersive__hero-marquee-track {
   display: flex;
   gap: 2.5rem;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: marquee track is clipped by parent marquee */
   padding: clamp(8px, 1.5vh, 12px) 0;
   animation: rmc-auth-marquee var(--rmc-auth-marquee-seconds, 32s) linear infinite;
 }

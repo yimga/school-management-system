@@ -94,6 +94,7 @@
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
     {% comment %} v4.02.45: ~70 blocking CSS files → one deferred min bundle (see scripts/portal_css_bundle_manifest.json). {% endcomment %}
     {% include "partials/rmc_deferred_stylesheet.html" with stylesheet="css/portal-shell-enhanced.min.css" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-copilot-help-mode.css' %}">
     {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
     {% include "partials/rmc_platform_chrome_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print">
@@ -776,10 +777,6 @@
     {% include "partials/cockpit/_activity_ticker_drawer.html" %}
     <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>
     {% endif %}
-    {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
-    {% include "partials/help_module_inline_assistant.html" %}
-    {% endif %}
-
     {% if SITE and SITE.is_preview %}
     {% comment %} preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); rules folded into design-system-unified.css {% endcomment %}
     <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-preview-labels">{

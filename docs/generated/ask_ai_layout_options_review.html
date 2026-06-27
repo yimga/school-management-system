@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ask with AI Placement Options</title>
+  <style>
+    :root {
+      --bg: #060918;
+      --chrome: #0a0f24;
+      --panel: #121a31;
+      --panel-2: #17213c;
+      --rail: #0d1428;
+      --ink: #f7f9ff;
+      --muted: #aab4ca;
+      --line: rgba(255,255,255,.12);
+      --brand: #775cff;
+      --brand-2: #13c58a;
+      --warn: #ffd02f;
+      --bad: #ff6868;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 20px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .header,
+    .option-grid,
+    .decision-row {
+      width: min(1560px, 100%);
+      margin-inline: auto;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.45rem;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: .93rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      color: var(--ink);
+      font-size: .82rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .decision-row {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+    }
+
+    .decision-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.045);
+      padding: 14px;
+    }
+
+    .decision-card h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      letter-spacing: 0;
+    }
+
+    .decision-card strong { color: var(--ink); }
+
+    .checks {
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: .88rem;
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .option {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.045);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .option-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.045);
+    }
+
+    .option-head h2 {
+      margin: 0;
+      font-size: .95rem;
+      letter-spacing: 0;
+    }
+
+    .option-head small {
+      color: var(--muted);
+      font-size: .76rem;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: .7rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    .tag.best { color: #eafff5; background: rgba(19,197,138,.15); border: 1px solid rgba(19,197,138,.42); }
+    .tag.ok { color: #eef1ff; background: rgba(119,92,255,.16); border: 1px solid rgba(119,92,255,.42); }
+    .tag.warn { color: #fff5c8; background: rgba(255,208,47,.14); border: 1px solid rgba(255,208,47,.38); }
+
+    .mock {
+      position: relative;
+      height: 460px;
+      overflow: hidden;
+      background: var(--chrome);
+    }
+
+    .topbar {
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      background: #080d20;
+    }
+
+    .school {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #fff, #c8ddff);
+      color: #0b1430;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .school strong,
+    .school span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .school span {
+      color: var(--muted);
+      font-size: .76rem;
+    }
+
+    .user {
+      min-height: 30px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #121a31;
+      font-size: .76rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .strip {
+      height: 48px;
+      margin: 8px 10px;
+      border: 1px solid rgba(255,208,47,.28);
+      border-radius: 8px;
+      background: #30231a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 12px;
+      font-size: .8rem;
+      font-weight: 800;
+    }
+
+    .strip button {
+      min-height: 30px;
+      border: 0;
+      border-radius: 999px;
+      background: #ffc400;
+      color: #241a00;
+      padding: 0 12px;
+      font-weight: 900;
+    }
+
+    .workspace {
+      height: calc(100% - 118px);
+      padding: 0 10px 10px;
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr) 40px;
+      gap: 10px;
+    }
+
+    .nav,
+    .tools,
+    .content,
+    .side-panel,
+    .small-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .nav {
+      padding: 10px;
+    }
+
+    .nav div {
+      height: 28px;
+      border-radius: 7px;
+      background: rgba(255,255,255,.06);
+      margin-bottom: 8px;
+    }
+
+    .tools {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      background: #0b1125;
+    }
+
+    .tool {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #17213c;
+      border: 1px solid var(--line);
+      color: #dbe2f7;
+      font-weight: 900;
+      font-size: .8rem;
+    }
+
+    .content {
+      min-width: 0;
+      overflow: hidden;
+      padding: 18px;
+    }
+
+    .crumb {
+      color: var(--muted);
+      font-size: .7rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .content h3 {
+      margin: 28px 0 6px;
+      font-size: 1.22rem;
+      letter-spacing: 0;
+    }
+
+    .content p {
+      font-size: .8rem;
+      max-width: 62ch;
+    }
+
+    .bar {
+      margin-top: 16px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.025);
+    }
+
+    .cards {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .cards div {
+      min-height: 92px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0c1327;
+    }
+
+    .side-layout {
+      grid-template-columns: 150px minmax(0, 1fr) 320px 40px;
+    }
+
+    .side-panel {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      background: #10182f;
+    }
+
+    .assistant-head {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      background: #17213c;
+    }
+
+    .assistant-head strong { display: block; font-size: .88rem; }
+    .assistant-head span { display: block; color: var(--muted); font-size: .72rem; margin-top: 2px; }
+
+    .assistant-body {
+      padding: 12px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+    }
+
+    .copilot-panel {
+      grid-template-rows: auto auto 1fr auto;
+    }
+
+    .copilot-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 8px;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+    }
+
+    .copilot-tabs button {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      min-height: 28px;
+      padding: 0 9px;
+      font: inherit;
+      font-size: .72rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .copilot-tabs button.active {
+      background: rgba(119,92,255,.18);
+      color: var(--ink);
+      border-color: rgba(119,92,255,.48);
+    }
+
+    .help-mode-label {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 24px;
+      padding: 3px 8px;
+      border: 1px solid rgba(19,197,138,.38);
+      border-radius: 999px;
+      background: rgba(19,197,138,.12);
+      color: #ddfff2;
+      font-size: .7rem;
+      font-weight: 900;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 92px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #271f1a;
+      color: var(--ink);
+      padding: 10px;
+      font: inherit;
+      font-size: .8rem;
+    }
+
+    .assistant-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .assistant-foot a {
+      color: #d3d9ff;
+      font-size: .74rem;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .assistant-foot button,
+    .mini-chip,
+    .inline-card button {
+      border: 0;
+      border-radius: 8px;
+      background: var(--brand);
+      color: white;
+      min-height: 32px;
+      padding: 0 12px;
+      font-weight: 900;
+    }
+
+    .side-tab {
+      position: absolute;
+      right: 54px;
+      top: 130px;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      min-height: 112px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--brand);
+      color: white;
+      display: grid;
+      place-items: center;
+      padding: 8px 5px;
+      font-size: .74rem;
+      font-weight: 900;
+    }
+
+    .split-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 270px;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .inline-card {
+      align-self: start;
+      border: 1px solid rgba(119,92,255,.42);
+      border-radius: 8px;
+      background: #10182f;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .inline-card h4 {
+      margin: 0;
+      font-size: .86rem;
+      letter-spacing: 0;
+    }
+
+    .inline-card p {
+      font-size: .76rem;
+    }
+
+    .bottom-sheet {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      height: 160px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #10182f;
+      box-shadow: 0 -18px 50px rgba(0,0,0,.35);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+
+    .bottom-sheet .assistant-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+    }
+
+    .bottom-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 10px 12px;
+    }
+
+    .bottom-row textarea {
+      min-height: 68px;
+    }
+
+    .bottom-row button {
+      align-self: start;
+      min-height: 34px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--brand);
+      color: white;
+      padding: 0 14px;
+      font-weight: 900;
+    }
+
+    .rail-only {
+      position: absolute;
+      right: 56px;
+      bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .mini-chip {
+      min-width: 52px;
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(0,0,0,.3);
+    }
+
+    .notes {
+      padding: 12px 14px 14px;
+      display: grid;
+      gap: 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    .notes p {
+      font-size: .84rem;
+    }
+
+    .score {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .score span {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      color: var(--muted);
+      font-size: .76rem;
+      line-height: 1.35;
+    }
+
+    .score strong {
+      display: block;
+      color: var(--ink);
+      font-size: .76rem;
+      margin-bottom: 2px;
+    }
+
+    @media (max-width: 1160px) {
+      .option-grid,
+      .decision-row {
+        grid-template-columns: 1fr;
+      }
+      .side-layout {
+        grid-template-columns: minmax(0, 1fr) 280px 40px;
+      }
+      .side-layout .nav {
+        display: none;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page { padding: 12px; }
+      .header { grid-template-columns: 1fr; }
+      .mock { height: 500px; }
+      .workspace,
+      .side-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .nav,
+      .tools,
+      .side-layout .tools,
+      .side-panel {
+        display: none;
+      }
+      .split-content {
+        grid-template-columns: 1fr;
+      }
+      .inline-card {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+      }
+      .cards {
+        grid-template-columns: 1fr;
+      }
+      .strip {
+        align-items: flex-start;
+        flex-direction: column;
+        height: auto;
+        padding: 10px 12px;
+      }
+      .user { display: none; }
+      .side-tab { display: none; }
+      .bottom-sheet {
+        height: 210px;
+      }
+      .bottom-row {
+        grid-template-columns: 1fr;
+      }
+      .score {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <div>
+        <h1>Ask with AI placement options</h1>
+        <p>The current issue is not the AI feature itself. The problem is placement: an always-open full-width helper is being appended near the bottom of the shell. These options keep the assistant useful without blocking the tenant workspace.</p>
+      </div>
+      <span class="pill">Approval options only</span>
+    </header>
+
+    <section class="decision-row" aria-label="Recommendation">
+      <article class="decision-card">
+        <h2>Recommended direction</h2>
+        <p><strong>Option A: integrate Ask with AI into the existing copilot sidebar.</strong> The app already has a right-side copilot rail, so the fix should reuse that surface instead of adding another AI panel. Ask with AI becomes a Help/KB mode inside the rail, while the old bottom inline helper is retired.</p>
+      </article>
+      <article class="decision-card">
+        <h2>Why not a popup dialog</h2>
+        <ul class="checks">
+          <li>Dialog boxes interrupt the task and cover the form/table the user is asking about.</li>
+          <li>The assistant is a companion tool, not a blocking confirmation step.</li>
+          <li>The existing copilot rail already owns the AI/help space.</li>
+          <li>One rail prevents duplicate AI buttons, duplicate text areas, and competing z-index layers.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="option-grid" aria-label="Placement options">
+      <article class="option">
+        <div class="option-head">
+          <div>
+            <h2>Option A: Existing copilot sidebar + Help/KB mode</h2>
+            <small>Best for admin, tenant workspace, AI Center, siteconfig, finance, evals</small>
+          </div>
+          <span class="tag best">Recommended</span>
+        </div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="school"><div class="logo">R</div><div><strong>New Test High School</strong><span>School command surface</span></div></div>
+            <div class="user">TT Testing</div>
+          </div>
+          <div class="strip"><span>Next: School Studio</span><button type="button">Do it now</button></div>
+          <div class="workspace side-layout">
+            <aside class="nav"><div></div><div></div><div></div><div></div></aside>
+            <section class="content">
+              <div class="crumb">Home / Site Settings / AI Center</div>
+              <h3>AI Center</h3>
+              <p>Every governed AI assistant in one place. The user can ask for page help without opening a second AI surface.</p>
+              <div class="bar"></div>
+              <div class="cards"><div></div><div></div></div>
+            </section>
+            <aside class="side-panel copilot-panel" aria-label="Existing copilot sidebar with Ask with AI mode">
+              <div class="assistant-head">
+                <strong>Copilot</strong>
+                <span>Live cloud AI · page-aware</span>
+              </div>
+              <nav class="copilot-tabs" aria-label="Copilot modes">
+                <button type="button">Chat</button>
+                <button type="button">Lens</button>
+                <button type="button">Actions</button>
+                <button class="active" type="button">Help</button>
+              </nav>
+              <div class="assistant-body">
+                <div class="help-mode-label">Ask with AI · siteconfig KB</div>
+                <textarea readonly>How do I rotate encryption keys on the control plane?</textarea>
+                <p>Answers use the same copilot rail and the same governed AI gateway. No extra bottom frame, no duplicate floating AI chip.</p>
+              </div>
+              <div class="assistant-foot"><a href="#">Open full AI Center</a><button type="button">Ask</button></div>
+            </aside>
+            <aside class="tools"><div class="tool">✦</div><div class="tool">◉</div><div class="tool">⚡</div><div class="tool">?</div></aside>
+          </div>
+          <div class="side-tab">Copilot</div>
+        </div>
+        <div class="notes">
+          <p>Use this as the primary implementation. The existing copilot rail gets a Help/KB tab; the standalone module helper is not rendered globally when the rail exists.</p>
+          <div class="score"><span><strong>Blocking risk</strong>Lowest</span><span><strong>Usefulness</strong>Highest</span><span><strong>Complexity</strong>Medium</span></div>
+        </div>
+      </article>
+
+      <article class="option">
+        <div class="option-head">
+          <div>
+            <h2>Option B: Inline contextual card</h2>
+            <small>Good for pages with a natural right column or empty content gutter</small>
+          </div>
+          <span class="tag ok">Simple</span>
+        </div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="school"><div class="logo">R</div><div><strong>New Test High School</strong><span>School command surface</span></div></div>
+            <div class="user">TT Testing</div>
+          </div>
+          <div class="strip"><span>Next: School Studio</span><button type="button">Do it now</button></div>
+          <div class="workspace">
+            <aside class="nav"><div></div><div></div><div></div><div></div></aside>
+            <section class="content">
+              <div class="split-content">
+                <div>
+                  <div class="crumb">Home / Finance / Dashboard</div>
+                  <h3>Finance Dashboard</h3>
+                  <p>For pages that already have dashboard cards, Ask with AI can live as a normal content card.</p>
+                  <div class="bar"></div>
+                  <div class="cards"><div></div><div></div></div>
+                </div>
+                <aside class="inline-card" aria-label="Inline Ask with AI card">
+                  <h4>Ask with AI</h4>
+                  <p>Ask about this dashboard. The card stays in the page layout and never floats over content.</p>
+                  <textarea readonly>Why is this invoice blocked?</textarea>
+                  <button type="button">Ask</button>
+                </aside>
+              </div>
+            </section>
+            <aside class="tools"><div class="tool">?</div><div class="tool">AI</div><div class="tool">K</div></aside>
+          </div>
+        </div>
+        <div class="notes">
+          <p>This is cleanest for dashboards, but weaker on dense forms and long tables because it can push content down.</p>
+          <div class="score"><span><strong>Blocking risk</strong>Low</span><span><strong>Usefulness</strong>Medium</span><span><strong>Complexity</strong>Low</span></div>
+        </div>
+      </article>
+
+      <article class="option">
+        <div class="option-head">
+          <div>
+            <h2>Option C: Mobile bottom sheet only</h2>
+            <small>Fallback behavior for narrow screens and small tablets</small>
+          </div>
+          <span class="tag ok">Responsive</span>
+        </div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="school"><div class="logo">R</div><div><strong>New Test High School</strong><span>Mobile workspace</span></div></div>
+            <div class="user">TT Testing</div>
+          </div>
+          <div class="strip"><span>Next: School Studio</span><button type="button">Do it now</button></div>
+          <div class="workspace">
+            <aside class="nav"><div></div><div></div><div></div><div></div></aside>
+            <section class="content">
+              <div class="crumb">Home / Attendance</div>
+              <h3>Attendance</h3>
+              <p>When there is not enough horizontal room, the assistant opens as a temporary sheet with a strict max height.</p>
+              <div class="bar"></div>
+              <div class="cards"><div></div><div></div></div>
+            </section>
+            <aside class="tools"><div class="tool">?</div><div class="tool">AI</div><div class="tool">K</div></aside>
+          </div>
+          <section class="bottom-sheet" aria-label="Mobile Ask with AI bottom sheet">
+            <div class="assistant-head"><strong>Ask with AI</strong><span>Close returns to full page</span></div>
+            <div class="bottom-row"><textarea readonly>How do I correct a late mark?</textarea><button type="button">Ask</button></div>
+          </section>
+        </div>
+        <div class="notes">
+          <p>This should not be the desktop default. It is good as a responsive fallback when a side panel would be too narrow.</p>
+          <div class="score"><span><strong>Blocking risk</strong>Medium</span><span><strong>Usefulness</strong>Medium</span><span><strong>Complexity</strong>Low</span></div>
+        </div>
+      </article>
+
+      <article class="option">
+        <div class="option-head">
+          <div>
+            <h2>Option D: Rail chip opens full AI Center</h2>
+            <small>Safest when the current page has no room for assistant UI</small>
+          </div>
+          <span class="tag warn">Conservative</span>
+        </div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="school"><div class="logo">R</div><div><strong>New Test High School</strong><span>Dense data-entry page</span></div></div>
+            <div class="user">TT Testing</div>
+          </div>
+          <div class="strip"><span>Next: School Studio</span><button type="button">Do it now</button></div>
+          <div class="workspace">
+            <aside class="nav"><div></div><div></div><div></div><div></div></aside>
+            <section class="content">
+              <div class="crumb">Home / People / Student Record</div>
+              <h3>Dense Form Page</h3>
+              <p>For screens where every pixel matters, keep only a rail action and deep-link to AI Center with page context.</p>
+              <div class="bar"></div>
+              <div class="cards"><div></div><div></div></div>
+            </section>
+            <aside class="tools"><div class="tool">?</div><div class="tool">AI</div><div class="tool">K</div></aside>
+          </div>
+          <div class="rail-only">
+            <button class="mini-chip" type="button">Ask AI</button>
+            <button class="mini-chip" type="button">Help</button>
+          </div>
+        </div>
+        <div class="notes">
+          <p>This has the least UI risk but requires a navigation hop, so it is less helpful than a side panel during active work.</p>
+          <div class="score"><span><strong>Blocking risk</strong>Lowest</span><span><strong>Usefulness</strong>Lower</span><span><strong>Complexity</strong>Low</span></div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

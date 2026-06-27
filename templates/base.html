@@ -42,6 +42,7 @@
     <script src="{% static 'js/rmc-reveal.js' %}"></script>
     {% comment %} v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. {% endcomment %}
     <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
+    {% if not RMC_AUTH_LANDING_LITE %}
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. {% endcomment %}
     <script src="{% static 'js/rmc-command-bar.js' %}"></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
@@ -56,6 +57,7 @@
     <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
     <script src="{% static 'js/_pages/base.js' %}"></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
+    {% endif %}
 
     <title>
       {% block title %}
@@ -77,6 +79,54 @@
     <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
+    <style id="root-base-theme-vars">
+      {% if PUBLIC_BRAND_MODE %}
+      :root {
+        --school-primary: var(--public-brand-school-primary, #4f46e5);
+        --school-accent: var(--public-brand-school-accent, #10b981);
+        --platform-navy: var(--public-brand-platform-navy, #0b0e14);
+        --platform-gold: var(--public-brand-platform-gold, var(--school-primary));
+        --school-font: Inter, system-ui, sans-serif;
+        --base-font-size: 1rem;
+      }
+      {% elif SITE %}
+      :root {
+        {% if SITE_PRIMARY_COLOR or SITE.primary_color %}--school-primary: {{ SITE_PRIMARY_COLOR|default:SITE.primary_color }};{% endif %}
+        {% if SITE_ACCENT_COLOR or SITE.accent_color %}--school-accent: {{ SITE_ACCENT_COLOR|default:SITE.accent_color }};{% endif %}
+        {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
+        {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
+        {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
+      }
+      {% endif %}
+      {% if not PUBLIC_BRAND_MODE %}
+      {% with theme=SITE_THEME %}
+      :root {
+        {% if theme.primary_color or SITE.primary_color %}--school-primary: {{ theme.primary_color|default:SITE.primary_color }};{% endif %}
+        {% if theme.accent_color or SITE.accent_color %}--school-accent: {{ theme.accent_color|default:SITE.accent_color }};{% endif %}
+        {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
+        {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
+        {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
+        --school-bg: {{ theme.background_color|default:"transparent" }};
+        --school-font: {{ theme.font_family|default:SITE.brand_font|default:"Inter, system-ui, sans-serif" }};
+        {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
+      }
+      {% endwith %}
+      {% endif %}
+      {% if TENANT_BRANDING_CSS_VARS %}
+      :root { {{ TENANT_BRANDING_CSS_VARS|safe }} }
+      {% endif %}
+      {% if SITE_USE_SECONDARY_FONT_HEADINGS and SITE_SECONDARY_FONT %}
+      h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--school-font), system-ui, sans-serif; }
+      {% endif %}
+    </style>
+    {% if SITE and SITE.custom_css %}
+    <style data-site-custom-css>
+      {{ SITE.custom_css|safe }}
+    </style>
+    {% endif %}
+    {% if RMC_AUTH_LANDING_LITE %}
+    {% include "partials/auth_landing_minimal_styles.html" %}
+    {% else %}
     {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
@@ -140,58 +190,12 @@
     <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
-
-    <style id="root-base-theme-vars">
-      {% if PUBLIC_BRAND_MODE %}
-      :root {
-        --school-primary: var(--public-brand-school-primary, #4f46e5);
-        --school-accent: var(--public-brand-school-accent, #10b981);
-        --platform-navy: var(--public-brand-platform-navy, #0b0e14);
-        --platform-gold: var(--public-brand-platform-gold, var(--school-primary));
-        --school-font: Inter, system-ui, sans-serif;
-        --base-font-size: 1rem;
-      }
-      {% elif SITE %}
-      :root {
-        {% if SITE_PRIMARY_COLOR or SITE.primary_color %}--school-primary: {{ SITE_PRIMARY_COLOR|default:SITE.primary_color }};{% endif %}
-        {% if SITE_ACCENT_COLOR or SITE.accent_color %}--school-accent: {{ SITE_ACCENT_COLOR|default:SITE.accent_color }};{% endif %}
-        {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
-        {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
-        {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
-      }
-      {% endif %}
-      {% if not PUBLIC_BRAND_MODE %}
-      {% with theme=SITE_THEME %}
-      :root {
-        {% if theme.primary_color or SITE.primary_color %}--school-primary: {{ theme.primary_color|default:SITE.primary_color }};{% endif %}
-        {% if theme.accent_color or SITE.accent_color %}--school-accent: {{ theme.accent_color|default:SITE.accent_color }};{% endif %}
-        {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
-        {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
-        {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
-        --school-bg: {{ theme.background_color|default:"transparent" }};
-        --school-font: {{ theme.font_family|default:SITE.brand_font|default:"Inter, system-ui, sans-serif" }};
-        {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
-      }
-      {% endwith %}
-      {% endif %}
-      {% if TENANT_BRANDING_CSS_VARS %}
-      :root { {{ TENANT_BRANDING_CSS_VARS|safe }} }
-      {% endif %}
-      {% if SITE_USE_SECONDARY_FONT_HEADINGS and SITE_SECONDARY_FONT %}
-      h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--school-font), system-ui, sans-serif; }
-      {% endif %}
-    </style>
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     {% comment %} Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-base-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
-    {% if SITE and SITE.custom_css %}
-    <style data-site-custom-css>
-      {{ SITE.custom_css|safe }}
-    </style>
-    {% endif %}
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     {% include "partials/rmc_platform_chrome_styles.html" %}
     {% if request.user.is_authenticated %}{% include "partials/rmc_security_posture_layout_styles.html" %}{% endif %}
@@ -209,6 +213,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
     {% comment %} v4.01.46: dual-plane must load last in head (after vertical-compact). {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+    {% endif %}
     {% block extrastyle_tail %}{% endblock %}
   </head>
 
@@ -216,8 +221,8 @@
      focus rings / hover borders / button polish already shipped in form-system.css
      (lines 55-122) actually render. Previously the CSS was loaded but no element
      opted in, so every form ran on raw Bootstrap defaults. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% if request.user.is_authenticated %} data-rmc-back-to-top-policy="always"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
-    {% include "partials/rmc_launch_splash.html" %}
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% if request.user.is_authenticated %} data-rmc-back-to-top-policy="always"{% endif %}{% if RMC_AUTH_LANDING_LITE %} data-rmc-auth-landing="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+    {% if not RMC_AUTH_LANDING_LITE %}{% include "partials/rmc_launch_splash.html" %}{% endif %}
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     {% comment %} Page-level HTMX progress bar — appears during htmx requests via body.htmx-request CSS rule. {% endcomment %}
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -306,11 +311,13 @@
 
     <main id="main-content" class="container py-4 rmc-shell-main" role="main" data-rmc-shell-main="base">
       {% include "partials/shell_chrome_django_messages_base_bootstrap.html" %}
+      {% if not RMC_AUTH_LANDING_LITE %}
       {% include "components/rmc_page_explain_strip.html" %}
       {% comment %} MFA enrollment nudge — shown under grace/optional enforcement. {% endcomment %}
       {% include "partials/rmc_mfa_nudge.html" %}
 
       {% include "partials/breadcrumbs.html" %}
+      {% endif %}
 
       <div class="page-wrap rmc-shell-content-grid portal-page-body" data-rmc-shell-content-grid="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
         {% block content %}
@@ -375,6 +382,7 @@
 
     {% include 'components/toast_notifications.html' %}
     {% if request.user.is_authenticated %}{% include "partials/shell_chrome_security_posture_banner.html" %}{% endif %}
+    {% if not RMC_AUTH_LANDING_LITE %}
     {% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section runtime. Module-load gates on .rmc-collapsable presence so it's no-op on pages without any. {% endcomment %}
     <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
     {% comment %} v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime (sparklines + heatmap tooltips + chart-palette bridge). No-op on pages without [data-rmc-sparkline-points]. {% endcomment %}
@@ -390,7 +398,9 @@
     {% include "partials/rmc_modal_engine.html" %}
     {% include "partials/rmc_detail_engine.html" %}
     {% include "partials/portal_row_detail_drawer_bundle.html" %}
+    {% endif %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    {% if not RMC_AUTH_LANDING_LITE %}
     {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
     <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>
@@ -425,6 +435,7 @@
     {% endif %}
     {% comment %} v4.01.46: terminal dual-plane pass after late body scripts. {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+    {% endif %}
     {% if request.user.is_authenticated %}{% include "components/back_to_top.html" %}{% endif %}
     </div>
 </html>

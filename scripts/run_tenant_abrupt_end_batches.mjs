@@ -9,6 +9,24 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+function resolvePython() {
+  if (process.env.VISUAL_QA_PYTHON) {
+    return process.env.VISUAL_QA_PYTHON;
+  }
+  const candidates = [
+    path.join(repo, '.venv', 'Scripts', 'python.exe'),
+    path.join(repo, '.venv', 'bin', 'python'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return process.platform === 'win32' ? 'python' : 'python3';
+}
+
+const py = resolvePython();
 const orchestrator = path.join(repo, 'scripts', 'run_tenant_abrupt_end_e2e.mjs');
 const batchSize = parseInt(process.env.TENANT_SWEEP_BATCH_SIZE || '25', 10);
 const ledgerPath = path.join(repo, 'docs/generated/portal_tenant_sweep_routes.json');
@@ -16,7 +34,7 @@ const partialPath = path.join(repo, 'var/tenant-abrupt-end-sweep.partial.json');
 const finalPath = path.join(repo, 'var/tenant-abrupt-end-sweep.json');
 const stableDb = path.join(repo, 'db_playwright_tenant_abrupt.sqlite3');
 
-spawnSync(process.execPath, ['scripts/generate_portal_tenant_sweep_routes.py', '--write'], {
+spawnSync(py, [path.join(repo, 'scripts/generate_portal_tenant_sweep_routes.py'), '--write'], {
   cwd: repo,
   env: { ...process.env, TENANT_SWEEP_MAX: '200' },
   stdio: 'inherit',
@@ -160,7 +178,7 @@ if (status === 0 && allResults.length >= routeCount) {
     merged.infraSkipped === 0
   ) {
     console.log('TENANT_ABRUPT_END_SWEEP_PASS');
-    spawnSync(process.execPath, ['scripts/generate_tenant_surface_coverage_matrix.py', '--write'], {
+    spawnSync(py, [path.join(repo, 'scripts/generate_tenant_surface_coverage_matrix.py'), '--write'], {
       cwd: repo,
       stdio: 'inherit',
       shell: false,

@@ -135,18 +135,26 @@ const DEMO_PASS = process.env.TENANT_SWEEP_PASSWORD || 'Test1234';
 
 async function probeTenantServer(baseUrl) {
   const http = await import('node:http');
+  let hostHeader = `${TENANT_SLUG}.runmycampus.com:${PORT}`;
+  try {
+    hostHeader = new URL(baseUrl.replace(/\/$/, '')).host;
+  } catch (_e) {
+    /* keep default host header */
+  }
+  const probePath = `/t/${TENANT_SLUG}/authentication/login/`;
   return new Promise((resolve) => {
-    let url;
-    try {
-      url = new URL(`${baseUrl.replace(/\/$/, '')}/authentication/login/`);
-    } catch (_e) {
-      resolve(0);
-      return;
-    }
-    const req = http.get(url, (res) => {
-      res.resume();
-      resolve(res.statusCode ?? 0);
-    });
+    const req = http.get(
+      {
+        hostname: '127.0.0.1',
+        port: PORT,
+        path: probePath,
+        headers: { Host: hostHeader },
+      },
+      (res) => {
+        res.resume();
+        resolve(res.statusCode ?? 0);
+      },
+    );
     req.on('error', () => resolve(0));
     req.setTimeout(8000, () => {
       req.destroy();

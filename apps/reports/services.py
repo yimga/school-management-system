@@ -318,16 +318,29 @@ def student_has_financial_clearance(student: StudentProfile, academic_year) -> b
     if not flags.get("block_report_download_if_outstanding_balance", True):
         return True
     from apps.finance.models import Invoice
+    from apps.finance.fractional_ledger_services import (
+        enrollment_clearance_for_invoice,
+    )
     from decimal import Decimal
+
+    school = getattr(student, "school", None)
 # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
 
     invoices = Invoice.objects.filter(
+        school=school,
         student=student,
         academic_year=academic_year,
     ).exclude(status=Invoice.Status.VOID)
     for inv in invoices:
-        if inv.computed_balance > Decimal("0.00"):
-            return False
+        if inv.computed_balance <= Decimal("0.00"):
+            continue
+        # Regular ledger still shows a balance; the fractional sub-ledger
+        # (irregular cash / mobile-money partial posts) gets the last word —
+        # an invoice that has met the tenant enrollment-clearance threshold no
+        # longer blocks results/enrollment even before Payment reconciliation.
+        if enrollment_clearance_for_invoice(inv, school=school):
+            continue
+        return False
     return True
 
 
