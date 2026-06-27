@@ -244,6 +244,37 @@
   </div>
   {% endif %}
 
+  {% if school and ledger_entries %}
+  <div class="card border-0 shadow-sm mb-3" data-rmc-billing-history="1">
+    <div class="card-header bg-light fw-semibold">{% trans "Billing history &amp; receipts" %}</div>
+    <div class="card-body small p-0">
+      <div class="table-responsive">
+        <table class="table table-family table-sm mb-0 align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+          <caption class="visually-hidden">{% trans "Billing history and receipts" %}</caption>
+          <thead class="table-light"><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Description" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col" class="text-end">{% trans "Amount" %}</th></tr></thead>
+          <tbody>
+            {% for e in ledger_entries %}
+            <tr>
+              <td class="text-nowrap">{{ e.happened_at|date:"Y-m-d" }}</td>
+              <td>{{ e.description|default:e.reference }}</td>
+              <td>
+                {% if e.entry_type == "CREDIT" %}
+                <span class="badge bg-success-subtle text-success-emphasis">{% trans "Credit" %}</span>
+                {% else %}
+                <span class="badge bg-secondary-subtle text-secondary-emphasis">{% trans "Charge" %}</span>
+                {% endif %}
+              </td>
+              <td class="text-end text-nowrap">{% if e.entry_type == "CREDIT" %}−{% endif %}{{ e.amount|format_currency }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer small text-muted">{% trans "Showing your most recent platform billing entries. Each renewal posts the subscription charge, any commercial credits, and tax as separate lines." %}</div>
+  </div>
+  {% endif %}
+
   {% if addons %}
   <div class="card border-0 shadow-sm mb-3">
     <div class="card-header bg-light fw-semibold">{% trans "Add-on feature codes" %}</div>

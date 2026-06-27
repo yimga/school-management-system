@@ -12,7 +12,12 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
-from apps.billing.models import StripePlanPrice, TenantSubscription, UsageMeter
+from apps.billing.models import (
+    PlatformLedgerEntry,
+    StripePlanPrice,
+    TenantSubscription,
+    UsageMeter,
+)
 from apps.billing.price_map import active_stripe_price_for_plan
 from apps.billing.services import ensure_subscription_for_school
 from apps.billing.stripe_checkout import (
@@ -127,6 +132,7 @@ def _billing_plan_context(request: HttpRequest) -> dict:
     billing_account = None
     platform_subscription = None
     usage_meters: list = []
+    ledger_entries: list = []
     stripe_processor_configured = False
     stripe_customer_linked = False
     has_stripe_price_for_current_plan = False
@@ -153,6 +159,13 @@ def _billing_plan_context(request: HttpRequest) -> dict:
         )
         usage_meters = list(
             UsageMeter.objects.filter(school=school).order_by("-period_start")[:24]
+        )
+        # Billing history / receipts: the posted ledger (charges, grant credits,
+        # and the tax line) so the tenant can read what they were billed and when.
+        ledger_entries = list(
+            PlatformLedgerEntry.objects.filter(school=school).order_by(
+                "-happened_at", "-id"
+            )[:24]
         )
 
     # Localized, plain-language pricing for the tenant's own country: current
@@ -183,6 +196,7 @@ def _billing_plan_context(request: HttpRequest) -> dict:
         "billing_account": billing_account,
         "platform_subscription": platform_subscription,
         "usage_meters": usage_meters,
+        "ledger_entries": ledger_entries,
         "stripe_processor_configured": stripe_processor_configured,
         "stripe_customer_linked": stripe_customer_linked,
         "has_stripe_price_for_current_plan": has_stripe_price_for_current_plan,
