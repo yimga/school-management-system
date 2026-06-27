@@ -86,12 +86,36 @@ def _normalize_status(
     return status_map.get(normalized, default)
 
 
+# Default renewal period (in days) per RECURRING billing cycle. Calendar-approximate,
+# matching the long-standing 30/365 convention. Each is operator-overridable via a
+# ``BILLING_CYCLE_DAYS_<CYCLE>`` setting (e.g. ``BILLING_CYCLE_DAYS_SCHOOL_YEAR``) so a
+# market can tune commitment length without code changes (no hardcoding). MANUAL — and
+# any unknown cycle — is non-recurring and intentionally absent: it returns None so the
+# renewal lifecycle never auto-charges it (invoiced by hand instead).
+_CYCLE_DEFAULT_DAYS = {
+    TenantSubscription.BillingCycle.MONTHLY: 30,
+    TenantSubscription.BillingCycle.SEMESTER: 182,  # magic-number-allow: billing-cycle-default-days (~half a school year)
+    TenantSubscription.BillingCycle.SCHOOL_YEAR: 365,  # magic-number-allow: billing-cycle-default-days
+    TenantSubscription.BillingCycle.ANNUAL: 365,  # magic-number-allow: billing-cycle-default-days
+    TenantSubscription.BillingCycle.MULTI_YEAR: 730,  # magic-number-allow: billing-cycle-default-days (default 2-year commitment)
+}
+
+
 def _cycle_delta(billing_cycle: str) -> timedelta | None:
-    if billing_cycle == TenantSubscription.BillingCycle.ANNUAL:
-        return timedelta(days=365)
-    if billing_cycle == TenantSubscription.BillingCycle.MONTHLY:
-        return timedelta(days=30)
-    return None
+    """Renewal period for a billing cycle, or None for non-recurring (MANUAL /
+    unknown). Day counts default to ``_CYCLE_DEFAULT_DAYS`` and are overridable per
+    cycle via a ``BILLING_CYCLE_DAYS_<CYCLE>`` setting."""
+    from django.conf import settings
+
+    default_days = _CYCLE_DEFAULT_DAYS.get(billing_cycle)
+    if default_days is None:
+        return None
+    days = getattr(settings, f"BILLING_CYCLE_DAYS_{billing_cycle}", default_days)
+    try:
+        days = int(days)
+    except (TypeError, ValueError):
+        days = default_days
+    return timedelta(days=days) if days > 0 else None
 
 
 def _subscription_amount(subscription: TenantSubscription) -> Decimal:
@@ -516,11 +540,7 @@ def convert_quote_to_contract(quote: Quote):
             (quote.metadata or {}).get("billing_cycle")
             or TenantSubscription.BillingCycle.MONTHLY
         ).upper()
-        if billing_cycle not in {
-            TenantSubscription.BillingCycle.MONTHLY,
-            TenantSubscription.BillingCycle.ANNUAL,
-            TenantSubscription.BillingCycle.MANUAL,
-        }:
+        if billing_cycle not in set(TenantSubscription.BillingCycle.values):
             billing_cycle = TenantSubscription.BillingCycle.MONTHLY
         cycle_delta = _cycle_delta(billing_cycle) or timedelta(days=30)
         period_end = period_start + cycle_delta

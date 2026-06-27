@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -324,6 +324,69 @@ class PlatformBillingServicesTests(TestCase):
         )
         self.assertEqual(subscription.base_amount, Decimal("249.00"))
 
+    def test_convert_quote_honors_school_year_cycle(self):
+        # Regression: the quote-acceptance path used to coerce any cycle outside
+        # {MONTHLY, ANNUAL, MANUAL} to MONTHLY, so a SCHOOL_YEAR quote was silently
+        # downgraded. It must now be stored verbatim and billed on a yearly period.
+        quote = Quote.objects.create(
+            school=self.school,
+            plan=self.plan,
+            status=Quote.Status.SENT,
+            amount=Decimal("1800.00"),
+            currency_code="USD",
+            metadata={"billing_cycle": TenantSubscription.BillingCycle.SCHOOL_YEAR},
+        )
+
+        success, message = convert_quote_to_subscription(quote.pk)
+
+        self.assertTrue(success, message)
+        subscription = TenantSubscription.objects.get(school=self.school)
+        self.assertEqual(
+            subscription.billing_cycle,
+            TenantSubscription.BillingCycle.SCHOOL_YEAR,
+        )
+        # Period spans ~one school year, not a month.
+        self.assertIsNotNone(subscription.current_period_start)
+        self.assertIsNotNone(subscription.current_period_end)
+        span = subscription.current_period_end - subscription.current_period_start
+        self.assertEqual(span, timedelta(days=365))
+
+    def test_run_lifecycle_renews_school_year_subscription(self):
+        # A SCHOOL_YEAR subscription past its period end must auto-renew (was
+        # unbillable when _cycle_delta returned None for it) and advance the next
+        # period by a full year.
+        self.school.billing_type = School.BillingType.REGULAR
+        self.school.save(update_fields=["billing_type", "updated_at"])
+        account, subscription, _ = ensure_subscription_for_school(self.school)
+        subscription.status = TenantSubscription.Status.ACTIVE
+        subscription.billing_cycle = TenantSubscription.BillingCycle.SCHOOL_YEAR
+        period_end = timezone.now() - timedelta(days=1)
+        subscription.current_period_start = period_end - timedelta(days=365)
+        subscription.current_period_end = period_end
+        subscription.billed_amount = Decimal("1800.00")
+        subscription.save(
+            update_fields=[
+                "status",
+                "billing_cycle",
+                "current_period_start",
+                "current_period_end",
+                "billed_amount",
+                "updated_at",
+            ]
+        )
+
+        summary = run_platform_billing_lifecycle(
+            as_of=timezone.now(), grace_days=7, suspension_days=30
+        )
+
+        subscription.refresh_from_db()
+        self.assertEqual(summary["renewed"], 1)
+        self.assertEqual(summary["charges_created"], 1)
+        # Next period end advanced by one school year from the old period end.
+        self.assertEqual(
+            subscription.current_period_end, period_end + timedelta(days=365)
+        )
+
     def test_schedule_revenue_share_payout_creates_scheduled_payout(self):
         payout = schedule_revenue_share_payout(
             payee_name="Verified Publisher",
@@ -623,3 +686,48 @@ class PlatformBillingDashboardTests(TestCase):
         self.assertContains(response, "Recent platform ledger")
         self.assertContains(response, "Processor sync ledger")
         self.assertContains(response, "Scheduled revenue-share payouts")
+
+
+class CycleDeltaTests(SimpleTestCase):
+    """Renewal-period math for every billing cycle (no DB)."""
+
+    def test_recurring_cycle_durations(self):
+        from apps.billing.services import _cycle_delta
+
+        Cycle = TenantSubscription.BillingCycle
+        self.assertEqual(_cycle_delta(Cycle.MONTHLY), timedelta(days=30))
+        self.assertEqual(_cycle_delta(Cycle.SEMESTER), timedelta(days=182))
+        self.assertEqual(_cycle_delta(Cycle.SCHOOL_YEAR), timedelta(days=365))
+        self.assertEqual(_cycle_delta(Cycle.ANNUAL), timedelta(days=365))
+        self.assertEqual(_cycle_delta(Cycle.MULTI_YEAR), timedelta(days=730))
+
+    def test_manual_and_unknown_are_non_recurring(self):
+        from apps.billing.services import _cycle_delta
+
+        self.assertIsNone(_cycle_delta(TenantSubscription.BillingCycle.MANUAL))
+        self.assertIsNone(_cycle_delta("WHATEVER"))
+        self.assertIsNone(_cycle_delta(""))
+
+    @override_settings(BILLING_CYCLE_DAYS_SCHOOL_YEAR=300)
+    def test_duration_is_operator_overridable(self):
+        from apps.billing.services import _cycle_delta
+
+        self.assertEqual(
+            _cycle_delta(TenantSubscription.BillingCycle.SCHOOL_YEAR),
+            timedelta(days=300),
+        )
+
+    @override_settings(BILLING_CYCLE_DAYS_SEMESTER=0)
+    def test_non_positive_override_is_non_recurring(self):
+        from apps.billing.services import _cycle_delta
+
+        self.assertIsNone(_cycle_delta(TenantSubscription.BillingCycle.SEMESTER))
+
+    @override_settings(BILLING_CYCLE_DAYS_MULTI_YEAR="not-a-number")
+    def test_invalid_override_falls_back_to_default(self):
+        from apps.billing.services import _cycle_delta
+
+        self.assertEqual(
+            _cycle_delta(TenantSubscription.BillingCycle.MULTI_YEAR),
+            timedelta(days=730),
+        )

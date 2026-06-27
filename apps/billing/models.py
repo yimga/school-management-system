@@ -72,7 +72,10 @@ class TenantSubscription(models.Model):
 
     class BillingCycle(models.TextChoices):
         MONTHLY = "MONTHLY", "Monthly"
+        SEMESTER = "SEMESTER", "Per semester"
+        SCHOOL_YEAR = "SCHOOL_YEAR", "Per school year"
         ANNUAL = "ANNUAL", "Annual"
+        MULTI_YEAR = "MULTI_YEAR", "Multi-year"
         MANUAL = "MANUAL", "Manual"
 
     billing_account = models.ForeignKey(
