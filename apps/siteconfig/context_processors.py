@@ -598,8 +598,43 @@ def site_settings(request):
             ).first()
             if school_pack:
                 site_theme = school_pack
-        except OPTIONAL_CONTEXT_ERRORS:
-            pass
+            else:
+                # theme_pack_id is set but resolves to nothing (the ThemePack was
+                # deleted or deactivated). Without this the tenant silently falls
+                # back to the platform default and the operator never learns their
+                # configured theme was dropped. Surface it (mirrors the sidebar
+                # fallback above) instead of masking the misconfiguration.
+                from apps.platform_runtime.structured_logging import (
+                    log_exception_with_context,
+                    request_context_for_log,
+                )
+
+                lctx = request_context_for_log(request) if request else {}
+                log_exception_with_context(
+                    "theme_pack_fallback_missing_or_inactive",
+                    tenant_id=lctx.get("tenant_id"),
+                    school_id=lctx.get("school_id"),
+                    actor_id=lctx.get("actor_id"),
+                    route=lctx.get("route"),
+                    exc_info=False,
+                    extra={"configured_theme_pack_id": str(school.theme_pack_id)},
+                )
+        except OPTIONAL_CONTEXT_ERRORS as e:
+            from apps.platform_runtime.structured_logging import (
+                log_exception_with_context,
+                request_context_for_log,
+            )
+
+            lctx = request_context_for_log(request) if request else {}
+            log_exception_with_context(
+                "theme_pack_fallback_error",
+                tenant_id=lctx.get("tenant_id"),
+                school_id=lctx.get("school_id"),
+                actor_id=lctx.get("actor_id"),
+                route=lctx.get("route"),
+                exc_info=False,
+                extra={"error": str(e)[:200]},
+            )
     weather_defaults = default_header_weather_config()
     ctx = {
         "SITE": site,
