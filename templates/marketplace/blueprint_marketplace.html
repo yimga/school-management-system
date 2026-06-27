@@ -55,9 +55,12 @@
       <span class="cp-panel-eyebrow">{% trans "Catalog" %}</span>
       <h2 class="cp-panel-title">{% trans "Blueprint packs" %}</h2>
     </div>
-    <div class="cp-list">
+    {% if packs %}
+    {% comment %} v4.05.x width-fill: pack rows -> responsive .cp-grid cards so the
+       catalog fills the full-width canvas instead of clustering left (was .cp-list). {% endcomment %}
+    <div class="cp-grid cp-grid-3">
       {% for pack in packs %}
-      <div class="cp-list-row d-flex align-items-start justify-content-between flex-wrap gap-2">
+      <div class="cp-card d-flex flex-column gap-2">
         <div>
           <strong>{{ pack.name }}</strong>
           <span class="text-muted small ms-1">({{ pack.slug }})</span>
@@ -65,12 +68,12 @@
           {% if pack.country_code %}<span class="rmc-badge rmc-badge--muted ms-1">{{ pack.country_code }}</span>{% endif %}
           {% if pack.description %}<p class="small text-muted mb-0 mt-1">{{ pack.description|truncatewords:24 }}</p>{% endif %}
         </div>
-        <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="d-flex flex-column gap-2 mt-auto">
           <form method="post" class="d-flex align-items-center gap-2">
             {% csrf_token %}
             <input type="hidden" name="action" value="preview">
             <input type="hidden" name="pack_id" value="{{ pack.pk }}">
-            <select name="school_id" class="form-select form-select-sm" style="min-width: 11rem;" required aria-label="{% trans 'School for preview' %}">
+            <select name="school_id" class="form-select form-select-sm flex-grow-1" required aria-label="{% trans 'School for preview' %}">
               <option value="">{% trans "School…" %}</option>
               {% for s in schools %}
               <option value="{{ s.pk }}">{{ s.name }}</option>
@@ -82,7 +85,7 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="apply">
             <input type="hidden" name="pack_id" value="{{ pack.pk }}">
-            <select name="school_id" class="form-select form-select-sm" style="min-width: 11rem;" required aria-label="{% trans 'School for apply' %}">
+            <select name="school_id" class="form-select form-select-sm flex-grow-1" required aria-label="{% trans 'School for apply' %}">
               <option value="">{% trans "School…" %}</option>
               {% for s in schools %}
               <option value="{{ s.pk }}">{{ s.name }}</option>
@@ -92,12 +95,13 @@
           </form>
         </div>
       </div>
-      {% empty %}
-      <div class="py-3 px-2">
-        {% include "components/dashboard_empty_state.html" with icon="bi-collection" title=_("No active blueprint packs") message=_("Add packs from Marketplace governance.") action_url=governance_url action_text=_("Governance") %}
-      </div>
       {% endfor %}
     </div>
+    {% else %}
+    <div class="py-3 px-2">
+      {% include "components/dashboard_empty_state.html" with icon="bi-collection" title=_("No active blueprint packs") message=_("Add packs from Marketplace governance.") action_url=governance_url action_text=_("Governance") %}
+    </div>
+    {% endif %}
     {% include "components/pagination.html" %}
   </section>
 
