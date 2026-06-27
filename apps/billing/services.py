@@ -307,6 +307,140 @@ def mark_subscription_grants_applied(
         grant.save(update_fields=update_fields)
 
 
+def preview_plan_change(
+    subscription: TenantSubscription,
+    new_amount: Decimal | str | int,
+    *,
+    as_of: datetime | None = None,
+) -> dict:
+    """Proration breakdown for switching ``subscription`` to ``new_amount`` mid-period.
+
+    Credits the UNUSED portion of the current period at the old rate and charges
+    the new rate for the SAME remaining days (Part F 25.1, via
+    ``proration.compute_proration``). When there is no live period to prorate
+    (missing / already-ended period), the new amount simply applies next cycle and
+    the proration figures are zero. Pure — posts nothing.
+    """
+    from apps.billing.proration import compute_proration
+
+    as_of = as_of or timezone.now()
+    old_amount = _subscription_amount(subscription)
+    new_amount = _money(new_amount)
+    period_start = subscription.current_period_start
+    period_end = subscription.current_period_end
+    result = {
+        "old_amount": old_amount,
+        "new_amount": new_amount,
+        "remaining_days": 0,
+        "old_unused_credit": Decimal("0.00"),
+        "new_prorated_charge": Decimal("0.00"),
+        "net_change": Decimal("0.00"),
+        "effective_from": as_of,
+    }
+    if not period_start or not period_end or period_end <= as_of:
+        return result
+    ps, pe, ef = period_start.date(), period_end.date(), as_of.date()
+    if ef < ps:
+        ef = ps
+    result["remaining_days"] = max((pe - ef).days + 1, 0)
+    old_unused = compute_proration(ps, pe, old_amount, effective_from=ef, effective_to=pe)
+    new_prorated = compute_proration(ps, pe, new_amount, effective_from=ef, effective_to=pe)
+    result["old_unused_credit"] = _money(old_unused)
+    result["new_prorated_charge"] = _money(new_prorated)
+    result["net_change"] = _money(new_prorated - old_unused)
+    return result
+
+
+def change_subscription_plan(
+    school,
+    new_plan,
+    *,
+    new_amount: Decimal | str | int | None = None,
+    as_of: datetime | None = None,
+    user=None,
+) -> dict:
+    """Switch a tenant's plan mid-period with proration (the downgrade/upgrade flow).
+
+    Posts a CREDIT for the unused remainder at the old rate and a CHARGE for the
+    new plan over that same remainder, then repoints the subscription + school to
+    the new plan (keeping the current period end, so the next renewal bills the new
+    amount). No-op when the subscription already sits on the target plan + amount.
+    Returns a summary dict including the ``preview_plan_change`` breakdown.
+    """
+    as_of = as_of or timezone.now()
+    account, subscription, _ = ensure_subscription_for_school(school)
+    if new_amount is None:
+        priced = compute_subscription_price_for_school(school, new_plan)
+        new_amount = priced.get("subtotal", Decimal("0.00"))
+    new_amount = _money(new_amount)
+
+    already_on_plan = (
+        getattr(subscription, "plan_id", None) == getattr(new_plan, "pk", None)
+        and _subscription_amount(subscription) == new_amount
+    )
+    preview = preview_plan_change(subscription, new_amount, as_of=as_of)
+    summary = {
+        "changed": False,
+        "school_id": str(getattr(school, "pk", "")),
+        "new_plan": getattr(new_plan, "slug", "") or getattr(new_plan, "pk", ""),
+        "credit_posted": Decimal("0.00"),
+        "charge_posted": Decimal("0.00"),
+        "preview": preview,
+    }
+    if already_on_plan:
+        return summary
+
+    ref_stem = f"PLANCHANGE-{subscription.pk}-{as_of:%Y%m%d%H%M%S}"
+    with transaction.atomic():
+        if preview["old_unused_credit"] > 0:
+            record_platform_charge(
+                school=school,
+                amount=preview["old_unused_credit"],
+                entry_type=PlatformLedgerEntry.EntryType.CREDIT,
+                description="Plan change: unused time credit (previous plan)",
+                reference=f"{ref_stem}-CREDIT",
+                source="billing_plan_change_credit",
+                metadata={"preview": _json_safe(preview)},
+            )
+            summary["credit_posted"] = preview["old_unused_credit"]
+        if preview["new_prorated_charge"] > 0:
+            record_platform_charge(
+                school=school,
+                amount=preview["new_prorated_charge"],
+                description="Plan change: prorated charge (new plan)",
+                reference=f"{ref_stem}-CHARGE",
+                source="billing_plan_change_charge",
+                metadata={"preview": _json_safe(preview)},
+            )
+            summary["charge_posted"] = preview["new_prorated_charge"]
+
+        subscription.plan = new_plan
+        subscription.base_amount = new_amount
+        subscription.billed_amount = new_amount
+        subscription.metadata = {
+            **(subscription.metadata or {}),
+            "last_plan_change_at": as_of.isoformat(),
+            "last_plan_change_by": getattr(user, "pk", None)
+            if getattr(user, "is_authenticated", False)
+            else None,
+        }
+        subscription.save(
+            update_fields=[
+                "plan_id",
+                "base_amount",
+                "billed_amount",
+                "metadata",
+                "updated_at",
+            ]
+        )
+        if getattr(school, "plan_id", None) != getattr(new_plan, "pk", None):
+            school.plan = new_plan
+            school.save(update_fields=["plan", "updated_at"])
+
+    summary["changed"] = True
+    return summary
+
+
 def apply_subscription_waiver(
     school,
     *,

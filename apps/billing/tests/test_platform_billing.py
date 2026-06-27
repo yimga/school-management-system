@@ -818,3 +818,181 @@ class CycleDeltaTests(SimpleTestCase):
             _cycle_delta(TenantSubscription.BillingCycle.MULTI_YEAR),
             timedelta(days=730),
         )
+
+
+class PreviewPlanChangeTests(SimpleTestCase):
+    """Mid-period proration math (no DB) — wires proration.compute_proration."""
+
+    class _Sub:
+        def __init__(self, start, end, amount):
+            self.current_period_start = start
+            self.current_period_end = end
+            self.billed_amount = Decimal(amount)
+            self.base_amount = Decimal(amount)
+            self.addons_amount = Decimal("0.00")
+
+    def test_midperiod_change_credits_unused_and_charges_new(self):
+        from apps.billing.services import preview_plan_change
+
+        now = timezone.now()
+        sub = self._Sub(now - timedelta(days=15), now + timedelta(days=15), "100.00")
+        p = preview_plan_change(sub, Decimal("200.00"), as_of=now)
+        self.assertGreater(p["remaining_days"], 0)
+        # Only part of the old plan is credited back (not the whole period).
+        self.assertGreater(p["old_unused_credit"], Decimal("0.00"))
+        self.assertLess(p["old_unused_credit"], Decimal("100.00"))
+        # Net change equals new prorated charge minus old unused credit.
+        self.assertEqual(
+            p["net_change"], p["new_prorated_charge"] - p["old_unused_credit"]
+        )
+        # Upgrading (200 > 100) costs more for the remainder.
+        self.assertGreater(p["net_change"], Decimal("0.00"))
+
+    def test_no_active_period_zeroes_proration(self):
+        from apps.billing.services import preview_plan_change
+
+        now = timezone.now()
+        # Period already ended -> nothing to prorate.
+        sub = self._Sub(now - timedelta(days=40), now - timedelta(days=1), "100.00")
+        p = preview_plan_change(sub, Decimal("200.00"), as_of=now)
+        self.assertEqual(p["remaining_days"], 0)
+        self.assertEqual(p["old_unused_credit"], Decimal("0.00"))
+        self.assertEqual(p["new_prorated_charge"], Decimal("0.00"))
+        self.assertEqual(p["net_change"], Decimal("0.00"))
+
+
+class ChangeSubscriptionPlanTests(TestCase):
+    def setUp(self):
+        self.plan = Plan.objects.create(
+            name="Starter", slug="starter", base_price=Decimal("100.00"), is_active=True
+        )
+        self.plan2 = Plan.objects.create(
+            name="Growth", slug="growth", base_price=Decimal("200.00"), is_active=True
+        )
+        self.school = School.objects.create(
+            name="Change School",
+            slug="change-school",
+            subdomain="change-school",
+            is_active=True,
+            plan=self.plan,
+            billing_type=School.BillingType.REGULAR,
+        )
+
+    def test_change_plan_prorates_and_repoints(self):
+        from apps.billing.services import change_subscription_plan
+
+        account, subscription, _ = ensure_subscription_for_school(self.school)
+        now = timezone.now()
+        subscription.current_period_start = now - timedelta(days=15)
+        subscription.current_period_end = now + timedelta(days=15)
+        subscription.billed_amount = Decimal("100.00")
+        subscription.save(
+            update_fields=[
+                "current_period_start",
+                "current_period_end",
+                "billed_amount",
+                "updated_at",
+            ]
+        )
+
+        summary = change_subscription_plan(
+            self.school, self.plan2, new_amount=Decimal("200.00"), as_of=now
+        )
+
+        subscription.refresh_from_db()
+        self.school.refresh_from_db()
+        self.assertTrue(summary["changed"])
+        self.assertEqual(subscription.plan, self.plan2)
+        self.assertEqual(subscription.base_amount, Decimal("200.00"))
+        self.assertEqual(self.school.plan, self.plan2)
+        self.assertTrue(
+            PlatformLedgerEntry.objects.filter(
+                billing_account=account, source="billing_plan_change_credit"
+            ).exists()
+        )
+        self.assertTrue(
+            PlatformLedgerEntry.objects.filter(
+                billing_account=account, source="billing_plan_change_charge"
+            ).exists()
+        )
+
+    def test_change_to_same_plan_is_noop(self):
+        from apps.billing.services import change_subscription_plan
+
+        ensure_subscription_for_school(self.school)
+        summary = change_subscription_plan(
+            self.school, self.plan, new_amount=Decimal("100.00")
+        )
+        self.assertFalse(summary["changed"])
+
+
+class RenewalReminderTests(TestCase):
+    def setUp(self):
+        self.plan = Plan.objects.create(
+            name="Reminder", slug="reminder", base_price=Decimal("100.00"), is_active=True
+        )
+        self.school = School.objects.create(
+            name="Reminder School",
+            slug="reminder-school",
+            subdomain="reminder-school",
+            is_active=True,
+            plan=self.plan,
+            billing_type=School.BillingType.REGULAR,
+        )
+
+    def _arm_subscription(self, days_until=3):
+        account, subscription, _ = ensure_subscription_for_school(self.school)
+        subscription.status = TenantSubscription.Status.ACTIVE
+        subscription.current_period_end = timezone.now() + timedelta(days=days_until)
+        subscription.save(update_fields=["status", "current_period_end", "updated_at"])
+        return subscription
+
+    @patch(
+        "apps.platform_runtime.reactivation_engine._portal_url_for_reactivation",
+        return_value="https://reminder-school.runmycampus.com/authentication/login/",
+    )
+    @patch(
+        "apps.platform_runtime.reactivation_engine._resolve_admin_email",
+        return_value="owner@example.com",
+    )
+    def test_reminder_publishes_once_then_dedups(self, _email, _url):
+        from apps.billing.renewal_reminders import run_subscription_renewal_reminders
+        from apps.platform_runtime.models import PlatformEventLog
+
+        self._arm_subscription(days_until=3)
+
+        first = run_subscription_renewal_reminders(warning_days=7)
+        self.assertEqual(first["published"], 1)
+        self.assertTrue(
+            PlatformEventLog.objects.filter(
+                event_type="tenant.subscription.expiring_soon"
+            ).exists()
+        )
+
+        # Second run within the same period must not re-publish (dedup).
+        second = run_subscription_renewal_reminders(warning_days=7)
+        self.assertEqual(second["published"], 0)
+        self.assertEqual(second["skipped_deduped"], 1)
+
+    @patch(
+        "apps.platform_runtime.reactivation_engine._resolve_admin_email",
+        return_value="owner@example.com",
+    )
+    def test_reminder_skips_subscription_outside_window(self, _email):
+        from apps.billing.renewal_reminders import run_subscription_renewal_reminders
+
+        self._arm_subscription(days_until=30)  # outside a 7-day window
+        summary = run_subscription_renewal_reminders(warning_days=7)
+        self.assertEqual(summary["published"], 0)
+
+    @patch(
+        "apps.platform_runtime.reactivation_engine._resolve_admin_email",
+        return_value="",
+    )
+    def test_reminder_skips_when_no_admin_email(self, _email):
+        from apps.billing.renewal_reminders import run_subscription_renewal_reminders
+
+        self._arm_subscription(days_until=3)
+        summary = run_subscription_renewal_reminders(warning_days=7)
+        self.assertEqual(summary["published"], 0)
+        self.assertEqual(summary["skipped_no_email"], 1)
