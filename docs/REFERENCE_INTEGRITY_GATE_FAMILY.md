@@ -134,8 +134,8 @@ job alongside the static scanners it protects (`verify_ci_gate_wiring.py:17-19`)
 workflow files, but it must never vanish from all of them
 (`verify_ci_gate_wiring.py:19-22`). The boundary workflow already triggers on
 edits to `.github/workflows/*.yml`, so dropping a step re-runs this gate and
-fails. As of this writing it checks **18 required gates** (live run:
-`18 required gate(s) checked, 0 un-wired`); `REQUIRED_GATES` covers the whole
+fails. As of this writing it checks **19 required gates** (live run:
+`19 required gate(s) checked, 0 un-wired`); `REQUIRED_GATES` covers the whole
 reference-integrity family plus several other zero-tolerance gates
 (`scan_money_float`, `scan_tenant_queryset_safety`,
 `verify_offline_capability_implementation`, the grading-scale registry coverage

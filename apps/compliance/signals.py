@@ -56,6 +56,29 @@ def _get_changed_fields(old_values, new_values):
     return changed or None
 
 
+def _current_actor_id():
+    """Best-effort current-request actor PK (int) for audit attribution, or None.
+
+    The auto CREATE/UPDATE/DELETE handlers run at the ORM layer with no handle on
+    the request, so historically every model-mutation AuditLog row was written
+    with ``user=None`` — the trail captured WHAT changed but never WHO. This reads
+    the request-scoped contextvar populated by the observability middleware
+    (``request.user.pk``) so a mutation made during a request is attributed to the
+    acting user. Returns None outside a request (system / management-command /
+    migration writes stay unattributed, exactly as before). Never raises —
+    attribution must not break the save it is observing.
+    """
+    try:
+        from apps.observability.logging_context import get_current_user_id
+
+        raw = get_current_user_id()
+    except Exception:  # noqa: BLE001 — attribution is best-effort, never fatal
+        return None
+    if raw and raw.isdigit():
+        return int(raw)
+    return None
+
+
 @receiver(post_save)
 def log_model_save(sender, instance, created, **kwargs):
     """Auto-log model CREATE and UPDATE via AuditLog."""
@@ -92,6 +115,7 @@ def log_model_save(sender, instance, created, **kwargs):
         sensitivity = AuditLog.Sensitivity.MEDIUM
 
     AuditLog.objects.create(
+        user_id=_current_actor_id(),
         action=action,
         model_name=model_name,
         object_id=str(instance.pk),
@@ -133,6 +157,7 @@ def log_model_delete(sender, instance, **kwargs):
         sensitivity = AuditLog.Sensitivity.MEDIUM
 
     AuditLog.objects.create(
+        user_id=_current_actor_id(),
         action=AuditLog.Action.DELETE,
         model_name=model_name,
         object_id=str(instance.pk),

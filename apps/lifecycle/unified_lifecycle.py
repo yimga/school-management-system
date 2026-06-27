@@ -58,6 +58,20 @@ _ALLOWED_TRANSITIONS: dict[str, frozenset[str]] = {
     STATE_PURGED: frozenset(),
 }
 
+# Single source for "which append-only spine stage does each unified state map
+# to". Lifted out of record_unified_transition() (was an inline local dict) so
+# the FSM-integrity gate (scripts/verify_unified_lifecycle_fsm_integrity.py) can
+# introspect it. STATE_DRAFT is intentionally absent: draft is the pre-spine
+# state (no SchoolLifecycleStage row is written when a tenant is still a draft).
+UNIFIED_STATE_TO_SPINE_STAGE: dict[str, str] = {
+    STATE_PROVISIONING: SchoolLifecycleStage.Stage.PROVISIONED,
+    STATE_ACTIVATING: SchoolLifecycleStage.Stage.ONBOARDING_STARTED,
+    STATE_LIVE: SchoolLifecycleStage.Stage.OPERATING,
+    STATE_WIND_DOWN: SchoolLifecycleStage.Stage.OFFBOARDING_REQUESTED,
+    STATE_CLOSED: SchoolLifecycleStage.Stage.OFFBOARDING_GRACE,
+    STATE_PURGED: SchoolLifecycleStage.Stage.OFFBOARDING_PURGED,
+}
+
 
 def _lifecycle_settings(school) -> dict:
     raw = getattr(school, "settings", None) or {}
@@ -405,15 +419,7 @@ def record_unified_transition(
     payload: Optional[dict] = None,
 ) -> None:
     """Best-effort spine write when unified state advances."""
-    stage_map = {
-        STATE_PROVISIONING: SchoolLifecycleStage.Stage.PROVISIONED,
-        STATE_ACTIVATING: SchoolLifecycleStage.Stage.ONBOARDING_STARTED,
-        STATE_LIVE: SchoolLifecycleStage.Stage.OPERATING,
-        STATE_WIND_DOWN: SchoolLifecycleStage.Stage.OFFBOARDING_REQUESTED,
-        STATE_CLOSED: SchoolLifecycleStage.Stage.OFFBOARDING_GRACE,
-        STATE_PURGED: SchoolLifecycleStage.Stage.OFFBOARDING_PURGED,
-    }
-    stage = stage_map.get(to_state)
+    stage = UNIFIED_STATE_TO_SPINE_STAGE.get(to_state)
     if not stage:
         return
     try:

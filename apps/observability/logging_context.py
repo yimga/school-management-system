@@ -178,6 +178,26 @@ def clear_request_logging_context() -> None:
     _server_name_ctx.set("")
 
 
+def get_current_user_id() -> str:
+    """Return the current request's authenticated user PK as a string (or "").
+
+    Set by ``RequestIdLoggingMiddleware`` from ``request.user.pk``. Readable from
+    ORM signals / tasks that have no handle on the request object — e.g. the
+    compliance audit signals, which run at the ORM layer and otherwise cannot
+    attribute a mutation to an actor. Returns "" when unauthenticated or outside
+    a request (system / management-command / migration writes).
+    """
+    return _user_id_ctx.get()
+
+
+def get_current_school_id() -> str:
+    """Return the current request's resolved school PK as a string (or "").
+
+    Companion to :func:`get_current_user_id`; same request-context source.
+    """
+    return _school_id_ctx.get()
+
+
 class RequestContextFilter(logging.Filter):
     """Add request-scoped fields to LogRecord for structured formatters."""
 

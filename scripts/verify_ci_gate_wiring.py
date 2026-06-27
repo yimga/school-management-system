@@ -71,6 +71,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Django-aware (ci.yml).
     ("scripts/verify_domain_ownership_exact_storage.py", "architectural-boundaries.yml"),
     ("scripts/verify_runtime_defaults_model_parity.py", "ci.yml"),
+    # Tenant lifecycle (Wave C, target #1) — lock the unified-lifecycle FSM so a
+    # state can never be added without its transitions/spine mapping (which would
+    # silently brick the state or blind the Tenant 360 timeline). Django-aware
+    # (spine map values are SchoolLifecycleStage.Stage), so it lives in ci.yml.
+    ("scripts/verify_unified_lifecycle_fsm_integrity.py", "ci.yml"),
 )
 
 
