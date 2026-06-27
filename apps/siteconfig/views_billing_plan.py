@@ -155,9 +155,21 @@ def _billing_plan_context(request: HttpRequest) -> dict:
             UsageMeter.objects.filter(school=school).order_by("-period_start")[:24]
         )
 
+    # Localized, plain-language pricing for the tenant's own country: current
+    # terms + a plan comparison the tenant can actually read (prices, not codes).
+    pricing_options: dict = {}
+    if school is not None:
+        try:
+            from apps.billing.tenant_pricing import tenant_pricing_options
+
+            pricing_options = tenant_pricing_options(school)
+        except Exception:  # noqa: BLE001 - pricing display must never break the billing page
+            pricing_options = {}
+
     return {
         "school": school,
         "plan": plan,
+        "pricing_options": pricing_options,
         "addons": addons,
         "student_count": student_count,
         "teacher_count": teacher_count,

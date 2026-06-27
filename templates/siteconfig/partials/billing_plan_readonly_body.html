@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static region_format %}
 {% load terminology_tags %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container py-3 cp-evidence-page" style="max-width: var(--rmc-report-measure);" data-rmc-scroll-policy="paginate" data-page-archetype="operator-report" data-shell-surface="billing-plan-readonly">
@@ -18,6 +18,77 @@
   <p class="text-warning">{% trans "No tenant context — open this page on a school host." %}</p>
   {% else %}
   <p class="small text-muted mb-3"><strong>{% trans "Tenant" %}</strong>: {{ school.name }}</p>
+
+  {% comment %} v4.05.x tenant-clarity: localized "Your plan + price" + a plain-language
+     plan comparison, shown on the permanent page so a tenant can answer "what am I
+     paying / what are my options" without leaving for Stripe. Prices via |format_currency
+     (tenant currency); reuses the .cp-grid card grammar — zero new CSS. {% endcomment %}
+  {% if pricing_options and pricing_options.plans %}
+  <section class="mb-4" data-rmc-tenant-pricing="1" aria-label="{% trans 'Your plan and pricing' %}">
+    {% with country=pricing_options.country terms=pricing_options.current_terms %}
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+          <div>
+            <div class="text-uppercase text-muted" style="font-size:var(--type-size-eyebrow); letter-spacing:0.04em;">{% trans "Your plan" %}</div>
+            <div class="h4 mb-1">{% if plan %}{{ plan.name }}{% else %}{% trans "No plan assigned yet" %}{% endif %}</div>
+            {% if plan and plan.tenant_summary %}<p class="text-muted small mb-0">{{ plan.tenant_summary }}</p>{% endif %}
+          </div>
+          {% if terms %}
+          <div class="text-end">
+            <div class="h2 fw-semibold lh-1 mb-0">{{ terms.net_amount|format_currency }}</div>
+            <div class="small text-muted">{% trans "per billing cycle" %}{% if terms.discount_amount %} · {% blocktrans with d=terms.discount_amount|format_currency %}{{ d }} off{% endblocktrans %}{% endif %}</div>
+          </div>
+          {% endif %}
+        </div>
+        {% if country %}
+        <div class="small text-muted mt-2">{% blocktrans with c=country.country_name cur=country.currency_code %}Prices shown for {{ c }} in {{ cur }}. Annual prepay discounts and local payment methods are available.{% endblocktrans %}</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endwith %}
+
+    <h2 class="h6 text-uppercase text-muted mb-2">{% trans "Compare plans" %}</h2>
+    <div class="cp-grid cp-grid-3 mb-1">
+      {% for card in pricing_options.plans %}
+      <div class="cp-card d-flex flex-column gap-2{% if plan and card.slug == plan.slug %} border-primary{% endif %}"{% if plan and card.slug == plan.slug %} data-rmc-current-plan="1"{% endif %}>
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <strong>{{ card.name }}</strong>
+          {% if plan and card.slug == plan.slug %}<span class="rmc-badge">{% trans "Current" %}</span>{% endif %}
+        </div>
+        {% if card.summary %}<p class="small text-muted mb-1">{{ card.summary }}</p>{% endif %}
+        <div>
+          {% if card.requires_quote %}
+          <span class="h5 mb-0">{% trans "Custom pricing" %}</span>
+          {% else %}
+          <span class="h4 mb-0">{{ card.monthly_total|format_currency }}</span><span class="small text-muted"> / {% trans "month" %}</span>
+          <div class="small text-muted">{{ card.annual_total|format_currency }} / {% trans "year" %}</div>
+          {% endif %}
+        </div>
+        {% if card.included_usage %}
+        <ul class="small text-muted mb-0 ps-3">
+          {% for label, value in card.included_usage.items %}
+          <li>{{ value }} {{ label }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <div class="mt-auto pt-1">
+          {% if plan and card.slug == plan.slug %}
+          <button type="button" class="btn btn-sm btn-outline-secondary w-100" disabled>{% trans "Your current plan" %}</button>
+          {% elif card.requires_quote %}
+          <span class="small text-muted d-block">{% trans "Talk to your account team" %}</span>
+          {% elif checkout_start_url and stripe_processor_configured %}
+          <a class="btn btn-sm btn-primary w-100" href="{{ checkout_start_url }}?plan_code={{ card.slug|urlencode }}&billing_cycle=MONTHLY">{% trans "Choose this plan" %}</a>
+          {% else %}
+          <span class="d-inline-block w-100" tabindex="0" data-bs-toggle="tooltip" title="{% trans 'Online checkout is not enabled for this tenant yet.' %}"><button type="button" class="btn btn-sm btn-primary w-100" disabled>{% trans "Choose this plan" %}</button></span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="small text-muted">{% trans "Prices are localized to your country and update automatically. Add-ons and exact taxes are confirmed at checkout." %}</p>
+  </section>
+  {% endif %}
 
   {% if plan_tier_ctx %}
   <div class="card border-0 shadow-sm mb-3" data-rmc-commercial-tier-summary="1">
