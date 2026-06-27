@@ -387,6 +387,93 @@ class PlatformBillingServicesTests(TestCase):
             subscription.current_period_end, period_end + timedelta(days=365)
         )
 
+    def _set_country_tax(self, code, rate, behavior):
+        from apps.billing.models import CountryBillingProfile
+        from apps.siteconfig.models_platform_catalog import CountryMultiplier
+
+        CountryMultiplier.objects.update_or_create(
+            country_code=code,
+            defaults={
+                "multiplier": Decimal("1.0"),
+                "tax_rate": Decimal(rate),
+                "is_active": True,
+            },
+        )
+        CountryBillingProfile.objects.update_or_create(
+            country_code=code, defaults={"tax_behavior": behavior}
+        )
+        self.school.country_code = code
+        self.school.save(update_fields=["country_code", "updated_at"])
+
+    def test_resolve_charge_tax_exclusive_adds_tax(self):
+        from apps.billing.models import CountryBillingProfile
+        from apps.billing.services import resolve_charge_tax
+
+        self._set_country_tax(
+            "KE", "0.1600", CountryBillingProfile.TaxBehavior.EXCLUSIVE
+        )
+        tax = resolve_charge_tax(self.school, Decimal("100.00"))
+        self.assertEqual(tax["tax_amount"], Decimal("16.00"))
+        self.assertEqual(tax["tax_rate"], Decimal("0.1600"))
+
+    def test_resolve_charge_tax_inclusive_adds_nothing(self):
+        from apps.billing.models import CountryBillingProfile
+        from apps.billing.services import resolve_charge_tax
+
+        # Tax-inclusive markets must NOT get a separate tax line (it's in the price).
+        self._set_country_tax(
+            "KE", "0.1600", CountryBillingProfile.TaxBehavior.INCLUSIVE
+        )
+        tax = resolve_charge_tax(self.school, Decimal("100.00"))
+        self.assertEqual(tax["tax_amount"], Decimal("0.00"))
+
+    def test_resolve_charge_tax_zero_rate_adds_nothing(self):
+        from apps.billing.models import CountryBillingProfile
+        from apps.billing.services import resolve_charge_tax
+
+        self._set_country_tax(
+            "KE", "0.0000", CountryBillingProfile.TaxBehavior.EXCLUSIVE
+        )
+        tax = resolve_charge_tax(self.school, Decimal("100.00"))
+        self.assertEqual(tax["tax_amount"], Decimal("0.00"))
+
+    def test_run_lifecycle_adds_tax_line_for_exclusive_country(self):
+        from apps.billing.models import CountryBillingProfile
+
+        self.school.billing_type = School.BillingType.REGULAR
+        self.school.save(update_fields=["billing_type", "updated_at"])
+        self._set_country_tax(
+            "KE", "0.1600", CountryBillingProfile.TaxBehavior.EXCLUSIVE
+        )
+        account, subscription, _ = ensure_subscription_for_school(self.school)
+        subscription.status = TenantSubscription.Status.ACTIVE
+        subscription.current_period_start = timezone.now() - timedelta(days=31)
+        subscription.current_period_end = timezone.now() - timedelta(days=1)
+        subscription.billed_amount = Decimal("100.00")
+        subscription.save(
+            update_fields=[
+                "status",
+                "current_period_start",
+                "current_period_end",
+                "billed_amount",
+                "updated_at",
+            ]
+        )
+
+        summary = run_platform_billing_lifecycle(
+            as_of=timezone.now(), grace_days=7, suspension_days=30
+        )
+
+        self.assertEqual(summary["renewed"], 1)
+        self.assertEqual(summary["tax_charges_created"], 1)
+        self.assertEqual(summary["tax_amount"], Decimal("16.00"))
+        tax_entry = PlatformLedgerEntry.objects.filter(
+            billing_account=account, source="billing_lifecycle_tax"
+        ).first()
+        self.assertIsNotNone(tax_entry)
+        self.assertEqual(tax_entry.amount, Decimal("16.00"))
+        self.assertEqual(tax_entry.entry_type, PlatformLedgerEntry.EntryType.CHARGE)
+
     def test_schedule_revenue_share_payout_creates_scheduled_payout(self):
         payout = schedule_revenue_share_payout(
             payee_name="Verified Publisher",

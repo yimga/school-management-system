@@ -229,6 +229,69 @@ def preview_subscription_commercial_terms(
     }
 
 
+# Tax behaviors for which the platform adds tax ON TOP of the charge. INCLUSIVE
+# (tax already in the price), REVERSE_CHARGE (B2B buyer self-accounts), and MANUAL
+# (operator handles it) deliberately do NOT get an auto tax line.
+_TAX_ON_TOP_BEHAVIORS = frozenset({"EXCLUSIVE"})
+
+
+def _country_tax_behavior(country_code: str) -> str:
+    """Configured tax behavior for a country, defaulting to EXCLUSIVE when no
+    CountryBillingProfile row exists (tax added on top, the global default)."""
+    if not country_code:
+        return "EXCLUSIVE"
+    try:
+        from apps.billing.models import CountryBillingProfile
+
+        # tenant-isolation-allow: CountryBillingProfile is a platform catalog, not tenant data
+        row = (
+            CountryBillingProfile.objects.filter(country_code__iexact=country_code)
+            .only("tax_behavior")
+            .first()
+        )
+    except (ImportError, RuntimeError, ValueError):
+        return "EXCLUSIVE"
+    return (getattr(row, "tax_behavior", "") or "EXCLUSIVE") if row else "EXCLUSIVE"
+
+
+def resolve_charge_tax(school, taxable_amount: Decimal) -> dict:
+    """Tax to add on top of a platform charge for ``school``'s country.
+
+    Returns a dict ``{tax_amount, tax_rate, tax_behavior, country_code,
+    subdivision_code}``. The amount is zero unless the country's tax behavior is
+    EXCLUSIVE (tax-on-top) AND a positive rate resolves — so INCLUSIVE /
+    REVERSE_CHARGE / MANUAL markets are never auto-taxed. Rate flows through the
+    pluggable ``tax_engine.resolve_tax_rate`` (subdivision-aware), so a live tax
+    engine plugs in without touching this path. Never raises into billing.
+    """
+    country_code = (getattr(school, "country_code", "") or "").upper()
+    subdivision_code = (getattr(school, "subdivision_code", "") or "") or None
+    behavior = _country_tax_behavior(country_code)
+    base = _money(taxable_amount)
+    result = {
+        "tax_amount": Decimal("0.00"),
+        "tax_rate": Decimal("0"),
+        "tax_behavior": behavior,
+        "country_code": country_code,
+        "subdivision_code": subdivision_code or "",
+    }
+    if base <= 0 or behavior not in _TAX_ON_TOP_BEHAVIORS:
+        return result
+    try:
+        from apps.billing.tax_engine import resolve_tax_rate
+
+        rate = Decimal(
+            str(resolve_tax_rate(country_code, subdivision_code=subdivision_code) or 0)
+        )
+    except (ImportError, RuntimeError, TypeError, ValueError):
+        rate = Decimal("0")
+    if rate <= 0:
+        return result
+    result["tax_rate"] = rate
+    result["tax_amount"] = _money(base * rate)
+    return result
+
+
 def mark_subscription_grants_applied(
     subscription: TenantSubscription, applied_grants: list[dict]
 ) -> None:
@@ -1473,6 +1536,8 @@ def run_platform_billing_lifecycle(
         "credits_created": 0,
         "discount_amount": Decimal("0.00"),
         "waiver_amount": Decimal("0.00"),
+        "tax_charges_created": 0,
+        "tax_amount": Decimal("0.00"),
         "renewed": 0,
         "past_due": 0,
         "suspended": 0,
@@ -1583,6 +1648,34 @@ def run_platform_billing_lifecycle(
                         )
                         mark_subscription_grants_applied(
                             subscription, terms["applied_grants"]
+                        )
+                    # Tax on top of the net (post-discount) amount, per the
+                    # tenant country's configured tax behavior. EXCLUSIVE markets
+                    # get a dedicated tax ledger line; INCLUSIVE / REVERSE_CHARGE
+                    # / MANUAL markets are intentionally left untaxed here. Posted
+                    # inside the idempotency guard so it bills exactly once.
+                    tax = resolve_charge_tax(school, terms["net_amount"])
+                    if tax["tax_amount"] > 0:
+                        record_platform_charge(
+                            school=school,
+                            amount=tax["tax_amount"],
+                            description=(
+                                "Platform subscription tax "
+                                f"{period_start:%Y-%m-%d} to {period_end:%Y-%m-%d}"
+                            ),
+                            reference=f"{reference}-TAX",
+                            source="billing_lifecycle_tax",
+                            metadata={
+                                "period_start": period_start.isoformat(),
+                                "period_end": period_end.isoformat(),
+                                "line_type": "tax",
+                                "taxable_amount": str(terms["net_amount"]),
+                                "tax": _json_safe(tax),
+                            },
+                        )
+                        summary["tax_charges_created"] += 1
+                        summary["tax_amount"] = _money(
+                            summary["tax_amount"] + tax["tax_amount"]
                         )
             subscription.last_invoiced_at = as_of
             subscription.current_period_start = period_end
