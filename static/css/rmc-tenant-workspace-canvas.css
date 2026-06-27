@@ -26,7 +26,9 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
   overflow-y: hidden;
 }
 
-/* Preview banner + header = fixed chrome stack (flex-shrink 0, not sticky) */
+/* Preview banner + header + footer = fixed chrome stack (flex-shrink 0).
+   The body is locked, so these bands stay visible while #main-content owns
+   the only vertical page scroll. */
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] [data-shell-chrome="site-preview-banner-top"] {
   position: relative;
   top: auto;
@@ -39,6 +41,36 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .tp-header {
   top: auto;
   flex: 0 0 auto;
   z-index: var(--rmc-shell-header-z, 1030);
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-header,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-footer {
+  width: 100%;
+  min-width: 0;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-footer {
+  position: relative;
+  flex: 0 0 auto;
+  z-index: 1028;
+  max-height: min(22dvh, 9.5rem);
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--hairline);
+  background: var(--surface-popover, #fff); /* off-token-allow: opaque-pin-fallback */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 38%, transparent) transparent;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-footer::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-footer::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-tertiary) 34%, transparent); /* off-token-allow: footer-scroll-thumb */
+  border-radius: 4px;
 }
 
 /* Tenant school header reserves the copilot gutter so mission strip / LIVE
@@ -102,7 +134,7 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar
   position: relative;
   top: auto;
   align-self: stretch;
-  display: flex;
+  display: flex !important; /* outrank Bootstrap .d-lg-block so the inner nav can own scroll */
   flex-direction: column;
   overflow: hidden;
   z-index: 1020;
@@ -187,12 +219,16 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-main-co
 
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-main-col > .page-wrap {
   min-height: min-content;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
 }
 
-/* Footer scrolls with main content (relocated inside #main-content on v3 shell) */
+/* Footer is outside #main-content on v3 shells. This fallback keeps old cached
+   markup usable during rolling deploys, but new markup is handled by the body
+   child rule above. */
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .tp-v3-shell-footer {
-  margin-top: auto;
-  padding-top: 0.5rem;
+  margin-top: 0;
 }
 
 /* ── 5. Void removal — even, compact task surfaces ── */
@@ -203,6 +239,10 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-main-co
 
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-page-body,
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .tp-canvas-body {
+  min-height: min-content;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
   padding-bottom: 0.5rem;
 }
 

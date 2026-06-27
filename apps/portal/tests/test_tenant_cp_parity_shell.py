@@ -35,12 +35,27 @@ class TenantSidebarV8GroupsTests(SimpleTestCase):
         self.assertIn("rmc-tenant-workspace-canvas.css", text)
         self.assertIn("tp-v3-shell-footer", text)
 
+    def test_v3_footer_is_shell_chrome_not_main_scroll_content(self):
+        text = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
+        footer_idx = text.find('class="tp-v3-shell-footer"')
+        self.assertGreater(footer_idx, 0)
+        main_close_idx = text.find('{% include "partials/_remote_support_banner.html" %}')
+        self.assertGreater(main_close_idx, footer_idx)
+        content_window = text[text.find('id="main-content"') : footer_idx]
+        self.assertIn("</div>\n    </div>\n", content_window)
+        self.assertNotIn("footer scrolls inside #main-content", content_window)
+
     def test_viewport_canvas_css_locks_header_and_main(self):
         text = (ROOT / "static/css/rmc-tenant-workspace-canvas.css").read_text(encoding="utf-8")
         self.assertIn("overflow: hidden", text)
         self.assertIn("#main-content", text)
         self.assertIn("overflow-y: auto", text)
         self.assertIn("portal-sidebar-col", text)
+        self.assertIn("display: flex !important", text)
+        self.assertIn("body[data-rmc-cp-scroll=\"canvas\"] > .tp-v3-shell-footer", text)
+        self.assertIn(".portal-page-body", text)
+        self.assertIn(".tp-canvas-body", text)
+        self.assertIn("overflow: visible !important", text)
 
     def test_shell_layout_wrap_compact_for_v3(self):
         text = (ROOT / "templates/partials/shell_portal_layout_wrap_open.html").read_text(

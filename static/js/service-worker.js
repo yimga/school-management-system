@@ -205,7 +205,9 @@
 // so deployed manager surfaces cannot keep replaying the retired purple earth.
 // v4.05.74: Ask with AI moves into the existing copilot rail; cache-bust
 // rmc-copilot-help-mode.css so tenants drop the retired bottom takeover.
-const CACHE_VERSION = "sms-v4.05.74-copilot-help-mode-2026-06-26";
+// v4.05.75: tenant shell chrome contract fixes footer-as-body-content and
+// cache-busts rmc-tenant-workspace-canvas.css for deployed tenants.
+const CACHE_VERSION = "sms-v4.05.75-tenant-shell-chrome-2026-06-27";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -299,6 +301,7 @@ const STATIC_ASSETS = [
   "/static/css/rmc-class-grammar.css",
   "/static/css/rmc-class-grammar-ext.css",
   "/static/css/rmc-copilot-help-mode.css",
+  "/static/css/rmc-tenant-workspace-canvas.css",
   "/static/css/rmc-warm-bright-school.css",
   "/static/css/rmc-platform-header.css",
   "/static/css/migration-cloud-ui.css",

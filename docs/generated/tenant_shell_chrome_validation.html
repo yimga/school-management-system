@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en" data-rmc-tp-v3-shell="1" data-rmc-layout="fluid" data-surface="tenant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tenant Shell Chrome Validation</title>
+  <link rel="stylesheet" href="../../static/css/design-tokens.css">
+  <link rel="stylesheet" href="../../static/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../static/css/rmc-tenant-workspace-canvas.css">
+  <style>
+    :root {
+      --surface-popover: #ffffff;
+      --surface-elevated: #f8fafc;
+      --surface-canvas: #eef2ff;
+      --text-primary: #111827;
+      --text-secondary: #4b5563;
+      --text-tertiary: #6b7280;
+      --hairline: rgba(15, 23, 42, 0.14);
+      --rmc-tenant-header-h: 74px;
+      --rmc-preview-banner-h: 0px;
+      --rmc-shell-header-z: 1030;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #eef2ff;
+      color: var(--text-primary);
+    }
+
+    .tp-header {
+      border-top: 4px solid #5b4cf5;
+      border-bottom: 1px solid var(--hairline);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .tp-header__row-inner {
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 20px;
+      background: #fff;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #10b981);
+      box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+      flex: 0 0 auto;
+    }
+
+    .brand-copy {
+      min-width: 0;
+      flex: 0 0 auto;
+    }
+
+    .brand-copy strong {
+      display: block;
+      line-height: 1.15;
+      font-size: 16px;
+    }
+
+    .brand-copy span {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .tp-primary-nav-inline {
+      display: flex;
+      justify-content: center;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .tp-primary-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      min-width: 0;
+    }
+
+    .tp-primary-nav__item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      color: #374151;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .tp-primary-nav__item.is-active {
+      color: #fff;
+      background: linear-gradient(135deg, #4f46e5, #10b981);
+      box-shadow: 0 10px 20px rgba(79, 70, 229, 0.22);
+    }
+
+    .topbar-search {
+      flex: 0 1 360px;
+      min-width: 180px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--hairline);
+      border-radius: 999px;
+      padding: 8px 14px;
+      color: var(--text-tertiary);
+      background: #f9fafb;
+    }
+
+    .topbar-search span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .kbd {
+      margin-left: auto;
+      padding: 2px 7px;
+      border: 1px solid var(--hairline);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: #fff;
+    }
+
+    .profile-chip {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      flex: 0 0 auto;
+    }
+
+    .portal-layout-wrap.tp-v3-shell-workspace {
+      background: #eef2ff;
+    }
+
+    .portal-layout-row {
+      display: flex;
+      width: 100%;
+    }
+
+    .portal-sidebar-col {
+      flex: 0 0 282px;
+      width: 282px;
+      min-width: 282px;
+      background: #ffffff;
+      border-right: 1px solid var(--hairline);
+    }
+
+    .portal-main-col {
+      flex: 1 1 auto;
+      min-width: 0;
+      background: #f6f8ff;
+    }
+
+    .rmc-nav-sidebar__toolbar {
+      padding: 12px;
+      border-bottom: 1px solid var(--hairline);
+      background: #f8fafc;
+    }
+
+    .tp-sidebar-inner {
+      padding: 12px;
+    }
+
+    .side-section {
+      margin: 0 0 16px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .side-section-title {
+      margin: 14px 8px 8px;
+      color: var(--text-tertiary);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 4px 0;
+      padding: 10px 11px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      color: #1f2937;
+      text-decoration: none;
+      background: #fff;
+    }
+
+    .side-link.is-active {
+      border-color: rgba(79, 70, 229, 0.28);
+      background: rgba(79, 70, 229, 0.1);
+      box-shadow: inset 3px 0 0 #4f46e5;
+    }
+
+    .page-wrap {
+      padding: 18px;
+    }
+
+    .portal-page-body {
+      display: grid;
+      gap: 16px;
+      min-height: min-content;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+
+    .validation-card,
+    .content-card {
+      border: 1px solid var(--hairline);
+      border-radius: 12px;
+      padding: 16px;
+      background: #fff;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .validation-card h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .validation-card p {
+      margin: 0;
+      color: var(--text-secondary);
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .check {
+      min-width: 0;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 12px;
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .check[data-state="pass"] {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .check[data-state="fail"] {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .content-card {
+      min-height: 150px;
+    }
+
+    .content-card strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .content-card p {
+      margin: 0;
+      color: var(--text-secondary);
+    }
+
+    .tp-v3-shell-footer {
+      padding: 10px 18px;
+      background: #fff;
+    }
+
+    .footer-inner {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .footer-pill {
+      padding: 6px 10px;
+      border: 1px solid var(--hairline);
+      border-radius: 999px;
+      color: #374151;
+      background: #f9fafb;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 991.98px) {
+      .tp-primary-nav-inline,
+      .portal-sidebar-col {
+        display: none;
+      }
+
+      .tp-header__row-inner {
+        flex-wrap: wrap;
+      }
+
+      .topbar-search {
+        flex-basis: 100%;
+      }
+
+      .content-grid,
+      .check-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="portal-body-with-layout tp-v3-role-home" data-rmc-cp-scroll="canvas">
+  <div class="tp-header cp-header cp-header--consolidated cp-header--tenant" data-rmc-tenant-header-100x="1">
+    <div id="portalHeader" class="tp-header__row" role="banner" aria-label="Main navigation">
+      <div class="container-fluid tp-header__row-inner">
+        <div class="brand-mark">N</div>
+        <div class="brand-copy">
+          <strong>New Test High School</strong>
+          <span>Year 4 - School command surface</span>
+        </div>
+        <div class="tp-primary-nav-inline">
+          <nav class="tp-primary-nav" aria-label="Primary">
+            <a class="tp-primary-nav__item is-active" href="#">Home</a>
+            <a class="tp-primary-nav__item" href="#">Finance</a>
+            <a class="tp-primary-nav__item" href="#">Messages</a>
+            <a class="tp-primary-nav__item" href="#">Analytics</a>
+          </nav>
+        </div>
+        <div class="topbar-search" aria-label="Search preview">
+          <span>Search students, teachers, invoices...</span>
+          <span class="kbd">Ctrl+K</span>
+        </div>
+        <span style="color:#059669;font-size:12px;font-weight:800;white-space:nowrap;">LIVE - Enrollment</span>
+        <div class="profile-chip">TT</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid portal-layout-wrap tp-v3-shell-workspace px-2 py-0" data-rmc-tp-v3-shell-workspace="1">
+    <div class="row portal-layout-row g-0 h-100 align-items-stretch">
+      <aside class="portal-sidebar-col d-none d-lg-block rmc-nav-sidebar-host rmc-nav-sidebar__mount position-relative rmc-glass-sidebar-shell" data-shell-sidebar="portal" data-shell-sidebar-mount="desktop">
+        <div class="rmc-nav-sidebar__toolbar">
+          <strong>Navigation</strong>
+          <div style="margin-top:8px;color:var(--text-tertiary);font-size:12px;">Sidebar must not move when main scrolls.</div>
+        </div>
+        <div class="tp-sidebar-inner tp-sidebar-inner--v3" data-rmc-cp-sidebar-v8="1" data-rmc-sidebar-scroll-root="1">
+          <div class="side-section-title">Quick access</div>
+          <ul class="side-section">
+            <li><a class="side-link is-active" href="#"><span>Dashboard</span><span>1</span></a></li>
+            <li><a class="side-link" href="#"><span>Workflow Center</span><span>2</span></a></li>
+            <li><a class="side-link" href="#"><span>Preferences</span><span>3</span></a></li>
+          </ul>
+          <div class="side-section-title">Long sidebar scroll test</div>
+          <ul class="side-section" id="sidebarItems"></ul>
+        </div>
+      </aside>
+
+      <main class="portal-main-col rmc-shell-main" id="main-content" role="main" tabindex="-1">
+        <div class="page-wrap rmc-shell-content-grid rmc-shell-canvas-container">
+          <div class="portal-page-body tp-canvas-body" data-rmc-portal-page-body="1">
+            <section class="validation-card">
+              <h1>Tenant Shell Chrome Validation</h1>
+              <p>This page validates the deployed shell contract: header is fixed at the top, sidebar has its own scrollbar, main body scrolls, and footer remains fixed at the bottom.</p>
+              <div class="check-grid" id="checks">
+                <div class="check" data-check="body">Body locked</div>
+                <div class="check" data-check="main">Main scrolls</div>
+                <div class="check" data-check="surface">Body surface reveals</div>
+                <div class="check" data-check="sidebar">Sidebar scrolls</div>
+                <div class="check" data-check="footer">Footer outside main</div>
+                <div class="check" data-check="chrome">Chrome remains visible</div>
+              </div>
+            </section>
+            <section class="content-grid" id="contentCards"></section>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div data-rmc-shell-footer="portal" class="tp-v3-shell-footer">
+    <div class="footer-inner">
+      <strong>Footer shell band stays visible</strong>
+      <div class="footer-links">
+        <span class="footer-pill">FERPA</span>
+        <span class="footer-pill">Support</span>
+        <span class="footer-pill">Platform status</span>
+        <span class="footer-pill">Privacy</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var sidebarItems = document.getElementById("sidebarItems");
+      var contentCards = document.getElementById("contentCards");
+      for (var i = 1; i <= 34; i += 1) {
+        var li = document.createElement("li");
+        li.innerHTML = '<a class="side-link" href="#"><span>Navigation item ' + i + '</span><span>' + (i + 3) + '</span></a>';
+        sidebarItems.appendChild(li);
+      }
+      for (var j = 1; j <= 36; j += 1) {
+        var card = document.createElement("article");
+        card.className = "content-card";
+        card.innerHTML = "<strong>Body content card " + j + "</strong><p>Main content is intentionally long. Scroll this center area; the header, sidebar, and footer should stay in place.</p>";
+        contentCards.appendChild(card);
+      }
+
+      function setCheck(name, pass, details) {
+        var el = document.querySelector('[data-check="' + name + '"]');
+        if (!el) { return; }
+        el.dataset.state = pass ? "pass" : "fail";
+        el.textContent = el.textContent.split(":")[0] + ": " + (pass ? "PASS" : "FAIL") + " - " + details;
+      }
+
+      function runChecks() {
+        var body = document.body;
+        var doc = document.documentElement;
+        var main = document.getElementById("main-content");
+        var surface = document.querySelector(".portal-page-body");
+        var sidebar = document.querySelector(".tp-sidebar-inner");
+        var footer = document.querySelector(".tp-v3-shell-footer");
+        var header = document.querySelector(".tp-header");
+        var bodyLocked = getComputedStyle(body).overflowY === "hidden" && body.scrollHeight <= body.clientHeight + 2;
+        var mainScrolls = main.scrollHeight > main.clientHeight + 20 && getComputedStyle(main).overflowY !== "visible";
+        var surfaceStyle = getComputedStyle(surface);
+        var surfaceReveals = surface.scrollHeight <= surface.clientHeight + 2 &&
+          surfaceStyle.overflowY === "visible" &&
+          surfaceStyle.maxHeight === "none";
+        var sidebarScrolls = !sidebar || sidebar.scrollHeight > sidebar.clientHeight + 20;
+        var footerOutsideMain = footer && main && !main.contains(footer);
+        var chromeVisible = header.getBoundingClientRect().top >= -1 &&
+          footer.getBoundingClientRect().bottom <= window.innerHeight + 1 &&
+          doc.clientHeight === window.innerHeight;
+
+        setCheck("body", bodyLocked, "document itself does not scroll");
+        setCheck("main", mainScrolls, "center canvas owns vertical scroll");
+        setCheck("surface", surfaceReveals, "inner page body does not clip content");
+        setCheck("sidebar", sidebarScrolls, "left nav has independent overflow");
+        setCheck("footer", footerOutsideMain, "footer is a body-level shell sibling");
+        setCheck("chrome", chromeVisible, "top and bottom bands remain visible");
+      }
+
+      window.addEventListener("load", function () {
+        runChecks();
+        var main = document.getElementById("main-content");
+        main.scrollTop = 650;
+        window.setTimeout(runChecks, 120);
+      });
+      window.addEventListener("resize", runChecks);
+    }());
+  </script>
+</body>
+</html>

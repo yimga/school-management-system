@@ -569,18 +569,20 @@
             {% block rmc_os_context_rail %}
             {% include "components/rmc_os_context_rail.html" %}
             {% endblock %}
-            {% if tp_v3_tenant_shell %}
-            {% comment %} v4.05: footer scrolls inside #main-content so canvas mode has no body void. {% endcomment %}
-            <div data-rmc-shell-footer="portal" class="tp-v3-shell-footer">
-              {% with portal_footer_partial=PORTAL_FOOTER_PARTIAL|default:"components/footer.html" %}
-              {% include portal_footer_partial %}
-              {% endwith %}
-            </div>
-            {% endif %}
           </div>
         </div>
       </div>
     </div>
+
+    {% if tp_v3_tenant_shell and request.public_host_kind != 'manager' %}
+    {% comment %} v4.05.75: footer is shell chrome, not page content. Keep it outside
+       #main-content so the body canvas scrolls independently between fixed bands. {% endcomment %}
+    <div data-rmc-shell-footer="portal" class="tp-v3-shell-footer">
+      {% with portal_footer_partial=PORTAL_FOOTER_PARTIAL|default:"components/footer.html" %}
+      {% include portal_footer_partial %}
+      {% endwith %}
+    </div>
+    {% endif %}
 
     {% include "partials/_remote_support_banner.html" %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
