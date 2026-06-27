@@ -186,6 +186,24 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("billing", "heavy"),
         )
+        # Heavy + tenant-fan-out: publishes renewal + trial-ending reminders for
+        # subscriptions inside the warning window (the email matrix turns each
+        # published event into the tenant-admin reminder email). Registered here
+        # for the SAME reason as the lifecycle above: the no-worker topology has no
+        # beat, so the beat-only reminder entry never fired in the default
+        # deployment. cron-only (never on the hot /health/ thread); each sweep is
+        # idempotent per period via PlatformEventLog, so a duplicate/late tick
+        # re-publishes nothing already sent. Now also watched by the dead-man's-
+        # switch monitor + auto-recovery, at parity with the lifecycle.
+        _REGISTRY["billing.run_subscription_reminders"] = PeriodicJob(
+            name="billing.run_subscription_reminders",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_subscription_reminders,
+            description="Daily: publish renewal + trial-ending subscription reminders.",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("billing", "reminders"),
+        )
         # Heavy + tenant-fan-out: mints DonationPledges for due recurring giving
         # schedules. The platform has no card-on-file auto-charge, so recurring giving
         # produces expected-gift pledges (donors fulfil them as usual). cron-only like
@@ -359,6 +377,15 @@ def _run_platform_billing_lifecycle() -> object:
     from django.core.management import call_command
 
     return call_command("run_platform_billing_lifecycle")
+
+
+def _run_subscription_reminders() -> object:
+    # Delegates to the SAME management command an operator runs by hand / the beat
+    # task wraps, so every trigger path runs identical code: renewal (period-end)
+    # AND trial-ending reminders, each idempotent per period via PlatformEventLog.
+    from django.core.management import call_command
+
+    return call_command("send_renewal_reminders")
 
 
 def _run_mint_recurring_donation_pledges() -> object:

@@ -153,6 +153,18 @@ class DefaultBillingJobRegistrationTests(TestCase):
         self.assertIsNotNone(bench)
         self.assertTrue(bench.auto_eligible)
 
+    def test_subscription_reminders_registered_cron_only_daily(self):
+        # Renewal + trial-ending reminders run through the SAME locked, monitored
+        # registry as the lifecycle — so they fire in the no-worker topology
+        # (beat-only wiring is dark there) and are watched by the dead-man's-switch.
+        periodic.ensure_default_jobs()
+        job = periodic._REGISTRY.get("billing.run_subscription_reminders")
+        self.assertIsNotNone(job)
+        self.assertFalse(job.auto_eligible)  # never on the /health/ hot thread
+        self.assertEqual(job.interval_seconds, periodic.DAILY_SECONDS)
+        self.assertEqual(job.lock_ttl_seconds, periodic.HEAVY_JOB_LOCK_TTL_SECONDS)
+        self.assertIn("billing", job.tags)
+
 
 class HealthEndpointSchedulerFlagTests(TestCase):
     def test_health_reports_inprocess_scheduler_flag(self):
