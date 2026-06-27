@@ -456,6 +456,10 @@ EVENT_CATALOG = {
         "description": "Tenant subscription expires within the warning window.",
         "payload": ["school_id", "admin_email", "days_until", "renewal_url"],
     },
+    "tenant.subscription.trial_ending": {
+        "description": "Tenant trial ends within the warning window.",
+        "payload": ["school_id", "admin_email", "days_until", "renewal_url"],
+    },
     "tenant.reactivation.30d": {
         "description": "Reactivation cadence: 30 days inactive.",
         "payload": ["school_id", "admin_email", "school_name"],

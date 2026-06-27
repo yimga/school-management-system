@@ -18,11 +18,17 @@ try:
 
     @shared_task(name="apps.billing.run_subscription_renewal_reminders")
     def run_subscription_renewal_reminders_task(*, warning_days: int | None = None) -> dict:
-        """Beat entry point — publish renewal reminders for soon-to-renew subs."""
-        from apps.billing.renewal_reminders import run_subscription_renewal_reminders
+        """Beat entry point — publish renewal + trial-ending reminders."""
+        from apps.billing.renewal_reminders import (
+            run_subscription_renewal_reminders,
+            run_trial_ending_reminders,
+        )
 
-        summary = run_subscription_renewal_reminders(warning_days=warning_days)
-        logger.info("subscription renewal reminders run: %s", summary)
+        summary = {
+            "renewals": run_subscription_renewal_reminders(warning_days=warning_days),
+            "trials": run_trial_ending_reminders(warning_days=warning_days),
+        }
+        logger.info("subscription reminders run: %s", summary)
         return summary
 
 except ImportError:  # pragma: no cover - celery optional at import time

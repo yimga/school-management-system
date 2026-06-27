@@ -998,6 +998,37 @@ class RenewalReminderTests(TestCase):
         self.assertEqual(summary["published"], 0)
         self.assertEqual(summary["skipped_no_email"], 1)
 
+    @patch(
+        "apps.platform_runtime.reactivation_engine._portal_url_for_reactivation",
+        return_value="https://reminder-school.runmycampus.com/authentication/login/",
+    )
+    @patch(
+        "apps.platform_runtime.reactivation_engine._resolve_admin_email",
+        return_value="owner@example.com",
+    )
+    def test_trial_ending_publishes_once_then_dedups(self, _email, _url):
+        from apps.billing.renewal_reminders import run_trial_ending_reminders
+        from apps.platform_runtime.models import PlatformEventLog
+
+        account, subscription, _ = ensure_subscription_for_school(self.school)
+        subscription.status = TenantSubscription.Status.TRIALING
+        subscription.trial_end_date = (timezone.now() + timedelta(days=3)).date()
+        subscription.save(
+            update_fields=["status", "trial_end_date", "updated_at"]
+        )
+
+        first = run_trial_ending_reminders(warning_days=7)
+        self.assertEqual(first["published"], 1)
+        self.assertTrue(
+            PlatformEventLog.objects.filter(
+                event_type="tenant.subscription.trial_ending"
+            ).exists()
+        )
+
+        second = run_trial_ending_reminders(warning_days=7)
+        self.assertEqual(second["published"], 0)
+        self.assertEqual(second["skipped_deduped"], 1)
+
 
 class PlatformInvoiceTests(TestCase):
     def setUp(self):

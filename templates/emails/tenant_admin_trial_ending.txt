@@ -1,0 +1,11 @@
+Your RunMyCampus trial is ending
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+Your free trial for {{ school_name|default:"your school" }} ends in
+{{ days_until|default:"a few" }} day(s). Choose a plan now to keep your
+school's data, integrations, and access uninterrupted when the trial ends.
+
+Choose a plan: {{ renewal_url|default:"(URL not captured)" }}
+
+— The RunMyCampus team

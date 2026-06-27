@@ -4,11 +4,12 @@ from django.utils.dateparse import parse_datetime
 from apps.billing.renewal_reminders import (
     _DEFAULT_LIMIT,
     run_subscription_renewal_reminders,
+    run_trial_ending_reminders,
 )
 
 
 class Command(BaseCommand):
-    help = "Publish renewal/expiry reminders for soon-to-renew subscriptions."
+    help = "Publish renewal + trial-ending reminders for soon-to-lapse subscriptions."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -29,10 +30,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         as_of = parse_datetime(options["as_of"]) if options.get("as_of") else None
-        summary = run_subscription_renewal_reminders(
-            as_of=as_of,
-            warning_days=options.get("warning_days"),
-            limit=options["limit"],
-            dry_run=options["dry_run"],
-        )
-        self.stdout.write(self.style.SUCCESS(f"Renewal reminder summary: {summary}"))
+        common = {
+            "as_of": as_of,
+            "warning_days": options.get("warning_days"),
+            "limit": options["limit"],
+            "dry_run": options["dry_run"],
+        }
+        summary = {
+            "renewals": run_subscription_renewal_reminders(**common),
+            "trials": run_trial_ending_reminders(**common),
+        }
+        self.stdout.write(self.style.SUCCESS(f"Reminder summary: {summary}"))

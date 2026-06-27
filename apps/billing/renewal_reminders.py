@@ -25,6 +25,7 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 _EVENT = "tenant.subscription.expiring_soon"
+_TRIAL_EVENT = "tenant.subscription.trial_ending"
 _DEFAULT_WARNING_DAYS = 7
 _DEFAULT_LIMIT = 500  # magic-number-allow: default-sweep-batch-cap
 
@@ -39,14 +40,14 @@ def _warning_days() -> int:
         return _DEFAULT_WARNING_DAYS
 
 
-def _already_reminded(idempotency_key: str) -> bool:
-    """True when a reminder for this exact period was already published."""
+def _already_reminded(event_type: str, idempotency_key: str) -> bool:
+    """True when a reminder of this type for this exact period was already published."""
     try:
         from apps.platform_runtime.models import PlatformEventLog
 
         # tenant-isolation-allow: platform-event-log-dedup-ledger-not-tenant-scoped
         return PlatformEventLog.objects.filter(
-            event_type=_EVENT, idempotency_key=idempotency_key
+            event_type=event_type, idempotency_key=idempotency_key
         ).exists()
     except Exception:  # noqa: BLE001 - a dedup-check failure must never break the sweep
         return False
@@ -103,7 +104,7 @@ def run_subscription_renewal_reminders(
         if school is None or period_end is None:
             continue
         key = f"expiring:{sub.pk}:{period_end:%Y-%m-%d}"
-        if _already_reminded(key):
+        if _already_reminded(_EVENT, key):
             summary["skipped_deduped"] += 1
             continue
         admin_email = _resolve_admin_email(school)
@@ -127,4 +128,83 @@ def run_subscription_renewal_reminders(
             summary["published"] += 1
         except Exception:  # noqa: BLE001 - one bad row must not abort the whole sweep
             logger.exception("renewal_reminder_publish_failed sub=%s", sub.pk)
+    return summary
+
+
+def run_trial_ending_reminders(
+    *,
+    as_of=None,
+    warning_days: int | None = None,
+    limit: int = _DEFAULT_LIMIT,
+    dry_run: bool = False,
+) -> dict:
+    """Publish ``tenant.subscription.trial_ending`` for trials about to end.
+
+    Scans TRIALING subscriptions whose ``trial_end_date`` is in
+    ``[today, today + warning_days]`` and publishes the trial-ending event once
+    per subscription per trial-end date (deduped via PlatformEventLog). Same
+    shape + safety as ``run_subscription_renewal_reminders``; the email matrix's
+    wildcard subscriber turns each publish into the admin email.
+    """
+    from apps.billing.models import TenantSubscription
+    from apps.platform_runtime.event_bus import publish_event
+    from apps.platform_runtime.reactivation_engine import (
+        _portal_url_for_reactivation,
+        _resolve_admin_email,
+    )
+
+    as_of = as_of or timezone.now()
+    warning_days = warning_days or _warning_days()
+    today = as_of.date()
+    window_end = today + timedelta(days=warning_days)
+    summary = {
+        "dry_run": dry_run,
+        "warning_days": warning_days,
+        "scanned": 0,
+        "published": 0,
+        "skipped_no_email": 0,
+        "skipped_deduped": 0,
+    }
+
+    # tenant-isolation-allow: platform-trial-ending-reminder-sweep-operator-wide-no-tenant-scope
+    subs = (
+        TenantSubscription.objects.select_related("school")
+        .filter(
+            status=TenantSubscription.Status.TRIALING,
+            trial_end_date__gte=today,
+            trial_end_date__lte=window_end,
+        )
+        .order_by("trial_end_date")[: max(1, int(limit))]
+    )
+    for sub in subs:
+        summary["scanned"] += 1
+        school = sub.school
+        trial_end = sub.trial_end_date
+        if school is None or trial_end is None:
+            continue
+        key = f"trial-ending:{sub.pk}:{trial_end:%Y-%m-%d}"
+        if _already_reminded(_TRIAL_EVENT, key):
+            summary["skipped_deduped"] += 1
+            continue
+        admin_email = _resolve_admin_email(school)
+        if not admin_email:
+            summary["skipped_no_email"] += 1
+            continue
+        days_until = max((trial_end - today).days, 0)
+        payload = {
+            "school_id": str(school.pk),
+            "admin_email": admin_email,
+            "days_until": days_until,
+            "renewal_url": _portal_url_for_reactivation(school),
+        }
+        if dry_run:
+            summary["published"] += 1
+            continue
+        try:
+            publish_event(
+                _TRIAL_EVENT, payload, school_id=str(school.pk), idempotency_key=key
+            )
+            summary["published"] += 1
+        except Exception:  # noqa: BLE001 - one bad row must not abort the whole sweep
+            logger.exception("trial_ending_reminder_publish_failed sub=%s", sub.pk)
     return summary

@@ -145,6 +145,16 @@ def _register_default_email_rows() -> int:
             user_unsubscribable=False,
         ),
         EmailMatrixRow(
+            event_type="tenant.subscription.trial_ending",
+            classification=CLASSIFICATION_TENANT_ADMIN,
+            subject_template="Your RunMyCampus trial ends in {{ days_until }} day(s)",
+            body_template="emails/tenant_admin_trial_ending.txt",
+            recipient_resolver=resolve_tenant_admin_from_payload,
+            priority=PRIORITY_TRANSACTIONAL,
+            cooldown_minutes=60 * 24,
+            user_unsubscribable=False,
+        ),
+        EmailMatrixRow(
             event_type="tenant.payment.failed",  # tenant side
             classification=CLASSIFICATION_TENANT_ADMIN,
             subject_template="Payment failed — please update your billing details",
