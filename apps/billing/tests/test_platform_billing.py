@@ -821,6 +821,63 @@ class CycleDeltaTests(SimpleTestCase):
         )
 
 
+class LifecycleSingleFlightLockTests(SimpleTestCase):
+    """The billing lifecycle is single-flighted across the fleet (no DB).
+
+    The sweep is monkeypatched so only the lock control-flow is exercised: a
+    concurrent invocation (lock already held) is skipped without running the sweep,
+    and a normal run releases the lock for the next invocation.
+    """
+
+    def setUp(self):
+        from django.core.cache import cache
+        from apps.billing import services
+
+        self.cache = cache
+        self.services = services
+        self.cache.delete(services._LIFECYCLE_LOCK_KEY)
+
+    def tearDown(self):
+        self.cache.delete(self.services._LIFECYCLE_LOCK_KEY)
+
+    def test_concurrent_invocation_is_skipped_and_sweep_not_run(self):
+        # Simulate another billing run already holding the lock.
+        self.cache.add(self.services._LIFECYCLE_LOCK_KEY, "1", 1800)
+        with patch.object(self.services, "_run_billing_lifecycle_sweep") as sweep:
+            summary = self.services.run_platform_billing_lifecycle()
+        self.assertEqual(summary.get("skipped"), "already_running")
+        sweep.assert_not_called()
+
+    def test_normal_run_invokes_sweep_then_releases_lock(self):
+        with patch.object(self.services, "_run_billing_lifecycle_sweep") as sweep:
+            summary = self.services.run_platform_billing_lifecycle()
+        self.assertIsNone(summary.get("skipped"))
+        sweep.assert_called_once()
+        # Lock must be released so the next scheduled run can proceed.
+        self.assertIsNone(self.cache.get(self.services._LIFECYCLE_LOCK_KEY))
+
+    def test_sweep_isolates_a_failing_tenant(self):
+        # One subscription raising must NOT abort the rest of the sweep.
+        subs = [object(), object(), object()]
+
+        class _QS(list):
+            def filter(self, *a, **k):
+                return self
+
+        with patch.object(
+            self.services.TenantSubscription.objects, "select_related",
+            return_value=_QS(subs),
+        ), patch.object(
+            self.services, "_advance_subscription_billing", side_effect=RuntimeError("boom"),
+        ) as advance:
+            summary = {"discount_amount": Decimal("0"), "waiver_amount": Decimal("0")}
+            # Must not raise even though every tenant errors.
+            self.services._run_billing_lifecycle_sweep(
+                summary, as_of=None, grace_days=7, suspension_days=30
+            )
+        self.assertEqual(advance.call_count, len(subs))
+
+
 class PreviewPlanChangeTests(SimpleTestCase):
     """Mid-period proration math (no DB) — wires proration.compute_proration."""
 

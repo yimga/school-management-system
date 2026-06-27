@@ -6,6 +6,7 @@ import json
 import logging
 
 from django.db import models, transaction, DatabaseError, IntegrityError
+from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
@@ -1773,6 +1774,263 @@ def finalize_marketplace_addon_payment(
     }
 
 
+# Fleet-wide single-flight guard for the billing lifecycle. The periodic registry
+# already locks its OWN trigger of this job, but a RAW `manage.py
+# run_platform_billing_lifecycle` / `run_billing_cron` invoked CONCURRENTLY with the
+# scheduler shares no registry lock — and renewal idempotency is check-then-act (the
+# ledger `reference` is indexed, not unique), so an overlap could double-post a
+# charge. This lock (the same cross-fleet `cache.add` idiom the periodic registry
+# uses; Valkey = cluster-wide in prod) serializes ANY two concurrent invocations
+# regardless of trigger path. It is BEST-EFFORT and fail-OPEN: a cache outage
+# degrades to the prior unlocked behavior so billing never STOPS because the cache
+# is briefly down.
+_LIFECYCLE_LOCK_KEY = "rmc:billing:lifecycle:singleflight"
+_LIFECYCLE_LOCK_TTL_SECONDS = 1800  # magic-number-allow: lifecycle single-flight lock TTL (seconds)
+
+
+def _advance_subscription_billing(subscription, summary, *, as_of, grace_days, suspension_days):
+    """Advance ONE subscription's billing state: trial->active conversion, period
+    renewal charge + commercial terms + tax + numbered invoice, dunning
+    (past-due/suspend), and collection restore. Mutates ``summary`` in place;
+    raises on unexpected error so the sweep can isolate this tenant.
+    """
+    school = subscription.school
+    account = subscription.billing_account
+    subscription_changed = []
+    account_changed = []
+    cycle_delta = _cycle_delta(subscription.billing_cycle)
+    due_anchor = (
+        subscription.current_period_end
+        or subscription.current_period_start
+        or as_of
+    )
+
+    expired_trial = (
+        subscription.trial_end_date and subscription.trial_end_date < as_of.date()
+    )
+    if expired_trial and (
+        school.billing_type == school.BillingType.FREE_TRIAL
+        or subscription.status == TenantSubscription.Status.TRIALING
+    ):
+        if school.billing_type == school.BillingType.FREE_TRIAL:
+            school.billing_type = school.BillingType.REGULAR
+            school.save(update_fields=["billing_type", "updated_at"])
+        if subscription.status == TenantSubscription.Status.TRIALING:
+            subscription.status = TenantSubscription.Status.ACTIVE
+            subscription_changed.append("status")
+        summary["trial_converted"] += 1
+
+    if (
+        cycle_delta
+        and subscription.current_period_end
+        and subscription.current_period_end <= as_of
+    ):
+        period_start = (
+            subscription.current_period_start
+            or subscription.starts_at
+            or subscription.current_period_end
+        )
+        period_end = subscription.current_period_end
+        reference = _period_reference(subscription, period_start, period_end)
+        # tenant-isolation-allow: billing_account FK already school-scoped (reviewed 2026-05-14)
+        if not PlatformLedgerEntry.objects.filter(
+            billing_account=account,
+            reference=reference,
+            status=PlatformLedgerEntry.Status.POSTED,
+        ).exists():
+            gross_amount = _subscription_amount(subscription)
+            terms = preview_subscription_commercial_terms(
+                subscription, gross_amount=gross_amount, as_of=as_of
+            )
+            amount = terms["gross_amount"]
+            if amount > 0:
+                record_platform_charge(
+                    school=school,
+                    amount=amount,
+                    description=f"Platform subscription renewal {period_start:%Y-%m-%d} to {period_end:%Y-%m-%d}",
+                    reference=reference,
+                    source="billing_lifecycle",
+                    metadata={
+                        "period_start": period_start.isoformat(),
+                        "period_end": period_end.isoformat(),
+                        "commercial_terms": _json_safe(terms),
+                    },
+                )
+                summary["charges_created"] += 1
+                for applied in terms["applied_grants"]:
+                    credit_ref = f"{reference}-GRANT-{applied['grant_id']}"
+                    record_platform_charge(
+                        school=school,
+                        amount=applied["amount"],
+                        entry_type=PlatformLedgerEntry.EntryType.CREDIT,
+                        description=(
+                            "Subscription commercial grant "
+                            f"({applied['grant_type']})"
+                        ),
+                        reference=credit_ref,
+                        source="billing_lifecycle_grant",
+                        source_ref=str(applied["grant_id"]),
+                        metadata={
+                            "period_start": period_start.isoformat(),
+                            "period_end": period_end.isoformat(),
+                            "grant": _json_safe(applied),
+                        },
+                    )
+                    summary["credits_created"] += 1
+                if terms["discount_amount"] > 0 or terms["waiver_amount"] > 0:
+                    summary["discount_amount"] = _money(
+                        summary["discount_amount"] + terms["discount_amount"]
+                    )
+                    summary["waiver_amount"] = _money(
+                        summary["waiver_amount"] + terms["waiver_amount"]
+                    )
+                    mark_subscription_grants_applied(
+                        subscription, terms["applied_grants"]
+                    )
+                # Tax on top of the net (post-discount) amount, per the
+                # tenant country's configured tax behavior. EXCLUSIVE markets
+                # get a dedicated tax ledger line; INCLUSIVE / REVERSE_CHARGE
+                # / MANUAL markets are intentionally left untaxed here. Posted
+                # inside the idempotency guard so it bills exactly once.
+                tax = resolve_charge_tax(school, terms["net_amount"])
+                if tax["tax_amount"] > 0:
+                    record_platform_charge(
+                        school=school,
+                        amount=tax["tax_amount"],
+                        description=(
+                            "Platform subscription tax "
+                            f"{period_start:%Y-%m-%d} to {period_end:%Y-%m-%d}"
+                        ),
+                        reference=f"{reference}-TAX",
+                        source="billing_lifecycle_tax",
+                        metadata={
+                            "period_start": period_start.isoformat(),
+                            "period_end": period_end.isoformat(),
+                            "line_type": "tax",
+                            "taxable_amount": str(terms["net_amount"]),
+                            "tax": _json_safe(tax),
+                        },
+                    )
+                    summary["tax_charges_created"] += 1
+                    summary["tax_amount"] = _money(
+                        summary["tax_amount"] + tax["tax_amount"]
+                    )
+                # Issue the numbered per-period invoice that documents this
+                # period's charge + discounts + tax. Idempotent on the charge
+                # reference, so a re-run never double-issues.
+                issue_platform_invoice(
+                    school=school,
+                    billing_account=account,
+                    reference_stem=reference,
+                    period_start=period_start,
+                    period_end=period_end,
+                    subtotal=terms["gross_amount"],
+                    discount_amount=_money(
+                        terms["discount_amount"] + terms["waiver_amount"]
+                    ),
+                    tax_amount=tax["tax_amount"],
+                    total=_money(terms["net_amount"] + tax["tax_amount"]),
+                    currency_code=account.currency_code,
+                    issued_at=as_of,
+                )
+                summary["invoices_issued"] = summary.get("invoices_issued", 0) + 1
+        subscription.last_invoiced_at = as_of
+        subscription.current_period_start = period_end
+        subscription.current_period_end = period_end + cycle_delta
+        subscription_changed.extend(
+            ["last_invoiced_at", "current_period_start", "current_period_end"]
+        )
+        summary["renewed"] += 1
+
+    balance = _current_balance_for_account(account)
+    overdue_threshold = due_anchor + timedelta(days=grace_days)
+    suspension_threshold = overdue_threshold + timedelta(
+        days=max(suspension_days - grace_days, 0)
+    )
+
+    if balance > 0 and as_of >= overdue_threshold:
+        if account.delinquent_since is None:
+            account.delinquent_since = overdue_threshold
+            account_changed.append("delinquent_since")
+        if as_of >= suspension_threshold:
+            if subscription.status != TenantSubscription.Status.SUSPENDED:
+                subscription.status = TenantSubscription.Status.SUSPENDED
+                subscription_changed.append("status")
+                summary["suspended"] += 1
+        elif subscription.status not in {
+            TenantSubscription.Status.PAST_DUE,
+            TenantSubscription.Status.SUSPENDED,
+        }:
+            subscription.status = TenantSubscription.Status.PAST_DUE
+            subscription_changed.append("status")
+            summary["past_due"] += 1
+    elif balance <= 0:
+        target_status = (
+            TenantSubscription.Status.TRIALING
+            if school.billing_type == school.BillingType.FREE_TRIAL
+            and subscription.trial_end_date
+            and subscription.trial_end_date >= as_of.date()
+            else TenantSubscription.Status.ACTIVE
+        )
+        if subscription.status in {
+            TenantSubscription.Status.PAST_DUE,
+            TenantSubscription.Status.SUSPENDED,
+        }:
+            subscription.status = target_status
+            subscription_changed.append("status")
+            summary["restored"] += 1
+        if account.delinquent_since is not None:
+            account.delinquent_since = None
+            account_changed.append("delinquent_since")
+
+    if account_changed:
+        account.save(update_fields=account_changed + ["updated_at"])
+    if subscription_changed:
+        subscription.save(
+            update_fields=list(dict.fromkeys(subscription_changed + ["updated_at"]))
+        )
+    reconcile_subscription_entitlements(subscription, as_of=as_of)
+    sync_billing_incident_state(subscription)
+
+
+def _run_billing_lifecycle_sweep(summary, *, as_of, grace_days, suspension_days):
+    """Iterate active subscriptions and advance each one's billing state.
+
+    Split out of ``run_platform_billing_lifecycle`` so each subscription runs in
+    its OWN ``try/except`` — one tenant's unexpected failure is logged and skipped
+    instead of aborting the rest of the nightly sweep (the next daily run, or the
+    dead-man's-switch recovery, retries it; every post is idempotent). ``summary``
+    is mutated in place.
+    """
+    subscriptions = list(
+        TenantSubscription.objects.select_related(
+            "school", "billing_account", "plan"
+        ).filter(
+            status__in=[
+                TenantSubscription.Status.TRIALING,
+                TenantSubscription.Status.ACTIVE,
+                TenantSubscription.Status.PAST_DUE,
+                TenantSubscription.Status.SUSPENDED,
+            ]
+        )
+    )
+    for subscription in subscriptions:
+        try:
+            _advance_subscription_billing(
+                subscription,
+                summary,
+                as_of=as_of,
+                grace_days=grace_days,
+                suspension_days=suspension_days,
+            )
+        except Exception:  # noqa: BLE001 — one tenant must never abort the whole sweep
+            logger.exception(
+                "billing lifecycle failed for subscription %s; continuing",
+                getattr(subscription, "pk", None),
+            )
+            continue
+
+
 def run_platform_billing_lifecycle(
     *,
     as_of: datetime | None = None,
@@ -1794,216 +2052,33 @@ def run_platform_billing_lifecycle(
         "suspended": 0,
         "restored": 0,
     }
-    subscriptions = list(
-        TenantSubscription.objects.select_related(
-            "school", "billing_account", "plan"
-        ).filter(
-            status__in=[
-                TenantSubscription.Status.TRIALING,
-                TenantSubscription.Status.ACTIVE,
-                TenantSubscription.Status.PAST_DUE,
-                TenantSubscription.Status.SUSPENDED,
-            ]
+    # Fleet-wide single-flight: serialize ANY concurrent invocation (scheduler vs a
+    # raw manage.py/run_billing_cron run) so renewal idempotency can't be raced.
+    lifecycle_lock_held = False
+    cache_available = True
+    try:
+        lifecycle_lock_held = bool(
+            cache.add(_LIFECYCLE_LOCK_KEY, "1", _LIFECYCLE_LOCK_TTL_SECONDS)
         )
-    )
-    for subscription in subscriptions:
-        school = subscription.school
-        account = subscription.billing_account
-        subscription_changed = []
-        account_changed = []
-        cycle_delta = _cycle_delta(subscription.billing_cycle)
-        due_anchor = (
-            subscription.current_period_end
-            or subscription.current_period_start
-            or as_of
+    except Exception:  # noqa: BLE001 - cache down: fail OPEN (prior behavior), never stop billing
+        cache_available = False
+        logger.debug("billing lifecycle lock add failed; proceeding unlocked", exc_info=True)
+    if cache_available and not lifecycle_lock_held:
+        logger.info("billing lifecycle already in progress elsewhere; skipping this invocation")
+        summary["skipped"] = "already_running"
+        summary["discount_amount"] = str(_money(summary["discount_amount"]))
+        summary["waiver_amount"] = str(_money(summary["waiver_amount"]))
+        return summary
+    try:
+        _run_billing_lifecycle_sweep(
+            summary, as_of=as_of, grace_days=grace_days, suspension_days=suspension_days
         )
-
-        expired_trial = (
-            subscription.trial_end_date and subscription.trial_end_date < as_of.date()
-        )
-        if expired_trial and (
-            school.billing_type == school.BillingType.FREE_TRIAL
-            or subscription.status == TenantSubscription.Status.TRIALING
-        ):
-            if school.billing_type == school.BillingType.FREE_TRIAL:
-                school.billing_type = school.BillingType.REGULAR
-                school.save(update_fields=["billing_type", "updated_at"])
-            if subscription.status == TenantSubscription.Status.TRIALING:
-                subscription.status = TenantSubscription.Status.ACTIVE
-                subscription_changed.append("status")
-            summary["trial_converted"] += 1
-
-        if (
-            cycle_delta
-            and subscription.current_period_end
-            and subscription.current_period_end <= as_of
-        ):
-            period_start = (
-                subscription.current_period_start
-                or subscription.starts_at
-                or subscription.current_period_end
-            )
-            period_end = subscription.current_period_end
-            reference = _period_reference(subscription, period_start, period_end)
-            # tenant-isolation-allow: billing_account FK already school-scoped (reviewed 2026-05-14)
-            if not PlatformLedgerEntry.objects.filter(
-                billing_account=account,
-                reference=reference,
-                status=PlatformLedgerEntry.Status.POSTED,
-            ).exists():
-                gross_amount = _subscription_amount(subscription)
-                terms = preview_subscription_commercial_terms(
-                    subscription, gross_amount=gross_amount, as_of=as_of
-                )
-                amount = terms["gross_amount"]
-                if amount > 0:
-                    record_platform_charge(
-                        school=school,
-                        amount=amount,
-                        description=f"Platform subscription renewal {period_start:%Y-%m-%d} to {period_end:%Y-%m-%d}",
-                        reference=reference,
-                        source="billing_lifecycle",
-                        metadata={
-                            "period_start": period_start.isoformat(),
-                            "period_end": period_end.isoformat(),
-                            "commercial_terms": _json_safe(terms),
-                        },
-                    )
-                    summary["charges_created"] += 1
-                    for applied in terms["applied_grants"]:
-                        credit_ref = f"{reference}-GRANT-{applied['grant_id']}"
-                        record_platform_charge(
-                            school=school,
-                            amount=applied["amount"],
-                            entry_type=PlatformLedgerEntry.EntryType.CREDIT,
-                            description=(
-                                "Subscription commercial grant "
-                                f"({applied['grant_type']})"
-                            ),
-                            reference=credit_ref,
-                            source="billing_lifecycle_grant",
-                            source_ref=str(applied["grant_id"]),
-                            metadata={
-                                "period_start": period_start.isoformat(),
-                                "period_end": period_end.isoformat(),
-                                "grant": _json_safe(applied),
-                            },
-                        )
-                        summary["credits_created"] += 1
-                    if terms["discount_amount"] > 0 or terms["waiver_amount"] > 0:
-                        summary["discount_amount"] = _money(
-                            summary["discount_amount"] + terms["discount_amount"]
-                        )
-                        summary["waiver_amount"] = _money(
-                            summary["waiver_amount"] + terms["waiver_amount"]
-                        )
-                        mark_subscription_grants_applied(
-                            subscription, terms["applied_grants"]
-                        )
-                    # Tax on top of the net (post-discount) amount, per the
-                    # tenant country's configured tax behavior. EXCLUSIVE markets
-                    # get a dedicated tax ledger line; INCLUSIVE / REVERSE_CHARGE
-                    # / MANUAL markets are intentionally left untaxed here. Posted
-                    # inside the idempotency guard so it bills exactly once.
-                    tax = resolve_charge_tax(school, terms["net_amount"])
-                    if tax["tax_amount"] > 0:
-                        record_platform_charge(
-                            school=school,
-                            amount=tax["tax_amount"],
-                            description=(
-                                "Platform subscription tax "
-                                f"{period_start:%Y-%m-%d} to {period_end:%Y-%m-%d}"
-                            ),
-                            reference=f"{reference}-TAX",
-                            source="billing_lifecycle_tax",
-                            metadata={
-                                "period_start": period_start.isoformat(),
-                                "period_end": period_end.isoformat(),
-                                "line_type": "tax",
-                                "taxable_amount": str(terms["net_amount"]),
-                                "tax": _json_safe(tax),
-                            },
-                        )
-                        summary["tax_charges_created"] += 1
-                        summary["tax_amount"] = _money(
-                            summary["tax_amount"] + tax["tax_amount"]
-                        )
-                    # Issue the numbered per-period invoice that documents this
-                    # period's charge + discounts + tax. Idempotent on the charge
-                    # reference, so a re-run never double-issues.
-                    issue_platform_invoice(
-                        school=school,
-                        billing_account=account,
-                        reference_stem=reference,
-                        period_start=period_start,
-                        period_end=period_end,
-                        subtotal=terms["gross_amount"],
-                        discount_amount=_money(
-                            terms["discount_amount"] + terms["waiver_amount"]
-                        ),
-                        tax_amount=tax["tax_amount"],
-                        total=_money(terms["net_amount"] + tax["tax_amount"]),
-                        currency_code=account.currency_code,
-                        issued_at=as_of,
-                    )
-                    summary["invoices_issued"] = summary.get("invoices_issued", 0) + 1
-            subscription.last_invoiced_at = as_of
-            subscription.current_period_start = period_end
-            subscription.current_period_end = period_end + cycle_delta
-            subscription_changed.extend(
-                ["last_invoiced_at", "current_period_start", "current_period_end"]
-            )
-            summary["renewed"] += 1
-
-        balance = _current_balance_for_account(account)
-        overdue_threshold = due_anchor + timedelta(days=grace_days)
-        suspension_threshold = overdue_threshold + timedelta(
-            days=max(suspension_days - grace_days, 0)
-        )
-
-        if balance > 0 and as_of >= overdue_threshold:
-            if account.delinquent_since is None:
-                account.delinquent_since = overdue_threshold
-                account_changed.append("delinquent_since")
-            if as_of >= suspension_threshold:
-                if subscription.status != TenantSubscription.Status.SUSPENDED:
-                    subscription.status = TenantSubscription.Status.SUSPENDED
-                    subscription_changed.append("status")
-                    summary["suspended"] += 1
-            elif subscription.status not in {
-                TenantSubscription.Status.PAST_DUE,
-                TenantSubscription.Status.SUSPENDED,
-            }:
-                subscription.status = TenantSubscription.Status.PAST_DUE
-                subscription_changed.append("status")
-                summary["past_due"] += 1
-        elif balance <= 0:
-            target_status = (
-                TenantSubscription.Status.TRIALING
-                if school.billing_type == school.BillingType.FREE_TRIAL
-                and subscription.trial_end_date
-                and subscription.trial_end_date >= as_of.date()
-                else TenantSubscription.Status.ACTIVE
-            )
-            if subscription.status in {
-                TenantSubscription.Status.PAST_DUE,
-                TenantSubscription.Status.SUSPENDED,
-            }:
-                subscription.status = target_status
-                subscription_changed.append("status")
-                summary["restored"] += 1
-            if account.delinquent_since is not None:
-                account.delinquent_since = None
-                account_changed.append("delinquent_since")
-
-        if account_changed:
-            account.save(update_fields=account_changed + ["updated_at"])
-        if subscription_changed:
-            subscription.save(
-                update_fields=list(dict.fromkeys(subscription_changed + ["updated_at"]))
-            )
-        reconcile_subscription_entitlements(subscription, as_of=as_of)
-        sync_billing_incident_state(subscription)
+    finally:
+        if lifecycle_lock_held:
+            try:
+                cache.delete(_LIFECYCLE_LOCK_KEY)
+            except Exception:  # noqa: BLE001
+                logger.debug("billing lifecycle lock release failed", exc_info=True)
 
     summary["discount_amount"] = str(_money(summary["discount_amount"]))
     summary["waiver_amount"] = str(_money(summary["waiver_amount"]))
