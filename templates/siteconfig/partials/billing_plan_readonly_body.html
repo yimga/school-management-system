@@ -271,7 +271,10 @@
         </table>
       </div>
     </div>
-    <div class="card-footer small text-muted">{% trans "Showing your most recent platform billing entries. Each renewal posts the subscription charge, any commercial credits, and tax as separate lines." %}</div>
+    <div class="card-footer small d-flex flex-wrap gap-2 align-items-center justify-content-between">
+      <span class="text-muted">{% trans "Showing your most recent platform billing entries. Each renewal posts the subscription charge, any commercial credits, and tax as separate lines." %}</span>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:billing_statement_pdf' %}">{% trans "Download statement (PDF)" %}</a>
+    </div>
   </div>
   {% endif %}
 

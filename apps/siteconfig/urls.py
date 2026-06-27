@@ -135,7 +135,7 @@ from .views_compliance_exports import (
 from .views_northstar_ai import northstar_ai_draft_api
 from .views_ai_governance import ai_governance
 from .views_ai_center import ai_center
-from .views_billing_plan import billing_plan_readonly
+from .views_billing_plan import billing_plan_readonly, billing_statement_pdf
 from .views_billing_stripe import billing_checkout_start, billing_customer_portal
 from .views_billing_stripe_connect import (
     billing_stripe_connect,
@@ -259,6 +259,11 @@ urlpatterns = [
         "billing/plan/",
         billing_plan_readonly,
         name="billing_plan_readonly",
+    ),
+    path(
+        "billing/statement.pdf",
+        billing_statement_pdf,
+        name="billing_statement_pdf",
     ),
     path(
         "billing/checkout/start/",

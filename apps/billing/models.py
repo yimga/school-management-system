@@ -695,7 +695,10 @@ class StripePlanPrice(models.Model):
 
     class BillingCycle(models.TextChoices):
         MONTHLY = "MONTHLY", "Monthly"
+        SEMESTER = "SEMESTER", "Per semester"
+        SCHOOL_YEAR = "SCHOOL_YEAR", "Per school year"
         ANNUAL = "ANNUAL", "Annual"
+        MULTI_YEAR = "MULTI_YEAR", "Multi-year"
 
     plan_code = models.SlugField(
         max_length=80,

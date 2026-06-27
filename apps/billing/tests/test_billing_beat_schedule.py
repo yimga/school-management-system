@@ -43,6 +43,21 @@ class BillingBeatScheduleTests(SimpleTestCase):
             "apps.billing.materialize_holding_currency_rollups",
         )
 
+    def test_schedule_has_renewal_reminder_entry(self):
+        sched = get_billing_beat_schedule()
+        self.assertIn("platform-renewal-reminders-daily", sched)
+        self.assertEqual(
+            sched["platform-renewal-reminders-daily"]["task"],
+            "apps.billing.run_subscription_renewal_reminders",
+        )
+
+    @mock.patch.dict("os.environ", {"RMC_RENEWAL_REMINDER_BEAT_DISABLED": "1"})
+    def test_renewal_reminder_entry_env_disablable(self):
+        sched = get_billing_beat_schedule()
+        self.assertNotIn("platform-renewal-reminders-daily", sched)
+        # The lifecycle entry is unaffected by the reminder-specific disable flag.
+        self.assertIn("platform-billing-lifecycle-daily", sched)
+
     def test_install_adds_entry(self):
         app = _FakeApp()
         installed = install_billing_beat_schedule(app)

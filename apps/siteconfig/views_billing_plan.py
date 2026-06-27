@@ -218,3 +218,78 @@ def billing_plan_readonly(request: HttpRequest) -> HttpResponse:
             operator_cp_breadcrumb(_("Billing plan"), active=True),
         ),
     )
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["GET"])
+def billing_statement_pdf(request: HttpRequest) -> HttpResponse:
+    """Downloadable platform billing statement (the school's posted ledger as a
+    branded PDF document). Reuses the platform's WeasyPrint convention with a
+    graceful 503 when the renderer is unavailable. Amounts carry their stored ISO
+    currency code so a mixed-currency history reads unambiguously.
+    """
+    from django.utils import timezone
+    from django.utils.html import escape
+
+    school = getattr(request, "school", None)
+    if school is None:
+        return HttpResponse(_("No school in context."), status=404)
+
+    entries = list(
+        PlatformLedgerEntry.objects.filter(school=school).order_by(
+            "-happened_at", "-id"
+        )[:200]  # magic-number-allow: statement-row-cap
+    )
+
+    try:
+        from weasyprint import HTML
+    except (ImportError, OSError):
+        # ImportError: package absent. OSError: package present but native
+        # libs (cairo/pango/GLib) unavailable — both mean "renderer offline".
+        return HttpResponse(_("PDF export requires WeasyPrint."), status=503)
+
+    def _fmt(entry) -> str:
+        code = escape((entry.currency_code or "").strip())
+        sign = "-" if entry.entry_type == PlatformLedgerEntry.EntryType.CREDIT else ""
+        return f"{code} {sign}{entry.amount}".strip()
+
+    rows_html = "".join(
+        f"<tr><td>{escape(e.happened_at.strftime('%Y-%m-%d') if e.happened_at else '')}</td>"
+        f"<td>{escape(e.description or e.reference or '')}</td>"
+        f"<td>{escape(e.get_entry_type_display())}</td>"
+        f"<td class='amt'>{_fmt(e)}</td></tr>"
+        for e in entries
+    )
+    if not rows_html:
+        rows_html = (
+            f"<tr><td colspan='4'>{escape(str(_('No billing entries yet.')))}</td></tr>"
+        )
+
+    school_name = escape(getattr(school, "name", "") or "")
+    title = escape(str(_("Billing statement")))
+    generated = escape(timezone.now().strftime("%Y-%m-%d %H:%M UTC"))
+    bill_to = escape(str(_("Account")))
+    gen_label = escape(str(_("Generated")))
+    th_date = escape(str(_("Date")))
+    th_desc = escape(str(_("Description")))
+    th_type = escape(str(_("Type")))
+    th_amt = escape(str(_("Amount")))
+
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><title>{title}</title>
+<style>body{{font-family:system-ui,sans-serif;font-size:10pt;margin:14mm;color:#1a1a2e;}}
+h1{{font-size:16pt;margin:0 0 2px;}} .muted{{color:#555;font-size:9pt;}}
+table{{width:100%;border-collapse:collapse;margin-top:14px;}}
+th,td{{border:1px solid #ddd;padding:6px 8px;text-align:left;}}
+th{{background:#f5f5f5;}} td.amt,th.amt{{text-align:right;white-space:nowrap;}}
+.header{{margin-bottom:10px;border-bottom:2px solid #1a1a2e;padding-bottom:8px;}}</style></head>
+<body><div class="header"><h1>{title}</h1>
+<div class="muted">{bill_to}: {school_name}</div>
+<div class="muted">{gen_label}: {generated}</div></div>
+<table><thead><tr><th>{th_date}</th><th>{th_desc}</th><th>{th_type}</th><th class="amt">{th_amt}</th></tr></thead>
+<tbody>{rows_html}</tbody></table></body></html>"""
+
+    pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+    resp = HttpResponse(pdf, content_type="application/pdf")
+    resp["Content-Disposition"] = 'attachment; filename="billing_statement.pdf"'
+    return resp

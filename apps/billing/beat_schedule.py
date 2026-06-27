@@ -10,6 +10,7 @@ runtimes/tests don't fail at import), idempotent install (operator-defined keys
 are preserved), and a per-entry env disable flag.
 
 * ``RMC_PLATFORM_BILLING_BEAT_DISABLED=1`` — skip the daily lifecycle sweep.
+* ``RMC_RENEWAL_REMINDER_BEAT_DISABLED=1`` — skip the daily renewal-reminder sweep.
 """
 
 from __future__ import annotations
@@ -36,7 +37,7 @@ def get_billing_beat_schedule() -> dict[str, dict[str, Any]]:
     if _env_bool("RMC_PLATFORM_BILLING_BEAT_DISABLED"):
         return {}
 
-    return {
+    schedule = {
         "platform-billing-lifecycle-daily": {
             "task": "apps.billing.run_platform_billing_lifecycle",
             # Daily 01:15 UTC — ahead of the 02:30/03:00/03:30/04:00 ops cluster
@@ -51,6 +52,15 @@ def get_billing_beat_schedule() -> dict[str, dict[str, Any]]:
             "options": {"expires": 3600},  # magic-number-allow: celery-task-expiry-seconds
         },
     }
+    if not _env_bool("RMC_RENEWAL_REMINDER_BEAT_DISABLED"):
+        schedule["platform-renewal-reminders-daily"] = {
+            "task": "apps.billing.run_subscription_renewal_reminders",
+            # Daily 06:00 UTC — after the lifecycle sweep, so reminders reflect the
+            # freshest period boundaries.
+            "schedule": crontab(hour=6, minute=0),
+            "options": {"expires": 3600},  # magic-number-allow: celery-task-expiry-seconds
+        }
+    return schedule
 
 
 def install_billing_beat_schedule(app, *, override: bool = False) -> dict[str, dict[str, Any]]:
