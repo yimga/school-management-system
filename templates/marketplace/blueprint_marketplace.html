@@ -50,6 +50,10 @@
     {% include "marketplace/partials/marketplace_hub_links.html" %}
   </section>
 
+  {% comment %} v4.05.x two-pane: catalog (wide) + context rail fills the right gutter;
+     the width-hungry rollback form stays full-width below the row. {% endcomment %}
+  <div class="row g-3">
+  <div class="col-12 col-xl-8">
   <section id="bp-catalog" data-rmc-section-anchor class="cp-panel rmc-reveal mb-4">
     <div class="cp-panel-header">
       <span class="cp-panel-eyebrow">{% trans "Catalog" %}</span>
@@ -104,6 +108,16 @@
     {% endif %}
     {% include "components/pagination.html" %}
   </section>
+  </div>
+  <aside class="col-12 col-xl-4">
+  <section id="bp-guide" data-rmc-section-anchor class="rmc-cp-compact__guide cp-panel rmc-reveal">
+    <details open>
+      <summary>{% trans "About blueprint packs" %}</summary>
+      <p class="small text-muted mb-0 mt-2">{% trans "Each pack defines a policy_snapshot. Applying creates a PolicyBundle and sets TenantBlueprint.active_bundle. Preview before Apply; use Rollback to restore a prior bundle." %}</p>
+    </details>
+  </section>
+  </aside>
+  </div>
 
   <section id="bp-rollback" data-rmc-section-anchor class="rmc-reveal mb-3">
     <details class="studio-os__card studio-os__card--disclosure px-3 py-2" open>
@@ -144,12 +158,6 @@
     </details>
   </section>
 
-  <section id="bp-guide" data-rmc-section-anchor class="rmc-cp-compact__guide rmc-reveal">
-    <details>
-      <summary>{% trans "About blueprint packs" %}</summary>
-      <p class="small text-muted mb-0 mt-2">{% trans "Each pack defines a policy_snapshot. Applying creates a PolicyBundle and sets TenantBlueprint.active_bundle. Preview before Apply; use Rollback to restore a prior bundle." %}</p>
-    </details>
-  </section>
 </div>
 <script src="{% static 'js/_pages/marketplace__blueprint_marketplace.js' %}"></script>
 {% endblock %}
