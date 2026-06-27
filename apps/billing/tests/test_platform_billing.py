@@ -1125,3 +1125,14 @@ class PlatformInvoiceTests(TestCase):
         # Idempotent: a second run issues nothing new.
         again = backfill_platform_invoices()
         self.assertEqual(again["issued"], 0)
+
+
+class BillingCronCommandTests(TestCase):
+    def test_run_billing_cron_executes_all_passes(self):
+        from io import StringIO
+
+        out = StringIO()
+        # No subscriptions armed -> every pass is a clean no-op, proving the single
+        # entrypoint wires the lifecycle + both reminder sweeps without error.
+        call_command("run_billing_cron", stdout=out)
+        self.assertIn("Billing cron summary", out.getvalue())
