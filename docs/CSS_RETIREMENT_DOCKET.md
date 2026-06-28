@@ -1,6 +1,23 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-27 (Tenant-wide UI/UX elevation program P0–P6 + seating-chart graduation; see § below. Prior: 2026-06-26 width-to-width primitives + Ask-AI dock fallback.)
+**Last updated:** 2026-06-28 (Tenant UX program Wave 2 — perf memos + page-aware contract + studio-rail icons + gap analysis; see § below. Prior: 2026-06-27 Tenant-wide UI/UX elevation P0–P6 + seating-chart graduation.)
+
+## 2026-06-28 — Tenant UX program Wave 2 (deferred-item closeout + gap analysis)
+
+**Context:** owner approved shipping all four deferred items from the P0–P6 program (perf caching, page-awareness wiring, dashboard polish, asset bundling) plus a gap-analysis sweep. Audit-first re-verification found several "gaps" were already handled or unsafe to do blind — those are documented as no-ops rather than forced. 4 FF commits (`68caeddc1`, `fd82e672c`, `40946ae78`) over 4 more live peer commits (all migration_cloud/finance/cockpit — no overlap; clean autostash-rebase each). SW `v4.05.83`→`v4.05.84`. Zero migrations. All gates green incl. `scan_color_contrast` 0 and the 4 runtime reference gates.
+
+**REDIS (perf #1) — VERIFIED, my overnight "probably LocMem" guess was wrong:** `render.yaml` provisions a Valkey Key-Value (`school-management-redis`) and wires `REDIS_URL` into web + the (enabled) worker + beat services, so cache+sessions are Redis-backed in prod and tasks have a drainer. Only caveat: the Valkey is `plan: free` (small; can evict under pressure → confirm healthy in the Render dashboard). So the durable latency lever is code/front-end, not the cache backend. (The line-2 header comment "Worker + Beat … COMMENTED OUT" is stale — the worker services at render.yaml:251/332 are uncommented.)
+
+**Shipped:**
+- **W2-1 perf** (`68caeddc1`): request-scoped memos (zero staleness, zero cross-user leak) — `_get_portal_sidebar_items` memoized on `request._rmc_sidebar_items_cache` (module `_SENTINEL` distinguishes a memoized empty list); the identical all-unread `FinanceNotification` COUNT run by BOTH siteconfig + accounts context processors now shares `request._rmc_unread_notif_count`. Honest scope: the expensive sidebar BADGE queries are already cached 60s + `get_effective_flags` is cached, so with Redis healthy the Python side is largely warm — these mainly help multi-render requests.
+- **W2-2 page-awareness** (`fd82e672c`): the copilot is ALREADY route-aware on the backend (`ai_copilot_query` feeds `build_ai_surface_context(request).current_path` into the prompt + route-scoped RBAC `active_url=`). Completed the CLIENT contract — the copilot fetch sends the `<body>` page-identity (`page_url_name`/`page_namespace`/`page_path`) as additive JSON; no new invoke/gateway import so AI gates unaffected.
+- **W2-5 studio-rail icons** (`40946ae78`): the studio_os mode rail was the one tenant nav still text-only (scroll already present); added glyph + colorful per-mode `--chart-color` accent to the 6 mode links, styled in `manager-aesthetic-polish.css` (correct `#cp-main-content` specificity).
+
+**Verified already-handled / no-op (audit claims were stale):**
+- **W2-3 dashboard polish:** the `.rmc-dh-*` grids are ALREADY responsive auto-fill/auto-fit (`rmc-tenant-dashboard-100x.css:98/294/295/572`) and `.rmc-dh-cards--wide` IS defined — so with P4 (full-width + compact density) dashboards already fill. No risky page-horizon restructuring needed.
+- **W2-4 asset bundling:** the head render-blocking scripts are FOUC/gate-locked (`rmc-reveal`/`theme-preference-bootstrap` — `scan_reveal_armed_invariants` forbids deferring); the rest are body-end (already deferred); the "duplicate" CSS for design-tokens/inter/bootstrap are intentional `preload` hints + the stylesheet (the correct critical-CSS pattern), NOT redundant loads. Real bundling needs a build pipeline (django-compressor offline) + deploy test — a reviewed change, not a blind one.
+
+**Deferred (needs owner IA input):** the "Admin Panel" 18-item sidebar grab-bag split into Configuration / Access & Roles / Integrations. The `"section": "Admin Panel"` literals are scattered across ~20 sites (`portal_sidebar_items.py:1054–1540`); splitting is low breakage risk (just relabels the heading + add the new names to `PORTAL_CONFIG_SECTIONS`) but *which item → which bucket* is an IA decision best validated visually, so left for owner sign-off rather than a blind 20-item guess.
 
 ## 2026-06-27 — Tenant-wide UI/UX elevation program (P0–P6 + seating chart) — audit-first, autonomous
 
