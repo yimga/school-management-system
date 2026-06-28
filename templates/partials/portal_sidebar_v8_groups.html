@@ -5,8 +5,10 @@ Config-driven PORTAL_SIDEBAR_ITEMS grouped by section with collapsible <details>
 {% endcomment %}
 {% regroup PORTAL_SIDEBAR_ITEMS by section as section_groups %}
 {% for group in section_groups %}
-<details class="cp-sidebar__group cp-sidebar__group--tenant{% if forloop.first %} cp-sidebar__group--expanded{% endif %}"
-         {% if forloop.first %}open{% endif %}
+{% cycle '1' '2' '3' '4' '5' '6' as navaccent silent %}
+<details class="cp-sidebar__group cp-sidebar__group--tenant{% if forloop.first or group.list.0.section_is_active %} cp-sidebar__group--expanded{% endif %}"
+         {% if forloop.first or group.list.0.section_is_active %}open{% endif %}
+         data-rmc-nav-accent="{{ navaccent }}"
          data-rmc-portal-sidebar-group="{{ group.grouper|default:'navigation'|slugify }}">
   <summary class="cp-sidebar__section cp-sidebar__group-toggle{% if forloop.first %} cp-sidebar__section--first{% endif %}">{{ group.grouper|default:_("Navigation") }}</summary>
   {% for item in group.list %}

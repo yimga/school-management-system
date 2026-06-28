@@ -183,6 +183,45 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-s
   color: #fff; /* off-token-allow: active-nav-contrast */
 }
 
+/* COLORFUL nav icons — each section group cycles a categorical accent (from the
+   existing theme-aware --chart-color palette, reusing it rather than forking a
+   new one) so the sidebar reads at a glance and submenus visually belong to
+   their section. The active item keeps its white-on-brand contrast, so accents
+   are excluded from the current row via :not(). Skips the alarm hues
+   (chart-5 warning / chart-6 danger) so a nav icon never reads as an error. */
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .cp-sidebar__group[data-rmc-nav-accent="1"] .cp-sidebar__item:not(.cp-sidebar__item--current):not([aria-current="page"]) .cp-nav-icon { color: var(--chart-color-1); }
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .cp-sidebar__group[data-rmc-nav-accent="2"] .cp-sidebar__item:not(.cp-sidebar__item--current):not([aria-current="page"]) .cp-nav-icon { color: var(--chart-color-2); }
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .cp-sidebar__group[data-rmc-nav-accent="3"] .cp-sidebar__item:not(.cp-sidebar__item--current):not([aria-current="page"]) .cp-nav-icon { color: var(--chart-color-3); }
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .cp-sidebar__group[data-rmc-nav-accent="4"] .cp-sidebar__item:not(.cp-sidebar__item--current):not([aria-current="page"]) .cp-nav-icon { color: var(--chart-color-4); }
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .cp-sidebar__group[data-rmc-nav-accent="5"] .cp-sidebar__item:not(.cp-sidebar__item--current):not([aria-current="page"]) .cp-nav-icon { color: var(--chart-color-7); }
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .cp-sidebar__group[data-rmc-nav-accent="6"] .cp-sidebar__item:not(.cp-sidebar__item--current):not([aria-current="page"]) .cp-nav-icon { color: var(--chart-color-8); }
+
+/* Submenu-as-list: a thin connector rail ties a section's indented items to
+   their parent summary so the group reads as a nested list (owner ask). */
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .cp-sidebar__group > .cp-sidebar__item {
+  position: relative;
+}
+html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .cp-sidebar__group[open] > .cp-sidebar__item::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--hairline);
+}
+
+/* Universal lg+ safety net: the tenant sidebar inner ALWAYS owns an internal
+   scroll track regardless of cp-scroll mode, so a long nav is never clipped on
+   any page. The per-mode rules already do this; this covers edge/legacy modes
+   (owner: "sidebars on all pages must be scrollable"). */
+@media (min-width: 992px) {
+  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col > .tp-sidebar-inner {
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
 html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .cp-sidebar__pin {
   opacity: 0;
   color: var(--text-secondary);

@@ -1626,6 +1626,35 @@ def build_portal_sidebar_items(request, site):
     for sec in section_order:
         items.extend(by_section.get(sec, []))
 
+    # Server-side active state. The template already reads item.is_current /
+    # section_is_active but nothing populated them, so on first paint no nav item
+    # was highlighted and the active section's group rendered collapsed (only the
+    # first group opened). Client JS refines this, but computing it server-side
+    # fixes the no-highlight / collapsed-active flash. Additive only; getattr with
+    # a default never raises, and an empty path leaves every flag falsy.
+    current_path = getattr(request, "path", "") or ""
+    if current_path:
+        exact = [it for it in items if it.get("url") == current_path]
+        if exact:
+            for it in exact:
+                it["is_current"] = True
+        else:
+            # No exact match (e.g. a detail page) -> the longest non-root URL
+            # prefix wins, so a child page highlights its section's nav item.
+            best = None
+            best_len = 0
+            for it in items:
+                url = it.get("url") or ""
+                if len(url) > 1 and current_path.startswith(url) and len(url) > best_len:
+                    best, best_len = it, len(url)
+            if best is not None:
+                best["is_current"] = True
+        active_sections = {
+            it.get("section") for it in items if it.get("is_current")
+        }
+        for it in items:
+            it["section_is_active"] = it.get("section") in active_sections
+
     return items
 
 
