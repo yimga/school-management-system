@@ -78,12 +78,12 @@
   <div class="studio-os">
     <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation" data-shell-sidebar="{{ rmc_shell.studio_os_sidebar_token|default:'studio-rail' }}" data-shell-sidebar-mount="rail" data-tour="studio-rail">
       <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>
-      <a href="{% url 'studio_os:shell' %}" class="{% if not current_mode %}active{% endif %}" {% if not current_mode %}aria-current="page"{% endif %}>{% trans "Overview" %}</a>
-      <a href="{% url 'studio_os:experience' %}" class="{% if current_mode == 'experience' %}active{% endif %}" {% if current_mode == 'experience' %}aria-current="page"{% endif %}>{% trans "Experience" %}</a>
-      <a href="{% url 'studio_os:automation' %}" class="{% if current_mode == 'automation' %}active{% endif %}" {% if current_mode == 'automation' %}aria-current="page"{% endif %}>{% trans "Automation" %}</a>
-      <a href="{% url 'studio_os:output' %}" class="{% if current_mode == 'output' %}active{% endif %}" {% if current_mode == 'output' %}aria-current="page"{% endif %}>{% trans "Outputs" %}</a>
-      <a href="{% url 'studio_os:launch' %}" class="{% if current_mode == 'launch' %}active{% endif %}" {% if current_mode == 'launch' %}aria-current="page"{% endif %}>{% trans "Launch" %}</a>
-      <a href="{% url 'studio_os:control' %}" class="{% if current_mode == 'control' %}active{% endif %}" {% if current_mode == 'control' %}aria-current="page"{% endif %}>{% trans "Control" %}</a>
+      <a href="{% url 'studio_os:shell' %}" data-rmc-nav-accent="1" class="{% if not current_mode %}active{% endif %}" {% if not current_mode %}aria-current="page"{% endif %}><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i> {% trans "Overview" %}</a>
+      <a href="{% url 'studio_os:experience' %}" data-rmc-nav-accent="2" class="{% if current_mode == 'experience' %}active{% endif %}" {% if current_mode == 'experience' %}aria-current="page"{% endif %}><i class="bi bi-stars" aria-hidden="true"></i> {% trans "Experience" %}</a>
+      <a href="{% url 'studio_os:automation' %}" data-rmc-nav-accent="3" class="{% if current_mode == 'automation' %}active{% endif %}" {% if current_mode == 'automation' %}aria-current="page"{% endif %}><i class="bi bi-diagram-3-fill" aria-hidden="true"></i> {% trans "Automation" %}</a>
+      <a href="{% url 'studio_os:output' %}" data-rmc-nav-accent="4" class="{% if current_mode == 'output' %}active{% endif %}" {% if current_mode == 'output' %}aria-current="page"{% endif %}><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> {% trans "Outputs" %}</a>
+      <a href="{% url 'studio_os:launch' %}" data-rmc-nav-accent="5" class="{% if current_mode == 'launch' %}active{% endif %}" {% if current_mode == 'launch' %}aria-current="page"{% endif %}><i class="bi bi-rocket-takeoff-fill" aria-hidden="true"></i> {% trans "Launch" %}</a>
+      <a href="{% url 'studio_os:control' %}" data-rmc-nav-accent="6" class="{% if current_mode == 'control' %}active{% endif %}" {% if current_mode == 'control' %}aria-current="page"{% endif %}><i class="bi bi-sliders" aria-hidden="true"></i> {% trans "Control" %}</a>
     </nav>
 
     <main class="studio-os__canvas rmc-shell-main" id="studio-canvas" role="main" tabindex="-1" data-rmc-shell-main="studio-os" data-tour="studio-canvas">

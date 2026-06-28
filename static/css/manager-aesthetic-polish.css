@@ -120,6 +120,28 @@ html[data-bs-theme="light"] #cp-main-content .card-header {
   transition: background 120ms ease, color 120ms ease;
 }
 
+/* Tenant UX gap-close (2026-06-28): studio mode rail was text-only. Give each
+   mode a glyph + a colorful per-mode accent (reusing the theme-aware
+   --chart-color palette like the portal sidebar). Active row keeps its on-brand
+   contrast (icon inherits the active text color). Token-only -> off-token clean. */
+#cp-main-content .studio-os__rail a {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+#cp-main-content .studio-os__rail a .bi {
+  font-size: 1rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+#cp-main-content .studio-os__rail a[data-rmc-nav-accent="1"] .bi { color: var(--chart-color-1); }
+#cp-main-content .studio-os__rail a[data-rmc-nav-accent="2"] .bi { color: var(--chart-color-2); }
+#cp-main-content .studio-os__rail a[data-rmc-nav-accent="3"] .bi { color: var(--chart-color-3); }
+#cp-main-content .studio-os__rail a[data-rmc-nav-accent="4"] .bi { color: var(--chart-color-4); }
+#cp-main-content .studio-os__rail a[data-rmc-nav-accent="5"] .bi { color: var(--chart-color-7); }
+#cp-main-content .studio-os__rail a[data-rmc-nav-accent="6"] .bi { color: var(--chart-color-8); }
+#cp-main-content .studio-os__rail a.active .bi { color: inherit; }
+
 #cp-main-content .studio-os__rail a:hover {
   background: rgba(79, 70, 229, 0.08); /* off-token-allow: indigo-accent-overlay */
   color: var(--color-gray-800);
