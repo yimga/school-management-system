@@ -476,6 +476,74 @@ body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(.
   overflow: visible;
 }
 
+/* v4.05.x — primary-nav "More ▾" dropdown panel + items (super AND admin shells).
+   The menu previously carried only Bootstrap `.dropdown-menu-dark` / `.dropdown-item`
+   (specificity 0,2,0), so the platform pill grammar never applied — items read as a
+   generic "workspace" list with drifting glyphs. These rules (body-shell scoped =
+   higher specificity, and loaded after Bootstrap) restore the platform look: a
+   panel that matches the pills, and each item as an aligned glyph + label with the
+   indigo brand accent. Applies to BOTH control-plane (/super/) and admin shells. */
+body.control-plane-shell .cp-primary-nav__more-menu,
+body.admin-manager-shell .cp-primary-nav__more-menu {
+  min-width: 232px;
+  padding: 6px;
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated, #0e1424);
+  box-shadow: var(--elev-3, 0 18px 50px rgba(0, 0, 0, 0.55));
+}
+
+body.control-plane-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item,
+body.admin-manager-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+body.control-plane-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item .cp-nav-pill__glyph,
+body.admin-manager-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item .cp-nav-pill__glyph,
+body.control-plane-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item .bi,
+body.admin-manager-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item .bi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--brand-primary);
+}
+
+body.control-plane-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item:hover,
+body.admin-manager-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item:hover,
+body.control-plane-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item:focus-visible,
+body.admin-manager-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item:focus-visible {
+  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 40%, var(--hairline));
+  color: var(--text-primary);
+}
+
+body.control-plane-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item--active,
+body.admin-manager-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item--active {
+  background: color-mix(in srgb, var(--brand-primary) 18%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 45%, transparent);
+}
+
+body.control-plane-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item--active .cp-nav-pill__glyph,
+body.admin-manager-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item--active .cp-nav-pill__glyph,
+body.control-plane-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item--active .bi,
+body.admin-manager-shell .cp-primary-nav__more-menu .cp-primary-nav__more-item--active .bi {
+  color: var(--text-primary);
+}
+
 body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-nav-row .cp-primary-nav {
   border-bottom: none;
 }

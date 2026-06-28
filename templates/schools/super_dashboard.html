@@ -111,6 +111,13 @@
 </div>
   </div>
   <div class="rmc-cp-landing-pane" data-rmc-cp-landing-pane="operations" hidden>
+{% comment %} Back to the globe mission. The mission/operations tabs live on the
+   globe crown, which is inside the (now hidden) mission pane — so this is the only
+   way back from the operations board. Reuses the existing
+   [data-rmc-cp-landing-tab] click handler (schools__super_dashboard-1.js). {% endcomment %}
+    <button type="button" class="rmc-cp-landing-back" data-rmc-cp-landing-tab="mission" aria-label="{% trans 'Back to globe mission' %}">
+      <span aria-hidden="true">&larr;</span> {% trans "Back to Globe mission" %}
+    </button>
 {% comment %} v3.58.x Wave 10 Agent S (2026-05-22): Trust pillars alerts feed — closes
    the v8 200x preview's alerts-feed gap (Audit chain integrity / MAA signatures
    / Encryption at rest / FERPA retention / Webhook signing / MFA enforcement /

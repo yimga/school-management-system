@@ -709,3 +709,104 @@
   font-size: 10px;
   color: var(--text-secondary);
 }
+
+/* =====================================================================
+   v4.05.x — operator-feedback fixes (globe command deck)
+   1) Stretch the deck body close to the outer sidebars (fill the gutters).
+   2) Suppress stray globe metric overlays that duplicated the rails near
+      the C·Caption corner.
+   3) Lift the left/right rail + void-zone typography to a readable size
+      (the 7–10px rail text was too small to read).
+   4) Back-to-Globe-mission control for the Operations board pane.
+   ===================================================================== */
+
+/* (1) WIDTH — pull the deck out to ~full canvas width on the globe landing.
+   --rmc-shell-pad-x is already small; this trims the layout + wrapper chain so
+   the frame reaches the app sidebars instead of floating with side gutters. */
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] {
+  max-width: none;
+  padding-left: clamp(6px, 0.5vw, 12px);
+  padding-right: clamp(6px, 0.5vw, 12px);
+}
+.cp-layout[data-rmc-cp-globe-deck-v2="1"] .rmc-cp-landing-mode,
+.cp-layout[data-rmc-cp-globe-deck-v2="1"] .rmc-cp-landing-pane[data-rmc-cp-landing-pane="mission"],
+.cp-layout[data-rmc-cp-globe-deck-v2="1"] .rmc-cp-200x-landing {
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+/* (2) STRAY METRICS — re-assert the deck's intent via the LAYOUT attribute (not
+   only the lab class), so the duplicate "schools live" count + dock/band/orbit
+   overlays can't bleed over the globe near C·Caption. The count lives in the
+   Platform pulse + the right-rail ring. */
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] .lx-world__hero-metric,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] .lx-world__void-band,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] .lx-world__glass-dock,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] .lx-world__glass-dock--stacked,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] .lx-world__orbit-chip,
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] .lx-world__day-arc {
+  display: none !important;
+}
+
+/* (3) READABILITY — bump the rail label + value typography. Scoped to the deck
+   so no other surface changes. Mirrors the approved preview sizes. */
+.rmc-globe-deck-v2__lbl { font-size: 11px; }
+.rmc-globe-deck-v2__inc { font-size: 12px; }
+.rmc-globe-deck-v2__inc em { font-size: 11px; }
+.rmc-globe-deck-v2__inc-n { font-size: 17px; }
+.rmc-globe-deck-v2__inc-link { font-size: 12px; }
+.rmc-globe-deck-v2__pulse-cell em { font-size: 10px; }
+.rmc-globe-deck-v2__pulse-cell strong { font-size: 18px; }
+.rmc-globe-deck-v2__pulse-cell span { font-size: 10px; }
+.rmc-globe-deck-v2__slo-row,
+.rmc-globe-deck-v2__slo-row b { font-size: 11px; }
+.rmc-globe-deck-v2__feed-row { font-size: 11.5px; }
+.rmc-globe-deck-v2__feed-row time { font-size: 10px; }
+.rmc-globe-deck-v2__schools-copy strong { font-size: 13px; }
+.rmc-globe-deck-v2__schools-copy span { font-size: 11px; }
+.rmc-globe-deck-v2__ring i { font-size: 20px; }
+.rmc-globe-deck-v2__region-row { font-size: 12.5px; }
+.rmc-globe-deck-v2__status-chip { font-size: 11px; }
+.rmc-globe-deck-v2__clk em { font-size: 9px; }
+.rmc-globe-deck-v2__clk strong { font-size: 13px; }
+.rmc-globe-deck-v2__school-hours { font-size: 11px; }
+.rmc-globe-deck-v2__trust-row { font-size: 11.5px; }
+.rmc-globe-deck-v2__trust-pill { font-size: 11px; }
+.rmc-globe-deck-v2__feed-row--empty { font-size: 11.5px; }
+.rmc-globe-deck-v2__crown-mid { font-size: 10px; }
+.rmc-globe-deck-v2__lens--film .rmc-globe-deck-v2__lens-link { font-size: 11px; }
+.rmc-globe-deck-v2__lens-hint { font-size: 9px; }
+/* the four on-globe void zones (A·Viewport / B·School hours / C·Caption / D·Whisper) */
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] .lx-world__void-zone b { font-size: 11px; }
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] .lx-world__void-zone span { font-size: 11px; }
+
+/* a touch more rail width so the larger type breathes */
+[data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] {
+  --rmc-globe-deck-rail-w: 248px;
+}
+
+/* (4) Operations-board → Back to Globe mission. The crown's mission/operations
+   tabs live in the mission pane, which is hidden in operations mode — so this is
+   the way back. Wired by the existing [data-rmc-cp-landing-tab] handler. */
+.rmc-cp-landing-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 45%, var(--hairline));
+  background: color-mix(in srgb, var(--brand-primary) 16%, transparent);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color var(--motion-fast, 0.15s) var(--ease-standard, ease),
+    background var(--motion-fast, 0.15s) var(--ease-standard, ease);
+}
+.rmc-cp-landing-back:hover,
+.rmc-cp-landing-back:focus-visible {
+  background: color-mix(in srgb, var(--brand-primary) 26%, transparent);
+  border-color: var(--brand-primary);
+}
