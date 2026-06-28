@@ -79,31 +79,19 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-
   border-radius: 4px;
 }
 
-/* Tenant school header reserves the copilot gutter so mission strip / LIVE
-   banner never paint over the fixed AI rail (operator /super/ uses grid col 3). */
-html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .tp-header {
-  box-sizing: border-box;
-  padding-inline-end: calc(var(--rmc-app-shell-copilot-w, 56px) + 8px);
-  transition: padding-inline-end var(--motion-slow, 420ms cubic-bezier(0.22, 0.61, 0.36, 1));
-}
-
-@media (min-width: 1200px) {
-  html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .tp-header {
-    padding-inline-end: calc(360px + 8px);
-  }
-}
-
-@media (max-width: 991.98px) {
-  html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .tp-header {
-    padding-inline-end: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .tp-header {
-    transition: none;
-  }
-}
+/* FULL-BLEED HEADER + LIVE BANNER (2026-06-28) — owner: "the header and footer
+   must be full width including the live banner", platform AND tenant-wide.
+   The AI copilot rail is anchored BELOW the header (its top = banner + full
+   header height — see rmc-tenant-app-shell-100x.css §6 + the canvas rail rule
+   near the end of this file; in-browser the rail top == header bottom), so it
+   NEVER sits beside the header. The old copilot-gutter `padding-inline-end`
+   therefore only inset the header content + the .tp-header__live-banner sub-bar
+   from the right edge for no reason (measured 64px right gap → header looked
+   "not full width" / lopsided vs the 20px left padding). Removed for operator
+   parity: the platform /super/ header already spans all 3 grid columns edge to
+   edge. The MAIN canvas keeps its rail gutter (it IS beside the rail) — see
+   rmc-platform-vertical-compact.css. Do NOT re-add a header gutter: the rail is
+   below, not beside, the header. */
 
 /* ── 2. Workspace grid fills remaining viewport ── */
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-layout-wrap.tp-v3-shell-workspace {
@@ -327,10 +315,17 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar
   flex-shrink: 0;
 }
 
-/* Copilot rail fills viewport below header (manager /admin/ parity) */
+/* Copilot rail spans the WORKSPACE band only — BELOW the header, ABOVE the
+   footer (manager /admin/ parity: there the rail is grid col 3 of the MIDDLE row
+   only, so the full-width footer row below it is never overlapped). The tenant
+   rail used to bottom at the viewport (bottom:0) and painted over the pinned
+   footer's right ~56px (rail bottom 744 > footer top 670 in-browser), making the
+   footer look "not full width". Bottoming it at the live footer height keeps the
+   full-width footer fully visible edge to edge — matching the manager bridge,
+   which already bottoms its rail above the operator footer. */
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"][data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
-  bottom: 0;
-  height: calc(100dvh - var(--rmc-preview-banner-h, 0px) - var(--rmc-tenant-header-h, var(--rmc-app-shell-header-h, 4.75rem)));
+  bottom: var(--rmc-tenant-footer-h, 4.75rem);
+  height: calc(100dvh - var(--rmc-preview-banner-h, 0px) - var(--rmc-tenant-header-h, var(--rmc-app-shell-header-h, 4.75rem)) - var(--rmc-tenant-footer-h, 4.75rem));
   z-index: var(--rmc-copilot-rail-z, 1042);
 }
 

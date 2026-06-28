@@ -1,6 +1,20 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-28 (Tenant shell scroll + sidebar + operator-header fixes `v4.05.86` — sidebar/main vertically scrollable tenant-wide, collapsed-rail label leak, submenu items one-per-line, operator "More ▾" overlays on top w/ no scroll; ROOT CAUSE = body-class palette rewrite de-scoping the `body.portal-body-with-layout` tenant CSS layer; see § below. Prior: Tenant UX program Wave 2.)
+**Last updated:** 2026-06-28 (Full-bleed tenant header + LIVE banner + footer `v4.05.89` — header & its live-banner sub-bar now span edge to edge, copilot rail bottoms above the footer so the full-width footer is unobstructed; retires the unnecessary header copilot-gutter; see § below. Prior: Tenant MAIN canvas body scroll `v4.05.88`.)
+
+## 2026-06-28 — Full-bleed tenant header + LIVE banner + unobstructed footer (`v4.05.89`)
+
+**Context:** owner: "the header and footer must be full width including the live banner", platform AND tenant-wide. The PLATFORM (`/super/`, `/admin/`) side was already correct — `control_plane_skeleton.html` lays `.rmc-app-shell` out as a CSS grid whose header (`"rmc-shell-h …"`) and footer (`"rmc-shell-f …"`) span ALL THREE columns, with the copilot confined to grid col 3 of the MIDDLE row only. The TENANT canvas shell was the outlier; this wave brings it to that parity. SW `v4.05.88`→`v4.05.89`. CSS-only, 0 migrations. Gates green (`scan_off_token_colors`, `scan_undefined_css_classes`, `scan_sticky_with_overflow_hidden`, `scan_theme_locked_token_text`, SW monotonic all rc0).
+
+**Root cause (probe-proven, headless Chrome on the real authenticated tenant render):** the tenant `.tp-header` carried a copilot-gutter `padding-inline-end: calc(var(--rmc-app-shell-copilot-w,56px) + 8px)` (a 64px right inset) "so the LIVE banner never paints over the fixed AI rail". But the rail is anchored BELOW the header — measured `railTop 53 == headerBottom 53`, `railIsBelowHeader: true` — so it NEVER sits beside the header. The gutter therefore only inset the header content + the `.tp-header__live-banner` sub-bar from the right edge for nothing: measured `headerInner_rightGap: 64` (content stopped at x=1350 of a 1414px viewport) vs a 20px left pad → the header looked "not full width"/lopsided. Separately the tenant copilot rail bottomed at the viewport (`bottom:0`/`bottom:8px`) so it painted over the pinned footer's right ~56px (rail bottom 744 > footer top 670).
+
+**Fix (tenant-side, to reach platform parity):**
+- **Full-bleed header + LIVE banner** — removed the `.tp-header` copilot-gutter from BOTH `rmc-tenant-workspace-canvas.css` (canvas mode, with the expanded-state + mobile media-query variants) and `rmc-tenant-app-shell-100x.css` (document-mode fallback). The MAIN canvas keeps its rail gutter (it IS beside the rail). Verified after: header `padding-inline-end:0`, `headerInner_rightGap: 0` (content reaches x=1414), `headerFullWidth: true` — symmetric 20px edge padding, screenshot shows brand/nav/search/actions/avatar reaching the right edge with the rail strip BELOW the header.
+- **Unobstructed full-width footer** — the canvas copilot-rail mount now bottoms at the live footer height: `bottom: var(--rmc-tenant-footer-h, 4.75rem)` + height subtracts the footer too, so the rail spans the WORKSPACE band only (below header, above footer) — matching the manager bridge, which already bottoms its rail above the operator footer. Footer stays a full-width body child (0→viewport).
+
+**Files:** `static/css/rmc-tenant-workspace-canvas.css`, `static/css/rmc-tenant-app-shell-100x.css`, `static/js/service-worker.js`.
+
+**LESSON (durable):** the header copilot-gutter was defensive cargo — the rail is BELOW the header, never beside it, so no gutter is needed; do NOT re-add one. Only the MAIN canvas (same vertical band as the rail) needs the rail gutter. Reach for the platform `/super/` grid (header/footer span all columns, copilot = middle-row col 3) as the canonical full-bleed-chrome reference.
 
 ## 2026-06-28 — Tenant MAIN canvas body scroll: explicit measured cap (`v4.05.88`)
 

@@ -40,23 +40,14 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-
   background: var(--surface-popover, #fff); /* off-token-allow: opaque-pin-fallback */
 }
 
-/* Document-scroll fallback: same copilot gutter as canvas mode */
-html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .tp-header {
-  box-sizing: border-box;
-  padding-inline-end: calc(var(--rmc-app-shell-copilot-w, 56px) + 8px);
-}
-
-@media (min-width: 1200px) {
-  html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .tp-header {
-    padding-inline-end: calc(360px + 8px);
-  }
-}
-
-@media (max-width: 991.98px) {
-  html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .tp-header {
-    padding-inline-end: 0;
-  }
-}
+/* FULL-BLEED HEADER + LIVE BANNER (2026-06-28) — owner: "header and footer must
+   be full width including the live banner". The copilot rail anchors BELOW the
+   header (§6 sets its top to banner + header height), never beside it, so the
+   old copilot-gutter `padding-inline-end` only inset the header content + the
+   LIVE banner sub-bar from the right edge for no reason. Removed for operator
+   parity (the platform /super/ header spans all grid columns edge to edge); the
+   MAIN canvas keeps its rail gutter (it IS beside the rail). Mirrors the
+   canvas-mode removal in rmc-tenant-workspace-canvas.css. */
 html[data-rmc-tp-v3-shell="1"] {
   scroll-padding-top: calc(var(--rmc-preview-banner-h, 0px) + var(--rmc-tenant-header-h, 4.75rem));
 }
