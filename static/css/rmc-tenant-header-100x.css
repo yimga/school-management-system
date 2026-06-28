@@ -5,8 +5,11 @@
    ============================================================ */
 
 body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) {
-  --rmc-manager-header-height: calc(64px * 1.1);
-  --rmc-header-control-height: 2.375rem;
+  /* Match the /super/ + /admin/ operator header band exactly
+     (rmc-cp-header-200x.css: min-height 52px, padding 10px 20px, 32px brand mark).
+     Was calc(64px*1.1)=70.4px + 38px controls + 44px mark, which ran ~18px taller. */
+  --rmc-manager-header-height: 52px;
+  --rmc-header-control-height: 2rem; /* 32px controls fit the 52px band (10px pad -> 32px content) */
   --rmc-platform-header-pad-x: 1.25rem;
 }
 
@@ -74,9 +77,9 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .container-
   flex-wrap: nowrap !important; /* style-allow: tenant-header-single-line-guarantee */
   align-items: center;
   gap: 10px;
-  /* Operator-matched band height (2026-06-24): same vertical size as manager
-     /super/ header — one control row, no double-band chrome. */
-  padding: 0.5rem var(--rmc-platform-header-pad-x);
+  /* Operator-matched band: same vertical size + padding as the manager
+     /super/ + /admin/ header (rmc-cp-header-200x.css padding 10px 20px / min-height 52px). */
+  padding: 10px var(--rmc-platform-header-pad-x);
   min-height: var(--rmc-manager-header-height);
   min-width: 0;
   width: 100%;
@@ -108,7 +111,7 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-act
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-search {
   flex: 1 1 280px;
   min-width: 0;
-  max-width: 480px;
+  max-width: 560px; /* parity with /super/ command search (rmc-cp-header-200x.css: 560px) */
   background: rgba(15, 23, 42, 0.04); /* off-token-allow: fixed-shell-accent */
   border: 1px solid var(--hairline);
   border-radius: var(--radius-pill, 999px);
@@ -357,3 +360,91 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[ari
     justify-content: flex-start;
   }
 }
+
+/* ============================================================
+   JS-PROOF SINGLE-BAND OVERRIDE (2026-06-28)
+   ROOT CAUSE of the "multi-row / unbalanced" tenant header: the backend
+   theme bootstrap leaves the <body> WITHOUT `portal-body-with-layout`
+   (it ends up as just `portal-backend-*`), which de-scopes every rule
+   above and lets the header fall back to a STACKED Bootstrap block
+   (brand / nav / search on separate rows). Re-anchor the critical layout
+   to the stable #portalHeader id — which is TENANT-ONLY (the manager /
+   control-plane shell renders control_plane_unified_header, never
+   #portalHeader). Also compacts the band to one tight operator-style row,
+   matching /super/ + /admin/ and ~25% shorter.
+   ============================================================ */
+#portalHeader {
+  --rmc-manager-header-height: 40px;
+  --rmc-header-control-height: 1.75rem; /* 28px */
+  --rmc-platform-header-pad-x: 1.25rem;
+}
+#portalHeader > .container-fluid {
+  display: flex !important; /* style-allow: single-band guarantee independent of body class */
+  flex-direction: row !important; /* style-allow: never stack brand/nav/search into rows */
+  flex-wrap: nowrap !important; /* style-allow: one line */
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 6px var(--rmc-platform-header-pad-x) !important;
+  min-height: var(--rmc-manager-header-height) !important;
+  width: 100% !important;
+}
+/* brand left + nav, search & controls pushed right = balanced operator band */
+#portalHeader > .container-fluid > .tp-actions.topbar-actions {
+  margin-left: auto !important;
+  flex: 0 1 auto !important;
+}
+/* compact brand mark + 2-line brand text to fit the shorter (40px) band */
+#portalHeader .tp-brand__mark {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+}
+#portalHeader #preview-header-brand { max-width: 280px !important; }
+#portalHeader .tp-brand__name {
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+  flex-wrap: nowrap !important;   /* keep name + ADMIN WORKSPACE pill on ONE line */
+  white-space: nowrap !important;
+}
+#portalHeader .tp-brand__tagline {
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important; /* tagline stays one line so brand is 2 tight rows, not 4 */
+}
+#portalHeader .topbar-search { min-height: var(--rmc-header-control-height) !important; }
+/* keep the primary nav on ONE line (it was wrapping Home/Finance onto a 2nd row,
+   re-inflating the band) — operator nav never wraps */
+#portalHeader .tp-primary-nav-inline { flex: 0 0 auto !important; }
+#portalHeader .tp-primary-nav-inline,
+#portalHeader .tp-primary-nav {
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+}
+#portalHeader .tp-primary-nav__item { white-space: nowrap !important; }
+/* keep brand text on its two tight lines without forcing the row taller */
+#portalHeader > .container-fluid > #preview-header-brand,
+#portalHeader > .container-fluid > .tp-actions.topbar-actions { align-self: center !important; }
+/* compact the two tall controls (search 45px, avatar trigger 64px) that were
+   re-inflating the band — cap them to the operator control height so the whole
+   row stays ~one control tall */
+#portalHeader .topbar-search.header-search-container { min-height: 32px !important; }
+#portalHeader .topbar-search-input {
+  height: 30px !important;
+  min-height: 30px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+#portalHeader .user-dropdown-trigger {
+  min-height: 0 !important;
+  padding: 3px 8px !important;
+}
+#portalHeader .user-dropdown-trigger .user-avatar,
+#portalHeader .user-dropdown-trigger .user-avatar img,
+#portalHeader .user-dropdown-trigger .avatar-placeholder {
+  width: 30px !important;
+  height: 30px !important;
+}
+/* match /super/: avatar circle only in the band (the 2-line name/role block was the
+   tallest control); the full name + role still live inside the dropdown menu */
+#portalHeader .user-dropdown-trigger .user-info { display: none !important; }

@@ -132,15 +132,15 @@ html[data-rmc-tp-v3-shell="1"] .tp-brand {
 }
 
 html[data-rmc-tp-v3-shell="1"] .tp-brand__mark {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 32px; /* match /super/ + /admin/ brand mark (rmc_brand_mark size=32) so the band fits 52px */
+  height: 32px;
+  border-radius: 9px;
   background: var(--school-gradient);
   color: #fff; /* off-token-allow: brand-mark-on-gradient */
   display: grid;
   place-items: center;
   font-weight: 800;
-  font-size: 18px;
+  font-size: 15px;
   box-shadow: 0 4px 12px color-mix(in srgb, var(--school-primary, #1e6f3a) 28%, transparent);
   overflow: hidden;
   flex-shrink: 0;
