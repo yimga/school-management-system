@@ -372,7 +372,7 @@ def _apply_report_request(
     report = form.save(commit=False)
     report.requested_by_id = user_id
     report.save()
-    Notification.objects.create(
+    Notification.objects.notify_unread(
         title="Report request received (offline sync)",
         message=f"Report {report.get_report_type_display()} queued from offline capture.",
         severity=Notification.Severity.INFO,

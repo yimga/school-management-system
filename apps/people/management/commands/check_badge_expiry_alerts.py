@@ -101,7 +101,7 @@ class Command(BaseCommand):
                 try:
                     from apps.finance.models import Notification
 
-                    Notification.objects.create(
+                    Notification.objects.notify_unread(
                         recipient=recipient,
                         title="Badge / certification expiring soon",
                         message=msg,

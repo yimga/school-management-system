@@ -40,7 +40,7 @@ def _notify_tenant_user(recipient, *, title, message, link="", actor=None) -> No
     try:
         from apps.finance.models import Notification
 
-        Notification.objects.create(
+        Notification.objects.notify_unread(
             recipient=recipient,
             created_by=actor if getattr(actor, "pk", None) else None,
             title=title[:200],

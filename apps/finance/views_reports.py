@@ -117,7 +117,7 @@ def submit_report_request(request: HttpRequest):
         report = form.save(commit=False)
         report.requested_by = request.user
         report.save()
-        Notification.objects.create(
+        Notification.objects.notify_unread(
             title="Report request received",
             message=f"{request.user.get_full_name()} requested {report.get_report_type_display()}",
             severity=Notification.Severity.INFO,

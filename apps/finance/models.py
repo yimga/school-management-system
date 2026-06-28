@@ -1860,6 +1860,43 @@ class PaymentReminderLog(models.Model):
         return f"{self.reminder} @ {self.sent_at}"
 
 
+class NotificationManager(models.Manager):
+    """Manager for :class:`Notification`.
+
+    The ``notify_unread`` helper is the canonical write path for any notification
+    that carries a CONSTANT (or recurring) title for a given recipient. The model
+    has a partial-unique constraint ``uniq_unread_notification_per_recipient_title``
+    (at most ONE unread row per ``(recipient, title)``), so a plain
+    ``Notification.objects.create(...)`` raises ``IntegrityError`` — and a 500, a
+    silently-swallowed drop, or an aborted notify loop — the SECOND time the same
+    recipient gets the same title while the first row is still unread. Routing
+    through ``notify_unread`` refreshes the existing unread row instead.
+    """
+
+    def notify_unread(self, *, title, **fields):
+        """Create — or refresh — the single unread notification for (recipient, title).
+
+        Drop-in for ``.create()``: returns the :class:`Notification` instance.
+        Accepts the recipient as either ``recipient=`` or ``recipient_id=``; every
+        other field (``message``, ``link``, ``severity``, ``school``, ``created_by``,
+        ``created_by_id``, ``expires_at`` …) lands in ``defaults`` so it refreshes
+        the unread row. The partial-unique index excludes ``school`` and treats
+        NULL recipients as distinct, so dedup only applies when a recipient is given;
+        a null-recipient call falls back to a plain create.
+        """
+        recipient = fields.pop("recipient", None)
+        recipient_id = fields.pop("recipient_id", None)
+        if recipient is None and recipient_id is None:
+            return self.create(title=title, **fields)
+        lookup = {"title": title, "is_read": False}
+        if recipient is not None:
+            lookup["recipient"] = recipient
+        else:
+            lookup["recipient_id"] = recipient_id
+        obj, _ = self.update_or_create(defaults=fields, **lookup)
+        return obj
+
+
 class Notification(models.Model):
     class Severity(models.TextChoices):
         INFO = "INFO", "Info"
@@ -1913,6 +1950,8 @@ class Notification(models.Model):
         blank=True,
         help_text="When the recipient dismissed the notification from their inbox.",
     )
+
+    objects = NotificationManager()
 
     class Meta:
         ordering = ["-created_at"]

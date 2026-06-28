@@ -65,7 +65,7 @@ def _remind_pending_assignees_body() -> dict:
             assignee = reqs[0].assigned_to
             count = len(reqs)
             try:
-                Notification.objects.create(
+                Notification.objects.notify_unread(
                     recipient=assignee,
                     title="Pending access requests",
                     message=f"You have {count} pending access request(s) assigned to you. Please review in Requests.",

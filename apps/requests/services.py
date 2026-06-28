@@ -128,7 +128,7 @@ def notify_requester(
 ):
     if not request.requester:
         return None
-    Notification.objects.create(
+    Notification.objects.notify_unread(
         recipient=request.requester,
         created_by=created_by,
         title=title,

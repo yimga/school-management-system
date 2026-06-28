@@ -343,7 +343,7 @@ def on_attendance_saved(sender, instance, created, **kwargs):
             portal_url = "/portal/parent/"
             for g in guardians:
                 if g.guardian_user_id:
-                    FinanceNotification.objects.create(
+                    FinanceNotification.objects.notify_unread(
                         title=title,
                         message=msg,
                         link=portal_url,
@@ -408,7 +408,7 @@ def on_incident_saved(sender, instance, created, **kwargs):
             portal_url = "/portal/parent/"
             for g in guardians:
                 if g.guardian_user_id:
-                    FinanceNotification.objects.create(
+                    FinanceNotification.objects.notify_unread(
                         title=title,
                         message=msg,
                         link=portal_url,

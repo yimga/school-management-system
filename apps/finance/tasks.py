@@ -636,7 +636,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                             or User.objects.filter(is_staff=True).first()  # tenant-isolation-allow: celery-finance-beat-caller-or-region-scoped-reviewed
                         )
                         if finance_user:
-                            Notification.objects.create(
+                            Notification.objects.notify_unread(
                                 title="Payment reminder: no contact for guardian",
                                 message=f"Invoice {invoice.reference or invoice.id} ({invoice.student}). Guardian: {guardian_name}. Add email/phone or contact manually.",
                                 link=f"/admin/finance/invoice/{invoice.id}/change/",

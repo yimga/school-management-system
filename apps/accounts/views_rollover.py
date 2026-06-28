@@ -228,7 +228,7 @@ def rollover_year(request):
                     student=student
                 ).select_related("guardian_user"):
                     if link.guardian_user_id:
-                        FinanceNotification.objects.create(
+                        FinanceNotification.objects.notify_unread(
                             title="Class assignment",
                             message=msg,
                             severity=FinanceNotification.Severity.INFO,

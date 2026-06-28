@@ -87,7 +87,7 @@ def _notify_new_direct_message(sender, recipient, message):
         if len((message.body or "") or (message.subject or "")) > 200:
             msg_preview += "..."
         link = reverse("accounts:direct_thread", args=[sender.pk])
-        FinanceNotification.objects.create(
+        FinanceNotification.objects.notify_unread(
             recipient=recipient,
             created_by=sender,
             title=f"New message from {sender.get_full_name() or sender.username}",

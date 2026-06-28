@@ -136,7 +136,7 @@ def _create_finance_request_notification(
     action: str,
     details: str = "",
 ) -> Notification:
-    notif = Notification.objects.create(
+    notif = Notification.objects.notify_unread(
         title=title,
         message=message,
         severity=severity,

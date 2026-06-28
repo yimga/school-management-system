@@ -250,7 +250,7 @@ class NotificationViewSet(viewsets.ViewSet):
                 "ALERT": "Attention",
             }.get(severity, "Notice")
 
-        notification = Notification.objects.create(
+        notification = Notification.objects.notify_unread(
             title=title,
             message=message,
             severity=severity,

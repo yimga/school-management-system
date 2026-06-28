@@ -279,7 +279,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         invoice.balance_amount = 0
         invoice.save(update_fields=["status", "balance_amount", "updated_at"])
 
-        Notification.objects.create(
+        Notification.objects.notify_unread(
             title="Invoice Marked Paid",
             message=f"Invoice {invoice.id} has been marked as paid",
             recipient=request.user,
@@ -520,7 +520,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         student_label = "N/A"
         if invoice and invoice.student:
             student_label = f"{invoice.student.first_name} {invoice.student.last_name}"
-        Notification.objects.create(
+        Notification.objects.notify_unread(
             title="Payment Recorded",
             message=f"Payment of {payment.amount} recorded for {student_label}",
             recipient=request.user,
