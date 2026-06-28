@@ -39,7 +39,14 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
 
       {% comment %} v4.04.x (2026-06-22): mid-row — temporal dock + trust strip + contacts
          folded onto ONE wrapped, centered row (footer −50% vertical, identical content).
-         flex-wrap keeps it responsive: a single line on desktop, graceful wrap on mobile. {% endcomment %}
+         flex-wrap keeps it responsive: a single line on desktop, graceful wrap on mobile.
+         Tenant UX P3 (2026-06-27): an app-shell footer should be a thin line, not a
+         marketing band — so this decorative mid-row (clock/weather, FERPA/ISO trust
+         pillars, social, app-store badges, contacts) is hidden on tenant working pages
+         by DEFAULT and restored via cockpit.footer.show_rich_midrow. The manager
+         operator footer always keeps it. Brand (tier 1) + legal (tier 4) still render,
+         so the lean footer is brand + copyright · Help · Powered by. {% endcomment %}
+      {% if request.public_host_kind == 'manager' or cockpit.footer.show_rich_midrow %}
       <div class="rmc-civic-footer__midrow">
 
       {% comment %} clock / weather (moved out of the header). {% endcomment %}
@@ -115,6 +122,7 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
       </div>
 
       </div>{% comment %} /.rmc-civic-footer__midrow {% endcomment %}
+      {% endif %}
 
       {% comment %} Tier 4 — single-line legal {% endcomment %}
       <div class="rmc-civic-footer__legal">

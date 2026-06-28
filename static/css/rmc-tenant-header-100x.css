@@ -158,6 +158,42 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .btn-outlin
   color: var(--text-secondary);
 }
 
+/* ── Phase 2: premium header controls. Markup/classes are untouched (so the
+   offcanvas toggle, search JS and Bootstrap behaviours keep working); we just
+   restyle the stock Bootstrap controls to the designed token look so the header
+   no longer reads as a generic workspace bar. Token-only -> tenant brand + theme
+   win, and the off-token gate stays clean (no literals). ── */
+body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .btn-outline-secondary {
+  border: 1px solid var(--hairline-strong, var(--hairline));
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md, 10px);
+  min-height: var(--rmc-header-control-height);
+  transition: background var(--motion-fast, 150ms ease), color var(--motion-fast, 150ms ease), border-color var(--motion-fast, 150ms ease);
+}
+body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .btn-outline-secondary:hover,
+body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .btn-outline-secondary:focus-visible {
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-elevated));
+  border-color: color-mix(in srgb, var(--brand-primary) 35%, var(--hairline-strong, var(--hairline)));
+  color: var(--text-primary);
+}
+
+/* Command-bar focus ring on the global search wrapper. */
+body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-search:focus-within {
+  border-color: color-mix(in srgb, var(--brand-primary) 45%, var(--hairline));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 16%, transparent);
+}
+
+/* "Viewing as" role badge -> premium token pill (overrides Bootstrap bg-light /
+   text-dark utility !important, hence the explicit !important + style-allow). */
+body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-controls .badge.bg-light {
+  background: var(--surface-overlay, var(--surface-elevated)) !important; /* style-allow: override-bootstrap-bg-light-utility */
+  color: var(--text-secondary) !important; /* style-allow: override-bootstrap-text-dark-utility */
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  font-weight: 500;
+}
+
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .btn-link.text-white,
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-icon-btn {
   color: var(--text-secondary) !important; /* style-allow: tenant-header-icon-override-bootstrap */
