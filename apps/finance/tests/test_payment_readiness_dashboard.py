@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
+from django.contrib.sessions.backends.db import SessionStore
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -67,6 +68,7 @@ class PaymentReadinessDashboardHttpTests(TestCase):
         request = factory.get("/finance/payment-readiness/")
         request.user = self.staff
         request.school = self.school_a
+        request.session = SessionStore()  # RequestFactory has no session; view renders role-home context
         with patch(
             "apps.finance.views_payment_readiness_dashboard._active_profile",
             return_value=self.profile,
@@ -91,6 +93,7 @@ class PaymentReadinessDashboardHttpTests(TestCase):
         request = factory.get("/finance/payment-readiness/")
         request.user = self.staff
         request.school = self.school_a
+        request.session = SessionStore()  # RequestFactory has no session; view renders role-home context
         with patch(
             "apps.finance.views_payment_readiness_dashboard._active_profile",
             return_value=self.profile,
