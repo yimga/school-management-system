@@ -83,6 +83,9 @@ def _safe_site_attr(site, name: str, default=None):
         return default
 
 
+_SENTINEL = object()  # distinguishes "not memoized" from a memoized empty list
+
+
 def _get_portal_sidebar_items(request, site):
     """Return portal sidebar items (optionally sorted by portal_sidebar_order).
 
@@ -92,6 +95,16 @@ def _get_portal_sidebar_items(request, site):
     to a hardcoded, ungated fallback nav; the baseline keeps the permission-gated
     config-driven branch alive for authenticated users.
     """
+    # Per-request memo. A request can instantiate the context processor more than
+    # once (one RequestContext per render()), and each rebuild repeats the sidebar
+    # permission/feature assembly. Cache the assembled list on the request so it is
+    # built at most once per request. Safe: request-scoped (no cross-request
+    # staleness, no cross-user leak) and is_current depends only on the constant
+    # request.path. Returns the cached value even when it is an empty list.
+    if request is not None:
+        memo = getattr(request, "_rmc_sidebar_items_cache", _SENTINEL)
+        if memo is not _SENTINEL:
+            return memo
     items = None
     try:
         items = build_portal_sidebar_items(request, site)
@@ -112,11 +125,18 @@ def _get_portal_sidebar_items(request, site):
             extra={"error": str(e)[:200]},
         )
     if items:
-        return items
-    try:
-        return build_portal_sidebar_baseline(request, site)
-    except OPTIONAL_CONTEXT_ERRORS:
-        return []
+        result = items
+    else:
+        try:
+            result = build_portal_sidebar_baseline(request, site)
+        except OPTIONAL_CONTEXT_ERRORS:
+            result = []
+    if request is not None:
+        try:
+            request._rmc_sidebar_items_cache = result
+        except (AttributeError, TypeError):
+            pass
+    return result
 
 
 def _get_pinned_sidebar_items(request, all_items):
@@ -490,11 +510,22 @@ def site_settings(request):
                 title__icontains="finance access request",
                 is_read=False,
             ).count()
-            # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
-            notifications_unread_count = Notification.objects.filter(
-                recipient=user,
-                is_read=False,
-            ).count()
+            # The all-unread FinanceNotification count is also computed by
+            # accounts.context_processors.dashboard_context — identical query.
+            # Memoize on the request so the two processors share one COUNT.
+            notifications_unread_count = getattr(
+                request, "_rmc_unread_notif_count", None
+            )
+            if notifications_unread_count is None:
+                # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
+                notifications_unread_count = Notification.objects.filter(
+                    recipient=user,
+                    is_read=False,
+                ).count()
+                try:
+                    request._rmc_unread_notif_count = notifications_unread_count
+                except (AttributeError, TypeError):
+                    pass
         except DatabaseError:
             _reset_db_state()
             finance_request_alerts = 0

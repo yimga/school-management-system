@@ -152,12 +152,20 @@ def dashboard_context(request):
     notifications_unread = 0
     messages_unread_count = 0
     try:
-        from apps.finance.models import Notification as FinanceNotification
+        # Shares the per-request memo set by siteconfig.context_processors
+        # (identical all-unread FinanceNotification COUNT) so the two run once.
+        notifications_unread = getattr(request, "_rmc_unread_notif_count", None)
+        if notifications_unread is None:
+            from apps.finance.models import Notification as FinanceNotification
 
-        notifications_unread = FinanceNotification.objects.filter(
-            recipient=user,
-            is_read=False,
-        ).count()
+            notifications_unread = FinanceNotification.objects.filter(
+                recipient=user,
+                is_read=False,
+            ).count()
+            try:
+                request._rmc_unread_notif_count = notifications_unread
+            except (AttributeError, TypeError):
+                pass
     except DatabaseError:
         _reset_db_state()
         notifications_unread = 0
