@@ -223,7 +223,13 @@
             'X-CSRFToken': csrfTokenEffective,
           },
           body: JSON.stringify({
-            query: message
+            query: message,
+            // Page-aware context (Tenant UX P5): the structured page identity the
+            // shell emits on <body>. Extra fields are ignored by the backend until
+            // it opts to scope answers/actions to the current page.
+            page_url_name: (document.body.dataset.rmcPageUrlName || ''),
+            page_namespace: (document.body.dataset.rmcPageNamespace || ''),
+            page_path: (window.location && window.location.pathname) || ''
           })
         });
         let result = null;
