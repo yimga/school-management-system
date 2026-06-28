@@ -143,10 +143,15 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
   }
 }
 
-/* 5. COGNITIVE SURFACE BALANCING — centre when capped, fill when none. */
+/* 5. WIDTH-TO-WIDTH (Tenant UX P4, 2026-06-27) — role-home content stretches to
+   the sidebars by default (owner: "cover 90% of the empty space toward the
+   sidebars"). The previous hard 1760px cap re-introduced gutters on wide/4K
+   screens, contradicting the full-bleed --rmc-shell-max-width:none default. Now
+   honors that token, so it is full-bleed by default yet tenant-configurable;
+   genuinely narrow content uses .content-measure / .content-max-* locally. */
 html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap {
   margin-inline: auto;
-  max-width: min(100%, 1760px);
+  max-width: var(--rmc-shell-max-width, none);
 }
 html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-page-body,
 html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-canvas-body {
