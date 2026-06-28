@@ -299,6 +299,7 @@ def mark_subscription_grants_applied(
     grant_ids = [row.get("grant_id") for row in applied_grants if row.get("grant_id")]
     if not grant_ids:
         return
+    # tenant-isolation-allow: pk-scoped to this subscription's resolved applied-grant ids
     for grant in SubscriptionGrant.objects.filter(pk__in=grant_ids):
         grant.cycles_applied = int(grant.cycles_applied or 0) + 1
         update_fields = ["cycles_applied", "updated_at"]
@@ -1231,6 +1232,7 @@ def issue_platform_invoice(
     from apps.billing.models import PlatformInvoice
 
     issued_at = issued_at or timezone.now()
+    # tenant-isolation-allow: platform-invoice idempotency by globally-unique reference_stem
     existing = PlatformInvoice.objects.filter(reference_stem=reference_stem).first()
     if existing is not None:
         return existing
@@ -1269,6 +1271,7 @@ def backfill_platform_invoices(*, limit: int | None = None) -> dict:
     from apps.billing.models import PlatformInvoice
 
     summary = {"scanned": 0, "issued": 0, "skipped_existing": 0}
+    # tenant-isolation-allow: platform-admin backfill scans all schools' ledger charges by design
     charges = PlatformLedgerEntry.objects.filter(
         source="billing_lifecycle",
         entry_type=PlatformLedgerEntry.EntryType.CHARGE,

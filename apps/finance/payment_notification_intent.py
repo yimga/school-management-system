@@ -20,14 +20,24 @@ def _guardian_contacts_for_payment(payment) -> list[tuple[str, str]]:
     try:
         from apps.people.models import StudentGuardian
 
+        # StudentGuardian links a guardian_user (FK) to a student and carries its
+        # OWN email/phone columns. The prior `select_related("guardian", ...)` named
+        # a field that does not exist on StudentGuardian (its relations are
+        # guardian_user + student) — a FieldError that was silently swallowed by the
+        # except below, so guardian payment-received contacts were NEVER resolved.
         # tenant-isolation-allow: student-guardian-fk-scoped-to-school-via-student
         links = StudentGuardian.objects.filter(student_id=student.pk).select_related(
-            "guardian", "guardian__guardian_user"
+            "guardian_user"
         )
         for link in links:
-            user = getattr(link.guardian, "guardian_user", None)
-            email = (getattr(user, "email", None) or "").strip() if user else ""
-            phone = (getattr(link.guardian, "phone", None) or "").strip()
+            user = getattr(link, "guardian_user", None)
+            # Prefer the link's own contact columns; fall back to the user email.
+            email = (
+                getattr(link, "email", "")
+                or (getattr(user, "email", "") if user else "")
+                or ""
+            ).strip()
+            phone = (getattr(link, "phone", "") or "").strip()
             if email or phone:
                 contacts.append((email, phone))
     except Exception:
