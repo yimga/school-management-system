@@ -5249,6 +5249,12 @@ class CockpitPayloadForm(forms.ModelForm):
             )
         tat = payload.get("tenant_activity_ticker") or {}
         nested_sources = atk.get("sources_enabled")
+        # resolve_sources_enabled is imported only in __init__'s local scope, not here —
+        # without this import _seed_initial_from_payload raised NameError (cockpit form 500).
+        from apps.siteconfig.cockpit_live_banner_program import (
+            resolve_sources_enabled,
+        )
+
         manager_sources = resolve_sources_enabled(
             nested_sources.get("manager")
             if isinstance(nested_sources, dict)
