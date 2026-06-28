@@ -274,7 +274,7 @@ class Command(BaseCommand):
             ) from exc
 
         try:
-            from schools.models import School  # type: ignore[import-untyped]
+            from apps.schools.models import School
         except Exception as exc:  # pylint: disable=broad-except
             raise CommandError(
                 f"schools.School model unavailable: {type(exc).__name__}"

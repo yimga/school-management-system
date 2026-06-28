@@ -118,7 +118,7 @@ def purge_completed_migration_bundles_audit_task() -> dict[str, Any]:
     }
 
     try:
-        from schools.models import School  # type: ignore[import-untyped]
+        from apps.schools.models import School
     except Exception as exc:  # pylint: disable=broad-except
         logger.warning(
             "migration_cloud_retention_audit_schools_import_failed err_type=%s",
