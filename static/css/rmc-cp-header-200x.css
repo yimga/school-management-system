@@ -433,8 +433,12 @@ body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-nav-row .cp-primary-n
   width: 100%;
   margin: 0;
   border-bottom: 1px solid var(--cp-chrome-hairline);
-  overflow-x: auto;
-  overflow-y: hidden;
+  /* v4.05.86 (2026-06-28): was `overflow-x:auto; overflow-y:hidden` — that made
+     the nav a horizontal SCROLLER (reported "the More button is scrollable") AND
+     a clip container that swallowed the "More ▾" menu (it dropped inside/behind
+     the band). The nav already folds items >5 into the dropdown, so it must not
+     scroll at all; visible overflow also lets the menu escape to overlay on top. */
+  overflow: visible;
   flex-wrap: nowrap;
   max-width: 100%;
 }
@@ -474,6 +478,49 @@ body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.sho
 body.control-plane-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-primary-nav__more .dropdown-menu.show),
 body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-primary-nav__more .dropdown-menu.show) {
   overflow: visible;
+}
+
+/* v4.05.86 (2026-06-28) — the escape-hatch above lifted overflow on the band but
+   NOT on the inner containers between it and the menu, so a child scroll/clip
+   context (the nav's own row, the utility actions strip, OR .cp-primary-nav
+   itself) still swallowed the "More ▾" panel — it read as "behind / inside the
+   header". While the menu is open, lift clipping on EVERY container in the chain
+   so the panel is guaranteed to overlay ON TOP, on both /super/ and /admin/.
+   :has() is live → engages on open, reverts on close; the menu is absolutely
+   positioned so it never widens the header (no horizontal scroll introduced). */
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-header__consolidated-inner,
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-header__consolidated-inner,
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .rmc-control-plane-chrome,
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .rmc-control-plane-chrome,
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-header__row,
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-header__row,
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-header__nav-slot,
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-header__nav-slot,
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-nav-row,
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-nav-row,
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .rmc-platform-header__inner,
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .rmc-platform-header__inner,
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .rmc-platform-header__actions,
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .rmc-platform-header__actions,
+body.control-plane-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-primary-nav,
+body.admin-manager-shell .cp-header:has(.cp-primary-nav__more .dropdown-menu.show) .cp-primary-nav {
+  overflow: visible !important;
+}
+
+/* The panel must paint ABOVE the sticky header chrome + copilot rail, never under it. */
+body.control-plane-shell .cp-primary-nav__more-menu.dropdown-menu,
+body.admin-manager-shell .cp-primary-nav__more-menu.dropdown-menu {
+  z-index: 1060; /* > sticky header (1030) + copilot rail (1042) */
+}
+
+/* Closed-state guarantee: the primary nav never horizontally scrolls in the
+   operator header, in ANY row placement (the shared .rmc-horizontal-nav-rail
+   rule gives every rail overflow-x:auto; this body+header-scoped rule outranks
+   it). Overflow folds into the "More ▾" dropdown, never a scroll track. */
+body.control-plane-shell .cp-header .cp-primary-nav,
+body.admin-manager-shell .cp-header .cp-primary-nav {
+  overflow: visible;
+  scroll-snap-type: none;
 }
 
 /* v4.05.x — primary-nav "More ▾" dropdown panel + items (super AND admin shells).

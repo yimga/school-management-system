@@ -159,6 +159,48 @@
   font-size: 1.05rem;
 }
 
+/* ── TENANT v8 SIDEBAR RAIL PARITY (2026-06-28) ───────────────────────────
+   The collapse-to-rail label hiding above only ever covered the OLD portal
+   grammar (.sidebar-section-title / .nav-link span / .sidebar-pin-btn) and the
+   operator cp-sidebar selectors (#cp-sidebar-col / .rmc-app-shell). The tenant
+   shell renders the NEW v8 grammar (.cp-sidebar__* inside #portal-sidebar-col),
+   so when it collapsed those labels were NOT hidden — they squeezed into the
+   44px rail and wrapped one glyph per line (the reported "leak"). Hide every
+   v8 text element + center the icons, matching the operator rail exactly. */
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__section,
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__group > summary,
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__group-toggle,
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-nav-label,
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__pin,
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-nav-recent,
+#portal-sidebar-col.rmc-nav-sidebar--rail .rmc-badge,
+#portal-sidebar-col.rmc-nav-sidebar--rail .rmc-nav-sidebar__toggle-label,
+#portal-sidebar-col.rmc-nav-sidebar--rail .sidebar-record-context,
+#portal-sidebar-col.rmc-nav-sidebar--rail .sidebar-header,
+#portal-sidebar-col.rmc-nav-sidebar--rail input,
+#portal-sidebar-col.rmc-nav-sidebar--rail .rmc-sidebar-filter,
+#portal-sidebar-col.rmc-nav-sidebar--rail [data-rmc-sidebar-filter] {
+  display: none !important;
+}
+/* Keep every nav item visible as a centered icon even when its <details> group
+   is collapsed — a rail has no summary to expand it, so reveal the children. */
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__group > .cp-sidebar__item {
+  display: flex !important;
+}
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__item {
+  justify-content: center;
+  padding-inline: 0.35rem;
+  gap: 0;
+}
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__item-label {
+  justify-content: center;
+  gap: 0;
+}
+#portal-sidebar-col.rmc-nav-sidebar--rail .cp-nav-icon {
+  margin-inline: auto;
+  font-size: 1.05rem;
+}
+
 /* Portal bootstrap column sync */
 @media (min-width: 992px) {
   #cp-sidebar-col.rmc-nav-sidebar--rail,

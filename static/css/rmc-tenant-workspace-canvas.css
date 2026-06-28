@@ -11,8 +11,14 @@
  *              + html[data-rmc-tp-v3-shell="1"] (all authenticated tenant profiles)
  */
 
-/* ── 1. Viewport lock — body is a flex column, not a scroll container ── */
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="canvas"]:not(.control-plane-shell):not(.marketing-surface) {
+/* ── 1. Viewport lock — body is a flex column, not a scroll container ──
+   ANCHOR NOTE (2026-06-28): scoped to the data-rmc-cp-scroll ATTRIBUTE, NOT the
+   .portal-body-with-layout class. The backend theme bootstrap rewrites the body
+   className to the palette token (e.g. `portal-backend-dark`), dropping
+   portal-body-with-layout — which would silently de-scope the entire viewport
+   lock (header/sidebar/main no longer pinned → nothing scrolls). The attribute
+   survives the rewrite, so the lock holds on /backend and every tenant shell. */
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"]:not(.control-plane-shell):not(.marketing-surface) {
   display: flex;
   flex-direction: column;
   height: 100dvh;
@@ -21,7 +27,7 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
   overflow: hidden;
 }
 
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="canvas"]:not(.control-plane-shell) {
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"]:not(.control-plane-shell) {
   overflow-x: clip;
   overflow-y: hidden;
 }
@@ -150,6 +156,27 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar
   -webkit-overflow-scrolling: touch;
   padding: 0.65rem 0.5rem 1rem;
   scroll-padding-block: 0.5rem;
+}
+
+/* SIDEBAR SCROLL ROBUSTNESS (2026-06-28) — the flex height:100% chain does NOT
+   constrain .portal-sidebar-col here: it is a flex item that is ITSELF a column
+   flex container, so it grows to its content height and overflows below the
+   locked body (unreachable, no scroll) — proven in-browser; max-height/height
+   on the column are both ignored. Capping the scroll TRACK to an explicit,
+   JS-measured height is the only thing that constrains it. metrics.js publishes
+   the exact value (workspace height − collapse toolbar); the calc() fallback
+   covers first paint before the script runs. Mirrors how the canvas main col
+   already scrolls. */
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col > .tp-sidebar-inner,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col.rmc-nav-sidebar__mount > .tp-sidebar-inner {
+  max-height: var(
+    --rmc-tenant-sidebar-inner-h,
+    calc(
+      100dvh - var(--rmc-preview-banner-h, 0px) -
+        var(--rmc-tenant-header-h, 3.25rem) - var(--rmc-tenant-footer-h, 4.75rem) -
+        2.75rem
+    )
+  );
 }
 
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-sidebar-col > .tp-sidebar-inner::after {
