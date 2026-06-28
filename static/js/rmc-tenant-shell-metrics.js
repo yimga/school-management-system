@@ -44,17 +44,16 @@
   function apply() {
     rafPending = false;
 
-    /* Defensive layout-scope guard (2026-06-28): the backend theme bootstrap can
-       leave <body> carrying only the palette token (e.g. `portal-backend-dark`),
-       dropping `portal-body-with-layout`. That class is the scope for the ENTIRE
-       tenant CSS layer (app-shell sticky chrome, viewport-lock canvas scroll, the
-       cp-sidebar item layout) — once it is gone the sidebar items render inline,
-       the sidebar/main stop scrolling, etc. Re-assert it here (idempotent). This
-       script already self-no-ops on the operator control plane (no .tp-header),
-       so it only ever runs on tenant shells, where the class is always wanted. */
-    if (document.body && !document.body.classList.contains("control-plane-shell")) {
-      document.body.classList.add("portal-body-with-layout");
-    }
+    /* NOTE (2026-06-28): we intentionally do NOT re-assert `portal-body-with-layout`
+       here. The backend theme bootstrap strips it (leaving the palette token), and
+       a tempting "fix" is to add it back so the body.portal-body-with-layout CSS
+       layer re-scopes. DON'T — that layer has been inactive in production for the
+       whole tenant lifetime, and reactivating it regresses live layout (e.g.
+       `container-type: inline-size` on .page-wrap collapses the main canvas to a
+       2px sliver inside the flex-column main col). The shell fixes are instead
+       anchored to stable hooks that survive the strip: the data-rmc-cp-scroll
+       attribute (canvas scroll), the #portal-sidebar-col id (rail), and the
+       html[data-rmc-tp-v3-shell] prefix (cp-parity item layout). */
 
     var hh = heightOf(".tp-header");
     if (hh > 24) {
