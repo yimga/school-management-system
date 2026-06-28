@@ -1,6 +1,6 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-28 (Tenant UX program Wave 2 — perf memos + page-aware contract + studio-rail icons + gap analysis; see § below. Prior: 2026-06-27 Tenant-wide UI/UX elevation P0–P6 + seating-chart graduation.)
+**Last updated:** 2026-06-28 (Tenant UX program Wave 2 — perf memos + page-aware contract + studio-rail icons + gap analysis + Admin Panel 5-group split + post-audit re-verify `165819fa7` (1 clean-DB test fix); see § below. Prior: 2026-06-27 Tenant-wide UI/UX elevation P0–P6 + seating-chart graduation.)
 
 ## 2026-06-28 — Tenant UX program Wave 2 (deferred-item closeout + gap analysis)
 
@@ -18,6 +18,8 @@
 - **W2-4 asset bundling:** the head render-blocking scripts are FOUC/gate-locked (`rmc-reveal`/`theme-preference-bootstrap` — `scan_reveal_armed_invariants` forbids deferring); the rest are body-end (already deferred); the "duplicate" CSS for design-tokens/inter/bootstrap are intentional `preload` hints + the stylesheet (the correct critical-CSS pattern), NOT redundant loads. Real bundling needs a build pipeline (django-compressor offline) + deploy test — a reviewed change, not a blind one.
 
 **Admin Panel regroup — SHIPPED (`0eb895271`, owner chose best-in-class):** the single "Admin Panel" grab-bag (~22 unrelated config items) split into 5 tightly-themed config-zone sub-groups — **Configuration** (Site Settings/Region/Institution profile/Modules/Grading/Config center), **Display & Platform** (Dashboard Layout/Hub, Feature Control + Audit, Backend Console), **Templates & Branding** (Bulk Letters, Report Card Builder, Blueprints, Theme & Experience, Studio), **Access & Roles** (Auth Groups, Staff Identity, RBAC), **Integrations & Data** (API Center, District/LMS interop, Import & bulk). All 5 added to `PORTAL_CONFIG_SECTIONS`; "Admin Panel" retained for the baseline nav. Done via a deterministic line-asserted script (no hand-edit drift); each group inherits the P1 colorful accent + auto-open-active. `manage.py check` 0, role/magic `--compare` green.
+
+**Post-audit re-verification (`165819fa7`) — found + fixed 1 real bug; all else green:** owner asked for a second audit. Full sweep (git sync 0/0, tree 13959, `manage.py check` 0, every CSS/template/reference-integrity gate, SW monotonic, Admin-split coherence 6+5+5+3+3=22, plus an independent fresh-eyes agent pass = SHIP READY). The one defect: `apps/portal/tests/test_seating_chart_flag.py::test_seating_chart_enabled_renders` was **failing on a clean test DB** (so it would redden CI) — the prior "2/2 pass" was a `| tail` pipe-masked exit code. The test calls `seating_chart_view()` with a bare `RequestFactory` request and forces a full `portal_base` render, which reads `request.session` (active-portal-role via `tp_v3_role_home` → `accounts/portal_roles.py`); a bare RequestFactory request has none → `AttributeError`. Production is unaffected (real requests carry a session via `SessionMiddleware`). Fix is **test-only** (no SW bump): a shared `_request()` helper attaches a real `SESSION_ENGINE` `SessionStore`, matching the codebase pattern (`b758a6e9b`, `test_nav_portal_role`). Both tests now pass on a clean DB (verified `2 passed`).
 
 ## 2026-06-27 — Tenant-wide UI/UX elevation program (P0–P6 + seating chart) — audit-first, autonomous
 
