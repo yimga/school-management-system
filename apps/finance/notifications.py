@@ -81,13 +81,22 @@ def notify_guardians_new_invoice(
         user = g.guardian_user
         if not user:
             continue
-        Notification.objects.create(
-            title=title,
-            message=message,
-            link=link,
-            severity=Notification.Severity.INFO,
+        # Notification carries a partial-unique constraint
+        # (uniq_unread_notification_per_recipient_title): at most ONE unread row
+        # per (recipient, title). These titles are constants, so a guardian's
+        # SECOND invoice/payment must REFRESH their existing unread row rather than
+        # create a duplicate — a plain create() raised IntegrityError and 500'd the
+        # second event. update_or_create on the unread row respects the constraint.
+        Notification.objects.update_or_create(
             recipient=user,
-            created_by=created_by,
+            title=title,
+            is_read=False,
+            defaults={
+                "message": message,
+                "link": link,
+                "severity": Notification.Severity.INFO,
+                "created_by": created_by,
+            },
         )
         count += 1
     if send_email is None:
@@ -157,13 +166,22 @@ def notify_guardians_payment_received(
         user = g.guardian_user
         if not user:
             continue
-        Notification.objects.create(
-            title=title,
-            message=message,
-            link=link,
-            severity=Notification.Severity.INFO,
+        # Notification carries a partial-unique constraint
+        # (uniq_unread_notification_per_recipient_title): at most ONE unread row
+        # per (recipient, title). These titles are constants, so a guardian's
+        # SECOND invoice/payment must REFRESH their existing unread row rather than
+        # create a duplicate — a plain create() raised IntegrityError and 500'd the
+        # second event. update_or_create on the unread row respects the constraint.
+        Notification.objects.update_or_create(
             recipient=user,
-            created_by=created_by,
+            title=title,
+            is_read=False,
+            defaults={
+                "message": message,
+                "link": link,
+                "severity": Notification.Severity.INFO,
+                "created_by": created_by,
+            },
         )
         count += 1
     if send_email is None:
