@@ -2,6 +2,16 @@
 
 **Last updated:** 2026-06-28 (Tenant shell scroll + sidebar + operator-header fixes `v4.05.86` — sidebar/main vertically scrollable tenant-wide, collapsed-rail label leak, submenu items one-per-line, operator "More ▾" overlays on top w/ no scroll; ROOT CAUSE = body-class palette rewrite de-scoping the `body.portal-body-with-layout` tenant CSS layer; see § below. Prior: Tenant UX program Wave 2.)
 
+## 2026-06-28 — Tenant MAIN canvas body scroll: explicit measured cap (`v4.05.88`)
+
+**Context:** owner: "the body of the page is not vertically scrollable" → then clarified with an image: NOT document scroll (chrome must stay pinned) — the BODY (main content area) must scroll while header + footer stay fixed (the canvas viewport-lock model). Kept canvas mode; fixed the main scroll the same way the sidebar was fixed. SW `v4.05.87`→`v4.05.88`. CSS/JS only, 0 migrations.
+
+**Root cause (same flex edge case as the sidebar):** `#main-content`/`.portal-main-col` relied on `height:100%` to be constrained to the workspace so its `overflow-y:auto` could scroll. That percentage base isn't reliably definite (the main col is a flex item in the workspace chain), so on long real-dashboard pages it resolved to `auto` → the col grew to content height → the locked body (`overflow:hidden`) clipped it with NO scrollbar = "body not scrollable". (A brief detour flipped the tenant to document scroll, but the owner wants pinned chrome, so that was reverted — `portal_base.html` net-unchanged.)
+
+**Fix:** `rmc-tenant-shell-metrics.js` publishes `--rmc-tenant-main-h` (the live workspace height). `rmc-tenant-workspace-canvas.css` caps `#main-content` with `max-height: var(--rmc-tenant-main-h, calc(100dvh − banner − header − footer)) !important` — a DEFINITE constraint that always applies (unlike `height:100%`), so the main col is always bounded → its `overflow-y:auto` always scrolls. Verified in-browser: main `clientH 616 < scrollH 2533` (capped + scrollable), header/sidebar/footer pinned, and a bottom-marker injected past the fold becomes reachable via scroll while the chrome stays put (screenshot). Also re-anchored `rmc-tenant-app-shell-100x.css` (24 sels) off the wiped `body.portal-body-with-layout` class → `body` (no-op in canvas, hardens the document rollback path).
+
+**Files:** `static/js/rmc-tenant-shell-metrics.js`, `static/js/service-worker.js`, `static/css/rmc-tenant-workspace-canvas.css`, `static/css/rmc-tenant-app-shell-100x.css`.
+
 ## 2026-06-28 — Tenant shell: sidebar/main scroll + collapsed-rail leak + submenu line-breaks + operator "More ▾" overlay (`v4.05.86`)
 
 **Context:** owner reported, tenant-wide: (1) sidebar + main dashboard not vertically scrollable; (2) collapsed nav rail "leaks" (labels wrap one glyph per line in the 44px rail); (3) submenu items not each on their own line; (4) operator `/super/` + `/admin/` "More ▾" is horizontally scrollable and its menu renders *behind/inside* the header instead of on top. Diagnosed in a headless-Chrome reproduction of the real authenticated tenant shell (computed-style + ancestor-height probes), fixed, and re-verified in-browser. SW `v4.05.85`→`v4.05.86`. Zero migrations. CSS/JS-only. Gates green (`scan_off_token_colors`, `scan_undefined_css_classes`, `scan_sticky_with_overflow_hidden`, `scan_theme_locked_token_text`, SW monotonic all rc0).

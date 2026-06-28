@@ -216,7 +216,21 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] .portal-main-co
   overscroll-behavior: contain;
   min-height: 0 !important;
   height: 100% !important;
-  max-height: 100% !important;
+  /* Explicit measured cap (NOT just max-height:100%): the flex height:100% chain
+     can resolve to `auto` here (.portal-main-col is a flex item whose percentage
+     base isn't always definite — same edge case as the sidebar column), and when
+     it does the main col grows to content height + the locked body clips it with
+     NO scrollbar (reported "the body is not scrollable"). A definite max-height
+     from the live workspace measurement always constrains it, so the body always
+     scrolls. metrics.js publishes --rmc-tenant-main-h; the calc() is the pre-JS
+     fallback. */
+  max-height: var(
+    --rmc-tenant-main-h,
+    calc(
+      100dvh - var(--rmc-preview-banner-h, 0px) - var(--rmc-tenant-header-h, 3.25rem) -
+        var(--rmc-tenant-footer-h, 4.75rem)
+    )
+  ) !important;
   flex: 1 1 auto !important;
   -webkit-overflow-scrolling: touch;
   scroll-padding-top: 0.5rem;

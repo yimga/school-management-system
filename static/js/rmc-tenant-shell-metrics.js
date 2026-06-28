@@ -78,10 +78,17 @@
       ".portal-sidebar-col .rmc-nav-sidebar__toolbar"
     );
     if (workspace) {
-      var avail = Math.round(
-        workspace.getBoundingClientRect().height -
-          (sidebarToolbar ? sidebarToolbar.getBoundingClientRect().height : 0)
-      );
+      var wsH = Math.round(workspace.getBoundingClientRect().height);
+      /* Main canvas scroll height = the full workspace area. The flex height:100%
+         chain does NOT reliably constrain .portal-main-col (same flex-item edge
+         case as the sidebar), so on long pages it grows to content height and the
+         locked body clips it with no scrollbar. Cap it to this measured value so
+         #main-content always scrolls. */
+      if (wsH > 80) {
+        root.style.setProperty("--rmc-tenant-main-h", wsH + "px");
+      }
+      var avail = wsH -
+        (sidebarToolbar ? Math.round(sidebarToolbar.getBoundingClientRect().height) : 0);
       if (avail > 80) {
         root.style.setProperty("--rmc-tenant-sidebar-inner-h", avail + "px");
       }

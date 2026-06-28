@@ -23,7 +23,7 @@
 /* 0. SCROLL ROOT — tenant v3 uses document scroll by default so long
    dashboards stay reachable. Canvas mode is retained only as an explicit
    rollback path via rmc-tenant-workspace-canvas.css. */
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) {
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) {
   overflow-x: clip;
   overflow-y: auto;
   min-height: 100vh;
@@ -33,7 +33,7 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
 }
 
 /* 1. STICKY MASTER HEADER — document-mode fallback only */
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .tp-header {
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .tp-header {
   position: sticky;
   top: var(--rmc-preview-banner-h, 0px);
   z-index: var(--rmc-shell-header-z, 1030);
@@ -63,18 +63,18 @@ html[data-rmc-tp-v3-shell="1"] {
 
 /* 2. LIVE BANNER AS THE LAST HEADER SUB-BAR (operator parity at lg+) */
 @media (min-width: 992px) {
-  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
+  html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
     display: block;
   }
   html[data-rmc-tp-v3-shell="1"] body.tp-v3-role-home.portal-body-with-layout:not(.control-plane-shell) .tp-header__row .rmc-cp-ticker-inline {
     display: none;
   }
 }
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner {
   border-top: 1px solid var(--hairline);
   background: var(--surface-elevated, #fff); /* off-token-allow: opaque-pin-fallback */
 }
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner > * {
+html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell):not(.marketing-surface) .tp-header__live-banner > * {
   max-height: 2.5rem;
   overflow: hidden;
 }
@@ -86,19 +86,19 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-s
    overflow at lg+; horizontal containment still lives on .portal-main-col
    (overflow-x:clip + min-width:0) + grids minmax(0,1fr). */
 @media (min-width: 992px) {
-  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-layout-wrap,
-  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-layout-row {
+  html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-layout-wrap,
+  html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-layout-row {
     overflow: visible;
     min-height: auto;
     max-height: none;
   }
 }
 
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) #main-content,
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-main-col,
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .page-wrap,
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-page-body,
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .tp-canvas-body {
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) #main-content,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-main-col,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .page-wrap,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .portal-page-body,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) .tp-canvas-body {
   height: auto !important;
   max-height: none !important;
   overflow: visible !important;
@@ -109,7 +109,7 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
    instead of inflating page height (= the "empty space" complaint).
    fluid prefix + v3 attr outrank Phase 2's overflow:visible. */
 @media (min-width: 992px) {
-  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col {
+  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col {
     position: sticky;
     top: calc(var(--rmc-preview-banner-h, 0px) + var(--rmc-tenant-header-h, 4.75rem));
     height: calc(100dvh - var(--rmc-preview-banner-h, 0px) - var(--rmc-tenant-header-h, 4.75rem));
@@ -125,9 +125,9 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
       linear-gradient(180deg, color-mix(in oklab, var(--surface-elevated) 94%, transparent), var(--surface-canvas)),
       var(--surface-elevated);
   }
-  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col.rmc-nav-sidebar__mount > .tp-sidebar-inner,
-  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col.rmc-nav-sidebar__mount > .sidebar,
-  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col > .tp-sidebar-inner {
+  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col.rmc-nav-sidebar__mount > .tp-sidebar-inner,
+  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col.rmc-nav-sidebar__mount > .sidebar,
+  html[data-rmc-layout="fluid"][data-surface="tenant"][data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell) .portal-sidebar-col > .tp-sidebar-inner {
     flex: 1 1 auto;
     min-height: 0;
     max-height: none;
@@ -138,7 +138,7 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
     scrollbar-color: color-mix(in oklab, var(--school-primary, var(--brand-primary)) 42%, transparent) transparent;
     padding-bottom: 1rem;
   }
-  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col > .rmc-nav-sidebar__toolbar {
+  html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .portal-sidebar-col > .rmc-nav-sidebar__toolbar {
     flex: 0 0 auto;
   }
 }
@@ -149,12 +149,12 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
    screens, contradicting the full-bleed --rmc-shell-max-width:none default. Now
    honors that token, so it is full-bleed by default yet tenant-configurable;
    genuinely narrow content uses .content-measure / .content-max-* locally. */
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap {
+html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap {
   margin-inline: auto;
   max-width: var(--rmc-shell-max-width, none);
 }
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-page-body,
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .tp-canvas-body {
+html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell):not(.marketing-surface) .portal-page-body,
+html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell):not(.marketing-surface) .tp-canvas-body {
   width: 100%;
   margin-inline: auto;
 }
@@ -199,7 +199,7 @@ html[dir="rtl"][data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"]
 }
 
 /* 7. #2 — SITE-PREVIEW BANNER pinned as part of the stack (offset above). */
-html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) [data-shell-chrome="site-preview-banner-top"] {
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-plane-shell):not(.marketing-surface) [data-shell-chrome="site-preview-banner-top"] {
   position: sticky;
   top: 0;
   z-index: 1035;
@@ -207,9 +207,9 @@ html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout[data-rmc-cp-scroll="
 
 /* 8. PRINT ESCAPE — natural flow, nothing pinned/clipped. */
 @media print {
-  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .tp-header,
-  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) [data-shell-chrome="site-preview-banner-top"],
-  html[data-rmc-tp-v3-shell="1"] body.portal-body-with-layout:not(.control-plane-shell) .portal-sidebar-col {
+  html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .tp-header,
+  html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) [data-shell-chrome="site-preview-banner-top"],
+  html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .portal-sidebar-col {
     position: static !important;
     height: auto !important;
     max-height: none !important;
