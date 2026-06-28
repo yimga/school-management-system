@@ -34,6 +34,10 @@ FK can be rewritten to the freshly restored parent pk:
     finance.Invoice          (natural key: school + payment_code; ``profile`` /
                               ``student`` / ``academic_year`` remapped; out-of-
                               scope optional FKs nulled; full_clean bypassed)
+    finance.InvoiceLine      (natural key: invoice + description + amount;
+                              ``invoice`` remapped; fee_item nulled. Restored
+                              before Payment so the invoice's total is real when
+                              the payment recalc fires)
     finance.Payment          (natural key: school + reference_number, with an
                               amount/paid_at fallback when blank; ``invoice`` /
                               ``student`` remapped; full_clean bypassed)
@@ -61,6 +65,7 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +128,8 @@ class _RestoreSpec:
 #   TeacherProfile -> User (above) + Department (above); reports_to self-FK
 #                     handled in-table via pk_map of the same label.
 #   Invoice -> ComplianceProfile (above) + StudentProfile + AcademicYear (above).
+#   InvoiceLine -> Invoice (above); precedes Payment so the invoice total is real
+#                  when the payment's post_save recalc evaluates the lines.
 #   Payment -> Invoice (above) + StudentProfile (above).
 RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
     # --- Shared, non-tenant parents required by the children below -----------
@@ -217,6 +224,20 @@ RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
     ),
     _RestoreSpec(
         app_label="finance",
+        model_name="InvoiceLine",
+        # No school-scoped unique scalar; a line is identified within its (already
+        # remapped) parent invoice by description + amount. Restored AFTER Invoice
+        # (FK parent) and BEFORE Payment so the invoice carries its real total when
+        # the payment's post_save recalc fires — without the lines, recalc would
+        # zero the restored invoice's total.
+        natural_key=("invoice", "description", "amount"),
+        remap_fk={"invoice": ("finance", "Invoice")},
+        # FeeItem is a tenant fee-catalog row outside the config-core scope.
+        null_fields=("fee_item",),
+        school_scoped=False,
+    ),
+    _RestoreSpec(
+        app_label="finance",
         model_name="Payment",
         natural_key=("reference_number",),  # unique when present
         fallback_natural_key=("invoice", "amount", "paid_at"),
@@ -290,7 +311,7 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
     from apps.accounts.models import User
     from apps.schools.models import SchoolMembership
     from apps.people.models import StudentProfile, TeacherProfile
-    from apps.finance.models import ComplianceProfile, Invoice, Payment
+    from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Payment
     from apps.academics.models import AcademicYear, Classroom, Department, Term
 
     sid = str(school.pk)
@@ -351,6 +372,12 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
         ),
         "people.TeacherProfile": _serialize_rows(teachers_qs),
         "finance.Invoice": _serialize_rows(invoices_qs),
+        # Invoice line items — an invoice restored without its lines loses its
+        # real total (recalc would zero it). Scoped to this school's invoices.
+        # tenant-isolation-allow: closure-of-tenant-fk-graph-via-invoice-school
+        "finance.InvoiceLine": _serialize_rows(
+            InvoiceLine.objects.filter(invoice__school=school)
+        ),
         "finance.Payment": _serialize_rows(payments_qs),
     }
 
@@ -590,8 +617,14 @@ def restore_from_snapshot(
                 # capture time) so ISO date / decimal-string values parse back to
                 # native types faithfully.
                 record = {"model": spec.label.lower(), "pk": None, "fields": fields}
+                # DjangoJSONEncoder so UUID FK values (e.g. fields["school"] = a UUID
+                # School pk), Decimals and dates serialize — plain json.dumps raises
+                # "Object of type UUID is not JSON serializable" and broke restore for
+                # any tenant with UUID-bearing rows.
                 obj_wrapper = next(
-                    serializers.deserialize("json", json.dumps([record]))
+                    serializers.deserialize(
+                        "json", json.dumps([record], cls=DjangoJSONEncoder)
+                    )
                 )
                 instance = obj_wrapper.object
                 if existing is not None:

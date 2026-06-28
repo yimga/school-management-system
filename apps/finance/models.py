@@ -583,7 +583,17 @@ class Invoice(models.Model):
 
     def clean(self):
         """Validate invoice data before saving."""
-        if self.total_amount < Decimal("0.01"):
+        # The 0.01 floor is an INTERACTIVE-create invariant (a human must not
+        # issue a sub-cent invoice). System recalculation (line add/delete,
+        # payment sync, or a cascade delete tearing the invoice down) DERIVES the
+        # total from lines and may legitimately drive it to 0 — see
+        # ``recalculate_invoice``. Enforcing the floor there 500s the recalc
+        # path (e.g. removing the last line, or a School/tenant cascade delete).
+        # ``_recalculating`` already relaxes the immutability invariant for the
+        # same reason; extend it to the floor.
+        if not getattr(self, "_recalculating", False) and self.total_amount < Decimal(
+            "0.01"
+        ):
             raise ValidationError(
                 {"total_amount": "Invoice total must be at least 0.01"}
             )
@@ -648,7 +658,13 @@ class Invoice(models.Model):
                     )
             except type(self).DoesNotExist:
                 pass
-        self.full_clean()
+        if skip_immutability:
+            # During recalc the total is derived from lines and may be 0; skip the
+            # field-level MinValueValidator(0.01) too (clean() already relaxes the
+            # same floor above). Every other field is still validated.
+            self.full_clean(exclude=["total_amount"])
+        else:
+            self.full_clean()
         super().save(*args, **kwargs)
         if not self.payment_code:
             short = uuid.uuid4().hex[:8].upper()

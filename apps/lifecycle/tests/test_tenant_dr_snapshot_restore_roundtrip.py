@@ -28,7 +28,7 @@ from django.db import connection
 from django.test import TestCase, override_settings, tag
 
 from apps.academics.models import AcademicYear, Classroom, Department, Term
-from apps.finance.models import ComplianceProfile, Invoice, Payment
+from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Payment
 from apps.lifecycle.tenant_dr_snapshot import (
     SNAPSHOT_SCHEMA_VERSION,
     capture_daily_snapshot,
@@ -141,6 +141,17 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
             total_amount=Decimal("500.00"),
             reference=f"REF-{uuid.uuid4().hex[:6]}",
         )
+        # A real invoice's total is DERIVED from its line items; seed the line so
+        # the payment-triggered recalc keeps the total at 500.00 rather than
+        # zeroing it (production invoices are never line-less). This line is part
+        # of the DR restorable surface, so it round-trips with the invoice.
+        InvoiceLine.objects.create(
+            invoice=invoice,
+            description="Tuition — Term 1",
+            quantity=Decimal("1.00"),
+            unit_price=Decimal("500.00"),
+            amount=Decimal("500.00"),
+        )
         payment = Payment.objects.create(
             school=school,
             invoice=invoice,
@@ -158,6 +169,31 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
             "invoice": invoice,
             "payment": payment,
         }
+
+    def _purge_restorable_source_rows(self, school):
+        """Model a true fresh-instance DR: after the signed snapshot is captured,
+        drop the source school's restorable rows so the restore into an EMPTY
+        target cannot collide on a globally-unique code — Department.code /
+        Classroom.code (academic config) or payment_code / reference_number
+        (ledger). A genuine self-host DR restores into a database where the
+        source is gone; this reproduces that inside a single test DB.
+
+        The GLOBAL parents (accounts.User by username, finance.ComplianceProfile
+        by name + country_code) are intentionally LEFT in place so they
+        UPDATE-on-restore — exactly like a self-host that already provisioned its
+        admin user and regional profile before the restore runs.
+
+        Deletes children before parents so each cascade's recalc never trips on a
+        still-present sibling.
+        """
+        Payment.objects.filter(school=school).delete()
+        Invoice.objects.filter(school=school).delete()  # cascades InvoiceLine
+        TeacherProfile.objects.filter(school=school).delete()
+        StudentProfile.objects.filter(school=school).delete()
+        Classroom.objects.filter(school=school).delete()
+        Term.objects.filter(school=school).delete()
+        Department.objects.filter(school=school).delete()
+        AcademicYear.objects.filter(school=school).delete()
 
     def test_payload_carries_real_rows_not_just_counts(self):
         school = self._seed_source_school()
@@ -189,6 +225,9 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
         src_student = StudentProfile.objects.get(school=source)
 
         meta = capture_daily_snapshot(source)
+        # The source DB is gone in a real DR — drop its rows so the empty-target
+        # restore cannot collide on a globally-unique academic code.
+        self._purge_restorable_source_rows(source)
 
         # Fresh, EMPTY target tenant — the real self-host shape.
         target_slug = f"tgt-{uuid.uuid4().hex[:10]}"
@@ -240,6 +279,7 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
     def test_restore_is_idempotent(self):
         source = self._seed_source_school()
         meta = capture_daily_snapshot(source)
+        self._purge_restorable_source_rows(source)
         target_slug = f"tgt-{uuid.uuid4().hex[:10]}"
         target = School.objects.create(
             name="Recovered Twice", slug=target_slug, subdomain=target_slug
@@ -280,10 +320,14 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
         self.assertEqual(len(tables["finance.ComplianceProfile"]), 1)
         self.assertEqual(len(tables["people.TeacherProfile"]), 1)
         self.assertEqual(len(tables["finance.Invoice"]), 1)
+        self.assertEqual(len(tables["finance.InvoiceLine"]), 1)
         self.assertEqual(len(tables["finance.Payment"]), 1)
         # Real field data, not a count.
         self.assertEqual(
             tables["finance.Invoice"][0]["fields"]["total_amount"], "500.00"
+        )
+        self.assertEqual(
+            tables["finance.InvoiceLine"][0]["fields"]["amount"], "500.00"
         )
         self.assertEqual(tables["finance.Payment"][0]["fields"]["amount"], "200.00")
 
@@ -291,11 +335,12 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
         """Restore the staff + finance ledger onto a fresh, EMPTY target tenant —
         the real self-host shape.
 
-        Note: ``Invoice.payment_code`` / ``Payment.reference_number`` are GLOBALLY
-        unique. A genuine self-host DR restores onto a *fresh database* where the
+        Note: globally-unique codes (``Invoice.payment_code`` /
+        ``Payment.reference_number`` AND ``Department.code`` / ``Classroom.code``)
+        mean a genuine self-host DR restores onto a *fresh database* where the
         source rows do not exist, so there is no collision. To model that "empty
-        destination, no pre-existing finance rows" shape inside a single test DB,
-        the source ledger rows are deleted after the signed snapshot is captured;
+        destination" shape inside a single test DB, the source rows are purged
+        after the signed snapshot is captured (see ``_purge_restorable_source_rows``);
         the snapshot blob is the sole source of truth for the restore, exactly as
         on a clean instance.
         """
@@ -312,11 +357,10 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
 
         meta = capture_daily_snapshot(source)
 
-        # Drop the globally-unique-coded ledger rows so the destination is empty
-        # of them (a fresh-instance restore never has the source rows present).
-        Payment.objects.filter(school=source).delete()
-        Invoice.objects.filter(school=source).delete()
-        TeacherProfile.objects.filter(school=source).delete()
+        # Empty the source DB the way a real fresh-instance DR would — including
+        # the globally-unique academic codes, not just the ledger rows — so the
+        # restore CREATEs every in-scope row into the empty target.
+        self._purge_restorable_source_rows(source)
 
         target_slug = f"tgt-{uuid.uuid4().hex[:10]}"
         target = School.objects.create(
@@ -361,6 +405,12 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
         self.assertEqual(tgt_invoice.status, src_invoice_status)
         self.assertIsNotNone(tgt_invoice.profile_id)
         self.assertEqual(tgt_invoice.profile.country_code, "CM")
+        # The line item round-trips under the target so the total is REAL (a
+        # line-less restore would recalc the invoice total to 0).
+        self.assertEqual(InvoiceLine.objects.filter(invoice=tgt_invoice).count(), 1)
+        self.assertEqual(
+            InvoiceLine.objects.get(invoice=tgt_invoice).amount, Decimal("500.00")
+        )
         # In-scope student FK remapped to the restored student under target.
         self.assertEqual(tgt_invoice.student, StudentProfile.objects.get(school=target))
         # Out-of-scope optional FKs cleared.
@@ -390,12 +440,10 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
         source = seed["school"]
         meta = capture_daily_snapshot(source)
 
-        # Empty the destination of the globally-unique-coded ledger rows (a fresh
-        # instance never has the source rows) so the first restore CREATES and the
-        # second restore must UPSERT the same rows — proving idempotency.
-        Payment.objects.filter(school=source).delete()
-        Invoice.objects.filter(school=source).delete()
-        TeacherProfile.objects.filter(school=source).delete()
+        # Empty the source DB (a fresh instance never has the source rows) so the
+        # first restore CREATES and the second restore must UPSERT the same rows —
+        # proving idempotency.
+        self._purge_restorable_source_rows(source)
 
         target_slug = f"tgt-{uuid.uuid4().hex[:10]}"
         target = School.objects.create(

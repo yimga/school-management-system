@@ -388,6 +388,9 @@ MIDDLEWARE = [
     "apps.assist_dock.middleware.AssistDockLocaleMiddleware",
     # v4.00.97 Wave G2 — exposes impersonation banner state on the request.
     "apps.assist_dock.middleware.AssistDockImpersonationBannerMiddleware",
+    # Wave C #4 Phase 3a — read-only impersonation write guard. No-op unless
+    # IMPERSONATION_READ_ONLY_ENFORCED is on; safe to wire while default-off.
+    "apps.accounts.middleware_impersonation_readonly.ReadOnlyImpersonationGuardMiddleware",
     # Local-first: activate the tenant's timezone (+ default language for visitors with
     # no explicit preference). Runs AFTER LocaleMiddleware + the assist-dock locale
     # override so any stronger language signal (cookie / Accept-Language / user pref)
@@ -1272,6 +1275,14 @@ IMPERSONATION_REQUIRE_JUSTIFICATION = (
 # Default for new impersonation tokens: read-only until operator checks “allow writes”.
 IMPERSONATION_DEFAULT_READ_ONLY = (
     os.getenv("IMPERSONATION_DEFAULT_READ_ONLY", "1").strip().lower()
+    in {"1", "true", "yes"}
+)
+# Wave C #4 Phase 3a: ENFORCE read-only impersonation at the request path (block writes
+# during a read-only session). Default OFF — the ReadOnlyImpersonationGuardMiddleware is
+# wired but a complete no-op until this is enabled, so it ships safely and is switched on
+# only after Playwright verification of the exit-path allowlist.
+IMPERSONATION_READ_ONLY_ENFORCED = (
+    os.getenv("IMPERSONATION_READ_ONLY_ENFORCED", "0").strip().lower()
     in {"1", "true", "yes"}
 )
 # When true on manager host, operators must enroll MFA before /super/ or /admin/.
@@ -3834,6 +3845,8 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.assist_dock.middleware.AssistDockLocaleMiddleware",
         # v4.00.97 Wave G2 — impersonation banner state (django-tenants path).
         "apps.assist_dock.middleware.AssistDockImpersonationBannerMiddleware",
+        # Wave C #4 Phase 3a — read-only impersonation write guard (django-tenants path).
+        "apps.accounts.middleware_impersonation_readonly.ReadOnlyImpersonationGuardMiddleware",
         # Local-first tenant timezone + default-language activation (django-tenants path).
         "apps.schools.middleware.TenantLocaleMiddleware",
         "apps.accounts.middleware_session_pinning.SessionPinningMiddleware",

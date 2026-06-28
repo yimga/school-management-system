@@ -1,6 +1,6 @@
 """Gap-close tests for unified tenant lifecycle audit fixes."""
 
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from apps.accounts.models import User
 from apps.lifecycle.signals import _PROVISIONING_EVENT_STAGE_MAP
@@ -261,9 +261,12 @@ class LifecycleShellRenderTests(TestCase):
     def test_provisioning_status_renders_poll_shell(self):
         from apps.lifecycle.views_tenant_lifecycle import tenant_provisioning_status
 
+        from django.contrib.sessions.backends.db import SessionStore
+
         request = self.factory.get("/school/studio/provisioning/")
         request.user = self.user
         request.school = self.school
+        request.session = SessionStore()
         response = tenant_provisioning_status(request)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"data-rmc-provisioning-status", response.content)
@@ -271,9 +274,12 @@ class LifecycleShellRenderTests(TestCase):
     def test_fast_path_renders_launch_shell(self):
         from apps.lifecycle.views_tenant_lifecycle import tenant_launch_fast_path
 
+        from django.contrib.sessions.backends.db import SessionStore
+
         request = self.factory.get("/school/studio/fast-path/")
         request.user = self.user
         request.school = self.school
+        request.session = SessionStore()
         response = tenant_launch_fast_path(request)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"data-rmc-launch-fast-path", response.content)
@@ -281,9 +287,12 @@ class LifecycleShellRenderTests(TestCase):
     def test_lifecycle_command_center_renders_hub_and_playbook(self):
         from apps.lifecycle.views_tenant_lifecycle import tenant_lifecycle_command_center
 
+        from django.contrib.sessions.backends.db import SessionStore
+
         request = self.factory.get("/school/studio/lifecycle/")
         request.user = self.user
         request.school = self.school
+        request.session = SessionStore()
         response = tenant_lifecycle_command_center(request)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"tenant-lifecycle-command-center", response.content)

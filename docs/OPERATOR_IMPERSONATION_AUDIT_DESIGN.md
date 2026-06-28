@@ -1,6 +1,6 @@
 # Operator ↔ tenant audit & control (Prompt 2, target #4) — design
 
-Status: **Phase 1 + Phase 2 shipped. Phase 3 designed, not built.**
+Status: **Phase 1 + Phase 2 shipped. Phase 3a shipped (enforcement, default-OFF). Phase 3b verified phantom.**
 
 ## Problem
 
@@ -64,10 +64,12 @@ A second impersonation system exists (`apps/assist_dock/`, grant + session based
 sessions could set the same contextvar from its own middleware so its mutations are
 stamped identically. Small, additive, same pattern.
 
-## Phase 3 — enforcement  ⏳ designed, NOT built
+## Phase 3 — enforcement  (3a shipped default-OFF; 3b phantom)
 
-Two enforcement gaps remain. Both are **request-path / security-critical** and should be
-built where Postgres CI + Playwright can verify, not merged unverified.
+Two enforcement gaps were claimed. 3a (read-only enforcement) is real and now **shipped
+behind a default-OFF flag** so it can be activated after request-path (Playwright)
+verification. 3b (superuser consent) was **verified phantom** — the consent gate already
+covers superusers.
 
 ### 3a. Enforce `read_only` impersonation
 Today `read_only` is captured into the session and logged, but **nothing blocks writes**
@@ -82,18 +84,33 @@ during a read-only session (no middleware checks it). Design:
   non-HTTP path can't bypass the method check.
 - Lock: a new CI gate / test asserting a read-only impersonated POST to a tenant write
   view returns 403 and writes no row.
-- **Risk:** false-positive blocking of legitimate operator support actions. Needs the
-  allowlist tuned against real operator workflows + Playwright coverage. Hence deferred.
+- **Risk:** false-positive blocking of legitimate operator support actions.
 
-### 3b. Superuser-bypass consent trail
-A raw Django superuser can reach a tenant without the JIT consent check that
-`OperatorTenantAssignment`-scoped operators go through
-(`apps/schools/super_views_impersonation.py`). Design:
+**✅ SHIPPED (default-OFF):** `apps/accounts/middleware_impersonation_readonly.py`
+(`ReadOnlyImpersonationGuardMiddleware`) wired into both MIDDLEWARE lists. Rejects
+POST/PUT/PATCH/DELETE during a read-only impersonation session with 403, except the exit
+allowlist (`end_impersonation`, `impersonation_stop[_redirect]`, `logout`). Gated by
+`settings.IMPERSONATION_READ_ONLY_ENFORCED` (env `IMPERSONATION_READ_ONLY_ENFORCED`,
+**default 0**) — a complete no-op until enabled, so it ships safely and is switched on only
+after Playwright verification of the allowlist against real operator workflows. Lock:
+`apps/accounts/tests/test_impersonation_readonly_guard.py` (7 no-DB tests covering flag-off
+no-op, block-on-write, safe-method pass, non-impersonation pass, read_only=False pass, and
+exit-path allowance). The `pre_save`/`pre_delete` defense-in-depth layer remains an optional
+follow-on.
 
-- Route the superuser path through the same consent check (or, at minimum, record an
-  explicit `ImpersonationLog`/audit row marking `consent=bypassed-superuser` with reason),
-  so superuser access is never silent.
-- Lock: a test asserting a superuser switch without consent emits the bypass audit row.
+### 3b. Superuser-bypass consent trail — VERIFIED PHANTOM
+The audit claimed a raw superuser reaches a tenant via the switch flow without the consent
+check. **Reading `switch_to_tenant` (apps/schools/super_views_impersonation.py) refutes
+this:** a superuser passes `operator_can_impersonate_school` (line 59) but execution then
+*continues* into the shared `JIT_IMPERSONATION_REQUIRE_CONSENT` gate (lines 182-205:
+redirects with "Impersonation requires principal consent" when
+`school.impersonation_consent_granted_at` is unset/expired) and the
+`ImpersonationLog.SWITCH` record (line 215, with reason/read_only/peer). The consent gate is
+**not** inside an `operator_can_impersonate_school`-False branch — it applies to superusers
+too. So superuser impersonation already carries a consent requirement + audit trail. No
+build. (The only way to skip consent is the global `JIT_IMPERSONATION_REQUIRE_CONSENT=False`
+config — an intentional operator choice, not a superuser-specific hole; the SWITCH is logged
+regardless.)
 
 ## Why the staging
 `AuditLog` is append-only and platform-wide; a migration into it and request-path write-

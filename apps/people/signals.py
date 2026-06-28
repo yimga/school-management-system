@@ -207,8 +207,10 @@ def sync_teacher_department_thread(sender, instance, created, **kwargs):
         if instance.user not in thread.members.all():
             thread.members.add(instance.user)
 
-        # Remove from old department thread if department changed
-        if not created and "department" in kwargs.get("update_fields", []):
+        # Remove from old department thread if department changed.
+        # post_save passes update_fields=None on a full save, so `.get(k, [])`
+        # returns None (the key IS present) — guard with `or []` before membership.
+        if not created and "department" in (kwargs.get("update_fields") or []):
             # Get old department from previous state (if available)
             # For now, we'll just ensure they're in the current department thread
             pass
