@@ -1,3 +1,6 @@
+from importlib import import_module
+
+from django.conf import settings
 from django.http import Http404
 from django.test import RequestFactory, TestCase
 
@@ -19,6 +22,16 @@ class SeatingChartFlagTests(TestCase):
         )
         self.user.has_feature_permission = lambda code: code == "attendance.manage"
 
+    def _request(self):
+        # The enabled path renders the full portal_base shell, whose context
+        # processors read request.session (active-portal-role resolution). A bare
+        # RequestFactory request has none, so attach a real session store — matching
+        # the codebase's pattern for render-through-shell RequestFactory tests.
+        request = self.factory.get("/portal/attendance/seating-chart/")
+        request.user = self.user
+        request.session = import_module(settings.SESSION_ENGINE).SessionStore()
+        return request
+
     def _set_flag(self, value):
         site = get_platform_site_settings_record(create=True)
         flags = dict(site.get_backend_feature_flags())
@@ -30,17 +43,10 @@ class SeatingChartFlagTests(TestCase):
 
     def test_seating_chart_explicitly_disabled_raises_404(self):
         self._set_flag(False)
-        request = self.factory.get("/portal/attendance/seating-chart/")
-        request.user = self.user
-
         with self.assertRaises(Http404):
-            seating_chart_view(request)
+            seating_chart_view(self._request())
 
     def test_seating_chart_enabled_renders(self):
         self._set_flag(True)
-
-        request = self.factory.get("/portal/attendance/seating-chart/")
-        request.user = self.user
-        response = seating_chart_view(request)
-
+        response = seating_chart_view(self._request())
         self.assertEqual(response.status_code, 200)
