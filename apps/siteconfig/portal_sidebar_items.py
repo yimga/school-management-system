@@ -37,7 +37,20 @@ OPTIONAL_REVERSE_ERRORS = (AttributeError, NoReverseMatch, TypeError, ValueError
 # all day-to-day sections so the operational sidebar stays focused. Tenants keep
 # configuration in-portal (not Django /admin/) because tenant admins are typically
 # not Django staff — the portal IS their backend.
-PORTAL_CONFIG_SECTIONS = frozenset({"Admin Panel"})
+# Config zone (sorted to the bottom as a contiguous block). The legacy single
+# "Admin Panel" grab-bag was split into themed sub-groups (2026-06-28) so each
+# config submenu relates to its heading; "Admin Panel" is kept for the resilient
+# baseline nav (build_portal_sidebar_baseline) which still uses it.
+PORTAL_CONFIG_SECTIONS = frozenset(
+    {
+        "Admin Panel",
+        "Configuration",
+        "Display & Platform",
+        "Templates & Branding",
+        "Access & Roles",
+        "Integrations & Data",
+    }
+)
 
 
 def _portal_item_surface(section):
@@ -1051,7 +1064,7 @@ def build_portal_sidebar_items(request, site):
                     "url": _safe_reverse("admin:auth_group_changelist"),
                     "icon": "bi-unlock",
                     # Permission-group configuration = config, not a people roster.
-                    "section": "Admin Panel",
+                    "section": "Access & Roles",
                     "badge": None,
                 }
             )
@@ -1068,7 +1081,7 @@ def build_portal_sidebar_items(request, site):
                     "url": _tenant_identity_url,
                     "icon": "bi-person-badge",
                     # Identity/access provisioning = config, not a people roster.
-                    "section": "Admin Panel",
+                    "section": "Access & Roles",
                     "badge": None,
                 }
             )
@@ -1080,7 +1093,7 @@ def build_portal_sidebar_items(request, site):
                     "url": _rbac_url,
                     "icon": "bi-diagram-3",
                     # Access-control rules = config, not a people roster.
-                    "section": "Admin Panel",
+                    "section": "Access & Roles",
                     "badge": None,
                 }
             )
@@ -1210,7 +1223,7 @@ def build_portal_sidebar_items(request, site):
                 "icon": "bi-envelope-paper",
                 # Mail-merge template management = configuration, not a day-to-day
                 # report — belongs in the config zone, not Analytics & Reports.
-                "section": "Admin Panel",
+                "section": "Templates & Branding",
                 "badge": None,
             }
         )
@@ -1222,7 +1235,7 @@ def build_portal_sidebar_items(request, site):
                 "icon": "bi-file-earmark-richtext",
                 # Report-card template builder = configuration, not a day-to-day
                 # report — belongs in the config zone, not Analytics & Reports.
-                "section": "Admin Panel",
+                "section": "Templates & Branding",
                 "badge": None,
             }
         )
@@ -1245,7 +1258,7 @@ def build_portal_sidebar_items(request, site):
                     "label": "Dashboard Layout",
                     "url": dashboard_layout_url,
                     "icon": "bi-grid-3x3-gap",
-                    "section": "Admin Panel",
+                    "section": "Display & Platform",
                     "badge": None,
                 }
             )
@@ -1262,7 +1275,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "Feature Control",
                         "url": _fc_url,
                         "icon": "bi-toggle-on",
-                        "section": "Admin Panel",
+                        "section": "Display & Platform",
                         "badge": None,
                     }
                 )
@@ -1276,7 +1289,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "Feature Control Audit",
                         "url": _fca_url,
                         "icon": "bi-clock-history",
-                        "section": "Admin Panel",
+                        "section": "Display & Platform",
                         "badge": None,
                     }
                 )
@@ -1292,7 +1305,7 @@ def build_portal_sidebar_items(request, site):
                     "label": "Integrations & API Center",
                     "url": _safe_reverse("apicenter:dashboard"),
                     "icon": "bi-plug",
-                    "section": "Admin Panel",
+                    "section": "Integrations & Data",
                     "badge": None,
                 }
             )
@@ -1302,7 +1315,7 @@ def build_portal_sidebar_items(request, site):
                 "label": "Backend Console",
                 "url": _safe_reverse("accounts:backend_dashboard"),
                 "icon": "bi-gear-fill",
-                "section": "Admin Panel",
+                "section": "Display & Platform",
                 "badge": None,
             }
         )
@@ -1315,7 +1328,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "District & LMS interop",
                         "url": _dinterop,
                         "icon": "bi-link-45deg",
-                        "section": "Admin Panel",
+                        "section": "Integrations & Data",
                         "badge": None,
                     }
                 )
@@ -1327,7 +1340,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "Institution profile",
                         "url": _iw,
                         "icon": "bi-building",
-                        "section": "Admin Panel",
+                        "section": "Configuration",
                         "badge": None,
                     }
                 )
@@ -1418,7 +1431,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "Dashboard Hub",
                         "url": dashboard_hub_url,
                         "icon": "bi-grid-3x3-gap",
-                        "section": "Admin Panel",
+                        "section": "Display & Platform",
                         "badge": None,
                     }
                 )
@@ -1430,7 +1443,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "Blueprints",
                         "url": get_blueprints_url,
                         "icon": "bi-journal-richtext",
-                        "section": "Admin Panel",
+                        "section": "Templates & Branding",
                         "badge": None,
                     }
                 )
@@ -1443,7 +1456,7 @@ def build_portal_sidebar_items(request, site):
                     "label": "Import & bulk",
                     "url": import_hub_url,
                     "icon": "bi-upload",
-                    "section": "Admin Panel",
+                    "section": "Integrations & Data",
                     "badge": None,
                 }
             )
@@ -1457,7 +1470,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "Theme & Experience",
                         "url": experience_url,
                         "icon": "bi-palette",
-                        "section": "Admin Panel",
+                        "section": "Templates & Branding",
                         "badge": None,
                     }
                 )
@@ -1467,7 +1480,7 @@ def build_portal_sidebar_items(request, site):
                     "label": "Studio",
                     "url": _safe_reverse("studio_os:shell"),
                     "icon": "bi-grid-3x3-gap",
-                    "section": "Admin Panel",
+                    "section": "Templates & Branding",
                     "badge": None,
                 }
             )
@@ -1486,7 +1499,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "Modules",
                         "url": _mm_url,
                         "icon": "bi-puzzle",
-                        "section": "Admin Panel",
+                        "section": "Configuration",
                         "badge": None,
                     }
                 )
@@ -1498,7 +1511,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "Grading & language",
                         "url": _gs_url,
                         "icon": "bi-translate",
-                        "section": "Admin Panel",
+                        "section": "Configuration",
                         "badge": None,
                     }
                 )
@@ -1514,7 +1527,7 @@ def build_portal_sidebar_items(request, site):
                         "label": "Site Settings",
                         "url": _ss_url,
                         "icon": "bi-gear-wide",
-                        "section": "Admin Panel",
+                        "section": "Configuration",
                         "badge": None,
                     }
                 )
@@ -1526,7 +1539,7 @@ def build_portal_sidebar_items(request, site):
                         "admin:global_registries_regionconfig_changelist"
                     ),
                     "icon": "bi-geo-alt",
-                    "section": "Admin Panel",
+                    "section": "Configuration",
                     "badge": None,
                 }
             )
@@ -1537,7 +1550,7 @@ def build_portal_sidebar_items(request, site):
                     "label": "Config center",
                     "url": _safe_reverse("siteconfig:console_domains_hub"),
                     "icon": "bi-gear-wide-connected",
-                    "section": "Admin Panel",
+                    "section": "Configuration",
                     "badge": None,
                 }
             )
