@@ -7,6 +7,11 @@ from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 class SeatingChartFlagTests(TestCase):
+    """Seating chart graduated from beta (2026-06-27): it is now ENABLED by
+    default (models_support backend-flag default = True) and built out into a
+    real per-class seating grid. The flag still exists so a tenant can disable
+    it, so the gate now defaults on and only the explicit-disable path 404s."""
+
     def setUp(self):
         self.factory = RequestFactory()
         self.user = User.objects.create_user(
@@ -14,7 +19,17 @@ class SeatingChartFlagTests(TestCase):
         )
         self.user.has_feature_permission = lambda code: code == "attendance.manage"
 
-    def test_seating_chart_disabled_raises_404(self):
+    def _set_flag(self, value):
+        site = get_platform_site_settings_record(create=True)
+        flags = dict(site.get_backend_feature_flags())
+        flags["enable_seating_chart_beta"] = value
+        site.apply_feature_control_state(
+            backend_feature_flags=flags,
+            field_updates={},
+        )
+
+    def test_seating_chart_explicitly_disabled_raises_404(self):
+        self._set_flag(False)
         request = self.factory.get("/portal/attendance/seating-chart/")
         request.user = self.user
 
@@ -22,13 +37,7 @@ class SeatingChartFlagTests(TestCase):
             seating_chart_view(request)
 
     def test_seating_chart_enabled_renders(self):
-        site = get_platform_site_settings_record(create=True)
-        flags = dict(site.get_backend_feature_flags())
-        flags["enable_seating_chart_beta"] = True
-        site.apply_feature_control_state(
-            backend_feature_flags=flags,
-            field_updates={},
-        )
+        self._set_flag(True)
 
         request = self.factory.get("/portal/attendance/seating-chart/")
         request.user = self.user

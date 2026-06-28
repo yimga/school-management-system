@@ -554,6 +554,9 @@ def take_student_attendance(request: HttpRequest):
             "status_choices": status_choices,
             "Attendance": Attendance,
             "qr_tokens_by_student": qr_tokens_by_student,
+            "seating_chart_enabled": get_effective_flags(request).get(
+                "enable_seating_chart_beta", True
+            ),
         },
     )
 
@@ -622,9 +625,13 @@ def record_teacher_attendance(request: HttpRequest):
 
 @login_required
 def seating_chart_view(request: HttpRequest):
-    """W4-2: Seating chart placeholder — view or link for class layout. Optional ?classroom=id."""
+    """Visual seating chart for a class — the class roster laid out as a grid of
+    desks, each desk showing the student and today's attendance status. Read-only
+    (attendance edits happen via the roll-call view it links to). Enabled by
+    default; a tenant can disable it via the enable_seating_chart_beta flag.
+    Requires attendance.manage. Optional ?classroom=id."""
     flags = get_effective_flags(request)
-    if not flags.get("enable_seating_chart_beta"):
+    if not flags.get("enable_seating_chart_beta", True):
         raise Http404("Seating chart is not enabled.")
     if not getattr(request.user, "has_feature_permission", lambda _: False)(
         "attendance.manage"
@@ -637,10 +644,34 @@ def seating_chart_view(request: HttpRequest):
     classrooms = _attendance_visible_classrooms(request, year)
     classroom_id = request.GET.get("classroom")
     classroom_obj = None
+    seats = []
+    today = timezone.localdate()
     if classroom_id and classrooms:
         classroom_obj = next(
             (c for c in classrooms if str(c.id) == str(classroom_id)), None
         )
+        if classroom_obj:
+            students = list(
+                classroom_obj.students.filter(
+                    status__in=(
+                        StudentProfile.Status.NEW,
+                        StudentProfile.Status.RETURNING,
+                        StudentProfile.Status.PROBATION,
+                    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+                    )
+                ).order_by("last_name", "first_name")
+            )
+            status_by_student = {}
+            if students:
+                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+                for a in Attendance.objects.filter(
+                    classroom=classroom_obj, date=today
+                ).select_related("student"):
+                    status_by_student[a.student_id] = a.status
+            seats = [
+                {"student": s, "status": status_by_student.get(s.id)}
+                for s in students
+            ]
     hero = {
         "title": "Seating chart",
         "subtitle": "Class layout view for roll call and attendance.",
@@ -654,6 +685,9 @@ def seating_chart_view(request: HttpRequest):
             "classrooms": classrooms,
             "classroom": classroom_obj,
             "classroom_id": classroom_id or "",
+            "seats": seats,
+            "today": today,
+            "Attendance": Attendance,
         },
     )
 

@@ -6124,3 +6124,75 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 @media (hover: none) {
   .rmc-detail-copy { opacity: 1; }
 }
+
+/* ============================================================
+   Seating chart grammar (portal/seating_chart.html). A class roster laid out as
+   a responsive grid of desks; each desk reads today's attendance status via a
+   token-only colored border. All values are semantic tokens so it follows the
+   tenant brand + theme and stays off-token-clean.
+   ============================================================ */
+.rmc-seating-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: var(--space-2, 0.5rem);
+}
+.rmc-seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1, 0.25rem);
+  padding: var(--space-3, 0.75rem) var(--space-2, 0.5rem);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--surface-elevated);
+  text-align: center;
+  min-width: 0;
+}
+.rmc-seat__avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: var(--surface-overlay, var(--surface-sunken));
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+.rmc-seat__name {
+  font-size: 0.8rem;
+  line-height: 1.25;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.rmc-seat__status {
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.rmc-seat--present { border-color: color-mix(in srgb, var(--success) 50%, var(--hairline)); }
+.rmc-seat--absent  { border-color: color-mix(in srgb, var(--danger) 50%, var(--hairline)); }
+.rmc-seat--late    { border-color: color-mix(in srgb, var(--warning) 55%, var(--hairline)); }
+
+.rmc-seating-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3, 0.75rem);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+.rmc-seating-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 0.25rem);
+}
+.rmc-seating-legend__dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  border: 2px solid var(--hairline);
+  background: var(--surface-elevated);
+}

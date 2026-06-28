@@ -308,7 +308,7 @@ def default_backend_feature_flags():
         "enable_ocr_scan_teller": False,
         "enable_intervention_llm_roadmap": False,
         "enable_enrollment_forecast_api": False,
-        "enable_seating_chart_beta": False,
+        "enable_seating_chart_beta": True,
         "enable_ministry_api_cartescolaire": False,
         "enable_ministry_api_dgi": False,
         "enable_ministry_live_sync": False,

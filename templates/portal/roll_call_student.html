@@ -39,9 +39,11 @@
         <div class="col-auto">
           <button type="submit" class="btn btn-primary" data-rmc-autosubmit-hide-when-js>Load</button>
         </div>
+        {% if seating_chart_enabled %}
         <div class="col-auto">
           <a href="{% url 'portal:seating_chart' %}{% if classroom %}?classroom={{ classroom.id }}{% endif %}" class="btn btn-outline-secondary">Seating chart</a>
         </div>
+        {% endif %}
       </form>
       {% if classroom and students_with_status %}
         <div class="card border-success mb-3" id="qr-attendance-sweep" data-rmc-qr-attendance="1" data-rmc-attendance-primary="qr">

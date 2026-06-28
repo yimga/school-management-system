@@ -27,9 +27,32 @@
         </div>
       </form>
       {% if classroom %}
-        <p class="text-muted mb-2">{% trans "Seating chart for" %} {{ classroom.name }}</p>
-        <p class="text-muted mb-2">{% trans "A visual seating layout for this class is on the roadmap. In the meantime, attendance can be taken from the dedicated roll-call view." %}</p>
-        <a href="{% url 'portal:take_student_attendance' %}?classroom={{ classroom.id }}" class="btn btn-outline-primary">{% trans "Take attendance for this class" %}</a>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div>
+            <p class="mb-1"><strong>{% trans "Seating chart for" %} {{ classroom.name }}</strong></p>
+            <p class="text-muted small mb-0">{% blocktrans count counter=seats|length %}{{ counter }} student · today's roll call{% plural %}{{ counter }} students · today's roll call{% endblocktrans %}</p>
+          </div>
+          <div class="rmc-seating-legend" aria-hidden="true">
+            <span class="rmc-seating-legend__item"><span class="rmc-seating-legend__dot rmc-seat--present"></span>{% trans "Present" %}</span>
+            <span class="rmc-seating-legend__item"><span class="rmc-seating-legend__dot rmc-seat--absent"></span>{% trans "Absent" %}</span>
+            <span class="rmc-seating-legend__item"><span class="rmc-seating-legend__dot rmc-seat--late"></span>{% trans "Late" %}</span>
+            <span class="rmc-seating-legend__item"><span class="rmc-seating-legend__dot"></span>{% trans "Not marked" %}</span>
+          </div>
+        </div>
+        {% if seats %}
+          <div class="rmc-seating-grid" role="list" aria-label="{% trans 'Seating chart' %}">
+            {% for seat in seats %}
+              <div class="rmc-seat{% if seat.status == Attendance.Status.PRESENT %} rmc-seat--present{% elif seat.status == Attendance.Status.ABSENT %} rmc-seat--absent{% elif seat.status == Attendance.Status.LATE %} rmc-seat--late{% endif %}" role="listitem">
+                <span class="rmc-seat__avatar" aria-hidden="true">{{ seat.student.first_name|slice:":1" }}{{ seat.student.last_name|slice:":1" }}</span>
+                <span class="rmc-seat__name">{{ seat.student.first_name }} {{ seat.student.last_name }}</span>
+                {% if seat.status %}<span class="rmc-seat__status">{{ seat.status }}</span>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          <a href="{% url 'portal:take_student_attendance' %}?classroom={{ classroom.id }}" class="btn btn-primary mt-3">{% trans "Take attendance for this class" %}</a>
+        {% else %}
+          <p class="text-muted mb-0">{% trans "No active students are enrolled in this class yet." %}</p>
+        {% endif %}
       {% else %}
         <p class="text-muted mb-0">{% trans "Select a class to view its seating chart." %}</p>
       {% endif %}
