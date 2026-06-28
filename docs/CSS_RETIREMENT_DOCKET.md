@@ -1,6 +1,62 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-26 (width-to-width primitives + Ask-AI dock fallback; see § below. Prior: empty-state shim retirement; 2026-06-20 Flow Thread Phase 1+2.)
+**Last updated:** 2026-06-27 (Tenant-wide UI/UX elevation program P0–P6 + seating-chart graduation; see § below. Prior: 2026-06-26 width-to-width primitives + Ask-AI dock fallback.)
+
+## 2026-06-27 — Tenant-wide UI/UX elevation program (P0–P6 + seating chart) — audit-first, autonomous
+
+**Context:** owner audit of all tenant surfaces (portal/backend/studio shells, all rendering through
+`templates/portal_base.html`): sidebar not scrollable on every page + monochrome icons + accordion (not list)
+submenus, header reads as generic Bootstrap, footer is a marketing band on working pages, big side gutters
+("empty space"), not compact, page tools not page-aware, + a seating-chart 404. Three parallel read-only audits
+produced `file:line` findings; this program fixes them in safe, gate-verified, path-scoped increments. SW bumped
+each commit (`sms-v4.05.78`→`v4.05.82`). Zero migrations. Every commit FF-pushed after rebasing over live peers.
+
+**What landed (by phase / commit):**
+- **P0 foundations** (`6e6d632ae`): defined the canonical `--space-1..8` ramp in `design-tokens.css` — it was
+  referenced ~1,176× as `var(--space-N, <fallback>)` but never defined (silent per-call fallbacks drifted
+  6/8/10/12/14/16px). Values match the dominant fallback at each step → no-op for ~99% of sites, snaps outliers
+  onto one rhythm. Fixed the dead `@media (max-width: var(--bp-content-sm-max,479px))` (var() invalid in a media
+  feature → the ≤479px overflow-containment block was inert) → literal `479px`.
+- **P1 sidebar** (`24b12b9f1`): server-side `is_current` + `section_is_active` in `build_portal_sidebar_items`
+  (template read them but nothing set them → no first-paint highlight, active group collapsed); colorful nav
+  icons via a per-section `{% cycle %}` accent mapping onto the existing theme-aware `--chart-color` palette (6
+  non-alarm hues; active row excluded); a connector rail so submenus read as a nested list; auto-open the active
+  group; a universal lg+ sidebar-scroll safety net (mode-independent).
+- **P2 header + P3 footer** (`13faea328`): restyled the stock Bootstrap header controls (`.btn-outline-secondary`,
+  search wrapper `:focus-within`, `.badge.bg-light` role pill) to the designed token look — markup untouched so
+  Bootstrap/JS behaviours hold; token-only so off-token stays clean. Footer decorative mid-row (clock/weather,
+  FERPA/ISO pillars, social, app badges, contacts) now lean-by-default on tenant working pages, restored via
+  `cockpit.footer.show_rich_midrow`; manager operator footer unchanged.
+- **P4 width-to-width + compact** (`91308b398`): relaxed the two width caps that re-introduced side gutters
+  (role-home `.page-wrap` 1760px + inner-page 1280px) to `var(--rmc-shell-max-width, none)` — full-bleed by
+  default, still tenant-configurable; narrow forms keep `.content-measure`. Pinned `data-rmc-density` on the
+  tenant `<html>` (`rmc_tenant_density|default:'compact'`, tenant-only) — tenants rendered `comfortable` before.
+- **Seating chart graduation** (`a03e85282`): the `/portal/attendance/seating-chart/` 404 was a default-off beta
+  placeholder + an unconditional (dead) link from roll-call. Per owner ("enable + build it out"): flipped the
+  backend-flag default to `True` (still per-tenant disable-able), built the placeholder into a real per-class
+  seating grid (roster + today's attendance status, new token-only `.rmc-seat*` grammar), gated the roll-call
+  link on the flag. 2/2 DB tests pass; field/relation/template/url reference-integrity all 0 unresolved.
+- **P5 page-awareness** (foundation): emit structured page identity on `<body>` (`data-rmc-page-url-name` +
+  `data-rmc-page-namespace` from `resolver_match`) so tools/copilot can scope to the current page.
+- **P6 scroll/overflow:** re-verified `scan_horizontal_overflow_risk` / `scan_sticky_with_overflow_hidden` = 0
+  after the full-bleed change (no regression).
+
+**Deferred (verify-needed; not shipped blind):**
+- **P4.3** `.rmc-page-horizon` adoption on the role-home/backend dashboards + **P4.4** inline-spacing→token swaps
+  (template-heavy; can't verify layout without a browser).
+- **P5** copilot JS consuming the new page-identity attributes + resolver-driven breadcrumbs (JS/Python, untested).
+- **P1.5** "Admin Panel" 18-item regroup + legacy hand-grouped fallback retirement (the fallback is a safety net).
+- **P7 bundle retirement: NO-GO after verification** — `rmc-tenant-dashboard-v2.css` is referenced by 4 live
+  dashboard templates (backend/parent/student/teacher) and `phase2-portal-bundle` is `@import`ed by several CSS
+  files; the audit's "off load path" claim was stale. Retiring would break dashboards → left intact.
+- **P8 performance:** the #1 fix is **ops, not code** — ensure `REDIS_URL` is set in prod (`settings.py:1838`);
+  `LocMemCache` under >1 worker silently defeats every existing cache (tenant resolution, 60s site-settings memo,
+  sidebar badge counts). Code-level caching (per-(school,user,role) sidebar cache), script `defer`, and async
+  audit-log writes are real wins but untested → left as operator follow-ups rather than shipped unverified.
+
+**Deploy:** CSS/JS/template only, zero migrations. SW `sms-v4.05.82-seating-chart-graduate-2026-06-27`. The
+seating-chart flag default flip + compact density are config defaults (tenants can override). REDIS is the single
+highest-leverage perf action and requires no code.
 
 ## 2026-06-26 — Width-to-width contract: page-aware primitives + Ask-AI dock fallback (W1 foundation + W2)
 
