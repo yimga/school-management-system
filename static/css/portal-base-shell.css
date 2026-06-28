@@ -428,8 +428,11 @@ body.backend-shell .page-wrap {
   overflow-x: clip;
 }
 
-/* Mobile-First Responsive Portal Design (breakpoints from design-tokens) */
-@media (max-width: var(--bp-content-sm-max, 479px)) {
+/* Mobile-First Responsive Portal Design.
+   NOTE: a media-query feature value cannot use var() — `@media (max-width: var(...))`
+   is invalid and the whole block is silently dead. Use the literal breakpoint so
+   the ≤479px overflow-containment rules below actually apply on phones. */
+@media (max-width: 479px) {
   body { overflow-x: hidden; }
   .portal-layout-wrap, .portal-layout-row { max-width: 100%; min-width: 0; overflow-x: hidden; }
   #main-content, .page-wrap { max-width: 100%; min-width: 0; overflow-x: hidden; }

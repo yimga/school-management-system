@@ -3651,6 +3651,24 @@ html.is-scrolled .admin-cp-navbar-unified > .container-fluid {
   transition: padding var(--motion-fast);
 }
 
+/* ===== Canonical spacing ramp (4 / 8px base). Previously referenced ~1,176×
+   across the CSS as `var(--space-N, <fallback>)` but NEVER defined, so every
+   call silently used its inline fallback — which drifted file-to-file (6px vs
+   8px, 10px vs 12px, 14px vs 16px). These values match the OVERWHELMING dominant
+   fallback at every step, so defining them is a no-op for ~99% of call sites and
+   merely snaps the handful of 2–4px outliers onto one rhythm. This is the single
+   source of truth for spacing; new code should use these tokens, not literals. */
+:root {
+  --space-1: 0.25rem;  /* 4px  */
+  --space-2: 0.5rem;   /* 8px  */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-7: 2rem;     /* 32px */
+  --space-8: 2.5rem;   /* 40px */
+}
+
 /* ===== Density modes — user-pickable platform-wide rhythm. Defaults to
    "comfortable"; tenants can ship "compact" for dense workflows (Finance ops,
    data-entry teachers) or "spacious" (read-heavy parents). Set via
