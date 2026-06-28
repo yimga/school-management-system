@@ -50,7 +50,7 @@
       ]
     }
   },
-  "generated_at": "2026-06-26T15:15:09.411963+00:00",
+  "generated_at": "2026-06-28T04:18:51.636055+00:00",
   "high_impact_templates_total": 266,
   "inline_styles": {
     "count": 54,
@@ -258,7 +258,7 @@
     "violation_paths": []
   },
   "missing_table_family": {
-    "count": 7,
+    "count": 8,
     "needs_review_count": 7,
     "needs_review_paths": [
       "templates/reports/annual_report_cameroon.html",
@@ -269,8 +269,10 @@
       "templates/siteconfig/permission_matrix_simulator.html",
       "templates/siteconfig/super/cockpit_health.html"
     ],
-    "violation_count": 0,
-    "violation_paths": []
+    "violation_count": 1,
+    "violation_paths": [
+      "templates/reports/term_report.html"
+    ]
   },
   "mobile_viewport_contract": {
     "missing_viewport_paths": [],
@@ -807,11 +809,12 @@
     "unsafe_direct_brand_text_paths": []
   },
   "unwrapped_tables": {
-    "count": 8,
-    "needs_review_count": 8,
+    "count": 9,
+    "needs_review_count": 9,
     "needs_review_paths": [
       "templates/reports/annual_report_cameroon.html",
       "templates/reports/annual_report_cameroon_modern.html",
+      "templates/reports/term_report.html",
       "templates/reports/term_report_cameroon.html",
       "templates/reports/term_report_cameroon_modern.html",
       "templates/siteconfig/partials/feature_control_ledger_body.html",
@@ -1129,11 +1132,12 @@
       "unsafe_direct_brand_text_paths": []
     },
     "unwrapped_tables": {
-      "count": 8,
-      "needs_review_count": 8,
+      "count": 9,
+      "needs_review_count": 9,
       "needs_review_paths": [
         "templates/reports/annual_report_cameroon.html",
         "templates/reports/annual_report_cameroon_modern.html",
+        "templates/reports/term_report.html",
         "templates/reports/term_report_cameroon.html",
         "templates/reports/term_report_cameroon_modern.html",
         "templates/siteconfig/partials/feature_control_ledger_body.html",

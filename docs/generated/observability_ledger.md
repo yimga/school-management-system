@@ -1,6 +1,6 @@
 # Observability ledger
 
-- generated_at: 2026-06-15T21:08:27.727209+00:00
+- generated_at: 2026-06-28T04:06:14.074994+00:00
 - northstar: 67 (WEAK)
 - kill_test: PASS
 - self_heal: SELF_HEALED_PASS
