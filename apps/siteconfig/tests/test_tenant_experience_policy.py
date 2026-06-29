@@ -124,7 +124,7 @@ class TenantExperiencePolicyShellGateTests(SimpleTestCase):
         request = RequestFactory().get("/")
         request.public_host_kind = "tenant"
         request.resolver_match = _Match()
-        request.user = get_user_model()(is_authenticated=True)
+        request.user = get_user_model()()  # User instances are always is_authenticated=True (read-only property)
 
         with patch(
             "apps.siteconfig.tenant_experience_policy.use_v3_shell_for_request",

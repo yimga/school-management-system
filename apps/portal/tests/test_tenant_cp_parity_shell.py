@@ -92,7 +92,13 @@ class TenantSidebarV8GroupsTests(SimpleTestCase):
         self.assertIn("data-rmc-copilot-toggle", rail)
         self.assertIn("transition: width var(--motion-slow", compact)
         self.assertIn("var(--rmc-copilot-rail-z", compact)
-        self.assertIn("padding-inline-end: calc(var(--rmc-app-shell-copilot-w", canvas)
+        # v4.05.89: the copilot gutter that reserves space for the rail lives on
+        # the MAIN canvas (it sits beside the rail), NOT the header — the header is
+        # full-bleed because the rail anchors BELOW it. Assert the retained gutter
+        # on .portal-main-col in the compact sheet (the header gutter was removed).
+        self.assertIn("padding-right: calc(var(--rmc-app-shell-copilot-w", compact)
+        # canvas sheet still loaded by the shell (read above to keep it pinned)
+        self.assertIn('data-rmc-cp-scroll="canvas"', canvas)
         self.assertIn(
             'body[data-copilot="collapsed"] .rmc-tenant-portal-copilot-mount .lx-copilot__expanded',
             cp200,

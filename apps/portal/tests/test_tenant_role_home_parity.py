@@ -300,5 +300,12 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         canvas_css = (
             ROOT / "static/css/rmc-tenant-workspace-canvas.css"
         ).read_text(encoding="utf-8")
-        self.assertIn("max-height: 100% !important", canvas_css)
+        # v4.05.88: the main canvas is capped to a MEASURED workspace height
+        # (--rmc-tenant-main-h, calc() fallback) so it always scrolls. This
+        # replaced the prior `max-height: 100% !important`, whose percentage base
+        # could resolve to `auto` and fail to constrain the flex main col (the
+        # "body not scrollable" bug). Keep both the height:100% and the measured
+        # cap pinned so a regression that drops the cap is caught.
+        self.assertIn("height: 100% !important", canvas_css)
+        self.assertIn("--rmc-tenant-main-h", canvas_css)
         self.assertIn("overflow-y: auto !important", canvas_css)
