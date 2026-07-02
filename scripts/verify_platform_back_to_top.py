@@ -20,9 +20,12 @@ SHELLS = (
     "templates/partials/rmc_platform_chrome_scripts.html",
 )
 
+# control_plane_skeleton.html is deliberately absent: the CI-enforced operator
+# tools-tray contract (scripts/verify_operator_tools_tray.py + its tests) FORBIDS
+# the always-on policy there — back-to-top still ships via the component include,
+# and portal_base's always-policy must stay cockpit-gated per the same contract.
 ALWAYS_POLICY_SHELLS = (
     "templates/portal_base.html",
-    "templates/control_plane_skeleton.html",
     "templates/base.html",
 )
 
