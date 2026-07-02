@@ -391,6 +391,15 @@ def with_progress_fallback(view_func: Callable) -> Callable:
                     request,
                     "migration_cloud/progress.html",
                     {
+                        # Keep the degraded page inside the tenant shell too — a
+                        # snapshot failure must not leak the operator chrome to a
+                        # portal user. Inlined (not _mc_base_for_shell) to avoid a
+                        # circular import: views.py imports this module.
+                        "mc_base": (
+                            "migration_cloud/_mc_base_portal.html"
+                            if shell == "portal"
+                            else "control_plane_base.html"
+                        ),
                         "shell": shell,
                         "bundle": bundle,
                         "snapshot": None,

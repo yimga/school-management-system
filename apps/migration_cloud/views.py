@@ -816,6 +816,7 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
             request,
             self.template_name,
             {
+                "mc_base": _mc_base_for_shell(shell),
                 "shell": shell,
                 "bundle": bundle,
                 "artifacts": list(artifacts_page_obj.object_list),
@@ -1322,6 +1323,7 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
             request,
             self.template_name,
             {
+                "mc_base": _mc_base_for_shell(shell),
                 "shell": shell,
                 "bundle": bundle,
                 "low_conf_mappings": low_conf_mappings,
@@ -1418,6 +1420,7 @@ class MigrationCloudAttachSourceView(LoginRequiredMixin, View):
 
     def _context(self, shell, bundle, errors=None, form=None):
         return {
+            "mc_base": _mc_base_for_shell(shell),
             "shell": shell,
             "bundle": bundle,
             "errors": errors or [],
@@ -1494,6 +1497,7 @@ class MigrationCloudBindSchoolView(LoginRequiredMixin, View):
 
     def _context(self, shell, bundle, errors=None):
         return {
+            "mc_base": _mc_base_for_shell(shell),
             "shell": shell,
             "bundle": bundle,
             "errors": errors or [],
@@ -1976,6 +1980,7 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
         return render(
             request, self.template_name,
             {
+                "mc_base": _mc_base_for_shell(shell),
                 "shell": shell,
                 "bundle": bundle,
                 "pending": pending,
@@ -2047,6 +2052,7 @@ class MigrationCloudProgressView(LoginRequiredMixin, View):
         return render(
             request, self.template_name,
             {
+                "mc_base": _mc_base_for_shell(shell),
                 "shell": shell,
                 "bundle": bundle,
                 "snapshot": snapshot,
@@ -2139,6 +2145,7 @@ class MigrationCloudAssetsView(LoginRequiredMixin, View):
         return render(
             request, self.template_name,
             {
+                "mc_base": _mc_base_for_shell(shell),
                 "shell": shell,
                 "bundle": bundle,
                 "assets": assets,
@@ -2321,6 +2328,7 @@ class MigrationCloudHandoffDocView(LoginRequiredMixin, View):
         return render(
             request, self.template_name,
             {
+                "mc_base": _mc_base_for_shell(shell),
                 "shell": shell,
                 "bundle": bundle,
                 "doc": doc,
@@ -2528,6 +2536,7 @@ class MigrationCloudCanonicalTemplatePickerView(LoginRequiredMixin, View):
                 "sample_row": sample_row,
             })
         ctx = {
+            "mc_base": _mc_base_for_shell(shell),
             "shell": shell,
             "domains": domains,
             "page_title": "Canonical template picker",

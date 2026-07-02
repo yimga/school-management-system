@@ -1,4 +1,4 @@
-{% extends "control_plane_base.html" %}<!-- Attach a live source to a PENDING bundle (DB/OAuth/mailbox/API). -->
+{% extends mc_base|default:"control_plane_base.html" %}<!-- Attach a live source to a PENDING bundle (DB/OAuth/mailbox/API). -->
 {% load i18n %}
 
 {% block page_title %}{{ page_title }}{% endblock %}

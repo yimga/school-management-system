@@ -1,4 +1,4 @@
-{% extends "control_plane_base.html" %}<!-- Bind a pre-tenant bundle to a provisioned school. Operator-only. -->
+{% extends mc_base|default:"control_plane_base.html" %}<!-- Bind a pre-tenant bundle to a provisioned school. Operator-only. -->
 {% load i18n %}
 
 {% block page_title %}{{ page_title }}{% endblock %}
