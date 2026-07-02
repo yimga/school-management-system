@@ -1,6 +1,15 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-07-02 (9.8-regime wave 3 — SSO multi-binding + JIT membership: UserTenantBinding OneToOne→FK with unique (user, school) + one-primary partial constraint, control-plane SSO now JIT-ensures SchoolMembership. Prior same day: waves 1–2 device revocation + sync observability.)
+**Last updated:** 2026-07-02 (9.8-regime wave 4 — incident timeline of record + postmortem artifact: IncidentUpdate model, auto-recorded transitions, timeline/updates endpoints, postmortem-missing chip. Prior same day: waves 1–3.)
+
+## 2026-07-02 — 9.8-regime wave 4: incident timeline of record + postmortem artifact (migration `observability.0006`, no SW bump)
+
+**Context (B-measure 6.5):** `PlatformIncident` had a real open→ack→mitigate→resolve state machine, an operator console, and (since wave 2) idempotent auto-open/auto-resolve services — but **no memory**: status flips overwrote each other with no trail, operator notes had nowhere to live, and no code artifact captured a postmortem/RCA anywhere on the platform. The lifecycle could never close the loop from "resolved" to "learned" — the measurement's single biggest missing piece for this domain.
+
+**What landed:** (1) new `apps/observability/models_incident_timeline.py` — `IncidentUpdate` (UUID PK, FK `PlatformIncident.updates`, kind ∈ update/status_change/postmortem/action_item, body, created_by, indexed timeline ordering) + `record_incident_update()` (best-effort — a timeline failure never blocks incident handling) + `incident_has_postmortem()`; migration `observability.0006` pure CreateModel. (2) **Every writer now leaves a trail**: the operator status-transition API records a `status_change` entry per action; `incident_services.upsert_platform_incident` records "Opened automatically by <source> (<key>)" on create and `resolve_platform_incident` records "Auto-resolved … condition recovered" — so wave 2's sync-backlog auto-incidents get a timeline for free. (3) New manager endpoints `GET /api/observability/incidents/<id>/timeline/` (incident + newest-200 entries) and `POST …/<id>/updates/` (kind-validated, body-required, actor-stamped — a `postmortem` entry is the loop-closing artifact); routed next to the existing status route. (4) Console + JSON payload now carry `updates_count` + `has_postmortem`, and the operator console flags every RESOLVED incident that still lacks a postmortem ("Postmortem missing" chip — one bulk query, no N+1). Evidence: 19/19 (7 new timeline incl. auto-open/auto-resolve trail + postmortem contract + validation/404/auth-host; 3 existing incident-console; 9 sync-health regression), render-safety 0, migration-imports compare clean, tenant-scan clean for this wave (sole finding remains the peer T13 orchestration site), `manage.py check` clean. **Honest residual:** the three-model split (PlatformIncident / PlatformStatusIncident / PublicIncident) still lacks a single incident-of-record link; SLO burn-rate still never auto-opens an incident (detection stays threshold-based); no paging integration. Those are the next incident wave.
+
+**Deploy:** migration `observability.0006_incident_update_timeline` (pure CreateModel). No SW bump (no static assets).
+
 
 ## 2026-07-02 — 9.8-regime wave 3: SSO multi-binding + JIT membership (migration `accounts.0046`, no SW bump)
 

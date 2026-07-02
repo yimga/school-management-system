@@ -74,7 +74,21 @@ def upsert_platform_incident(
         detected_at=timezone.now(),
         created_by=created_by,
     )
+    _record_timeline(
+        incident, f"Opened automatically by {source_system} ({incident_key})", created_by
+    )
     return incident, True
+
+
+def _record_timeline(incident, body: str, user=None) -> None:
+    from apps.observability.models_incident_timeline import (
+        IncidentUpdate,
+        record_incident_update,
+    )
+
+    record_incident_update(
+        incident, kind=IncidentUpdate.Kind.STATUS_CHANGE, body=body, user=user
+    )
 
 
 def resolve_platform_incident(
@@ -104,6 +118,11 @@ def resolve_platform_incident(
             incident.resolved_by = resolved_by
         incident.save(
             update_fields=["status", "resolved_at", "resolved_by", "updated_at"]
+        )
+        _record_timeline(
+            incident,
+            f"Auto-resolved by {source_system} ({incident_key}) — condition recovered",
+            resolved_by,
         )
         resolved += 1
     return resolved

@@ -885,6 +885,17 @@ urlpatterns = [
         obs_views.api_platform_incident_status,
         name="api_platform_incident_status",
     ),
+    # 2026-07-02: incident timeline of record + postmortem artifact.
+    path(
+        "api/observability/incidents/<uuid:incident_id>/timeline/",
+        obs_views.api_platform_incident_timeline,
+        name="api_platform_incident_timeline",
+    ),
+    path(
+        "api/observability/incidents/<uuid:incident_id>/updates/",
+        obs_views.api_platform_incident_update_add,
+        name="api_platform_incident_update_add",
+    ),
     path(
         "api/observability/slo-dashboard/",
         obs_views.api_operational_slo_dashboard,

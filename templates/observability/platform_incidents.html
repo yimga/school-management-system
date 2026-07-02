@@ -102,7 +102,16 @@
                 {% endif %}
               </td>
               <td><span class="rmc-badge text-uppercase">{{ incident.severity }}</span></td>
-              <td><span class="badge text-bg-dark text-uppercase incident-status">{{ incident.status }}</span></td>
+              <td>
+                <span class="badge text-bg-dark text-uppercase incident-status">{{ incident.status }}</span>
+                {% if incident.status == "resolved" %}
+                  {% if incident.has_postmortem %}
+                  <div class="small text-muted mt-1">{% trans "Postmortem" %} ✓</div>
+                  {% else %}
+                  <div class="small text-warning mt-1">{% trans "Postmortem missing" %}</div>
+                  {% endif %}
+                {% endif %}
+              </td>
               <td>
                 <div>{{ incident.detected_at|date:"Y-m-d H:i" }}</div>
                 {% if incident.acknowledged_at %}

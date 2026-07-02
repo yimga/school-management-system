@@ -14,4 +14,5 @@ from .monitoring import (  # noqa: F401
     SystemHealthMetric,
 )
 from .models_friction import FrictionEvent  # noqa: F401
+from .models_incident_timeline import IncidentUpdate  # noqa: F401
 from .platform_status_incident import PlatformStatusIncident  # noqa: F401

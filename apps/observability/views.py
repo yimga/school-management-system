@@ -1214,7 +1214,15 @@ def _platform_incident_payload(incident) -> dict:
             getattr(incident, "resolved_by", None), "username", None
         ),
         "details": incident.details or {},
+        "updates_count": incident.updates.count(),
+        "has_postmortem": _incident_has_postmortem(incident),
     }
+
+
+def _incident_has_postmortem(incident) -> bool:
+    from apps.observability.models_incident_timeline import incident_has_postmortem
+
+    return incident_has_postmortem(incident)
 
 
 @require_GET
@@ -1230,6 +1238,17 @@ def platform_incidents_console(request):
             "resolved_by",
         )[:50]
     )
+    # Postmortem chip data: one query, then attribute for the template.
+    from apps.observability.models_incident_timeline import IncidentUpdate
+
+    postmortem_ids = set(
+        IncidentUpdate.objects.filter(
+            incident__in=[i.pk for i in incidents],
+            kind=IncidentUpdate.Kind.POSTMORTEM,
+        ).values_list("incident_id", flat=True)
+    )
+    for incident in incidents:
+        incident.has_postmortem = incident.pk in postmortem_ids
     incident_counts = {
         row["status"]: row["total"]
         for row in PlatformIncident.objects.values("status").annotate(total=Count("id"))
@@ -1353,9 +1372,108 @@ def api_platform_incident_status(request, incident_id):
 
     if update_fields:
         incident.save(update_fields=list(dict.fromkeys(update_fields + ["updated_at"])))
+        # Timeline of record: every operator transition leaves a trail entry
+        # (best-effort — a timeline failure never blocks incident handling).
+        from apps.observability.models_incident_timeline import (
+            IncidentUpdate,
+            record_incident_update,
+        )
+
+        record_incident_update(
+            incident,
+            kind=IncidentUpdate.Kind.STATUS_CHANGE,
+            body=f"Status → {incident.status} ({action})",
+            user=user,
+        )
 
     return JsonResponse(
         {"status": "success", "incident": _platform_incident_payload(incident)}
+    )
+
+
+@require_GET
+@observability_auth_required
+def api_platform_incident_timeline(request, incident_id):
+    """Timeline of record for one incident (newest first)."""
+    from apps.observability.models import PlatformIncident
+
+    try:
+        incident = PlatformIncident.objects.get(pk=incident_id)
+    except PlatformIncident.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "error": "Incident not found."}, status=404
+        )
+    entries = [
+        {
+            "id": str(u.id),
+            "kind": u.kind,
+            "body": u.body,
+            "created_by": getattr(u.created_by, "username", None),
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+        }
+        for u in incident.updates.select_related("created_by")[:200]
+    ]
+    return JsonResponse(
+        {
+            "status": "success",
+            "incident": _platform_incident_payload(incident),
+            "timeline": entries,
+        }
+    )
+
+
+@require_POST
+@observability_auth_required
+def api_platform_incident_update_add(request, incident_id):
+    """Append an update / action item / postmortem to an incident.
+
+    A ``postmortem`` entry is the artifact that closes the loop from
+    "resolved" to "learned" — the console flags resolved incidents that
+    still lack one.
+    """
+    from apps.observability.models import PlatformIncident
+    from apps.observability.models_incident_timeline import IncidentUpdate
+
+    try:
+        incident = PlatformIncident.objects.get(pk=incident_id)
+    except PlatformIncident.DoesNotExist:
+        return JsonResponse(
+            {"status": "error", "error": "Incident not found."}, status=404
+        )
+    payload = {}
+    if request.body:
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            payload = {}
+    kind = str(payload.get("kind") or request.POST.get("kind") or "update").strip().lower()
+    body = str(payload.get("body") or request.POST.get("body") or "").strip()
+    valid_kinds = {choice.value for choice in IncidentUpdate.Kind}
+    if kind not in valid_kinds:
+        return JsonResponse(
+            {"status": "error", "error": f"Unsupported kind: {kind}"}, status=400
+        )
+    if not body:
+        return JsonResponse(
+            {"status": "error", "error": "Update body required."}, status=400
+        )
+    user = request.user if getattr(request.user, "is_authenticated", False) else None
+    entry = IncidentUpdate.objects.create(
+        incident=incident,
+        kind=kind,
+        body=body[:4000],
+        created_by=user,
+    )
+    return JsonResponse(
+        {
+            "status": "success",
+            "entry": {
+                "id": str(entry.id),
+                "kind": entry.kind,
+                "created_at": entry.created_at.isoformat(),
+            },
+            "incident": _platform_incident_payload(incident),
+        }
     )
 
 
