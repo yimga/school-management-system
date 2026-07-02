@@ -51,6 +51,7 @@ SCANNER_BASELINE_MAP: dict[str, str | None] = {
     "scan_migration_model_imports.py": "security-audit-baseline-migration-model-imports.json",
     "scan_drf_schema_coverage.py": "security-audit-baseline-drf-schema-coverage.json",
     "scan_role_strings.py": "security-audit-baseline-role-strings.json",
+    "scan_access_resolver_fragmentation.py": "security-audit-baseline-access-resolver-fragmentation.json",
     "scan_assert_in_production.py": "security-audit-baseline-assert-in-production.json",
     "scan_magic_numbers.py": "security-audit-baseline-magic-numbers.json",
     "scan_subprocess_shell_true.py": "security-audit-baseline-subprocess-shell.json",
