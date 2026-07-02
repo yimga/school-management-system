@@ -5,7 +5,12 @@
  */
 
 :root {
-  --rmc-shell-max-width: 1440px;
+  /* T4: Studio was re-capping the shell to 1440px, re-introducing dead side
+     gutters on wide screens even though the tenant shell defaults to full-bleed
+     (--rmc-shell-max-width: none in design-tokens.css). Inherit the platform
+     full-bleed default so Studio fills the canvas like every other tenant shell.
+     This file only loads on Studio pages, so no other surface is affected. */
+  --rmc-shell-max-width: none;
   --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
   --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);
 }
