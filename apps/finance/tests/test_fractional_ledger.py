@@ -102,8 +102,16 @@ class FractionalEnrollmentGatingTests(TestCase):
     """
 
     def setUp(self):
-        self.school = School.objects.create(name="Gate School", is_active=True)
-        self.other_school = School.objects.create(name="Other Tenant", is_active=True)
+        # School.slug/subdomain are unique WITHOUT auto-derivation; creating two
+        # schools with the blank defaults collides on the second insert (both get
+        # ""), so distinct values are required — same pattern as
+        # test_payment_fallback_engine.
+        self.school = School.objects.create(
+            name="Gate School", slug="gate-school", subdomain="gate-school", is_active=True
+        )
+        self.other_school = School.objects.create(
+            name="Other Tenant", slug="gate-other", subdomain="gate-other", is_active=True
+        )
         self.profile = ComplianceProfile.objects.create(name="Gate", country_code="CM")
         self.year = AcademicYear.objects.create(
             name="2025/2026",

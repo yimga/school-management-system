@@ -1,6 +1,14 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-07-01 (Off-token-colors gate restored to 0 `v4.05.90` — 357 unmarked color literals across 10 post-burndown CSS sources + the 2 minified bundles categorically marked and bundles rebuilt; see § below. Prior: Full-bleed tenant header + LIVE banner + footer `v4.05.89`.)
+**Last updated:** 2026-07-01 (Overnight autonomous B→A loop: WCAG table-caption coverage to zero — 152 tables named across 114 templates, injector improved (`a24bc6173`); Payment final-state immutability guard + tests (finance §31 audit close); local axe run executed for real — 3 REAL findings documented for review (marketing `portal-backend-dark` body-class leak → 1.21 contrast, `.btn-primary` white-on-#0ea5e9 → 2.77, `/healthz/` lang/title) + axe-selenium-python 3.1 obsolescence noted. Prior: Off-token-colors gate 357→0 `v4.05.90`.)
+
+## 2026-07-01 — Overnight: caption coverage to zero + Payment immutability + axe findings
+
+**Captions (`a24bc6173`, 115 files):** `inject_table_captions --write` across `templates/` (143 derived captions, 105 files) + compile-verification of every modified template through Django's real engine (caught the one trans-without-`{% load i18n %}` the injector can emit — `schools/mat_group_hub/detail.html`). The 14 "no heading" tails hand-triaged: 5 marketing product-tour demo tables → `aria-label="Product demo: …"`; 2 client-injected animated ledger visuals + the skeleton placeholder → `role="presentation"`; 5 real data tables in partials → hand captions; 1 was a `{% comment %}` usage example. Injector improved: skips `{% comment %}` blocks + reports skip file:line at `-v2`. Done-state: scanned 1753 files, **0 captions to add, 0 non-derivable**.
+
+**Payment immutability (finance §31 audit):** the audit found invoice immutability (Part F 25.1), reversal-as-separate-entry, actor/timestamp audit rails, and race-safe webhook idempotency all already real; the ONE gap was Payment — `amount/invoice/method` on a final-state payment could be silently rewritten via `save()`. New guard in `Payment.save` (locks once status ∈ completed/failed/cancelled/refunded; status-only transitions + soft-delete reversal + `_allow_financial_edit` + DR `raw_save` unaffected), no migration, 7 new tests.
+
+**Axe (local real-browser run, 5 suites):** 3 REAL findings documented for review, NOT auto-fixed (shell-palette + brand-color territory): (a) public/marketing pages serve `<body class="portal-backend-dark">` → dark-theme `#dee2e6` text measured at **1.21:1** on the cream `#faf7f2` marketing surface (marketing home, pricing, release-notes, forgot-password, notifications) — the documented backend-palette class-wipe leaking cross-surface; (b) `.btn.btn-primary` white-on-`#0ea5e9` = **2.77:1** (help-center/retry buttons); (c) `/healthz/` missing `html lang` + `title`. Harness note: `axe-selenium-python` bundles axe-core 3.1 (2018) which emits `#0NaN…`/null-ratio false positives on `color-mix()` CSS — recommend migrating the axe harness before treating its full output as a gate.
 
 ## 2026-07-01 — Off-token-colors gate burndown 357→0 (`v4.05.90`)
 

@@ -27,6 +27,13 @@ from apps.siteconfig.models import _tenant_upload_to
 # needs full ledger test coverage.
 _NON_RECEIVED_PAYMENT_STATUSES = ("failed", "cancelled", "refunded")
 
+# Payment immutability (invoice/payment immutability audit): once a payment
+# reaches a FINAL money state, its financial identity (amount / invoice /
+# method) is read-only — corrections are SEPARATE entries (soft-delete
+# reversal, RefundRequest), never in-place rewrites. Status-only transitions
+# (completed -> refunded, soft-delete -> cancelled) remain allowed.
+_FINAL_PAYMENT_STATUSES = frozenset({"completed", "failed", "cancelled", "refunded"})
+
 
 def _default_currency():
     """Platform default currency (no hardcoded XAF). See config.PLATFORM_DEFAULT_CURRENCY."""
@@ -997,7 +1004,35 @@ class Payment(models.Model):
                     )
 
     def save(self, *args, **kwargs):
-        """Call full_clean() before saving to validate."""
+        """Call full_clean() before saving to validate.
+
+        Payment immutability: once status is FINAL (completed/failed/
+        cancelled/refunded), amount / invoice / method are read-only —
+        record a reversal (soft delete) or RefundRequest instead. System
+        paths that must rewrite (e.g. DR restore) set ``_allow_financial_edit``.
+        """
+        if self.pk and not getattr(self, "_allow_financial_edit", False):
+            existing = (
+                type(self)
+                .objects.filter(pk=self.pk)
+                .only("amount", "invoice_id", "method", "status")
+                .first()
+            )
+            if existing is not None and existing.status in _FINAL_PAYMENT_STATUSES:
+                if (
+                    existing.amount != self.amount
+                    or existing.invoice_id != self.invoice_id
+                    or (existing.method or "") != (self.method or "")
+                ):
+                    raise ValidationError(
+                        {
+                            "amount": (
+                                "Payment amount/invoice/method are immutable once the "
+                                "payment is final — record a reversal or refund as a "
+                                "separate entry instead of rewriting history."
+                            )
+                        }
+                    )
         if not self.reference_number:
             self.reference_number = uuid.uuid4().hex
         if self.gateway_transaction_id == "":
