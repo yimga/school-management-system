@@ -759,9 +759,16 @@ class MigrationCloudConsoleView(LoginRequiredMixin, View):
             if school is not None:
                 bundles_qs = bundles_qs.filter(school=school)
         bundles = bundles_qs[:50]
+        # Operator-shell-leak fix: the tenant mount renders inside the tenant
+        # portal shell, the operator mount inside the control-plane shell.
+        template = (
+            "migration_cloud/console_portal.html"
+            if shell == "portal"
+            else self.template_name
+        )
         return render(
             request,
-            self.template_name,
+            template,
             {
                 "shell": shell,
                 "bundles": bundles,

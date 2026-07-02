@@ -1,0 +1,95 @@
+{% load i18n glocal_tags terminology_tags %}
+{% comment %} table-column-budget-allow: migration-cloud-console-eight-column-lens
+
+  Shell-neutral body for the Migration Cloud console. Included by BOTH the
+  operator wrapper (console.html → control_plane_base cp_shell_page block) and
+  the tenant wrapper (console_portal.html → portal_base content block). Uses only
+  shared .rmc-* grammar and branches on `shell`/`is_super_shell`, so it renders
+  correctly in either chrome. This is the fix for the operator-shell leak: the
+  tenant mount (/portal/configure/migration/) now stays inside the tenant shell.
+{% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<main class="rmc-page rmc-page--migration-cloud" id="main" data-rmc-scroll-policy="paginate">
+  {% if messages %}
+  <div class="rmc-banner-stack" role="status">
+    {% for m in messages %}
+      <div class="rmc-banner rmc-banner--{{ m.tags|default:'info' }}">{{ m }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Migration Cloud" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Any platform, any size, hours not weeks. Bundles, classifiers, and the operator's audit trail in one place." %}
+    </p>
+    <div class="rmc-page__actions">
+      <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}" class="rmc-btn rmc-btn--primary">{% trans "Start a new migration" %}</a>
+      <a href="{% url 'admin:migration_cloud_migrationbundle_changelist' %}" class="rmc-btn rmc-btn--ghost" aria-label="{% trans 'Advanced admin fallback: open migration bundles in Django admin' %}">
+        {% trans "Open admin" %}
+      </a>
+      {% if is_super_shell %}
+      <a href="{% url 'migration_cloud_super:migration_cloud_health' %}" class="rmc-btn rmc-btn--ghost">{% trans "Health" %}</a>
+      <a href="{% url 'migration_cloud_super:audit_dashboard' %}" class="rmc-btn rmc-btn--ghost">{% trans "Audit log" %}</a>
+      <a href="{% url 'migration_cloud_super:operator_webhook_list' %}" class="rmc-btn rmc-btn--ghost">{% trans "Webhooks" %}</a>
+      <a href="{% url 'migration_cloud_super:operator_token_list' %}" class="rmc-btn rmc-btn--ghost">{% trans "API tokens" %}</a>
+      <a href="{% url 'migration_cloud_super:maa_v2_promotion_dashboard' %}" class="rmc-btn rmc-btn--ghost">{% trans "MAA v2.0" %}</a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if bundles %}
+  <!-- large-collection-allow: dashboard-widget-capped-list -->
+<table class="rmc-data-table rmc-data-table--migrations" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+  <caption class="visually-hidden">{% trans "Migration Cloud" %}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{% trans "Label" %}</th>
+        <th scope="col">{% trans_term "School" key="school" %}</th>
+        <th scope="col">{% trans "Intake" %}</th>
+        <th scope="col">{% trans "Status" %}</th>
+        <th scope="col">{% trans "Tier" %}</th>
+        <th scope="col">{% trans "Artifacts" %}</th>
+        <th scope="col">{% trans "Created" %}</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in bundles %}
+      <tr>
+        <td>{{ b.label|default:b.idempotency_key }}</td>
+        <td>{% if b.school %}{{ b.school.name }}{% else %}—{% endif %}</td>
+        <td>{{ b.intake_method }}</td>
+        <td><span class="rmc-pill rmc-pill--{{ b.status|lower }}">{{ b.status }}</span></td>
+        <td>{{ b.sla_tier }}</td>
+        <td>{{ b.artifact_count }}</td>
+        <td>{{ b.created_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <a class="rmc-btn rmc-btn--ghost rmc-btn--sm"
+             href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=b.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=b.pk %}{% endif %}">
+            {% trans "Open" %}
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="rmc-empty rmc-empty--inline">
+    <h3 class="rmc-empty__title">{% trans "No migrations yet" %}</h3>
+    <p class="rmc-empty__body">
+      {% trans "Drop a ZIP, a folder, a SQL dump, or paste a OneRoster export URL to start." %}
+    </p>
+    <p class="rmc-empty__body">
+      <a class="rmc-btn rmc-btn--primary"
+         href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}">
+        {% trans "Start a new migration" %}
+      </a>
+    </p>
+  </div>
+  {% endif %}
+</main>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}

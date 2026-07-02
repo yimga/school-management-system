@@ -1,0 +1,11 @@
+{% extends "portal_base.html" %}
+{% comment %}
+  Migration Cloud console — TENANT shell wrapper (/portal/configure/migration/).
+
+  Renders the shared shell-neutral body inside the tenant portal shell so the
+  importer never leaks into the operator (control-plane dark) chrome.
+  MigrationCloudConsoleView selects this wrapper when shell == "portal".
+{% endcomment %}
+{% load i18n %}
+{% block page_title %}{{ page_title|default:"Migration Cloud" }}{% endblock %}
+{% block content %}{% include "migration_cloud/_console_body.html" %}{% endblock %}
