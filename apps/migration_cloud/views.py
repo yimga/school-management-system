@@ -87,6 +87,22 @@ def _intake_method_kind(method: str) -> str:
     return "upload"
 
 
+def _mc_base_for_shell(shell: str) -> str:
+    """Base template so a migration_cloud page renders in the correct shell.
+
+    Tenant mounts render inside the portal shell via the _mc_base_portal adapter
+    (re-homes cp_shell_page → portal content); operator mounts use the
+    control-plane base natively. This is the operator-shell-leak fix — a
+    migration page authored with a ``{% extends mc_base|default:... %}`` line and
+    a ``cp_shell_page`` block renders correctly in either chrome. tenant⟂operator.
+    """
+    return (
+        "migration_cloud/_mc_base_portal.html"
+        if shell == "portal"
+        else "control_plane_base.html"
+    )
+
+
 def _enforce_portal_entitlement(request, shell: str) -> JsonResponse | None:
     """Block tenant entry without the migration_cloud entitlement.
 
@@ -464,6 +480,7 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
         ]
         return {
             "shell": shell,
+            "mc_base": _mc_base_for_shell(shell),
             "page_title": "Start a new migration",
             "intake_methods": intake_methods,
             "intake_method_groups": method_groups,

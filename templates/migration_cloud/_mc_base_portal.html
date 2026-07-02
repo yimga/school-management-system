@@ -1,0 +1,23 @@
+{% extends "portal_base.html" %}
+{% comment %}
+  Migration Cloud — TENANT shell adapter base.
+
+  The operator (control-plane) shell puts page bodies in a `cp_shell_page` block;
+  the tenant portal shell uses `content`. Every migration_cloud page authors its
+  body in `cp_shell_page`. This adapter re-homes that block into portal_base's
+  `content` block, so a migration page can render in the tenant shell WITHOUT
+  duplicating its body: it just switches its parent via a `mc_base` context var —
+
+      {% extends mc_base|default:"control_plane_base.html" %}
+
+  Operator mount → mc_base = "control_plane_base.html" (cp_shell_page native).
+  Tenant mount  → mc_base = "migration_cloud/_mc_base_portal.html" (this file).
+
+  This is the operator-shell-leak fix for /portal/configure/migration/* so the
+  importer stays inside the tenant chrome. tenant⟂operator isolation.
+{% endcomment %}
+{% comment %} migration_cloud pages author their body in EITHER cp_shell_page
+   (e.g. console) or the more-nested cp_content (e.g. intake_new). In the operator
+   chain cp_content sits inside cp_shell_page, so expose both here nested the same
+   way: a page overriding either block renders inside portal_base's content. {% endcomment %}
+{% block content %}{% block cp_shell_page %}{% block cp_content %}{% endblock %}{% endblock %}{% endblock %}
