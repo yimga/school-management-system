@@ -1,14 +1,14 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-06-24T01:44:56Z",
+  "generated_utc": "2026-07-02T01:17:36Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
     "bytes": 21619,
     "sources": [
       {
         "path": "static/marketing/css/tokens-marketing.css",
-        "sha256": "4ba4f2e2a434680c5a6bf8d41c2971b8ba232ac03f11222d09374dfc9fbdc1c4",
-        "bytes": 7422
+        "sha256": "4d625fb56810ef16700aca961c82000300418cd47a887b5831e787a385d58200",
+        "bytes": 7574
       },
       {
         "path": "static/marketing/css/marketing-v3-shell.css",
@@ -34,12 +34,12 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 434381,
+    "bytes": 442120,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
-        "sha256": "08349532cf533e0d89a26749567b9108f141af90ed916888d7b8818b66e985cb",
-        "bytes": 193912
+        "sha256": "57d7ae3fdd683975195a293e969ae023796ea7159c4454910d2413d216d139ee",
+        "bytes": 198915
       },
       {
         "path": "static/css/rmc-platform-header.css",
@@ -63,8 +63,8 @@
       },
       {
         "path": "static/marketing/css/marketing-impact.css",
-        "sha256": "4c6f31d59c5550cbcb7fd9df9294adc0798aa1cec376ccdd9edb9259defa92e9",
-        "bytes": 10820
+        "sha256": "5e6f45b5a80b60e6a14708538e33f053599eeb3e81d20a0de7f26e3fc2688c3f",
+        "bytes": 10833
       },
       {
         "path": "static/marketing/css/marketing-page-personality.css",
@@ -73,8 +73,8 @@
       },
       {
         "path": "static/marketing/css/marketing-media-viz.css",
-        "sha256": "d61ec57e97e4b334d8d16d472aceaa6ac93c0c00b9724cf1c56971583847ce0a",
-        "bytes": 6542
+        "sha256": "61950bcaa999df42fcc25cd780a140fabd71ad35ffbfad836b25796630fdcabe",
+        "bytes": 6549
       },
       {
         "path": "static/marketing/css/marketing-visual-engine.css",
@@ -108,8 +108,8 @@
       },
       {
         "path": "static/marketing/css/tokens-editorial.css",
-        "sha256": "f5ed0813e104527a1572acf9a4a47b10008e8984572959d209b0220eab789403",
-        "bytes": 50241
+        "sha256": "47c7133f0aafe62623d301509083e6a5cf02c6cd6794c6b8541711ad57575eae",
+        "bytes": 50242
       },
       {
         "path": "static/marketing/css/tokens-threshold-era.css",
@@ -118,13 +118,13 @@
       },
       {
         "path": "static/marketing/css/mkt-threshold-era.css",
-        "sha256": "0ea2ba717db4dfd520cf1554ddc2ec8b8bf891d81247865fea3284cecf78e504",
-        "bytes": 11517
+        "sha256": "a7731d14b9db5589fd049692dccdfe14ea0947d646f94eed9850c40a9738ade0",
+        "bytes": 11830
       },
       {
         "path": "static/marketing/css/mkt-ascension.css",
-        "sha256": "3ccfd531105ff94e40f224147e575a73d43ae952e84d528c9a67f15fbb3a5795",
-        "bytes": 14708
+        "sha256": "6e1e89dbea8e44b3d1f5687cd830925aa20bd6b481f3da81f0a844e890bc35a9",
+        "bytes": 17237
       },
       {
         "path": "static/marketing/css/mkt-ascension-media.css",
@@ -133,18 +133,18 @@
       },
       {
         "path": "static/marketing/css/mkt-revolution-lab.css",
-        "sha256": "96f7368ed0a99c03ddb91c091e877e4dba99e8d96c11f72bec9ecbaf66aef764",
-        "bytes": 15568
+        "sha256": "744c8ed8ba1cb272b4a5e59f3f3d4b484e1152cb6f3c72d310c87e99173716c8",
+        "bytes": 18025
       },
       {
         "path": "static/marketing/css/mkt-revolution-media.css",
-        "sha256": "843d417503d8065ce260613f9d24d61c093d5db8a6a3375c5aabd71ff01a5a7f",
-        "bytes": 4736
+        "sha256": "bc9f53e163b97ac32bc3b0ac6c1e6539feb6b62b880deeab2a8154499f6b3821",
+        "bytes": 4782
       },
       {
         "path": "static/marketing/css/mkt-one-record-scroll.css",
-        "sha256": "f253fe9a9de246be2df5aecc8acabbb4de2bea7ddbe00501daaee6e2cc2e67ae",
-        "bytes": 7466
+        "sha256": "8a5fbcadb2537ae79ca1fda9623ba1c36b8888c9ed78bef0520127f7f6b708cd",
+        "bytes": 7512
       },
       {
         "path": "static/css/rmc-warm-bright-school.css",
@@ -153,8 +153,8 @@
       },
       {
         "path": "static/css/rmc-cool-apple-polish.css",
-        "sha256": "4cafcd8133c0759fc0783e2b7d81c7ccd6f51c270aa9106e5187b81670765a49",
-        "bytes": 21978
+        "sha256": "83ef162cd6700a86c0512f6d408b0af3f884f712cf05bc33087c56247813bad2",
+        "bytes": 22511
       },
       {
         "path": "static/css/design-tokens-luxury.css",
@@ -178,8 +178,8 @@
       },
       {
         "path": "static/marketing/css/proof-pages.css",
-        "sha256": "bd5ad577ec32dc2a75e81bd051cb4f8cc6db12e2251cccdcf0fe62390ae070e9",
-        "bytes": 8897
+        "sha256": "a818de118e0b19fd1216bbae7a20fd4e6012aabf472ad9b2abeef94e81ad38e9",
+        "bytes": 9294
       },
       {
         "path": "static/css/platform-high-end.css",
@@ -240,7 +240,7 @@
   },
   "budgets": {
     "critical_max": 45000,
-    "enhanced_max": 435000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (~434KB as of 2026-06-24 after one-record-scroll + procurement trust nav). Deferred load via media=print onload."
+    "enhanced_max": 455000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (~442KB as of 2026-07-01 after the off-token-colors marker burndown \u2014 the minifier deliberately preserves /* off-token-allow */ CI markers, ~8KB across mkt-* sources). Deferred load via media=print onload."
   }
 }

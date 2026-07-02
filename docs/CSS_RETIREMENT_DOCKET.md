@@ -1,8 +1,21 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-28 (Full-bleed tenant header + LIVE banner + footer `v4.05.89` — header & its live-banner sub-bar now span edge to edge, copilot rail bottoms above the footer so the full-width footer is unobstructed; retires the unnecessary header copilot-gutter; see § below. Prior: Tenant MAIN canvas body scroll `v4.05.88`.)
+**Last updated:** 2026-07-01 (Off-token-colors gate restored to 0 `v4.05.90` — 357 unmarked color literals across 10 post-burndown CSS sources + the 2 minified bundles categorically marked and bundles rebuilt; see § below. Prior: Full-bleed tenant header + LIVE banner + footer `v4.05.89`.)
 
-## 2026-06-28 — Full-bleed tenant header + LIVE banner + unobstructed footer (`v4.05.89`)
+## 2026-07-01 — Off-token-colors gate burndown 357→0 (`v4.05.90`)
+
+**Context:** the zero-tolerance `scan_off_token_colors.py --strict` CI gate (baseline 0 since v3.7.2) had gone RED on main: **357 violations across 12 files** — all CSS shipped *after* the original v3.7.2 burndown without markers (`mkt-ascension.css` 60, `mkt-revolution-lab.css` 57, `rmc-cp-200x.css` 54, `auth-login-canvas.css` 45, `rmc-workflow-flight-deck.css` 15, `mkt-threshold-era.css` 7, `rmc-threshold-parent-window.css` 4, + 3 single-hit files, + the two built bundles `marketing-enhanced.min.css` 79 / `portal-shell-enhanced.min.css` 33 which inherit their sources' violations). Spot-review confirmed every category intentional: marketing decorative gradients + cream-locked ink (marketing ships no dark mode by design), control-plane always-dark chrome, and the immersive login gradient canvas — the same categories as the files' own *already-marked* neighbouring declarations (the authors used markers but missed sites).
+
+**What landed:**
+| Change | Detail |
+|---|---|
+| 245 categorical markers | `scripts/codemod_off_token_colors.py` (write mode) across the 10 source files — auto-categories `decorative-gradient` / `white-overlay` / `black-overlay` / `hex-literal-decorative` etc.; 0 mechanical substitutions needed |
+| Bundles rebuilt | `build_marketing_css_bundles.py` + `build_portal_css_bundles.py` — the minifier *deliberately preserves* `/* off-token-allow */` markers (`_ALLOW_MARKER_PRESERVE`), so both `.min.css` bundles + hash manifests regenerate clean |
+| Bundle budget 435000→455000 | `scripts/marketing_css_bundle_manifest.json` `enhanced_max` — the preserved CI markers add ~8KB; budget had only ~1KB headroom (comment documents the reason); `verify_marketing_css_bundles_fresh.py` green at 442120B |
+| Posture test made deterministic | `apps/accounts/tests/test_notification_center_polish.py::test_notifications_page_hides_mark_all_button_when_clean` — `user_notifications` re-creates the quarterly posture notification on every GET while the review is due (intended nagging), so a "clean inbox" was unreachable; the test now records `last_security_posture_review_at = now()` first |
+| SW bump | `sms-v4.05.90-off-token-colors-burndown-2026-07-01` |
+
+**Deploy:** CSS-comment-only for the 10 sources (zero rendering change); bundles re-minified byte-identical except markers; 0 migrations. Gates re-verified green post-change: `scan_off_token_colors 0`, `scan_theme_locked_token_text 0`, `scan_sticky_with_overflow_hidden 0`, `scan_undefined_css_classes 0`, `scan_theme_attribute_contract 0`, `audit_template_render_safety 0`, bundle freshness 0.
 
 **Context:** owner: "the header and footer must be full width including the live banner", platform AND tenant-wide. The PLATFORM (`/super/`, `/admin/`) side was already correct — `control_plane_skeleton.html` lays `.rmc-app-shell` out as a CSS grid whose header (`"rmc-shell-h …"`) and footer (`"rmc-shell-f …"`) span ALL THREE columns, with the copilot confined to grid col 3 of the MIDDLE row only. The TENANT canvas shell was the outlier; this wave brings it to that parity. SW `v4.05.88`→`v4.05.89`. CSS-only, 0 migrations. Gates green (`scan_off_token_colors`, `scan_undefined_css_classes`, `scan_sticky_with_overflow_hidden`, `scan_theme_locked_token_text`, SW monotonic all rc0).
 

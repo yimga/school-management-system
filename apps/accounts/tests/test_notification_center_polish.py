@@ -3,6 +3,7 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.finance.models import Notification
 
@@ -78,6 +79,12 @@ class MarkAllNotificationsReadTests(TestCase):
 
     def test_notifications_page_hides_mark_all_button_when_clean(self):
         Notification.objects.filter(recipient=self.user).update(is_read=True)
+        # user_notifications re-creates the quarterly security-posture
+        # notification on GET whenever the review is due (intended nagging —
+        # marking it read does not complete the review). Record a fresh review
+        # so a genuinely clean inbox is reachable for this assertion.
+        self.user.last_security_posture_review_at = timezone.now()
+        self.user.save(update_fields=["last_security_posture_review_at"])
         self.client.force_login(self.user)
         response = self.client.get(reverse("accounts:user_notifications"))
         self.assertEqual(response.status_code, 200)

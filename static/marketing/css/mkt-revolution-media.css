@@ -6,7 +6,7 @@
   inset: 0;
   z-index: 4000;
   pointer-events: none;
-  background: #f8f6f2;
+  background: #f8f6f2; /* off-token-allow: hex-literal-decorative */
   clip-path: circle(0% at 50% 55%);
   opacity: 0;
   visibility: hidden;
