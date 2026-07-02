@@ -57,6 +57,23 @@
     };
   }
 
+  // Honest status copy after an override/drag: say whether the change now
+  // actually drives `apply` (applied_to_bundle) vs only next-bundle recall,
+  // and warn when a re-apply is needed because the bundle already landed.
+  function overrideMessage(sourceColumn, canonical, data) {
+    data = data || {};
+    var msg = "Remapped " + sourceColumn + " → " + canonical;
+    if (data.applied_to_bundle) {
+      msg += data.reapply_required
+        ? " — re-run Apply to update already-migrated data"
+        : " — will be used when you Apply";
+    }
+    if (data.remembered_for_recall) {
+      msg += " (saved for next bundle)";
+    }
+    return msg;
+  }
+
   // --- Accept / Override buttons ---------------------------------------
   root.addEventListener("click", function (event) {
     const acceptBtn = event.target.closest("[data-mc-accept]");
@@ -107,11 +124,7 @@
       postJson(feedbackUrl, payload).then(function (resp) {
         if (resp.ok && resp.data && resp.data.recorded) {
           row.classList.add("rmc-mapping__row--overridden");
-          setStatus(
-            "Overrode " + payload.mapping.source_column + " → " + next +
-              (resp.data.remembered_for_recall ? " (saved for next bundle)" : ""),
-            "success"
-          );
+          setStatus(overrideMessage(payload.mapping.source_column, next, resp.data), "success");
         } else {
           setStatus("Could not record override: " + (resp.data && resp.data.error || resp.status), "error");
         }
@@ -226,7 +239,7 @@
     postJson(feedbackUrl, payload).then(function (resp) {
       if (resp.ok && resp.data && resp.data.recorded) {
         dragRow.classList.add("rmc-mapping__row--overridden");
-        setStatus("Reassigned " + sourceColumn + " → " + newCanonical, "success");
+        setStatus(overrideMessage(sourceColumn, newCanonical, resp.data), "success");
       }
     });
   });

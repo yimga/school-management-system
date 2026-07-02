@@ -1052,6 +1052,49 @@ class MigrationCloudFeedbackView(LoginRequiredMixin, View):
                     source_system=source_system,
                 )
 
+        # T15 correctness fix: an operator OVERRIDE (drag-and-drop or the
+        # "Override" button — manual_correction=True with a canonical_field
+        # that differs from the AI proposal) must also rewrite THIS bundle's
+        # mapping_summary so ``apply`` uses the operator's choice. Previously
+        # this view only recorded feedback + next-bundle recall, so the UI
+        # showed a "saved" toast while apply silently used the original AI
+        # mapping. Mirrors MigrationCloudAIRebindView's in-place edit.
+        applied_to_bundle = False
+        artifacts_updated: list[str] = []
+        reapply_required = False
+        if manual_correction and prompt_type.endswith("field_mapper"):
+            mapping_meta = payload.get("mapping") or {}
+            src_col = str(mapping_meta.get("source_column") or "")
+            new_canon = str(payload.get("answer") or mapping_meta.get("canonical_field") or "")
+            if src_col and new_canon:
+                per_artifact = (bundle.mapping_summary or {}).get("per_artifact") or {}
+                for path, mappings in per_artifact.items():
+                    for m in (mappings or []):
+                        if (
+                            str(m.get("source_column") or "") == src_col
+                            and str(m.get("canonical_field") or "") != new_canon
+                        ):
+                            m["canonical_field"] = new_canon
+                            m["confidence"] = max(float(m.get("confidence") or 0.0), 0.95)
+                            m["method"] = "operator_override"
+                            m["reasoning"] = "Operator override via the mapping editor."
+                            if mapping_meta.get("transformer"):
+                                m["transformer"] = mapping_meta.get("transformer")
+                            artifacts_updated.append(path)
+                if artifacts_updated:
+                    bundle.mapping_summary = {
+                        **(bundle.mapping_summary or {}),
+                        "per_artifact": per_artifact,
+                    }
+                    bundle.save(update_fields=["mapping_summary", "updated_at"])
+                    applied_to_bundle = True
+                    # If the bundle was already applied, the operator must
+                    # re-run Apply for the override to reach landed data.
+                    reapply_required = bundle.status in (
+                        BundleStatus.APPLIED,
+                        BundleStatus.RECONCILED,
+                    )
+
         return JsonResponse({
             "bundle_id": bundle.pk,
             "recorded": True,
@@ -1059,6 +1102,9 @@ class MigrationCloudFeedbackView(LoginRequiredMixin, View):
             "prompt_type": prompt_type,
             "accepted": accepted,
             "manual_correction": manual_correction,
+            "applied_to_bundle": applied_to_bundle,
+            "artifacts_updated": artifacts_updated,
+            "reapply_required": reapply_required,
         })
 
 
