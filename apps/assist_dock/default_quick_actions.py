@@ -21,16 +21,7 @@ def register_default_quick_actions() -> None:
             description=_("Return to the operator dashboard"),
             order=10,
         ),
-        QuickAction(
-            id="tools-qa-backend-home",
-            label=_("Backend home"),
-            icon="bi-grid-1x2",
-            url_name="accounts:backend_dashboard",
-            path_prefixes=("/authentication/backend",),
-            surfaces=frozenset({SURFACE_PORTAL, SURFACE_ADMIN}),
-            description=_("School backend dashboard"),
-            order=15,
-        ),
+        # T9: "Backend home" quick action removed per owner request (not hidden).
         QuickAction(
             id="tools-qa-parent-home",
             label=_("Family home"),

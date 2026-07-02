@@ -157,9 +157,7 @@ def dashboard(request: HttpRequest):
                 "url": reverse("payroll:employee_payslips"),
             }
         )
-    next_payroll_actions.append(
-        {"label": "Backend home", "url": reverse("accounts:backend_dashboard")}
-    )
+    # T9: "Backend home" next-action removed per owner request (not hidden).
 
     phase7_de = {
         "eyebrow": "Payroll home",

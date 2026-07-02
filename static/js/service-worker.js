@@ -207,7 +207,7 @@
 // rmc-copilot-help-mode.css so tenants drop the retired bottom takeover.
 // v4.05.75: tenant shell chrome contract fixes footer-as-body-content and
 // cache-busts rmc-tenant-workspace-canvas.css for deployed tenants.
-const CACHE_VERSION = "sms-v4.05.92-tenant-batch2-lang-mfa-configure-2026-07-02";
+const CACHE_VERSION = "sms-v4.05.93-operator-more-dropdown-backend-home-2026-07-02";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

@@ -354,7 +354,10 @@ html[data-cockpit-skin] body.admin-manager-shell.change-list #result_list td {
   right: 0;
   z-index: 60;
   min-width: 13rem;
-  display: flex;
+  /* P2: collapsed by default. An explicit `display:flex` here beats the browser
+     UA rule `details:not([open]) > :not(summary){display:none}`, so the menu was
+     stuck open/overlapping. Reveal it only when the <details> is [open]. */
+  display: none;
   flex-direction: column;
   gap: 2px;
   padding: calc(var(--space-2, 8px) * 0.75);
@@ -362,6 +365,9 @@ html[data-cockpit-skin] body.admin-manager-shell.change-list #result_list td {
   background: var(--rmc-cockpit-chrome-surface, #0f1530);  /* off-token-allow: cockpit-dropdown-surface */
   border: 1px solid var(--rmc-cockpit-chrome-hairline, var(--hairline));
   box-shadow: 0 18px 48px rgba(8, 11, 28, 0.45);  /* off-token-allow: cockpit-dropdown-elevation */
+}
+.cp-primary-nav__more[open] > .cp-primary-nav__more-menu {
+  display: flex;
 }
 [data-cockpit-skin="light"] .cp-primary-nav__more-menu {
   background: var(--surface-elevated);

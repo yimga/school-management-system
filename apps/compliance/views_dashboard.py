@@ -174,10 +174,7 @@ class ComplianceDashboardView(View):
                     "url": context.get("playbook_url") or "#",
                 },
                 {"label": "Reload dashboard", "url": request.get_full_path()},
-                {
-                    "label": "Backend home",
-                    "url": _reverse("accounts:backend_dashboard"),
-                },
+                # T9: "Backend home" next-action removed per owner request.
             ],
             "activity": activity_rows,
         }
