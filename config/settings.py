@@ -1318,6 +1318,10 @@ RMC_OFFLINE_CAPABILITY_TOKEN_TTL_HOURS = int(
     os.getenv("RMC_OFFLINE_CAPABILITY_TOKEN_TTL_HOURS", "12")
 )
 RMC_IAM_SNAPSHOT_SIGNING_KEY = os.getenv("RMC_IAM_SNAPSHOT_SIGNING_KEY", "").strip() or None
+# Cross-rail sync backlog thresholds (sync_backlog_monitor auto-incident; the
+# delta rail reuses SYNC_CONFLICT_PENDING_SLO_MAX).
+RMC_SYNC_SODP_CONFLICT_MAX = int(os.getenv("RMC_SYNC_SODP_CONFLICT_MAX", "25"))
+RMC_SYNC_WAL_DEADLETTER_MAX = int(os.getenv("RMC_SYNC_WAL_DEADLETTER_MAX", "10"))
 # Log mutating /super/ requests to compliance AuditLog (see middleware_enterprise_security).
 ENTERPRISE_SUPER_HTTP_AUDIT = (
     os.getenv("ENTERPRISE_SUPER_HTTP_AUDIT", "0").strip().lower()

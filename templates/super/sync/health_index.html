@@ -1,0 +1,109 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sync health" %} — {{ block.super }}{% endblock %}
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid rmc-page" style="max-width: 1200px;">
+  <nav style="margin-bottom: 10px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
+    <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
+    <span aria-hidden="true">›</span>
+    <span style="color: var(--text-primary);">{% trans "Sync health" %}</span>
+  </nav>
+  <header class="rmc-page__header" style="margin-bottom: 14px;">
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "Cross-rail sync health" %}</h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 74ch;">
+      {% trans "All three offline/sync rails in one place: the SODP durable queue, delta-sync conflicts, and the WAL dead-letter and conflict review streams. The backlog monitor auto-opens a platform incident when a rail breaches its threshold." %}
+    </p>
+  </header>
+
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px;">
+    <section style="padding: 14px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+      <h2 style="font-size: var(--type-size-caption); margin: 0 0 8px;">{% trans "SODP queue (OfflineAction)" %}</h2>
+      <dl style="margin: 0; font-size: var(--type-size-caption);">
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Queued" %}</dt><dd style="margin: 0; font-family: monospace;">{{ snapshot.sodp.queued }}</dd></div>
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Failed" %}</dt><dd style="margin: 0; font-family: monospace;">{{ snapshot.sodp.failed }}</dd></div>
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Conflict" %}</dt><dd style="margin: 0; font-family: monospace;">{{ snapshot.sodp.conflict }}</dd></div>
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Oldest queued (s)" %}</dt><dd style="margin: 0; font-family: monospace;">{{ snapshot.sodp.oldest_queued_age_seconds|default:"—" }}</dd></div>
+      </dl>
+    </section>
+    <section style="padding: 14px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+      <h2 style="font-size: var(--type-size-caption); margin: 0 0 8px;">{% trans "Delta sync (SyncConflict)" %}</h2>
+      <dl style="margin: 0; font-size: var(--type-size-caption);">
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Pending" %}</dt><dd style="margin: 0; font-family: monospace;">{{ snapshot.delta.pending }}</dd></div>
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Oldest pending (s)" %}</dt><dd style="margin: 0; font-family: monospace;">{{ snapshot.delta.oldest_pending_age_seconds|default:"—" }}</dd></div>
+      </dl>
+    </section>
+    <section style="padding: 14px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+      <h2 style="font-size: var(--type-size-caption); margin: 0 0 8px;">{% trans "WAL streams" %}</h2>
+      <dl style="margin: 0; font-size: var(--type-size-caption);">
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Redis" %}</dt><dd style="margin: 0; font-family: monospace;">{% if snapshot.wal.available %}{% trans "up" %}{% else %}{% trans "unavailable" %}{% endif %}</dd></div>
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Backlog depth" %}</dt><dd style="margin: 0; font-family: monospace;">{{ snapshot.wal.backlog_depth }}</dd></div>
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Dead-letter depth" %}</dt><dd style="margin: 0; font-family: monospace;">{{ snapshot.wal.deadletter_depth }}</dd></div>
+        <div style="display: flex; justify-content: space-between;"><dt style="color: var(--text-secondary);">{% trans "Conflict depth" %}</dt><dd style="margin: 0; font-family: monospace;">{{ snapshot.wal.conflict_depth }}</dd></div>
+      </dl>
+    </section>
+  </div>
+
+  <section style="margin-bottom: 18px;">
+    <h2 style="font-size: var(--type-size-caption); margin: 0 0 8px;">{% trans "WAL dead-letter streams" %} ({{ deadletter_streams|length }})</h2>
+    <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+      <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
+        <caption class="visually-hidden">{% trans "WAL dead-letter streams" %}</caption>
+        <thead>
+          <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
+            <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Tenant hash" %}</th>
+            <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Depth" %}</th>
+            <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Latest errors (truncated)" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in deadletter_streams %}
+            <tr>
+              <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ s.tenant_hash }}</td>
+              <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace;">{{ s.depth }}</td>
+              <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">
+                {% for e in s.samples %}{{ e.fields.error|default:"—"|truncatechars:80 }}{% if not forloop.last %} · {% endif %}{% endfor %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" style="padding: 18px; text-align: center; color: var(--text-secondary);">{% trans "No dead-letter streams — every WAL envelope applied." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2 style="font-size: var(--type-size-caption); margin: 0 0 8px;">{% trans "WAL conflict streams" %} ({{ conflict_streams|length }})</h2>
+    <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+      <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
+        <caption class="visually-hidden">{% trans "WAL conflict streams" %}</caption>
+        <thead>
+          <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
+            <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Tenant hash" %}</th>
+            <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Depth" %}</th>
+            <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Latest domains" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in conflict_streams %}
+            <tr>
+              <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ s.tenant_hash }}</td>
+              <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace;">{{ s.depth }}</td>
+              <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">
+                {% for e in s.samples %}{{ e.fields.domain|default:"—" }}{% if not forloop.last %} · {% endif %}{% endfor %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" style="padding: 18px; text-align: center; color: var(--text-secondary);">{% trans "No conflict streams — no stale offline writes recorded." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

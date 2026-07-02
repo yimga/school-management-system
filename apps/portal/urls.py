@@ -194,6 +194,7 @@ from .views_device_governance import (
     device_registration_revoke,
     device_registration_reinstate,
 )
+from .views_sync_health import sync_health_index
 from .views_lms_audit import lms_audit_index, lms_audit_export_index, lms_audit_export_download
 from .views_idempotency_audit import idempotency_audit_index
 from .views_lms_pkce import lms_pkce_start, lms_pkce_callback, lms_pkce_build
@@ -262,6 +263,8 @@ urlpatterns = [
     path("super/devices/", device_registrations_index, name="device_registrations_index"),
     path("super/devices/revoke/", device_registration_revoke, name="device_registration_revoke"),
     path("super/devices/reinstate/", device_registration_reinstate, name="device_registration_reinstate"),
+    # 2026-07-02: Cross-rail sync-health console (SODP + delta + WAL dead-letter reader).
+    path("super/sync-health/", sync_health_index, name="sync_health_index"),
     # v4.00.53: LMS push-grade audit URL is registered above the provider
     # catch-all (see lms_audit_index above lms_provider_detail).
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).

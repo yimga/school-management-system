@@ -360,7 +360,28 @@ def ensure_default_jobs() -> None:
             description="Hourly dead-man's-switch: alert/recover when any periodic job is overdue.",
             tags=("platform", "monitor", "light"),
         )
+        # Cross-rail sync backlog watch (2026-07-02). LIGHT: a handful of COUNT
+        # queries + a Redis SCAN. Before this job, SODP conflicts and the WAL
+        # dead-letter streams could pile up forever with zero operator signal;
+        # a threshold breach now auto-opens (and recovery auto-resolves) a
+        # PlatformIncident via the idempotent incident services.
+        _REGISTRY["observability.sync_backlog_monitor"] = PeriodicJob(
+            name="observability.sync_backlog_monitor",
+            interval_seconds=MONITOR_INTERVAL_SECONDS,
+            func=_run_sync_backlog_monitor,
+            description="Hourly cross-rail sync backlog watch: gauges + auto-incident on breach.",
+            tags=("observability", "sync", "light"),
+        )
         _DEFAULTS_INSTALLED = True
+
+
+def _run_sync_backlog_monitor() -> object:
+    # Lazy import: observability app owns the cross-rail collector; keeping the
+    # import inside the job func avoids app-loading-order coupling at startup.
+    from apps.observability.sync_health import evaluate_backlog_incidents
+
+    outcome = evaluate_backlog_incidents()
+    return {"opened": outcome["opened"], "resolved": outcome["resolved"]}
 
 
 def _run_recompute_benchmark_cohorts() -> object:

@@ -537,6 +537,8 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
 
     # ---- Sync / SLOs -------------------------------------------------------
     SettingSpec("SYNC_CONFLICT_PENDING_SLO_MAX", "int", "100", "ops", "Cap on pending sync conflicts before alerting."),
+    SettingSpec("RMC_SYNC_SODP_CONFLICT_MAX", "int", "25", "ops", "SODP OfflineAction conflict backlog cap before the sync_backlog_monitor opens a platform incident."),
+    SettingSpec("RMC_SYNC_WAL_DEADLETTER_MAX", "int", "10", "ops", "WAL dead-letter total depth cap before the sync_backlog_monitor opens a platform incident."),
     SettingSpec("WEBHOOK_P95_LATENCY_SLO_MS", "int", "1500", "ops", "Webhook delivery p95 latency SLO."),
     SettingSpec("WEBHOOK_SUCCESS_SLO_PERCENT", "float", "99.0", "ops", "Webhook delivery success-rate SLO percent."),
 
