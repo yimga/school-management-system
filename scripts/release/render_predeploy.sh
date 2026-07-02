@@ -102,6 +102,11 @@ fi
 
 run "${PYTHON_BIN}" manage.py normalize_ui_config
 
+# Marketplace permission-scope catalog: keeps the DB-side scope rows aligned
+# with the code-level SCOPE_CATALOG on every deploy. update_or_create per
+# scope — idempotent, safe to re-run.
+run "${PYTHON_BIN}" manage.py seed_marketplace_scopes
+
 # pgvector: post-5k-scale embedding store. Migrates JSON embeddings into a
 # pgvector column + tuned IVFFLAT index, then verifies the planner uses it.
 # Both commands refuse on non-Postgres vendors and are idempotent — safe to
