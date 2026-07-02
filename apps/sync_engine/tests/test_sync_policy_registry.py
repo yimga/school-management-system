@@ -1,9 +1,11 @@
 from django.test import SimpleTestCase
 
+from apps.sync_engine.conflict_resolver import resolve_one
 from apps.sync_engine.policy_registry import (
     MergeStrategy,
     POLICY_VERSION,
     get_policy,
+    is_online_required,
     normalize_entity,
     validate_crdt_kind,
 )
@@ -43,3 +45,35 @@ class SyncPolicyRegistryTests(SimpleTestCase):
 
     def test_policy_version_is_positive(self):
         self.assertGreaterEqual(POLICY_VERSION, 1)
+
+    def test_online_required_tier_v2(self):
+        # v2 adds the tier the sovereign audit asked for: domains that may not
+        # even be QUEUED offline (vs SERVER_AUTHORITATIVE, where an offline
+        # attempt is accepted and the server copy wins).
+        self.assertGreaterEqual(POLICY_VERSION, 2)
+        for entity in (
+            "tenant_lifecycle_action",
+            "security_credential",
+            "payment_settlement",
+        ):
+            policy = get_policy(entity)
+            self.assertEqual(policy.strategy, MergeStrategy.ONLINE_REQUIRED, entity)
+            self.assertTrue(policy.protected, entity)
+            self.assertTrue(is_online_required(entity), entity)
+            with self.assertRaisesMessage(ValueError, "crdt_kind_not_allowed"):
+                validate_crdt_kind(entity, "LWW")
+        self.assertEqual(normalize_entity("offboarding"), "tenant_lifecycle_action")
+        self.assertEqual(normalize_entity("mfa"), "security_credential")
+        self.assertEqual(normalize_entity("settlement"), "payment_settlement")
+        self.assertFalse(is_online_required("student_note"))
+
+    def test_online_required_resolver_rejects_offline_replay(self):
+        decision = resolve_one({"entity": "offboarding"})
+        self.assertEqual(decision["action"], "reject_offline")
+        self.assertTrue(decision["protected_policy"])
+        # A caller-requested downgrade must be override-blocked.
+        downgraded = resolve_one(
+            {"entity": "payment_settlement"}, strategy=MergeStrategy.CAUSAL_LWW
+        )
+        self.assertEqual(downgraded["action"], "reject_offline")
+        self.assertTrue(downgraded["override_blocked"])

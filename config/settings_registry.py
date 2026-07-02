@@ -589,6 +589,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("CLOUDFLARE_ZONE_ID", "str", '""', "infra", "Cloudflare zone id for apex domain."),
     SettingSpec("CORS_ALLOWED_ORIGINS", "list[str]", "[]", "security", "Extra CORS origins beyond defaults."),
     SettingSpec("DATA_RESIDENCY_ENFORCE", "bool", "False", "compliance", "Enforce data residency routing rules."),
+    SettingSpec("DATA_RESIDENCY_STRICT_UNKNOWN", "bool", "False", "compliance", "With enforcement on, block (not pass) when source/target region is unknown."),
     SettingSpec("DATA_RESIDENCY_REPLICA_ALIASES", "dict", "{}", "compliance", "DB alias map for residency replicas."),
     SettingSpec("DEFAULT_ADMIN_PAGE_SIZE", "int", "25", "ui", "Default admin changelist page size."),
     SettingSpec("DEFAULT_AUDIT_PAGE_SIZE", "int", "50", "ui", "Default audit log page size."),
@@ -734,6 +735,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS", "int", "12", "identity", "TTL (hours) of offline IAM-snapshot tokens."),
     SettingSpec("RMC_IAM_SNAPSHOT_SIGNING_KEY", "str", "None", "identity", "Signing key for IAM snapshot tokens."),
     SettingSpec("RMC_IAM_SNAPSHOT_TTL_HOURS", "int", "168", "identity", "TTL (hours) of IAM snapshots."),
+    SettingSpec("RMC_OFFLINE_CAPABILITY_TOKEN_TTL_HOURS", "int", "12", "identity", "TTL (hours) of write-capability offline tokens minted by devices-offline-token."),
     # RMC OIDC / OneRoster / SCIM tokens
     SettingSpec("RMC_OIDC_REDIRECT_BASE_URL", "str", '""', "identity", "Base URL used to build OIDC redirect URIs."),
     SettingSpec("RMC_ONEROSTER_ACCESS_TOKEN", "str", '""', "identity", "Static bearer token accepted by the OneRoster API (back-compat)."),

@@ -467,6 +467,10 @@ CSP_ENFORCE = os.getenv("CSP_ENFORCE", "1") == "1"
 # Flip only after `manage.py verify_data_residency --fix-derive` is clean
 # AND at least one region replica is provisioned in DATABASES.
 DATA_RESIDENCY_ENFORCE = os.getenv("DATA_RESIDENCY_ENFORCE", "0") == "1"
+# Strict-sovereignty posture: with enforcement on, an UNKNOWN source or target
+# region blocks instead of silently passing. Default off — single-region
+# deployments have no region concept on most paths and must not brick.
+DATA_RESIDENCY_STRICT_UNKNOWN = os.getenv("DATA_RESIDENCY_STRICT_UNKNOWN", "0") == "1"
 
 # Wave K3 — at-risk ML artifact: where the predictor loads its joblib bundle.
 # Resolution order in `apps.analytics.ml.at_risk_model`:
@@ -1307,6 +1311,11 @@ RMC_REBAC_ENFORCE_SENSITIVE = (
 RMC_IAM_SNAPSHOT_TTL_HOURS = int(os.getenv("RMC_IAM_SNAPSHOT_TTL_HOURS", "168"))
 RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS = int(
     os.getenv("RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS", "12")
+)
+# Write-capability offline token minted by /api/ devices-offline-token; raise in
+# lockstep with RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS for long-offline campuses.
+RMC_OFFLINE_CAPABILITY_TOKEN_TTL_HOURS = int(
+    os.getenv("RMC_OFFLINE_CAPABILITY_TOKEN_TTL_HOURS", "12")
 )
 RMC_IAM_SNAPSHOT_SIGNING_KEY = os.getenv("RMC_IAM_SNAPSHOT_SIGNING_KEY", "").strip() or None
 # Log mutating /super/ requests to compliance AuditLog (see middleware_enterprise_security).

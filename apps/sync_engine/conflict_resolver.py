@@ -23,6 +23,7 @@ class ResolutionStrategy:
     MANUAL_REVIEW = MergeStrategy.MANUAL_REVIEW
     FIELD_MERGE = MergeStrategy.FIELD_MERGE
     APPEND_ONLY = MergeStrategy.APPEND_ONLY
+    ONLINE_REQUIRED = MergeStrategy.ONLINE_REQUIRED
 
 
 DEFAULT_STRATEGY_PER_ENTITY: dict[str, str] = {
@@ -110,6 +111,14 @@ def resolve_one(
         decision = {
             "action": "manual_review",
             "reason": "field merge requires a typed domain handler",
+        }
+    elif chosen == MergeStrategy.ONLINE_REQUIRED:
+        decision = {
+            "action": "reject_offline",
+            "reason": (
+                "entity requires a live online transaction; an offline replica "
+                "must never queue or replay it"
+            ),
         }
     else:
         decision = {

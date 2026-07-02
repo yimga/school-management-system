@@ -73,6 +73,23 @@ def residency_enforced() -> bool:
     return env or bool(getattr(settings, "DATA_RESIDENCY_ENFORCE", False))
 
 
+def strict_unknown_regions() -> bool:
+    """Whether unknown source/target regions BLOCK instead of silently passing.
+
+    The default (off) keeps the backward-compatible posture: paths with no
+    region concept — single-region deployments, un-pinned requests — proceed.
+    Strict-sovereignty deployments flip this so a resolution failure can never
+    become a silent cross-border pass. Same env-or-setting contract as
+    :func:`residency_enforced`; only consulted when enforcement is on.
+    """
+    env = os.environ.get("DATA_RESIDENCY_STRICT_UNKNOWN", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    return env or bool(getattr(settings, "DATA_RESIDENCY_STRICT_UNKNOWN", False))
+
+
 def _norm(region: Any) -> str:
     return str(region or "").strip().lower()
 
@@ -140,8 +157,14 @@ def enforce_region_match(
     raise :class:`ResidencyViolation` (audited). No-op when:
 
     * enforcement is off (the flag is unset — the backward-compatible default);
-    * there is no school, or its regulatory region is unknown;
-    * ``target_region`` is empty (nothing to compare against);
+    * there is no school;
+    * ``target_region`` is empty and :func:`strict_unknown_regions` is off
+      (nothing to compare against — but strict-sovereignty deployments flip
+      ``DATA_RESIDENCY_STRICT_UNKNOWN`` so an unknown target BLOCKS instead);
+    * the source region cannot be resolved and strict-unknown is off (note:
+      ``effective_region`` never returns blank — it defaults to ``"global"``
+      — so this arm is only reachable when resolution *raises* and the raw
+      ``data_region`` field is also empty);
     * the regions match.
     """
     if school is None:
@@ -149,9 +172,8 @@ def enforce_region_match(
     if not residency_enforced():
         return
 
+    strict_unknown = strict_unknown_regions()
     target = _norm(target_region)
-    if not target:
-        return
 
     try:
         from apps.schools.data_residency import effective_region
@@ -160,7 +182,35 @@ def enforce_region_match(
     except Exception:  # noqa: BLE001 — never crash resolution; fall back to field
         source = _norm(getattr(school, "data_region", None))
 
+    if not target:
+        if strict_unknown:
+            _audit_residency_violation(
+                source_region=source or "unknown",
+                target_region="unknown",
+                school=school,
+                kind=kind,
+            )
+            raise ResidencyViolation(
+                f"Data residency: unknown target region for {kind} under "
+                "strict-unknown enforcement. Cross-border operation blocked.",
+                source_region=source or "unknown",
+                target_region="unknown",
+            )
+        return
     if not source:
+        if strict_unknown:
+            _audit_residency_violation(
+                source_region="unknown",
+                target_region=target,
+                school=school,
+                kind=kind,
+            )
+            raise ResidencyViolation(
+                f"Data residency: unknown tenant region for {kind} under "
+                "strict-unknown enforcement. Cross-border operation blocked.",
+                source_region="unknown",
+                target_region=target,
+            )
         return
     if source == target:
         return

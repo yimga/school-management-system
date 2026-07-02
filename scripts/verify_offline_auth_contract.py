@@ -33,6 +33,29 @@ def main() -> int:
         findings.append("offline token API must not be csrf_exempt")
     if "@extend_schema" not in api:
         findings.append("OfflineTokenMintView missing @extend_schema")
+    if "RMC_OFFLINE_CAPABILITY_TOKEN_TTL_HOURS" not in api:
+        findings.append("mint TTL must be settings-driven (RMC_OFFLINE_CAPABILITY_TOKEN_TTL_HOURS)")
+    if re.search(r"timedelta\(hours=\d+\)", api):
+        findings.append("mint TTL must not be a hardcoded timedelta literal")
+
+    # Client<->server mint contract (the refresh shipped broken for months:
+    # no device_id -> 400, no CSRF header -> 403, and it read a response field
+    # the server never returned). Lock the wire contract on both sides.
+    bootstrap_path = ROOT / "static/js/rmc-offline-auth-bootstrap.js"
+    if not bootstrap_path.is_file():
+        findings.append("missing static/js/rmc-offline-auth-bootstrap.js")
+    else:
+        bootstrap = bootstrap_path.read_text(encoding="utf-8", errors="replace")
+        if "device_id: deviceId" not in bootstrap:
+            findings.append("bootstrap mint POST must send device_id (serializer requires it)")
+        if "X-CSRFToken" not in bootstrap:
+            findings.append("bootstrap mint POST must send X-CSRFToken (SessionAuthentication enforces CSRF)")
+        if "capability_blob_b64" in bootstrap:
+            findings.append("bootstrap reads capability_blob_b64 — the server returns capability_blob")
+        if "data.capability_blob" not in bootstrap:
+            findings.append("bootstrap must read capability_blob from the mint response")
+        if "applyMintResponse" not in bootstrap:
+            findings.append("bootstrap must apply the minted iam_snapshot via RMCIamSnapshot.applyMintResponse")
 
     lib = (ROOT / "companion-tauri/src-tauri/src/lib.rs").read_text(encoding="utf-8", errors="replace")
     if "rmc_stronghold_seal" not in lib or "rmc_stronghold_open" not in lib:

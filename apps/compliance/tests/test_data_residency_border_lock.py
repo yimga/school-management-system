@@ -10,11 +10,13 @@ PROVEN LOCALLY 2026-07-02 (fresh SQLite lane): the module runs green 16/16.
 The first real run caught that the original unknown-source test asserted a
 no-op, but ``effective_region`` never returns blank (defaults ``"global"``),
 so the gate fail-closes there — the test was corrected to assert the block.
-Known residual fail-open (documented, unfixed by design decision pending):
-an unknown/blank TARGET region silently passes even under enforcement
-(``enforce_region_match`` returns when target is falsy), reinforced at the
-db-router and regional-middleware call sites; a strict mode that blocks or
-queues review on unknown targets does not exist yet.
+The historical unknown-region fail-open is now policy-controlled:
+``DATA_RESIDENCY_STRICT_UNKNOWN`` (default off, backward compatible) makes an
+unknown source/target region BLOCK at the gate instead of silently passing.
+Residual: the db-router / regional-middleware call sites still early-return
+when no region concept applies at all (single-region deployments must not
+brick); a strict multi-region deployment should pair the flag with pinned
+replicas so those paths always produce a comparable region.
 """
 
 from __future__ import annotations
@@ -106,6 +108,39 @@ class EnforceRegionMatchTests(PlainTestCase):
     @override_settings(DATA_RESIDENCY_ENFORCE=True)
     def test_strict_noop_when_no_school(self):
         enforce_region_match(None, "us_east", kind="db_route")  # no raise
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=True, DATA_RESIDENCY_STRICT_UNKNOWN=True)
+    @patch("apps.compliance.cross_border_export._audit_residency_violation")
+    def test_strict_unknown_blocks_blank_target(self, audit_mock):
+        # Strict-sovereignty posture: an unknown TARGET region can no longer
+        # silently pass — the historical fail-open this flag exists to close.
+        school = _school(region="eu_central")
+        with self.assertRaises(ResidencyViolation) as ctx:
+            enforce_region_match(school, "", kind="db_route")
+        self.assertEqual(ctx.exception.source_region, "eu_central")
+        self.assertEqual(ctx.exception.target_region, "unknown")
+        audit_mock.assert_called_once()
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=True, DATA_RESIDENCY_STRICT_UNKNOWN=True)
+    @patch("apps.compliance.cross_border_export._audit_residency_violation")
+    def test_strict_unknown_blocks_unresolvable_source(self, audit_mock):
+        # The only reachable blank-source arm: resolution RAISES and the raw
+        # field is also empty. Strict mode blocks instead of passing.
+        school = _school(region="", country="")
+        with patch(
+            "apps.schools.data_residency.effective_region",
+            side_effect=RuntimeError("resolver down"),
+        ):
+            with self.assertRaises(ResidencyViolation) as ctx:
+                enforce_region_match(school, "us_east", kind="export")
+        self.assertEqual(ctx.exception.source_region, "unknown")
+        self.assertEqual(ctx.exception.target_region, "us_east")
+        audit_mock.assert_called_once()
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=True, DATA_RESIDENCY_STRICT_UNKNOWN=True)
+    def test_strict_unknown_still_allows_matching_regions(self):
+        school = _school(region="eu_central")
+        enforce_region_match(school, "eu_central", kind="db_route")  # no raise
 
 
 class CrossBorderExportTests(PlainTestCase):

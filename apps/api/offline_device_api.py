@@ -6,6 +6,7 @@ import hashlib
 import secrets
 from datetime import timedelta
 
+from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import serializers, status
@@ -33,7 +34,10 @@ class OfflineTokenMintSerializer(serializers.Serializer):
     post=extend_schema(
         tags=["Offline Sync"],
         summary="Mint scoped offline capability token",
-        description="Online session required; registers device and mints a 12h-expiry capability token.",
+        description=(
+            "Online session required; registers device and mints a capability token "
+            "(TTL from RMC_OFFLINE_CAPABILITY_TOKEN_TTL_HOURS, default 12h)."
+        ),
         request=OfflineTokenMintSerializer,
         responses={201: dict},
     ),
@@ -67,7 +71,10 @@ class OfflineTokenMintView(APIView):
         )
         raw_token = secrets.token_urlsafe(32)
         fingerprint = hashlib.sha256(raw_token.encode()).hexdigest()
-        expires_at = timezone.now() + timedelta(hours=12)
+        # Deployment-tunable: campuses with long disconnected stretches raise
+        # this (paired with the offline IAM snapshot TTL); default stays 12h.
+        ttl_hours = int(getattr(settings, "RMC_OFFLINE_CAPABILITY_TOKEN_TTL_HOURS", 12))
+        expires_at = timezone.now() + timedelta(hours=ttl_hours)
         OfflineCapabilityToken.objects.create(
             device=device,
             school=school,

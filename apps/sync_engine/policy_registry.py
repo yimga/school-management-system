@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-POLICY_VERSION = 1
+POLICY_VERSION = 2
 
 
 class MergeStrategy:
@@ -16,6 +16,10 @@ class MergeStrategy:
     APPEND_ONLY = "append_only"
     OR_SET = "or_set"
     G_COUNTER = "g_counter"
+    # v2: the domain may not even be QUEUED offline — a live online
+    # transaction is the only valid path (distinct from SERVER_AUTHORITATIVE,
+    # where an offline attempt is accepted and the server's copy then wins).
+    ONLINE_REQUIRED = "online_required"
 
 
 @dataclass(frozen=True)
@@ -35,6 +39,11 @@ ENTITY_ALIASES = {
     "payment_proof": "payment_proof_upload",
     "profile": "user_profile",
     "message": "message_event",
+    "offboarding": "tenant_lifecycle_action",
+    "tenant_lifecycle": "tenant_lifecycle_action",
+    "settlement": "payment_settlement",
+    "mfa": "security_credential",
+    "password": "security_credential",
 }
 
 
@@ -136,6 +145,33 @@ POLICIES: dict[str, SyncPolicy] = {
         protected=True,
         rationale="Authorization changes must be validated by the server.",
     ),
+    "tenant_lifecycle_action": SyncPolicy(
+        entity="tenant_lifecycle_action",
+        strategy=MergeStrategy.ONLINE_REQUIRED,
+        protected=True,
+        rationale=(
+            "Suspension, offboarding, and purge are destructive lifecycle "
+            "actions; a disconnected device must never queue or replay them."
+        ),
+    ),
+    "security_credential": SyncPolicy(
+        entity="security_credential",
+        strategy=MergeStrategy.ONLINE_REQUIRED,
+        protected=True,
+        rationale=(
+            "Password/MFA/credential changes take effect only through a live "
+            "authenticated session — an offline queue would delay revocation."
+        ),
+    ),
+    "payment_settlement": SyncPolicy(
+        entity="payment_settlement",
+        strategy=MergeStrategy.ONLINE_REQUIRED,
+        protected=True,
+        rationale=(
+            "Executing a charge against a gateway is a live transaction; "
+            "offline evidence capture belongs to fee_payment/payment_proof."
+        ),
+    ),
 }
 
 
@@ -157,6 +193,11 @@ def get_policy(entity: str) -> SyncPolicy:
     )
 
 
+def is_online_required(entity: str) -> bool:
+    """Whether the domain may only be performed through a live connection."""
+    return get_policy(entity).strategy == MergeStrategy.ONLINE_REQUIRED
+
+
 def validate_crdt_kind(entity: str, kind: str) -> SyncPolicy:
     policy = get_policy(entity)
     normalized_kind = str(kind or "").strip().upper()
@@ -174,6 +215,7 @@ __all__ = [
     "POLICY_VERSION",
     "SyncPolicy",
     "get_policy",
+    "is_online_required",
     "normalize_entity",
     "validate_crdt_kind",
 ]
