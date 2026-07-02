@@ -22,7 +22,7 @@ from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError
 
 from apps.api.permissions import IsAdminUser
-from apps.accounts.permissions import api_user_has_any_role
+from apps.accounts.effective_access import api_any_role_access
 from apps.platform_runtime.structured_logging import log_exception_with_context
 User = get_user_model()  # role enum (was function-local)
 
@@ -67,7 +67,7 @@ def _can_message_user(sender, recipient, school=None):
     # Staff / admin / leadership can message anyone
     if getattr(sender, "is_staff", False) or getattr(sender, "is_superuser", False):
         return True
-    if api_user_has_any_role(
+    if api_any_role_access(
         sender,
         {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "COMMS_STAFF"},
     ):

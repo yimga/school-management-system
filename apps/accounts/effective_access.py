@@ -62,10 +62,34 @@ def school_permission_access(user, school, action) -> bool:
     return has_school_permission(user, school, action)
 
 
+def role_access(user, role: str) -> bool:
+    """Does ``user`` hold this role (hierarchy + temporary grants honoured)?"""
+    from apps.accounts.permissions import has_role
+
+    return has_role(user, role)
+
+
+def any_role_access(user, roles) -> bool:
+    """Does ``user`` hold ANY of these roles? (session/view contexts)"""
+    from apps.accounts.permissions import has_role
+
+    return any(has_role(user, str(r).strip().upper()) for r in roles if r)
+
+
+def api_any_role_access(user, roles) -> bool:
+    """DRF-safe any-role check (handles unauthenticated; role + AccessRole)."""
+    from apps.accounts.permissions import api_user_has_any_role
+
+    return api_user_has_any_role(user, roles)
+
+
 __all__ = [
+    "any_role_access",
+    "api_any_role_access",
     "invoice_access",
     "invoice_edit_access",
     "module_access",
+    "role_access",
     "school_permission_access",
     "student_data_access",
     "student_grades_edit_access",

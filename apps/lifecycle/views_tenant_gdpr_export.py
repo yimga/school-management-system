@@ -39,9 +39,9 @@ def _require_school_admin(request):
                 {"error": "No tenant context resolved."},
                 status=400,
             )
-        from apps.schools.tenant_access import has_school_permission
+        from apps.accounts.effective_access import school_permission_access
 
-        if not has_school_permission(request.user, school, "admin"):
+        if not school_permission_access(request.user, school, "admin"):
             return None, HttpResponseForbidden(
                 "School administrator permission required for data export."
             )

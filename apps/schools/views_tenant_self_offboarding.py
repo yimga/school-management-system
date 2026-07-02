@@ -11,7 +11,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.compliance.models_audit import AuditLog
 from apps.schools.control_plane import log_control_plane_action
-from apps.schools.tenant_access import has_school_permission
+from apps.accounts.effective_access import school_permission_access
 from apps.schools.tenant_offboarding import (
     cancel_self_service_closure,
     get_offboarding_snapshot,
@@ -53,7 +53,7 @@ def _require_school_admin(request):
         school = getattr(request, "school", None)
         if school is None:
             return None, JsonResponse({"ok": False, "error": "No school context"}, status=403)
-        if not has_school_permission(request.user, school, "admin"):
+        if not school_permission_access(request.user, school, "admin"):
             return None, HttpResponseForbidden(
                 "School administrator permission required for offboarding."
             )

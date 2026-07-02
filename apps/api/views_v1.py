@@ -97,11 +97,10 @@ def _require_auth_and_tenant_member(request):
     return _require_tenant_member(request)
 
 
-def _user_has_any_role(user, allowed_roles: set[str]) -> bool:
-    from apps.accounts.permissions import has_role
+def _any_finance_role(user, allowed_roles: set[str]) -> bool:
+    from apps.accounts.effective_access import any_role_access
 
-    normalized_roles = {str(role).strip().upper() for role in allowed_roles if role}
-    return any(has_role(user, role) for role in normalized_roles)
+    return any_role_access(user, allowed_roles)
 
 
 def _require_finance_operator(request):
@@ -114,7 +113,7 @@ def _require_finance_operator(request):
         return False, err
     if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
         return True, None
-    if _user_has_any_role(user, FINANCE_OPERATOR_ROLES):
+    if _any_finance_role(user, FINANCE_OPERATOR_ROLES):
         return True, None
     return False, JsonResponse({"error": "Forbidden"}, status=403)
 
@@ -129,9 +128,9 @@ def _require_parent_finance_or_operator_access(request):
         return False, err
     if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
         return True, None
-    if _user_has_any_role(user, FINANCE_OPERATOR_ROLES):
+    if _any_finance_role(user, FINANCE_OPERATOR_ROLES):
         return True, None
-    if not _user_has_any_role(user, {"PARENT"}):
+    if not _any_finance_role(user, {"PARENT"}):
         return False, JsonResponse({"error": "Forbidden"}, status=403)
 
     from apps.finance.views_common import _finance_access_state

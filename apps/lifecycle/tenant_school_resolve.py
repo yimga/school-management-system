@@ -112,11 +112,12 @@ def can_access_tenant_lifecycle(request: HttpRequest, school) -> bool:
     if getattr(user, "is_superuser", False) or tenant_operator_hub_eligible(user):
         return True
     from apps.schools.models import SchoolMembership
-    from apps.schools.tenant_access import has_school_permission, user_belongs_to_school
+    from apps.accounts.effective_access import school_permission_access
+    from apps.schools.tenant_access import user_belongs_to_school
 
     if not user_belongs_to_school(user, school):
         return False
-    if has_school_permission(user, school, "admin"):
+    if school_permission_access(user, school, "admin"):
         return True
     membership = SchoolMembership.objects.filter(
         user_id=user.pk, school_id=school.pk

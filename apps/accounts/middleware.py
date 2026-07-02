@@ -13,7 +13,7 @@ from apps.schools.host_routing import public_host_kind
 from apps.schools.tenant_url import build_manager_absolute_url
 from apps.siteconfig.config_service import get_effective_site_settings
 
-from .permissions import can_access_module
+from apps.accounts.effective_access import module_access
 from .utils import get_user_role
 
 logger = logging.getLogger(__name__)
@@ -290,7 +290,7 @@ class ModuleAccessMiddleware:
                 return self.get_response(request)
 
         action = "read" if request.method in self.SAFE_METHODS else "write"
-        if can_access_module(user, module, action=action):
+        if module_access(user, module, action=action):
             return self.get_response(request)
 
         # For /api/ paths return JSON so API clients get machine-readable errors

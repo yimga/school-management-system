@@ -11,7 +11,7 @@ from django.http import HttpRequest, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from apps.accounts.permissions import has_role
+from apps.accounts.effective_access import role_access
 from apps.people.models import ApprenticePlacement
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
@@ -33,7 +33,7 @@ _EMPLOYER_TRANSCRIPT_CONTEXT_ERRORS = (
 def _is_employer(request) -> bool:
     if not request.user.is_authenticated:
         return False
-    return has_role(request.user, "EMPLOYER")
+    return role_access(request.user, "EMPLOYER")
 
 
 @login_required

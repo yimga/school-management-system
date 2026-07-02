@@ -6,7 +6,8 @@ from typing import Any
 
 from django.utils import timezone
 
-from apps.schools.tenant_access import has_school_permission, user_belongs_to_school
+from apps.accounts.effective_access import school_permission_access
+from apps.schools.tenant_access import user_belongs_to_school
 
 # Core modules used for adoption scoring (subset of get_tenant_modules).
 _ADOPTION_PROBE_CODES = (
@@ -110,7 +111,7 @@ def run_tenant_diagnostics(request) -> dict[str, Any]:
         ("export", "Export data"),
         ("admin", "Administer settings"),
     ):
-        ok = has_school_permission(user, school, action)  # type: ignore[arg-type]
+        ok = school_permission_access(user, school, action)  # type: ignore[arg-type]
         add(
             f"perm_{action}",
             label,

@@ -6,7 +6,8 @@ from typing import Any
 
 from apps.accounts.permissions import ROLE_RANK
 from apps.platform_runtime.role_registry import ALL_ROLES
-from apps.schools.tenant_access import SchoolAction, has_school_permission
+from apps.accounts.effective_access import school_permission_access
+from apps.schools.tenant_access import SchoolAction
 
 
 # Surfaces admins most often debug (maps to coarse actions + feature codes).
@@ -112,7 +113,7 @@ def simulate_role_capabilities(
     for row in _CAPABILITY_MATRIX:
         school_action: SchoolAction = row["school_action"]  # type: ignore[assignment]
         school_ok = (
-            has_school_permission(proxy, school, school_action) if school else False
+            school_permission_access(proxy, school, school_action) if school else False
         )
         feature_ok = False
         if hasattr(proxy, "has_feature_permission"):

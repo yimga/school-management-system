@@ -20,7 +20,8 @@ from typing import Any, Callable, Optional
 
 from django.http import HttpRequest, HttpResponseForbidden
 
-from apps.schools.tenant_access import SchoolAction, has_school_permission
+from apps.accounts.effective_access import school_permission_access
+from apps.schools.tenant_access import SchoolAction
 
 
 def enforce_tenant_security(
@@ -43,7 +44,7 @@ def enforce_tenant_security(
             school = getattr(request, "school", None)
             if require_school and school is None:
                 return HttpResponseForbidden("No school context for this request")
-            if school is not None and not has_school_permission(u, school, action):
+            if school is not None and not school_permission_access(u, school, action):
                 return HttpResponseForbidden(
                     "Not permitted for this school or not a member."
                 )
