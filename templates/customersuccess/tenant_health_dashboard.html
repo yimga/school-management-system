@@ -23,6 +23,7 @@
       <div>
         {% if latest.dimensions %}
         <table class="table table-sm mb-0">
+          <caption class="visually-hidden">{% trans "Tenant health" %}</caption>
           {% for k, v in latest.dimensions.items %}
           <tr><th scope="row" class="text-muted">{{ k }}</th><td>{{ v }}</td></tr>
           {% endfor %}
@@ -77,6 +78,7 @@
   <section class="mt-4">
     <h2 class="h6">{% trans "Score history" %}</h2>
     <table class="table table-sm">
+      <caption class="visually-hidden">{% trans "Score history" %}</caption>
       <thead class="table-light"><tr><th scope="col">{% trans "At" %}</th><th scope="col">{% trans "Score" %}</th></tr></thead>
       <tbody>
         {% for h in history %}

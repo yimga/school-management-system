@@ -38,6 +38,7 @@
     <div class="card-header">{% trans "Recent movements" %}</div>
     <div class="card-body p-0">
       <table class="table table-sm mb-0 rmc-data-table" data-rmc-scroll-policy="paginate">
+        <caption class="visually-hidden">{% trans "Recent movements" %}</caption>
         <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Item" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Delta" %}</th><th scope="col">{% trans "After" %}</th></tr></thead>
         <tbody>
           {% for mv in movements %}

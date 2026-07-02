@@ -37,6 +37,7 @@
       </h2>
       <p class="text-secondary small">{% blocktrans %}Tokens issued more than 7 days ago that have not yet been opened. Resend up to 3 times per token; cooldown of 24 hours between sends.{% endblocktrans %}</p>
       <table class="table table-sm">
+        <caption class="visually-hidden">{% blocktrans with t=ccst_guardian_sg %}{{ t }} consent campaign{% endblocktrans %}</caption>
         <thead><tr>
           <th scope="col">{% term "guardian" capitalize=True %}</th>
           <th scope="col">{% trans "Issued" %}</th>
@@ -75,6 +76,7 @@
       <h2 class="h5 mb-3">{% trans "Recent tokens" %}</h2>
       {% if recent %}
         <table class="table table-sm">
+          <caption class="visually-hidden">{% trans "Recent tokens" %}</caption>
           <thead><tr>
             <th scope="col">{% term "guardian" capitalize=True %}</th>
             <th scope="col">{% trans "Issued" %}</th>

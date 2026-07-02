@@ -38,6 +38,7 @@
         <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
       {% elif webhooks.by_status %}
         <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <caption class="visually-hidden">{% trans "Webhook deliveries (24h)" %}</caption>
           <thead>
             <tr>
               <th scope="col">{% trans "Status" %}</th>
@@ -69,6 +70,7 @@
         <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
       {% elif maa_signs.by_version %}
         <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <caption class="visually-hidden">{% trans "MAA signs (7d)" %}</caption>
           <thead>
             <tr>
               <th scope="col">{% trans "Version" %}</th>
@@ -103,6 +105,7 @@
         <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
       {% elif uploads.by_tenant %}
         <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <caption class="visually-hidden">{% trans "Companion uploads (24h)" %}</caption>
           <thead>
             <tr>
               <th scope="col">{% trans "Tenant (hash)" %}</th>
@@ -136,6 +139,7 @@
         <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
       {% elif keypairs.by_tenant %}
         <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <caption class="visually-hidden">{% trans "Active Companion keypairs" %}</caption>
           <thead>
             <tr>
               <th scope="col">{% trans "Tenant (hash)" %}</th>
@@ -176,6 +180,7 @@
     <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-scanners-heading">
       <h2 id="health-scanners-heading" class="rmc-h2">{% trans "Zero-tolerance scanner status" %}</h2>
       <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Zero-tolerance scanner status" %}</caption>
         <thead>
           <tr>
             <th scope="col">{% trans "Scanner" %}</th>

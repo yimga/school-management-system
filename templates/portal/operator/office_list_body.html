@@ -10,6 +10,7 @@
   <div class="rmc-banner rmc-banner--warning">{% trans "Collabora is not configured (COLLABORA_BASE_URL)." %}</div>
   {% endif %}
   <table class="table table-sm align-middle">
+    <caption class="visually-hidden">{% trans "Office documents" %}</caption>
     <thead><tr><th scope="col">{% trans "Title" %}</th><th scope="col">{% trans "Audience" %}</th><th scope="col"></th></tr></thead>
     <tbody>
       {% for doc in documents %}

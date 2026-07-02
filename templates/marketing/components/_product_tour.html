@@ -19,7 +19,7 @@
           <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Enrolled' %}</span><span class="rmc-metric-ticker__value">486</span></div>
           <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Active classes' %}</span><span class="rmc-metric-ticker__value">22</span></div>
         </div>
-        <table class="rmc-data-table mkt-tour__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <table aria-label="{% trans 'Product demo: enrollment list' %}" class="rmc-data-table mkt-tour__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <thead><tr><th scope="col">{% trans 'Student' %}</th><th scope="col">{% trans 'Class' %}</th><th scope="col">{% trans 'Guardian' %}</th><th scope="col">{% trans 'Status' %}</th></tr></thead>
           <tbody>
             <tr><td>Amara Okafor</td><td>Year 9 — B</td><td>N. Okafor</td><td><span class="mkt-tour__pill mkt-tour__pill--ok">{% trans 'Enrolled' %}</span></td></tr>
@@ -32,7 +32,7 @@
 
       {% elif frame.ui_kind == "attendance_grid" %}
       <div class="mkt-tour__ui">
-        <table class="rmc-data-table mkt-tour__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <table aria-label="{% trans 'Product demo: attendance grid' %}" class="rmc-data-table mkt-tour__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <thead><tr><th scope="col">{% trans 'Student' %}</th><th scope="col">{% trans 'Mon' %}</th><th scope="col">{% trans 'Tue' %}</th><th scope="col">{% trans 'Wed' %}</th><th scope="col">{% trans 'Thu' %}</th><th scope="col">{% trans 'Fri' %}</th></tr></thead>
           <tbody>
             <tr><td>Amara Okafor</td><td><span class="mkt-tour__att mkt-tour__att--p" title="{% trans 'Present' %}">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--l" title="{% trans 'Late' %}">L</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td></tr>
@@ -44,7 +44,7 @@
 
       {% elif frame.ui_kind == "fee_ledger" %}
       <div class="mkt-tour__ui">
-        <table class="rmc-data-table mkt-tour__table mkt-tour__table--ledger" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <table aria-label="{% trans 'Product demo: fee ledger' %}" class="rmc-data-table mkt-tour__table mkt-tour__table--ledger" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <thead><tr><th scope="col">{% trans 'Line item' %}</th><th scope="col">{% trans 'Charged' %}</th><th scope="col">{% trans 'Paid' %}</th><th scope="col">{% trans 'Balance' %}</th></tr></thead>
           <tbody>
             <tr><td>{% trans 'Term 2 tuition' %}</td><td class="mkt-tour__num">$1,250.00</td><td class="mkt-tour__num">$1,250.00</td><td class="mkt-tour__num">$0.00</td></tr>
@@ -74,7 +74,7 @@
 
       {% elif frame.ui_kind == "gradebook" %}
       <div class="mkt-tour__ui">
-        <table class="rmc-data-table mkt-tour__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <table aria-label="{% trans 'Product demo: gradebook' %}" class="rmc-data-table mkt-tour__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <thead><tr><th scope="col">{% trans 'Student' %}</th><th scope="col">{% trans 'Quiz 1' %}</th><th scope="col">{% trans 'Project' %}</th><th scope="col">{% trans 'Exam' %}</th><th scope="col">{% trans 'Grade' %}</th></tr></thead>
           <tbody>
             <tr><td>Amara Okafor</td><td class="mkt-tour__num">18/20</td><td class="mkt-tour__num">27/30</td><td class="mkt-tour__num">82/100</td><td><span class="mkt-tour__grade">A</span></td></tr>
@@ -92,7 +92,7 @@
           <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Open applications' %}</span><span class="rmc-metric-ticker__value">29</span></div>
           <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Messages sent' %}</span><span class="rmc-metric-ticker__value">1,204</span></div>
         </div>
-        <table class="rmc-data-table mkt-tour__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <table aria-label="{% trans 'Product demo: class attendance summary' %}" class="rmc-data-table mkt-tour__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <thead><tr><th scope="col">{% trans 'Class' %}</th><th scope="col">{% trans 'Present' %}</th><th scope="col">{% trans 'Rate' %}</th></tr></thead>
           <tbody>
             <tr><td>Year 9 — B</td><td class="mkt-tour__num">27/28</td><td class="mkt-tour__num">96%</td></tr>

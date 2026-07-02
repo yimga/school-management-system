@@ -9,6 +9,7 @@
 <form method="post" data-rmc-scroll-policy="paginate">{% csrf_token %}
   <input type="hidden" name="entity_type" value="{{ entity_type }}">
   <table class="table rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+    <caption class="visually-hidden">{% trans "Field mapping" %}</caption>
     <thead><tr><th scope="col">{% trans "Source" %}</th><th scope="col">{% trans "Destination" %}</th><th scope="col">{% trans "Status" %}</th></tr></thead>
     <tbody>
       {% for m in mappings %}

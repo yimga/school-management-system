@@ -30,6 +30,7 @@
     {% if cockpit.churn_scorecard.meta_text %}<div class="lx-card__meta">{{ cockpit.churn_scorecard.meta_text }}</div>{% endif %}
   </div>
   <table class="lx-churn__table table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+    <caption class="visually-hidden">{{ cockpit.churn_scorecard.eyebrow|default:_("Churn risk · top 10") }}</caption>
     <thead>
       <tr>
         <th scope="col" class="lx-churn__col-rank">#</th>

@@ -23,6 +23,7 @@
       {% if wizard_stats %}
         <div class="table-responsive">
           <table class="table table-sm align-middle mb-0">
+            <caption class="visually-hidden">{% trans "Wizard stats" %} ({{ wizard_stats|length }})</caption>
             <thead>
               <tr>
                 <th scope="col">{% trans "Wizard" %}</th>
@@ -61,6 +62,7 @@
       {% if widget_heatmap %}
         <div class="table-responsive">
           <table class="table table-sm align-middle mb-0">
+            <caption class="visually-hidden">{% trans "Widget heatmap" %} ({{ widget_heatmap|length }})</caption>
             <thead>
               <tr>
                 <th scope="col">{% trans "Widget id" %}</th>

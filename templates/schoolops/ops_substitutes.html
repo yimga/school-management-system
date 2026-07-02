@@ -60,6 +60,7 @@
       <p class="small text-secondary mb-3">{% trans "Claim a shift to record cover automatically. Teachers may claim for themselves; ops staff may assign any staff member." %}</p>
       <div class="table-responsive">
         <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-scroll-policy="paginate">
+          <caption class="visually-hidden">{% trans "Open market shifts" %}</caption>
           <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Absent" %}</th><th scope="col">{% trans_term "Period" key="period" %}</th><th scope="col">{% trans "Claim" %}</th></tr></thead>
           <tbody>
             {% for shift in open_shifts %}

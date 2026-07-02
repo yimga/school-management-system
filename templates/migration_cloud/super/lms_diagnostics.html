@@ -67,6 +67,7 @@
     <h2 class="rmc-h2" style="font-size:var(--type-size-body);margin-bottom:8px;">{% trans "Per provider" %}</h2>
     {% if diag.providers %}
       <table style="width:100%;border-collapse:collapse;font-size:var(--type-size-caption);">
+        <caption class="visually-hidden">{% trans "Per provider" %}</caption>
         <thead>
           <tr style="text-align:left;font-size:var(--type-size-micro);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">
             <th scope="col" style="padding:8px 10px;border-bottom:1px solid var(--hairline);">{% trans "Provider" %}</th>
@@ -140,6 +141,7 @@
     </h2>
     {% if last_actions %}
       <table style="width:100%;border-collapse:collapse;font-size:var(--type-size-eyebrow);">
+        <caption class="visually-hidden">{% trans "LMS connector diagnostics" %}</caption>
         <thead>
           <tr style="text-align:left;font-size:var(--type-size-micro);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">
             <th scope="col" style="padding:6px 10px;border-bottom:1px solid var(--hairline);">{% trans "Timestamp" %}</th>

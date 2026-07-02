@@ -55,6 +55,7 @@
       <h2 style="font-size: var(--type-size-body); margin: 0 0 10px; letter-spacing: -0.01em;">{% trans "Most recent" %}</h2>
       {% if summary.recent %}
         <table style="width: 100%; border-collapse: collapse; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--type-size-eyebrow);">
+          <caption class="visually-hidden">{% trans "Most recent" %}</caption>
           <thead>
             <tr style="color: var(--text-secondary); text-align: left;">
               <th scope="col" style="padding: 6px 4px; border-bottom: 1px solid var(--hairline);">{% trans "Intent" %}</th>

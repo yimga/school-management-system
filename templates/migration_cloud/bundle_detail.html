@@ -159,6 +159,7 @@
   <section id="artifacts" class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Artifacts" %}</h2>
     <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+      <caption class="visually-hidden">{% trans "Artifacts" %}</caption>
       <thead>
         <tr>
           <th scope="col">{% trans "Path" %}</th>
@@ -193,6 +194,7 @@
       </p>
       {% if per_artifact_domain %}
       <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Discovery" %}</caption>
         <thead><tr><th scope="col">{% trans "Artifact" %}</th><th scope="col">{% trans "Domain" %}</th><th scope="col">{% trans "Method" %}</th></tr></thead>
         <tbody>
           {% for path, info in per_artifact_domain.items %}
@@ -228,6 +230,7 @@
           <span class="rmc-muted">({{ mappings|length }} {% trans "columns" %})</span>
         </summary>
         <table class="rmc-data-table rmc-mapping__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <caption class="visually-hidden">{% trans "Mapping" %}</caption>
           <thead>
             <tr>
               <th scope="col">{% trans "Source column" %}</th>
@@ -300,6 +303,7 @@
         {{ reconciliation.overall_parity_pct }}%
       </p>
       <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Reconciliation" %}</caption>
         <thead>
           <tr>
             <th scope="col">{% trans "Domain" %}</th>

@@ -99,6 +99,7 @@
       </p>
       {% if attestations.by_type %}
       <table class="rmc-data-table rmc-data-table--maa-attestation-types" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Counsel attestations" %}</caption>
         <thead><tr><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Count" %}</th></tr></thead>
         <tbody>
           {% for typ, n in attestations.by_type %}
@@ -110,6 +111,7 @@
       {% if attestations.recent %}
       <h3 class="rmc-h3">{% trans "Recent" %}</h3>
       <table class="rmc-data-table rmc-data-table--maa-attestation-recent" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Recent" %}</caption>
         <thead>
           <tr>
             <th scope="col">{% trans "ID" %}</th>
@@ -150,6 +152,7 @@
       </p>
       {% if campaign.by_campaign %}
       <table class="rmc-data-table rmc-data-table--maa-campaign-progress" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Re-sign campaign progress" %}</caption>
         <thead>
           <tr>
             <th scope="col">{% trans "Campaign" %}</th>

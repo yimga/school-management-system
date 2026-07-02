@@ -51,6 +51,7 @@
     <h2 id="dsar-recent-h2" class="rmc-h2">{% trans "Recent DSAR runs" %} <span class="rmc-meta">({{ runs_count }} / {{ max_runs_displayed }})</span></h2>
     {% if runs %}
       <table class="rmc-table">
+        <caption class="visually-hidden">{% trans "Recent DSAR runs" %} ({{ runs_count }} / {{ max_runs_displayed }})</caption>
         <thead>
           <tr>
             <th scope="col">{% trans "Recorded at (UTC)" %}</th>

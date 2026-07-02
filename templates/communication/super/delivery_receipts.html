@@ -59,6 +59,7 @@
       <h2 id="dr-matrix-heading" class="rmc-h2">{% trans "By channel & status (7d)" %}</h2>
       {% if matrix %}
         <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <caption class="visually-hidden">{% trans "By channel & status (7d)" %}</caption>
           <thead>
             <tr>
               <th scope="col">{% trans "Channel" %}</th>
@@ -88,6 +89,7 @@
     <h2 id="dr-failures-heading" class="rmc-h2">{% trans "Recent failures" %}</h2>
     {% if recent_failures %}
       <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Recent failures" %}</caption>
         <thead>
           <tr>
             <th scope="col">{% trans "When" %}</th>

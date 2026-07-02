@@ -49,6 +49,7 @@
     {% if broken_proofs %}
     <div class="table-responsive">
       <table class="table table-hover align-middle small">
+        <caption class="visually-hidden">{% trans "Broken feature-gap proofs" %}</caption>
         <thead>
           <tr>
             <th scope="col">{% trans "Feature" %}</th>
@@ -110,6 +111,7 @@
     {% elif backlog_breaches %}
     <div class="table-responsive">
       <table class="table table-hover align-middle small">
+        <caption class="visually-hidden">{% trans "Over-SLA backlog items" %}</caption>
         <thead>
           <tr>
             <th scope="col">{% trans "Item" %}</th>

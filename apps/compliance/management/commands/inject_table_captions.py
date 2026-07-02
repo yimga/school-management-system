@@ -157,15 +157,26 @@ def _find_file_level_title(content: str) -> str | None:
     return None
 
 
-def _process(content: str) -> tuple[str, int, int]:
-    """Return (new_content, captions_added, tables_skipped_no_heading)."""
+def _process(content: str) -> tuple[str, int, int, list[int]]:
+    """Return (new_content, captions_added, tables_skipped_no_heading, skip_lines)."""
     lines = content.split("\n")
     file_fallback = _find_file_level_title(content)
     added = 0
     skipped = 0
+    skip_lines: list[int] = []
     out: list[str] = []
+    in_comment = False
     for i, line in enumerate(lines):
         out.append(line)
+        # Tables inside {% comment %} blocks are documentation examples, not
+        # rendered markup — never caption or report them.
+        if "{% comment %}" in line:
+            in_comment = True
+        if "{% endcomment %}" in line:
+            in_comment = False
+            continue
+        if in_comment:
+            continue
         m = TABLE_OPEN_RE.match(line)
         if not m:
             continue
@@ -178,6 +189,7 @@ def _process(content: str) -> tuple[str, int, int]:
         caption = _find_caption_text(lines, i) or file_fallback
         if not caption:
             skipped += 1
+            skip_lines.append(i + 1)
             continue
         indent = m.group("indent") + "  "
         if "{%" in caption or "{{" in caption:
@@ -187,7 +199,7 @@ def _process(content: str) -> tuple[str, int, int]:
             inner = f'{{% trans "{safe}" %}}'
         out.append(f'{indent}<caption class="visually-hidden">{inner}</caption>')
         added += 1
-    return "\n".join(out), added, skipped
+    return "\n".join(out), added, skipped, skip_lines
 
 
 def _iter_files(root: Path, ext: str) -> Iterable[Path]:
@@ -227,8 +239,12 @@ class Command(BaseCommand):
                 original = path.read_text(encoding="utf-8")
             except (UnicodeDecodeError, OSError):
                 continue
-            new_content, added, skipped = _process(original)
+            new_content, added, skipped, skip_lines = _process(original)
             tables_skipped += skipped
+            if skip_lines and int(options.get("verbosity", 1)) >= 2:
+                rel = path.relative_to(base) if path.is_relative_to(base) else path
+                for ln in skip_lines:
+                    self.stdout.write(f"SKIP (no heading): {rel}:{ln}")
             if added == 0:
                 continue
             files_changed += 1

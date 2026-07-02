@@ -24,6 +24,7 @@
     {% if cockpit.audit_feed.filter_text %}<div class="lx-audit__filter">{{ cockpit.audit_feed.filter_text }}</div>{% endif %}
   </div>
   <table class="lx-audit__table">
+    <caption class="visually-hidden">{{ cockpit.audit_feed.title|default:_("Audit feed") }}</caption>
     <thead>
       <tr>
         <th scope="col" class="lx-audit__col-time">{% trans "Time" %}</th>

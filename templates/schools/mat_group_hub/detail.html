@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 
 {% block title %}{{ group.display_name }} · MAT Detail · RunMyCampus{% endblock %}
 
@@ -33,6 +34,7 @@
 <section class="mat-detail-members">
   <h2>Per-member breakdown</h2>
   <table class="mat-detail-table">
+    <caption class="visually-hidden">{% trans "Per-member breakdown" %}</caption>
     <thead>
       <tr>
         <th scope="col">School</th>

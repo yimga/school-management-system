@@ -45,6 +45,7 @@
           </p>
           {% if friction.by_view %}
           <table class="table table-sm mb-0">
+            <caption class="visually-hidden">{% trans "Friction events" %}</caption>
             <thead>
               <tr><th scope="col">{% trans "View" %}</th><th scope="col">{% trans "Kind" %}</th><th scope="col" class="text-end">{% trans "Count" %}</th></tr>
             </thead>
@@ -77,6 +78,7 @@
           </p>
           {% if feedback.by_category %}
           <table class="table table-sm mb-2">
+            <caption class="visually-hidden">{% trans "Feedback submissions" %}</caption>
             <thead>
               <tr><th scope="col">{% trans "Category" %}</th><th scope="col" class="text-end">{% trans "Count" %}</th></tr>
             </thead>

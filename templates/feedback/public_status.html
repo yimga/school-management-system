@@ -17,6 +17,7 @@
     <h2 id="slo-hdr" class="h5">{% trans "Service objectives" %}</h2>
     <p class="text-muted small mb-2">{% trans "What the platform commits to. These are our published targets, not a live measurement." %}</p>
     <table class="table table-sm table-family rmc-data-table" data-rmc-table-5col="1">
+      <caption class="visually-hidden">{% trans "Service objectives" %}</caption>
       <thead class="table-light">
         <tr>
           <th scope="col">{% trans "Service" %}</th>
@@ -74,6 +75,7 @@
     <h2 id="top-hdr" class="h5">{% trans "Most-voted requests" %}</h2>
     {% if top_requests %}
     <table class="table table-sm table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+      <caption class="visually-hidden">{% trans "Most-voted requests" %}</caption>
       <thead class="table-light">
         <tr><th scope="col">{% trans "Request" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Votes" %}</th><th scope="col">{% trans "Score" %}</th></tr>
       </thead>

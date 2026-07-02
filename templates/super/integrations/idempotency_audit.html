@@ -57,6 +57,7 @@
   <section>
     {% if events %}
       <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
+        <caption class="visually-hidden">{% trans "Idempotency-Key audit" %} — {{ block.super }}</caption>
         <thead>
           <tr style="text-align: left; font-size: var(--type-size-micro); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
             <th scope="col" style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "Time (UTC)" %}</th>
