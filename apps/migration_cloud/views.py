@@ -1447,15 +1447,46 @@ class MigrationCloudAttachSourceView(LoginRequiredMixin, View):
                 status=400,
             )
 
+        # Capture method-specific live-source CREDENTIALS into the encrypted-at-
+        # rest connector_secret (Fernet). These are the only secret fields; the
+        # non-secret url/provider/folder_id ride along so pipeline.build_connector_
+        # handle can reconstruct the adapter handle at ingest. NEVER logged, never
+        # returned. Attach can be partial (URL now, token later) — ingest simply
+        # no-ops until the required pieces are present.
+        secret_payload: dict[str, Any] = {}
+        if method == IntakeMethod.API_PULL:
+            api_token = (request.POST.get("api_token") or "").strip()
+            if api_token:
+                secret_payload = {
+                    "url": source_uri,
+                    "api_token": api_token,
+                    "artifact_name": (request.POST.get("artifact_name") or "").strip()
+                    or "api_export.json",
+                }
+        elif method == IntakeMethod.OAUTH_FOLDER:
+            access_token = (request.POST.get("access_token") or "").strip()
+            provider = (request.POST.get("oauth_provider") or "").strip().lower()
+            folder_id = (request.POST.get("folder_id") or "").strip()
+            if access_token and provider and folder_id:
+                secret_payload = {
+                    "provider": provider,
+                    "folder_id": folder_id,
+                    "access_token": access_token,
+                }
+
         bundle.intake_source_uri = source_uri
         existing_summary = bundle.size_summary or {}
         existing_summary["attached_source_notes"] = notes[:500]
         bundle.size_summary = existing_summary
-        bundle.save(update_fields=["intake_source_uri", "size_summary", "updated_at"])
+        update_fields = ["intake_source_uri", "size_summary", "updated_at"]
+        if secret_payload:
+            bundle.connector_secret = secret_payload
+            update_fields.append("connector_secret")
+        bundle.save(update_fields=update_fields)
 
         messages.success(
             request,
-            "Source attached. The pipeline will use it on the next advance.",
+            "Source attached. Click Advance to pull, profile, and map it.",
         )
 
         detail_url = reverse(

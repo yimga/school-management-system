@@ -51,10 +51,56 @@
         <textarea name="notes" rows="3" maxlength="500"
                   class="rmc-input rmc-input--text">{{ form.notes|default:'' }}</textarea>
         <small class="rmc-form__help">
-          {% trans "Credentials are NOT stored here — wire them through the platform secrets vault and reference the secret ID in the notes if needed." %}
+          {% trans "Do NOT paste credentials here — use the credential fields below (encrypted at rest); notes are stored in clear text on the audit log." %}
         </small>
       </label>
     </fieldset>
+
+    {% if bundle.intake_method == 'api_pull' %}
+    <fieldset class="rmc-form__section">
+      <legend class="rmc-form__legend">{% trans "API credentials" %}</legend>
+      <label class="rmc-form__field">
+        <span class="rmc-form__label">{% trans "API bearer token" %}</span>
+        <input type="password" name="api_token" maxlength="4000"
+               class="rmc-input rmc-input--text" autocomplete="off"
+               placeholder="{% trans 'Paste the vendor API token' %}">
+        <small class="rmc-form__help">
+          {% trans "Sent as an Authorization: Bearer header at ingest. Stored encrypted at rest (Fernet); never logged or shown again." %}
+        </small>
+      </label>
+      <label class="rmc-form__field">
+        <span class="rmc-form__label">{% trans "Artifact filename (optional)" %}</span>
+        <input type="text" name="artifact_name" maxlength="255"
+               class="rmc-input rmc-input--text" autocomplete="off"
+               placeholder="api_export.json">
+      </label>
+    </fieldset>
+    {% elif bundle.intake_method == 'oauth_folder' %}
+    <fieldset class="rmc-form__section">
+      <legend class="rmc-form__legend">{% trans "OAuth folder credentials" %}</legend>
+      <label class="rmc-form__field">
+        <span class="rmc-form__label">{% trans "Provider" %}</span>
+        <select name="oauth_provider" class="rmc-input rmc-input--text">
+          <option value="google_drive">Google Drive</option>
+          <option value="onedrive">OneDrive</option>
+          <option value="dropbox">Dropbox</option>
+        </select>
+      </label>
+      <label class="rmc-form__field">
+        <span class="rmc-form__label">{% trans "Folder ID" %}</span>
+        <input type="text" name="folder_id" maxlength="512"
+               class="rmc-input rmc-input--text" autocomplete="off">
+      </label>
+      <label class="rmc-form__field">
+        <span class="rmc-form__label">{% trans "OAuth access token" %}</span>
+        <input type="password" name="access_token" maxlength="8000"
+               class="rmc-input rmc-input--text" autocomplete="off">
+        <small class="rmc-form__help">
+          {% trans "Stored encrypted at rest (Fernet); never logged or shown again." %}
+        </small>
+      </label>
+    </fieldset>
+    {% endif %}
 
     <div class="rmc-form__actions">
       <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Attach source" %}</button>

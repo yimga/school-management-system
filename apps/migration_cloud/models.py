@@ -33,6 +33,9 @@ from apps.accounts.legacy_hashes.encryption import (
     EncryptedBinaryField as _EncryptedBinaryField,
 )
 from apps.accounts.legacy_hashes.encryption import (
+    EncryptedJSONField as _EncryptedJSONField,
+)
+from apps.accounts.legacy_hashes.encryption import (
     encrypt_binaryfield as _webhook_encrypt_binaryfield,
 )
 
@@ -137,6 +140,18 @@ class MigrationBundle(models.Model):
     intake_source_uri = models.TextField(
         blank=True,
         help_text="Where it came from (path / URL / OAuth handle / API endpoint).",
+    )
+    # Connector credentials (API bearer token, OAuth access token, ...) captured
+    # when an operator attaches a live source to a pending bundle. Fernet-encrypted
+    # at rest via the shared EncryptedJSONField (same key/rotation as the webhook
+    # secret + companion keypair). NEVER logged, NEVER surfaced in a response.
+    # Empty {} round-trips as the literal "{}" so unattached bundles cost nothing.
+    connector_secret = _EncryptedJSONField(
+        default=dict,
+        blank=True,
+        help_text="Encrypted-at-rest connector credentials for live-source intake "
+        "(API token / OAuth access token). Reconstructed into the adapter handle "
+        "at ingest; never logged or returned.",
     )
     source_hint = models.CharField(
         max_length=200,

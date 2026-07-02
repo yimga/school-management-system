@@ -23,6 +23,7 @@ CLASSIFIED) picks up from the next step.
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -34,6 +35,71 @@ from .profiler import profile_bundle
 from .progress import emit as _emit_progress, refresh_snapshot
 
 logger = logging.getLogger(__name__)
+
+
+def _coerce_secret(value: Any) -> dict[str, Any]:
+    """Normalise a bundle's ``connector_secret`` to a plain dict.
+
+    ``EncryptedJSONField`` returns the *literal string* ``"{}"`` for its empty
+    fast-path (it is never re-parsed to a dict on read), so ``dict(value)`` would
+    raise ``ValueError`` on a reloaded, unattached connector bundle — and
+    ``advance_bundle`` always reloads the bundle from the DB before calling this.
+    Coerce defensively: anything that is not a real mapping becomes ``{}``.
+    """
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str) and value.strip():
+        try:
+            parsed = json.loads(value)
+        except (ValueError, TypeError):
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+    return {}
+
+
+def build_connector_handle(bundle: MigrationBundle):
+    """Reconstruct the intake-adapter handle for a connector bundle.
+
+    Combines the bundle's decrypted ``connector_secret`` (API bearer / OAuth
+    access tokens, Fernet-encrypted at rest) with ``intake_source_uri`` into the
+    method-specific handle shape each adapter's ``iter_artifacts`` expects.
+    Returns ``None`` when the method is not a connector method OR the required
+    pieces are missing — so the caller cleanly skips ingest rather than raising.
+
+    NEVER logs the secret.
+    """
+    from .models import IntakeMethod
+
+    method = bundle.intake_method
+    secret = _coerce_secret(bundle.connector_secret)
+    uri = (bundle.intake_source_uri or "").strip()
+
+    if method == IntakeMethod.API_PULL:
+        url = secret.get("url") or uri
+        token = secret.get("api_token") or ""
+        if not url or not token:
+            return None
+        return {
+            "url": url,
+            "api_token": token,
+            "artifact_name": secret.get("artifact_name") or "api_export.json",
+        }
+    if method == IntakeMethod.OAUTH_FOLDER:
+        if not (
+            secret.get("provider")
+            and secret.get("folder_id")
+            and secret.get("access_token")
+        ):
+            return None
+        return {
+            "provider": secret["provider"],
+            "folder_id": secret["folder_id"],
+            "access_token": secret["access_token"],
+        }
+    if method == IntakeMethod.DATABASE:
+        # SQLite file path — no credential; the file must be locally readable.
+        return uri or None
+    return None
 
 
 def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str, Any]:
@@ -49,6 +115,55 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
         "stages_run": [],
         "ai_calls": 0,
     }
+
+    # --- Phase U1: ingest from an attached connector source ----------------
+    # Connector methods (DATABASE / API_PULL / OAUTH_FOLDER) stage an EMPTY
+    # bundle; the operator attaches a live source afterward. Pull its artifacts
+    # here, before profiling. FILE_UPLOAD / ARCHIVE bundles already carry their
+    # artifacts from intake, so this is a no-op for them (artifacts exist).
+    if not bundle.artifacts.exists():
+        from .intake import IntakeError, get_adapter
+
+        handle = build_connector_handle(bundle)
+        adapter_available = False
+        if handle is not None:
+            try:
+                get_adapter(bundle.intake_method)
+                adapter_available = True
+            except KeyError:
+                adapter_available = False
+        if handle is not None and adapter_available:
+            _emit_progress(
+                bundle_id=bundle_id, kind="stage_started", stage="INGESTING",
+                message="Pulling artifacts from the attached source",
+            )
+            from .services import BundleIngestionService, BundleSpec
+
+            try:
+                ingest_result = BundleIngestionService().ingest(
+                    BundleSpec(
+                        intake_method=bundle.intake_method,
+                        handle=handle,
+                        school_id=bundle.school_id,
+                        schema_name=bundle.schema_name,
+                        source_hint=bundle.source_hint,
+                        idempotency_key=bundle.idempotency_key,  # reuse THIS bundle
+                        intake_source_uri=bundle.intake_source_uri,
+                    )
+                )
+            except IntakeError as exc:
+                # ingest() already marked the bundle FAILED with the reason.
+                summary["stages_run"].append("ingest")
+                summary["stage_failed"] = "ingest"
+                summary["error"] = str(exc)
+                return summary
+            summary["stages_run"].append("ingest")
+            summary["artifacts_ingested"] = ingest_result.artifacts_registered
+            bundle.refresh_from_db()
+            _emit_progress(
+                bundle_id=bundle_id, kind="stage_finished", stage="INGESTING",
+                message=f"Ingested {ingest_result.artifacts_registered} artifact(s)",
+            )
 
     # --- Phase U2: profile -------------------------------------------------
     if bundle.status in (BundleStatus.INGESTING, BundleStatus.PENDING):
