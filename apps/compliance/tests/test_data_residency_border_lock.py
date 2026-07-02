@@ -6,13 +6,15 @@ attempting to touch a region-B store is *denied* (a typed ``ResidencyViolation``
 unchanged (no raise, no audit). ``@override_settings`` is used so config/settings
 is never edited.
 
-UNPROVEN LOCALLY (env): the moderator's note documents that Django's test
-runner times out in this sandbox (py3.14 / 1071 migrations / OneDrive). The
-``ResidencyViolation`` / ``enforce_region_match`` / router-guard tests below are
-written to run as plain ``unittest.TestCase`` with the school + connection
-mocked, so they need NO database and NO migrations — they should run fast even
-here. The one DB-touching audit assertion is isolated in its own
-``django.test.TestCase`` and clearly marked.
+PROVEN LOCALLY 2026-07-02 (fresh SQLite lane): the module runs green 16/16.
+The first real run caught that the original unknown-source test asserted a
+no-op, but ``effective_region`` never returns blank (defaults ``"global"``),
+so the gate fail-closes there — the test was corrected to assert the block.
+Known residual fail-open (documented, unfixed by design decision pending):
+an unknown/blank TARGET region silently passes even under enforcement
+(``enforce_region_match`` returns when target is falsy), reinforced at the
+db-router and regional-middleware call sites; a strict mode that blocks or
+queues review on unknown targets does not exist yet.
 """
 
 from __future__ import annotations
@@ -81,11 +83,19 @@ class EnforceRegionMatchTests(PlainTestCase):
         audit_mock.assert_not_called()
 
     @override_settings(DATA_RESIDENCY_ENFORCE=True)
-    def test_strict_noop_when_region_unknown(self):
-        # No data_region and no country → effective_region "global" only if
-        # country maps; here both blank → source unknown → cannot block.
+    @patch("apps.compliance.cross_border_export._audit_residency_violation")
+    def test_strict_blocks_unknown_source_resolved_global(self, audit_mock):
+        # No data_region and no country: effective_region() NEVER returns blank —
+        # derive_default_region("") falls back to GLOBAL_DATA_REGION — so an
+        # unregistered tenant is still fail-CLOSED against a known foreign
+        # region. (Replaces test_strict_noop_when_region_unknown, which encoded
+        # a wrong model of effective_region and failed on first real run.)
         school = _school(region="", country="")
-        enforce_region_match(school, "us_east", kind="db_route")  # no raise
+        with self.assertRaises(ResidencyViolation) as ctx:
+            enforce_region_match(school, "us_east", kind="db_route")
+        self.assertEqual(ctx.exception.source_region, "global")
+        self.assertEqual(ctx.exception.target_region, "us_east")
+        audit_mock.assert_called_once()
 
     @override_settings(DATA_RESIDENCY_ENFORCE=True)
     def test_strict_noop_when_no_target(self):
