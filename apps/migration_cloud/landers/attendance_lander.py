@@ -96,9 +96,23 @@ class AttendanceLander(Lander):
                 result.created += 0 if exists else 1
                 continue
             try:
-                obj, created = Attendance.objects.update_or_create(
-                    student=student, date=date_val, defaults=defaults,
+                from ._helpers import (
+                    record_id_mapping,
+                    upsert_with_conflict_detection,
                 )
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="attendance", model=Attendance,
+                    lookup={"student": student, "date": date_val}, defaults=defaults,
+                    legacy_id=f"{external_id}:{date_val.isoformat()}",
+                )
+                if preserved:
+                    # Operator resolved this attendance conflict as PRESERVE.
+                    result.skipped += 1
+                    record_id_mapping(
+                        ctx=ctx, legacy_id=f"{external_id}:{date_val.isoformat()}",
+                        canonical_obj=obj, domain="attendance",
+                    )
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
@@ -107,7 +121,6 @@ class AttendanceLander(Lander):
                     result.updated_ids_with_old_values.append(
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
-                from ._helpers import record_id_mapping
                 record_id_mapping(
                     ctx=ctx, legacy_id=f"{external_id}:{date_val.isoformat()}",
                     canonical_obj=obj, domain="attendance",

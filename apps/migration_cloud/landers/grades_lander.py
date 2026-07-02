@@ -103,15 +103,29 @@ class GradesLander(Lander):
                 result.created += 1
                 continue
             try:
-                obj, created = Evaluation.objects.update_or_create(
-                    **lookup, defaults=defaults,
+                from ._helpers import (
+                    record_id_mapping,
+                    upsert_with_conflict_detection,
                 )
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="grades", model=Evaluation,
+                    lookup=lookup, defaults=defaults,
+                    legacy_id=f"{external_id}:{term}:{subject}",
+                )
+                if preserved:
+                    # Operator resolved this grade conflict as PRESERVE —
+                    # keep the tenant's existing score, don't overwrite.
+                    result.skipped += 1
+                    record_id_mapping(
+                        ctx=ctx, legacy_id=f"{external_id}:{term}:{subject}",
+                        canonical_obj=obj, domain="grades",
+                    )
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
                 else:
                     result.updated += 1
-                from ._helpers import record_id_mapping
                 record_id_mapping(
                     ctx=ctx, legacy_id=f"{external_id}:{term}:{subject}",
                     canonical_obj=obj, domain="grades",

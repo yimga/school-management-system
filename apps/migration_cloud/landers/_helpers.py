@@ -289,3 +289,40 @@ def conflict_resolution_for(*, ctx, canonical_obj: Any) -> str:
         return row.resolution
     except Exception:  # noqa: BLE001
         return "OVERWRITE"
+
+
+def upsert_with_conflict_detection(
+    *,
+    ctx,
+    domain: str,
+    model: Any,
+    lookup: dict,
+    defaults: dict,
+    legacy_id: str = "",
+) -> tuple[Any, bool, bool]:
+    """Conflict-aware ``update_or_create`` shared by every domain lander.
+
+    Looks up the existing row by ``lookup``; if one exists, logs any
+    existing-vs-incoming diff as a ``MigrationConflict`` for operator review
+    (:func:`detect_conflict`) and honours a prior ``PRESERVE`` resolution the
+    operator set from the conflict-review UI. Otherwise it upserts normally.
+
+    Returns ``(obj, created, preserved)``. ``preserved`` is True when the
+    operator resolved this row as PRESERVE — the caller should count the row
+    as *skipped* and NOT apply the incoming values. This is the same
+    conflict-aware path ``student_lander`` pioneered, factored out so EVERY
+    domain gets the same operator review surface, not just students.
+    """
+    existing = model.objects.filter(**lookup).first()  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
+    if existing is not None:
+        detect_conflict(
+            ctx=ctx,
+            domain=domain,
+            canonical_obj=existing,
+            incoming=defaults,
+            legacy_id=legacy_id,
+        )
+        if conflict_resolution_for(ctx=ctx, canonical_obj=existing) == "PRESERVE":
+            return existing, False, True
+    obj, created = model.objects.update_or_create(**lookup, defaults=defaults)
+    return obj, created, False

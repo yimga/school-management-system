@@ -72,12 +72,30 @@ class GuardianLander(Lander):
                 continue
 
             try:
-                obj, created = StudentGuardian.objects.update_or_create(
-                    student=student,
-                    email=defaults.get("email") or "",
-                    last_name=defaults.get("last_name") or "",
-                    defaults=defaults,
+                from ._helpers import (
+                    record_id_mapping,
+                    upsert_with_conflict_detection,
                 )
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="guardians", model=StudentGuardian,
+                    lookup={
+                        "student": student,
+                        "email": defaults.get("email") or "",
+                        "last_name": defaults.get("last_name") or "",
+                    },
+                    defaults=defaults,
+                    legacy_id=f"{student_external_id}:{defaults.get('email', '')}",
+                )
+                if preserved:
+                    # Operator resolved this guardian-link conflict as PRESERVE —
+                    # keep the existing relationship/contact, don't overwrite.
+                    result.skipped += 1
+                    record_id_mapping(
+                        ctx=ctx,
+                        legacy_id=f"{student_external_id}:{defaults.get('email', '')}",
+                        canonical_obj=obj, domain="guardians",
+                    )
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
@@ -86,7 +104,6 @@ class GuardianLander(Lander):
                     result.updated_ids_with_old_values.append(
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
-                from ._helpers import record_id_mapping
                 record_id_mapping(
                     ctx=ctx,
                     legacy_id=f"{student_external_id}:{defaults.get('email', '')}",

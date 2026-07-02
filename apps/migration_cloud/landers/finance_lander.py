@@ -25,6 +25,7 @@ from ._helpers import (
     model_field_names,
     record_id_mapping,
     student_lookup_field,
+    upsert_with_conflict_detection,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
@@ -98,9 +99,20 @@ class FinanceLander(Lander):
                 continue
             try:
                 if ref_field:
-                    obj, created = Invoice.objects.update_or_create(
-                        **{ref_field: reference}, defaults=defaults,
+                    obj, created, preserved = upsert_with_conflict_detection(
+                        ctx=ctx, domain="finance", model=Invoice,
+                        lookup={ref_field: reference}, defaults=defaults,
+                        legacy_id=reference,
                     )
+                    if preserved:
+                        # Operator resolved this invoice conflict as PRESERVE —
+                        # keep the tenant's existing amounts, don't overwrite.
+                        result.skipped += 1
+                        record_id_mapping(
+                            ctx=ctx, legacy_id=reference,
+                            canonical_obj=obj, domain="finance",
+                        )
+                        continue
                 else:
                     obj = Invoice.objects.create(**defaults)
                     created = True

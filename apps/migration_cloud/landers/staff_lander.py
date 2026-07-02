@@ -54,11 +54,22 @@ class StaffLander(Lander):
                 continue
 
             try:
-                lookup_field = _lookup_field("staff_external_id", model_fields)
-                obj, created = TeacherProfile.objects.update_or_create(
-                    **{lookup_field: external_id},
-                    defaults=defaults,
+                from ._helpers import (
+                    detect_and_register_assets,
+                    record_id_mapping,
+                    upsert_with_conflict_detection,
                 )
+                lookup_field = _lookup_field("staff_external_id", model_fields)
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="staff", model=TeacherProfile,
+                    lookup={lookup_field: external_id}, defaults=defaults,
+                    legacy_id=external_id,
+                )
+                if preserved:
+                    # Operator resolved this staff conflict as PRESERVE.
+                    result.skipped += 1
+                    record_id_mapping(ctx=ctx, legacy_id=external_id, canonical_obj=obj, domain="staff")
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
@@ -67,7 +78,6 @@ class StaffLander(Lander):
                     result.updated_ids_with_old_values.append(
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
-                from ._helpers import detect_and_register_assets, record_id_mapping
                 record_id_mapping(ctx=ctx, legacy_id=external_id, canonical_obj=obj, domain="staff")
                 detect_and_register_assets(ctx=ctx, legacy_id=external_id, entity_kind="staff", row=row)
             except Exception as exc:  # noqa: BLE001
