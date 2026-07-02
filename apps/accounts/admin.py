@@ -63,6 +63,22 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
     def guardian_of_display(self, obj):
         if not obj or not obj.pk:
             return "—"
+        # StudentGuardian lives in TENANT_APPS only, so people_studentguardian
+        # does NOT exist in the public (manager-host) schema. Rendering this
+        # readonly field on the platform User change page would run a query
+        # against a missing relation → 500. Guardian links are a tenant concept
+        # that never applies to platform operators, so skip the query entirely
+        # off-tenant. Belt to PlatformUserAdmin's suspenders (which also drops
+        # this field). Preserves tenant⟂operator isolation.
+        from django.db import connection
+
+        try:
+            from django_tenants.utils import get_public_schema_name
+
+            if getattr(connection, "schema_name", None) == get_public_schema_name():
+                return "—"
+        except ImportError:
+            pass
         from apps.people.models import StudentGuardian
 
         links = StudentGuardian.objects.filter(guardian_user=obj).select_related(
@@ -102,6 +118,14 @@ class PlatformUserAdmin(UserAdmin):
     """Break-glass manager admin: User changelist scoped to platform operators only."""
 
     show_full_result_count = False
+
+    # Guardian relationships are a TENANT concept: apps.people is TENANT_APPS-only,
+    # so people_studentguardian does not exist in the public/manager schema. Drop
+    # the "Portal roles (dual-role)" section (and the guardian_of_display readonly
+    # field it renders) on the operator surface so the User change page never
+    # touches off-schema data. tenant⟂operator isolation.
+    fieldsets = UserAdmin.fieldsets[:-1]
+    readonly_fields = DjangoUserAdmin.readonly_fields
 
     def get_queryset(self, request):
         from apps.platform_runtime.operator_identity import queryset_platform_operators
