@@ -126,9 +126,16 @@ class TranscriptsLander(Lander):
                 continue
 
             try:
-                obj, created = TranscriptVaultItem.objects.update_or_create(
-                    defaults=defaults, **lookup_kwargs,
+                from ._helpers import upsert_with_conflict_detection
+                _tx_legacy = f"{external_id}:{academic_year}:{term}:{subject_code}"
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="transcripts", model=TranscriptVaultItem,
+                    lookup=lookup_kwargs, defaults=defaults, legacy_id=_tx_legacy,
                 )
+                if preserved:
+                    result.skipped += 1
+                    record_id_mapping(ctx=ctx, legacy_id=_tx_legacy, canonical_obj=obj, domain="transcripts")
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
@@ -139,7 +146,7 @@ class TranscriptsLander(Lander):
                     )
                 record_id_mapping(
                     ctx=ctx,
-                    legacy_id=f"{external_id}:{academic_year}:{term}:{subject_code}",
+                    legacy_id=_tx_legacy,
                     canonical_obj=obj, domain="transcripts",
                 )
             except Exception as exc:  # noqa: BLE001 — per-row quarantine

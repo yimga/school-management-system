@@ -92,9 +92,16 @@ class LibraryLander(Lander):
                 result.created += 0 if exists else 1
                 continue
             try:
-                obj, created = LibraryItem.objects.update_or_create(
-                    defaults=defaults, **lookup_kwargs,
+                from ._helpers import upsert_with_conflict_detection
+                _lb_legacy = row.get("item_external_id") or isbn or f"{title}:{author}"
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="library", model=LibraryItem,
+                    lookup=lookup_kwargs, defaults=defaults, legacy_id=_lb_legacy,
                 )
+                if preserved:
+                    result.skipped += 1
+                    record_id_mapping(ctx=ctx, legacy_id=_lb_legacy, canonical_obj=obj, domain="library")
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
@@ -105,7 +112,7 @@ class LibraryLander(Lander):
                     )
                 record_id_mapping(
                     ctx=ctx,
-                    legacy_id=row.get("item_external_id") or isbn or f"{title}:{author}",
+                    legacy_id=_lb_legacy,
                     canonical_obj=obj, domain="library",
                 )
             except Exception as exc:  # noqa: BLE001

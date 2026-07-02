@@ -99,9 +99,16 @@ class EventsLander(Lander):
                 result.created += 0 if exists else 1
                 continue
             try:
-                obj, created = SchoolEvent.objects.update_or_create(
-                    defaults=defaults, **lookup_kwargs,
+                from ._helpers import upsert_with_conflict_detection
+                _ev_legacy = f"{title}:{starts.isoformat()}"
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="events", model=SchoolEvent,
+                    lookup=lookup_kwargs, defaults=defaults, legacy_id=_ev_legacy,
                 )
+                if preserved:
+                    result.skipped += 1
+                    record_id_mapping(ctx=ctx, legacy_id=_ev_legacy, canonical_obj=obj, domain="events")
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
@@ -111,7 +118,7 @@ class EventsLander(Lander):
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
                 record_id_mapping(
-                    ctx=ctx, legacy_id=f"{title}:{starts.isoformat()}",
+                    ctx=ctx, legacy_id=_ev_legacy,
                     canonical_obj=obj, domain="events",
                 )
             except Exception as exc:  # noqa: BLE001

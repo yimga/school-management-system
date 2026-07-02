@@ -65,15 +65,20 @@ class SectionsLander(Lander):
                 result.created += 0 if exists else 1
                 continue
             try:
-                obj, created = Classroom.objects.update_or_create(
-                    **{code_field: code}, defaults=defaults,
+                from ._helpers import record_id_mapping, upsert_with_conflict_detection
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="sections", model=Classroom,
+                    lookup={code_field: code}, defaults=defaults, legacy_id=code,
                 )
+                if preserved:
+                    result.skipped += 1
+                    record_id_mapping(ctx=ctx, legacy_id=code, canonical_obj=obj, domain="sections")
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
                 else:
                     result.updated += 1
-                from ._helpers import record_id_mapping
                 record_id_mapping(ctx=ctx, legacy_id=code, canonical_obj=obj, domain="sections")
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1

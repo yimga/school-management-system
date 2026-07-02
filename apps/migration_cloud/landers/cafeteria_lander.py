@@ -84,9 +84,15 @@ class CafeteriaLander(Lander):
                 result.created += 0 if exists else 1
                 continue
             try:
-                obj, created = CanteenMeal.objects.update_or_create(
-                    defaults=defaults, **lookup_kwargs,
+                from ._helpers import upsert_with_conflict_detection
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="cafeteria", model=CanteenMeal,
+                    lookup=lookup_kwargs, defaults=defaults, legacy_id=meal_name,
                 )
+                if preserved:
+                    result.skipped += 1
+                    record_id_mapping(ctx=ctx, legacy_id=meal_name, canonical_obj=obj, domain="cafeteria")
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)

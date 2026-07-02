@@ -98,15 +98,23 @@ class BehaviorLander(Lander):
             if "external_ref" in incident_fields:
                 lookup["external_ref"] = stable_hash
             try:
-                obj, created = Incident.objects.update_or_create(**lookup, defaults=defaults)
+                from ._helpers import record_id_mapping, upsert_with_conflict_detection
+                _bh_legacy = f"{external_id}:{stable_hash}"
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="behavior", model=Incident,
+                    lookup=lookup, defaults=defaults, legacy_id=_bh_legacy,
+                )
+                if preserved:
+                    result.skipped += 1
+                    record_id_mapping(ctx=ctx, legacy_id=_bh_legacy, canonical_obj=obj, domain="behavior")
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
                 else:
                     result.updated += 1
-                from ._helpers import record_id_mapping
                 record_id_mapping(
-                    ctx=ctx, legacy_id=f"{external_id}:{stable_hash}",
+                    ctx=ctx, legacy_id=_bh_legacy,
                     canonical_obj=obj, domain="behavior",
                 )
             except Exception as exc:  # noqa: BLE001

@@ -106,9 +106,16 @@ class HostelLander(Lander):
                 result.created += 0 if exists else 1
                 continue
             try:
-                obj, created = HostelRoom.objects.update_or_create(
-                    defaults=defaults, **lookup_kwargs,
+                from ._helpers import upsert_with_conflict_detection
+                _ho_legacy = f"{hostel_name}:{room_name}"
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="hostel", model=HostelRoom,
+                    lookup=lookup_kwargs, defaults=defaults, legacy_id=_ho_legacy,
                 )
+                if preserved:
+                    result.skipped += 1
+                    record_id_mapping(ctx=ctx, legacy_id=_ho_legacy, canonical_obj=obj, domain="hostel")
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
@@ -118,7 +125,7 @@ class HostelLander(Lander):
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
                 record_id_mapping(
-                    ctx=ctx, legacy_id=f"{hostel_name}:{room_name}",
+                    ctx=ctx, legacy_id=_ho_legacy,
                     canonical_obj=obj, domain="hostel",
                 )
             except Exception as exc:  # noqa: BLE001

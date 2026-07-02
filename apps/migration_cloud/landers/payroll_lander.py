@@ -112,9 +112,16 @@ class PayrollLander(Lander):
                 result.created += 0 if exists else 1
                 continue
             try:
-                obj, created = Payslip.objects.update_or_create(
-                    defaults=defaults, **lookup_kwargs,
+                from ._helpers import upsert_with_conflict_detection
+                _pr_legacy = reference or f"{external_id}:{pay_period}"
+                obj, created, preserved = upsert_with_conflict_detection(
+                    ctx=ctx, domain="payroll", model=Payslip,
+                    lookup=lookup_kwargs, defaults=defaults, legacy_id=_pr_legacy,
                 )
+                if preserved:
+                    result.skipped += 1
+                    record_id_mapping(ctx=ctx, legacy_id=_pr_legacy, canonical_obj=obj, domain="payroll")
+                    continue
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
@@ -125,7 +132,7 @@ class PayrollLander(Lander):
                     )
                 record_id_mapping(
                     ctx=ctx,
-                    legacy_id=reference or f"{external_id}:{pay_period}",
+                    legacy_id=_pr_legacy,
                     canonical_obj=obj, domain="payroll",
                 )
             except Exception as exc:  # noqa: BLE001
