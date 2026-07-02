@@ -629,6 +629,9 @@ def build_reportcard_builder_context(
     sample_students = {}
     classroom_ids = [assignment.classroom_id for assignment in assignments]
     if classroom_ids:
+        # ONE sample student per classroom via DISTINCT ON — was a full scan of
+        # every active student in every assigned classroom (thousands of rows on a
+        # large tenant → request timeout → 502). Bounded by classroom count now.
         sample_candidates = (
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             StudentProfile.objects.filter(
@@ -636,9 +639,11 @@ def build_reportcard_builder_context(
             )
             .defer("passport")
             .order_by("classroom_id", "last_name", "first_name")
+            .distinct("classroom_id")
         )
-        for student in sample_candidates:
-            sample_students.setdefault(student.classroom_id, student)
+        sample_students = {
+            student.classroom_id: student for student in sample_candidates
+        }
     for assignment in assignments:
         assignment.sample_student = sample_students.get(assignment.classroom_id)
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph

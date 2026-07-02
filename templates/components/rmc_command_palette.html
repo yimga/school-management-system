@@ -38,7 +38,7 @@
 {% url 'command_bar_actions' as cmdk_actions_global %}
 {% url 'api:ai-command-bar' as cmdk_api_global %}
 {% url 'api:ai-line-interpret' as cmdk_ai_line_global %}
-{% url 'super:ai_gateway_console' as cmdk_gw %}
+{% if request.public_host_kind == 'manager' %}{% url 'super:ai_gateway_console' as cmdk_gw %}{% endif %}
 {% if request.public_host_kind == 'manager' %}
   {% url 'manager_help_center' as cmdk_help_center_global %}
 {% else %}

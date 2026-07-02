@@ -11,6 +11,7 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpRequest, HttpResponse
 from django.utils.translation import gettext as _
 
@@ -352,7 +353,14 @@ def _build_operational_hubs_context(request: HttpRequest) -> list[dict[str, Any]
     return hubs
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+# Honor SUPERUSERS as well as staff — `staff_member_required` alone bounces a
+# superadmin whose account isn't flagged is_staff (they got 502/Forbidden here),
+# inconsistent with every sibling config view (backend_dashboard, cockpit configure,
+# user_may_configure_tenant_experience all allow is_staff OR is_superuser).
+@user_passes_test(
+    lambda u: u.is_active and (u.is_staff or u.is_superuser),
+    login_url=settings.LOGIN_URL,
+)
 def console_domains_hub(request: HttpRequest) -> HttpResponse:
     """Single bounded console: operational hubs + configuration domains + (manager) platform config + operational links. Backoffice merged here; one UI."""
     domains = _build_console_domains_context(request)

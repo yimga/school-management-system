@@ -10,6 +10,7 @@ import logging
 from typing import Any
 
 from django.db import DatabaseError
+from django.core.exceptions import FieldError
 from django.db.models import ObjectDoesNotExist
 from django.urls import NoReverseMatch
 
@@ -28,6 +29,7 @@ _STUDIO_SOFT_FAILURES = (
     ValueError,
     KeyError,
     ObjectDoesNotExist,
+    FieldError,
     DatabaseError,
     NoReverseMatch,
 )
@@ -1260,7 +1262,7 @@ def get_automation_workflow_health_summary(
 
         if school is not None:
             assignments = WorkflowPackAssignment.objects.filter(school=school)
-            pack_ids = list(assignments.values_list("pack_id", flat=True))
+            pack_ids = list(assignments.values_list("workflow_pack_id", flat=True))
             pack_count = len(pack_ids)
             paused_count = int(
                 WorkflowPack.objects.filter(id__in=pack_ids, is_active=False).count()

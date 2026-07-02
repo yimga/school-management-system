@@ -15,6 +15,11 @@
       {% endfor %}
     </ul>
     {% endif %}
+    {% comment %} Operator-only tool: the `super:` namespace is NOT mounted on the tenant
+       host, so a bare tag here raised NoReverseMatch (500) AND leaked an operator route
+       onto a tenant surface. Guarded to the manager host — tenant⟂operator isolation. {% endcomment %}
+    {% if request.public_host_kind == 'manager' %}
     <p class="small mb-0 mt-2"><a href="{% url 'super:runtime_inspector' %}">{% trans "Open Runtime inspector" %}</a></p>
+    {% endif %}
   </div>
 </div>
