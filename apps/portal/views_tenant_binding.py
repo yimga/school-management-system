@@ -52,6 +52,7 @@ def tenant_bindings_index(request: HttpRequest):
                     "provider": r.provider,
                     "subject": r.subject,
                     "issuer": r.issuer,
+                    "is_primary": r.is_primary,
                     "updated_at": r.updated_at.isoformat() if r.updated_at else "",
                 }
                 for r in rows
@@ -70,11 +71,13 @@ def tenant_bindings_index(request: HttpRequest):
 @csrf_protect
 @require_http_methods(["POST"])
 def tenant_binding_reassign(request: HttpRequest):
-    """Reassign a user's tenant binding to a different school.
+    """Point a user's PRIMARY tenant binding at a school (multi-binding aware).
 
-    Body: ``user`` (User.pk), ``school`` (target School.pk). Flips
-    ``source`` to ``manual`` to mark operator override; preserves
-    ``provider`` + ``subject`` + ``issuer`` for audit.
+    Body: ``user`` (User.pk), ``school`` (target School.pk). Upserts the
+    ``(user, school)`` binding, promotes it to primary (demoting any other
+    primary in the same transaction), and flips ``source`` to ``manual`` to
+    mark operator override; preserves ``provider`` + ``subject`` + ``issuer``
+    on other bindings for audit. Other-school bindings are never deleted.
     """
     user_id = (request.POST.get("user") or "").strip()
     school_id = (request.POST.get("school") or "").strip()
@@ -84,6 +87,7 @@ def tenant_binding_reassign(request: HttpRequest):
     from apps.accounts.models_sso import UserTenantBinding
     from apps.schools.models import School
     from django.contrib.auth import get_user_model
+    from django.db import transaction
 
     UserModel = get_user_model()
     user = UserModel.objects.filter(pk=user_id).first()  # tenant-isolation-allow: operator-binding-resolve-user-by-pk-staff-required
@@ -93,14 +97,21 @@ def tenant_binding_reassign(request: HttpRequest):
     if school is None:
         return JsonResponse({"error": "school_not_found"}, status=404)
 
-    row, created = UserTenantBinding.objects.get_or_create(  # tenant-isolation-allow: operator-binding-upsert-keyed-by-user
-        user_id=user.pk,
-        defaults={"school": school, "source": "manual"},
-    )
-    if not created:
-        row.school = school
-        row.source = "manual"
-        row.save(update_fields=["school", "source", "updated_at"])
+    with transaction.atomic():
+        # Demote first — the partial unique constraint (one primary per user)
+        # would reject promoting the target while another primary exists.
+        UserTenantBinding.objects.filter(  # tenant-isolation-allow: operator-binding-demote-old-primary-staff-required
+            user_id=user.pk, is_primary=True
+        ).exclude(school=school).update(is_primary=False)
+        row, created = UserTenantBinding.objects.get_or_create(  # tenant-isolation-allow: operator-binding-upsert-keyed-by-user-and-school
+            user_id=user.pk,
+            school=school,
+            defaults={"source": "manual", "is_primary": True},
+        )
+        if not created and (not row.is_primary or row.source != "manual"):
+            row.is_primary = True
+            row.source = "manual"
+            row.save(update_fields=["is_primary", "source", "updated_at"])
 
     payload = {
         "success": True,
@@ -108,6 +119,7 @@ def tenant_binding_reassign(request: HttpRequest):
         "user_id": user.pk,
         "school_id": str(school.pk),
         "source": row.source,
+        "is_primary": row.is_primary,
     }
     if (request.GET.get("format") or "").lower() == "json" or (request.POST.get("format") or "").lower() == "json":
         return JsonResponse(payload)

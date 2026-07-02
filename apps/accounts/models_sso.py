@@ -10,8 +10,13 @@ The bind is recorded here at provisioning time so:
   * future role assignment + StudentProfile/TeacherProfile/etc. flow
     keys off this row when the tenant is otherwise ambiguous
 
-One row per user (1:1). The ``source`` field tracks oidc vs. saml so
-the audit trail survives.
+Multi-binding (2026-07-02, 9.8 SSO wave): the original 1:1 ``OneToOneField``
+contradicted ``SchoolMembership``'s first-class multi-school support — a
+user could hold N memberships but only ever 1 binding. A user may now hold
+one binding per school (unique ``(user, school)``), with exactly one row
+marked ``is_primary`` (partial unique constraint) so login/tenant selection
+stays deterministic. The ``source`` field tracks oidc vs. saml so the audit
+trail survives.
 """
 from __future__ import annotations
 
@@ -25,10 +30,10 @@ class UserTenantBinding(models.Model):
         SAML = "saml", "SAML"
         MANUAL = "manual", "Manual"
 
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="tenant_binding",
+        related_name="tenant_bindings",
     )
     school = models.ForeignKey(
         "schools.School",
@@ -49,6 +54,14 @@ class UserTenantBinding(models.Model):
         help_text="Verified subject claim (OIDC `sub`, SAML NameID).",
     )
     issuer = models.CharField(max_length=255, blank=True, default="")
+    is_primary = models.BooleanField(
+        default=True,
+        help_text=(
+            "When a user is bound to multiple schools, which binding wins "
+            "for automatic tenant selection at login. Exactly one per user "
+            "(partial unique constraint)."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -56,6 +69,17 @@ class UserTenantBinding(models.Model):
         app_label = "accounts"
         verbose_name = "User tenant binding"
         verbose_name_plural = "User tenant bindings"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "school"],
+                name="uniq_tenant_binding_user_school",
+            ),
+            models.UniqueConstraint(
+                fields=["user"],
+                condition=models.Q(is_primary=True),
+                name="uniq_primary_tenant_binding_per_user",
+            ),
+        ]
         indexes = [
             models.Index(fields=["school", "source"]),
             models.Index(fields=["provider", "subject"]),

@@ -391,16 +391,49 @@ def _provision_user(claims: dict[str, Any], cfg: dict[str, str]) -> tuple[Any, b
     return new_user, True
 
 
+def _ensure_membership_for_binding(user: Any, school: Any) -> None:
+    """JIT membership for control-plane SSO (9.8 SSO wave, 2026-07-02).
+
+    Before this, the control-plane OIDC/SAML flows wrote ONLY the binding —
+    a fresh SSO user could authenticate yet hold no tenant access at all,
+    because access is governed by ``SchoolMembership``, not the binding.
+    The role mirrors ``user.role`` (set by the operator's claim map, or the
+    least-privileged User default) — never the membership model's default.
+    Existing memberships are never modified (get_or_create only).
+    """
+    try:
+        from apps.schools.models import SchoolMembership
+
+        has_primary = SchoolMembership.objects.filter(  # tenant-isolation-allow: cross-school-primary-membership-lookup-for-sso-jit
+            user_id=user.pk, is_primary=True
+        ).exists()
+        SchoolMembership.objects.get_or_create(
+            school=school,
+            user_id=user.pk,
+            defaults={
+                "role": str(getattr(user, "role", "") or ""),
+                "is_primary": not has_primary,
+            },
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("oidc bind_tenant: membership ensure failed err=%s", exc)
+
+
 def _bind_tenant_for_user(user: Any, *, source: str, provider: str, subject: str, issuer: str) -> None:
     """v4.00.50 — Record / refresh the SSO-provisioned tenant binding.
 
-    The resolved tenant is chosen, in order of preference:
-      1. existing ``UserTenantBinding.school`` (re-login keeps prior bind)
+    Multi-binding aware (2026-07-02): one row per ``(user, school)``; the
+    ``is_primary`` row wins for automatic tenant selection. The resolved
+    tenant is chosen, in order of preference:
+      1. existing primary ``UserTenantBinding.school`` (re-login keeps prior bind)
       2. an existing ``TeacherProfile.school`` or ``StudentProfile.school``
          on the user (the SSO subject reuses a known profile)
       3. provider config ``cfg["default_school_id"]`` (not handled here —
          caller may pass via subject/issuer pre-mapping)
       4. None — no bind written; row is left absent.
+
+    Also JIT-ensures a ``SchoolMembership`` so an SSO login never yields an
+    access-less account (the binding is an audit record, not the authority).
     """
     try:
         from apps.accounts.models_sso import UserTenantBinding
@@ -408,10 +441,14 @@ def _bind_tenant_for_user(user: Any, *, source: str, provider: str, subject: str
         logger.debug("oidc bind_tenant: model unavailable err=%s", exc)
         return
 
-    existing = UserTenantBinding.objects.filter(user_id=user.pk).first()  # tenant-isolation-allow: sso-binding-lookup-by-user-pk
+    primary = (
+        UserTenantBinding.objects.filter(user_id=user.pk)  # tenant-isolation-allow: sso-binding-lookup-by-user-pk
+        .order_by("-is_primary", "-updated_at")
+        .first()
+    )
     school = None
-    if existing is not None:
-        school = existing.school
+    if primary is not None:
+        school = primary.school
     if school is None:
         try:
             from apps.people.models import TeacherProfile, StudentProfile
@@ -429,27 +466,32 @@ def _bind_tenant_for_user(user: Any, *, source: str, provider: str, subject: str
     if school is None:
         return
 
-    if existing is None:
-        UserTenantBinding.objects.create(
-            user_id=user.pk, school=school, source=source,
-            provider=provider, subject=subject, issuer=issuer,
-        )
-    else:
+    binding, created = UserTenantBinding.objects.get_or_create(
+        user_id=user.pk,
+        school=school,
+        defaults={
+            "source": source,
+            "provider": provider,
+            "subject": subject,
+            "issuer": issuer,
+            "is_primary": primary is None,
+        },
+    )
+    if not created:
         dirty = []
-        if existing.school_id != school.pk:
-            existing.school = school
-            dirty.append("school")
-        if provider and existing.provider != provider:
-            existing.provider = provider
+        if provider and binding.provider != provider:
+            binding.provider = provider
             dirty.append("provider")
-        if subject and existing.subject != subject:
-            existing.subject = subject
+        if subject and binding.subject != subject:
+            binding.subject = subject
             dirty.append("subject")
-        if issuer and existing.issuer != issuer:
-            existing.issuer = issuer
+        if issuer and binding.issuer != issuer:
+            binding.issuer = issuer
             dirty.append("issuer")
         if dirty:
-            existing.save(update_fields=dirty + ["updated_at"])
+            binding.save(update_fields=dirty + ["updated_at"])
+
+    _ensure_membership_for_binding(user, school)
 
 
 def _login_session(request: HttpRequest, user: Any) -> None:
