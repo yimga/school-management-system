@@ -113,6 +113,12 @@
     if (document.documentElement.getAttribute("data-surface") === "control-plane") {
       return false;
     }
+    /* Marketing/public story pages are cream-locked editorial surfaces — the
+       backend body palette leaking here set dark text tokens on the cream
+       canvas (1.21:1, axe-confirmed on home/pricing/release-notes). */
+    if (document.documentElement.getAttribute("data-surface") === "marketing") {
+      return false;
+    }
     return true;
   }
 
