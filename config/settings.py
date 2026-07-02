@@ -3146,6 +3146,48 @@ MIGRATION_CLOUD_DATA_RETENTION_APPROVAL_TOKEN = (
     os.environ.get("MIGRATION_CLOUD_DATA_RETENTION_APPROVAL_TOKEN", "") or ""
 ).strip()
 
+# gap #2 (2026-07-02) — Per-artifact content store (Phase U5).
+#
+# Captures each artifact's source bytes encrypted-at-rest at ingest so archive
+# members + multi-file / remote / OAuth-folder pulls (which have no single
+# top-level local path) can be profiled + applied instead of silently resolving
+# to zero rows. These bytes are student PII; they are Fernet-encrypted, retention-
+# bounded, and never logged. See docs/MIGRATION_CLOUD_ARTIFACT_CONTENT_STORE.md.
+#
+#   MIGRATION_CLOUD_ARTIFACT_BLOB_STORE_ENABLED
+#     Master switch for NEW captures at ingest (reads of already-captured blobs
+#     are unconditional). Default True.
+#   MIGRATION_CLOUD_ARTIFACT_BLOB_MAX_INLINE_BYTES
+#     Per-artifact inline size cap; larger artifacts are skipped (logged, no PII)
+#     pending a file-backed Phase 2. Default 10 MB.
+#   MIGRATION_CLOUD_ARTIFACT_BLOB_RETENTION_DAYS
+#     PII-minimisation window driving ``expires_at`` + the daily purge sweep.
+#     Long enough to profile → map → apply → reconcile. Default 7.
+#   MIGRATION_CLOUD_ARTIFACT_BLOB_DELETE_ON_RECONCILE
+#     Drop a bundle's source blobs the moment it reaches RECONCILED (metadata is
+#     retained). Default True.
+MIGRATION_CLOUD_ARTIFACT_BLOB_STORE_ENABLED = (
+    os.environ.get("MIGRATION_CLOUD_ARTIFACT_BLOB_STORE_ENABLED", "1").strip().lower()
+    not in ("0", "false", "no", "off")
+)
+try:
+    MIGRATION_CLOUD_ARTIFACT_BLOB_MAX_INLINE_BYTES = max(
+        0,
+        int(os.environ.get("MIGRATION_CLOUD_ARTIFACT_BLOB_MAX_INLINE_BYTES", str(10 * 1024 * 1024))),
+    )
+except (TypeError, ValueError):
+    MIGRATION_CLOUD_ARTIFACT_BLOB_MAX_INLINE_BYTES = 10 * 1024 * 1024
+try:
+    MIGRATION_CLOUD_ARTIFACT_BLOB_RETENTION_DAYS = max(
+        1, int(os.environ.get("MIGRATION_CLOUD_ARTIFACT_BLOB_RETENTION_DAYS", "7"))
+    )
+except (TypeError, ValueError):
+    MIGRATION_CLOUD_ARTIFACT_BLOB_RETENTION_DAYS = 7
+MIGRATION_CLOUD_ARTIFACT_BLOB_DELETE_ON_RECONCILE = (
+    os.environ.get("MIGRATION_CLOUD_ARTIFACT_BLOB_DELETE_ON_RECONCILE", "1").strip().lower()
+    not in ("0", "false", "no", "off")
+)
+
 # v3.40.0 Agent 15 — Throttle-bucket saturation alert hook.
 #
 # When any rate-limit bucket exceeds ratio R in a 1m window the

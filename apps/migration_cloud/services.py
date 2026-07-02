@@ -29,6 +29,7 @@ from typing import Any
 
 from django.db import IntegrityError, transaction
 
+from .artifact_blob_store import capture_artifact_blob
 from .intake import IntakeError, get_adapter
 from .intake.base import IntakeContext, sha256_of_stream
 from .models import (
@@ -139,6 +140,13 @@ class BundleIngestionService:
                 # Track top-level archives so child members can link to them.
                 if payload.parent_archive_path is None and adapter.intake_method == IntakeMethod.ARCHIVE:
                     path_to_archive_artifact[payload.path_within_bundle] = artifact
+
+                # Phase U5 content store: capture the source bytes encrypted-at-rest
+                # NOW, while the adapter's ``content_opener`` is still valid — the
+                # only moment it is reachable. This is what lets archive members +
+                # remote / OAuth-folder pulls profile + apply downstream instead of
+                # silently resolving to zero rows. Best-effort: never blocks ingest.
+                capture_artifact_blob(artifact, payload)
 
                 registered += 1
                 total_bytes += payload.byte_size

@@ -199,13 +199,18 @@ def _read_sample(artifact: MigrationArtifact) -> tuple[list[list[Any]], list[str
 def _resolve_stream(artifact: MigrationArtifact) -> tuple[IO[bytes] | None, str]:
     """Best-effort byte stream for in-process artifacts.
 
-    The intake layer doesn't currently persist the source path on the
-    artifact (only the path within the bundle). Phase U5 introduces a
-    bundle-local content store so this becomes a clean lookup. Until then,
-    the profiler reads from the bundle's `intake_source_uri` when the
-    artifact is a top-level file in that bundle. For archive members,
-    profiling defers until the content store is in place.
+    Phase U5 content store (gap #2): if the artifact's source bytes were
+    captured at ingest, read them back here first — this is what lets archive
+    members + remote / OAuth-folder pulls profile with real bytes instead of a
+    schema-only signal. Falls through to the legacy single-top-level-local-file
+    path when no blob is present.
     """
+    from .artifact_blob_store import open_artifact_blob_stream
+
+    blob_stream, blob_encoding = open_artifact_blob_stream(artifact)
+    if blob_stream is not None:
+        return blob_stream, blob_encoding
+
     bundle = artifact.bundle
     uri = bundle.intake_source_uri or ""
     if not uri:

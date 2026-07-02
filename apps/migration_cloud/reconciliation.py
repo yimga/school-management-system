@@ -182,6 +182,17 @@ def reconcile_bundle(
 
     if not notes and bundle.status == BundleStatus.APPLIED:
         bundle.mark_status(BundleStatus.RECONCILED)
+        # Phase U5 content store (gap #2): the migration has landed +
+        # reconciled, so the captured source PII is no longer needed. Drop the
+        # encrypted blobs now (artifact METADATA is retained for the audit
+        # trail). Best-effort — retention cleanup never blocks reconcile.
+        try:
+            from .artifact_blob_store import delete_blobs_for_bundle
+            delete_blobs_for_bundle(bundle)
+        except Exception:  # noqa: BLE001
+            logger.debug(
+                "migration_cloud.reconcile: source-blob cleanup skipped", exc_info=True
+            )
 
     return report
 

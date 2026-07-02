@@ -372,7 +372,26 @@ def ensure_default_jobs() -> None:
             description="Hourly cross-rail sync backlog watch: gauges + auto-incident on breach.",
             tags=("observability", "sync", "light"),
         )
+        # Migration Cloud content-store retention sweep (gap #2, 2026-07-02).
+        # LIGHT: one indexed DELETE on the shared-schema blob table. Deletes the
+        # captured source PII (rosters/grades/guardian contacts) once past
+        # ``expires_at`` — the backstop for bundles that never reach RECONCILED
+        # (whose blobs are dropped immediately). Auto_eligible: no tenant fan-out.
+        _REGISTRY["migration_cloud.purge_expired_artifact_blobs"] = PeriodicJob(
+            name="migration_cloud.purge_expired_artifact_blobs",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_purge_expired_artifact_blobs,
+            description="Daily PII-minimisation sweep: delete Migration Cloud artifact source blobs past expires_at.",
+            tags=("migration_cloud", "retention", "light"),
+        )
         _DEFAULTS_INSTALLED = True
+
+
+def _run_purge_expired_artifact_blobs() -> object:
+    # Lazy import: migration_cloud owns the store; keep it out of startup.
+    from apps.migration_cloud.artifact_blob_store import purge_expired_artifact_blobs
+
+    return purge_expired_artifact_blobs()
 
 
 def _run_sync_backlog_monitor() -> object:

@@ -29,6 +29,7 @@ Public surface:
 from __future__ import annotations
 
 import csv
+import io
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -446,11 +447,41 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
         if country:
             locale_hints["country"] = str(country).upper()
 
+    # Phase U5 content store (gap #2): if the source bytes were captured at
+    # ingest, stream them from the encrypted blob — this is what lets archive
+    # members + remote / OAuth-folder pulls apply real rows instead of nothing.
+    from .artifact_blob_store import open_artifact_blob_stream
+
+    blob_stream, blob_encoding = open_artifact_blob_stream(artifact)
+    if blob_stream is not None:
+        try:
+            raw_bytes = blob_stream.read()
+        finally:
+            try:
+                blob_stream.close()
+            except Exception:  # noqa: BLE001
+                pass
+        text = raw_bytes.decode(blob_encoding or "utf-8", errors="replace")
+        fmt = artifact.detected_format
+        if fmt in ("csv", "tsv", "unknown"):
+            raw_iter = _iter_csv_rows_stream(io.StringIO(text), mapping_index, locale_hints)
+        elif fmt == "json":
+            raw_iter = _iter_json_rows_text(text, mapping_index, locale_hints)
+        elif fmt == "jsonl":
+            raw_iter = _iter_jsonl_rows_stream(io.StringIO(text), mapping_index, locale_hints)
+        else:
+            return iter(())
+        if diff_threshold is not None:
+            from .diff_mode import row_passes_diff_filter
+            raw_iter = (row for row in raw_iter if row_passes_diff_filter(row=row, threshold=diff_threshold))
+        return raw_iter
+
     bundle_uri = artifact.bundle.intake_source_uri or ""
     path = Path(bundle_uri) if bundle_uri else None
     if path is None or not path.exists() or artifact.path_within_bundle != path.name:
-        # Defer for archive members + remote bytes; Phase U5+ content store
-        # will expose a per-artifact reader. Yield nothing rather than error.
+        # No blob + not the single top-level local file: nothing readable here
+        # (should be rare now the content store captures at ingest). Yield
+        # nothing rather than error.
         return iter(())
 
     encoding = artifact.encoding or "utf-8"
@@ -476,15 +507,26 @@ def _iter_csv_rows(
     locale_hints: dict[str, Any],
 ) -> Iterator[dict[str, Any]]:
     with path.open("r", encoding=encoding, errors="replace", newline="") as fh:
-        sample = fh.read(4096)  # magic-number-allow: file-read-chunk-bytes
-        fh.seek(0)
-        try:
-            dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
-        except csv.Error:
-            dialect = csv.excel
-        reader = csv.DictReader(fh, dialect=dialect)
-        for raw_row in reader:
-            yield _transform_row(raw_row, mapping_index, locale_hints)
+        # ``yield from`` keeps the generator frame — and thus the open file —
+        # alive until the caller has consumed every row.
+        yield from _iter_csv_rows_stream(fh, mapping_index, locale_hints)
+
+
+def _iter_csv_rows_stream(
+    fh: Any,
+    mapping_index: dict[str, dict[str, Any]],
+    locale_hints: dict[str, Any],
+) -> Iterator[dict[str, Any]]:
+    """Core CSV row iterator over any seekable text stream (file OR blob-backed StringIO)."""
+    sample = fh.read(4096)  # magic-number-allow: file-read-chunk-bytes
+    fh.seek(0)
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
+    except csv.Error:
+        dialect = csv.excel
+    reader = csv.DictReader(fh, dialect=dialect)
+    for raw_row in reader:
+        yield _transform_row(raw_row, mapping_index, locale_hints)
 
 
 def _iter_json_rows(
@@ -494,6 +536,15 @@ def _iter_json_rows(
     locale_hints: dict[str, Any],
 ) -> Iterator[dict[str, Any]]:
     text = path.read_text(encoding=encoding, errors="replace")
+    yield from _iter_json_rows_text(text, mapping_index, locale_hints)
+
+
+def _iter_json_rows_text(
+    text: str,
+    mapping_index: dict[str, dict[str, Any]],
+    locale_hints: dict[str, Any],
+) -> Iterator[dict[str, Any]]:
+    """Core JSON row iterator over already-decoded text (file OR blob-backed)."""
     try:
         data = json.loads(text)
     except json.JSONDecodeError:
@@ -514,16 +565,25 @@ def _iter_jsonl_rows(
     locale_hints: dict[str, Any],
 ) -> Iterator[dict[str, Any]]:
     with path.open("r", encoding=encoding, errors="replace") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                raw_row = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if isinstance(raw_row, dict):
-                yield _transform_row(raw_row, mapping_index, locale_hints)
+        yield from _iter_jsonl_rows_stream(fh, mapping_index, locale_hints)
+
+
+def _iter_jsonl_rows_stream(
+    fh: Any,
+    mapping_index: dict[str, dict[str, Any]],
+    locale_hints: dict[str, Any],
+) -> Iterator[dict[str, Any]]:
+    """Core JSONL row iterator over any line-iterable text stream (file OR blob-backed StringIO)."""
+    for line in fh:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            raw_row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(raw_row, dict):
+            yield _transform_row(raw_row, mapping_index, locale_hints)
 
 
 def _transform_row(

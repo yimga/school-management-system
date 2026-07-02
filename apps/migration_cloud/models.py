@@ -391,6 +391,69 @@ class MigrationArtifact(models.Model):
         return f"{self.path_within_bundle} ({self.detected_format})"
 
 
+class MigrationArtifactBlob(models.Model):
+    """Encrypted-at-rest copy of one artifact's source bytes (Phase U5 content store).
+
+    Captured at ingest (Phase U1) while the intake adapter's ``content_opener``
+    is still valid, then read back by the profiler (U2) and the apply
+    orchestrator (U5). Before this store, only the single top-level local file at
+    ``bundle.intake_source_uri`` had readable bytes downstream — **archive members
+    and multi-file / remote / OAuth-folder pulls** profiled schema-only and applied
+    zero rows silently. With the blob present those artifacts resolve.
+
+    These bytes ARE student PII (rosters, grades, guardian contacts, health /
+    behaviour records). Invariants:
+
+    * **Encrypted at rest** via the shared Fernet shim (same key + rotation as
+      ``MigrationBundle.connector_secret``, the webhook secret, and the companion
+      keypair — see ``docs/SECURITY_KEYS.md``). The DB column is a plain BLOB /
+      bytea; only the read/write value transform differs.
+    * **Retention-bounded.** ``expires_at`` drives a daily purge sweep, and a
+      bundle's blobs are dropped the moment it reaches ``RECONCILED`` (the source
+      is no longer needed). Artifact METADATA is always retained for the audit
+      trail — only the raw bytes go.
+    * **Size-bounded.** Only artifacts at or under
+      ``MIGRATION_CLOUD_ARTIFACT_BLOB_MAX_INLINE_BYTES`` are stored inline; larger
+      artifacts are skipped (logged, never with PII) pending a file-backed Phase 2.
+    * **Tenant-isolated + never logged.** Reachable only via
+      ``artifact → bundle → school``, so a cross-tenant read is impossible.
+    """
+
+    artifact = models.OneToOneField(
+        MigrationArtifact,
+        on_delete=models.CASCADE,
+        related_name="blob",
+        help_text="The artifact whose raw source bytes this blob holds.",
+    )
+    payload = _EncryptedBinaryField(
+        help_text="Fernet-encrypted source bytes. Decrypts transparently on read; never logged.",
+    )
+    byte_size = models.BigIntegerField(
+        default=0,
+        help_text="Plaintext byte length (pre-encryption); integrity + metrics only.",
+    )
+    sha256 = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="SHA-256 of the plaintext bytes; re-verified on every read.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(
+        db_index=True,
+        help_text="PII-minimisation clock; the daily purge sweep deletes blobs past this.",
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["expires_at"], name="mc_artifact_blob_exp_idx"),
+        ]
+        verbose_name = "Migration artifact blob"
+        verbose_name_plural = "Migration artifact blobs"
+
+    def __str__(self) -> str:
+        return f"blob for artifact {self.artifact_id} ({self.byte_size} bytes)"
+
+
 class MigrationIdMapping(models.Model):
     """Audit table mapping legacy source IDs to canonical tenant rows.
 
