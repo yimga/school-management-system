@@ -256,6 +256,14 @@ urlpatterns = [
     # Language switcher (Django i18n) — must exist on every host urlconf or the
     # platform-wide "Translate this page" form + error-page links raise NoReverseMatch.
     path("i18n/setlang/", __import__("django.views.i18n", fromlist=["set_language"]).set_language, name="set_language"),
+    # Persisting wrapper: writes the choice to User.preferred_language (durable /
+    # cross-device) in addition to the session + cookie. The tenant portal
+    # language switcher posts here; must be mounted on the tenant host too.
+    path(
+        "i18n/setlang/persist/",
+        __import__("apps.accounts.views_i18n", fromlist=["set_language_persist"]).set_language_persist,
+        name="set_language_persist",
+    ),
     path("", home, name="home"),
     # Universal command bar (v3.53.0): mirror of config.urls / config.manager_urls
     # path so the cmd+k overlay loaded into every tenant-host shell can reverse the

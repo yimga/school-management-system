@@ -203,7 +203,11 @@ def ensure_module_registry_seeded() -> None:
             "description": str(module.get("description") or ""),
             "category": "modules",
             "scope": FeatureToggleDefinition.Scope.SCHOOL,
-            "default_enabled": False,
+            # T21: modules ship default-ON so every tenant (past / present /
+            # future) has the full module surface unless an operator explicitly
+            # turns one off. An explicit per-school opt-out lives in
+            # FeatureToggleState and still wins in resolve_toggle().
+            "default_enabled": True,
             "is_active": True,
             "metadata": {"price": str(module.get("price") or "Free")},
         }
@@ -227,6 +231,12 @@ def ensure_module_registry_seeded() -> None:
             metadata["price"] = defaults["metadata"]["price"]
             definition.metadata = metadata
             changed = True
+        # T21: bring already-seeded definitions up to the new default-ON baseline.
+        # This flips the *definition default* only; a school that explicitly
+        # disabled the module has a FeatureToggleState row that still overrides.
+        if not definition.default_enabled:
+            definition.default_enabled = True
+            changed = True
         if changed:
             definition.save(
                 update_fields=[
@@ -234,6 +244,7 @@ def ensure_module_registry_seeded() -> None:
                     "label",
                     "description",
                     "metadata",
+                    "default_enabled",
                     "updated_at",
                 ]
             )

@@ -3,6 +3,16 @@
 <!-- Language Switcher Widget -->
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="language-switcher">
+    {% comment %} Single source of truth: POST to set_language_persist so the choice
+       is written to User.preferred_language (durable, cross-device, re-applied on
+       next login) as well as the session + cookie. No client-only localStorage
+       fork — that was the split-brain that let the header disagree with the
+       persisted preference. {% endcomment %}
+    <form id="rmc-lang-form" method="post" action="{% url 'set_language_persist' %}" class="d-none">
+        {% csrf_token %}
+        <input type="hidden" name="language" id="rmc-lang-input" value="{{ current_language }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    </form>
     <div class="dropdown">
         <button class="btn btn-sm btn-outline-light dropdown-toggle topbar-lang-btn" type="button" id="languageDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true" aria-label="{% trans 'Language' %}">
             <i class="bi bi-globe" aria-hidden="true"></i>
@@ -11,11 +21,12 @@
         <ul class="dropdown-menu" aria-labelledby="languageDropdown">
             {% for code, name in available_languages %}
                 <li>
-                    <a class="dropdown-item {% if code == current_language %}active{% endif %}" 
-                       href="?language={{ code }}"
-                       onclick="setLanguage('{{ code }}'); return false;">
+                    <button type="button"
+                            class="dropdown-item {% if code == current_language %}active{% endif %}"
+                            data-rmc-lang="{{ code }}"
+                            {% if code == current_language %}aria-current="true"{% endif %}>
                         {{ name }}
-                    </a>
+                    </button>
                 </li>
             {% endfor %}
         </ul>

@@ -1545,15 +1545,18 @@ def language_context(request):
             current_language = cookie_language
             translation.activate(cookie_language)
     else:
-        # Prefer persisted user language, then region-based default
+        # Prefer persisted user language, then region-based default.
+        # Canonical source is User.preferred_language — the field written by
+        # set_language_persist and re-applied by apply_preferred_language_on_login.
+        # (The legacy read of user.preferences.preferred_language was a dead
+        # branch: UserPreference has no such field, so it silently returned ""
+        # and a user's saved language was never honored here — the "split-brain".)
         _user = getattr(request, "user", None)
         if _user and getattr(_user, "is_authenticated", False):
             try:
-                pref = getattr(_user, "preferences", None)
-                if pref and getattr(pref, "preferred_language", ""):
-                    lang = pref.preferred_language
-                    if lang in SUPPORTED_LANGUAGES:
-                        current_language = lang
+                lang = (getattr(_user, "preferred_language", "") or "").strip()
+                if lang and lang in SUPPORTED_LANGUAGES:
+                    current_language = lang
             except (AttributeError, DatabaseError, TypeError, ValueError):
                 pass
         if current_language == translation.get_language():

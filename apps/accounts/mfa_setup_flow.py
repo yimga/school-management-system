@@ -3,15 +3,56 @@
 from __future__ import annotations
 
 from io import BytesIO
+from base64 import b32encode
+from urllib.parse import quote, urlencode
 import base64
 import secrets
 
 import qrcode
+from django.conf import settings
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django_otp import user_has_device
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
 from django_otp.plugins.otp_totp.models import TOTPDevice
+
+# Product spec: the authenticator-app issuer is "RMC-<tenant_name>" so a user
+# enrolled across multiple campuses can tell each 6-digit code apart.
+_MFA_ISSUER_PREFIX = "RMC-"
+
+
+def mfa_issuer_for_request(request) -> str:
+    """Authenticator-app issuer label for this request's tenant.
+
+    django_otp only supports a single global ``OTP_TOTP_ISSUER``; this resolves
+    it per tenant to ``RMC-<school.name>``. Falls back to the platform issuer
+    off-tenant (operator / manager host, where there is no ``request.school``).
+    """
+    school = getattr(request, "school", None)
+    name = (getattr(school, "name", "") or "").strip()
+    if name:
+        # ':' is the issuer/label separator in the otpauth URI — strip it out.
+        return f"{_MFA_ISSUER_PREFIX}{name}".replace(":", "")
+    fallback = getattr(settings, "OTP_TOTP_ISSUER", "") or "RunMyCampus"
+    return fallback.replace(":", "")
+
+
+def build_totp_provisioning_uri(request, device) -> str:
+    """Faithful reimplementation of django_otp's ``TOTPDevice.config_url`` with a
+    per-tenant issuer (see :func:`mfa_issuer_for_request`)."""
+    issuer = mfa_issuer_for_request(request)
+    label = str(device.user.get_username())
+    params = {
+        "secret": b32encode(device.bin_key).decode("utf-8"),
+        "algorithm": "SHA1",
+        "digits": device.digits,
+        "period": device.step,
+    }
+    urlencoded_params = urlencode(params)
+    if issuer:
+        label = f"{issuer}:{label}"
+        urlencoded_params += "&issuer=" + quote(issuer)
+    return f"otpauth://totp/{quote(label)}?{urlencoded_params}"
 
 
 def _get_or_create_backup_device(user):
@@ -85,7 +126,7 @@ def handle_mfa_setup_post(request, *, next_url: str = "") -> tuple[str, dict | N
         device, _created = TOTPDevice.objects.get_or_create(user=user, name="default")
         device.confirmed = False
         device.save()
-        provisioning_uri = device.config_url
+        provisioning_uri = build_totp_provisioning_uri(request, device)
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
         qr.add_data(provisioning_uri)
         qr.make(fit=True)
