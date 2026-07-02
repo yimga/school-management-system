@@ -19,7 +19,8 @@ class DefaultQuickActionsTests(SimpleTestCase):
     def test_seeds_register_expected_ids(self):
         ids = {action.id for action in all_actions()}
         self.assertIn("tools-qa-finance-hub", ids)
-        self.assertIn("tools-qa-backend-home", ids)
+        # T9: "Backend home" quick action was removed (floating chip + tray action).
+        self.assertNotIn("tools-qa-backend-home", ids)
 
     def test_finance_hub_visible_on_finance_path(self):
         visible = {

@@ -95,7 +95,18 @@ def apply_learning_institution_packs(
     *,
     delivery_mode_codes: list[str] | None = None,
     institution_type_code: str | None = None,
+    institution_type_codes: list[str] | None = None,
 ) -> dict[str, Any]:
+    """Apply delivery-mode + institution-type packs to a school's runtime.
+
+    T25: a school can now hold MULTIPLE institution types. Pass
+    ``institution_type_codes`` (list) for the multi-select; ``institution_type_code``
+    (singular) is still accepted for back-compat. The legacy singular settings
+    keys (``institution_type_pack`` / ``institution_type_wedge``) are preserved
+    as the PRIMARY (first) selection so existing consumers keep working, while
+    the new plural keys (``institution_type_packs`` / ``institution_type_wedges``)
+    carry the full set.
+    """
     settings = dict(school.settings or {})
     features = dict(school.features or {})
     wedges_d: list[int] = []
@@ -117,12 +128,26 @@ def apply_learning_institution_packs(
                             features[str(feat)] = True
         settings["learning_delivery_wedges"] = sorted(set(wedges_d))
 
-    if institution_type_code:
-        code = normalize_institution_code(institution_type_code)
-        settings["institution_type_pack"] = code
-        row = next((p for p in INSTITUTION_TYPE_PACKS if p["code"] == code), None)
-        if row:
-            settings["institution_type_wedge"] = int(row["wedge"])
+    # Resolve the institution-type selection into a de-duplicated, order-preserving
+    # list from either the plural (multi-select) or the legacy singular argument.
+    inst_codes: list[str] = []
+    if institution_type_codes:
+        inst_codes = [normalize_institution_code(c) for c in institution_type_codes if c]
+    elif institution_type_code:
+        inst_codes = [normalize_institution_code(institution_type_code)]
+    inst_codes = [c for c in dict.fromkeys(inst_codes) if c]
+
+    if inst_codes:
+        settings["institution_type_packs"] = inst_codes
+        # Primary (first) kept in the legacy singular key for back-compat consumers.
+        settings["institution_type_pack"] = inst_codes[0]
+        inst_wedges: list[int] = []
+        stub_slugs_all: list[str] = []
+        for code in inst_codes:
+            row = next((p for p in INSTITUTION_TYPE_PACKS if p["code"] == code), None)
+            if not row:
+                continue
+            inst_wedges.append(int(row["wedge"]))
             for slug in str(row.get("pack_slugs") or "").split(","):
                 slug = slug.strip()
                 if slug:
@@ -133,7 +158,12 @@ def apply_learning_institution_packs(
             stubs = MINISTRY_REPORT_STUBS.get(code) or MINISTRY_REPORT_STUBS.get(
                 "DEFAULT", []
             )
-            settings["ministry_report_stub_slugs"] = [x["slug"] for x in stubs]
+            for x in stubs:
+                stub_slugs_all.append(x["slug"])
+        if inst_wedges:
+            settings["institution_type_wedges"] = sorted(set(inst_wedges))
+            settings["institution_type_wedge"] = inst_wedges[0]
+        settings["ministry_report_stub_slugs"] = list(dict.fromkeys(stub_slugs_all))
 
     wf, rp = _hints_for_slugs(list(dict.fromkeys(all_pack_slugs)))
     if wf:

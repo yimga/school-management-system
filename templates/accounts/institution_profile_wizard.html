@@ -27,10 +27,10 @@
     <div class="form-check"><input class="form-check-input" type="checkbox" name="delivery_modes" value="{{ m.code }}" id="d{{ m.code }}" {% if m.code in selected_delivery_codes %}checked{% endif %}><label class="form-check-label" for="d{{ m.code }}"><span class="rmc-badge me-1">{{ m.wedge }}</span>{{ m.label }} — <code class="small">{{ m.code }}</code></label></div>
     {% endfor %}
     <h2 class="h6 mt-3">{% trans "Institution type" %} (31–43)</h2>
-    <select name="institution_type" class="form-select form-select-sm" style="max-width:28rem">
-      <option value="">—</option>
-      {% for p in institution_packs %}<option value="{{ p.code }}" {% if p.code == current_institution_code %}selected{% endif %}>{{ p.wedge }} — {{ p.label }}</option>{% endfor %}
-    </select>
+    <p class="small text-muted mb-1">{% trans "Select one or more — a school can span multiple institution types." %}</p>
+    {% for p in institution_packs %}
+    <div class="form-check"><input class="form-check-input" type="checkbox" name="institution_type" value="{{ p.code }}" id="i{{ p.code }}" {% if p.code in current_institution_codes %}checked{% endif %}><label class="form-check-label" for="i{{ p.code }}"><span class="rmc-badge me-1">{{ p.wedge }}</span>{{ p.label }} — <code class="small">{{ p.code }}</code></label></div>
+    {% endfor %}
     <div class="mt-3"><button type="submit" class="btn btn-primary">{% trans "Apply to tenant" %}</button></div>
   </form>
   <div class="mt-4 border-top pt-3">

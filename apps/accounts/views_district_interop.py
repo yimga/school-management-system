@@ -548,11 +548,16 @@ def institution_profile_wizard(request):
         return redir
     if request.method == "POST":
         modes = request.POST.getlist("delivery_modes")
-        inst = (request.POST.get("institution_type") or "").strip().upper()
+        # T25: institution type is now multi-select.
+        inst_codes = [
+            c.strip().upper()
+            for c in request.POST.getlist("institution_type")
+            if c.strip()
+        ]
         apply_learning_institution_packs(
             school,
             delivery_mode_codes=modes or None,
-            institution_type_code=inst or None,
+            institution_type_codes=inst_codes or None,
         )
         messages.success(
             request, "Institution profile and delivery modes applied to runtime."
@@ -560,7 +565,15 @@ def institution_profile_wizard(request):
         return HttpResponseRedirect(reverse("accounts:institution_profile_wizard"))
     st = get_school_settings_dict(school)
     selected = set(st.get("learning_delivery_modes") or [])
-    current_inst = (st.get("institution_type_pack") or "").strip()
+    # T25: multi-select institution types. Read the plural set, falling back to
+    # the legacy singular key for schools saved before the multi migration.
+    current_insts = [c for c in (st.get("institution_type_packs") or []) if c]
+    if not current_insts:
+        _single = (st.get("institution_type_pack") or "").strip()
+        if _single:
+            current_insts = [_single]
+    current_insts_set = set(current_insts)
+    current_inst = current_insts[0] if current_insts else ""
     from apps.platform_runtime.learning_institution_catalog import MINISTRY_REPORT_STUBS
 
     stub_slugs = list(st.get("ministry_report_stub_slugs") or [])
@@ -585,6 +598,7 @@ def institution_profile_wizard(request):
             "institution_packs": INSTITUTION_TYPE_PACKS,
             "selected_delivery_codes": selected,
             "current_institution_code": current_inst,
+            "current_institution_codes": current_insts_set,
             "suggest_url": reverse("api:api-institution-suggest"),
             "pack_install_url": reverse("api:api-learning-pack-install"),
             "runtime_summary": {

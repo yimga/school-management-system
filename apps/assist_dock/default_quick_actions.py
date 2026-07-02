@@ -21,16 +21,10 @@ def register_default_quick_actions() -> None:
             description=_("Return to the operator dashboard"),
             order=10,
         ),
-        QuickAction(
-            id="tools-qa-backend-home",
-            label=_("Backend home"),
-            icon="bi-grid-1x2",
-            url_name="accounts:backend_dashboard",
-            path_prefixes=("/authentication/backend",),
-            surfaces=frozenset({SURFACE_PORTAL, SURFACE_ADMIN}),
-            description=_("School backend dashboard"),
-            order=15,
-        ),
+        # T9: the "Backend home" quick action rendered as a floating bottom-right
+        # chip in the assist dock (rmc-assist-dock.js renderQuickActions) as well
+        # as a Tools-tray page action. Removed (not hidden) per owner request —
+        # the shell already carries Home in the primary nav and the sidebar.
         QuickAction(
             id="tools-qa-parent-home",
             label=_("Family home"),
