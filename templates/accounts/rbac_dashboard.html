@@ -88,6 +88,38 @@
     </div>
   </div>
 
+  {# T20: bulk group grant — assign ONE role to MANY selected members at once. #}
+  <div class="row mb-4 rmc-reveal-stagger">
+    <div class="col-12 rmc-reveal">
+      <div class="card border-primary rbac-assign-roles-card">
+        <div class="card-body">
+          <h5 class="mb-3"><i class="bi bi-people me-2"></i>{% trans "Bulk assign a role to many members" %}</h5>
+          <form method="post" class="row g-3">
+            {% csrf_token %}
+            {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
+            <input type="hidden" name="form_type" value="bulk_user_roles">
+            {{ bulk_user_roles_form.non_field_errors }}
+            <div class="col-12 col-md-4">
+              <label class="form-label" for="{{ bulk_user_roles_form.role.id_for_label }}">{% trans "Role to grant" %}</label>
+              {{ bulk_user_roles_form.role }}
+              <small class="form-text text-muted">{% trans "Additive — existing roles on the selected members are kept." %}</small>
+            </div>
+            <div class="col-12 col-md-8">
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <label class="form-label mb-0">{% trans "Members" %}</label>
+                <button class="btn btn-primary btn-sm" type="submit">{% trans "Grant to selected" %}</button>
+              </div>
+              <div class="rbac-form-check-wrapper rbac-roles-wrapper">
+                {{ bulk_user_roles_form.users }}
+              </div>
+              <small class="form-text text-muted">{% trans "Select the members who should receive this role." %}</small>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-4 rmc-reveal-stagger">
     <div class="col-lg-6 rmc-reveal">
       <div class="card h-100">

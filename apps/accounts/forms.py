@@ -106,6 +106,38 @@ class UserRoleForm(forms.Form):
             self.fields["roles"].queryset = roles_queryset_for_school(school)
 
 
+class BulkUserRolesForm(forms.Form):
+    """Assign ONE role to MANY selected members at once (additive group grant).
+
+    The inverse of ``UserRoleForm`` (which sets many roles on one user). Backs the
+    RBAC dashboard's bulk action so an admin can grant e.g. "Form Teacher" to a
+    whole cohort in a single POST rather than one member at a time. Additive —
+    existing roles on the selected users are never removed.
+    """
+
+    users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.none(),
+        required=True,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+    )
+    # tenant-isolation-allow: class-level-queryset-overridden-in-form-init-via-roles-queryset-for-school
+    role = forms.ModelChoiceField(
+        queryset=AccessRole.objects.all(),
+        required=True,
+        empty_label="Select role",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    def __init__(self, *args, school=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if school is not None:
+            from apps.accounts.tenant_identity import users_queryset_for_school
+            from apps.accounts.access_roles import roles_queryset_for_school
+
+            self.fields["users"].queryset = users_queryset_for_school(school)
+            self.fields["role"].queryset = roles_queryset_for_school(school)
+
+
 class TemporaryRoleGrantForm(forms.Form):
     """Grant a role to a user with an expiry date (e.g. auditor for one month)."""
 

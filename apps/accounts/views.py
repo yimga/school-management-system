@@ -8,7 +8,7 @@ from django.contrib.auth.views import (
     PasswordChangeView as DjangoPasswordChangeView,
     redirect_to_login,
 )
-from django.db import DatabaseError, OperationalError, ProgrammingError
+from django.db import DatabaseError, OperationalError, ProgrammingError, transaction
 from django.db.models import Avg, Count, Q
 from django.conf import settings
 from django.shortcuts import redirect, render, get_object_or_404
@@ -55,6 +55,7 @@ from apps.siteconfig.config_service import (
 )
 
 from .forms import (
+    BulkUserRolesForm,
     ClaimInviteAccountForm,
     EditRoleForm,
     PermissionForm,
@@ -1958,6 +1959,7 @@ def rbac_dashboard(request):
     )
     user_permission_form = UserPermissionForm(prefix="user_permission", school=school)
     temporary_grant_form = TemporaryRoleGrantForm(prefix="temp_grant", school=school)
+    bulk_user_roles_form = BulkUserRolesForm(prefix="bulk_user_roles", school=school)
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
@@ -2005,6 +2007,36 @@ def rbac_dashboard(request):
                     }
                 except (ValueError, AccessRole.DoesNotExist):
                     initial_user_roles = {}
+        elif form_type == "bulk_user_roles":
+            bulk_user_roles_form = BulkUserRolesForm(
+                request.POST, prefix="bulk_user_roles", school=school
+            )
+            if bulk_user_roles_form.is_valid():
+                role = bulk_user_roles_form.cleaned_data["role"]
+                if not role_applies_to_school(role, school):
+                    messages.error(
+                        request,
+                        _("Role %(code)s is not valid for this school.")
+                        % {"code": role.code},
+                    )
+                    return _rbac_redirect(request)
+                # Additive group grant: add the role to every selected member that
+                # actually belongs to this school (skip strays defensively), in one
+                # transaction so a mid-loop failure doesn't half-apply.
+                selected = bulk_user_roles_form.cleaned_data["users"]
+                granted = 0
+                with transaction.atomic():
+                    for member in selected:
+                        if not user_has_school_membership(member, school):
+                            continue
+                        member.roles.add(role)
+                        granted += 1
+                messages.success(
+                    request,
+                    _("Granted “%(role)s” to %(count)s member(s).")
+                    % {"role": role.code, "count": granted},
+                )
+                return _rbac_redirect(request)
         elif form_type == "user_permissions":
             user_permission_form = UserPermissionForm(
                 request.POST, prefix="user_permission", school=school
@@ -2148,6 +2180,7 @@ def rbac_dashboard(request):
         "role_form": role_form,
         "permission_form": permission_form,
         "user_role_form": user_role_form,
+        "bulk_user_roles_form": bulk_user_roles_form,
         "user_permission_form": user_permission_form,
         "temporary_grant_form": temporary_grant_form,
         "active_temporary_grants": active_temporary_grants,
