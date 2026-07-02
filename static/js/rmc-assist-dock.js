@@ -193,6 +193,14 @@
       if (candidate.closest && candidate.closest("[data-rmc-copilot-rail]")) {
         continue;
       }
+      // T10: the "Need help on this page?" control is authored to live in the
+      // app-shell sidebar (TOOLS), directly under the identity block. Do NOT
+      // hoist it into the floating bottom-right dock — Help stays fully in
+      // TOOLS, not as a floating pill. (rmc_page_help_sidebar.html wraps it in
+      // [data-rmc-sidebar-page-help]; it is fully styled to render in place.)
+      if (candidate.closest && candidate.closest("[data-rmc-sidebar-page-help]")) {
+        continue;
+      }
       helpBtn = candidate;
       break;
     }
