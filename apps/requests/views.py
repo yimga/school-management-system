@@ -175,6 +175,7 @@ def requests_dashboard(request: HttpRequest):
         "next_actions": [
             {"label": "Filter pending", "url": reverse("requests:dashboard") + "?status=PENDING"},
             {"label": "All requests", "url": reverse("requests:dashboard")},
+            {"label": "Backend home", "url": reverse("accounts:backend_dashboard")},
         ],
         "activity": [
             {
