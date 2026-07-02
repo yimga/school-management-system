@@ -28,7 +28,15 @@
         notify_parent: qs("#discipline-notify").checked,
       };
 
-      fetch("/api/discipline/incidents/", {
+      // Resolve through the platform URL catalog first (deployment prefix /
+      // host aware); the literal path is the last-resort fallback only.
+      var incidentsUrl =
+        (window.RMCPlatformSurface &&
+          window.RMCPlatformSurface.url &&
+          window.RMCPlatformSurface.url("discipline_incidents")) ||
+        ((window.SMS_OFFLINE_CONFIG || {}).disciplineIncidentsUrl) ||
+        "/api/discipline/incidents/";
+      fetch(incidentsUrl, {
         method: "POST",
         credentials: "same-origin",
         headers: {
