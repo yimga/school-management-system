@@ -189,6 +189,11 @@ from .views_multicampus_academics import multicampus_academics
 from .views_multicampus_extension import multicampus_extension
 from .views_lms_console import lms_index, lms_provider_detail, lms_token_save, lms_push_grade, lms_token_refresh
 from .views_tenant_binding import tenant_bindings_index, tenant_binding_reassign
+from .views_device_governance import (
+    device_registrations_index,
+    device_registration_revoke,
+    device_registration_reinstate,
+)
 from .views_lms_audit import lms_audit_index, lms_audit_export_index, lms_audit_export_download
 from .views_idempotency_audit import idempotency_audit_index
 from .views_lms_pkce import lms_pkce_start, lms_pkce_callback, lms_pkce_build
@@ -253,6 +258,10 @@ urlpatterns = [
     # v4.00.52: Tenant-binding operator UI.
     path("super/sso/bindings/", tenant_bindings_index, name="tenant_bindings_index"),
     path("super/sso/bindings/reassign/", tenant_binding_reassign, name="tenant_binding_reassign"),
+    # 2026-07-02: Offline-device governance operator UI (revocation made real).
+    path("super/devices/", device_registrations_index, name="device_registrations_index"),
+    path("super/devices/revoke/", device_registration_revoke, name="device_registration_revoke"),
+    path("super/devices/reinstate/", device_registration_reinstate, name="device_registration_reinstate"),
     # v4.00.53: LMS push-grade audit URL is registered above the provider
     # catch-all (see lms_audit_index above lms_provider_detail).
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).

@@ -38,6 +38,26 @@ def main() -> int:
     if re.search(r"timedelta\(hours=\d+\)", api):
         findings.append("mint TTL must not be a hardcoded timedelta literal")
 
+    # Revocation governance (shipped 2026-07-02): both registration paths used
+    # to hard-set revoked_at: None in update_or_create defaults, so a revoked
+    # (stolen) device silently un-revoked itself by re-minting. Lock the
+    # boundary on BOTH paths: no reset, and an explicit revoked-device refusal.
+    queue = (ROOT / "apps/platform_runtime/offline_queue.py").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    for label, text in (("offline_device_api", api), ("offline_queue signup", queue)):
+        if re.search(r"[\"']revoked_at[\"']\s*:\s*None", text):
+            findings.append(f"{label} must not reset revoked_at at registration (revocation defeat)")
+        if "device_revoked" not in text:
+            findings.append(f"{label} must refuse revoked devices with a device_revoked error")
+    gov_path = ROOT / "apps/portal/views_device_governance.py"
+    if not gov_path.is_file():
+        findings.append("missing apps/portal/views_device_governance.py (operator revoke surface)")
+    else:
+        gov = gov_path.read_text(encoding="utf-8", errors="replace")
+        if "OfflineCapabilityToken" not in gov or "update(revoked_at" not in gov:
+            findings.append("device revoke must cascade to outstanding capability tokens")
+
     # Client<->server mint contract (the refresh shipped broken for months:
     # no device_id -> 400, no CSRF header -> 403, and it read a response field
     # the server never returned). Lock the wire contract on both sides.

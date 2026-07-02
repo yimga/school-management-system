@@ -1,0 +1,90 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Offline device governance" %} — {{ block.super }}{% endblock %}
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid rmc-page" style="max-width: 1200px;">
+  <nav style="margin-bottom: 10px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
+    <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
+    <span aria-hidden="true">›</span>
+    <span style="color: var(--text-primary);">{% trans "Offline device governance" %}</span>
+  </nav>
+  <header class="rmc-page__header" style="margin-bottom: 14px;">
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "Offline device governance" %}</h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 70ch;">
+      {% trans "Registered offline devices per user and school. Revoking a device kills its outstanding capability tokens and blocks all future mints until an operator explicitly reinstates it." %}
+    </p>
+  </header>
+
+  <form method="get" style="display: flex; gap: 10px; margin-bottom: 14px; align-items: end;">
+    <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Status" %}
+      <select name="status" style="display: block; min-width: 120px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
+        <option value="" {% if not filter_status %}selected{% endif %}>{% trans "all" %}</option>
+        <option value="active"  {% if filter_status == 'active' %}selected{% endif %}>{% trans "active" %}</option>
+        <option value="revoked" {% if filter_status == 'revoked' %}selected{% endif %}>{% trans "revoked" %}</option>
+      </select>
+    </label>
+    <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "School ID" %}
+      <input name="school" value="{{ filter_school }}" style="display: block; min-width: 200px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+    </label>
+    <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "User ID" %}
+      <input name="user" value="{{ filter_user }}" style="display: block; min-width: 120px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+    </label>
+    <button type="submit" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Filter" %}</button>
+  </form>
+
+  <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
+      <caption class="visually-hidden">{% trans "Registered offline devices" %}</caption>
+      <thead>
+        <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
+          <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Device" %}</th>
+          <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "User" %}</th>
+          <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "School" %}</th>
+          <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Status" %}</th>
+          <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Last seen" %}</th>
+          <th scope="col" style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Action" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ r.device_id|truncatechars:32 }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.user.username|default:r.user_id }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.school.name|default:r.school_id }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">
+              {% if r.is_active %}
+                <span style="color: var(--text-primary);">{% trans "active" %}</span>
+              {% else %}
+                <span style="color: var(--text-secondary);">{% trans "revoked" %} {{ r.revoked_at|date:"Y-m-d H:i" }}</span>
+              {% endif %}
+            </td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.last_seen_at|date:"Y-m-d H:i"|default:"—" }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">
+              {% if r.is_active %}
+              <form method="post" action="{% url 'portal:device_registration_revoke' %}" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="device" value="{{ r.pk }}">
+                <button type="submit" style="padding: 4px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer; font-size: var(--type-size-eyebrow);">{% trans "Revoke" %}</button>
+              </form>
+              {% else %}
+              <form method="post" action="{% url 'portal:device_registration_reinstate' %}" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="device" value="{{ r.pk }}">
+                <button type="submit" style="padding: 4px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer; font-size: var(--type-size-eyebrow);">{% trans "Reinstate" %}</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" style="padding: 18px; text-align: center; color: var(--text-secondary);">{% trans "No devices match the filter." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

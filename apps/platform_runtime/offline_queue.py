@@ -965,6 +965,15 @@ def _apply_provision_signup(school_id, user_id: int, payload: dict[str, Any]) ->
     permission_bitmap = payload.get("permission_bitmap")
     if not isinstance(permission_bitmap, list):
         permission_bitmap = []
+    # Same revocation boundary as the online mint API: a revoked device
+    # replaying a queued signup must not un-revoke itself.
+    if DeviceRegistration.objects.filter(
+        school_id=school_id,
+        user_id=user_id,
+        device_id=device_id,
+        revoked_at__isnull=False,
+    ).exists():
+        return {"ok": False, "error": "device_revoked"}
     reg, created = DeviceRegistration.objects.update_or_create(
         school_id=school_id,
         user_id=user_id,
@@ -972,7 +981,6 @@ def _apply_provision_signup(school_id, user_id: int, payload: dict[str, Any]) ->
         defaults={
             "public_key_fingerprint": fingerprint,
             "permission_bitmap": permission_bitmap,
-            "revoked_at": None,
         },
     )
     reg.touch_seen()

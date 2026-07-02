@@ -58,6 +58,16 @@ class OfflineTokenMintView(APIView):
             request.user,
             school=school,
         )
+        # Revocation is enforced HERE, at the online boundary: a revoked device
+        # must never silently re-activate itself by re-minting. Reinstatement is
+        # an explicit, audited operator action (portal device governance).
+        if DeviceRegistration.objects.filter(
+            school=school,
+            user=request.user,
+            device_id=device_id,
+            revoked_at__isnull=False,
+        ).exists():
+            return Response({"error": "device_revoked"}, status=status.HTTP_403_FORBIDDEN)
         device, _created = DeviceRegistration.objects.update_or_create(
             school=school,
             user=request.user,
@@ -65,7 +75,6 @@ class OfflineTokenMintView(APIView):
             defaults={
                 "public_key_fingerprint": ser.validated_data.get("public_key_fingerprint") or "",
                 "permission_bitmap": perms,
-                "revoked_at": None,
                 "last_seen_at": timezone.now(),
             },
         )
