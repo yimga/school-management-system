@@ -1052,6 +1052,16 @@ urlpatterns = [
         name="orchestration_retry_run",
     ),
     path(
+        "orchestration/definitions/<slug:code>/start/",
+        require_super_access_with_host(orchestration_views.start_run),
+        name="orchestration_start_run",
+    ),
+    path(
+        "orchestration/runs/<int:run_id>/",
+        require_super_access_with_host(orchestration_views.run_detail_page),
+        name="orchestration_run_detail",
+    ),
+    path(
         "platform-operator-hub/",
         require_super_access_with_host(
             super_views_config.super_platform_operator_hub

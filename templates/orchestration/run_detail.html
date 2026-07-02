@@ -1,0 +1,72 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+{% load region_format %}
+
+{% block cp_title %}{% trans "Run" %} #{{ run.id }}{% endblock %}
+{% block cp_page_archetype %}operational-workbench{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:orchestration_workbench' %}">{% trans "Orchestration workbench" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Run" %} #{{ run.id }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2 control-plane-shell" data-page-archetype="operational-workbench" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate">
+  <a href="{% url 'super:orchestration_workbench' %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; {% trans "Back to workbench" %}</a>
+  <h4 class="mb-1">{{ run.definition.name|default:run.definition.code }} <span class="text-muted">#{{ run.id }}</span></h4>
+  <p class="text-muted small mb-3">{{ run.definition.code }}{% if run.definition_version %} &middot; v{{ run.definition_version.version_number }}{% endif %}</p>
+
+  <div class="row g-3 mb-3">
+    <div class="col-auto">
+      <span class="badge {% if run.status == 'failed' %}bg-danger{% elif run.status == 'completed' %}bg-success{% elif run.status == 'running' %}bg-primary{% else %}bg-secondary{% endif %}">{{ run.get_status_display }}</span>
+      {% if run.sla_overdue %} <span class="rmc-badge rmc-badge--warning">{% trans "Overdue" %}</span>{% endif %}
+    </div>
+    <div class="col-auto text-muted small">{% trans "Retries" %}: {{ run.retry_count }}</div>
+    <div class="col-auto text-muted small">{% trans "Created" %}: {{ run.created_at|format_date:"YYYY-MM-DD" }} {{ run.created_at|time:"H:i" }}</div>
+    {% if run.completed_at %}<div class="col-auto text-muted small">{% trans "Completed" %}: {{ run.completed_at|format_date:"YYYY-MM-DD" }} {{ run.completed_at|time:"H:i" }}</div>{% endif %}
+  </div>
+
+  {% if run.error_message %}
+  <div class="rmc-banner rmc-banner--error mb-3"><strong>{% trans "Error" %}:</strong> {{ run.error_message }}</div>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-dark text-light">{% trans "Step timeline" %}</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0 table-family rmc-data-table">
+          <caption class="visually-hidden">{% trans "Run step timeline" %}</caption>
+          <thead class="table-light">
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">{% trans "Event" %}</th>
+              <th scope="col">{% trans "Step" %}</th>
+              <th scope="col">{% trans "Duration" %}</th>
+              <th scope="col">{% trans "When" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in events %}
+            <tr>
+              <td class="text-muted small">{{ e.sequence_number }}</td>
+              <td>{{ e.get_event_type_display }}{% if e.error_message %} <span class="rmc-badge rmc-badge--warning">{% trans "error" %}</span>{% endif %}</td>
+              <td class="text-muted small">{{ e.step_name|default:"—" }}</td>
+              <td class="text-muted small">{% if e.duration_ms %}{{ e.duration_ms }} ms{% else %}—{% endif %}</td>
+              <td class="text-muted small">{{ e.created_at|format_date:"YYYY-MM-DD" }} {{ e.created_at|time:"H:i:s" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="py-4 px-3 text-center text-muted">{% trans "No events recorded yet." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

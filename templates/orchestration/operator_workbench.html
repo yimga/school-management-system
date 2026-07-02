@@ -45,6 +45,46 @@
     </div>
   </div>
   {% endif %}
+  {% if definitions %}
+  <div class="card shadow-sm mb-3" id="definitions">
+    <div class="card-header bg-dark text-light">{% trans "Process definitions" %}</div>
+    <div class="card-body">
+      <p class="small text-secondary mb-3">{% trans "Workflows available to run. Launching creates a PENDING run and records it in the table below." %}</p>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0 table-family rmc-data-table">
+          <caption class="visually-hidden">{% trans "Process definitions" %}</caption>
+          <thead class="table-light">
+            <tr>
+              <th scope="col">{% trans "Workflow" %}</th>
+              <th scope="col">{% trans "Version" %}</th>
+              <th scope="col">{% trans "Runs" %}</th>
+              <th scope="col">{% trans "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for defn in definitions %}
+            <tr>
+              <td>
+                <span class="fw-medium">{{ defn.name }}</span>
+                <span class="d-block small text-muted">{{ defn.code }}</span>
+                {% if defn.description %}<span class="d-block small text-muted">{{ defn.description|truncatewords:20 }}</span>{% endif %}
+              </td>
+              <td class="text-muted small">v{{ defn.current_version }}</td>
+              <td class="text-muted small">{{ defn.run_count }}</td>
+              <td>
+                <form method="post" action="{% url 'super:orchestration_start_run' defn.code %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-primary btn-sm">{% trans "Start run" %}</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
   <h4 class="mb-3">{% trans "Orchestration workbench" %}</h4>
   <p class="text-muted small">{% trans "Long-running process runs (admissions, re-enrollment, fee follow-up, approval chains). State, retries, compensation, SLA visibility." %}</p>
   {% if runs_overdue %}
@@ -74,7 +114,7 @@
           <tbody>
             {% for run in runs %}
             <tr>
-              <td>{{ run.id }}</td>
+              <td><a href="{% url 'super:orchestration_run_detail' run.id %}">#{{ run.id }}</a></td>
               <td>{{ run.definition.name|default:run.definition.code }}</td>
               <td>{% if run.school %}{{ run.school.name }}{% else %}—{% endif %}</td>
               <td>
