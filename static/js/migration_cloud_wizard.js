@@ -455,4 +455,91 @@
       });
     }
   })();
+
+  // --- "What will change" preview ------------------------------------------
+  // "Preview what Apply will change" runs a DRY-RUN apply via AJAX (writes
+  // nothing) and renders the per-domain create/update/quarantine diff into the
+  // #mc-apply-preview panel, instead of navigating the browser to raw JSON.
+  // "Confirm live apply" inside the panel does the real write (guarded by the
+  // existing data-mc-confirm handler). No new backend — the dry-run endpoint
+  // already returns totals + per_artifact.
+  (function wireApplyPreview() {
+    var trigger = root.querySelector("[data-mc-preview-trigger]");
+    var panel = document.getElementById("mc-apply-preview");
+    if (!trigger || !panel) return;
+    var dryUrl = panel.getAttribute("data-mc-preview-dry-url");
+    var rowsSlot = panel.querySelector("[data-mc-preview-rows]");
+    var summarySlot = panel.querySelector("[data-mc-preview-summary]");
+    var noteSlot = panel.querySelector("[data-mc-preview-note]");
+    var totCreated = panel.querySelector("[data-mc-tot-created]");
+    var totUpdated = panel.querySelector("[data-mc-tot-updated]");
+    var totQuar = panel.querySelector("[data-mc-tot-quar]");
+    var dismiss = panel.querySelector("[data-mc-preview-dismiss]");
+
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    if (dismiss) {
+      dismiss.addEventListener("click", function () { panel.hidden = true; });
+    }
+
+    trigger.addEventListener("click", function () {
+      if (!dryUrl) return;
+      trigger.disabled = true;
+      setStatus("Computing preview (dry run — nothing is written)…", "info");
+      postJson(dryUrl, {}).then(function (resp) {
+        trigger.disabled = false;
+        var d = resp.data || {};
+        if (!resp.ok) {
+          setStatus("Preview failed: " + (d.error || resp.status), "error");
+          return;
+        }
+        var per = d.per_artifact || [];
+        // Aggregate per-artifact rows up to per-domain totals.
+        var byDomain = {};
+        per.forEach(function (a) {
+          var dom = a.domain || a.path || "—";
+          var b = byDomain[dom] || (byDomain[dom] = { created: 0, updated: 0, quarantined: 0 });
+          b.created += a.created || 0;
+          b.updated += a.updated || 0;
+          b.quarantined += a.quarantined || 0;
+        });
+        var html = "";
+        Object.keys(byDomain).sort().forEach(function (dom) {
+          var b = byDomain[dom];
+          html += "<tr><td>" + esc(dom) + "</td><td>" + b.created +
+            "</td><td>" + b.updated + "</td><td>" + b.quarantined + "</td></tr>";
+        });
+        rowsSlot.innerHTML = html ||
+          "<tr><td colspan=\"4\">No rows to apply.</td></tr>";
+        var t = d.totals || {};
+        if (totCreated) totCreated.textContent = t.created || 0;
+        if (totUpdated) totUpdated.textContent = t.updated || 0;
+        if (totQuar) totQuar.textContent = t.quarantined || 0;
+        if (summarySlot) {
+          summarySlot.textContent =
+            "Dry run: " + (t.created || 0) + " new · " + (t.updated || 0) +
+            " updated · " + (t.quarantined || 0) + " quarantined across " +
+            per.length + " file(s). Nothing has been written yet.";
+        }
+        if (noteSlot) {
+          noteSlot.textContent = (t.quarantined || 0) > 0
+            ? "Quarantined rows won't be applied — open the review queue to resolve them first."
+            : "";
+        }
+        panel.hidden = false;
+        setStatus("Preview ready — review below, then Confirm live apply.", "success");
+        if (panel.scrollIntoView) {
+          panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }).catch(function (err) {
+        trigger.disabled = false;
+        setStatus("Preview failed: " + (err && err.message), "error");
+      });
+    });
+  })();
 })();

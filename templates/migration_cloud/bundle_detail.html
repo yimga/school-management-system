@@ -344,10 +344,9 @@
       </form>
       {% endif %}
       {% if can_apply %}
-      <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_apply' bundle_id=bundle.pk %}?dry_run=1{% else %}{% url 'migration_cloud_super:bundle_apply' bundle_id=bundle.pk %}?dry_run=1{% endif %}">
-        {% csrf_token %}
-        <button type="submit" class="rmc-btn rmc-btn--ghost">{% trans "Dry-run apply" %}</button>
-      </form>
+      <button type="button" class="rmc-btn rmc-btn--ghost" data-mc-preview-trigger>
+        {% trans "Preview what Apply will change" %}
+      </button>
       <form method="post"
             action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_apply' bundle_id=bundle.pk %}?confirm=1{% else %}{% url 'migration_cloud_super:bundle_apply' bundle_id=bundle.pk %}?confirm=1{% endif %}"
             data-mc-confirm="{% trans 'This will WRITE to the tenant. Continue?' %}">
@@ -386,6 +385,47 @@
       {% endif %}
     </div>
     <p class="rmc-mapping__status" data-mc-status role="status" aria-live="polite"></p>
+  </section>
+
+  {% comment %} What-will-change preview. "Preview what Apply will change" runs a
+     DRY-RUN apply via AJAX (writes nothing) and renders the per-domain diff here
+     instead of dumping raw JSON to the browser. "Confirm live apply" then does
+     the real write. No new backend — the dry-run endpoint already returns this. {% endcomment %}
+  <section id="mc-apply-preview" class="rmc-card"
+           data-mc-preview-dry-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_apply' bundle_id=bundle.pk %}?dry_run=1{% else %}{% url 'migration_cloud_super:bundle_apply' bundle_id=bundle.pk %}?dry_run=1{% endif %}"
+           hidden>
+    <h2 class="rmc-h2">{% trans "Preview — what “Apply” will change" %}</h2>
+    <p class="rmc-lede" data-mc-preview-summary></p>
+    <table class="rmc-data-table">
+      <caption class="visually-hidden">{% trans "Dry-run apply preview, by domain" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Domain" %}</th>
+          <th scope="col">{% trans "New" %}</th>
+          <th scope="col">{% trans "Updated" %}</th>
+          <th scope="col">{% trans "Quarantined" %}</th>
+        </tr>
+      </thead>
+      <tbody data-mc-preview-rows></tbody>
+      <tfoot>
+        <tr>
+          <th scope="row">{% trans "Total" %}</th>
+          <td data-mc-tot-created>0</td>
+          <td data-mc-tot-updated>0</td>
+          <td data-mc-tot-quar>0</td>
+        </tr>
+      </tfoot>
+    </table>
+    <p class="rmc-lede" data-mc-preview-note></p>
+    <div class="rmc-button-row">
+      <form method="post"
+            action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_apply' bundle_id=bundle.pk %}?confirm=1{% else %}{% url 'migration_cloud_super:bundle_apply' bundle_id=bundle.pk %}?confirm=1{% endif %}"
+            data-mc-confirm="{% trans 'This will WRITE to the tenant. Continue?' %}">
+        {% csrf_token %}
+        <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Confirm live apply" %}</button>
+      </form>
+      <button type="button" class="rmc-btn rmc-btn--ghost" data-mc-preview-dismiss>{% trans "Cancel" %}</button>
+    </div>
   </section>
 </main>
 
