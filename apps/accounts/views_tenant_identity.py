@@ -57,6 +57,9 @@ def _can_manage_tenant_identity(user, school) -> bool:
     membership = SchoolMembership.objects.filter(
         user_id=user.pk, school_id=school.pk
     ).first()
+    if membership is not None and membership.suspended_at is not None:
+        # Suspended members retain their row but hold no management authority.
+        return False
     if membership and str(membership.role or "").strip().upper() in _IDENTITY_HUB_MANAGE_ROLES:
         return True
     try:
@@ -82,7 +85,8 @@ def _is_school_owner(user, school) -> bool:
     if getattr(user, "is_superuser", False):
         return True
     return SchoolMembership.objects.filter(
-        school_id=school.pk, user_id=user.pk, is_school_owner=True
+        school_id=school.pk, user_id=user.pk, is_school_owner=True,
+        suspended_at__isnull=True,
     ).exists()
 
 
@@ -110,6 +114,26 @@ def _audit_ownership(request, school, action: str, target_user_id) -> None:
         target_user_id,
         getattr(school, "pk", None),
     )
+
+
+def _revoke_user_sessions(user_id) -> int:
+    """Delete all live sessions belonging to a user. Returns the count revoked.
+
+    Used to kick a member out immediately when they're suspended, so a suspension
+    takes effect on their current browser tabs, not just future requests.
+    """
+    now = timezone.now()
+    revoked = 0
+    user_pk_str = str(user_id)
+    for session in Session.objects.filter(expire_date__gte=now):
+        try:
+            data = session.get_decoded()
+            if str(data.get("_auth_user_id")) == user_pk_str:
+                session.delete()
+                revoked += 1
+        except Exception:  # noqa: BLE001 — a corrupt session must not block the sweep
+            continue
+    return revoked
 
 
 @tenant_identity_hub_pdp
@@ -233,6 +257,13 @@ def tenant_identity_detail(request, user_id: int):
             "revoke_sessions_url": reverse(
                 "accounts:tenant_identity_revoke_sessions", args=[user.pk]
             ),
+            "suspend_url": reverse(
+                "accounts:tenant_identity_suspend", args=[user.pk]
+            ),
+            "reactivate_url": reverse(
+                "accounts:tenant_identity_reactivate", args=[user.pk]
+            ),
+            "target_is_suspended": membership.suspended_at is not None,
             "rbac_url": reverse("accounts:rbac"),
             "regulator_url": reverse("accounts:tenant_identity_regulator_grant"),
             "gov_body_label": localized_government_body_label(
@@ -604,6 +635,85 @@ def tenant_identity_transfer_ownership(request, user_id: int):
                 "controls the school."
             ),
         )
+    return _owner_detail_redirect(request, user_id)
+
+
+@login_required
+@require_school
+@require_POST
+def tenant_identity_suspend(request, user_id: int):
+    """Suspend a member: revoke their management/ownership authority AND kill their
+    active sessions, without deleting the membership (reversible via reactivate).
+
+    Owner-gated — a suspend can strip an admin/owner of power, so it requires real
+    ownership. Guards mirror revoke-ownership: you can't suspend yourself, and you
+    can't suspend the last ACTIVE owner (grant/transfer ownership first).
+    """
+    school = request.school
+    if not _is_school_owner(request.user, school):
+        return HttpResponseForbidden("Only a school owner can suspend a member.")
+    if request.user.pk == user_id:
+        messages.error(request, _("You cannot suspend yourself."))
+        return _owner_detail_redirect(request, user_id)
+    with transaction.atomic():
+        target = get_object_or_404(
+            SchoolMembership.objects.select_for_update(),
+            school=school,
+            user_id=user_id,
+        )
+        if target.suspended_at is not None:
+            messages.info(request, _("That member is already suspended."))
+            return _owner_detail_redirect(request, user_id)
+        if target.is_school_owner:
+            active_owner_count = (
+                SchoolMembership.objects.select_for_update()
+                .filter(
+                    school=school, is_school_owner=True, suspended_at__isnull=True
+                )
+                .count()
+            )
+            if active_owner_count <= 1:
+                messages.error(
+                    request,
+                    _(
+                        "You can't suspend the last active owner. Grant ownership to "
+                        "another member first, then suspend this one."
+                    ),
+                )
+                return _owner_detail_redirect(request, user_id)
+        target.suspended_at = timezone.now()
+        target.save(update_fields=["suspended_at", "updated_at"])
+        _audit_ownership(request, school, "suspend", target.user_id)
+    # Kick the member out of any live sessions so the suspension is immediate.
+    _revoke_user_sessions(user_id)
+    messages.success(
+        request,
+        _("Member suspended — their access is revoked until you reactivate them."),
+    )
+    return _owner_detail_redirect(request, user_id)
+
+
+@login_required
+@require_school
+@require_POST
+def tenant_identity_reactivate(request, user_id: int):
+    """Reactivate a suspended member — restore their authority (owner-gated)."""
+    school = request.school
+    if not _is_school_owner(request.user, school):
+        return HttpResponseForbidden("Only a school owner can reactivate a member.")
+    with transaction.atomic():
+        target = get_object_or_404(
+            SchoolMembership.objects.select_for_update(),
+            school=school,
+            user_id=user_id,
+        )
+        if target.suspended_at is None:
+            messages.info(request, _("That member is not suspended."))
+            return _owner_detail_redirect(request, user_id)
+        target.suspended_at = None
+        target.save(update_fields=["suspended_at", "updated_at"])
+        _audit_ownership(request, school, "reactivate", target.user_id)
+    messages.success(request, _("Member reactivated — their access is restored."))
     return _owner_detail_redirect(request, user_id)
 
 

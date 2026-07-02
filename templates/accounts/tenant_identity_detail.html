@@ -110,6 +110,25 @@
           {% endif %}
         {% endif %}
       </div>
+      {% if not target_is_self %}
+      <hr class="my-3">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        {% if target_is_suspended %}
+        <span class="rmc-badge rmc-badge--warning">{% trans "Suspended" %}</span>
+        <form method="post" action="{{ reactivate_url }}" class="d-inline" data-rmc-post-mutation="1">
+          {% csrf_token %}
+          {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
+          <button type="submit" class="btn btn-sm btn-success">{% trans "Reactivate member" %}</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ suspend_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Suspend this member? They lose management access and are signed out until reactivated." %}');">
+          {% csrf_token %}
+          {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
+          <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Suspend member" %}</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
   </div>
   {% endif %}

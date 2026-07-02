@@ -1134,8 +1134,24 @@ class SchoolMembership(models.Model):
             "Owners are admin-like; granting ownership ensures the ADMIN role."
         ),
     )
+    suspended_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text=(
+            "When set, this membership is suspended: the member keeps their row "
+            "(so ownership/history is preserved and they can be reactivated) but "
+            "loses management + ownership authority on this school and their active "
+            "sessions are revoked. Reversible — clear it to reactivate."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def is_suspended(self) -> bool:
+        """True when this membership is currently suspended (authority revoked)."""
+        return self.suspended_at is not None
 
     class Meta:
         unique_together = [("user", "school")]
