@@ -1,11 +1,6 @@
 {
-  "finding_count": 23,
+  "finding_count": 13,
   "findings": [
-    {
-      "path": "apps/academics/api_views.py",
-      "name": "can_view_student_data",
-      "line": 376
-    },
     {
       "path": "apps/accounts/middleware.py",
       "name": "can_access_module",
@@ -32,29 +27,9 @@
       "line": 104
     },
     {
-      "path": "apps/api/views_v1.py",
-      "name": "can_view_student_data",
-      "line": 597
-    },
-    {
       "path": "apps/communication/api_views.py",
       "name": "api_user_has_any_role",
       "line": 70
-    },
-    {
-      "path": "apps/finance/views_invoicing.py",
-      "name": "can_view_invoice",
-      "line": 383
-    },
-    {
-      "path": "apps/finance/views_invoicing.py",
-      "name": "can_view_invoice",
-      "line": 588
-    },
-    {
-      "path": "apps/finance/views_invoicing.py",
-      "name": "can_view_invoice",
-      "line": 788
     },
     {
       "path": "apps/lifecycle/tenant_school_resolve.py",
@@ -90,31 +65,6 @@
       "path": "apps/siteconfig/tenant_diagnostics.py",
       "name": "has_school_permission",
       "line": 113
-    },
-    {
-      "path": "apps/student360/views.py",
-      "name": "can_view_student_data",
-      "line": 111
-    },
-    {
-      "path": "apps/student360/views.py",
-      "name": "can_view_student_data",
-      "line": 171
-    },
-    {
-      "path": "apps/student360/views.py",
-      "name": "can_view_student_data",
-      "line": 214
-    },
-    {
-      "path": "apps/student360/views.py",
-      "name": "can_view_student_data",
-      "line": 252
-    },
-    {
-      "path": "apps/student360/views.py",
-      "name": "can_edit_student_grades",
-      "line": 297
     }
   ]
 }

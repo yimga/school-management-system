@@ -106,9 +106,9 @@ def student_360_page(request, student_id):
     )
     user = request.user
     if not user.is_staff:
-        from apps.accounts.permissions import can_view_student_data
+        from apps.accounts.effective_access import student_data_access
 
-        if not can_view_student_data(user, student_id):
+        if not student_data_access(user, student_id):
             return HttpResponseForbidden(
                 "You do not have permission to view this student."
             )
@@ -166,9 +166,9 @@ def student_360_export(request, student_id):
     )
     user = request.user
     if not user.is_staff:
-        from apps.accounts.permissions import can_view_student_data
+        from apps.accounts.effective_access import student_data_access
 
-        if not can_view_student_data(user, student_id):
+        if not student_data_access(user, student_id):
             return HttpResponseForbidden(
                 "You do not have permission to export this student."
             )
@@ -209,9 +209,9 @@ def transcript_archive(request, student_id):
     )
     user = request.user
     if not user.is_staff:
-        from apps.accounts.permissions import can_view_student_data
+        from apps.accounts.effective_access import student_data_access
 
-        if not can_view_student_data(user, student_id):
+        if not student_data_access(user, student_id):
             return HttpResponseForbidden(
                 "You do not have permission to view this student."
             )
@@ -247,9 +247,9 @@ def transcript_archive_year(request, student_id, year_id):
     )
     user = request.user
     if not user.is_staff:
-        from apps.accounts.permissions import can_view_student_data
+        from apps.accounts.effective_access import student_data_access
 
-        if not can_view_student_data(user, student_id):
+        if not student_data_access(user, student_id):
             return HttpResponseForbidden(
                 "You do not have permission to view this student."
             )
@@ -292,9 +292,9 @@ def transcript_freeze(request, student_id):
         # v4.01 AUTHZ — freezing an immutable transcript is a WRITE to the
         # student's academic record. Gate on edit permission, not the READ-only
         # can_view_student_data (which let a PARENT/STUDENT freeze a transcript).
-        from apps.accounts.permissions import can_edit_student_grades
+        from apps.accounts.effective_access import student_grades_edit_access
 
-        if not can_edit_student_grades(user, student_id):
+        if not student_grades_edit_access(user, student_id):
             return HttpResponseForbidden(
                 "You do not have permission to update this student's transcript."
             )

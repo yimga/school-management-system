@@ -53,6 +53,7 @@ FRAGMENTED_GATES = {
 EXEMPT_PARTS = {"tests", "migrations"}
 EXEMPT_FILES = {
     Path("apps/accounts/permissions.py"),
+    Path("apps/accounts/effective_access.py"),
     Path("apps/accounts/decorators.py"),
     Path("apps/schools/tenant_access.py"),
     Path("apps/api/permissions.py"),

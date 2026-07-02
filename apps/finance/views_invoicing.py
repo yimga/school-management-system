@@ -363,7 +363,7 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
     Pass 9.B closeout: AuditLog.Action.VIEW emitted on 2xx GETs. CRITICAL sensitivity
     since invoices expose payment + balance info.
     """
-    from apps.accounts.permissions import can_view_invoice
+    from apps.accounts.effective_access import invoice_access
     from apps.accounts.models import User
     from apps.people.models import StudentGuardian
 
@@ -380,7 +380,7 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         profile=profile,
     )
 
-    can_view = can_view_invoice(request.user, invoice_id)
+    can_view = invoice_access(request.user, invoice_id)
     if not can_view:
         is_parent = getattr(request.user, "role", "") == User.Role.PARENT
         is_guardian = bool(
@@ -571,7 +571,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         return blocked
     from decimal import InvalidOperation
 
-    from apps.accounts.permissions import can_view_invoice
+    from apps.accounts.effective_access import invoice_access
     from apps.accounts.models import User
     from apps.people.models import StudentGuardian
 
@@ -585,7 +585,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         profile=profile,
     )
 
-    can_view = can_view_invoice(request.user, invoice_id)
+    can_view = invoice_access(request.user, invoice_id)
     if not can_view:
         is_parent = getattr(request.user, "role", "") == User.Role.PARENT
         is_guardian = bool(
@@ -778,14 +778,14 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
 @require_POST
 def resend_reminder(request: HttpRequest, invoice_id: int) -> HttpResponse:
     """Resend payment reminder immediately for an invoice."""
-    from apps.accounts.permissions import can_view_invoice
+    from apps.accounts.effective_access import invoice_access
 
     from .tasks import run_payment_reminders
 
     invoice = get_object_or_404(Invoice, id=invoice_id)
 
     if not request.user.is_staff:
-        can_view = can_view_invoice(request.user, invoice_id)
+        can_view = invoice_access(request.user, invoice_id)
         if not can_view:
             return HttpResponseForbidden(
                 "You don't have permission to resend reminders for this invoice."

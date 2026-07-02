@@ -592,9 +592,9 @@ class StudentPassportView(View):
             .order_by("-academic_year__start_date")
         )
         if school:
-            from apps.accounts.permissions import can_view_student_data
+            from apps.accounts.effective_access import student_data_access
 
-            if not request.user.is_superuser and not can_view_student_data(
+            if not request.user.is_superuser and not student_data_access(
                 request.user, school
             ):
                 visible = [p for p in profiles if p.school_id == school.id]

@@ -18,7 +18,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from apps.api.serializers import AttendanceSerializer
-from apps.accounts.permissions import can_view_student_data
+from apps.accounts.effective_access import student_data_access
 from apps.accounts.models import User
 from apps.observability.tracing import trace_view
 
@@ -373,7 +373,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not can_view_student_data(request.user, int(student_id)):
+        if not student_data_access(request.user, int(student_id)):
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
