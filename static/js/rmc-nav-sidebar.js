@@ -180,6 +180,8 @@
       });
     });
 
+    bindSidebarFilter(shell);
+
     if (handle) {
       handle.addEventListener("mousedown", function (e) {
         if (e.button !== 0) return;
@@ -233,6 +235,102 @@
         event.preventDefault();
         applyShell(shell, "normal", next);
         persist("normal", next);
+      });
+    }
+  }
+
+  function norm(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function itemText(item) {
+    return norm(
+      item.getAttribute("data-admin-search") ||
+        item.getAttribute("title") ||
+        item.textContent ||
+        ""
+    );
+  }
+
+  function setHidden(el, hidden) {
+    if (!el) return;
+    el.hidden = !!hidden;
+    el.setAttribute("aria-hidden", hidden ? "true" : "false");
+  }
+
+  function bindSidebarFilter(shell) {
+    var inputs = shell.querySelectorAll("[data-rmc-sidebar-filter-input]");
+    if (!inputs.length) return;
+
+    inputs.forEach(function (input) {
+      if (input.getAttribute("data-rmc-sidebar-filter-bound") === "1") return;
+      input.setAttribute("data-rmc-sidebar-filter-bound", "1");
+
+      var mount = input.closest(".rmc-nav-sidebar__mount") || shell;
+      var navs = Array.from(mount.querySelectorAll("[data-sidebar-nav='true'], [data-sidebar-nav]"));
+
+      function applyFilter() {
+        var query = norm(input.value);
+        var active = query.length > 0;
+
+        navs.forEach(function (nav) {
+          var items = Array.from(
+            nav.querySelectorAll(
+              ".cp-sidebar__item, .nav-link, .admin-sidebar-link, .admin-sidebar-model-link, [data-admin-search]"
+            )
+          );
+
+          items.forEach(function (item) {
+            var match = !active || itemText(item).indexOf(query) !== -1;
+            var wrapper = item.closest(".sidebar-nav-item-wrapper");
+            setHidden(wrapper || item, !match);
+          });
+
+          Array.from(nav.querySelectorAll("details.cp-sidebar__group, .admin-sidebar-app-group")).forEach(function (group) {
+            var visibleItems = Array.from(
+              group.querySelectorAll(
+                ".cp-sidebar__item, .nav-link, .admin-sidebar-link, .admin-sidebar-model-link, [data-admin-search]"
+              )
+            ).some(function (item) {
+              var wrapper = item.closest(".sidebar-nav-item-wrapper");
+              return !(wrapper || item).hidden;
+            });
+            setHidden(group, active && !visibleItems);
+            if (active && visibleItems && group.tagName && group.tagName.toLowerCase() === "details") {
+              group.open = true;
+            }
+          });
+
+          Array.from(nav.querySelectorAll(".sidebar-section-title")).forEach(function (section) {
+            var next = section.nextElementSibling;
+            var hasVisible = false;
+            while (next && !next.classList.contains("sidebar-section-title")) {
+              if (!next.hidden) {
+                hasVisible = true;
+                break;
+              }
+              next = next.nextElementSibling;
+            }
+            setHidden(section, active && !hasVisible);
+          });
+        });
+      }
+
+      input.addEventListener("input", applyFilter);
+      input.addEventListener("search", applyFilter);
+    });
+
+    if (shell.getAttribute("data-rmc-sidebar-slash-bound") !== "1") {
+      shell.setAttribute("data-rmc-sidebar-slash-bound", "1");
+      document.addEventListener("keydown", function (event) {
+        if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+        var target = event.target;
+        var tag = target && target.tagName ? target.tagName.toLowerCase() : "";
+        if (tag === "input" || tag === "textarea" || tag === "select" || (target && target.isContentEditable)) return;
+        var input = shell.querySelector("[data-rmc-sidebar-filter-input]");
+        if (!input || input.offsetParent === null) return;
+        event.preventDefault();
+        input.focus();
       });
     }
   }

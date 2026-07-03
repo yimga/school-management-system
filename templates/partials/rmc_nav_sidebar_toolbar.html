@@ -8,5 +8,15 @@
           title="{% trans 'Collapse navigation to icon rail' %}">
     <i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i>
   </button>
+  <div class="rmc-nav-sidebar__filter" data-rmc-sidebar-filter>
+    <input type="search"
+           class="rmc-nav-sidebar__filter-input"
+           data-rmc-sidebar-filter-input
+           autocomplete="off"
+           spellcheck="false"
+           placeholder="{% trans 'Filter...' %}"
+           aria-label="{% trans 'Filter navigation' %}">
+    <span class="rmc-nav-sidebar__filter-key" aria-hidden="true">/</span>
+  </div>
   <span class="rmc-nav-sidebar__toggle-label">{% trans "Navigation" %}</span>
 </div>

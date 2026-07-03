@@ -1,0 +1,107 @@
+{
+  "css": {
+    "exists": true,
+    "filter_input_styles": true,
+    "filter_styles": true,
+    "path": "static/css/rmc-nav-sidebar.css",
+    "rail_hides_app_shell_filter": true,
+    "rail_hides_operator_filter": true,
+    "rail_hides_tenant_filter": true,
+    "toolbar_grid": true
+  },
+  "javascript": {
+    "binds_filter": true,
+    "exists": true,
+    "filters_admin_items": true,
+    "filters_operator_items": true,
+    "filters_tenant_items": true,
+    "finds_filter_input": true,
+    "path": "static/js/rmc-nav-sidebar.js",
+    "slash_focus": true
+  },
+  "nav_partials": {
+    "manager_admin": {
+      "exists": true,
+      "has_filter_contract": true,
+      "has_sidebar_nav": true,
+      "path": "templates/partials/manager_platform_admin_sidebar.html"
+    },
+    "operator": {
+      "exists": true,
+      "has_filter_contract": true,
+      "has_sidebar_nav": true,
+      "path": "templates/partials/control_plane_sidebar.html"
+    },
+    "tenant": {
+      "exists": true,
+      "has_filter_contract": true,
+      "has_sidebar_nav": true,
+      "path": "templates/partials/portal_sidebar.html"
+    }
+  },
+  "scope": "shared desktop nav sidebar toolbar used by operator, manager-admin, zero-ticket, and tenant shells",
+  "shell_mounts": {
+    "control_plane": {
+      "exists": true,
+      "has_desktop_mount": true,
+      "includes_toolbar": true,
+      "path": "templates/control_plane_base.html"
+    },
+    "manager_admin": {
+      "exists": true,
+      "has_desktop_mount": true,
+      "includes_toolbar": true,
+      "path": "templates/admin/base.html"
+    },
+    "portal": {
+      "exists": true,
+      "has_desktop_mount": true,
+      "includes_toolbar": true,
+      "path": "templates/portal_base.html"
+    },
+    "zero_ticket": {
+      "exists": true,
+      "has_desktop_mount": true,
+      "includes_toolbar": true,
+      "path": "templates/siteconfig/zero_ticket_shell.html"
+    }
+  },
+  "summary": {
+    "authenticated_shell_extends": {
+      "admin/base.html": 1,
+      "control_plane_base.html": 233,
+      "portal_base.html": 331
+    },
+    "gap_count": 0,
+    "gaps": [],
+    "toolbar_include_count": 4
+  },
+  "template_inheritance": {
+    "authenticated_shell_extends": {
+      "admin/base.html": 1,
+      "control_plane_base.html": 233,
+      "portal_base.html": 331
+    },
+    "toolbar_include_count": 4,
+    "toolbar_include_templates": [
+      "admin/base.html",
+      "control_plane_base.html",
+      "portal_base.html",
+      "siteconfig/zero_ticket_shell.html"
+    ]
+  },
+  "toolbar": {
+    "exists": true,
+    "filter_between_toggle_and_label": true,
+    "has_filter_aria_label": true,
+    "has_filter_input": true,
+    "has_filter_placeholder": true,
+    "keeps_navigation_label": true,
+    "order": {
+      "filter": 746,
+      "label": 1040,
+      "toggle": 278
+    },
+    "path": "templates/partials/rmc_nav_sidebar_toolbar.html"
+  }
+}

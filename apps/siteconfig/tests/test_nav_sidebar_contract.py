@@ -56,6 +56,17 @@ class NavSidebarShellTemplateTests(SimpleTestCase):
         source = get_template("partials/portal_sidebar.html").template.source
         self.assertNotIn("portal-sidebar-collapse-wrap", source)
 
+    def test_nav_sidebar_toolbar_places_filter_between_toggle_and_label(self) -> None:
+        from django.template.loader import get_template
+
+        source = get_template("partials/rmc_nav_sidebar_toolbar.html").template.source
+        toggle_index = source.index("rmc-nav-sidebar__toggle")
+        filter_index = source.index("data-rmc-sidebar-filter-input")
+        label_index = source.index("rmc-nav-sidebar__toggle-label")
+        self.assertLess(toggle_index, filter_index)
+        self.assertLess(filter_index, label_index)
+        self.assertNotIn("nav-search", source)
+
     def test_zero_ticket_shell_uses_nav_sidebar_mount(self) -> None:
         from django.template.loader import get_template
 
@@ -104,6 +115,9 @@ class NavSidebarShellTemplateTests(SimpleTestCase):
         css = Path("static/css/rmc-nav-sidebar.css").read_text(encoding="utf-8")
         self.assertIn("Sidebar visual integrity", css)
         self.assertIn("portal-layout-row:has(.rmc-nav-sidebar__mount)", css)
+        self.assertIn("grid-template-columns: 2rem minmax(0, 1fr) auto", css)
+        self.assertIn(".rmc-nav-sidebar__filter", css)
+        self.assertIn("#portal-sidebar-col.rmc-nav-sidebar--rail .rmc-nav-sidebar__filter", css)
 
     def test_manager_control_plane_grid_uses_sidebar_var(self) -> None:
         from pathlib import Path
@@ -126,6 +140,14 @@ class NavSidebarShellTemplateTests(SimpleTestCase):
         self.assertIn("rmc-nav-sidebar", bootstrap)
         self.assertNotIn("portal-resize-handle", bootstrap)
         self.assertNotIn("portal-sidebar-collapsed", bootstrap)
+
+    def test_nav_sidebar_js_binds_header_filter(self) -> None:
+        from pathlib import Path
+
+        source = Path("static/js/rmc-nav-sidebar.js").read_text(encoding="utf-8")
+        self.assertIn("bindSidebarFilter(shell)", source)
+        self.assertIn("[data-rmc-sidebar-filter-input]", source)
+        self.assertIn(".cp-sidebar__item, .nav-link, .admin-sidebar-link", source)
 
 
 class NavSidebarRenderContractTests(SimpleTestCase):
