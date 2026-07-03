@@ -58,9 +58,26 @@ def offline_transfer_blockers(profile) -> list[str]:
 
 def run_transfer_case(case, *, actor=None) -> dict[str, Any]:
     """Execute one APPROVED transfer case. Returns a summary dict."""
+    from django.core.cache import cache
+
+    lock_key = f"rmc-transfer-run-{case.pk}"
+    # Single-flight: two operators clicking Run concurrently would both pass
+    # the status guard (advance() trusts the in-memory instance) and drive
+    # the SAME bundle from two pipelines. cache.add is the platform's
+    # atomic-acquire pattern (billing lock).
+    if not cache.add(lock_key, "1", timeout=600):  # magic-number-allow: single-flight-lock-ttl-seconds
+        raise TransferBlockedError("a run is already in flight for this case")
+    try:
+        return _run_transfer_case_locked(case, actor=actor)
+    finally:
+        cache.delete(lock_key)
+
+
+def _run_transfer_case_locked(case, *, actor=None) -> dict[str, Any]:
     from apps.people.models import StudentProfile
     from apps.people.models_transfer import TransferCase
 
+    case.refresh_from_db()  # the lock serializes runners; re-read the truth
     if case.status != TransferCase.Status.APPROVED:
         raise TransferBlockedError(
             f"case must be approved to run (status={case.status!r})"

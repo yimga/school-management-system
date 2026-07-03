@@ -281,14 +281,24 @@ class LinkChildForm(forms.Form):
 
     def clean_admission_number(self):
         admission = self.cleaned_data["admission_number"].strip()
-        try:
-            student = StudentProfile.objects.select_related(
-                "academic_year", "classroom", "specialty"
-            ).get(admission_number__iexact=admission)
-        except StudentProfile.DoesNotExist:
+        # Admission numbers are unique PER SCHOOL — scope when the form has
+        # school context; without it, an ambiguous cross-school match must
+        # be rejected, never silently resolved to another school's student.
+        qs = StudentProfile.objects.select_related(
+            "academic_year", "classroom", "specialty"
+        )
+        if getattr(self, "school", None) is not None:
+            qs = qs.filter(school=self.school)
+        matches = list(qs.filter(admission_number__iexact=admission)[:2])  # tenant-isolation-allow: scoped-above-when-form-carries-school-context
+        if not matches:
             raise forms.ValidationError(
                 _("No student found with that admission number.")
             )
+        if len(matches) > 1:
+            raise forms.ValidationError(
+                _("That admission number matches more than one school — please contact the school office.")
+            )
+        student = matches[0]
         if not student.is_active:
             raise forms.ValidationError(_("This student profile is inactive."))
         self.student = student
@@ -647,6 +657,7 @@ class StudentOnboardingForm(forms.Form):
 
         policy = kwargs.pop("policy", None) or {}
         school = kwargs.pop("school", None)
+        self.school = school  # clean_admission_number scopes per-school checks by it
         self._admissions_policy = (
             (policy.get("admissions") or {}) if isinstance(policy, dict) else {}
         )
@@ -756,10 +767,13 @@ class StudentOnboardingForm(forms.Form):
                 # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
                 )
 
-            # tenant-isolation-allow: form-queryset-filtered-in-view-with-school-context
-            if StudentProfile.objects.filter(
-                admission_number__iexact=admission
-            ).exists():
+            # Uniqueness is PER SCHOOL — an unscoped check would reject a
+            # number that is free at THIS school just because another
+            # school uses it (and leak cross-tenant number usage).
+            dup_qs = StudentProfile.objects.all()
+            if getattr(self, "school", None) is not None:
+                dup_qs = dup_qs.filter(school=self.school)
+            if dup_qs.filter(admission_number__iexact=admission).exists():  # tenant-isolation-allow: scoped-above-when-form-carries-school-context
                 raise forms.ValidationError(
                     _("This admission number is already in use.")
                 )

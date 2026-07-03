@@ -32,6 +32,7 @@
           <th>{% trans "Target" %}</th>
           <th>{% trans "Domains" %}</th>
           <th>{% trans "Bundle" %}</th>
+          <th>{% trans "Last note" %}</th>
           <th>{% trans "Actions" %}</th>
         </tr>
       </thead>
@@ -44,6 +45,9 @@
           <td>{{ case.target_school.name }}</td>
           <td style="font-family: monospace;">{{ case.domains|join:", " }}</td>
           <td style="font-family: monospace;">{{ case.target_bundle_id|default:"—" }}</td>
+          <td style="color: var(--text-secondary); max-width: 26ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{% with case.history|last as last_entry %}{{ last_entry.note|default:"" }}{% endwith %}">
+            {% with case.history|last as last_entry %}{{ last_entry.note|default:last_entry.to|default:"—" }}{% endwith %}
+          </td>
           <td>
             {% if case.status == "draft" %}
             <form method="post" action="{% url 'portal:transfer_case_request_consent' %}" style="display: inline;">
@@ -62,10 +66,17 @@
             {% else %}
             <span style="color: var(--text-secondary);">—</span>
             {% endif %}
+            {% if case.status == "draft" or case.status == "consent_pending" or case.status == "approved" or case.status == "envelope_sealed" or case.status == "exporting" or case.status == "applying" %}
+            <form method="post" action="{% url 'portal:transfer_case_abort' %}" style="display: inline; margin-left: 6px;">
+              {% csrf_token %}
+              <input type="hidden" name="case_id" value="{{ case.pk }}">
+              <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-secondary); cursor: pointer;">{% trans "Abort" %}</button>
+            </form>
+            {% endif %}
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 24px;">{% trans "No transfer cases yet." %}</td></tr>
+        <tr><td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 24px;">{% trans "No transfer cases yet." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

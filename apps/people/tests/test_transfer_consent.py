@@ -134,6 +134,33 @@ class TransferConsentPageTests(TestCase):
         self.consent.refresh_from_db()
         self.assertIsNotNone(self.consent.token_first_seen_at)
 
+    def test_token_page_never_cached_and_no_referrer(self):
+        """The landing holds the LIVE token — anti-cache + no-referrer are
+        the GuardianConsentToken containment discipline."""
+        url = reverse("people_transfer_consent_landing")
+        response = self.client.get(url, {"token": self.raw})
+        self.assertIn("no-store", response["Cache-Control"])
+        self.assertEqual(response["Referrer-Policy"], "no-referrer")
+        self.assertEqual(response["Pragma"], "no-cache")
+        decided = self.client.post(
+            reverse("people_transfer_consent_decide"),
+            {"token": self.raw, "choice": "decline"},
+        )
+        self.assertIn("no-store", decided["Cache-Control"])
+
+    def test_decision_ip_prefers_x_forwarded_for(self):
+        """Behind the proxy REMOTE_ADDR is the load balancer — the consent
+        evidence must record the guardian's IP from XFF."""
+        url = reverse("people_transfer_consent_decide")
+        response = self.client.post(
+            url,
+            {"token": self.raw, "choice": "consent"},
+            HTTP_X_FORWARDED_FOR="203.0.113.7, 10.0.0.1",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.consent.refresh_from_db()
+        self.assertEqual(self.consent.ip_address_decision, "203.0.113.7")
+
     def test_landing_invalid_token_uniform_200(self):
         url = reverse("people_transfer_consent_landing")
         response = self.client.get(url, {"token": "bogus-token-bogus-token"})

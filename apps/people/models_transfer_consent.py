@@ -214,7 +214,13 @@ class TransferConsent(models.Model):
     def _stamp_request(self, request) -> None:
         if request is None:
             return
-        self.ip_address_decision = request.META.get("REMOTE_ADDR") or None
+        # XFF-first: behind the proxy REMOTE_ADDR is the load balancer, and
+        # a constant infra IP is forensically worthless as consent evidence.
+        forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+        if forwarded:
+            self.ip_address_decision = forwarded.split(",")[0].strip() or None
+        else:
+            self.ip_address_decision = request.META.get("REMOTE_ADDR") or None
         self.user_agent_decision = (request.META.get("HTTP_USER_AGENT") or "")[:256]
 
     def _audit(self, action: str) -> None:

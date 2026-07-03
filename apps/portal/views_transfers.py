@@ -30,6 +30,8 @@ def _wants_json(request) -> bool:
 
 
 def _case_row(case) -> dict:
+    history = case.history or []
+    last = history[-1] if history else {}
     return {
         "id": str(case.pk),
         "status": case.status,
@@ -40,6 +42,12 @@ def _case_row(case) -> dict:
         "envelope_checksum": (case.envelope_checksum or "")[:12],
         "target_bundle_id": case.target_bundle_id,
         "created_at": case.created_at.isoformat() if case.created_at else "",
+        "updated_at": case.updated_at.isoformat() if case.updated_at else "",
+        # The operator's "why": the journal's latest entry (failure notes,
+        # reconcile-below-threshold notes, abort reasons all land here).
+        "last_note": last.get("note") or (
+            f"{last.get('from', '')} → {last.get('to', '')}" if last else ""
+        ),
     }
 
 
@@ -104,10 +112,16 @@ def transfer_case_create(request):
     if profile.school_id == target.pk:
         return _respond(request, {"error": "target school must differ from source"}, ok=False, status=400)
 
+    from apps.interop.student_transfer_export import TRANSFER_DEFAULT_DOMAINS
+
     case = TransferCase.objects.create(
         source_school=profile.school,
         target_school=target,
         source_profile_pk=str(profile.pk),
+        # Grades stay OUT of console-created cases until the grades lander
+        # resolves term/subject FKs at the target (Wave C) — otherwise every
+        # run quarantines the grade rows and reconcile never goes clean.
+        domains=[d for d in TRANSFER_DEFAULT_DOMAINS if d != "grades"],
         created_by=request.user if request.user.is_authenticated else None,
     )
     _audit_transfer_action(request, "CREATE", case, "case opened")
@@ -153,6 +167,7 @@ def transfer_case_request_consent(request):
     case.advance(TransferCase.Status.CONSENT_PENDING, note=f"consent requested ({guardian_email})")
     _audit_transfer_action(request, "UPDATE", case, "consent requested")
     consent_path = reverse("people_transfer_consent_landing") + f"?token={raw_token}"
+    email_sent = _send_consent_email(request, case, guardian_email, consent_path)
     return _respond(
         request,
         {
@@ -160,9 +175,80 @@ def transfer_case_request_consent(request):
             "consent_id": str(consent.pk),
             # Shown once; only the sha256 is stored.
             "consent_url_path": consent_path,
+            "email_sent": email_sent,
         },
         status=201,
     )
+
+
+def _send_consent_email(request, case, guardian_email: str, consent_path: str) -> bool:
+    """Best-effort consent-link delivery — the console still shows the URL,
+    so a mail outage never blocks the flow (and never re-mints the token)."""
+    try:
+        from apps.schoolops.email_compat import send_mail
+
+        source = getattr(case.source_school, "name", "") or "your school"
+        target = getattr(case.target_school, "name", "") or "the new school"
+        sent = send_mail(
+            subject=f"Transfer consent requested: {source} → {target}",
+            message=(
+                "A student transfer requires your consent.\n\n"
+                f"Review and decide here: {request.build_absolute_uri(consent_path)}\n\n"
+                "If you did not expect this request, you can ignore this email "
+                "or decline on the page above."
+            ),
+            from_email=None,
+            recipient_list=[guardian_email],
+            fail_silently=True,
+        )
+        return bool(sent)
+    except Exception:  # noqa: BLE001 — delivery is best-effort by contract
+        logger.warning("transfer_consent_email_failed case=%s", case.pk)
+        return False
+
+
+@staff_member_required
+@csrf_protect
+@require_http_methods(["POST"])
+def transfer_case_abort(request):
+    """Operator abort: pre-run cases cancel; a crashed/stuck run marks FAILED.
+
+    This is the ONLY recovery path for a case stranded in EXPORTING/APPLYING
+    by a process crash (no exception ran the compensation path). Success
+    states refuse — an APPLIED case is a finished move, not something to
+    abort from a list view.
+    """
+    from apps.people.models_transfer import TransferCase, TransferStateError
+
+    case_pk = (request.POST.get("case_id") or "").strip()
+    case = TransferCase.objects.filter(pk=case_pk).first()  # tenant-isolation-allow: operator-console-platform-scope-staff-required
+    if case is None:
+        return _respond(request, {"error": "case not found"}, ok=False, status=404)
+
+    cancellable = {
+        TransferCase.Status.DRAFT,
+        TransferCase.Status.CONSENT_PENDING,
+        TransferCase.Status.APPROVED,
+        TransferCase.Status.ENVELOPE_SEALED,
+    }
+    failable = {TransferCase.Status.EXPORTING, TransferCase.Status.APPLYING}
+    note = f"operator abort by {getattr(request.user, 'username', '')}"[:200]
+    try:
+        if case.status in cancellable:
+            case.advance(TransferCase.Status.CANCELLED, note=note)
+        elif case.status in failable:
+            case.advance(TransferCase.Status.FAILED, note=note)
+        else:
+            return _respond(
+                request,
+                {"error": f"cannot abort a case in {case.status}", "case": _case_row(case)},
+                ok=False,
+                status=409,
+            )
+    except TransferStateError as exc:
+        return _respond(request, {"error": str(exc), "case": _case_row(case)}, ok=False, status=409)
+    _audit_transfer_action(request, "UPDATE", case, "case aborted")
+    return _respond(request, {"case": _case_row(case)})
 
 
 @staff_member_required

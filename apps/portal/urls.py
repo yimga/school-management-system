@@ -196,6 +196,7 @@ from .views_device_governance import (
 )
 from .views_sync_health import sync_health_index
 from .views_transfers import (
+    transfer_case_abort,
     transfer_case_create,
     transfer_case_request_consent,
     transfer_case_run,
@@ -276,6 +277,7 @@ urlpatterns = [
     path("super/transfers/create/", transfer_case_create, name="transfer_case_create"),
     path("super/transfers/request-consent/", transfer_case_request_consent, name="transfer_case_request_consent"),
     path("super/transfers/run/", transfer_case_run, name="transfer_case_run"),
+    path("super/transfers/abort/", transfer_case_abort, name="transfer_case_abort"),
     # v4.00.53: LMS push-grade audit URL is registered above the provider
     # catch-all (see lms_audit_index above lms_provider_detail).
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).

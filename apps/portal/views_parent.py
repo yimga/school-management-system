@@ -1426,6 +1426,7 @@ def link_child(request: HttpRequest):
         request.POST or None,
         guardian_user=request.user,
         policy=policy,
+        school=getattr(request, "school", None),
         school_code=site.school_code,
     )
     if request.method == "POST" and form.is_valid():
@@ -1509,6 +1510,7 @@ def link_child_wizard(request: HttpRequest):
             data=request.POST,
             guardian_user=request.user,
             policy=policy,
+            school=getattr(request, "school", None),
             school_code=site.school_code,
         )
         if step == 1:
@@ -1528,9 +1530,15 @@ def link_child_wizard(request: HttpRequest):
                 has_errors = True
             if admission and relationship and not has_errors:
                 try:
-                    student = StudentProfile.objects.select_related(
+                    student_qs = StudentProfile.objects.select_related(
                         "academic_year", "classroom", "specialty"
-                    ).get(admission_number__iexact=admission)
+                    )
+                    if getattr(request, "school", None) is not None:
+                        student_qs = student_qs.filter(school=request.school)
+                    # Admission numbers are unique PER SCHOOL; the scoped get
+                    # is unambiguous. An ambiguous cross-school match without
+                    # tenant context is rejected below.
+                    student = student_qs.get(admission_number__iexact=admission)  # tenant-isolation-allow: scoped-above-when-request-carries-tenant-school
                     if not student.is_active:
                         form.add_error(
                             "admission_number",
@@ -1554,6 +1562,13 @@ def link_child_wizard(request: HttpRequest):
                         "admission_number",
                         forms.ValidationError(
                             "No student found with that admission number."
+                        ),
+                    )
+                except StudentProfile.MultipleObjectsReturned:
+                    form.add_error(
+                        "admission_number",
+                        forms.ValidationError(
+                            "That admission number matches more than one school — please contact the school office."
                         ),
                     )
                 except PORTAL_SOFT_FAILURES as e:
@@ -1607,6 +1622,7 @@ def link_child_wizard(request: HttpRequest):
         data=form_data,
         guardian_user=request.user,
         policy=policy,
+        school=getattr(request, "school", None),
         school_code=site.school_code,
     )
     if wizard_data:
@@ -1617,12 +1633,14 @@ def link_child_wizard(request: HttpRequest):
     if hasattr(form, "student"):
         student_info = form.student
     elif "admission_number" in wizard_data:
-        try:
-            student_info = StudentProfile.objects.select_related(
-                "academic_year", "classroom", "specialty"
-            ).get(admission_number__iexact=wizard_data["admission_number"])
-        except StudentProfile.DoesNotExist:
-            pass
+        info_qs = StudentProfile.objects.select_related(
+            "academic_year", "classroom", "specialty"
+        )
+        if getattr(request, "school", None) is not None:
+            info_qs = info_qs.filter(school=request.school)
+        student_info = info_qs.filter(  # tenant-isolation-allow: scoped-above-when-request-carries-tenant-school
+            admission_number__iexact=wizard_data["admission_number"]
+        ).first()
     if not wizard_data.get("parent_first_name") and request.user.first_name:
         form.fields["parent_first_name"].initial = request.user.first_name
     if not wizard_data.get("parent_last_name") and request.user.last_name:

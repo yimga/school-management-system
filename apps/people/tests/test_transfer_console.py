@@ -101,3 +101,123 @@ class TransferConsoleTests(TestCase):
         response = self.client.get(reverse("portal:transfer_cases_index"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Student transfers")
+
+    def test_create_excludes_grades_until_wave_c(self):
+        """Console-created cases must not include the grades domain — the
+        grades lander cannot resolve term/subject FKs at the target yet, so
+        every run would quarantine the grade rows."""
+        response = self.client.post(
+            reverse("portal:transfer_case_create"),
+            {
+                "student_pk": str(self.profile.pk),
+                "target_school_id": str(self.target.pk),
+                "format": "json",
+            },
+        )
+        self.assertEqual(response.status_code, 201)
+        domains = response.json()["case"]["domains"]
+        self.assertNotIn("grades", domains)
+        self.assertIn("students", domains)
+
+    def test_consent_request_sends_best_effort_email(self):
+        from django.core import mail
+
+        create = self.client.post(
+            reverse("portal:transfer_case_create"),
+            {
+                "student_pk": str(self.profile.pk),
+                "target_school_id": str(self.target.pk),
+                "format": "json",
+            },
+        )
+        case_id = create.json()["case"]["id"]
+        mail.outbox.clear()
+        response = self.client.post(
+            reverse("portal:transfer_case_request_consent"),
+            {
+                "case_id": case_id,
+                "guardian_name": "Guard Ian",
+                "guardian_email": "guardian@example.com",
+                "format": "json",
+            },
+        )
+        self.assertEqual(response.status_code, 201)
+        body = response.json()
+        # The URL is ALWAYS returned (delivery is best-effort, never the
+        # only channel); when the mail backend accepts, the link goes out.
+        self.assertIn("token=", body["consent_url_path"])
+        if body.get("email_sent"):
+            self.assertEqual(len(mail.outbox), 1)
+            self.assertIn("token=", mail.outbox[0].body)
+            self.assertEqual(mail.outbox[0].to, ["guardian@example.com"])
+
+    def test_abort_draft_cancels(self):
+        case = TransferCase.objects.create(
+            source_school=self.source,
+            target_school=self.target,
+            source_profile_pk=str(self.profile.pk),
+        )
+        response = self.client.post(
+            reverse("portal:transfer_case_abort"),
+            {"case_id": str(case.pk), "format": "json"},
+        )
+        self.assertEqual(response.status_code, 200)
+        case.refresh_from_db()
+        self.assertEqual(case.status, TransferCase.Status.CANCELLED)
+
+    def test_abort_stuck_applying_marks_failed(self):
+        """The recovery path for a case stranded by a process crash."""
+        case = TransferCase.objects.create(
+            source_school=self.source,
+            target_school=self.target,
+            source_profile_pk=str(self.profile.pk),
+        )
+        TransferCase.objects.filter(pk=case.pk).update(
+            status=TransferCase.Status.APPLYING
+        )
+        response = self.client.post(
+            reverse("portal:transfer_case_abort"),
+            {"case_id": str(case.pk), "format": "json"},
+        )
+        self.assertEqual(response.status_code, 200)
+        case.refresh_from_db()
+        self.assertEqual(case.status, TransferCase.Status.FAILED)
+
+    def test_abort_refuses_terminal_case(self):
+        case = TransferCase.objects.create(
+            source_school=self.source,
+            target_school=self.target,
+            source_profile_pk=str(self.profile.pk),
+        )
+        TransferCase.objects.filter(pk=case.pk).update(
+            status=TransferCase.Status.RECONCILED
+        )
+        response = self.client.post(
+            reverse("portal:transfer_case_abort"),
+            {"case_id": str(case.pk), "format": "json"},
+        )
+        self.assertEqual(response.status_code, 409)
+
+    def test_run_is_single_flight(self):
+        from django.core.cache import cache
+
+        from apps.people.transfer_service import (
+            TransferBlockedError,
+            run_transfer_case,
+        )
+
+        case = TransferCase.objects.create(
+            source_school=self.source,
+            target_school=self.target,
+            source_profile_pk=str(self.profile.pk),
+        )
+        lock_key = f"rmc-transfer-run-{case.pk}"
+        self.assertTrue(cache.add(lock_key, "1", timeout=60))
+        try:
+            with self.assertRaises(TransferBlockedError) as ctx:
+                run_transfer_case(case)
+            # The LOCK must be the refusal (not the draft-status guard) —
+            # that is what proves single-flight.
+            self.assertIn("already in flight", str(ctx.exception))
+        finally:
+            cache.delete(lock_key)
