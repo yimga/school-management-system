@@ -73,7 +73,7 @@ def owner_confirm_role(request):
 
             # Only an actual owner of this school may acknowledge (defence in depth
             # — the card is owner-gated, but the endpoint must be too).
-            if SchoolMembership.is_owner(request.user, school):
+            if SchoolMembership.is_active_owner(request.user, school):
                 from apps.runtime_blueprints.models import DashboardUserPreference
 
                 pref, _created = DashboardUserPreference.objects.get_or_create(

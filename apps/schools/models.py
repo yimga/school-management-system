@@ -1183,6 +1183,24 @@ class SchoolMembership(models.Model):
             school=school, user_id=getattr(user, "pk", None), is_school_owner=True
         ).exists()
 
+    @staticmethod
+    def is_active_owner(user, school) -> bool:
+        """True if ``user`` is a NON-SUSPENDED owner of ``school``.
+
+        Gate ownership-bearing actions on this, not ``is_owner``: a member
+        suspended to revoke their authority must lose it everywhere (the Owner
+        Console, the Identity hub, and the first-login card all agree). ``is_owner``
+        remains the raw membership-flag check.
+        """
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+        return SchoolMembership.objects.filter(
+            school=school,
+            user_id=getattr(user, "pk", None),
+            is_school_owner=True,
+            suspended_at__isnull=True,
+        ).exists()
+
 
 class SignupVerification(models.Model):
     """

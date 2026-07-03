@@ -48,7 +48,7 @@ def is_school_owner(user, school) -> bool:
     try:
         from apps.schools.models import SchoolMembership
 
-        return SchoolMembership.is_owner(user, school)
+        return SchoolMembership.is_active_owner(user, school)
     except Exception as exc:  # noqa: BLE001 — fail closed
         logger.debug("owner console gate failed: %s", exc)
         return False

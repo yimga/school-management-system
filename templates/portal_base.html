@@ -104,6 +104,7 @@
       {% with theme=SITE_THEME %}
       :root {
         --school-primary: {{ theme.primary_color|default:SITE.primary_color|default:"#4f46e5" }};
+        --text-on-brand: {{ theme.primary_color|default:SITE.primary_color|default:"#4f46e5"|text_on_brand }};
         --school-accent: {{ theme.accent_color|default:SITE.accent_color|default:"#10b981" }};
         --school-success: {{ SITE.success_color|default:"#28a745" }};
         --school-warning: {{ SITE.warning_color|default:"#f0883e" }};

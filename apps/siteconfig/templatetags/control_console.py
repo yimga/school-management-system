@@ -19,3 +19,18 @@ def operator_console_strip(context):
         "operator_quick_links": build_feature_control_operator_quick_links(request),
         "why_enabled_summary": WHY_ENABLED_SUMMARY,
     }
+
+
+@register.filter
+def text_on_brand(primary_hex):
+    """Readable ink (dark or light) for text placed on the given brand color.
+
+    Lets the tenant shell set ``--text-on-brand`` adaptively, so white-on-brand
+    headers never wash out on a light school brand. Falls back to white.
+    """
+    from apps.siteconfig.contrast_guard import text_color_for_background
+
+    try:
+        return text_color_for_background(str(primary_hex or "").strip())
+    except Exception:  # noqa: BLE001 — never break rendering over one color
+        return "#ffffff"

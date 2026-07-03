@@ -154,8 +154,11 @@ def owner_console_role_groups(request):
 
         elif action == "delete":
             group_id = request.POST.get("group_id")
-            RoleGroup.objects.filter(school=school, pk=group_id).delete()
-            messages.success(request, _("Bundle deleted. Roles already assigned are kept."))
+            try:
+                RoleGroup.objects.filter(school=school, pk=int(group_id)).delete()
+                messages.success(request, _("Bundle deleted. Roles already assigned are kept."))
+            except (TypeError, ValueError):
+                messages.error(request, _("Couldn't delete that bundle."))
             return redirect("accounts:owner_console_role_groups")
 
     ctx = _console_ctx(request, "rolegroups")
