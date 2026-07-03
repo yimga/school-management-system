@@ -774,7 +774,7 @@
     {% if proactive_help_nudge and not tp_v3_tenant_shell %}
     {% include "partials/help_proactive_nudge.html" %}
     {% endif %}
-    {% include "partials/help_contextual_drawer.html" %}
+    {% if request.public_host_kind == 'manager' or not cockpit.tenant_tools.enabled|default:False %}{% include "partials/help_contextual_drawer.html" %}{% endif %}
     {% if request.user.is_authenticated %}
     {% include "partials/cockpit/_activity_ticker_drawer.html" %}
     <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>

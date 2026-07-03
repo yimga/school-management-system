@@ -4927,6 +4927,13 @@ html[data-rmc-reveal-armed] .rmc-reveal--scale.is-revealed {
   margin-inline: 0;
 }
 
+/* Tenant page bodies: let Bootstrap `.container` fill the shell column too, so
+   tenant pages (~48 under templates/portal/) go full-bleed like the dashboard
+   shells instead of capping at Bootstrap's 1140/1320px reading width. */
+body.portal-body-with-layout .container {
+  max-width: 100%;
+}
+
 /* ---- Quieter primary-nav active pill ------------------------------------ */
 /* Replaces the harsh indigo→emerald gradient from manager-aesthetic-polish.css
    with a single brand-tinted wash + hairline ring. Reads as "this surface is
