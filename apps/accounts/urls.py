@@ -83,6 +83,7 @@ from .views_owner_console import (
     owner_console_overview,
 )
 from .views_owner_console_people import owner_console_people
+from .views_owner_console_roles import owner_console_role_groups
 from .views_delegation import (
     my_delegations,
     delegation_add,
@@ -603,6 +604,7 @@ urlpatterns = [
     path("backend/confirm-owner/", owner_confirm_role, name="owner_confirm_role"),
     path("owner/", owner_console_overview, name="owner_console"),
     path("owner/people/", owner_console_people, name="owner_console_people"),
+    path("owner/role-groups/", owner_console_role_groups, name="owner_console_role_groups"),
     path("owner/modules/", owner_console_modules, name="owner_console_modules"),
     path("owner/billing/", owner_console_billing, name="owner_console_billing"),
     path("owner/data/", owner_console_data, name="owner_console_data"),

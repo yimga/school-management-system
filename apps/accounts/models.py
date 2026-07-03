@@ -146,6 +146,39 @@ class TemporaryRoleGrant(models.Model):
         return True
 
 
+class RoleGroup(models.Model):
+    """A named, reusable bundle of access roles an owner can apply to people at once.
+
+    Authoring convenience only: applying a group adds its member roles to each
+    selected user's ``roles`` M2M (additive). It never removes roles and never
+    changes permission resolution — ``User.has_feature_permission`` still resolves
+    through ``user.roles``. School-scoped; a code is unique within a school.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="role_groups",
+    )
+    code = models.CharField(max_length=120)
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    roles = models.ManyToManyField(AccessRole, blank=True, related_name="role_groups")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "code"], name="uniq_role_group_code_per_school"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.school_id})"
+
+
 class User(AbstractUser):
     class Role(models.TextChoices):
         SUPERADMIN = "SUPERADMIN", "Super Administrator"

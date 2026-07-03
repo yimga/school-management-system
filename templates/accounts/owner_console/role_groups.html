@@ -1,0 +1,104 @@
+{% extends "accounts/owner_console/_console_base.html" %}
+{% load i18n %}
+{% block oc_pagetitle %}{% trans "Role bundles" %}{% endblock %}
+{% block oc_title %}{% trans "Role bundles" %}{% endblock %}
+{% block oc_sub %}{% trans "Define a set of roles once, then apply it to many people in one click — additive and reversible." %}{% endblock %}
+{% block oc_headactions %}
+{% if people_url %}<div class="rmc-oc-headactions"><a class="rmc-oc-btn" href="{{ people_url }}">{% trans "People & Roles" %} →</a></div>{% endif %}
+{% endblock %}
+{% block oc_body %}
+{% if messages %}
+<div class="rmc-oc-msgs">
+  {% for m in messages %}<div class="rmc-oc-msg rmc-oc-msg--{{ m.tags|default:'info' }}">{{ m }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<section class="rmc-oc-panel">
+  <h2 class="rmc-oc-h2">{% trans "Create a bundle" %}</h2>
+  <p class="rmc-oc-muted rmc-oc-formhint">{% trans "Give the bundle a name and pick the roles it grants." %}</p>
+  <form method="post" class="rmc-oc-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="create">
+    <div class="rmc-oc-pick">
+      <div class="rmc-oc-pickcol">
+        <div class="rmc-oc-picktitle">{% trans "Bundle name" %}</div>
+        {{ create_form.name }}
+      </div>
+      <div class="rmc-oc-pickcol">
+        <div class="rmc-oc-picktitle">{% trans "Roles" %}</div>
+        <div class="rmc-oc-checks">
+          {% for checkbox in create_form.roles %}
+          <label class="rmc-oc-check">{{ checkbox.tag }} <span>{{ checkbox.choice_label }}</span></label>
+          {% empty %}
+          <p class="rmc-oc-muted">{% trans "No roles defined yet." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="rmc-oc-formfoot">
+      <button type="submit" class="rmc-oc-btn rmc-oc-btn--primary">{% trans "Create bundle" %}</button>
+    </div>
+  </form>
+</section>
+
+{% if group_rows %}
+<section class="rmc-oc-panel">
+  <h2 class="rmc-oc-h2">{% trans "Apply a bundle" %}</h2>
+  <p class="rmc-oc-muted rmc-oc-formhint">{% trans "Pick a bundle, pick the people, apply once. Existing roles are kept." %}</p>
+  <form method="post" class="rmc-oc-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="apply">
+    <div class="rmc-oc-pick">
+      <div class="rmc-oc-pickcol">
+        <div class="rmc-oc-picktitle">{% trans "Bundle" %}</div>
+        <div class="rmc-oc-checks">
+          {% for radio in apply_form.group %}
+          <label class="rmc-oc-check">{{ radio.tag }} <span>{{ radio.choice_label }}</span></label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="rmc-oc-pickcol">
+        <div class="rmc-oc-picktitle">{% trans "People" %}</div>
+        <div class="rmc-oc-checks">
+          {% for checkbox in apply_form.users %}
+          <label class="rmc-oc-check">{{ checkbox.tag }} <span>{{ checkbox.choice_label }}</span></label>
+          {% empty %}
+          <p class="rmc-oc-muted">{% trans "No members yet." %}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="rmc-oc-formfoot">
+      <button type="submit" class="rmc-oc-btn rmc-oc-btn--primary">{% trans "Apply bundle" %}</button>
+    </div>
+  </form>
+</section>
+
+<section class="rmc-oc-panel">
+  <h2 class="rmc-oc-h2">{% trans "Your bundles" %}</h2>
+  <div class="rmc-oc-tablewrap">
+    <table class="rmc-oc-table">
+      <thead><tr><th>{% trans "Bundle" %}</th><th>{% trans "Roles" %}</th><th></th></tr></thead>
+      <tbody>
+        {% for g in group_rows %}
+        <tr>
+          <td>{{ g.name }}</td>
+          <td>{% for r in g.roles %}<span class="rmc-oc-role">{{ r }}</span>{% empty %}<span class="rmc-oc-muted">{% trans "No roles" %}</span>{% endfor %}</td>
+          <td>
+            <form method="post" class="rmc-oc-form">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="group_id" value="{{ g.id }}">
+              <button type="submit" class="rmc-oc-btn">{% trans "Delete" %}</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
+<p class="rmc-oc-note">{% trans "No bundles yet — create one above, then you'll be able to apply it to your team here." %}</p>
+{% endif %}
+{% endblock %}

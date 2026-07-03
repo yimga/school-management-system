@@ -70,6 +70,7 @@ def _console_sections(active: str) -> list[dict[str, Any]]:
     raw = [
         {"key": "overview", "label": _("Overview"), "icon": "bi-grid-1x2", "url": _safe("accounts:owner_console")},
         {"key": "people", "label": _("People & Roles"), "icon": "bi-people", "url": _safe("accounts:owner_console_people")},
+        {"key": "rolegroups", "label": _("Role bundles"), "icon": "bi-collection", "url": _safe("accounts:owner_console_role_groups")},
         {"key": "rbac", "label": _("Roles & access"), "icon": "bi-shield-lock", "url": _safe("accounts:rbac")},
         {"key": "modules", "label": _("Modules"), "icon": "bi-puzzle", "url": _safe("accounts:owner_console_modules")},
         {"key": "billing", "label": _("Billing & plan"), "icon": "bi-credit-card", "url": _safe("accounts:owner_console_billing")},
