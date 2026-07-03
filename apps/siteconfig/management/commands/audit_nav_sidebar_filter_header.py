@@ -11,6 +11,7 @@ from django.core.management.base import BaseCommand
 TOOLBAR = "templates/partials/rmc_nav_sidebar_toolbar.html"
 SIDEBAR_CSS = "static/css/rmc-nav-sidebar.css"
 SIDEBAR_JS = "static/js/rmc-nav-sidebar.js"
+SIDEBAR_INTELLIGENCE_JS = "static/js/rmc-sidebar-intelligence.js"
 SHELLS = {
     "control_plane": "templates/control_plane_base.html",
     "portal": "templates/portal_base.html",
@@ -45,6 +46,7 @@ class Command(BaseCommand):
             "toolbar": self._audit_toolbar(root),
             "css": self._audit_css(root),
             "javascript": self._audit_js(root),
+            "sidebar_intelligence": self._audit_sidebar_intelligence_js(root),
             "shell_mounts": self._audit_shell_mounts(root),
             "nav_partials": self._audit_nav_partials(root),
             "template_inheritance": self._audit_template_inheritance(root),
@@ -82,26 +84,29 @@ class Command(BaseCommand):
         order = {
             "toggle": text.find("rmc-nav-sidebar__toggle"),
             "filter": text.find("data-rmc-sidebar-filter-input"),
+            "prefs": text.find("data-rmc-sidebar-prefs-toggle"),
             "label": text.find("rmc-nav-sidebar__toggle-label"),
         }
         return {
             "path": TOOLBAR,
             "exists": bool(text),
             "has_filter_input": "data-rmc-sidebar-filter-input" in text,
+            "has_prefs_button": "data-rmc-sidebar-prefs-toggle" in text,
             "has_filter_placeholder": "Filter..." in text,
             "has_filter_aria_label": "Filter navigation" in text,
             "keeps_navigation_label": "rmc-nav-sidebar__toggle-label" in text,
-            "filter_between_toggle_and_label": order["toggle"] >= 0
-            and order["toggle"] < order["filter"] < order["label"],
+            "filter_and_prefs_between_toggle_and_label": order["toggle"] >= 0
+            and order["toggle"] < order["filter"] < order["prefs"] < order["label"],
             "order": order,
         }
 
     def _audit_css(self, root: Path) -> dict:
         text = self._read(root, SIDEBAR_CSS)
         required = {
-            "toolbar_grid": "grid-template-columns: 2rem minmax(0, 1fr) auto" in text,
+            "toolbar_grid": "grid-template-columns: 2rem minmax(0, 1fr) 2rem auto" in text,
             "filter_styles": ".rmc-nav-sidebar__filter" in text,
             "filter_input_styles": ".rmc-nav-sidebar__filter-input" in text,
+            "prefs_styles": ".rmc-nav-sidebar__prefs" in text,
             "rail_hides_operator_filter": "#cp-sidebar-col.rmc-nav-sidebar--rail .rmc-nav-sidebar__filter" in text,
             "rail_hides_tenant_filter": "#portal-sidebar-col.rmc-nav-sidebar--rail .rmc-nav-sidebar__filter" in text,
             "rail_hides_app_shell_filter": '.rmc-app-shell[data-rmc-nav-sidebar="rail"] .rmc-nav-sidebar__filter' in text,
@@ -119,6 +124,17 @@ class Command(BaseCommand):
             "slash_focus": 'event.key !== "/"' in text,
         }
         return {"path": SIDEBAR_JS, "exists": bool(text), **required}
+
+    def _audit_sidebar_intelligence_js(self, root: Path) -> dict:
+        text = self._read(root, SIDEBAR_INTELLIGENCE_JS)
+        required = {
+            "binds_toolbar_filter": "bindToolbarFilterBar(root, ad, state)" in text,
+            "finds_toolbar_filter_input": "[data-rmc-sidebar-filter-input]" in text,
+            "finds_toolbar_prefs_button": "[data-rmc-sidebar-prefs-toggle]" in text,
+            "guards_duplicate_body_filter": "var usesToolbarFilter = bindToolbarFilterBar(root, ad, state)" in text,
+            "slash_focuses_toolbar_first": 'document.querySelector("[data-rmc-sidebar-filter-input]")' in text,
+        }
+        return {"path": SIDEBAR_INTELLIGENCE_JS, "exists": bool(text), **required}
 
     def _audit_shell_mounts(self, root: Path) -> dict:
         rows = {}
@@ -172,7 +188,7 @@ class Command(BaseCommand):
 
     def _summarize(self, report: dict) -> dict:
         gaps = []
-        for section in ("toolbar", "css", "javascript"):
+        for section in ("toolbar", "css", "javascript", "sidebar_intelligence"):
             for key, value in report[section].items():
                 if key in {"path", "order"}:
                     continue
@@ -228,6 +244,7 @@ class Command(BaseCommand):
             f"- Shared toolbar source: `{TOOLBAR}`",
             f"- Shared CSS source: `{SIDEBAR_CSS}`",
             f"- Shared JS source: `{SIDEBAR_JS}`",
+            f"- Sidebar intelligence source: `{SIDEBAR_INTELLIGENCE_JS}`",
             "",
             "## Result",
         ]

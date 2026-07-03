@@ -4,6 +4,7 @@
     "filter_input_styles": true,
     "filter_styles": true,
     "path": "static/css/rmc-nav-sidebar.css",
+    "prefs_styles": true,
     "rail_hides_app_shell_filter": true,
     "rail_hides_operator_filter": true,
     "rail_hides_tenant_filter": true,
@@ -66,6 +67,15 @@
       "path": "templates/siteconfig/zero_ticket_shell.html"
     }
   },
+  "sidebar_intelligence": {
+    "binds_toolbar_filter": true,
+    "exists": true,
+    "finds_toolbar_filter_input": true,
+    "finds_toolbar_prefs_button": true,
+    "guards_duplicate_body_filter": true,
+    "path": "static/js/rmc-sidebar-intelligence.js",
+    "slash_focuses_toolbar_first": true
+  },
   "summary": {
     "authenticated_shell_extends": {
       "admin/base.html": 1,
@@ -92,14 +102,16 @@
   },
   "toolbar": {
     "exists": true,
-    "filter_between_toggle_and_label": true,
+    "filter_and_prefs_between_toggle_and_label": true,
     "has_filter_aria_label": true,
     "has_filter_input": true,
     "has_filter_placeholder": true,
+    "has_prefs_button": true,
     "keeps_navigation_label": true,
     "order": {
       "filter": 746,
-      "label": 1040,
+      "label": 1349,
+      "prefs": 1100,
       "toggle": 278
     },
     "path": "templates/partials/rmc_nav_sidebar_toolbar.html"

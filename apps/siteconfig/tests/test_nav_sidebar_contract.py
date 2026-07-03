@@ -62,9 +62,11 @@ class NavSidebarShellTemplateTests(SimpleTestCase):
         source = get_template("partials/rmc_nav_sidebar_toolbar.html").template.source
         toggle_index = source.index("rmc-nav-sidebar__toggle")
         filter_index = source.index("data-rmc-sidebar-filter-input")
+        prefs_index = source.index("data-rmc-sidebar-prefs-toggle")
         label_index = source.index("rmc-nav-sidebar__toggle-label")
         self.assertLess(toggle_index, filter_index)
-        self.assertLess(filter_index, label_index)
+        self.assertLess(filter_index, prefs_index)
+        self.assertLess(prefs_index, label_index)
         self.assertNotIn("nav-search", source)
 
     def test_zero_ticket_shell_uses_nav_sidebar_mount(self) -> None:
@@ -115,8 +117,9 @@ class NavSidebarShellTemplateTests(SimpleTestCase):
         css = Path("static/css/rmc-nav-sidebar.css").read_text(encoding="utf-8")
         self.assertIn("Sidebar visual integrity", css)
         self.assertIn("portal-layout-row:has(.rmc-nav-sidebar__mount)", css)
-        self.assertIn("grid-template-columns: 2rem minmax(0, 1fr) auto", css)
+        self.assertIn("grid-template-columns: 2rem minmax(0, 1fr) 2rem auto", css)
         self.assertIn(".rmc-nav-sidebar__filter", css)
+        self.assertIn(".rmc-nav-sidebar__prefs", css)
         self.assertIn("#portal-sidebar-col.rmc-nav-sidebar--rail .rmc-nav-sidebar__filter", css)
 
     def test_manager_control_plane_grid_uses_sidebar_var(self) -> None:
@@ -148,6 +151,20 @@ class NavSidebarShellTemplateTests(SimpleTestCase):
         self.assertIn("bindSidebarFilter(shell)", source)
         self.assertIn("[data-rmc-sidebar-filter-input]", source)
         self.assertIn(".cp-sidebar__item, .nav-link, .admin-sidebar-link", source)
+
+    def test_sidebar_intelligence_reuses_toolbar_filter(self) -> None:
+        from pathlib import Path
+
+        source = Path("static/js/rmc-sidebar-intelligence.js").read_text(encoding="utf-8")
+        self.assertIn("bindToolbarFilterBar(root, ad, state)", source)
+        self.assertIn("[data-rmc-sidebar-prefs-toggle]", source)
+        self.assertIn("var usesToolbarFilter = bindToolbarFilterBar(root, ad, state)", source)
+
+    def test_portal_base_loads_workspace_edge_fit(self) -> None:
+        from django.template.loader import get_template
+
+        source = get_template("portal_base.html").template.source
+        self.assertIn("rmc-platform-workspace-edge-fit.css", source)
 
 
 class NavSidebarRenderContractTests(SimpleTestCase):

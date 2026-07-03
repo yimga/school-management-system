@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-calendar-weather-dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
 {% endblock %}
 
 {% block cp_shell_content_attrs %} data-shell-layout="control-plane" data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}{% endblock %}

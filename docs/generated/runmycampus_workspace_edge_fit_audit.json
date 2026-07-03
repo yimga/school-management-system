@@ -1,0 +1,1414 @@
+{
+  "css_contract": {
+    "control_plane_body_scope": true,
+    "exists": true,
+    "manager_admin_scope": true,
+    "path": "static/css/rmc-platform-workspace-edge-fit.css",
+    "removes_centered_caps": true,
+    "tenant_portal_scope": true
+  },
+  "edge_fit_css": "css/rmc-platform-workspace-edge-fit.css",
+  "menu_targets": {
+    "manager": {
+      "errors": [],
+      "group_count": 11,
+      "item_count": 48,
+      "items_without_url": []
+    },
+    "tenant": {
+      "source_templates": [
+        "templates/partials/portal_sidebar.html",
+        "templates/partials/tenant_primary_nav.html"
+      ],
+      "targets": [
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "academics:syllabus_approval_queue",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/academics/approval/syllabi/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "academics:teacher_syllabus_hub",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/academics/teacher/syllabi/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:backend_dashboard",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/authentication/backend/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:backend_student_list",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/authentication/backend/students/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:certification_home",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/authentication/certification/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:rbac",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/authentication/rbac/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:redirect",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/authentication/redirect/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:switch_portal_role",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/authentication/switch-portal-role/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:tenant_activity_log",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/authentication/backend/activity-log/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:user_messages",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/authentication/messages/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:user_notifications",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/authentication/notifications/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "accounts:user_profile",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/authentication/profile/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "analytics:dashboard",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/analytics/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "communication:announcement_create",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/communication/announcements/create/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "communication:announcement_list_pending",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/communication/announcements/pending/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "communication:class_announcement_create",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/communication/announcements/class/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "communication:group_list",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/communication/groups/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "evals:class_ranking",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/evals/rankings/class/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "evals:evaluation_admin",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/evals/admin/evaluations/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "evals:school_ranking",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/evals/rankings/school/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "evals:teacher_dashboard",
+          "resolved": true,
+          "sources": [
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/evals/teacher/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "evals:teacher_marks_entry",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/evals/teacher/marks/entry/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "evals:teacher_marks_list",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/evals/teacher/marks/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "feedback:help_center",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/help/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "finance:dashboard",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/finance/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "kb:faq_list",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/kb/faq/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "kb:kb_home",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/kb/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "kb:kb_search",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/kb/search/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "kb:user_contributions",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/kb/my-contributions/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "manager_help_center",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/help-center/",
+          "urlconf": "config.manager_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "payroll:dashboard",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/payroll/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "payroll:employee_leave",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/payroll/employee/leave/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "payroll:employee_payslips",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/payroll/employee/payslips/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:claim_invite",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/parent/claim-invite/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:document_library_manage",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/backend/documents/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:link_child",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/parent/link-child/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:parent_attendance_discipline",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/parent/attendance-discipline/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:parent_contact_school",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/parent/contact-school/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:parent_dashboard",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/portal/parent/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:parent_feed",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/parent/feed/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:parent_finance",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/portal/parent/finance/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:parent_medal_case",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/parent/medal-case/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:parent_wallet",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/parent/wallet/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:parent_workflow",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/parent/workflow/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": true,
+          "has_template_args": true,
+          "name": "portal:portal_feature",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": null,
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:portal_stats",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/portal/parent/stats/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:portal_syllabus",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/syllabus/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:signature_requests_manage",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/backend/signatures/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:staff_contact_request_list",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/staff/contact-requests/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:student_portal_grades",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/portal/student-portal/grades/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:student_workflow",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/portal/student/workflow/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_attendance",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/attendance/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_bulk_capture_hub",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/bulk-capture/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_dashboard_alias",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/portal/teacher/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_disciplinary",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/disciplinary/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_feed",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/feed/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_hr_status",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/hr-status/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_lesson_notes",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/lesson-notes/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_pay_history",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/pay-history/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_timetable",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/timetable/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_training_log",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/training-log/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_wellness",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/teacher/wellness/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:teacher_workflow",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html",
+            "templates/partials/tenant_primary_nav.html"
+          ],
+          "url": "/portal/teacher/workflow/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "portal:unified_calendar",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/portal/calendar/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "reports:publish_term_results",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/reports/publish/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": true,
+          "name": "school_configuration_center",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/school/settings/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": true,
+          "name": "school_configuration_center_canonical",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/school/configuration/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "siteconfig:console_domains_hub",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/siteconfig/console/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "siteconfig:feature_control_audit",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/siteconfig/feature-control/audit/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "siteconfig:feature_control_panel",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/siteconfig/feature-control/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "siteconfig:reportcard_builder",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/siteconfig/reports/builder/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "siteconfig:request_custom_requirement",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/siteconfig/request-custom-requirement/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "siteconfig:sidebar_badges",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/siteconfig/sidebar/badges/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "siteconfig:sidebar_settings",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/siteconfig/sidebar/settings/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "siteconfig:user_preferences",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/siteconfig/preferences/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "studio_os:approval_hub",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/studio/hubs/approvals/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "studio_os:experience",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/studio/experience/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "studio_os:import_hub",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/studio/hubs/import/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "studio_os:output",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/studio/output/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "studio_os:workflow_center",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/studio/hubs/workflow/",
+          "urlconf": "config.tenant_urls"
+        },
+        {
+          "dynamic_args_required": false,
+          "has_template_args": false,
+          "name": "super:dashboard",
+          "resolved": true,
+          "sources": [
+            "templates/partials/portal_sidebar.html"
+          ],
+          "url": "/super/",
+          "urlconf": "config.urls"
+        }
+      ],
+      "unresolved": [],
+      "url_name_count": 81
+    }
+  },
+  "shell_loads": {
+    "manager_admin_shell": {
+      "exists": true,
+      "loads_edge_fit_css": true,
+      "path": "templates/admin/base_site.html"
+    },
+    "manager_shell": {
+      "exists": true,
+      "loads_edge_fit_css": true,
+      "path": "templates/control_plane_base.html"
+    },
+    "portal_shell": {
+      "exists": true,
+      "loads_edge_fit_css": true,
+      "path": "templates/portal_base.html"
+    }
+  },
+  "summary": {
+    "css_contract_gap_count": 0,
+    "gap_count": 0,
+    "manager_menu_gap_count": 0,
+    "shell_gap_count": 0,
+    "template_shell_gap_count": 0,
+    "tenant_menu_gap_count": 0
+  },
+  "templates": {
+    "authenticated_page_like_count": 713,
+    "candidate_shell_gaps": [],
+    "known_shell_counts": {
+      "accounts/owner_console/_console_base.html": 6,
+      "admin/app_index.html": 1,
+      "admin/base.html": 1,
+      "admin/base_site.html": 10,
+      "admin/change_form.html": 33,
+      "admin/change_list.html": 2,
+      "admin/index_superadmin.html": 1,
+      "backend_base.html": 142,
+      "backend_base_manager.html": 2,
+      "base.html": 46,
+      "control_plane_base.html": 233,
+      "control_plane_skeleton.html": 8,
+      "emails/base_branded.html": 1,
+      "marketing/base_marketing.html": 35,
+      "migration_cloud/connector/_wizard_base.html": 8,
+      "portal_base.html": 331,
+      "schools/404_tenant.html": 1,
+      "schools/marketing_base.html": 9,
+      "schools/marketing_page_layout.html": 36,
+      "schools/tenant_minimal_shell.html": 2,
+      "siteconfig/zero_ticket_shell.html": 3,
+      "studio_os/shell.html": 6,
+      "studio_os/studio_embed_minimal.html": 3,
+      "super/wedges/_surface_base.html": 7,
+      "unfold/layouts/skeleton.html": 1,
+      "unfold/layouts/unauthenticated.html": 1
+    },
+    "outside_edge_fit_scope_count": 203,
+    "outside_edge_fit_scope_samples": [
+      {
+        "extends": "base.html",
+        "template": "accounts/claim_invite.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "accounts/documentation.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "accounts/guardian_setup.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "accounts/legacy_setup.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "accounts/mfa_verify.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "accounts/operator_invite_accept.html"
+      },
+      {
+        "extends": "accounts/owner_console/_console_base.html",
+        "template": "accounts/owner_console/audit.html"
+      },
+      {
+        "extends": "accounts/owner_console/_console_base.html",
+        "template": "accounts/owner_console/billing.html"
+      },
+      {
+        "extends": "accounts/owner_console/_console_base.html",
+        "template": "accounts/owner_console/branding.html"
+      },
+      {
+        "extends": "accounts/owner_console/_console_base.html",
+        "template": "accounts/owner_console/data.html"
+      },
+      {
+        "extends": "accounts/owner_console/_console_base.html",
+        "template": "accounts/owner_console/modules.html"
+      },
+      {
+        "extends": "accounts/owner_console/_console_base.html",
+        "template": "accounts/owner_console/role_groups.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "accounts/owner_onboarding/account.html"
+      },
+      {
+        "extends": "schools/tenant_minimal_shell.html",
+        "template": "accounts/owner_onboarding/done.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "accounts/owner_onboarding/school.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "accounts/request_waiver.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "accounts/tenant_staff_invite_accept.html"
+      },
+      {
+        "extends": "admin/index_superadmin.html",
+        "template": "admin/admin_dashboard.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/automation/migrationrun/change_form.html"
+      },
+      {
+        "extends": "unfold/layouts/skeleton.html",
+        "template": "admin/base.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/compliance/compliancerule/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/compliance/consentrecord/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/compliance/consentrequest/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/compliance/legaldocument/change_form.html"
+      },
+      {
+        "extends": "admin/change_list.html",
+        "template": "admin/global_registries/change_list.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/integrations_marketplace/appinstallation/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/integrations_marketplace/integration/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/integrations_marketplace/marketplaceapp/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/integrations_marketplace/marketplacelisting/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/integrations_marketplace/scopegrant/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/integrations_marketplace/serviceintegration/change_form.html"
+      },
+      {
+        "extends": "unfold/layouts/unauthenticated.html",
+        "template": "admin/login.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/metadata/dynamicfielddefinition/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/metadata/dynamicfieldvalue/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/platform_runtime/runtimedefaults/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/portal/announcement/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/portal/documentcategory/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/portal/event/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/portal/faq/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/portal/faqcategory/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/portal/kbarticle/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/portal/kbcategory/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/portal/portalfeatureitem/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/registries/countryregistry/change_form.html"
+      },
+      {
+        "extends": "admin/app_index.html",
+        "template": "admin/siteconfig/app_index.html"
+      },
+      {
+        "extends": "admin/change_list.html",
+        "template": "admin/siteconfig/change_list.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/dashboarduserpreference/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/dashboardwidget/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/featuretoggledefinition/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/featuretogglestate/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/reportcardstyle/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/sitesettings/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/tenantadmissionnumberpolicy/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/themepack/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/tourstep/change_form.html"
+      },
+      {
+        "extends": "admin/change_form.html",
+        "template": "admin/siteconfig/userpreference/change_form.html"
+      },
+      {
+        "extends": "control_plane_skeleton.html",
+        "template": "auth/admin_login.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "auth/login.html"
+      },
+      {
+        "extends": "control_plane_skeleton.html",
+        "template": "auth/manager_login.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "auth/school_picker.html"
+      },
+      {
+        "extends": "studio_os/studio_embed_minimal.html",
+        "template": "customersuccess/guided_onboarding_embed.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "developer/console.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "developer/hub.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "developer/sandbox.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "donors/donor_link_invalid.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "donors/donor_portal.html"
+      },
+      {
+        "extends": "emails/base_branded.html",
+        "template": "emails/support_ticket_reply_visible.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "errors/401.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "errors/403.html"
+      },
+      {
+        "extends": "control_plane_skeleton.html",
+        "template": "errors/403_control_plane.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "errors/404.html"
+      },
+      {
+        "extends": "control_plane_skeleton.html",
+        "template": "errors/404_control_plane.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "errors/500.html"
+      },
+      {
+        "extends": "control_plane_skeleton.html",
+        "template": "errors/500_control_plane.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "errors/503.html"
+      },
+      {
+        "extends": "control_plane_skeleton.html",
+        "template": "errors/503_control_plane.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "feedback/public_status.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "home.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "lux_workspace/demo.html"
+      },
+      {
+        "extends": "base.html",
+        "template": "maintenance.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/academics.html"
+      },
+      {
+        "extends": "schools/marketing_base.html",
+        "template": "marketing/competitive_story.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/compliance.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/edge_mesh.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/enterprise_ledger.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/find_campus.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/global_discovery.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/homepage.html"
+      },
+      {
+        "extends": "schools/marketing_base.html",
+        "template": "marketing/implementation_assurance.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/kb_article_public.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/kb_category_public.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/kb_search_results.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/marketing_compare_page.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/marketing_developer_page.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/marketing_institution_page.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/marketing_marketplace_page.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/marketing_migrate_page.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/marketing_migration_simulator.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/marketing_role_page.html"
+      },
+      {
+        "extends": "marketing/base_marketing.html",
+        "template": "marketing/marketing_setup_simulator.html"
+      }
+    ],
+    "shared_base_count": 4,
+    "shared_bases": [
+      {
+        "extends": null,
+        "template": "backend_base.html"
+      },
+      {
+        "extends": null,
+        "template": "base.html"
+      },
+      {
+        "extends": "control_plane_skeleton.html",
+        "template": "control_plane_base.html"
+      },
+      {
+        "extends": null,
+        "template": "portal_base.html"
+      }
+    ]
+  }
+}

@@ -1,0 +1,143 @@
+/*
+ * rmc-platform-workspace-edge-fit.css
+ * Platform + tenant workspace edge-fit contract.
+ *
+ * Purpose: make authenticated work surfaces use the full width between the
+ * fixed left navigation rail and the right tools/copilot rail, matching the
+ * manager globe deck preview without changing the chrome rails themselves.
+ */
+
+:root {
+  --rmc-workspace-edge-gap: 2px;
+  --rmc-workspace-mobile-gap: 8px;
+}
+
+/* Manager / control-plane shells. */
+body.control-plane-shell .rmc-app-shell__canvas-body,
+body.control-plane-shell .rmc-shell-canvas-container,
+body.control-plane-shell .cp-layout,
+body.control-plane-shell #cp-main-content,
+body.control-plane-shell .cp-page-body,
+body.control-plane-shell [data-rmc-cp-page-body="1"],
+.rmc-app-shell.admin-manager-shell.control-plane-shell .rmc-app-shell__canvas-body,
+.rmc-app-shell.admin-manager-shell.control-plane-shell #cp-main-content,
+.rmc-app-shell.admin-manager-shell.control-plane-shell .cp-page-body,
+.rmc-app-shell.admin-manager-shell.control-plane-shell [data-rmc-cp-page-body="1"] {
+  width: 100%;
+  max-width: none !important;
+  min-width: 0;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-body,
+.rmc-app-shell.admin-manager-shell.control-plane-shell .rmc-app-shell__canvas-body {
+  padding-inline: var(--rmc-workspace-edge-gap) !important;
+}
+
+body.control-plane-shell .cp-layout.rmc-shell-canvas-container,
+body.control-plane-shell .cp-layout.container-fluid {
+  padding-inline: 0 !important;
+  margin-inline: 0 !important;
+}
+
+body.control-plane-shell #cp-main-content {
+  padding-inline: 0 !important;
+  margin-inline: 0 !important;
+}
+
+body.control-plane-shell .cp-page-body {
+  padding-inline: 0 !important;
+  margin-inline: 0 !important;
+}
+
+.rmc-app-shell.admin-manager-shell.control-plane-shell #cp-main-content,
+.rmc-app-shell.admin-manager-shell.control-plane-shell .cp-page-body,
+.rmc-app-shell.admin-manager-shell.control-plane-shell [data-rmc-cp-page-body="1"] {
+  padding-inline: 0 !important;
+  margin-inline: 0 !important;
+}
+
+body.control-plane-shell .cp-page-body > .container,
+body.control-plane-shell .cp-page-body > .container-fluid,
+body.control-plane-shell #cp-main-content > .container,
+body.control-plane-shell #cp-main-content > .container-fluid,
+.rmc-app-shell.admin-manager-shell.control-plane-shell .cp-page-body > .container,
+.rmc-app-shell.admin-manager-shell.control-plane-shell .cp-page-body > .container-fluid,
+.rmc-app-shell.admin-manager-shell.control-plane-shell #cp-main-content > .container,
+.rmc-app-shell.admin-manager-shell.control-plane-shell #cp-main-content > .container-fluid {
+  width: 100% !important;
+  max-width: none !important;
+  padding-inline: var(--rmc-workspace-mobile-gap);
+  margin-inline: 0 !important;
+}
+
+@media (min-width: 992px) {
+  body.control-plane-shell .cp-page-body > .container,
+  body.control-plane-shell .cp-page-body > .container-fluid,
+  body.control-plane-shell #cp-main-content > .container,
+  body.control-plane-shell #cp-main-content > .container-fluid,
+  .rmc-app-shell.admin-manager-shell.control-plane-shell .cp-page-body > .container,
+  .rmc-app-shell.admin-manager-shell.control-plane-shell .cp-page-body > .container-fluid,
+  .rmc-app-shell.admin-manager-shell.control-plane-shell #cp-main-content > .container,
+  .rmc-app-shell.admin-manager-shell.control-plane-shell #cp-main-content > .container-fluid {
+    padding-inline: var(--rmc-workspace-edge-gap);
+  }
+}
+
+/* Tenant authenticated portal shells. */
+body.portal-body-with-layout:not(.control-plane-shell) .portal-layout-wrap,
+body.portal-body-with-layout:not(.control-plane-shell) .portal-layout-row,
+body.portal-body-with-layout:not(.control-plane-shell) #main-content,
+body.portal-body-with-layout:not(.control-plane-shell) .portal-main-col,
+body.portal-body-with-layout:not(.control-plane-shell) .page-wrap,
+body.portal-body-with-layout:not(.control-plane-shell) .rmc-shell-canvas-container {
+  width: 100%;
+  max-width: none !important;
+  min-width: 0;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .portal-layout-wrap {
+  padding-inline: var(--rmc-workspace-mobile-gap) !important;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .portal-main-col,
+body.portal-body-with-layout:not(.control-plane-shell) #main-content {
+  padding-inline: 0 !important;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .page-wrap.rmc-shell-canvas-container {
+  padding-inline: 0 !important;
+  margin-inline: 0 !important;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .page-wrap > .container,
+body.portal-body-with-layout:not(.control-plane-shell) .page-wrap > .container-fluid,
+body.portal-body-with-layout:not(.control-plane-shell) #main-content > .container,
+body.portal-body-with-layout:not(.control-plane-shell) #main-content > .container-fluid {
+  width: 100% !important;
+  max-width: none !important;
+  padding-inline: var(--rmc-workspace-mobile-gap);
+  margin-inline: 0 !important;
+}
+
+@media (min-width: 992px) {
+  body.portal-body-with-layout:not(.control-plane-shell) .portal-layout-wrap {
+    padding-inline: var(--rmc-workspace-edge-gap) !important;
+  }
+
+  body.portal-body-with-layout:not(.control-plane-shell) .page-wrap > .container,
+  body.portal-body-with-layout:not(.control-plane-shell) .page-wrap > .container-fluid,
+  body.portal-body-with-layout:not(.control-plane-shell) #main-content > .container,
+  body.portal-body-with-layout:not(.control-plane-shell) #main-content > .container-fluid {
+    padding-inline: var(--rmc-workspace-edge-gap);
+  }
+}
+
+/* Common dashboard/layout wrappers that previously reintroduced centered caps. */
+body.control-plane-shell [class*="content-max-"],
+body.control-plane-shell [data-rmc-shell-content-grid="1"],
+.rmc-app-shell.admin-manager-shell.control-plane-shell [class*="content-max-"],
+.rmc-app-shell.admin-manager-shell.control-plane-shell [data-rmc-shell-content-grid="1"],
+body.portal-body-with-layout:not(.control-plane-shell) [class*="content-max-"],
+body.portal-body-with-layout:not(.control-plane-shell) [data-rmc-shell-content-grid="1"] {
+  max-inline-size: none !important;
+}

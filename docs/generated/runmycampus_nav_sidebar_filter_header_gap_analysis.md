@@ -4,6 +4,7 @@
 - Shared toolbar source: `templates/partials/rmc_nav_sidebar_toolbar.html`
 - Shared CSS source: `static/css/rmc-nav-sidebar.css`
 - Shared JS source: `static/js/rmc-nav-sidebar.js`
+- Sidebar intelligence source: `static/js/rmc-sidebar-intelligence.js`
 
 ## Result
 No code-owned gaps were found for desktop sidebar surfaces that use the shared nav-sidebar toolbar.

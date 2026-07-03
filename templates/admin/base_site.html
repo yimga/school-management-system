@@ -207,7 +207,10 @@
   <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
   {% endif %}
   {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
-  {% if is_manager_host %}<link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">{% endif %}
+  {% if is_manager_host %}
+  <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
+  {% endif %}
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
   {% comment %} Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). {% endcomment %}
   <style id="admin-brand-resolved-tokens">

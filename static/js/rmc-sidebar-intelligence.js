@@ -251,6 +251,123 @@
     return bar;
   }
 
+  function bindToolbarFilterBar(root, ad, state) {
+    var mount = root.closest(".rmc-nav-sidebar__mount");
+    var toolbar = mount ? mount.querySelector(".rmc-nav-sidebar__toolbar") : null;
+    var input = toolbar ? toolbar.querySelector("[data-rmc-sidebar-filter-input]") : null;
+    if (!toolbar || !input) return false;
+    if (input.getAttribute("data-rmc-sb-intel-bound") === "1") return true;
+    input.setAttribute("data-rmc-sb-intel-bound", "1");
+
+    var field = input.closest("[data-rmc-sidebar-filter]") || input;
+    var prefsBtn = toolbar.querySelector("[data-rmc-sidebar-prefs-toggle]");
+    var pop = document.createElement("div");
+    pop.className = "rmc-sb-prefs";
+    pop.hidden = true;
+
+    var dgroup = document.createElement("div");
+    dgroup.className = "rmc-sb-prefs__group";
+    var dlbl = document.createElement("span");
+    dlbl.className = "rmc-sb-prefs__lbl";
+    dlbl.textContent = "Density";
+    var seg = document.createElement("div");
+    seg.className = "rmc-sb-prefs__seg";
+    DENSITIES.forEach(function (d) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "rmc-sb-prefs__seg-btn";
+      b.setAttribute("data-density", d);
+      b.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+      b.addEventListener("click", function () {
+        root.setAttribute("data-rmc-density", d);
+        var p = readJSON(PREFS_KEY); p.density = d; writeJSON(PREFS_KEY, p);
+        [].slice.call(seg.children).forEach(function (c) { c.classList.toggle("is-active", c === b); });
+      });
+      seg.appendChild(b);
+    });
+    dgroup.appendChild(dlbl); dgroup.appendChild(seg);
+    pop.appendChild(dgroup);
+
+    function toggleRow(label, key) {
+      var row = document.createElement("label");
+      row.className = "rmc-sb-prefs__row";
+      var cb = document.createElement("input");
+      cb.type = "checkbox"; cb.className = "rmc-sb-prefs__cb";
+      var txt = document.createElement("span");
+      txt.textContent = label;
+      row.appendChild(cb); row.appendChild(txt);
+      cb.addEventListener("change", function () {
+        var p = readJSON(PREFS_KEY); p[key] = cb.checked; writeJSON(PREFS_KEY, p);
+        applyVisibility();
+      });
+      pop.appendChild(row);
+      return cb;
+    }
+    var adaptiveCb = toggleRow("Adaptive ordering", "adaptive");
+    var searchCb = toggleRow("Filter box", "search");
+
+    var cfgUrl = root.getAttribute("data-rmc-sidebar-config-url");
+    if (cfgUrl) {
+      var link = document.createElement("a");
+      link.className = "rmc-sb-prefs__link";
+      link.href = cfgUrl;
+      link.textContent = "School defaults...";
+      pop.appendChild(link);
+    }
+
+    if (prefsBtn) {
+      toolbar.appendChild(pop);
+      prefsBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        pop.hidden = !pop.hidden;
+        prefsBtn.setAttribute("aria-expanded", pop.hidden ? "false" : "true");
+      });
+      document.addEventListener("click", function (e) {
+        if (!pop.hidden && !toolbar.contains(e.target)) {
+          pop.hidden = true; prefsBtn.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    function apply() {
+      var q = input.value.trim().toLowerCase();
+      var any = false;
+      state.items.forEach(function (it) {
+        var hit = !q || it.label.indexOf(q) >= 0;
+        ad.row(it.a).classList.toggle("rmc-sb-out", !hit);
+        highlight(ad.labelEl(it.a), q);
+        if (hit) any = true;
+      });
+      foldGroups(root, ad, q);
+      root.classList.toggle("rmc-sb-no-results", !!q && !any);
+      state.cursor = -1; paintCursor(state);
+    }
+    function applyVisibility() {
+      var effSearch = prefBool(root, "search");
+      var effAdaptive = prefBool(root, "adaptive");
+      field.style.display = effSearch ? "" : "none";
+      if (!effSearch && input.value) { input.value = ""; apply(); }
+      searchCb.checked = effSearch;
+      adaptiveCb.checked = effAdaptive;
+      var dcur = root.getAttribute("data-rmc-density") || "comfortable";
+      [].slice.call(seg.children).forEach(function (c) {
+        c.classList.toggle("is-active", c.getAttribute("data-density") === dcur);
+      });
+      if (state.band) state.band.hidden = !effAdaptive;
+    }
+    input.addEventListener("input", apply);
+    input.addEventListener("keydown", function (e) {
+      var vis = visibleItems(state);
+      if (e.key === "ArrowDown") { e.preventDefault(); state.cursor = Math.min(state.cursor + 1, vis.length - 1); paintCursor(state, vis); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); state.cursor = Math.max(state.cursor - 1, 0); paintCursor(state, vis); }
+      else if (e.key === "Enter" && state.cursor >= 0 && vis[state.cursor]) { e.preventDefault(); vis[state.cursor].a.click(); }
+      else if (e.key === "Escape") { input.value = ""; apply(); input.blur(); }
+    });
+    state.input = input;
+    state.applyVisibility = applyVisibility;
+    return true;
+  }
+
   function foldGroups(root, ad, q) {
     if (ad.kind === "details") {
       ad.groups().forEach(function (g) {
@@ -474,8 +591,11 @@
       // Filter bar + preferences popover — built whenever the list is long
       // enough; the search field's visibility follows the effective pref.
       if (list.length >= MIN_ITEMS_FOR_FILTER) {
-        var bar = buildFilterBar(root, ad, state);
-        root.insertBefore(bar, root.firstChild);
+        var usesToolbarFilter = bindToolbarFilterBar(root, ad, state);
+        if (!usesToolbarFilter) {
+          var bar = buildFilterBar(root, ad, state);
+          root.insertBefore(bar, root.firstChild);
+        }
         root.classList.add("rmc-sb-has-filter");
         state.applyVisibility();
       } else if (band) {
@@ -492,7 +612,8 @@
     if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
     var el = document.activeElement;
     if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
-    var input = document.querySelector('[data-rmc-smart-sidebar="1"] .rmc-sb-filter__input');
+    var input = document.querySelector("[data-rmc-sidebar-filter-input]") ||
+      document.querySelector('[data-rmc-smart-sidebar="1"] .rmc-sb-filter__input');
     if (input) { e.preventDefault(); input.focus(); }
   });
 
