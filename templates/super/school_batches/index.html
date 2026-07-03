@@ -1,0 +1,130 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "School merge / split" %} — {{ block.super }}{% endblock %}
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid rmc-page" style="max-width: 1280px;">
+  <header class="rmc-page__header" style="margin-bottom: 14px;">
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "School merge / split" %}</h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 78ch;">
+      {% trans "One batch drives N student transfers through the proven case engine. Dual distinct-operator approval before anything runs; wind-down is an export + deactivate handoff — purge stays in the offboarding console." %}
+    </p>
+  </header>
+
+  <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+    <table class="rmc-data-table" style="width: 100%; margin: 0;">
+      <thead>
+        <tr>
+          <th>{% trans "Batch" %}</th>
+          <th>{% trans "Kind" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Source → Target" %}</th>
+          <th>{% trans "Consent" %}</th>
+          <th>{% trans "To move" %}</th>
+          <th>{% trans "Cases" %}</th>
+          <th>{% trans "Last note" %}</th>
+          <th>{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for batch, rollup_text in rows %}
+        <tr>
+          <td style="font-family: monospace;">{{ batch.pk|stringformat:"s"|slice:":8" }}</td>
+          <td>{{ batch.kind }}</td>
+          <td>{{ batch.status }}{% if batch.wind_down.deactivated %} · {% trans "wound down" %}{% endif %}</td>
+          <td>{{ batch.source_school.name }} → {{ batch.target_school.name }}</td>
+          <td>{{ batch.consent_mode }}</td>
+          <td>{{ batch.preview.to_move|default:"—" }}</td>
+          <td style="font-family: monospace; font-size: var(--type-size-eyebrow);">{{ rollup_text|default:"—" }}</td>
+          <td style="color: var(--text-secondary); max-width: 26ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {% with batch.history|last as last_entry %}{{ last_entry.note|default:last_entry.to|default:"—" }}{% endwith %}
+          </td>
+          <td>
+            {% if batch.status == "previewed" %}
+            <form method="post" action="{% url 'portal:school_batch_approve' %}" style="display: flex; gap: 6px; align-items: center;">
+              {% csrf_token %}
+              <input type="hidden" name="batch_id" value="{{ batch.pk }}">
+              <input name="confirm_slug" required placeholder="{% trans 'source slug' %}" style="width: 110px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+              <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Approve" %}</button>
+            </form>
+            {% elif batch.status == "approved" %}
+            <form method="post" action="{% url 'portal:school_batch_start' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="batch_id" value="{{ batch.pk }}">
+              <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Start" %}</button>
+            </form>
+            {% elif batch.status == "running" %}
+            <form method="post" action="{% url 'portal:school_batch_advance' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="batch_id" value="{{ batch.pk }}">
+              <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Advance now" %}</button>
+            </form>
+            {% elif batch.kind == "merge" and batch.completed_at and not batch.wind_down.deactivated %}
+            <form method="post" action="{% url 'portal:school_batch_wind_down' %}" style="display: flex; gap: 6px; align-items: center;">
+              {% csrf_token %}
+              <input type="hidden" name="batch_id" value="{{ batch.pk }}">
+              <input name="confirm_slug" required placeholder="{% trans 'source slug' %}" style="width: 110px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+              <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Wind down source" %}</button>
+            </form>
+            {% else %}
+            <span style="color: var(--text-secondary);">—</span>
+            {% endif %}
+            {% if batch.status == "draft" or batch.status == "previewed" or batch.status == "approved" or batch.status == "running" %}
+            <form method="post" action="{% url 'portal:school_batch_cancel' %}" style="display: inline; margin-top: 4px;">
+              {% csrf_token %}
+              <input type="hidden" name="batch_id" value="{{ batch.pk }}">
+              <button type="submit" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: var(--type-size-eyebrow);">{% trans "Cancel" %}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 24px;">{% trans "No school batches yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <section style="margin-top: 18px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated); padding: 14px;">
+    <h2 style="font-size: var(--type-size-headline-s); margin: 0 0 8px;">{% trans "Open a batch" %}</h2>
+    <p style="color: var(--text-secondary); margin: 0 0 10px; max-width: 78ch;">
+      {% trans "Merge moves every active student (then the source can wind down). Split moves a cohort — comma-separated classroom IDs and/or student IDs — into an already-provisioned tenant. Institutional mode requires a recorded authority basis and two distinct approvers." %}
+    </p>
+    <form method="post" action="{% url 'portal:school_batch_create' %}" style="display: flex; gap: 10px; align-items: end; flex-wrap: wrap;">
+      {% csrf_token %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Kind" %}
+        <select name="kind" style="display: block; min-width: 120px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
+          <option value="merge">{% trans "Merge" %}</option>
+          <option value="split">{% trans "Split" %}</option>
+        </select>
+      </label>
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Source school ID" %}
+        <input name="source_school_id" required style="display: block; min-width: 220px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+      </label>
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Target school ID" %}
+        <input name="target_school_id" required style="display: block; min-width: 220px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+      </label>
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Consent mode" %}
+        <select name="consent_mode" style="display: block; min-width: 160px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
+          <option value="institutional">{% trans "Institutional" %}</option>
+          <option value="per_guardian">{% trans "Per guardian" %}</option>
+        </select>
+      </label>
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary); flex: 1; min-width: 260px;">{% trans "Consent basis (institutional)" %}
+        <input name="consent_basis" placeholder="{% trans 'Board resolution / ministry order reference' %}" style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
+      </label>
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Classroom IDs (split)" %}
+        <input name="classroom_ids" placeholder="12, 14" style="display: block; min-width: 160px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+      </label>
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Student IDs (optional)" %}
+        <input name="student_pks" style="display: block; min-width: 160px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+      </label>
+      <button type="submit" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Preview batch" %}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

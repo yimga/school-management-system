@@ -57,7 +57,7 @@ def operator_workbench(request):
                     "name": defn.name or defn.code,
                     "description": defn.description,
                     "current_version": defn.current_version,
-                    "run_count": OrchestrationRun.objects.filter(definition=defn).count(),
+                    "run_count": OrchestrationRun.objects.filter(definition=defn).count(),  # tenant-isolation-allow: operator-workbench-platform-scope-staff-required
                 }
             )
     except ProgrammingError:

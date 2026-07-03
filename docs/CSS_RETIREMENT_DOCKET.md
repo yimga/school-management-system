@@ -1,6 +1,24 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-07-03 (9.8-regime merge/split Wave C — record merge: self-maintaining inbound-FK walker with collision QUARANTINE, RecordMergeOperation FSM + merged_into tombstone, merge_records made real, /super/merges/ console turns the ai_dedup candidates into an action path.)
+**Last updated:** 2026-07-03 (9.8-regime merge/split Wave D — school merge/split batches: SchoolTransferBatch dual-approved fan-out over the unmodified transfer engine, 3-attempt failure-isolation ledger, cron-only advancer, wind-down handoff to the existing offboarding export+deactivate — never purge.)
+
+## 2026-07-03 — 9.8-regime merge/split Wave D: school merge / split batches (migration `people.0065`, no SW bump)
+
+**Context (design §10 refresh, same day):** the program's last wave. D7's premise held — school merge/split adds NO new transfer mechanics. A `SchoolTransferBatch` fans out one `TransferCase` per eligible student and drives each through the UNMODIFIED Wave B engine (per-case lock, offline-pending guard, compensation, reconcile), then hands the emptied source to the EXISTING offboarding wind-down. The batch never purges — that stays in the offboarding console behind its own dual approval + legal hold.
+
+**What landed**
+
+| Piece | Files | What it does |
+|---|---|---|
+| Batch of record | `apps/people/models_school_batch.py`, `apps/people/models_transfer.py` (+`batch` FK), migration `people.0065` | `SchoolTransferBatch`: UUID pk, kind (merge/split), source/target school FKs (CheckConstraint ≠), consent mode + recorded `consent_basis`, cohort JSON, guarded journaled FSM (draft→previewed→approved→running→completed/completed_with_issues; cancellable through running), dual-approver FKs, per-case attempt `ledger`, wind-down receipt. |
+| Batch engine | `apps/people/school_batch_service.py` | Preview counts the fan-out honestly (eligible vs already-moving). **Dual DISTINCT-operator approval** with typed source-slug confirmation (purge grammar); institutional mode refuses approval without a recorded authority basis. Start fans out cases — institutional journals the basis through the normal case FSM stations; per-guardian leaves cases on the Wave B consent rail. `advance_batch` single-flights per batch, runs ≤K APPROVED cases per tick, isolates failures behind a 3-attempt ledger (a blocked student is counted as an issue and left APPROVED for the single-case console — never force-failed, never stranding the batch). `wind_down_source` (merge only, zero unfinished cases, slug re-typed) = existing `run_wind_down_export(full=True)` + `run_wind_down_deactivate`, receipt on the batch. |
+| Cron-only advancer | `apps/platform_runtime/periodic.py` | `people.advance_school_transfer_batches` registered like the billing lifecycle: `auto_eligible=False` (secured cron / mgmt command / Render cron only — never the hot /health/ thread); duplicate/late ticks re-run nothing (per-batch lock + per-case idempotency key). |
+| Operator console | `apps/portal/views_school_batches.py`, `apps/portal/urls.py`, `templates/super/school_batches/index.html` | `/portal/super/school-batches/` (transfers-console grammar: staff-only, `?format=json`, csrf mutations, 500-row cap, best-effort AuditLog): create-and-preview → approve (slug typed, twice, distinct operators) → start → advance-now → cancel → wind-down (slug re-typed). Case rollups per batch in one aggregate query. |
+| Drive-by gate fix | `apps/orchestration/views.py` | Peer's committed `OrchestrationRun.objects.filter(definition=…)` count (line 60) had turned `scan_tenant_queryset_safety --compare` RED on main; the staff-only operator workbench is platform-scope by design → honest marker, gate green again. |
+
+**Explicitly out of scope, stated:** teacher/staff employment moves stay manual (`apply_teacher_transfer_envelope`); split target must be pre-provisioned via normal onboarding (no tenant auto-provisioning); grades stay out of batch domains (same rule as the single-case console, until the grades lander resolves term/subject FKs); guardian notification-of-merge (informational) not wired; purge NEVER triggered by the batch.
+
+**Proof:** 19/19 first-run (`test_school_transfer_batch`) + 48/48 adjacent (waves A/B/consent/console/record-merge). The merge e2e moves BOTH seeded students for real (target rows, classroom placement, source retirement) then winds the source down — export ZIP asserted on disk, `School.is_active=False` asserted. Failure injection: one student's undrained offline queue blocks their case 3 attempts → batch lands COMPLETED_WITH_ISSUES with the other student moved; the blocked case stays APPROVED for the single-case console; wind-down refuses over it. Dual approval: same-operator-twice 409, wrong slug refused, missing institutional basis refused. Split cohort scopes the fan-out to one classroom. Restart previews 0 (idempotent). Gates: render-safety 0, tenant-scan 0 new (incl. the drive-by), marker-quality 0, `manage.py check` + migration-drift + url-name + template-ref clean.
 
 ## 2026-07-03 — 9.8-regime merge/split Wave C: record merge (migration `people.0064`, no SW bump)
 

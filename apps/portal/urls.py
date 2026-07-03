@@ -208,6 +208,15 @@ from .views_merge import (
     merge_op_create,
     merge_ops_index,
 )
+from .views_school_batches import (
+    school_batch_advance,
+    school_batch_approve,
+    school_batch_cancel,
+    school_batch_create,
+    school_batch_start,
+    school_batch_wind_down,
+    school_batches_index,
+)
 from .views_lms_audit import lms_audit_index, lms_audit_export_index, lms_audit_export_download
 from .views_idempotency_audit import idempotency_audit_index
 from .views_lms_pkce import lms_pkce_start, lms_pkce_callback, lms_pkce_build
@@ -289,6 +298,14 @@ urlpatterns = [
     path("super/merges/create/", merge_op_create, name="merge_op_create"),
     path("super/merges/approve/", merge_op_approve, name="merge_op_approve"),
     path("super/merges/apply/", merge_op_apply, name="merge_op_apply"),
+    # 2026-07-03: School merge/split batch console (Wave D).
+    path("super/school-batches/", school_batches_index, name="school_batches_index"),
+    path("super/school-batches/create/", school_batch_create, name="school_batch_create"),
+    path("super/school-batches/approve/", school_batch_approve, name="school_batch_approve"),
+    path("super/school-batches/start/", school_batch_start, name="school_batch_start"),
+    path("super/school-batches/advance/", school_batch_advance, name="school_batch_advance"),
+    path("super/school-batches/cancel/", school_batch_cancel, name="school_batch_cancel"),
+    path("super/school-batches/wind-down/", school_batch_wind_down, name="school_batch_wind_down"),
     # v4.00.53: LMS push-grade audit URL is registered above the provider
     # catch-all (see lms_audit_index above lms_provider_detail).
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).

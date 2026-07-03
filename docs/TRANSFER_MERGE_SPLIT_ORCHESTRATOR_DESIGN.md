@@ -288,3 +288,59 @@ raises through `incident_services.upsert_platform_incident`
 - Retention: how long does the source keep the TRANSFERRED profile active-invisible
   before normal archival applies? (Designed default: existing archival policy,
   no special-case.)
+
+## 10. Wave D design refresh — school merge / split (2026-07-03)
+
+Evidence basis: Waves A/B/C are live (`8c567d784`, `f420006d7` + audit closeout
+`a8d8334f9`, `27208c67b`). D7's premise held — no new mechanics; a batch parent
+composes the proven rails.
+
+**DR1 — one batch model, both operations.** `people.SchoolTransferBatch`
+(kind `merge` | `split`) parents N `TransferCase`s via a new nullable
+`TransferCase.batch` FK. Merge = every active student of the source, then the
+source winds down; split = a cohort selection (classroom ids and/or explicit
+student pks) into a pre-provisioned tenant, no wind-down. Lives in
+`apps.people` beside the case for the same migrations-rail reason as Wave A.
+
+**DR2 — consent modes, stated honestly.** `institutional` (default): the moving
+authority is the institution — dual DISTINCT-operator approval + typed
+source-slug confirmation + a recorded non-empty `consent_basis` (board
+resolution / ministry order); every case journals that basis through the
+existing FSM (`draft → consent_pending → approved`, no guardian token) and
+points `consent_reference` at the batch. `per_guardian`: the batch opens DRAFT
+cases and each guardian decides through the EXISTING Wave B token pages — the
+batch only ever runs cases the consent rail approved. Guardian
+notification-of-merge (informational, not consent) is a named follow-up.
+
+**DR3 — purge grammar on the batch.** FSM `draft → previewed → approved →
+running → completed | completed_with_issues`, cancellable up to and during
+`running` (cancel stops scheduling; in-flight cases finish their own FSM).
+Approval = two distinct staff operators, each retyping the source school slug
+(clone of the offboarding `confirm_slug` token).
+
+**DR4 — chunked, idempotent advancement.** `advance_batch` single-flights per
+batch (`cache.add`), drives ≤K APPROVED cases per tick through the UNMODIFIED
+`run_transfer_case` (all Wave B guards intact: per-case lock, offline-pending
+guard, compensation), and isolates failures per case with a 3-attempt ledger
+(exhausted ⇒ counted as an issue, batch continues — one stuck student never
+strands a merger). Registered as the cron-only periodic job
+`people.advance_school_transfer_batches` (`auto_eligible=False`, same posture
+as the billing lifecycle) plus a console "Advance now".
+
+**DR5 — wind-down is a handoff, never a purge.** A merge batch with zero
+unfinished cases may run `wind_down_source`: the EXISTING
+`run_wind_down_export(full=True)` + `run_wind_down_deactivate`, receipt on the
+batch. Purge stays in the offboarding console behind its own dual approval +
+legal hold — the batch NEVER deletes.
+
+**DR6 — split provisioning out of scope.** The split target must already exist
+(normal onboarding); Wave D moves the cohort. Auto-provisioning a tenant from
+a split definition is a named non-goal.
+
+**DR7 — eligibility.** Active students of the source (`is_active`, not
+TRANSFERRED, not merge-tombstoned) ∩ cohort; a student with a live or
+already-successful case to the same target is skipped, so re-starting a batch
+is idempotent. Teacher/staff employment moves stay manual
+(`apply_teacher_transfer_envelope`) — stated, not silent. Grades stay out of
+batch domains until the grades lander resolves term/subject FKs (same rule as
+the single-case console).

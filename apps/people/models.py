@@ -1610,3 +1610,7 @@ from apps.people.models_merge import (  # noqa: E402,F401
     MergeStateError,
     RecordMergeOperation,
 )
+from apps.people.models_school_batch import (  # noqa: E402,F401
+    BatchStateError,
+    SchoolTransferBatch,
+)

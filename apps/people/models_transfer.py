@@ -60,6 +60,14 @@ class TransferCase(models.Model):
     }
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    batch = models.ForeignKey(
+        "people.SchoolTransferBatch",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="cases",
+        help_text="School merge/split batch that fanned this case out (Wave D).",
+    )
     passport = models.ForeignKey(
         "people.StudentPassport",
         null=True,

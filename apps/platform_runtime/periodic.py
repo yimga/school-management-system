@@ -384,7 +384,30 @@ def ensure_default_jobs() -> None:
             description="Daily PII-minimisation sweep: delete Migration Cloud artifact source blobs past expires_at.",
             tags=("migration_cloud", "retention", "light"),
         )
+        # School merge/split batch advancer (merge/split Wave D, 2026-07-03).
+        # HEAVY: each tick drives up to a few TransferCases end-to-end
+        # (envelope export + migration-cloud apply at the target), so it is
+        # cron-only like the billing lifecycle — never on the hot /health/
+        # thread. Each advance is single-flighted per batch and every case
+        # run is idempotent (bundle idempotency key = case id), so a
+        # duplicate or late tick re-runs nothing already applied.
+        _REGISTRY["people.advance_school_transfer_batches"] = PeriodicJob(
+            name="people.advance_school_transfer_batches",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_advance_school_transfer_batches,
+            description="Frequent: advance RUNNING school merge/split batches a chunk of transfer cases at a time.",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("people", "transfers", "heavy"),
+        )
         _DEFAULTS_INSTALLED = True
+
+
+def _run_advance_school_transfer_batches() -> object:
+    # Lazy import: people owns the batch engine (merge/split Wave D).
+    from apps.people.school_batch_service import advance_running_batches
+
+    return advance_running_batches()
 
 
 def _run_purge_expired_artifact_blobs() -> object:
