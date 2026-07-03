@@ -1,0 +1,73 @@
+{% extends "accounts/owner_console/_console_base.html" %}
+{% load i18n %}
+{% block oc_pagetitle %}{% trans "Support" %}{% endblock %}
+{% block oc_title %}{% trans "Support" %}{% endblock %}
+{% block oc_sub %}{% trans "Get help, raise a ticket, or search the knowledge base — all in one place." %}{% endblock %}
+{% block oc_headactions %}
+<div class="rmc-oc-headactions">
+  {% if new_ticket_url %}<a class="rmc-oc-btn rmc-oc-btn--primary" href="{{ new_ticket_url }}">{% trans "New support request" %}</a>{% endif %}
+</div>
+{% endblock %}
+{% block oc_body %}
+
+<div class="rmc-oc-tiles">
+  <div class="rmc-oc-tile">
+    <span class="rmc-oc-k">{% trans "Open tickets" %}</span>
+    <span class="rmc-oc-v">{{ open_ticket_count }}</span>
+  </div>
+  {% if help_center_url %}
+  <a class="rmc-oc-tile rmc-oc-tlink" href="{{ help_center_url }}">
+    <span class="rmc-oc-k">{% trans "Help center" %}</span>
+    <span class="rmc-oc-v rmc-oc-v--sm">{% trans "Open" %} →</span>
+  </a>
+  {% endif %}
+</div>
+
+<div class="rmc-oc-surfaces">
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Your recent tickets" %}</h2>
+    {% if my_tickets %}
+    <div class="rmc-oc-tablewrap">
+      <table class="rmc-oc-table">
+        <thead>
+          <tr>
+            <th>{% trans "Subject" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Priority" %}</th>
+            <th>{% trans "Opened" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in my_tickets %}
+          <tr>
+            <td>{{ t.subject }}</td>
+            <td><span class="rmc-oc-role">{{ t.status }}</span></td>
+            <td>{% if t.priority %}{{ t.priority }}{% else %}<span class="rmc-oc-muted">—</span>{% endif %}</td>
+            <td>{% if t.when %}{{ t.when|date:"M j, Y" }}{% else %}<span class="rmc-oc-muted">—</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="rmc-oc-muted">{% trans "You haven’t opened any support tickets yet." %}</p>
+    {% endif %}
+    <div class="rmc-oc-surf-actions">
+      {% if new_ticket_url %}<a class="rmc-oc-btn" href="{{ new_ticket_url }}">{% trans "Raise a ticket" %} →</a>{% endif %}
+    </div>
+  </section>
+
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Find an answer" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "Search guides and common questions before you wait on a reply." %}</p>
+    <div class="rmc-oc-surf-actions">
+      {% if kb_url %}<a class="rmc-oc-btn" href="{{ kb_url }}">{% trans "Knowledge base" %} →</a>{% endif %}
+      {% if faq_url %}<a class="rmc-oc-btn" href="{{ faq_url }}">{% trans "FAQ" %} →</a>{% endif %}
+      {% if help_center_url %}<a class="rmc-oc-btn" href="{{ help_center_url }}">{% trans "Help center" %} →</a>{% endif %}
+      {% if contact_url %}<a class="rmc-oc-btn" href="{{ contact_url }}">{% trans "Contact us" %} →</a>{% endif %}
+    </div>
+  </section>
+</div>
+
+<p class="rmc-oc-note">{% trans "Tickets you raise here go to the RunMyCampus support team and stay linked to your school." %}</p>
+{% endblock %}

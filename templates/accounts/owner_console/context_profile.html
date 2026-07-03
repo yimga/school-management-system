@@ -1,0 +1,84 @@
+{% extends "accounts/owner_console/_console_base.html" %}
+{% load i18n %}
+{% block oc_pagetitle %}{% trans "Setup" %}{% endblock %}
+{% block oc_title %}{% trans "Context profile" %}{% endblock %}
+{% block oc_sub %}{% trans "Tell RunMyCampus how your school runs — this shapes currency, grading and reports everywhere." %}{% endblock %}
+{% block oc_body %}
+
+<p class="rmc-oc-formhint">
+  {% blocktrans %}Step {{ step }} of {{ total_steps }}{% endblocktrans %}
+  {% if profile_complete %} · <span class="rmc-oc-role rmc-oc-role--owner">{% trans "Saved" %}</span>{% endif %}
+</p>
+
+<div class="rmc-oc-surfaces">
+{% if step == 1 %}
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Where is your school?" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "Your country and region set the currency, date formats and language defaults across the platform." %}</p>
+    <form method="post" class="rmc-oc-form">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="1">
+      <label class="rmc-oc-formhint" for="cp-country">{% trans "Country (ISO code, e.g. NG, KE, US)" %}</label>
+      <input class="form-control" id="cp-country" name="country" maxlength="120" value="{{ current_country }}" autocomplete="country">
+      <label class="rmc-oc-formhint" for="cp-region">{% trans "Region / state (optional)" %}</label>
+      <input class="form-control" id="cp-region" name="region" maxlength="120" value="{{ current_region }}">
+      {% if resolved_currency %}<p class="rmc-oc-formhint">{% blocktrans %}Current currency: {{ resolved_currency }}{% endblocktrans %}</p>{% endif %}
+      <div class="rmc-oc-formfoot">
+        <button type="submit" class="rmc-oc-btn rmc-oc-btn--primary">{% trans "Continue" %} →</button>
+      </div>
+    </form>
+  </section>
+
+{% elif step == 2 %}
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "How does your school grade?" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "Pick the grading scale your teachers use. You can fine-tune bands later in grading settings." %}</p>
+    <form method="post" class="rmc-oc-form">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="2">
+      {% if grade_scale_choices %}
+      <label class="rmc-oc-formhint" for="cp-scale">{% trans "Default grading scale" %}</label>
+      <select class="form-select" id="cp-scale" name="grading_scale">
+        {% for choice in grade_scale_choices %}
+        <option value="{{ choice.code }}"{% if choice.code == current_grading_scale %} selected{% endif %}>{{ choice.name }}</option>
+        {% endfor %}
+      </select>
+      {% else %}
+      <p class="rmc-oc-muted">{% trans "Grading scales aren’t available right now — you can set this later in grading settings." %}</p>
+      {% endif %}
+      <div class="rmc-oc-formfoot">
+        <a class="rmc-oc-btn" href="?step=1">← {% trans "Back" %}</a>
+        <button type="submit" class="rmc-oc-btn rmc-oc-btn--primary">{% trans "Continue" %} →</button>
+      </div>
+    </form>
+  </section>
+
+{% else %}
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Review &amp; finish" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "Here’s the context we’ll use. You can come back and change any of it any time." %}</p>
+    <div class="rmc-oc-tablewrap">
+      <table class="rmc-oc-table">
+        <tbody>
+          <tr><td>{% trans "Country" %}</td><td>{% if current_country %}{{ current_country }}{% else %}<span class="rmc-oc-muted">{% trans "Not set" %}</span>{% endif %}</td></tr>
+          <tr><td>{% trans "Region" %}</td><td>{% if current_region %}{{ current_region }}{% else %}<span class="rmc-oc-muted">—</span>{% endif %}</td></tr>
+          <tr><td>{% trans "Currency" %}</td><td>{% if resolved_currency %}{{ resolved_currency }}{% else %}<span class="rmc-oc-muted">—</span>{% endif %}</td></tr>
+          <tr><td>{% trans "Grading scale" %}</td><td>{% if current_grading_scale %}{{ current_grading_scale }}{% else %}<span class="rmc-oc-muted">{% trans "Not set" %}</span>{% endif %}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    {% if calendar_url %}
+    <p class="rmc-oc-formhint">{% trans "Your academic year and terms are set in their own editor:" %} <a href="{{ calendar_url }}">{% trans "Open the calendar" %} →</a></p>
+    {% endif %}
+    <form method="post" class="rmc-oc-form">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="3">
+      <div class="rmc-oc-formfoot">
+        <a class="rmc-oc-btn" href="?step=2">← {% trans "Back" %}</a>
+        <button type="submit" class="rmc-oc-btn rmc-oc-btn--primary">{% trans "Save profile" %}</button>
+      </div>
+    </form>
+  </section>
+{% endif %}
+</div>
+{% endblock %}

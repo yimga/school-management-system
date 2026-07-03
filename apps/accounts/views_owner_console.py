@@ -69,14 +69,17 @@ def _console_sections(active: str) -> list[dict[str, Any]]:
     """
     raw = [
         {"key": "overview", "label": _("Overview"), "icon": "bi-grid-1x2", "url": _safe("accounts:owner_console")},
+        {"key": "setup", "label": _("Setup"), "icon": "bi-sliders", "url": _safe("accounts:owner_console_context_profile")},
         {"key": "people", "label": _("People & Roles"), "icon": "bi-people", "url": _safe("accounts:owner_console_people")},
         {"key": "rolegroups", "label": _("Role bundles"), "icon": "bi-collection", "url": _safe("accounts:owner_console_role_groups")},
         {"key": "rbac", "label": _("Roles & access"), "icon": "bi-shield-lock", "url": _safe("accounts:rbac")},
         {"key": "modules", "label": _("Modules"), "icon": "bi-puzzle", "url": _safe("accounts:owner_console_modules")},
+        {"key": "workflows", "label": _("Workflows"), "icon": "bi-diagram-3", "url": _safe("accounts:owner_console_workflows")},
         {"key": "billing", "label": _("Billing & plan"), "icon": "bi-credit-card", "url": _safe("accounts:owner_console_billing")},
         {"key": "data", "label": _("Data"), "icon": "bi-database", "url": _safe("accounts:owner_console_data")},
         {"key": "branding", "label": _("Branding"), "icon": "bi-palette", "url": _safe("accounts:owner_console_branding")},
         {"key": "audit", "label": _("Audit log"), "icon": "bi-journal-text", "url": _safe("accounts:owner_console_audit")},
+        {"key": "support", "label": _("Support"), "icon": "bi-life-preserver", "url": _safe("accounts:owner_console_support")},
     ]
     sections = []
     for item in raw:

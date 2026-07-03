@@ -84,6 +84,9 @@ from .views_owner_console import (
 )
 from .views_owner_console_people import owner_console_people
 from .views_owner_console_roles import owner_console_role_groups
+from .views_owner_console_workflows import owner_console_workflows
+from .views_owner_console_support import owner_console_support
+from .views_owner_console_context_profile import owner_console_context_profile
 from .views_delegation import (
     my_delegations,
     delegation_add,
@@ -610,6 +613,9 @@ urlpatterns = [
     path("owner/data/", owner_console_data, name="owner_console_data"),
     path("owner/branding/", owner_console_branding, name="owner_console_branding"),
     path("owner/audit/", owner_console_audit, name="owner_console_audit"),
+    path("owner/setup/", owner_console_context_profile, name="owner_console_context_profile"),
+    path("owner/workflows/", owner_console_workflows, name="owner_console_workflows"),
+    path("owner/support/", owner_console_support, name="owner_console_support"),
     path("backend/ops-watch/", backend_ops_watch_data, name="backend_ops_watch_data"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("backend/import/", backend_entity_import, name="backend_entity_import"),

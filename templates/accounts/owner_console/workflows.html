@@ -1,0 +1,68 @@
+{% extends "accounts/owner_console/_console_base.html" %}
+{% load i18n %}
+{% block oc_pagetitle %}{% trans "Workflows" %}{% endblock %}
+{% block oc_title %}{% trans "Workflows" %}{% endblock %}
+{% block oc_sub %}{% trans "Every automation running for your school — what it does, when it runs, and where to change it." %}{% endblock %}
+{% block oc_body %}
+
+<div class="rmc-oc-tiles">
+  <div class="rmc-oc-tile">
+    <span class="rmc-oc-k">{% trans "Workflows" %}</span>
+    <span class="rmc-oc-v">{{ total_workflows }}</span>
+  </div>
+  {% if outcomes_url %}
+  <a class="rmc-oc-tile rmc-oc-tlink" href="{{ outcomes_url }}">
+    <span class="rmc-oc-k">{% trans "Run history" %}</span>
+    <span class="rmc-oc-v rmc-oc-v--sm">{% trans "Open outcomes" %} →</span>
+  </a>
+  {% endif %}
+</div>
+
+<div class="rmc-oc-surfaces">
+  {% for group in workflow_groups %}
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{{ group.label }}</h2>
+    <p class="rmc-oc-surf-p">{{ group.blurb }}</p>
+    {% if group.rows %}
+    <div class="rmc-oc-tablewrap">
+      <table class="rmc-oc-table">
+        <thead>
+          <tr>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Trigger" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Last run" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in group.rows %}
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{% if row.trigger %}{{ row.trigger }}{% else %}<span class="rmc-oc-muted">—</span>{% endif %}</td>
+            <td>
+              {% if row.active %}
+                <span class="rmc-oc-role rmc-oc-role--owner">{% if row.status %}{{ row.status }}{% else %}{% trans "Active" %}{% endif %}</span>
+              {% else %}
+                <span class="rmc-oc-role rmc-oc-role--warn">{% if row.status %}{{ row.status }}{% else %}{% trans "Off" %}{% endif %}</span>
+              {% endif %}
+            </td>
+            <td>{% if row.last_run %}{{ row.last_run|date:"M j, Y, g:i a" }}{% else %}<span class="rmc-oc-muted">{% trans "Never" %}</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="rmc-oc-muted">{% trans "Nothing here yet." %}</p>
+    {% endif %}
+    {% if group.open_url %}
+    <div class="rmc-oc-surf-actions">
+      <a class="rmc-oc-btn" href="{{ group.open_url }}">{{ group.open_label }} →</a>
+    </div>
+    {% endif %}
+  </section>
+  {% endfor %}
+</div>
+
+<p class="rmc-oc-note">{% trans "This is a read-only overview. To create, edit or turn off a workflow, open its builder above." %}</p>
+{% endblock %}
