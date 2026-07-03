@@ -42,10 +42,14 @@ class TransferEnvelope:
     custom_fields: dict[str, Any] = field(default_factory=dict)
     consent_records: list[dict[str, Any]] = field(default_factory=list)
     audit_metadata: dict[str, Any] = field(default_factory=dict)
+    # Optional multi-domain history payload: {canonical_domain: [row, ...]}.
+    # Omitted from the checksum body when empty so pre-existing single-record
+    # envelopes keep verifying byte-for-byte.
+    domain_rows: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     checksum: str = ""
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        body: dict[str, Any] = {
             "envelope_kind": self.envelope_kind,
             "schema_version": self.schema_version,
             "source_tenant_id_hash": self.source_tenant_id_hash,
@@ -56,6 +60,9 @@ class TransferEnvelope:
             "audit_metadata": self.audit_metadata,
             "checksum": self.checksum,
         }
+        if self.domain_rows:
+            body["domain_rows"] = self.domain_rows
+        return body
 
 
 _ENVELOPE_KINDS = frozenset({"student", "teacher", "academic_history"})
@@ -69,6 +76,30 @@ def _canonical_bytes(body: dict[str, Any]) -> bytes:
     return json.dumps(body, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
+def _validate_domain_rows(domain_rows: dict[str, list[dict[str, Any]]]) -> None:
+    """Schema-validate the multi-domain payload against the canonical headers.
+
+    The canonical-domain registry is owned by migration_cloud (the apply side);
+    validating here keeps a malformed envelope from ever being sealed.
+    """
+    from apps.migration_cloud.accelerators.runmycampus_canonical import (
+        DOMAIN_CANONICAL_HEADERS,
+    )
+
+    for domain, rows in domain_rows.items():
+        headers = DOMAIN_CANONICAL_HEADERS.get(domain)
+        if headers is None:
+            raise TransferEnvelopeError(
+                f"domain_rows domain {domain!r} is not a canonical domain"
+            )
+        for row in rows:
+            extra = set(row.keys()) - headers
+            if extra:
+                raise TransferEnvelopeError(
+                    f"domain_rows[{domain!r}] row has non-canonical keys: {sorted(extra)}"
+                )
+
+
 def build_envelope(
     *,
     envelope_kind: str,
@@ -77,6 +108,7 @@ def build_envelope(
     canonical_data: dict[str, Any],
     custom_data: dict[str, Any] | None = None,
     consent_records: list[dict[str, Any]] | None = None,
+    domain_rows: dict[str, list[dict[str, Any]]] | None = None,
     actor_id: str = "",
 ) -> TransferEnvelope:
     if envelope_kind not in _ENVELOPE_KINDS:
@@ -102,6 +134,10 @@ def build_envelope(
             f"custom_data contains unmappable keys: {mapping.unmapped_keys}"
         )
 
+    rows_payload = {k: list(v) for k, v in (domain_rows or {}).items() if v}
+    if rows_payload:
+        _validate_domain_rows(rows_payload)
+
     body = {
         "envelope_kind": envelope_kind,
         "schema_version": ENVELOPE_VERSION,
@@ -114,6 +150,8 @@ def build_envelope(
             "actor_id_hash": _hash(actor_id) if actor_id else "",
         },
     }
+    if rows_payload:
+        body["domain_rows"] = rows_payload
     checksum = hashlib.sha256(_canonical_bytes(body)).hexdigest()
     envelope = TransferEnvelope(
         envelope_kind=envelope_kind,
@@ -124,6 +162,7 @@ def build_envelope(
         custom_fields=custom,
         consent_records=consent_records or [],
         audit_metadata=body["audit_metadata"],
+        domain_rows=rows_payload,
         checksum=checksum,
     )
     logger.info(
@@ -145,6 +184,27 @@ def build_teacher_envelope(**kwargs: Any) -> TransferEnvelope:
     return build_envelope(envelope_kind="teacher", **kwargs)
 
 
+def envelope_from_dict(payload: dict[str, Any]) -> TransferEnvelope:
+    """Rehydrate an envelope received as JSON (checksum verified by the apply side)."""
+    if not isinstance(payload, dict):
+        raise TransferEnvelopeError("envelope payload must be a dict")
+    kind = payload.get("envelope_kind") or ""
+    if kind not in _ENVELOPE_KINDS:
+        raise TransferEnvelopeError(f"unknown envelope_kind {kind!r}")
+    return TransferEnvelope(
+        envelope_kind=kind,
+        schema_version=int(payload.get("schema_version") or ENVELOPE_VERSION),
+        source_tenant_id_hash=str(payload.get("source_tenant_id_hash") or ""),
+        target_tenant_id_hash=str(payload.get("target_tenant_id_hash") or ""),
+        canonical_fields=dict(payload.get("canonical_fields") or {}),
+        custom_fields=dict(payload.get("custom_fields") or {}),
+        consent_records=list(payload.get("consent_records") or []),
+        audit_metadata=dict(payload.get("audit_metadata") or {}),
+        domain_rows=dict(payload.get("domain_rows") or {}),
+        checksum=str(payload.get("checksum") or ""),
+    )
+
+
 __all__ = [
     "ENVELOPE_VERSION",
     "TransferEnvelope",
@@ -152,4 +212,5 @@ __all__ = [
     "build_envelope",
     "build_student_envelope",
     "build_teacher_envelope",
+    "envelope_from_dict",
 ]

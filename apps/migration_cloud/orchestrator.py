@@ -662,6 +662,15 @@ def _run_lander_under_schema(
     except ImportError:
         return lander.land(canonical_rows=rows_iter, ctx=ctx)
 
+    from django.db import connection
+
+    if not hasattr(connection, "set_schema"):
+        # Non-tenant DB backend (single-schema sqlite dev/test lane): there is
+        # no schema to switch, and entering schema_context raises
+        # AttributeError ('DatabaseWrapper' has no 'tenant') — which failed
+        # every artifact instead of applying it.
+        return lander.land(canonical_rows=rows_iter, ctx=ctx)
+
     with schema_context(bundle.schema_name):
         return lander.land(canonical_rows=rows_iter, ctx=ctx)
 

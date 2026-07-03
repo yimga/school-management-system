@@ -45,8 +45,9 @@ class TransferApplyWorkflowTests(SimpleTestCase):
         mock_school.objects.filter.return_value.first.return_value = school
         employment = SimpleNamespace(pk="emp-1")
         assignment = SimpleNamespace(pk="assign-1")
+        mock_employment.objects.filter.return_value.first.return_value = None
         mock_employment.objects.create.return_value = employment
-        mock_assignment.objects.create.return_value = assignment
+        mock_assignment.objects.get_or_create.return_value = (assignment, True)
 
         envelope = build_teacher_envelope(
             source_tenant_id="source-tenant",
@@ -62,9 +63,36 @@ class TransferApplyWorkflowTests(SimpleTestCase):
         )
         self.assertEqual(result.employment_id, "emp-1")
         self.assertEqual(result.assignment_id, "assign-1")
-        mock_assignment.objects.create.assert_called_once()
-        create_kwargs = mock_assignment.objects.create.call_args.kwargs
-        self.assertEqual(create_kwargs["allocation_fraction"], Decimal("0.50"))
+        mock_assignment.objects.get_or_create.assert_called_once()
+        goc_kwargs = mock_assignment.objects.get_or_create.call_args.kwargs
+        self.assertEqual(goc_kwargs["defaults"]["allocation_fraction"], Decimal("0.50"))
+
+    @patch("apps.governance.models.SchoolAssignment")
+    @patch("apps.governance.models.Employment")
+    @patch("apps.schools.models.School")
+    def test_reapply_is_idempotent(self, mock_school, mock_employment, mock_assignment):
+        """Design §8 defect 3: a re-sent envelope must not stack duplicate rows."""
+        school = SimpleNamespace(pk="school-b", organization_id="org-1", is_active=True)
+        mock_school.objects.filter.return_value.first.return_value = school
+        existing_employment = SimpleNamespace(pk="emp-1")
+        existing_assignment = SimpleNamespace(pk="assign-1")
+        mock_employment.objects.filter.return_value.first.return_value = existing_employment
+        mock_assignment.objects.get_or_create.return_value = (existing_assignment, False)
+
+        envelope = build_teacher_envelope(
+            source_tenant_id="source-tenant",
+            target_tenant_id="target-tenant",
+            canonical_data={},
+        )
+        result = apply_teacher_transfer_envelope(
+            envelope,
+            target_school_id="school-b",
+            organization_id="org-1",
+            user_id=99,
+        )
+        mock_employment.objects.create.assert_not_called()
+        self.assertEqual(result.employment_id, "emp-1")
+        self.assertEqual(result.assignment_id, "assign-1")
 
     @patch("apps.schools.models.School")
     def test_apply_rejects_org_mismatch(self, mock_school):

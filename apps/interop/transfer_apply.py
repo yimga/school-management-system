@@ -69,21 +69,31 @@ def apply_teacher_transfer_envelope(
     effective_date = started_on or date.today()
     fraction = allocation_fraction if allocation_fraction is not None else Decimal("1.00")
 
-    employment = Employment.objects.create(
+    # Idempotent re-apply (design §8 defect 3): re-sending the same envelope
+    # must not stack duplicate Employment/SchoolAssignment rows.
+    employment = Employment.objects.filter(  # tenant-isolation-allow: org-scoped-teacher-transfer-apply-target-verified-above
         organization_id=organization_id,
         user_id=user_id,
-        title=str(envelope.canonical_fields.get("position_title") or "Teacher"),
-        started_on=effective_date,
         is_active=True,
-    )
-    assignment = SchoolAssignment.objects.create(
+    ).first()
+    if employment is None:
+        employment = Employment.objects.create(
+            organization_id=organization_id,
+            user_id=user_id,
+            title=str(envelope.canonical_fields.get("position_title") or "Teacher"),
+            started_on=effective_date,
+            is_active=True,
+        )
+    assignment, _created = SchoolAssignment.objects.get_or_create(
         employment=employment,
         school=school,
         role="TEACHER",  # role-string-allow: transfer-apply-teacher-envelope-default-role
-        allocation_fraction=fraction,
-        started_on=effective_date,
-        is_primary=True,
         is_active=True,
+        defaults={
+            "allocation_fraction": fraction,
+            "started_on": effective_date,
+            "is_primary": True,
+        },
     )
 
     logger.info(

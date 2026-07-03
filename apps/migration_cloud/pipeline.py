@@ -224,6 +224,11 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
             **bundle.discovery_summary,
             "per_artifact_domain": per_artifact,
         }
+        # Same persistence trap as the U4 mapping write: mark_status saves a
+        # fixed update_fields list without discovery_summary, and the refresh
+        # would drop this assignment — losing per-artifact domains means the
+        # apply step falls back to the custom_fields lander for every artifact.
+        bundle.save(update_fields=["discovery_summary", "updated_at"])
         bundle.mark_status(BundleStatus.CLASSIFIED)
         bundle.refresh_from_db()
         summary["per_artifact"] = per_artifact
@@ -287,6 +292,12 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
                 else {}
             ),
         }
+        # mark_status saves a fixed update_fields list that does NOT include
+        # mapping_summary, and the refresh_from_db below would then discard
+        # this assignment — persisting here is what lets _build_jobs see the
+        # per-artifact mappings at apply time instead of falling back to the
+        # custom_fields lander for every artifact.
+        bundle.save(update_fields=["mapping_summary", "updated_at"])
         bundle.mark_status(BundleStatus.MAPPED, summary_patch={"ai_calls": summary["ai_calls"]})
         bundle.refresh_from_db()
         summary["stages_run"].append("map")

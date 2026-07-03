@@ -279,6 +279,38 @@ def export_tenant_to_canonical(*, school: Any, domains: Iterable[str] | None = N
                                      ["external_id", "first_name", "last_name", "email", "phone",
                                       "date_of_birth", "grade_level", "enrollment_status"])
     try:
+        from apps.people.models import StudentGuardian
+    except Exception:  # noqa: BLE001
+        StudentGuardian = None
+    if StudentGuardian is not None and "guardians" in domains:
+        # Transfer design §8 defect 2: "guardians" was in the default domain
+        # set above but had no branch — silently omitted from every export.
+        guardian_fields = [
+            "guardian_external_id", "first_name", "last_name", "email",
+            "phone", "relationship", "student_external_id",
+        ]
+        guardian_rows = []
+        guardian_qs = StudentGuardian.objects.filter(
+            student__school=school
+        ).select_related("student", "guardian_user")
+        for g in guardian_qs.iterator():
+            guardian_user = getattr(g, "guardian_user", None)
+            student = getattr(g, "student", None)
+            guardian_rows.append({
+                "guardian_external_id": f"g-{g.pk}",
+                "first_name": getattr(guardian_user, "first_name", "") or "",
+                "last_name": getattr(guardian_user, "last_name", "") or "",
+                "email": g.email or getattr(guardian_user, "email", "") or "",
+                "phone": g.phone,
+                "relationship": g.relationship,
+                "student_external_id": (
+                    getattr(student, "admission_number", "")
+                    or getattr(student, "student_code", "")
+                    or ""
+                ),
+            })
+        out["guardians"] = _csv_dump_rows(guardian_rows, guardian_fields)
+    try:
         from apps.finance.models import Invoice
     except Exception:  # noqa: BLE001
         Invoice = None
@@ -294,6 +326,16 @@ def _csv_dump(qs, fields: list[str]) -> str:
     writer.writerow(fields)
     for obj in qs.iterator():
         writer.writerow([_str(getattr(obj, f, "")) for f in fields])
+    return buf.getvalue()
+
+
+def _csv_dump_rows(rows: list[dict], fields: list[str]) -> str:
+    """CSV from computed dict rows (for domains needing FK traversal)."""
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(fields)
+    for row in rows:
+        writer.writerow([_str(row.get(f, "")) for f in fields])
     return buf.getvalue()
 
 

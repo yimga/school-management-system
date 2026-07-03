@@ -1577,3 +1577,4 @@ class StudentNote(models.Model):
 
 
 from apps.people.staff_compliance import StaffComplianceRecord  # noqa: E402,F401
+from apps.people.models_transfer import TransferCase, TransferStateError  # noqa: E402,F401

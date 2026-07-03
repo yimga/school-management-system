@@ -17,6 +17,19 @@ if TYPE_CHECKING:
     from apps.accounts.models import User
 
 
+def _ensure_profile_passport_link(student_profile, passport: StudentPassport) -> None:
+    """Keep the two passport rails in step (transfer design §8 defect 1).
+
+    The API timeline reads the ``StudentProfile.passport`` FK while this
+    service historically wrote only ``StudentPassportMembership`` — a passport
+    created here was invisible to ``StudentPassportView``. Never re-points an
+    already-linked profile (that is a deliberate operator action).
+    """
+    if getattr(student_profile, "passport_id", None) is None:
+        student_profile.passport = passport
+        student_profile.save(update_fields=["passport"])
+
+
 def get_or_create_passport_for_student(student_profile, user: "User"):
     """Return ``(passport, created)`` scoped to student's school."""
     if student_profile is None or getattr(student_profile, "school_id", None) is None:
@@ -27,6 +40,7 @@ def get_or_create_passport_for_student(student_profile, user: "User"):
         school_id=school.pk,
     ).first()
     if existing:
+        _ensure_profile_passport_link(student_profile, existing.passport)
         return existing.passport, False
     with transaction.atomic():
         passport = StudentPassport.objects.create()
@@ -37,6 +51,7 @@ def get_or_create_passport_for_student(student_profile, user: "User"):
             consent_status=StudentPassportMembership.ConsentStatus.PRIVATE,
             role=getattr(user, "role", "")[:40],
         )
+        _ensure_profile_passport_link(student_profile, passport)
         return passport, True
 
 
@@ -54,6 +69,7 @@ def link_student_to_passport(passport: StudentPassport, student_profile, user: "
             "role": getattr(user, "role", "")[:40],
         },
     )
+    _ensure_profile_passport_link(student_profile, passport)
 
 
 def create_transcript_vault_item(student_profile, *, artifact_type: str, artifact_bytes: bytes | memoryview | None, user: "User"):
