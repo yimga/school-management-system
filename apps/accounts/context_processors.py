@@ -552,6 +552,22 @@ def dashboard_context(request):
     return context
 
 
+def owner_first_login(request):
+    """Inject ``owner_first_login_card`` on the owner's backend-dashboard landing.
+
+    Returns ``{}`` for every request that isn't a not-yet-acknowledged school
+    owner on their dashboard, so the global cost is a couple of getattrs +
+    (on the landing only) one indexed membership lookup. Fail-soft.
+    """
+    try:
+        from apps.accounts.owner_first_login import build_owner_first_login_card
+
+        card = build_owner_first_login_card(request)
+    except Exception:  # noqa: BLE001 — a context processor must never break rendering
+        return {}
+    return {"owner_first_login_card": card} if card else {}
+
+
 def site_settings_context(request):
     """
     Provides site settings for use in templates.

@@ -44,6 +44,65 @@ def dismiss_first_login_checklist(request):
 
 @login_required
 @require_POST
+def owner_confirm_role(request):
+    """Record the first-login owner's decision (Owner Console — slice 1).
+
+    ``decision`` (POST param) is ``confirm`` (stay owner) or ``defer`` (decide
+    later); either way we stamp a per-school acknowledgement in
+    ``DashboardUserPreference`` so the first-login card never shows again. This
+    only *records* a decision — it grants no new authority and never touches
+    ``is_staff``. Returns JSON for the card's fetch; falls back to a redirect for
+    a plain form POST.
+    """
+    from apps.accounts.owner_first_login import (
+        ACK_CONFIRMED,
+        ACK_DEFERRED,
+        _resolve_school,
+        owner_ack_key,
+    )
+
+    decision = (request.POST.get("decision") or "confirm").strip().lower()
+    ack = ACK_DEFERRED if decision == "defer" else ACK_CONFIRMED
+
+    school = _resolve_school(request)
+    key = owner_ack_key(school)
+    stored = False
+    if key is not None:
+        try:
+            from apps.schools.models import SchoolMembership
+
+            # Only an actual owner of this school may acknowledge (defence in depth
+            # — the card is owner-gated, but the endpoint must be too).
+            if SchoolMembership.is_owner(request.user, school):
+                from apps.runtime_blueprints.models import DashboardUserPreference
+
+                pref, _created = DashboardUserPreference.objects.get_or_create(
+                    user=request.user, defaults={"dashboard_layout": {}}
+                )
+                layout = dict(pref.dashboard_layout or {})
+                layout[key] = ack
+                pref.dashboard_layout = layout
+                pref.save(update_fields=["dashboard_layout"])
+                stored = True
+        except (AttributeError, TypeError, ValueError, DatabaseError):
+            stored = False
+
+    wants_json = (
+        request.headers.get("x-requested-with") == "XMLHttpRequest"
+        or "application/json" in (request.headers.get("accept") or "")
+    )
+    if wants_json:
+        return JsonResponse({"ok": stored, "decision": ack})
+    next_url = (
+        request.POST.get("next")
+        or request.GET.get("next")
+        or reverse("accounts:backend_dashboard")
+    )
+    return redirect(next_url)
+
+
+@login_required
+@require_POST
 def mark_tour_complete(request):
     """Mark a first-run tour as completed for this user (persisted in DashboardUserPreference).
 

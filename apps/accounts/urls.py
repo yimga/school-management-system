@@ -69,7 +69,11 @@ from apps.schools.views_tenant_performance import (
     tenant_performance_json,
 )
 from .views_dashboard import backend_dashboard, backend_dashboard_status_fragment
-from .views_onboarding import dismiss_first_login_checklist, mark_tour_complete
+from .views_onboarding import (
+    dismiss_first_login_checklist,
+    mark_tour_complete,
+    owner_confirm_role,
+)
 from .views_delegation import (
     my_delegations,
     delegation_add,
@@ -587,6 +591,7 @@ urlpatterns = [
         name="dismiss_first_login_checklist",
     ),
     path("backend/tour-complete/", mark_tour_complete, name="mark_tour_complete"),
+    path("backend/confirm-owner/", owner_confirm_role, name="owner_confirm_role"),
     path("backend/ops-watch/", backend_ops_watch_data, name="backend_ops_watch_data"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("backend/import/", backend_entity_import, name="backend_entity_import"),

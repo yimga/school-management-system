@@ -542,6 +542,7 @@ TEMPLATES = [
                 "apps.portal.context_processors.tp_v3_role_home",  # v3 100x role-home shell dedupe
                 "apps.dashboard.context_processors.first_run_zero_state",  # Per-role first-run welcome card (new-tenant landings)
                 "apps.dashboard.context_processors.first_run_tour",  # T17 per-role first-run guided tour autostart (role landings)
+                "apps.accounts.context_processors.owner_first_login",  # Owner Console S1 — first-login owner confirmation card (backend dashboard)
                 "apps.portal.context_processors.tenant_experience_command",  # Shared tenant dashboard/profile/tool command strip
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip

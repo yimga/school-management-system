@@ -43,6 +43,8 @@ backend-shell dashboard-page-backend
 <link rel="stylesheet" href="{% static 'css/rmc-setup-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-backend-admin-bento.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-post-setup-cockpit.css' %}">
+{% comment %} Owner Console S1: first-login owner confirmation card (token-only; light/dark readable). {% endcomment %}
+<link rel="stylesheet" href="{% static 'css/owner-first-login.css' %}">
 <script src="{% static 'js/rmc-school-readiness-cache.js' %}" defer></script>
 <script src="{% static 'js/rmc-setup-surface-readiness.js' %}" defer></script>
 <script src="{% static 'js/rmc-journey-offline-mirror.js' %}" defer></script>
@@ -80,6 +82,9 @@ backend-shell dashboard-page-backend
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="backend-admin-role-home" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
+
+{% comment %} Owner Console S1: one-time first-login owner confirmation (owner-gated context var). {% endcomment %}
+{% include "partials/owner_first_login_card.html" %}
 
 {% comment %} next_action_strip: inherited from backend_base_tenant / portal shell {% endcomment %}
 

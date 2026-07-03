@@ -1,0 +1,165 @@
+/* ============================================================
+   Owner Console — first-login confirmation card (slice 1)
+   Tenant-skinned welcome modal shown once to a new school owner.
+   Colours are semantic tokens only (design-tokens.css), so the
+   card is readable in BOTH light and dark themes automatically.
+   The two literal colours (scrim dim + on-brand white text) carry
+   off-token-allow markers because they are theme-independent by
+   design (a dim scrim and white-on-indigo are correct in any theme).
+   ============================================================ */
+
+.rmc-ofl-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.55); /* off-token-allow: modal-scrim-theme-independent-dim */
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  overflow-y: auto;
+}
+
+.rmc-ofl-card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 22px);
+  box-shadow: var(--elev-3);
+  overflow: hidden;
+}
+
+.rmc-ofl-cap {
+  background: var(--brand-gradient);
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: on-brand-gradient-white-text */
+  padding: 20px 24px;
+}
+
+.rmc-ofl-crown {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.rmc-ofl-cap h2 {
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  margin: 8px 0 2px;
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: on-brand-gradient-white-text */
+}
+
+.rmc-ofl-cap p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: on-brand-gradient-white-text */
+  opacity: 0.9;
+}
+
+.rmc-ofl-body {
+  padding: 20px 24px 22px;
+}
+
+.rmc-ofl-rolesum {
+  background: var(--surface-sunken, var(--surface-canvas));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.rmc-ofl-rolesum .rmc-ofl-l {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--text-tertiary, var(--text-muted));
+}
+
+.rmc-ofl-rolesum .rmc-ofl-r {
+  font-size: 16px;
+  font-weight: 800;
+  margin-top: 2px;
+  color: var(--text-primary);
+}
+
+.rmc-ofl-rolesum ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.rmc-ofl-rolesum li { margin: 2px 0; }
+
+.rmc-ofl-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.rmc-ofl-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  padding: 12px 14px;
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color var(--motion-fast, 150ms), background var(--motion-fast, 150ms);
+}
+
+.rmc-ofl-choice:hover,
+.rmc-ofl-choice:focus-visible {
+  border-color: var(--school-primary);
+  background: var(--surface-overlay, var(--surface-canvas));
+  outline: none;
+}
+
+.rmc-ofl-choice--primary {
+  border-color: var(--school-primary);
+  background: var(--school-primary-light, var(--surface-overlay));
+}
+
+.rmc-ofl-ci {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  background: var(--surface-sunken, var(--surface-canvas));
+  color: var(--text-secondary);
+}
+
+.rmc-ofl-choice--primary .rmc-ofl-ci {
+  background: var(--school-primary);
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: on-brand-white-text */
+}
+
+.rmc-ofl-ct b {
+  display: block;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.rmc-ofl-ct span {
+  display: block;
+  font-size: 12px;
+  color: var(--text-tertiary, var(--text-muted));
+}
+
+.rmc-ofl-note {
+  margin: 14px 0 0;
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-tertiary, var(--text-muted));
+}

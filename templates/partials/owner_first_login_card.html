@@ -1,0 +1,107 @@
+{% load i18n %}
+{% comment %}
+  Owner Console — slice 1: first-login owner confirmation card.
+  Rendered only when the ``owner_first_login_card`` context var is set
+  (apps.accounts.context_processors.owner_first_login), i.e. a not-yet-acknowledged
+  school owner on their backend dashboard. Fixed-position, tenant-skinned, readable
+  in light + dark (static/css/owner-first-login.css). It only reflects authority the
+  owner already holds — it grants nothing and never links to the operator plane.
+{% endcomment %}
+{% if owner_first_login_card %}
+<div class="rmc-ofl-scrim"
+     id="rmc-owner-first-login"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="rmc-ofl-title"
+     data-confirm-url="{{ owner_first_login_card.confirm_url }}"
+     data-csrf="{{ csrf_token }}">
+  <div class="rmc-ofl-card">
+    <div class="rmc-ofl-cap">
+      <div class="rmc-ofl-crown" aria-hidden="true">👑</div>
+      <h2 id="rmc-ofl-title">{% blocktrans with school=owner_first_login_card.school_name %}You're the owner of {{ school }}{% endblocktrans %}</h2>
+      <p>{% trans "You created this school, so you can do everything here. Let's confirm how you want to run it." %}</p>
+    </div>
+    <div class="rmc-ofl-body">
+      <div class="rmc-ofl-rolesum">
+        <div class="rmc-ofl-l">{% trans "Your role" %}</div>
+        <div class="rmc-ofl-r">{{ owner_first_login_card.role_label }}</div>
+        <ul>
+          <li>{% trans "Full control of every module, setting, and person" %}</li>
+          <li>{% trans "Can invite co-owners and delegate roles" %}</li>
+          <li>{% trans "Can transfer ownership at any time" %}</li>
+        </ul>
+      </div>
+
+      <div class="rmc-ofl-choices">
+        <button type="button" class="rmc-ofl-choice rmc-ofl-choice--primary" data-rmc-ofl-action="confirm">
+          <span class="rmc-ofl-ci" aria-hidden="true">✓</span>
+          <span class="rmc-ofl-ct">
+            <b>{% blocktrans with school=owner_first_login_card.school_name %}Yes — I'll run {{ school }}{% endblocktrans %}</b>
+            <span>{% trans "Keep owner + admin and go to your dashboard" %}</span>
+          </span>
+        </button>
+
+        {% if owner_first_login_card.assign_url %}
+        <button type="button" class="rmc-ofl-choice" data-rmc-ofl-action="assign" data-rmc-ofl-href="{{ owner_first_login_card.assign_url }}">
+          <span class="rmc-ofl-ci" aria-hidden="true">👥</span>
+          <span class="rmc-ofl-ct">
+            <b>{% trans "Assign a superadmin" %}</b>
+            <span>{% trans "Invite someone to run the backend; you stay owner" %}</span>
+          </span>
+        </button>
+        {% endif %}
+
+        <button type="button" class="rmc-ofl-choice" data-rmc-ofl-action="defer">
+          <span class="rmc-ofl-ci" aria-hidden="true">🕓</span>
+          <span class="rmc-ofl-ct">
+            <b>{% trans "Decide later" %}</b>
+            <span>{% trans "Set delegation from your console anytime" %}</span>
+          </span>
+        </button>
+      </div>
+
+      <p class="rmc-ofl-note">{% trans "You keep full control no matter what — delegation and transfer are reversible." %}</p>
+    </div>
+  </div>
+</div>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var root = document.getElementById('rmc-owner-first-login');
+  if (!root) { return; }
+  var url = root.getAttribute('data-confirm-url');
+  var csrf = root.getAttribute('data-csrf');
+  function dismiss() { root.parentNode && root.parentNode.removeChild(root); }
+  function record(decision, done) {
+    var body = new URLSearchParams();
+    body.set('decision', decision);
+    fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': csrf,
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: body.toString()
+    }).then(function () { done && done(); }).catch(function () { done && done(); });
+  }
+  root.querySelectorAll('[data-rmc-ofl-action]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var action = btn.getAttribute('data-rmc-ofl-action');
+      if (action === 'assign') {
+        var href = btn.getAttribute('data-rmc-ofl-href');
+        record('confirm', function () { if (href) { window.location.assign(href); } else { dismiss(); } });
+      } else if (action === 'defer') {
+        record('defer', dismiss);
+      } else {
+        record('confirm', dismiss);
+      }
+    });
+  });
+  root.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { record('defer', dismiss); }
+  });
+})();
+</script>
+{% endif %}
