@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from django.apps import apps as django_apps
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
 from apps.academics.models import Subject
 from apps.people.models import StudentProfile
@@ -104,6 +106,34 @@ class ThemePack(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def clean(self):
+        """Reject theme packs whose colors are invalid or an invisible brand.
+
+        Foreground text stays readable at render time via the adaptive
+        ``--text-on-brand`` cascade, so we only guard the two things adaptation
+        cannot fix: each color must be valid hex, and the primary color must be
+        visibly distinct from the canvas (or the brand vanishes into it).
+        """
+        super().clean()
+        from apps.siteconfig.contrast_guard import contrast_ratio, hex_to_rgb
+
+        errors = {}
+        for field in ("primary_color", "accent_color", "background_color"):
+            try:
+                hex_to_rgb((getattr(self, field) or "").strip())
+            except (ValueError, TypeError):
+                errors[field] = _("Enter a valid hex color, e.g. #4f46e5.")
+        if errors:
+            raise ValidationError(errors)
+        if contrast_ratio(self.primary_color, self.background_color) < 1.3:
+            raise ValidationError(
+                {
+                    "primary_color": _(
+                        "Choose a primary color that stands out from the background."
+                    )
+                }
+            )
 
     def save(self, *args, **kwargs):
         if (

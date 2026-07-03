@@ -185,7 +185,14 @@ def brand_css_vars(brand: dict[str, Any]) -> str:
         tokens.get("font") or tokens.get("font_family") or brand.get("font_family")
     )
     if primary:
-        parts.append(f"--primary: {str(primary).strip()};")
+        primary_str = str(primary).strip()
+        parts.append(f"--primary: {primary_str};")
+        # Adaptive on-brand text: dark ink on a light brand, light ink on a dark
+        # brand, so white-on-brand headers never wash out. Sites already consume
+        # var(--text-on-brand, #fff); this makes the variable actually resolve.
+        from apps.siteconfig.contrast_guard import text_color_for_background
+
+        parts.append(f"--text-on-brand: {text_color_for_background(primary_str)};")
     if accent:
         parts.append(f"--accent: {str(accent).strip()};")
     if font_family:
