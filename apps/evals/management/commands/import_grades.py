@@ -50,18 +50,21 @@ class Command(BaseCommand):
         created, updated = 0, 0
         for row in reader:
             try:
-                student = StudentProfile.objects.get(student_code=row["student_code"])
-            except StudentProfile.DoesNotExist:
-                self.stderr.write(
-                    f"Skipping unknown student_code={row['student_code']}"
-                )
-                continue
-
-            try:
                 sa = SubjectAssignment.objects.get(id=row["subject_assignment_id"])
             except SubjectAssignment.DoesNotExist:
                 self.stderr.write(
                     f"Skipping unknown subject_assignment_id={row['subject_assignment_id']}"
+                )
+                continue
+
+            try:
+                # student_code is unique per school — pin to the assignment's school.
+                student = StudentProfile.objects.get(
+                    school=sa.school, student_code=row["student_code"]
+                )
+            except StudentProfile.DoesNotExist:
+                self.stderr.write(
+                    f"Skipping unknown student_code={row['student_code']}"
                 )
                 continue
 

@@ -195,6 +195,12 @@ from .views_device_governance import (
     device_registration_reinstate,
 )
 from .views_sync_health import sync_health_index
+from .views_transfers import (
+    transfer_case_create,
+    transfer_case_request_consent,
+    transfer_case_run,
+    transfer_cases_index,
+)
 from .views_lms_audit import lms_audit_index, lms_audit_export_index, lms_audit_export_download
 from .views_idempotency_audit import idempotency_audit_index
 from .views_lms_pkce import lms_pkce_start, lms_pkce_callback, lms_pkce_build
@@ -265,6 +271,11 @@ urlpatterns = [
     path("super/devices/reinstate/", device_registration_reinstate, name="device_registration_reinstate"),
     # 2026-07-02: Cross-rail sync-health console (SODP + delta + WAL dead-letter reader).
     path("super/sync-health/", sync_health_index, name="sync_health_index"),
+    # 2026-07-03: Inter-school transfer console (Wave B go-live).
+    path("super/transfers/", transfer_cases_index, name="transfer_cases_index"),
+    path("super/transfers/create/", transfer_case_create, name="transfer_case_create"),
+    path("super/transfers/request-consent/", transfer_case_request_consent, name="transfer_case_request_consent"),
+    path("super/transfers/run/", transfer_case_run, name="transfer_case_run"),
     # v4.00.53: LMS push-grade audit URL is registered above the provider
     # catch-all (see lms_audit_index above lms_provider_detail).
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).

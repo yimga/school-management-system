@@ -1,0 +1,88 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Student transfers" %} — {{ block.super }}{% endblock %}
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid rmc-page" style="max-width: 1200px;">
+  <header class="rmc-page__header" style="margin-bottom: 14px;">
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "Student transfers" %}</h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 70ch;">
+      {% trans "Inter-school transfer cases: open a case, request guardian consent, then run the approved case. Every step is journaled on the case and audited." %}
+    </p>
+  </header>
+
+  <form method="get" style="display: flex; gap: 10px; margin-bottom: 14px; align-items: end;">
+    <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Status" %}
+      <input name="status" value="{{ status_filter }}" style="display: block; min-width: 160px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+    </label>
+    <button type="submit" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Filter" %}</button>
+  </form>
+
+  <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+    <table class="rmc-data-table" style="width: 100%; margin: 0;">
+      <thead>
+        <tr>
+          <th>{% trans "Case" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Source" %}</th>
+          <th>{% trans "Target" %}</th>
+          <th>{% trans "Domains" %}</th>
+          <th>{% trans "Bundle" %}</th>
+          <th>{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for case in cases %}
+        <tr>
+          <td style="font-family: monospace;">{{ case.pk|stringformat:"s"|slice:":8" }}</td>
+          <td>{{ case.status }}</td>
+          <td>{{ case.source_school.name }}</td>
+          <td>{{ case.target_school.name }}</td>
+          <td style="font-family: monospace;">{{ case.domains|join:", " }}</td>
+          <td style="font-family: monospace;">{{ case.target_bundle_id|default:"—" }}</td>
+          <td>
+            {% if case.status == "draft" %}
+            <form method="post" action="{% url 'portal:transfer_case_request_consent' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="case_id" value="{{ case.pk }}">
+              <input name="guardian_name" placeholder="{% trans 'Guardian name' %}" style="min-width: 120px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
+              <input name="guardian_email" type="email" required placeholder="{% trans 'Guardian email' %}" style="min-width: 160px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
+              <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Request consent" %}</button>
+            </form>
+            {% elif case.status == "approved" %}
+            <form method="post" action="{% url 'portal:transfer_case_run' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="case_id" value="{{ case.pk }}">
+              <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Run transfer" %}</button>
+            </form>
+            {% else %}
+            <span style="color: var(--text-secondary);">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 24px;">{% trans "No transfer cases yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <section style="margin-top: 18px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated); padding: 14px;">
+    <h2 style="font-size: var(--type-size-headline-s); margin: 0 0 8px;">{% trans "Open a transfer case" %}</h2>
+    <form method="post" action="{% url 'portal:transfer_case_create' %}" style="display: flex; gap: 10px; align-items: end; flex-wrap: wrap;">
+      {% csrf_token %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Student profile ID" %}
+        <input name="student_pk" required style="display: block; min-width: 260px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+      </label>
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Target school ID" %}
+        <input name="target_school_id" required style="display: block; min-width: 260px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+      </label>
+      <button type="submit" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Open case" %}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

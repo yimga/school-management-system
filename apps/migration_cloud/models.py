@@ -505,8 +505,20 @@ class MigrationIdMapping(models.Model):
             models.Index(fields=["bundle", "domain"]),
         ]
         constraints = [
+            # ``domain`` is part of the mapping's identity: the SAME legacy id
+            # can land the SAME canonical row from two domains (a students
+            # upsert then an enrollment update). Without it, the second
+            # lander's update_or_create matched the first row and silently
+            # rewrote its domain — the students audit entry vanished on every
+            # multi-domain bundle.
             models.UniqueConstraint(
-                fields=["legacy_namespace", "legacy_id", "canonical_model", "school"],
+                fields=[
+                    "legacy_namespace",
+                    "legacy_id",
+                    "canonical_model",
+                    "school",
+                    "domain",
+                ],
                 name="uniq_id_mapping_per_school_namespace",
             ),
         ]

@@ -64,9 +64,19 @@ class StudentLander(Lander):
             model_fields = {f.name for f in StudentProfile._meta.get_fields()}
             defaults = {k: v for k, v in defaults.items() if k in model_fields and v not in (None, "")}
 
+            # Bind created/updated rows to the bundle's school, and scope the
+            # upsert key by school too — on single-schema deployments the
+            # external id is only unique per school (an inter-school transfer
+            # deliberately reuses it at the target).
+            school_scope: dict[str, Any] = {}
+            if ctx.school is not None and "school" in model_fields:
+                school_scope = {"school": ctx.school}
+                defaults["school"] = ctx.school
+
             if ctx.dry_run:
                 exists = StudentProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
-                    **{_lookup_field("external_id", model_fields): external_id}
+                    **school_scope,
+                    **{_lookup_field("external_id", model_fields): external_id},
                 ).exists()
                 if exists:
                     result.updated += 1
@@ -77,7 +87,8 @@ class StudentLander(Lander):
             try:
                 lookup_field = _lookup_field("external_id", model_fields)
                 existing_obj = StudentProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
-                    **{lookup_field: external_id}
+                    **school_scope,
+                    **{lookup_field: external_id},
                 ).first()
                 if existing_obj is not None:
                     detect_conflict(
@@ -94,6 +105,7 @@ class StudentLander(Lander):
                         )
                         continue
                 obj, created = StudentProfile.objects.update_or_create(
+                    **school_scope,
                     **{lookup_field: external_id},
                     defaults=defaults,
                 )

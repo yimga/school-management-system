@@ -146,8 +146,12 @@ def apply_import_from_preview(preview: GradeImportPreview, academic_year):
     updated_ids = []
 
     for row in preview.rows:
-        # tenant-isolation-allow: import-pipeline-validates-school-before-persist
-        student = StudentProfile.objects.filter(student_code=row.student_code).first()
+        # student_code is unique per school, so pin the lookup to the import's
+        # school (via its academic year) — a same-code student at another
+        # school must never be matched.
+        student = StudentProfile.objects.filter(
+            school=academic_year.school, student_code=row.student_code
+        ).first()
         assignment = (
             # tenant-isolation-allow: import-pipeline-validates-school-before-persist
             SubjectAssignment.objects.filter(
@@ -219,11 +223,14 @@ def preview_import_with_validation(csv_rows):
             Term = django_apps.get_model("academics", "Term")
             TeacherProfile = django_apps.get_model("people", "TeacherProfile")
 
-            # tenant-isolation-allow: import-pipeline-validates-school-before-persist
-            student = StudentProfile.objects.get(student_code=row.get("student_code"))
             # tenant-isolation-allow: import-pipeline-pk-lookup
             subject_assignment = SubjectAssignment.objects.get(
                 id=row.get("subject_assignment_id")
+            )
+            # student_code is unique per school — pin to the assignment's school.
+            student = StudentProfile.objects.get(
+                school=subject_assignment.school,
+                student_code=row.get("student_code"),
             )
             # tenant-isolation-allow: import-pipeline-pk-lookup
             term = Term.objects.get(id=row.get("term_id"))
@@ -315,10 +322,13 @@ def apply_import(csv_rows, academic_year=None):
     for row in csv_rows:
         try:
             # tenant-isolation-allow: import-pipeline-validates-school-before-persist
-            student = StudentProfile.objects.get(student_code=row.get("student_code"))
-            # tenant-isolation-allow: import-pipeline-validates-school-before-persist
             subject_assignment = SubjectAssignment.objects.get(
                 id=row.get("subject_assignment_id")
+            )
+            # student_code is unique per school — pin to the assignment's school.
+            student = StudentProfile.objects.get(
+                school=subject_assignment.school,
+                student_code=row.get("student_code"),
             # tenant-isolation-allow: import-pipeline-validates-school-before-persist
             )
             term = Term.objects.get(id=row.get("term_id"))
@@ -402,11 +412,15 @@ def dry_run_grade_import(csv_rows, academic_year=None):
     for idx, row in enumerate(csv_rows, start=1):
         # tenant-isolation-allow: import-pipeline-validates-school-before-persist
         try:
-            student = StudentProfile.objects.get(student_code=row.get("student_code"))
             # tenant-isolation-allow: import-pipeline-validates-school-before-persist
             subject_assignment = SubjectAssignment.objects.get(
                 # tenant-isolation-allow: import-pipeline-validates-school-before-persist
                 id=row.get("subject_assignment_id"), academic_year=academic_year
+            )
+            # student_code is unique per school — pin to the assignment's school.
+            student = StudentProfile.objects.get(
+                school=subject_assignment.school,
+                student_code=row.get("student_code"),
             )
             # tenant-isolation-allow: import-pipeline-validates-school-before-persist
             term = Term.objects.get(id=row.get("term_id"))

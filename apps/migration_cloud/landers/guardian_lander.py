@@ -40,10 +40,14 @@ class GuardianLander(Lander):
 
             student_lookup_field = _student_lookup(student_model_fields)
             try:
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-                student = StudentProfile.objects.filter(
-                    **{student_lookup_field: student_external_id}
-                ).first()
+                from ._helpers import resolve_student
+
+                student = resolve_student(
+                    ctx=ctx,
+                    student_model=StudentProfile,
+                    lookup_field=student_lookup_field,
+                    external_id=student_external_id,
+                )
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(

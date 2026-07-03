@@ -25,6 +25,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    resolve_student,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -56,10 +57,12 @@ class EnrollmentLander(Lander):
                 result.quarantined += 1
                 result.errors.append(f"enrollment: missing student_external_id in {row!r}")
                 continue
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            student = StudentProfile.objects.filter(
-                **{student_lookup: external_id}
-            ).first()
+            student = resolve_student(
+                ctx=ctx,
+                student_model=StudentProfile,
+                lookup_field=student_lookup,
+                external_id=external_id,
+            )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
@@ -67,14 +70,52 @@ class EnrollmentLander(Lander):
                 )
                 continue
 
+            section_ref = (row.get("section_code") or row.get("section") or "").strip()
+            year_ref = (row.get("academic_year") or "").strip()
             updates: dict[str, Any] = {
                 "grade_level": (row.get("grade_level") or "").strip(),
                 "enrollment_status": (row.get("enrollment_status") or "").strip(),
                 "enrolled_at": coerce_date(row.get("enrolled_at")),
-                "academic_year": (row.get("academic_year") or "").strip(),
-                "section_code": (row.get("section_code") or "").strip(),
+                "joined_date": coerce_date(
+                    row.get("enrolled_at") or row.get("enrollment_date")
+                ),
+                "section": section_ref,
             }
             updates = filter_to_model_fields(updates, StudentProfile)
+
+            # Placement: resolve NAMED structures into real FKs at the
+            # student's school. The docstring's "linked to a Section if
+            # present" was never implemented — and a canonical academic_year
+            # string assigned onto the FK column raised ValueError, so any
+            # bundle carrying that column quarantined every enrollment row.
+            # An unresolvable reference quarantines VISIBLY (create the
+            # structure at the target, then re-drive) — it never lands a
+            # half-placed student silently.
+            school = getattr(ctx, "school", None) or getattr(student, "school", None)
+            unresolved: list[str] = []
+            if section_ref and "classroom" in student_fields:
+                classroom = _resolve_classroom(school, section_ref)
+                if classroom is not None:
+                    updates["classroom"] = classroom
+                    if "academic_year" in student_fields and not year_ref:
+                        year = getattr(classroom, "academic_year", None)
+                        if year is not None:
+                            updates["academic_year"] = year
+                else:
+                    unresolved.append(f"section {section_ref!r}")
+            if year_ref and "academic_year" in student_fields:
+                year = _resolve_academic_year(school, year_ref)
+                if year is not None:
+                    updates["academic_year"] = year
+                else:
+                    unresolved.append(f"academic year {year_ref!r}")
+            if unresolved:
+                result.quarantined += 1
+                result.errors.append(
+                    f"enrollment: could not resolve {', '.join(unresolved)} at the "
+                    f"school for student {external_id!r}"
+                )
+                continue
             if not updates:
                 continue
 
@@ -97,6 +138,34 @@ class EnrollmentLander(Lander):
                     f"enrollment update failed for {external_id}: {type(exc).__name__}: {exc}"
                 )
         return result
+
+
+def _resolve_classroom(school, ref: str):
+    """Classroom at the given school whose code (exact) or name matches ``ref``."""
+    try:
+        from apps.academics.models import Classroom
+    except ImportError:
+        return None
+    if school is not None:
+        qs = Classroom.objects.filter(school=school)
+    else:
+        qs = Classroom.objects.all()  # tenant-isolation-allow: schema-per-tenant-context-isolates-when-no-school-fk
+    return (
+        qs.filter(code=ref).order_by("-pk").first()  # tenant-isolation-allow: scoped-above-via-school-filter-or-schema-context
+        or qs.filter(name=ref).order_by("-pk").first()  # tenant-isolation-allow: scoped-above-via-school-filter-or-schema-context
+    )
+
+
+def _resolve_academic_year(school, name: str):
+    try:
+        from apps.academics.models import AcademicYear
+    except ImportError:
+        return None
+    if school is not None:
+        qs = AcademicYear.objects.filter(school=school)
+    else:
+        qs = AcademicYear.objects.all()  # tenant-isolation-allow: schema-per-tenant-context-isolates-when-no-school-fk
+    return qs.filter(name=name).order_by("-pk").first()  # tenant-isolation-allow: scoped-above-via-school-filter-or-schema-context
 
 
 register("enrollment", EnrollmentLander())

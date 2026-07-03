@@ -281,6 +281,42 @@ class ApprovalChainRunner(BaseOrchestrationRunner):
         return {"chain_id": chain_id, "step": "approval_chain"}
 
 
+class StudentTransferRunner(BaseOrchestrationRunner):
+    """Runner for student_transfer: executes one APPROVED TransferCase end-to-end.
+
+    The case model owns the fine-grained FSM (export → seal → apply → link →
+    reconcile, with its own compensation); this runner contributes the
+    orchestration rails — append-only step events, retry, SLA — around one
+    ``run_transfer_case`` execution. ``input_payload`` carries ``case_id``.
+    """
+
+    code = "student_transfer"
+
+    def run_step(self) -> dict:
+        payload = self.run.input_payload or {}
+        case_id = payload.get("case_id") or ""
+        from django.core.exceptions import ValidationError
+
+        from apps.people.models_transfer import TransferCase
+
+        try:
+            case = TransferCase.objects.filter(pk=case_id).first()  # tenant-isolation-allow: operator-plane-case-by-pk-from-run-payload
+        except (ValidationError, ValueError):
+            # A malformed UUID in the payload is a missing case, not a 500.
+            case = None
+        if case is None:
+            return {
+                "error": "case_not_found",
+                "case_id": str(case_id),
+                "step": "student_transfer",
+            }
+        from apps.people.transfer_service import run_transfer_case
+
+        summary = run_transfer_case(case, actor=self.run.triggered_by)
+        summary["step"] = "student_transfer"
+        return summary
+
+
 def start_run(
     definition_code: str,
     school=None,
@@ -316,6 +352,8 @@ def get_runner(run: OrchestrationRun) -> Optional[BaseOrchestrationRunner]:
         return ReEnrollmentRunner(run=run)
     if code == "approval_chain":
         return ApprovalChainRunner(run=run)
+    if code == "student_transfer":
+        return StudentTransferRunner(run=run)
     return None
 
 

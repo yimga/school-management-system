@@ -25,6 +25,7 @@ from ._helpers import (
     coerce_decimal,
     filter_to_model_fields,
     model_field_names,
+    resolve_student,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -64,10 +65,12 @@ class GradesLander(Lander):
                     f"grades: missing student/term/score in {row!r}"
                 )
                 continue
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            student = StudentProfile.objects.filter(
-                **{student_lookup: external_id}
-            ).first()
+            student = resolve_student(
+                ctx=ctx,
+                student_model=StudentProfile,
+                lookup_field=student_lookup,
+                external_id=external_id,
+            )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(

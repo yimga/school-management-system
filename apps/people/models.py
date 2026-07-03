@@ -382,9 +382,12 @@ class StudentProfile(models.Model):
 
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
-    student_code = models.CharField(max_length=50, unique=True, blank=True)
+    # Unique PER SCHOOL (Meta constraints), not globally — schools issue their
+    # own identifiers, and an inter-school transfer deliberately lands the same
+    # number at the target while the source row retires as TRANSFERRED.
+    student_code = models.CharField(max_length=50, blank=True, db_index=True)
     admission_number = models.CharField(
-        max_length=64, unique=True, blank=True, null=True
+        max_length=64, blank=True, null=True, db_index=True
     )
     search_index = models.TextField(
         blank=True,
@@ -409,6 +412,7 @@ class StudentProfile(models.Model):
         RETURNING = "RETURNING", "Returning"
         PROBATION = "PROBATION", "Probation"
         ALUMNI = "ALUMNI", "Alumni"
+        TRANSFERRED = "TRANSFERRED", "Transferred"
 
     gender = models.CharField(max_length=20, choices=Gender.choices, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
@@ -537,6 +541,16 @@ class StudentProfile(models.Model):
                 fields=["school", "client_offline_id"],
                 condition=~models.Q(client_offline_id=""),
                 name="uniq_studentprofile_school_offline_id",
+            ),
+            models.UniqueConstraint(
+                fields=["school", "student_code"],
+                condition=~models.Q(student_code=""),
+                name="uniq_studentprofile_school_student_code",
+            ),
+            models.UniqueConstraint(
+                fields=["school", "admission_number"],
+                condition=~models.Q(admission_number=""),
+                name="uniq_studentprofile_school_admission_no",
             ),
         ]
 
@@ -1578,3 +1592,8 @@ class StudentNote(models.Model):
 
 from apps.people.staff_compliance import StaffComplianceRecord  # noqa: E402,F401
 from apps.people.models_transfer import TransferCase, TransferStateError  # noqa: E402,F401
+from apps.people.models_transfer_consent import (  # noqa: E402,F401
+    TransferConsent,
+    TransferConsentDecision,
+    TransferConsentError,
+)

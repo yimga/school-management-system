@@ -1,0 +1,14 @@
+<main style="max-width: 42rem; margin: 3rem auto; font-family: system-ui, sans-serif; line-height: 1.5;"><!-- inline-style-allow: anonymous-standalone-consent-page-no-shell-css -->
+  <h1>School transfer consent</h1>
+  {% if outcome == "consented" %}
+    <p>Thank you — your consent has been recorded. The schools will take it
+    from here; you do not need to do anything else.</p>
+  {% elif outcome == "declined" %}
+    <p>Your decision has been recorded. The transfer has been cancelled and
+    no records will be sent.</p>
+  {% else %}
+    <p>This consent link is not available. It may have expired, already been
+    answered, or the address may be incorrect. Please contact the school
+    office for a new link.</p>
+  {% endif %}
+</main>

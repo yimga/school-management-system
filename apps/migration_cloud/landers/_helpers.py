@@ -44,6 +44,23 @@ def model_field_names(model) -> set[str]:
     return {f.name for f in model._meta.get_fields()}
 
 
+def resolve_student(*, ctx, student_model, lookup_field: str, external_id: str):
+    """School-scoped student resolution shared by the history landers.
+
+    On schema-per-tenant deployments the surrounding schema_context already
+    isolates the query; on single-schema deployments (school-FK scoping,
+    sqlite dev/test lane) an unscoped external-id lookup can resolve a
+    same-id student from ANOTHER school — exactly the hazard of an
+    inter-school transfer, where source and target share the external id
+    by design. Scope by the bundle's school whenever the model carries one.
+    """
+    qs = student_model.objects.all()  # tenant-isolation-allow: scoped-below-via-ctx-school-when-model-has-school-field
+    school = getattr(ctx, "school", None)
+    if school is not None and "school" in model_field_names(student_model):
+        qs = qs.filter(school=school)
+    return qs.filter(**{lookup_field: external_id}).first()
+
+
 def filter_to_model_fields(defaults: dict[str, Any], model) -> dict[str, Any]:
     available = model_field_names(model)
     return {k: v for k, v in defaults.items() if k in available and v not in (None, "")}
@@ -119,15 +136,19 @@ def record_id_mapping(
             "chosen"
         ) or "unknown_custom"
         canonical_model = f"{canonical_obj.__class__.__module__}.{canonical_obj.__class__.__name__}"
+        # ``domain`` is lookup identity, NOT a default — as a default, a later
+        # lander touching the same canonical row (students upsert followed by
+        # an enrollment update) matched this row and rewrote its domain,
+        # erasing the earlier domain's audit entry.
         MigrationIdMapping.objects.update_or_create(
             legacy_namespace=namespace,
             legacy_id=str(legacy_id)[:128],
             canonical_model=canonical_model[:128],
             school_id=bundle.school_id,
+            domain=domain[:32],
             defaults={
                 "bundle": bundle,
                 "canonical_pk": str(getattr(canonical_obj, "pk", ""))[:64],
-                "domain": domain[:32],
             },
         )
     except Exception:  # noqa: BLE001 — never block lander on audit-table write

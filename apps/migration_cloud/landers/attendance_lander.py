@@ -21,6 +21,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    resolve_student,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -69,10 +70,12 @@ class AttendanceLander(Lander):
                     f"attendance: missing student/date/status in {row!r}"
                 )
                 continue
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            student = StudentProfile.objects.filter(
-                **{student_lookup: external_id}
-            ).first()
+            student = resolve_student(
+                ctx=ctx,
+                student_model=StudentProfile,
+                lookup_field=student_lookup,
+                external_id=external_id,
+            )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
@@ -86,6 +89,13 @@ class AttendanceLander(Lander):
                 defaults["status"] = mapped_status
             if "remarks" in att_fields and row.get("remarks"):
                 defaults["remarks"] = str(row["remarks"])[:255]
+            # Bind the row to the bundle's school (NOT NULL FK on single-schema
+            # deployments) and default the classroom to the student's current
+            # one — canonical attendance rows carry neither.
+            if "school" in att_fields and ctx.school is not None:
+                defaults["school"] = ctx.school
+            if "classroom" in att_fields and getattr(student, "classroom_id", None):
+                defaults["classroom"] = student.classroom
 
             defaults = filter_to_model_fields(defaults, Attendance)
 

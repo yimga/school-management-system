@@ -19,6 +19,10 @@ from apps.platform_runtime.views_click_tracking import (
 from apps.platform_runtime.views_administration import internal_admin_alias_redirect
 from apps.platform_runtime.views_rum import rum_ingest
 from apps.platform_runtime.views_internal_cron import internal_cron_run
+from apps.people.views_transfer_consent import (
+    transfer_consent_decide,
+    transfer_consent_landing,
+)
 
 from apps.schoolops.views_email_webhook import EmailProviderWebhookView
 from apps.communication.views_delivery_dashboard import MessageDeliveryDashboardView
@@ -799,6 +803,19 @@ urlpatterns = [
             ),
             namespace="migration_guardian_consent_admin",
         ),
+    ),
+    # 2026-07-03 transfer Wave B: anonymous guardian consent for inter-school
+    # transfers (token-in-URL, anti-enumeration uniform pages — same posture
+    # as the migration guardian-consent mount above).
+    path(  # rbac-allow: anonymous-by-design-consent-token-in-url-sha256-lookup
+        "transfer-consent/",
+        transfer_consent_landing,
+        name="people_transfer_consent_landing",
+    ),
+    path(  # rbac-allow: anonymous-by-design-consent-token-in-url-sha256-lookup
+        "transfer-consent/decide/",
+        transfer_consent_decide,
+        name="people_transfer_consent_decide",
     ),
     # §3.3 Metadata search (staff-only)
     path(
