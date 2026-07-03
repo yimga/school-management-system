@@ -14,6 +14,7 @@
      data-page-archetype="teacher-dashboard"
      data-rmc-ux-role-dashboard="teacher-workspace"
      data-rmc-preview-live-teacher="1"
+     data-rmc-page="teacher-portal"
      data-rmc-page-fold-nav="required"
      data-rmc-scroll-policy="paginate">
 
@@ -34,7 +35,7 @@
   </nav>
   {% endif %}
 
-  <nav class="rmc-section-nav rmc-preview-live-teacher__nav" aria-label="{% trans 'Jump to' %}">
+  <nav class="rmc-section-nav rmc-preview-live-teacher__nav" data-tour="teacher-section-nav" aria-label="{% trans 'Jump to' %}">
     <div class="rmc-surface-subnav" role="list">
       <a href="#rmc-teacher-attention" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>
         <i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Attention" %}
@@ -54,7 +55,7 @@
     </div>
   </nav>
 
-  <section id="rmc-teacher-attention" class="rmc-dh-attention{% if not widget_data.tasks.pending_evaluations and not ews_list and not syllabus_pending_count and not pending_leaves %} rmc-dh-attention--good{% endif %}" data-rmc-section-anchor aria-label="{% trans 'What needs attention' %}">
+  <section id="rmc-teacher-attention" data-tour="teacher-attention" class="rmc-dh-attention{% if not widget_data.tasks.pending_evaluations and not ews_list and not syllabus_pending_count and not pending_leaves %} rmc-dh-attention--good{% endif %}" data-rmc-section-anchor aria-label="{% trans 'What needs attention' %}">
     <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "What needs attention" %}</h2>
     {% if widget_data.tasks.pending_evaluations or ews_list or syllabus_pending_count or pending_leaves %}
       {% if widget_data.tasks.pending_evaluations %}{% blocktrans count n=widget_data.tasks.pending_evaluations asvar th_pm %}{{ n }} mark entry pending{% plural %}{{ n }} mark entries pending{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-journal-x" dh_text=th_pm dh_go_label=_("Enter") dh_go_href=th_marks_url %}{% endif %}
@@ -83,7 +84,7 @@
   </div>
   {% endif %}
 
-  <details id="rmc-teacher-today" class="rmc-preview-live-section" open data-rmc-section-anchor>
+  <details id="rmc-teacher-today" data-tour="teacher-today" class="rmc-preview-live-section" open data-rmc-section-anchor>
     <summary><i class="bi bi-calendar3" aria-hidden="true"></i> {% trans "Today's classes" %}</summary>
     <div class="rmc-preview-live-section__body">
       {% if assignments %}

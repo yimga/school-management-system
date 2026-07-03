@@ -87,12 +87,6 @@ TEACHER_PORTAL = [
         body=_("Marks, attendance, and workflow signals prioritized for today."),
     ),
     catalog_step(
-        "teacher-fast-workflows",
-        _("Fast workflows"),
-        selector="[data-tour='teacher-fast-workflows']",
-        body=_("One tap to attendance, marks, syllabus, and messaging."),
-    ),
-    catalog_step(
         "teacher-today",
         _("Today's classes"),
         selector="[data-tour='teacher-today']",

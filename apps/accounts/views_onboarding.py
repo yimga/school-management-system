@@ -3,6 +3,8 @@ First-login checklist and Setup Studio entry.
 Dashboard assembly and recommendation logic live in apps.dashboard.context and recommendation_service.
 """
 
+import re
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.db import DatabaseError
@@ -43,7 +45,18 @@ def dismiss_first_login_checklist(request):
 @login_required
 @require_POST
 def mark_tour_complete(request):
-    """Mark backend dashboard tour as completed for this user (persisted in DashboardUserPreference)."""
+    """Mark a first-run tour as completed for this user (persisted in DashboardUserPreference).
+
+    The ``context`` (query or POST param) defaults to ``backend_dashboard`` for
+    backward compatibility with the admin tour; per-role tenant landings pass
+    ``?context=teacher_portal`` / ``parent_portal`` / ``student_portal`` so each
+    role's first-run tour is remembered independently and never re-autostarts.
+    """
+    context = (
+        request.POST.get("context") or request.GET.get("context") or "backend_dashboard"
+    ).strip()
+    if not re.fullmatch(r"[a-z0-9_]{1,40}", context):
+        context = "backend_dashboard"
     try:
         from apps.runtime_blueprints.models import DashboardUserPreference
 
@@ -51,9 +64,9 @@ def mark_tour_complete(request):
             user=request.user, defaults={"dashboard_layout": {}}
         )
         layout = dict(pref.dashboard_layout or {})
-        layout["tour_backend_dashboard_completed"] = True
+        layout[f"tour_{context}_completed"] = True
         pref.dashboard_layout = layout
         pref.save(update_fields=["dashboard_layout"])
-        return JsonResponse({"ok": True})
+        return JsonResponse({"ok": True, "context": context})
     except (AttributeError, TypeError, ValueError, DatabaseError):
         return JsonResponse({"ok": False}, status=500)

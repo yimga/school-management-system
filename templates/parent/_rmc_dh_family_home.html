@@ -7,6 +7,7 @@
      data-page-archetype="parent-dashboard"
      data-rmc-ux-role-dashboard="family-home"
      data-rmc-preview-live-parent="1"
+     data-rmc-page="parent-portal"
      data-rmc-page-fold-nav="required"
      data-rmc-scroll-policy="paginate">
 
@@ -42,7 +43,7 @@
   </div>
 
   {# ---------- Today snapshot (preview-live W3 — collapsible KPI band) ---------- #}
-  <details id="rmc-parent-today" class="rmc-preview-live-section" open data-rmc-section-anchor>
+  <details id="rmc-parent-today" data-tour="parent-header" class="rmc-preview-live-section" open data-rmc-section-anchor>
     <summary><i class="bi bi-sun" aria-hidden="true"></i> {% trans "Today snapshot" %}</summary>
     <div class="rmc-preview-live-section__body">
       <div class="rmc-dh-tiles">
@@ -54,7 +55,7 @@
     </div>
   </details>
 
-  <nav class="rmc-section-nav rmc-preview-live-parent__nav" aria-label="{% trans 'Jump to' %}">
+  <nav class="rmc-section-nav rmc-preview-live-parent__nav" data-tour="parent-quick-actions" aria-label="{% trans 'Jump to' %}">
     <div class="rmc-surface-subnav" role="list">
       <a href="#rmc-parent-attention" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Attention" %}</a>
       <a href="#rmc-parent-today" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-sun" aria-hidden="true"></i> {% trans "Today snapshot" %}</a>
@@ -108,7 +109,7 @@
   </details>
 
   {% term "student" plural=True capitalize=True as student_pl %}
-  <details id="rmc-parent-children" class="rmc-preview-live-section" open data-rmc-section-anchor>
+  <details id="rmc-parent-children" data-tour="parent-children" class="rmc-preview-live-section" open data-rmc-section-anchor>
     <summary><i class="bi bi-people" aria-hidden="true"></i> {% blocktrans with t=student_pl %}My {{ t }}{% endblocktrans %}</summary>
     <div class="rmc-preview-live-section__body">
       <div class="rmc-dh-cards rmc-dh-cards--wide">

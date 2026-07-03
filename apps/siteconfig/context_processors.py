@@ -853,6 +853,11 @@ def site_settings(request):
         ctx["LOGIN_EMAIL_PLACEHOLDER"] = (
             getattr(school, "name", None) or ""
         ).strip() or _("School Email")
+        # T5b: safe school name for the login card title + browser <title> fallback.
+        # Always a plain string ("" when no tenant) so template filter/firstof args
+        # never raise VariableDoesNotExist the way ``request.school.name`` does when
+        # school is None (an anonymous visitor on the base host).
+        ctx["LOGIN_SCHOOL_NAME"] = (getattr(school, "name", None) or "").strip()
         # Phase A: useLocalSettings — merged timezone, locale, currency, date_format, grading_scale for templates
         try:
             from .tenant_config import use_local_settings
@@ -885,6 +890,7 @@ def site_settings(request):
         ctx["SITE_ACCENT_COLOR"] = None
         ctx["TENANT_WALLPAPER_URL"] = ""
         ctx["LOGIN_EMAIL_PLACEHOLDER"] = _("School Email")
+        ctx["LOGIN_SCHOOL_NAME"] = ""
         ctx["TENANT_LOCALE"] = {}
         ctx["TENANT_BRAND_CONTEXT"] = {}
         ctx["TENANT_LABELS"] = {}

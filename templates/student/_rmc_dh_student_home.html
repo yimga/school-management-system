@@ -29,7 +29,7 @@
   {% include "components/dashboard/rmc_dh_hero.html" with dh_accent=True dh_eyebrow=st_date_eyebrow dh_title=hero_title dh_sub=phase7_de.hero_sub|default:_("Your priorities for today.") %}
   {% endif %}
 
-  <nav class="rmc-section-nav rmc-preview-live-student__nav" aria-label="{% trans 'Jump to' %}">
+  <nav class="rmc-section-nav rmc-preview-live-student__nav" data-tour="student-header" aria-label="{% trans 'Jump to' %}">
     <div class="rmc-surface-subnav" role="list">
       <a href="#rmc-student-attention" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Priorities" %}</a>
       <a href="#rmc-student-today" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-calendar3" aria-hidden="true"></i> {% trans "Today" %}</a>
@@ -55,7 +55,7 @@
   {% include "components/dashboard/rmc_dh_aicard.html" with dh_title=student_ai_insight.title dh_text=student_ai_insight.text dh_acts=student_ai_insight.acts dh_primary_first=True %}
   {% endif %}
 
-  <section id="rmc-student-attention" data-rmc-section-anchor>
+  <section id="rmc-student-attention" data-tour="student-decision-strip" data-rmc-section-anchor>
     {% if phase7_de.urgent_queue %}
     <div class="rmc-dh-attention">
       <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Don't forget" %}</h2>
