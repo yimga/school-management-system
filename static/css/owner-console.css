@@ -178,3 +178,40 @@
 .rmc-oc-btn:hover { border-color: var(--school-primary); }
 .rmc-oc-btn--primary { background: var(--school-primary); color: var(--text-on-brand, #ffffff); border-color: var(--school-primary); } /* off-token-allow: on-brand-primary-button-text */
 .rmc-oc-note { margin: 12px 0 0; font-size: 12px; color: var(--text-tertiary, var(--text-muted)); }
+
+/* ── People & Roles (slice 3) ──────────────────────── */
+.rmc-oc-headactions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+.rmc-oc-msgs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.rmc-oc-msg {
+  padding: 10px 14px; border-radius: var(--radius-sm, 8px); font-size: 13px;
+  background: var(--surface-elevated); border: 1px solid var(--hairline); color: var(--text-primary);
+}
+.rmc-oc-msg--success {
+  background: color-mix(in oklab, var(--color-success, #16a34a) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-success, #16a34a) 30%, transparent);
+}
+.rmc-oc-msg--error {
+  background: color-mix(in oklab, var(--color-danger, #dc2626) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-danger, #dc2626) 30%, transparent);
+}
+
+.rmc-oc-formhint { margin: -4px 0 12px; }
+.rmc-oc-form { margin: 0; }
+.rmc-oc-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.rmc-oc-pickcol {
+  border: 1px solid var(--hairline); border-radius: var(--radius-md, 12px);
+  padding: 12px; background: var(--surface-canvas);
+}
+.rmc-oc-picktitle {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;
+  color: var(--text-tertiary, var(--text-muted)); margin-bottom: 8px;
+}
+.rmc-oc-checks { display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto; }
+.rmc-oc-check {
+  display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: var(--radius-sm, 8px);
+  font-size: 13px; color: var(--text-primary); cursor: pointer;
+}
+.rmc-oc-check:hover { background: var(--surface-overlay, var(--surface-sunken)); }
+.rmc-oc-check input { accent-color: var(--school-primary); }
+.rmc-oc-formfoot { margin-top: 14px; }

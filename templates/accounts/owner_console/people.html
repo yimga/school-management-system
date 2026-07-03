@@ -1,0 +1,106 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "People & Roles" %} · {% trans "Owner Console" %}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/owner-console.css' %}">
+{% endblock %}
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<main class="rmc-page rmc-oc" id="main">
+  <div class="rmc-oc-shell">
+    <aside class="rmc-oc-side" aria-label="{% trans 'Owner Console navigation' %}">
+      <div class="rmc-oc-brand">
+        <span class="rmc-oc-logo" aria-hidden="true">{{ school.name|first|upper }}</span>
+        <span class="rmc-oc-brandname">{{ school.name }}<small>{% trans "Owner Console" %}</small></span>
+      </div>
+      <nav class="rmc-oc-nav">
+        {% for s in sections %}
+        <a href="{{ s.url }}" class="rmc-oc-navi{% if s.active %} rmc-oc-navi--active{% endif %}"{% if s.active %} aria-current="page"{% endif %}>
+          <i class="bi {{ s.icon }}" aria-hidden="true"></i><span>{{ s.label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <div class="rmc-oc-main">
+      <header class="rmc-oc-head">
+        <div>
+          <h1 class="rmc-oc-title">{% trans "People & Roles" %}</h1>
+          <p class="rmc-oc-sub">{% trans "Assign roles in bulk, and manage co-owners and transfers — everything is additive and reversible." %}</p>
+        </div>
+        <div class="rmc-oc-headactions">
+          {% if invite_url %}<a class="rmc-oc-btn rmc-oc-btn--primary" href="{{ invite_url }}"><span aria-hidden="true">👥</span> {% trans "Invite" %}</a>{% endif %}
+          {% if roster_hub_url %}<a class="rmc-oc-btn" href="{{ roster_hub_url }}"><span aria-hidden="true">🔑</span> {% trans "Co-owners & transfer" %}</a>{% endif %}
+        </div>
+      </header>
+
+      {% if messages %}
+      <div class="rmc-oc-msgs">
+        {% for m in messages %}<div class="rmc-oc-msg rmc-oc-msg--{{ m.tags|default:'info' }}">{{ m }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      <section class="rmc-oc-panel">
+        <h2 class="rmc-oc-h2">{% trans "Bulk assign roles" %}</h2>
+        <p class="rmc-oc-muted rmc-oc-formhint">{% trans "Pick the people, pick the roles, apply once. Existing roles are kept." %}</p>
+        <form method="post" class="rmc-oc-form">
+          {% csrf_token %}
+          <div class="rmc-oc-pick">
+            <div class="rmc-oc-pickcol">
+              <div class="rmc-oc-picktitle">{% trans "People" %}</div>
+              <div class="rmc-oc-checks">
+                {% for checkbox in form.users %}
+                <label class="rmc-oc-check">{{ checkbox.tag }} <span>{{ checkbox.choice_label }}</span></label>
+                {% empty %}
+                <p class="rmc-oc-muted">{% trans "No members yet." %}</p>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="rmc-oc-pickcol">
+              <div class="rmc-oc-picktitle">{% trans "Roles" %}</div>
+              <div class="rmc-oc-checks">
+                {% for checkbox in form.roles %}
+                <label class="rmc-oc-check">{{ checkbox.tag }} <span>{{ checkbox.choice_label }}</span></label>
+                {% empty %}
+                <p class="rmc-oc-muted">{% trans "No roles defined yet." %}</p>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <div class="rmc-oc-formfoot">
+            <button type="submit" class="rmc-oc-btn rmc-oc-btn--primary">{% trans "Apply roles" %}</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="rmc-oc-panel">
+        <h2 class="rmc-oc-h2">{% trans "Roster" %}</h2>
+        <div class="rmc-oc-tablewrap">
+          <table class="rmc-oc-table">
+            <thead><tr><th>{% trans "Person" %}</th><th>{% trans "Roles" %}</th><th></th></tr></thead>
+            <tbody>
+              {% for r in roster_rows %}
+              <tr>
+                <td>{{ r.name }}{% if r.is_owner %} <span aria-hidden="true">👑</span>{% endif %}{% if r.suspended %} <span class="rmc-oc-role rmc-oc-role--warn">{% trans "Suspended" %}</span>{% endif %}</td>
+                <td>
+                  {% if r.is_owner %}<span class="rmc-oc-role rmc-oc-role--owner">{% trans "Owner" %}</span>{% endif %}
+                  <span class="rmc-oc-role">{{ r.base_role }}</span>
+                  {% for ar in r.access_roles %}<span class="rmc-oc-role">{{ ar }}</span>{% endfor %}
+                </td>
+                <td>{% if r.url %}<a href="{{ r.url }}">{% trans "Manage" %}</a>{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="rmc-oc-muted">{% trans "No members yet — invite your team to get started." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+{% endblock %}
