@@ -697,6 +697,10 @@
           quick.click();
           return;
         }
+        if (typeof window.rmcSupportQuickCreateOpen === "function") {
+          window.rmcSupportQuickCreateOpen();
+          return;
+        }
         if (window.RMCSupportQuickCreate && window.RMCSupportQuickCreate.open) {
           window.RMCSupportQuickCreate.open();
         }

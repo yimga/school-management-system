@@ -11,9 +11,14 @@
 
 .studio-embed-main {
   min-height: 100dvh;
-  padding: 0.75rem 1rem 1.5rem;
+  padding: clamp(0.75rem, 1.5vw, 1.5rem);
 }
 
 .studio-embed-main .container-fluid {
   max-width: none;
+}
+
+.studio-embed-main [hidden],
+.studio-embed-main .visually-hidden[aria-hidden="true"] {
+  pointer-events: none;
 }

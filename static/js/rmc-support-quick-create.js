@@ -555,6 +555,7 @@
 
   function mountChip() {
     if (document.querySelector(".rmc-support-quick-chip")) return;
+    if (shouldSuppressStandaloneChip()) return;
     var btn = createElement("button", {
       type: "button",
       className: "rmc-support-quick-chip",
@@ -566,6 +567,18 @@
       '<span class="rmc-support-quick-chip__label">Help</span>';
     btn.addEventListener("click", openModal);
     document.body.appendChild(btn);
+  }
+
+  function shouldSuppressStandaloneChip() {
+    if (document.getElementById("page-data-rmc-tenant-tools")) return true;
+    if (document.getElementById("page-data-rmc-operator-tools")) return true;
+    if (
+      document.body &&
+      document.body.getAttribute("data-rmc-assist-layout") === "edge-tray"
+    ) {
+      return true;
+    }
+    return false;
   }
 
   function onKey(e) {
@@ -587,6 +600,8 @@
     boot();
   }
 
-  // Public API for cmdk and other surfaces.
+  // Public API for cmdk, Tools tray, and other shell surfaces.
   window.rmcSupportQuickCreateOpen = openModal;
+  window.RMCSupportQuickCreate = window.RMCSupportQuickCreate || {};
+  window.RMCSupportQuickCreate.open = openModal;
 })();

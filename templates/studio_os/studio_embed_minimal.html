@@ -1,6 +1,6 @@
 {% load static i18n %}
 <!doctype html>
-<html lang="{{ LANGUAGE_CODE|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-studio-embed="1" data-page-archetype="studio-embed" data-rmc-back-to-top-policy="always">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-studio-embed="1" data-page-archetype="studio-embed">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -31,6 +31,5 @@
   </main>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
   <script src="{% static 'js/rmc-scroll-container.js' %}"></script>
-  {% include "components/back_to_top.html" %}
 </body>
 </html>

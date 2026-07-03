@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 
+from django.conf import settings
 from django.template import Context, Template
 from django.test import Client, RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
@@ -55,6 +57,20 @@ class TenantToolsShellTemplateTests(SimpleTestCase):
         source = get_template("admin/base_site.html").template.source
         self.assertIn("rmc_tenant_tools_scripts.html", source)
         self.assertIn("cockpit.tenant_tools.enabled", source)
+
+    def test_support_quick_create_moves_into_tools_tray(self) -> None:
+        support_js = (Path(settings.BASE_DIR) / "static/js/rmc-support-quick-create.js").read_text(
+            encoding="utf-8"
+        )
+        tray_js = (Path(settings.BASE_DIR) / "static/js/rmc-operator-tools-tray.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("shouldSuppressStandaloneChip", support_js)
+        self.assertIn('document.getElementById("page-data-rmc-tenant-tools")', support_js)
+        self.assertIn("window.rmcSupportQuickCreateOpen = openModal", support_js)
+        self.assertIn("window.RMCSupportQuickCreate.open = openModal", support_js)
+        self.assertIn('getChip("tenant-support")', tray_js)
+        self.assertIn("window.rmcSupportQuickCreateOpen()", tray_js)
 
 
 class TenantToolsRenderContractTests(SimpleTestCase):
