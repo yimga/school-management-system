@@ -19,7 +19,7 @@
   --ai: #c4b5fd;
   --canvas: #0a0e18;
   --elev: #0e1424;
-  --rail: 228px;
+  --rail: 260px;
   --spine: 44px;
   --crown: 34px;
   --film: 36px;
@@ -168,11 +168,17 @@ body {
 
 /* LEFT RAIL — dense operator stack */
 .rail {
-  min-height: 0; display: flex; flex-direction: column;
+  min-height: 0; min-width: 0; display: flex; flex-direction: column;
   background: linear-gradient(180deg, rgba(10, 14, 26, 0.98), rgba(8, 11, 20, 0.99));
   border-right: 1px solid var(--hair);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
 }
+.rail::-webkit-scrollbar { width: 6px; }
+.rail::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 3px; }
 .rail.r { border-right: 0; border-left: 1px solid var(--hair); }
 
 .rail-cap {
@@ -232,18 +238,43 @@ body {
 .pc span { font-size: 8px; color: var(--muted); }
 
 .slo-bars { display: flex; flex-direction: column; gap: 5px; }
-.slo-row { display: flex; align-items: center; gap: 6px; font-size: 9px; color: var(--muted); }
-.slo-row label { width: 52px; flex-shrink: 0; }
-.slo-track { flex: 1; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
-.slo-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--good), var(--brand)); }
-.slo-row b { font-family: "JetBrains Mono", monospace; font-size: 9px; width: 28px; text-align: right; }
+.slo-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  row-gap: 3px;
+  align-items: center;
+  font-size: 9px;
+  color: var(--muted);
+}
+.slo-row label {
+  grid-column: 1 / -1;
+  width: auto;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.slo-track { min-width: 0; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+.slo-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--good), var(--brand)); width: 85%; }
+.slo-row b {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  width: auto;
+  min-width: 3.25rem;
+  white-space: nowrap;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text);
+}
 
 .rail-grow {
-  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  flex: 0 0 auto; min-height: 0; display: flex; flex-direction: column;
   border-top: 1px solid rgba(148, 163, 184, 0.06);
 }
 .feed {
-  flex: 1; min-height: 0; overflow-y: auto;
+  flex: 0 0 auto; max-height: 11rem; min-height: 0; overflow-y: auto;
   padding: 6px 10px;
 }
 .feed-row {
@@ -458,15 +489,29 @@ body {
 /* RELOCATED: lens filmstrip under globe (not header) */
 .film {
   grid-column: 1 / -1;
-  display: flex; align-items: center; gap: 6px;
-  padding: 0 10px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px 0 calc(var(--spine) + 8px);
   border-top: 1px solid var(--hair);
   background: rgba(6, 9, 18, 0.96);
-  overflow-x: auto;
+  min-height: var(--film);
+}
+.film-track {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 4px;
 }
 .film button {
-  flex-shrink: 0; font: inherit; font-size: 9px; font-weight: 700;
-  padding: 6px 12px; border-radius: 8px;
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font: inherit; font-size: 9px; font-weight: 700;
+  padding: 6px 8px; border-radius: 8px;
   border: 1px solid transparent;
   background: transparent; color: var(--dim); cursor: pointer;
 }
@@ -475,7 +520,7 @@ body {
   border-color: rgba(129, 140, 248, 0.35);
   background: rgba(129, 140, 248, 0.1);
 }
-.film .hint { margin-left: auto; font-size: 8px; color: var(--dim); white-space: nowrap; }
+.film .hint { flex-shrink: 0; font-size: 8px; color: var(--dim); white-space: nowrap; }
 
 /* RIGHT RAIL — schools hero + ring + signals */
 .schools-ring {
@@ -655,9 +700,10 @@ body {
         <div class="rail-cap">
           <div class="lbl">SLO snapshot</div>
           <div class="slo-bars">
-            <div class="slo-row"><label>API p95</label><div class="slo-track"><div class="slo-fill" style="width:92%"></div></div><b>142ms</b></div>
-            <div class="slo-row"><label>Uptime</label><div class="slo-track"><div class="slo-fill" style="width:99%"></div></div><b>99.9</b></div>
-            <div class="slo-row"><label>Fresh</label><div class="slo-track"><div class="slo-fill" style="width:78%"></div></div><b>4m</b></div>
+            <div class="slo-row"><label title="Webhook health">Webhook health</label><div class="slo-track"><div class="slo-fill" style="width:100%"></div></div><b title="100%">100%</b></div>
+            <div class="slo-row"><label title="Audit chain integrity">Audit chain integrity</label><div class="slo-track"><div class="slo-fill" style="width:100%"></div></div><b title="verified">verified</b></div>
+            <div class="slo-row"><label title="Key rotation">Key rotation</label><div class="slo-track"><div class="slo-fill" style="width:100%"></div></div><b title="monthly">monthly</b></div>
+            <div class="slo-row"><label title="DR drill">DR drill</label><div class="slo-track"><div class="slo-fill" style="width:100%"></div></div><b title="scheduled">scheduled</b></div>
           </div>
         </div>
         <div class="rail-grow">
@@ -739,13 +785,15 @@ body {
         </div>
 
         <div class="film" role="tablist" aria-label="Lens filmstrip">
-          <button type="button" class="on">Globe</button>
-          <button type="button">Forecast lane</button>
-          <button type="button">SLO clocks</button>
-          <button type="button">Tenant heatmap</button>
-          <button type="button">Revenue waterfall</button>
-          <button type="button">Audit feed</button>
-          <button type="button">Trust nutrition</button>
+          <div class="film-track">
+            <button type="button" class="on">Globe</button>
+            <button type="button">Forecast lane</button>
+            <button type="button">SLO clocks</button>
+            <button type="button">Tenant heatmap</button>
+            <button type="button">Revenue waterfall</button>
+            <button type="button">Audit feed</button>
+            <button type="button">Trust nutrition</button>
+          </div>
           <span class="hint">Scroll page ↓ for full panels</span>
         </div>
       </div>

@@ -22,6 +22,8 @@ REQUIRED_MARKERS: tuple[tuple[str, str], ...] = (
     ("templates/partials/cockpit/_globe_deck_v2_shell.html", "data-rmc-cp-globe-deck-v2"),
     ("templates/partials/cockpit/_globe_deck_crown.html", "data-rmc-cp-landing-tab"),
     ("templates/partials/cockpit/_globe_deck_lens_nav.html", "data-rmc-section-anchor"),
+    ("templates/partials/cockpit/_globe_deck_lens_nav.html", "rmc-globe-deck-v2__lens-track"),
+    ("templates/partials/cockpit/_globe_deck_lens_nav.html", "#rmc-cockpit-trust"),
     ("templates/partials/cockpit/_globe_deck_rail_left.html", "rmc-globe-deck-v2__pulse-mosaic"),
     ("templates/partials/cockpit/_globe_deck_rail_left.html", "rmc-globe-deck-v2__slo-bars"),
     ("templates/partials/cockpit/_globe_deck_rail_right.html", "rmc-globe-deck-v2__schools-ring"),

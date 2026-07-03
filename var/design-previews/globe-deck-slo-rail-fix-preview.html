@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Globe deck — SLO rail fix preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --hair: rgba(148, 163, 184, 0.12);
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --dim: #64748b;
+  --brand: #818cf8;
+  --good: #6ee7b7;
+  --canvas: #0a0e18;
+  --rail-w: 260px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font: 12px/1.4 Inter, system-ui, sans-serif;
+  background: #030508;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.note {
+  max-width: 320px;
+  margin-bottom: 16px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.note strong { color: var(--good); }
+.frame {
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  width: min(920px, 100%);
+  height: clamp(420px, 72vh, 640px);
+  border: 1px solid var(--hair);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--canvas);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+}
+.rail {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(10, 14, 26, 0.98), rgba(8, 11, 20, 0.99));
+  border-right: 1px solid var(--hair);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+.rail::-webkit-scrollbar { width: 6px; }
+.rail::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 3px; }
+.rail-cap { padding: 8px 10px; border-bottom: 1px solid rgba(148, 163, 184, 0.08); flex-shrink: 0; }
+.lbl {
+  font-size: 8px; font-weight: 800; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--dim); margin-bottom: 6px;
+}
+.inc { padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.12); margin-bottom: 4px; font-size: 10px; }
+.inc strong { display: block; font-weight: 600; }
+.inc em { font-style: normal; font-size: 9px; color: var(--dim); }
+.slo-bars { display: flex; flex-direction: column; gap: 5px; }
+.slo-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 8px;
+  row-gap: 3px;
+  align-items: center;
+  font-size: 9px;
+  color: var(--muted);
+}
+.slo-row label {
+  grid-column: 1 / -1;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.slo-track { min-width: 0; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+.slo-fill { height: 100%; width: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--good), var(--brand)); }
+.slo-row b {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  min-width: 3.25rem;
+  white-space: nowrap;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text);
+}
+.rail-grow { flex: 0 0 auto; border-top: 1px solid rgba(148, 163, 184, 0.06); }
+.feed { max-height: 11rem; overflow-y: auto; padding: 6px 10px; }
+.feed-row { padding: 5px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.05); font-size: 9.5px; color: var(--muted); }
+.globe {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(56, 189, 248, 0.12), transparent 55%),
+    url("https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/640px-The_Earth_seen_from_Apollo_17.jpg") center/cover;
+}
+.hud {
+  position: absolute; bottom: 12px; padding: 6px 10px; border-radius: 10px;
+  font-size: 9px; border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(8, 12, 22, 0.88); backdrop-filter: blur(8px);
+}
+.hud--l { left: 12px; border-left: 2px solid var(--good); }
+.hud--r { right: 12px; border-left: 2px solid #c4b5fd; }
+.hud b { display: block; font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dim); }
+.tabs {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--hair);
+  background: rgba(6, 10, 18, 0.92);
+  font-size: 9px;
+}
+.tabs-track {
+  flex: 1;
+  display: flex;
+  justify-content: space-evenly;
+  gap: 4px;
+  min-width: 0;
+}
+.tabs-track span {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--muted);
+  cursor: default;
+}
+.tabs .on { color: var(--good); font-weight: 700; }
+.tabs .hint { flex-shrink: 0; font-size: 8px; color: var(--dim); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div>
+  <p class="note"><strong>SLO rail fix</strong> — labels on their own row; values like <code>verified</code> / <code>monthly</code> / <code>scheduled</code> no longer clip. Left rail scrolls when Incidents + Pulse + SLO + Fleet stack.</p>
+  <section class="frame" aria-label="Globe deck SLO preview">
+    <aside class="rail" aria-label="Operator metrics">
+      <div class="rail-cap">
+        <div class="lbl">Incidents</div>
+        <div class="inc"><strong>Open critical</strong><em>Platform incidents</em></div>
+        <div class="inc"><strong>Needs eyes</strong><em>Open / acknowledged</em></div>
+        <div class="inc"><strong>Resolved 24h</strong><em>Recently cleared</em></div>
+      </div>
+      <div class="rail-cap">
+        <div class="lbl">Platform pulse</div>
+        <div class="inc"><strong>3</strong><em>Schools active</em></div>
+      </div>
+      <div class="rail-cap">
+        <div class="lbl">SLO snapshot</div>
+        <div class="slo-bars">
+          <div class="slo-row">
+            <label title="Webhook health">Webhook health</label>
+            <div class="slo-track"><div class="slo-fill"></div></div>
+            <b title="100%">100%</b>
+          </div>
+          <div class="slo-row">
+            <label title="Audit chain integrity">Audit chain integrity</label>
+            <div class="slo-track"><div class="slo-fill"></div></div>
+            <b title="verified">verified</b>
+          </div>
+          <div class="slo-row">
+            <label title="Key rotation">Key rotation</label>
+            <div class="slo-track"><div class="slo-fill"></div></div>
+            <b title="monthly">monthly</b>
+          </div>
+          <div class="slo-row">
+            <label title="DR drill">DR drill</label>
+            <div class="slo-track"><div class="slo-fill"></div></div>
+            <b title="scheduled">scheduled</b>
+          </div>
+        </div>
+      </div>
+      <div class="rail-grow">
+        <div class="lbl" style="padding:8px 10px 0">Live fleet pulse</div>
+        <div class="feed">
+          <div class="feed-row">Provisioning started — demo-school</div>
+          <div class="feed-row">Fleet attention — 1 suspended</div>
+          <div class="feed-row">Webhook delivery recovered</div>
+          <div class="feed-row">Audit chain verified weekly</div>
+        </div>
+      </div>
+    </aside>
+    <div class="globe">
+      <div class="hud hud--l"><b>C · Caption</b>Provisioning started</div>
+      <div class="hud hud--r"><b>D · AI Whisper</b>Fleet attention — 1 suspended</div>
+      <nav class="tabs" aria-label="Globe lenses">
+        <div class="tabs-track">
+          <span class="on">Globe</span>
+          <span>Forecast lane</span>
+          <span>SLO clocks</span>
+          <span>Tenant heatmap</span>
+          <span>Revenue waterfall</span>
+          <span>Audit feed</span>
+          <span>Trust nutrition</span>
+        </div>
+        <span class="hint">Scroll page ↓</span>
+      </nav>
+    </div>
+  </section>
+</div>
+</body>
+</html>

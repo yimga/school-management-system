@@ -56,11 +56,11 @@
     <div class="rmc-globe-deck-v2__slo-bars">
       {% for clock in cockpit.slo_clocks.clocks|slice:":4" %}
       <div class="rmc-globe-deck-v2__slo-row">
-        <label>{{ clock.label }}</label>
+        <label title="{{ clock.label }}">{{ clock.label }}</label>
         <div class="rmc-globe-deck-v2__slo-track" role="presentation">
           <div class="rmc-globe-deck-v2__slo-fill rmc-globe-deck-v2__slo-fill--{{ clock.dot_status|default:'ok' }}"></div>
         </div>
-        <b>{{ clock.value|default:"—" }}{% if clock.value_suffix %}{{ clock.value_suffix }}{% endif %}</b>
+        <b title="{{ clock.value|default:'—' }}{% if clock.value_suffix %}{{ clock.value_suffix }}{% endif %}">{{ clock.value|default:"—" }}{% if clock.value_suffix %}{{ clock.value_suffix }}{% endif %}</b>
       </div>
       {% endfor %}
     </div>

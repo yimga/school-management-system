@@ -1,40 +1,38 @@
 {% load i18n %}
 {% comment %} WOW v2 deck — vertical spine + horizontal filmstrip lens navigation.
    Replaces the above-globe .rmc-section-nav when data-rmc-cp-globe-deck-v2 is active.
-   variant: "spine" | "film" {% endcomment %}
+   variant: "spine" | "film"
+   Film labels mirror var/design-previews/globe-landing-wow-v2-browsable.html. {% endcomment %}
 {% with deck_lens_variant=deck_lens_variant|default:"film" %}
 <nav class="rmc-globe-deck-v2__lens rmc-globe-deck-v2__lens--{{ deck_lens_variant }}" aria-label="{% trans 'Cockpit lenses' %}"{% if deck_lens_variant == "spine" %} data-rmc-scroll-policy="paginate"{% endif %}>
+  {% if deck_lens_variant == "film" %}
+  <div class="rmc-globe-deck-v2__lens-track">
+  {% endif %}
   <a href="#rmc-globe-master-lab" class="rmc-globe-deck-v2__lens-link is-active" data-rmc-section-anchor title="{% trans 'Globe' %}">
     {% if deck_lens_variant == "spine" %}<span aria-hidden="true">🌐</span>{% else %}{% trans "Globe" %}{% endif %}
   </a>
-  {% if cockpit.forecast_lane.enabled %}
-  <a href="#rmc-cockpit-forecast" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'Forecast' %}">
-    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">📈</span>{% else %}{% trans "Forecast" %}{% endif %}
+  <a href="#rmc-cockpit-forecast" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'Forecast lane' %}">
+    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">📈</span>{% else %}{% trans "Forecast lane" %}{% endif %}
   </a>
-  {% endif %}
-  {% if cockpit.slo_clocks.enabled %}
-  <a href="#rmc-cockpit-slo" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'SLO' %}">
-    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">⏱</span>{% else %}{% trans "SLO" %}{% endif %}
+  <a href="#rmc-cockpit-slo" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'SLO clocks' %}">
+    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">⏱</span>{% else %}{% trans "SLO clocks" %}{% endif %}
   </a>
-  {% endif %}
-  {% if cockpit.tenant_heatmap.enabled %}
-  <a href="#rmc-cockpit-heatmap" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'Heatmap' %}">
-    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">▦</span>{% else %}{% trans "Heatmap" %}{% endif %}
+  <a href="#rmc-cockpit-heatmap" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'Tenant heatmap' %}">
+    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">▦</span>{% else %}{% trans "Tenant heatmap" %}{% endif %}
   </a>
-  {% endif %}
   {% if deck_lens_variant == "spine" %}<span class="rmc-globe-deck-v2__lens-sep" aria-hidden="true"></span>{% endif %}
-  {% if cockpit.revenue_waterfall.enabled %}
-  <a href="#rmc-cockpit-revenue" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'Revenue' %}">
-    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">💰</span>{% else %}{% trans "Revenue" %}{% endif %}
+  <a href="#rmc-cockpit-revenue" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'Revenue waterfall' %}">
+    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">💰</span>{% else %}{% trans "Revenue waterfall" %}{% endif %}
   </a>
-  {% endif %}
-  {% if cockpit.audit_feed.enabled %}
-  <a href="#rmc-cockpit-audit" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'Audit' %}">
-    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">📋</span>{% else %}{% trans "Audit" %}{% endif %}
+  <a href="#rmc-cockpit-audit" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'Audit feed' %}">
+    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">📋</span>{% else %}{% trans "Audit feed" %}{% endif %}
   </a>
-  {% endif %}
+  <a href="#rmc-cockpit-trust" class="rmc-globe-deck-v2__lens-link" data-rmc-section-anchor title="{% trans 'Trust nutrition' %}">
+    {% if deck_lens_variant == "spine" %}<span aria-hidden="true">🛡</span>{% else %}{% trans "Trust nutrition" %}{% endif %}
+  </a>
   {% if deck_lens_variant == "film" %}
-  <span class="rmc-globe-deck-v2__lens-hint text-muted small ms-auto">{% trans "Scroll for full lenses" %}</span>
+  </div>
+  <span class="rmc-globe-deck-v2__lens-hint text-muted small">{% trans "Scroll page ↓ for full panels" %}</span>
   {% endif %}
 </nav>
 {% endwith %}
