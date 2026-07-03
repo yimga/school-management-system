@@ -74,7 +74,14 @@ from .views_onboarding import (
     mark_tour_complete,
     owner_confirm_role,
 )
-from .views_owner_console import owner_console_overview
+from .views_owner_console import (
+    owner_console_audit,
+    owner_console_billing,
+    owner_console_branding,
+    owner_console_data,
+    owner_console_modules,
+    owner_console_overview,
+)
 from .views_owner_console_people import owner_console_people
 from .views_delegation import (
     my_delegations,
@@ -596,6 +603,11 @@ urlpatterns = [
     path("backend/confirm-owner/", owner_confirm_role, name="owner_confirm_role"),
     path("owner/", owner_console_overview, name="owner_console"),
     path("owner/people/", owner_console_people, name="owner_console_people"),
+    path("owner/modules/", owner_console_modules, name="owner_console_modules"),
+    path("owner/billing/", owner_console_billing, name="owner_console_billing"),
+    path("owner/data/", owner_console_data, name="owner_console_data"),
+    path("owner/branding/", owner_console_branding, name="owner_console_branding"),
+    path("owner/audit/", owner_console_audit, name="owner_console_audit"),
     path("backend/ops-watch/", backend_ops_watch_data, name="backend_ops_watch_data"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("backend/import/", backend_entity_import, name="backend_entity_import"),

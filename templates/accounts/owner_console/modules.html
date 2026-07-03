@@ -1,0 +1,24 @@
+{% extends "accounts/owner_console/_console_base.html" %}
+{% load i18n %}
+{% block oc_pagetitle %}{% trans "Modules" %}{% endblock %}
+{% block oc_title %}{% trans "Modules" %}{% endblock %}
+{% block oc_sub %}{% trans "Choose which features are switched on for your school — everything here is yours to turn on or off." %}{% endblock %}
+{% block oc_body %}
+<div class="rmc-oc-surfaces">
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Module Market" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "Browse everything RunMyCampus can do and switch modules on for your school — admissions, finance, LMS, transport and more." %}</p>
+    <div class="rmc-oc-surf-actions">
+      {% if module_market_url %}<a class="rmc-oc-btn rmc-oc-btn--primary" href="{{ module_market_url }}">{% trans "Open Module Market" %} →</a>{% else %}<span class="rmc-oc-muted">{% trans "Not available on this plan." %}</span>{% endif %}
+    </div>
+  </section>
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Grading & assessment" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "Set the grading scales, report-card formats and assessment rules your school uses." %}</p>
+    <div class="rmc-oc-surf-actions">
+      {% if grading_settings_url %}<a class="rmc-oc-btn" href="{{ grading_settings_url }}">{% trans "Grading settings" %} →</a>{% endif %}
+    </div>
+  </section>
+</div>
+<p class="rmc-oc-note">{% trans "Turning a module on only changes what your team can see — no data is ever deleted when a module is switched off." %}</p>
+{% endblock %}

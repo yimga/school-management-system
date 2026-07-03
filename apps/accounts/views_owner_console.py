@@ -11,9 +11,10 @@ one coherent command center. It is:
   the tenant urlconf (``/authentication/owner/``). No ``is_staff`` is involved.
 * **Fail-soft** — every data read degrades to a safe default; the console never 500s.
 
-Slice 2 ships the Overview. People & Roles, Modules, Billing, Data, Branding and
-Audit are surfaced as nav that deep-links into the existing hubs; later slices fill
-in bespoke console sub-pages.
+Slice 2 shipped the Overview; slice 3 People & Roles; slice 4 the remaining
+sections — Modules, Billing, Data, Branding and Audit — each as a bespoke console
+sub-page that keeps the owner inside the shell and deep-links ("Open full …") into
+the existing hub. Every section is owner-gated and fail-soft.
 """
 
 from __future__ import annotations
@@ -70,10 +71,11 @@ def _console_sections(active: str) -> list[dict[str, Any]]:
         {"key": "overview", "label": _("Overview"), "icon": "bi-grid-1x2", "url": _safe("accounts:owner_console")},
         {"key": "people", "label": _("People & Roles"), "icon": "bi-people", "url": _safe("accounts:owner_console_people")},
         {"key": "rbac", "label": _("Roles & access"), "icon": "bi-shield-lock", "url": _safe("accounts:rbac")},
-        {"key": "modules", "label": _("Modules"), "icon": "bi-puzzle", "url": _safe("siteconfig:module_market")},
-        {"key": "billing", "label": _("Billing & plan"), "icon": "bi-credit-card", "url": _safe("finance:dashboard")},
-        {"key": "branding", "label": _("Branding"), "icon": "bi-palette", "url": _safe("siteconfig:site_settings")},
-        {"key": "audit", "label": _("Audit log"), "icon": "bi-journal-text", "url": _safe("accounts:tenant_activity_log")},
+        {"key": "modules", "label": _("Modules"), "icon": "bi-puzzle", "url": _safe("accounts:owner_console_modules")},
+        {"key": "billing", "label": _("Billing & plan"), "icon": "bi-credit-card", "url": _safe("accounts:owner_console_billing")},
+        {"key": "data", "label": _("Data"), "icon": "bi-database", "url": _safe("accounts:owner_console_data")},
+        {"key": "branding", "label": _("Branding"), "icon": "bi-palette", "url": _safe("accounts:owner_console_branding")},
+        {"key": "audit", "label": _("Audit log"), "icon": "bi-journal-text", "url": _safe("accounts:owner_console_audit")},
     ]
     sections = []
     for item in raw:
@@ -150,3 +152,129 @@ def owner_console_overview(request):
     }
     ctx.update(_overview_metrics(school))
     return render(request, "accounts/owner_console/overview.html", ctx)
+
+
+# ── slice 4: section sub-pages (Modules / Billing / Data / Branding / Audit) ──
+
+
+def _console_ctx(request, active: str) -> dict[str, Any]:
+    """Shell context shared by every console page (nav + owner identity)."""
+    school = request.school
+    return {
+        "school": school,
+        "owner_name": (request.user.get_full_name() or request.user.get_username()),
+        "sections": _console_sections(active),
+        "invite_url": _safe("accounts:tenant_identity_invite"),
+        "roster_url": _safe("accounts:tenant_identity_roster"),
+    }
+
+
+def _plan_label(school) -> str:
+    """The school's plan/billing label, fail-soft, defaulting to Free."""
+    try:
+        label = (
+            getattr(school, "plan", "") or getattr(school, "billing_type", "") or ""
+        ).replace("_", " ").title()
+    except Exception:  # noqa: BLE001
+        label = ""
+    return label or _("Free")
+
+
+def _recent_audit_rows(school, limit: int = 10) -> list[dict[str, Any]]:
+    """The most recent security/ownership events for this school. Fail-soft."""
+    rows: list[dict[str, Any]] = []
+    try:
+        from apps.accounts.models import SecurityAuditLog
+
+        qs = (
+            SecurityAuditLog.objects.filter(school=school)
+            .select_related("user")
+            .order_by("-created_at")[:limit]
+        )
+        for e in qs:
+            actor = ""
+            if e.user_id:
+                actor = e.user.get_full_name() or e.user.get_username()
+            rows.append(
+                {
+                    "event": e.get_event_type_display(),
+                    "actor": actor or _("System"),
+                    "when": e.created_at,
+                    "ip": e.ip_address or "",
+                    "suspicious": bool(e.is_suspicious),
+                }
+            )
+    except Exception as exc:  # noqa: BLE001 — the panel degrades to empty, never 500s
+        logger.debug("owner console audit rows failed: %s", exc)
+    return rows
+
+
+def _owner_only(request, active: str):
+    """Return (ctx, None) for an owner, or (None, 403 response) otherwise."""
+    if not is_school_owner(request.user, request.school):
+        return None, HttpResponseForbidden(
+            _("The Owner Console is available to school owners.")
+        )
+    return _console_ctx(request, active), None
+
+
+@login_required
+@require_school
+def owner_console_modules(request):
+    """Modules — what's switched on for the school, deep-linking the Module Market."""
+    ctx, denied = _owner_only(request, "modules")
+    if denied:
+        return denied
+    ctx["module_market_url"] = _safe("siteconfig:module_market")
+    ctx["grading_settings_url"] = _safe("siteconfig:grading_settings")
+    return render(request, "accounts/owner_console/modules.html", ctx)
+
+
+@login_required
+@require_school
+def owner_console_billing(request):
+    """Billing & plan — plan at a glance, deep-linking the finance hub."""
+    ctx, denied = _owner_only(request, "billing")
+    if denied:
+        return denied
+    ctx["plan_label"] = _plan_label(request.school)
+    ctx["billing_url"] = _safe("finance:dashboard")
+    ctx["pricing_url"] = _safe("siteconfig:billing_plan_readonly")
+    return render(request, "accounts/owner_console/billing.html", ctx)
+
+
+@login_required
+@require_school
+def owner_console_data(request):
+    """Data — import (Migration Cloud) and export (compliance) portability."""
+    ctx, denied = _owner_only(request, "data")
+    if denied:
+        return denied
+    ctx["import_url"] = _safe("accounts:migration_wizard")
+    ctx["import_runs_url"] = _safe("accounts:migration_run_list")
+    ctx["export_url"] = _safe("siteconfig:compliance_exports")
+    return render(request, "accounts/owner_console/data.html", ctx)
+
+
+@login_required
+@require_school
+def owner_console_branding(request):
+    """Branding — the school's identity/theme, deep-linking the theme hubs."""
+    ctx, denied = _owner_only(request, "branding")
+    if denied:
+        return denied
+    ctx["theme_hub_url"] = _safe("siteconfig:theme_experience_hub")
+    ctx["theme_colors_url"] = _safe("siteconfig:theme_colors")
+    return render(request, "accounts/owner_console/branding.html", ctx)
+
+
+@login_required
+@require_school
+def owner_console_audit(request):
+    """Audit — recent security/ownership events, deep-linking the full log."""
+    ctx, denied = _owner_only(request, "audit")
+    if denied:
+        return denied
+    ctx["events"] = _recent_audit_rows(request.school)
+    ctx["activity_log_url"] = _safe("accounts:tenant_activity_log")
+    return render(request, "accounts/owner_console/audit.html", ctx)

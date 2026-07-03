@@ -1,0 +1,24 @@
+{% extends "accounts/owner_console/_console_base.html" %}
+{% load i18n %}
+{% block oc_pagetitle %}{% trans "Billing & plan" %}{% endblock %}
+{% block oc_title %}{% trans "Billing & plan" %}{% endblock %}
+{% block oc_sub %}{% trans "See your plan at a glance and manage invoices, payments and your school's balance." %}{% endblock %}
+{% block oc_body %}
+<section class="rmc-oc-tiles" aria-label="{% trans 'Plan' %}">
+  <div class="rmc-oc-tile">
+    <div class="rmc-oc-k">{% trans "Current plan" %}</div>
+    <div class="rmc-oc-v rmc-oc-v--sm">{{ plan_label }}</div>
+  </div>
+</section>
+<div class="rmc-oc-surfaces">
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Billing dashboard" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "See invoices, payments and your school's balance, and manage how you pay." %}</p>
+    <div class="rmc-oc-surf-actions">
+      {% if billing_url %}<a class="rmc-oc-btn rmc-oc-btn--primary" href="{{ billing_url }}">{% trans "Open billing" %} →</a>{% else %}<span class="rmc-oc-muted">{% trans "Not available on this plan." %}</span>{% endif %}
+      {% if pricing_url %}<a class="rmc-oc-btn" href="{{ pricing_url }}">{% trans "Plans & pricing" %} →</a>{% endif %}
+    </div>
+  </section>
+</div>
+<p class="rmc-oc-note">{% trans "Only owners can change the plan or payment method — every change is logged." %}</p>
+{% endblock %}

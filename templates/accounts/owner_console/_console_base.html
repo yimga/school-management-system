@@ -1,0 +1,50 @@
+{% extends "portal_base.html" %}
+{% comment %}
+Owner Console — shared shell (slice 4).
+
+Renders the tenant-skinned sidebar (from `sections`) + the page header, and hands
+the page body to the `oc_body` block. Section sub-pages (Modules / Billing / Data /
+Branding / Audit) extend this so the shell is defined once. Overview + People &
+Roles predate this base and render the same shell inline.
+{% endcomment %}
+{% load i18n static %}
+{% block title %}{% block oc_pagetitle %}{% trans "Owner Console" %}{% endblock %} · {% trans "Owner Console" %}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/owner-console.css' %}">
+{% endblock %}
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<main class="rmc-page rmc-oc" id="main">
+  <div class="rmc-oc-shell">
+    <aside class="rmc-oc-side" aria-label="{% trans 'Owner Console navigation' %}">
+      <div class="rmc-oc-brand">
+        <span class="rmc-oc-logo" aria-hidden="true">{{ school.name|first|upper }}</span>
+        <span class="rmc-oc-brandname">{{ school.name }}<small>{% trans "Owner Console" %}</small></span>
+      </div>
+      <nav class="rmc-oc-nav">
+        {% for s in sections %}
+        <a href="{{ s.url }}" class="rmc-oc-navi{% if s.active %} rmc-oc-navi--active{% endif %}"{% if s.active %} aria-current="page"{% endif %}>
+          <i class="bi {{ s.icon }}" aria-hidden="true"></i><span>{{ s.label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <div class="rmc-oc-main">
+      <header class="rmc-oc-head">
+        <div>
+          <h1 class="rmc-oc-title">{% block oc_title %}{% endblock %}</h1>
+          <p class="rmc-oc-sub">{% block oc_sub %}{% endblock %}</p>
+        </div>
+        {% block oc_headactions %}{% endblock %}
+      </header>
+
+      {% block oc_body %}{% endblock %}
+    </div>
+  </div>
+</main>
+{% endblock %}

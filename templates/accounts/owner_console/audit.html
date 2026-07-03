@@ -1,0 +1,31 @@
+{% extends "accounts/owner_console/_console_base.html" %}
+{% load i18n %}
+{% block oc_pagetitle %}{% trans "Audit log" %}{% endblock %}
+{% block oc_title %}{% trans "Audit log" %}{% endblock %}
+{% block oc_sub %}{% trans "The most recent security and ownership events for your school — who did what, and when." %}{% endblock %}
+{% block oc_headactions %}
+{% if activity_log_url %}<div class="rmc-oc-headactions"><a class="rmc-oc-btn" href="{{ activity_log_url }}">{% trans "Full activity log" %} →</a></div>{% endif %}
+{% endblock %}
+{% block oc_body %}
+<section class="rmc-oc-panel">
+  <h2 class="rmc-oc-h2">{% trans "Recent security & ownership events" %}</h2>
+  <div class="rmc-oc-tablewrap">
+    <table class="rmc-oc-table">
+      <thead><tr><th>{% trans "Event" %}</th><th>{% trans "Person" %}</th><th>{% trans "When" %}</th><th>{% trans "IP" %}</th></tr></thead>
+      <tbody>
+        {% for e in events %}
+        <tr>
+          <td>{{ e.event }}{% if e.suspicious %} <span class="rmc-oc-role rmc-oc-role--warn">{% trans "Suspicious" %}</span>{% endif %}</td>
+          <td>{{ e.actor }}</td>
+          <td class="rmc-oc-muted">{{ e.when|date:"M j, Y H:i" }}</td>
+          <td class="rmc-oc-muted">{{ e.ip|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="rmc-oc-muted">{% trans "No security events recorded yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<p class="rmc-oc-note">{% trans "Ownership changes, sign-ins from new places and role changes all appear here and in the full activity log." %}</p>
+{% endblock %}

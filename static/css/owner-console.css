@@ -215,3 +215,30 @@
 .rmc-oc-check:hover { background: var(--surface-overlay, var(--surface-sunken)); }
 .rmc-oc-check input { accent-color: var(--school-primary); }
 .rmc-oc-formfoot { margin-top: 14px; }
+
+/* ── section sub-pages (slice 4) ──────────────── */
+.rmc-oc-surfaces {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.rmc-oc-surface {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  padding: 18px;
+  box-shadow: var(--elev-1);
+  display: flex;
+  flex-direction: column;
+}
+.rmc-oc-surf-h { font-size: 15px; margin: 0 0 6px; color: var(--text-primary); }
+.rmc-oc-surf-p { margin: 0 0 14px; font-size: 13px; line-height: 1.5; color: var(--text-secondary); }
+.rmc-oc-surf-actions {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+

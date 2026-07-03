@@ -1,0 +1,18 @@
+{% extends "accounts/owner_console/_console_base.html" %}
+{% load i18n %}
+{% block oc_pagetitle %}{% trans "Branding" %}{% endblock %}
+{% block oc_title %}{% trans "Branding" %}{% endblock %}
+{% block oc_sub %}{% trans "Make RunMyCampus feel like your school — logo, colors and the look of every page your community sees." %}{% endblock %}
+{% block oc_body %}
+<div class="rmc-oc-surfaces">
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Theme & experience" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "Set your logo, brand colors and the overall look of the portal your students, parents and staff use every day." %}</p>
+    <div class="rmc-oc-surf-actions">
+      {% if theme_hub_url %}<a class="rmc-oc-btn rmc-oc-btn--primary" href="{{ theme_hub_url }}">{% trans "Open theme studio" %} →</a>{% else %}<span class="rmc-oc-muted">{% trans "Not available on this plan." %}</span>{% endif %}
+      {% if theme_colors_url %}<a class="rmc-oc-btn" href="{{ theme_colors_url }}">{% trans "Brand colors" %} →</a>{% endif %}
+    </div>
+  </section>
+</div>
+<p class="rmc-oc-note">{% trans "Your brand always leads — RunMyCampus styling stays out of the way so your school's identity comes first." %}</p>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "accounts/owner_console/_console_base.html" %}
+{% load i18n %}
+{% block oc_pagetitle %}{% trans "Data" %}{% endblock %}
+{% block oc_title %}{% trans "Data" %}{% endblock %}
+{% block oc_sub %}{% trans "Bring your data in from another system, or export your school's records — your data is always yours." %}{% endblock %}
+{% block oc_body %}
+<div class="rmc-oc-surfaces">
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Import data" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "Bring students, staff, grades and finance records into RunMyCampus from your previous system with Migration Cloud." %}</p>
+    <div class="rmc-oc-surf-actions">
+      {% if import_url %}<a class="rmc-oc-btn rmc-oc-btn--primary" href="{{ import_url }}">{% trans "Start an import" %} →</a>{% else %}<span class="rmc-oc-muted">{% trans "Not available on this plan." %}</span>{% endif %}
+      {% if import_runs_url %}<a class="rmc-oc-btn" href="{{ import_runs_url }}">{% trans "Import history" %} →</a>{% endif %}
+    </div>
+  </section>
+  <section class="rmc-oc-surface">
+    <h2 class="rmc-oc-surf-h">{% trans "Export data" %}</h2>
+    <p class="rmc-oc-surf-p">{% trans "Download compliance-ready exports of your school's records at any time — no lock-in." %}</p>
+    <div class="rmc-oc-surf-actions">
+      {% if export_url %}<a class="rmc-oc-btn rmc-oc-btn--primary" href="{{ export_url }}">{% trans "Export records" %} →</a>{% else %}<span class="rmc-oc-muted">{% trans "Not available on this plan." %}</span>{% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}
