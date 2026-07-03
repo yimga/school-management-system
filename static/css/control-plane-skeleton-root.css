@@ -11,12 +11,12 @@ html[data-surface="control-plane"] {
      --platform-navy stays as the operator's signature dark ground. */
   --platform-navy: var(--color-base-900, var(--cp-ink-canvas)); /* theme-locked-allow: manual-review */
   --platform-gold: var(--school-primary); /* legacy alias — anywhere using --platform-gold now gets indigo */
-  /* P3: operator canvas gutter. The platform-wide --rmc-shell-pad-x
-     (clamp(10px,0.75vw,14px), ~0.1in) read cramped on the control plane —
-     content ran right to the viewport edge. Give the operator a comfortable
-     ~0.2in gutter, scoped to control-plane so tenant/studio gutters are
-     unchanged. */
-  --rmc-cp-shell-pad-x: clamp(18px, 1.1vw, 32px);
+  /* P3: operator canvas gutter — a single, consistent ~0.2in inset. Previously
+     three rules stacked (Bootstrap px-3 on .cp-layout + this token + a second
+     inset on #cp-main-content) to ~0.28-0.31in, and the 1.1vw term ballooned to
+     32px on wide monitors. The px-3 is removed from the shell and #cp-main-content
+     inline padding is zeroed, so this token is now the sole operator gutter. */
+  --rmc-cp-shell-pad-x: clamp(16px, 0.6vw, 20px);
   /* UX fix: manager shell was capped at 1440px which left huge dead margins
      on wide monitors (every menu / sidebar / page showed the same narrow
      content strip surrounded by empty light space). Default to fluid (`none`)

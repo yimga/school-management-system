@@ -65,7 +65,7 @@
 {% endif %}
 {% endblock %}
 
-<div class="container-fluid px-3 py-2 cp-layout d-flex flex-column rmc-shell-canvas-container" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}" {% block cp_layout_attrs %}{% endblock %}>
+<div class="container-fluid py-2 cp-layout d-flex flex-column rmc-shell-canvas-container" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}" {% block cp_layout_attrs %}{% endblock %}>
   <main id="cp-main-content" class="cp-main-col rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane" data-rmc-static-chrome="1">
     {% include "partials/shell_chrome_django_messages_control_plane.html" %}
     {% if not rmc_cp_globe_landing_minimal_chrome %}

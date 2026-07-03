@@ -35,7 +35,9 @@ body.control-plane-shell .cp-layout {
 }
 
 body.control-plane-shell #cp-main-content {
-  padding: var(--rmc-shell-rhythm-y) var(--rmc-shell-pad-x) 32px;
+  /* Inline padding is 0 — the single operator gutter now lives on .cp-layout
+     (--rmc-cp-shell-pad-x); stacking both here produced the ~0.3in gap. */
+  padding: var(--rmc-shell-rhythm-y) 0 32px;
   display: flex;
   flex-direction: column;
   gap: 8px;

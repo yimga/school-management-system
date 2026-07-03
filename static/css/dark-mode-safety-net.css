@@ -450,10 +450,20 @@ html[data-bs-theme="dark"] body:not(.marketing-surface) .dropdown-item:focus{
 html[data-bs-theme="dark"] body:not(.marketing-surface) .form-control,
 html[data-theme="dark"] body:not(.marketing-surface) .form-control,
 html[data-resolved-theme="dark"] body:not(.marketing-surface) .form-control,
-html[data-bs-theme="dark"] body:not(.marketing-surface) .form-select{
+html[data-bs-theme="dark"] body:not(.marketing-surface) .form-select,
+html[data-theme="dark"] body:not(.marketing-surface) .form-select,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .form-select{
   background-color: var(--surface-elevated, var(--surface-canvas));
   color: var(--text-primary);
   border-color: var(--hairline);
+}
+/* Native <select> option list on dark (the "weird" blueprint dropdowns): keep
+   the popped-open option menu readable, not light-on-dark. */
+html[data-bs-theme="dark"] body:not(.marketing-surface) .form-select option,
+html[data-theme="dark"] body:not(.marketing-surface) .form-select option,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .form-select option{
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-primary);
 }
 
 html[data-bs-theme="dark"] body:not(.marketing-surface) .form-control::placeholder,

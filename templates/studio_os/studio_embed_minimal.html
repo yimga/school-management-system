@@ -5,6 +5,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
+  {% comment %} Theme cascade: without the brand meta bridge + the render-blocking
+     theme bootstrap, <html> never gets data-theme/brand tokens, so every Studio
+     embed rendered off-brand in raw design-token defaults with no dark-mode flip. {% endcomment %}
+  {% include "partials/rmc_theme_meta.html" %}
+  <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
   <title>{% block title %}{{ studio_embed_title|default:"Studio" }}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
