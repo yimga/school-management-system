@@ -418,6 +418,15 @@ class StudentProfile(models.Model):
     date_of_birth = models.DateField(null=True, blank=True)
     place_of_birth = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=20, blank=True, choices=Status.choices)
+    # Duplicate-merge tombstone (Wave C): the retired duplicate points at the
+    # surviving row. Soft-retire only — merged rows are never hard-deleted.
+    merged_into = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="merged_duplicates",
+    )
     # Free-text code to store the joined term (now dynamic). Use portal form for choices.
     joined_term = models.CharField(max_length=20, blank=True)
     joined_date = models.DateField(null=True, blank=True)
@@ -1596,4 +1605,8 @@ from apps.people.models_transfer_consent import (  # noqa: E402,F401
     TransferConsent,
     TransferConsentDecision,
     TransferConsentError,
+)
+from apps.people.models_merge import (  # noqa: E402,F401
+    MergeStateError,
+    RecordMergeOperation,
 )

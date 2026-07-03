@@ -1,0 +1,125 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Record merges" %} — {{ block.super }}{% endblock %}
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div class="container-fluid rmc-page" style="max-width: 1200px;">
+  <header class="rmc-page__header" style="margin-bottom: 14px;">
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "Record merges" %}</h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 70ch;">
+      {% trans "Consolidate duplicate person rows: preview the re-point plan, approve, apply. Collisions quarantine on the retired duplicate — nothing is ever deleted." %}
+    </p>
+  </header>
+
+  <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+    <table class="rmc-data-table" style="width: 100%; margin: 0;">
+      <thead>
+        <tr>
+          <th>{% trans "Operation" %}</th>
+          <th>{% trans "Kind" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "School" %}</th>
+          <th>{% trans "Secondary → Primary" %}</th>
+          <th>{% trans "Rows" %}</th>
+          <th>{% trans "Quarantined" %}</th>
+          <th>{% trans "Last note" %}</th>
+          <th>{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for op in operations %}
+        <tr>
+          <td style="font-family: monospace;">{{ op.pk|stringformat:"s"|slice:":8" }}</td>
+          <td>{{ op.kind }}</td>
+          <td>{{ op.status }}</td>
+          <td>{{ op.school.name }}</td>
+          <td style="font-family: monospace;">{{ op.secondary_pk|slice:":8" }} → {{ op.primary_pk|slice:":8" }}</td>
+          <td>{{ op.preview.total_rows|default:"—" }}</td>
+          <td>{{ op.collisions|length }}</td>
+          <td style="color: var(--text-secondary); max-width: 24ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            {% with op.history|last as last_entry %}{{ last_entry.note|default:last_entry.to|default:"—" }}{% endwith %}
+          </td>
+          <td>
+            {% if op.status == "previewed" %}
+            <form method="post" action="{% url 'portal:merge_op_approve' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="operation_id" value="{{ op.pk }}">
+              <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Approve" %}</button>
+            </form>
+            {% elif op.status == "approved" %}
+            <form method="post" action="{% url 'portal:merge_op_apply' %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="operation_id" value="{{ op.pk }}">
+              <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Apply merge" %}</button>
+            </form>
+            {% else %}
+            <span style="color: var(--text-secondary);">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 24px;">{% trans "No merge operations yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <section style="margin-top: 18px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated); padding: 14px;">
+    <h2 style="font-size: var(--type-size-headline-s); margin: 0 0 8px;">{% trans "Open a merge" %}</h2>
+    <form method="post" action="{% url 'portal:merge_op_create' %}" style="display: flex; gap: 10px; align-items: end; flex-wrap: wrap;">
+      {% csrf_token %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Kind" %}
+        <select name="kind" style="display: block; min-width: 140px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
+          <option value="student">{% trans "Student" %}</option>
+          <option value="teacher">{% trans "Teacher" %}</option>
+          <option value="guardian">{% trans "Guardian link" %}</option>
+        </select>
+      </label>
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Primary (survivor) ID" %}
+        <input name="primary_pk" required style="display: block; min-width: 240px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+      </label>
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Secondary (duplicate) ID" %}
+        <input name="secondary_pk" required style="display: block; min-width: 240px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+      </label>
+      <button type="submit" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Preview merge" %}</button>
+    </form>
+  </section>
+
+  <section style="margin-top: 18px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated); padding: 14px;">
+    <h2 style="font-size: var(--type-size-headline-s); margin: 0 0 8px;">{% trans "Dedup inbox" %}</h2>
+    <p style="color: var(--text-secondary); margin: 0 0 10px; max-width: 70ch;">
+      {% trans "Likely duplicates surfaced by migration runs (deterministic + AI scoring). Open a merge with the pair of IDs to resolve one." %}
+    </p>
+    <div style="overflow-x: auto;">
+      <table class="rmc-data-table" style="width: 100%; margin: 0;">
+        <thead>
+          <tr>
+            <th>{% trans "Bundle" %}</th>
+            <th>{% trans "New row" %}</th>
+            <th>{% trans "Existing row" %}</th>
+            <th>{% trans "Score" %}</th>
+            <th>{% trans "AI verdict" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in dedup_inbox %}
+          <tr>
+            <td style="font-family: monospace;">{{ item.bundle_id }}</td>
+            <td style="font-family: monospace;">{{ item.new_pk }}</td>
+            <td style="font-family: monospace;">{{ item.other_pk }}</td>
+            <td>{{ item.deterministic_score }}</td>
+            <td>{% if item.ai_same_person is not None %}{{ item.ai_same_person }} ({{ item.ai_confidence }}){% else %}—{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 18px;">{% trans "No duplicate candidates pending." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

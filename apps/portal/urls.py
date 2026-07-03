@@ -202,6 +202,12 @@ from .views_transfers import (
     transfer_case_run,
     transfer_cases_index,
 )
+from .views_merge import (
+    merge_op_apply,
+    merge_op_approve,
+    merge_op_create,
+    merge_ops_index,
+)
 from .views_lms_audit import lms_audit_index, lms_audit_export_index, lms_audit_export_download
 from .views_idempotency_audit import idempotency_audit_index
 from .views_lms_pkce import lms_pkce_start, lms_pkce_callback, lms_pkce_build
@@ -278,6 +284,11 @@ urlpatterns = [
     path("super/transfers/request-consent/", transfer_case_request_consent, name="transfer_case_request_consent"),
     path("super/transfers/run/", transfer_case_run, name="transfer_case_run"),
     path("super/transfers/abort/", transfer_case_abort, name="transfer_case_abort"),
+    # 2026-07-03: Record-merge console (Wave C).
+    path("super/merges/", merge_ops_index, name="merge_ops_index"),
+    path("super/merges/create/", merge_op_create, name="merge_op_create"),
+    path("super/merges/approve/", merge_op_approve, name="merge_op_approve"),
+    path("super/merges/apply/", merge_op_apply, name="merge_op_apply"),
     # v4.00.53: LMS push-grade audit URL is registered above the provider
     # catch-all (see lms_audit_index above lms_provider_detail).
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).

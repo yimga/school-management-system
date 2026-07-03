@@ -361,11 +361,44 @@ class RecordManagementService:
         return {"deleted": deleted_count}
 
     @staticmethod
-    def merge_records(primary_record, secondary_record):
-        """Merge two records"""
-        # Consolidate data from secondary into primary
-        # Delete secondary
+    def merge_records(primary_record, secondary_record, *, actor=None):
+        """Merge two duplicate person rows via the Wave C merge engine.
+
+        Thin wrapper over ``apps.people.merge_service``: creates the
+        operation of record, previews, approves and applies in one call.
+        The secondary is soft-retired (never deleted); unique-constraint
+        collisions quarantine on the operation for review.
+        """
+        from apps.people.merge_service import (
+            apply_merge,
+            approve_merge,
+            preview_merge,
+        )
+        from apps.people.models_merge import RecordMergeOperation
+
+        kind_by_model = {
+            "studentprofile": RecordMergeOperation.Kind.STUDENT,
+            "teacherprofile": RecordMergeOperation.Kind.TEACHER,
+            "studentguardian": RecordMergeOperation.Kind.GUARDIAN,
+        }
+        model_name = primary_record._meta.model_name
+        school = getattr(primary_record, "school", None)
+        if school is None and getattr(primary_record, "student", None) is not None:
+            school = primary_record.student.school  # StudentGuardian: via the child
+        op = RecordMergeOperation.objects.create(
+            school=school,
+            kind=kind_by_model.get(model_name, RecordMergeOperation.Kind.STUDENT),
+            primary_pk=str(primary_record.pk),
+            secondary_pk=str(secondary_record.pk),
+            created_by=actor if getattr(actor, "pk", None) else None,
+        )
+        preview_merge(op)
+        approve_merge(op, actor)
+        summary = apply_merge(op, actor=actor)
         return {
-            "merged_into": primary_record.id,
-            "removed": secondary_record.id,
+            "merged_into": primary_record.pk,
+            "retired": secondary_record.pk,
+            "operation_id": str(op.pk),
+            "repointed": summary.get("repointed", 0),
+            "quarantined": summary.get("collisions", 0),
         }
