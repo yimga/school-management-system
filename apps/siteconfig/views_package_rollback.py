@@ -22,12 +22,11 @@ User = get_user_model()
 
 
 def _rollback_roles_ok(user) -> bool:
-    if not user or not user.is_authenticated:
-        return False
-    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
-        return True
-    r = (getattr(user, "role", "") or "").upper()
-    return r in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "IT_ADMIN")
+    from apps.siteconfig.tenant_experience_policy import (
+        user_may_manage_backend_config,
+    )
+
+    return user_may_manage_backend_config(user)
 
 
 @login_required

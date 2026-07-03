@@ -5,6 +5,8 @@ Replaces fragmented customizer / theme / feature control / report library / work
 Shared preview (2.1) and publish/rollback (2.2) via studio_preview, studio_publish_api, studio_save_draft_api.
 """
 
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -2140,17 +2142,25 @@ def studio_shell(request, mode=None):
     apply_studio_guidance_to_context(context, mode=mode)
 
     if mode:
-        context["studio_mode_hero"] = get_studio_mode_hero_context(
-            mode,
-            request,
-            legacy_urls=legacy_urls,
-            launch_payload=context.get("launch_payload"),
-            theme_contrast_report=context.get("theme_contrast_report"),
-            output_readiness_summary=context.get("output_readiness_summary"),
-            automation_primary_url=context.get("automation_workflow_center_pane_url"),
-            automation_secondary_url=context.get("automation_simulation_pane_url"),
-            automation_health_summary=context.get("automation_health_summary"),
-        )
+        # The mode hero is decorative chrome; a failure building it must never 500
+        # the whole studio shell (defense-in-depth around the automation i18n fix).
+        try:
+            context["studio_mode_hero"] = get_studio_mode_hero_context(
+                mode,
+                request,
+                legacy_urls=legacy_urls,
+                launch_payload=context.get("launch_payload"),
+                theme_contrast_report=context.get("theme_contrast_report"),
+                output_readiness_summary=context.get("output_readiness_summary"),
+                automation_primary_url=context.get("automation_workflow_center_pane_url"),
+                automation_secondary_url=context.get("automation_simulation_pane_url"),
+                automation_health_summary=context.get("automation_health_summary"),
+            )
+        except Exception:
+            logging.getLogger(__name__).warning(
+                "studio_mode_hero build failed (mode=%s)", mode, exc_info=True
+            )
+            context["studio_mode_hero"] = {}
 
     if use_control_plane_shell(request):
         context["studio_operator_toolbar"] = get_studio_operator_toolbar(

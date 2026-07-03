@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.management import CommandError, call_command
-from django.db import DatabaseError, OperationalError
+from django.db import DatabaseError, OperationalError, connection
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -420,14 +420,11 @@ def grading_settings(request):
             request, "Select a school (use your school subdomain) to manage grading."
         )
         return redirect("siteconfig:user_preferences")
-    role = (getattr(request.user, "role", "") or "").upper()
-    if role not in (
-        "ADMIN",
-        "LEADERSHIP",
-        "IT_ADMIN",
-        "PRINCIPAL",
-        "VICE_PRINCIPAL",
-    ) and not (request.user.is_staff or request.user.is_superuser):
+    from apps.siteconfig.tenant_experience_policy import (
+        user_may_manage_backend_config,
+    )
+
+    if not user_may_manage_backend_config(request.user):
         return HttpResponseForbidden(
             "You do not have permission to change school grading settings."
         )
@@ -542,10 +539,11 @@ def module_market(request):
     if not school:
         messages.warning(request, "Select a school to manage modules.")
         return redirect("siteconfig:user_preferences")
-    role = (getattr(request.user, "role", "") or "").upper()
-    if role not in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL") and not (
-        request.user.is_staff or request.user.is_superuser
-    ):
+    from apps.siteconfig.tenant_experience_policy import (
+        user_may_manage_backend_config,
+    )
+
+    if not user_may_manage_backend_config(request.user):
         return HttpResponseForbidden(
             "You do not have permission to manage school modules."
         )
@@ -629,21 +627,31 @@ def build_reportcard_builder_context(
     sample_students = {}
     classroom_ids = [assignment.classroom_id for assignment in assignments]
     if classroom_ids:
-        # ONE sample student per classroom via DISTINCT ON — was a full scan of
-        # every active student in every assigned classroom (thousands of rows on a
-        # large tenant → request timeout → 502). Bounded by classroom count now.
-        sample_candidates = (
+        # ONE sample student per classroom — avoids a full scan of every active
+        # student in every assigned classroom (thousands of rows on a large tenant
+        # → request timeout → 502).
+        base_sample_qs = (
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             StudentProfile.objects.filter(
                 classroom_id__in=classroom_ids, is_active=True
             )
             .defer("passport")
             .order_by("classroom_id", "last_name", "first_name")
-            .distinct("classroom_id")
         )
-        sample_students = {
-            student.classroom_id: student for student in sample_candidates
-        }
+        if connection.features.can_distinct_on_fields:
+            # Postgres: DISTINCT ON is bounded by classroom count (fast path).
+            sample_students = {
+                student.classroom_id: student
+                for student in base_sample_qs.distinct("classroom_id")
+            }
+        else:
+            # DB-portable fallback (e.g. SQLite local/dev, which raises
+            # NotSupportedError on DISTINCT ON → the 502): first (alphabetical)
+            # active student per classroom. The queryset is ordered by classroom
+            # first, so the first row seen per classroom is the sample.
+            sample_students = {}
+            for student in base_sample_qs.iterator():
+                sample_students.setdefault(student.classroom_id, student)
     for assignment in assignments:
         assignment.sample_student = sample_students.get(assignment.classroom_id)
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph

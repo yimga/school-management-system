@@ -818,6 +818,30 @@ class UserPreferenceForm(forms.ModelForm):
         label="High contrast mode",
         help_text="Boost contrast for better visibility.",
     )
+    # Declared as real ChoiceFields (mirroring timezone/theme_preference above) so the
+    # dynamic option lists built in __init__ actually populate the <select>. The model
+    # fields are plain CharFields with no choices, so a ModelForm-inferred field would
+    # render an empty dropdown (nothing to pick) — the "inert language/region" bug.
+    preferred_language = forms.ChoiceField(
+        required=False,
+        widget=forms.Select(
+            attrs={
+                "class": "form-select rmc-prefs-select",
+                "data-rmc-prefs-select": "language",
+            }
+        ),
+        label="Preferred language",
+    )
+    preferred_region = forms.ChoiceField(
+        required=False,
+        widget=forms.Select(
+            attrs={
+                "class": "form-select rmc-prefs-select",
+                "data-rmc-prefs-select": "region",
+            }
+        ),
+        label="Preferred region",
+    )
 
     class Meta:
         model = UserPreference
@@ -841,18 +865,8 @@ class UserPreferenceForm(forms.ModelForm):
             "simple_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "theme_preference": forms.Select(attrs={"class": "form-select"}),
             "high_contrast": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "preferred_language": forms.Select(
-                attrs={
-                    "class": "form-select rmc-prefs-select",
-                    "data-rmc-prefs-select": "language",
-                }
-            ),
-            "preferred_region": forms.Select(
-                attrs={
-                    "class": "form-select rmc-prefs-select",
-                    "data-rmc-prefs-select": "region",
-                }
-            ),
+            # preferred_language / preferred_region are declared as explicit ChoiceFields
+            # above (their widgets live there); no Meta.widgets entry needed.
         }
 
     def __init__(self, *args, **kwargs):
@@ -871,12 +885,6 @@ class UserPreferenceForm(forms.ModelForm):
         self.fields["preferred_language"].choices = _build_preferred_language_choices()
         self.fields["preferred_language"].required = False
         self.fields["preferred_region"].choices = _build_preferred_region_choices()
-        self.fields["preferred_region"].widget = forms.Select(
-            attrs={
-                "class": "form-select rmc-prefs-select",
-                "data-rmc-prefs-select": "region",
-            }
-        )
         self.fields["preferred_region"].required = False
 
         if self.instance and self.instance.notification_channels:

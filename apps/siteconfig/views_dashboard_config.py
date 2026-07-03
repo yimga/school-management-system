@@ -25,6 +25,7 @@ from apps.siteconfig.control_plane_render import (
 from apps.siteconfig.operator_school import redirect_missing_operator_school
 from apps.siteconfig.models_dashboard import DashboardTemplate, TenantLayoutAssignment
 from apps.siteconfig.models_workflow import WorkflowTemplate, TenantWorkflow
+from apps.siteconfig.tenant_experience_policy import user_may_manage_backend_config
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +47,8 @@ def dashboard_hub(request):
     Phase 4: Dashboard hub — single tenant-facing entry. Dashboards are composed by role via
     dashboard_resolver.for_role(school, role). This page links to configuration (assign template per role).
     """
-    if not getattr(request.user, "is_staff", False):
-        messages.warning(request, "Access restricted to staff.")
+    if not user_may_manage_backend_config(request.user):
+        messages.warning(request, "Access restricted to school administrators.")
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:
@@ -93,8 +94,8 @@ def get_blueprints(request):
     Tenant-facing "Get blueprints" entry (11.2). Blueprint packs are applied by platform admin;
     this page lets tenants discover available packs and request application (or link to manager).
     """
-    if not getattr(request.user, "is_staff", False):
-        messages.warning(request, "Access restricted to staff.")
+    if not user_may_manage_backend_config(request.user):
+        messages.warning(request, "Access restricted to school administrators.")
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:
@@ -185,8 +186,8 @@ def dashboard_configuration_hub(request):
     """
     Configuration Hub: list DashboardTemplates and assign template per role for current school.
     """
-    if not getattr(request.user, "is_staff", False):
-        messages.warning(request, "Access restricted to staff.")
+    if not user_may_manage_backend_config(request.user):
+        messages.warning(request, "Access restricted to school administrators.")
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:
@@ -280,8 +281,8 @@ def workflow_flow_gallery(request):
     Flow Gallery (Part 2c): list WorkflowTemplates and TenantWorkflow assignments.
     Phase 4: POST to activate, deactivate, or rollback (clear overrides) within guardrails.
     """
-    if not getattr(request.user, "is_staff", False):
-        messages.warning(request, "Access restricted to staff.")
+    if not user_may_manage_backend_config(request.user):
+        messages.warning(request, "Access restricted to school administrators.")
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:

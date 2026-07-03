@@ -361,6 +361,34 @@ def user_may_configure_tenant_experience(user: Any) -> bool:
     return bool(callable(checker) and checker("settings.manage") or checker("settings.feature_control"))
 
 
+def user_may_manage_backend_config(user: Any) -> bool:
+    """Whether ``user`` may reach the tenant configuration backend (siteconfig).
+
+    Superset of :func:`user_may_configure_tenant_experience`: it ALSO honors the
+    tenant configuration *scalar* roles (``User.role``), so a ``role=SUPERADMIN`` /
+    ``ADMIN`` / school-leadership user who happens to have no explicit ``AccessRole``
+    grant is not locked out of their own configuration backend — the "superadmin
+    gets 502/Forbidden on siteconfig" bug. ``has_feature_permission`` resolves via
+    the ``AccessRole`` M2M, NOT the scalar role, so the two must be OR'd.
+
+    Operators are isolated from tenant surfaces by HOST elsewhere; this predicate
+    only decides who counts as a *school's own* configuration operator.
+    """
+    if user_may_configure_tenant_experience(user):
+        return True
+    from django.contrib.auth import get_user_model
+
+    role_enum = get_user_model().Role
+    role = (getattr(user, "role", "") or "").upper()
+    return role in {
+        role_enum.SUPERADMIN,
+        role_enum.ADMIN,
+        # Extended (non-User.Role) leadership roles that already gated the siteconfig
+        # backend surfaces (grading / modules / rollback), centralized here.
+        "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL",  # role-string-allow: tenant-backend-config-role-gate
+    }
+
+
 def filter_setup_wizard_stages(
     stages_payload: dict[str, Any] | None, *, hidden_keys: list[str]
 ) -> dict[str, Any] | None:

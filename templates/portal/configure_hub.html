@@ -41,7 +41,10 @@
     <main class="rmc-settings-pane" data-rmc-settings-pane="1">
       {% for c in categories %}
         <section id="cat-{{ c.slug }}" class="rmc-settings-section rmc-reveal" data-rmc-section-anchor data-rmc-cat="{{ c.slug }}" data-rmc-search-target="{{ c.label }}">
-          <header class="rmc-settings-section__head">
+          {% comment %} The whole category head is a link into that category's first
+             setting — clicking "Academics"/"Finance" now navigates instead of being
+             an inert card. Bootstrap text-reset/-decoration-none keep it un-styled. {% endcomment %}
+          <a class="rmc-settings-section__head text-reset text-decoration-none" href="{{ c.entries.0.url }}">
             <div class="rmc-settings-section__icon" aria-hidden="true">
               <i class="bi {{ c.icon }}"></i>
             </div>
@@ -49,7 +52,8 @@
               <h2 class="rmc-settings-section__title">{{ c.label }}</h2>
               <p class="rmc-settings-section__caption">{{ c.description }}</p>
             </div>
-          </header>
+            <i class="bi bi-chevron-right rmc-settings-entry__chev ms-auto" aria-hidden="true"></i>
+          </a>
           <div class="rmc-settings-entries">
             {% for e in c.entries %}
               <a class="rmc-settings-entry" href="{{ e.url }}" data-rmc-search-text="{{ e.label }} {{ e.description }} {{ e.keywords }}">

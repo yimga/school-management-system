@@ -512,7 +512,7 @@ def get_studio_mode_hero_context(
     automation_health_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Template kwargs for studio_os/partials/_mode_hero.html on manager + tenant shells."""
-    from django.utils.translation import gettext as _
+    from django.utils.translation import gettext as _, ngettext
 
     from apps.schools.control_plane import use_control_plane_shell
 
@@ -591,14 +591,17 @@ def get_studio_mode_hero_context(
             failing = int(summary.get("failing_count") or 0)
             paused = int(summary.get("paused_count") or 0)
             if failing:
-                hero["mode_health_label"] = _("{count} failed runs").format(
-                    count=failing
-                )
+                # ngettext + %-format (not gettext + str.format): a translated
+                # "{count}" msgid whose catalog drops/renames the brace makes
+                # str.format() raise → unhandled 500 on the automation studio.
+                hero["mode_health_label"] = ngettext(
+                    "%(count)d failed run", "%(count)d failed runs", failing
+                ) % {"count": failing}
                 hero["mode_health_status"] = "warn"
             elif paused:
-                hero["mode_health_label"] = _("{count} paused packs").format(
-                    count=paused
-                )
+                hero["mode_health_label"] = ngettext(
+                    "%(count)d paused pack", "%(count)d paused packs", paused
+                ) % {"count": paused}
                 hero["mode_health_status"] = "warn"
             else:
                 hero["mode_health_label"] = _("Workflows healthy")
