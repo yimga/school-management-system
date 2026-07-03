@@ -41,7 +41,11 @@ def build_totp_provisioning_uri(request, device) -> str:
     """Faithful reimplementation of django_otp's ``TOTPDevice.config_url`` with a
     per-tenant issuer (see :func:`mfa_issuer_for_request`)."""
     issuer = mfa_issuer_for_request(request)
-    label = str(device.user.get_username())
+    # Owner spec: the authenticator entry shows the product/tenant name
+    # (RMC-<school>), NOT the raw username ("admin"/"nina"). The issuer already
+    # carries RMC-<school>; use it as the account label too so the entry reads
+    # "RMC-<school>" everywhere instead of leaking the username.
+    label = issuer or str(device.user.get_username())
     params = {
         "secret": b32encode(device.bin_key).decode("utf-8"),
         "algorithm": "SHA1",

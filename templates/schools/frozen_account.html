@@ -29,11 +29,9 @@
         {% render_smart_links state="frozen.other" persona="tenant_admin" %}
       {% endif %}
 
-      {% if request.user.is_staff or request.user.is_superuser %}
-        <hr class="my-4">
-        <p class="small text-muted">{% trans "Operator override:" %}</p>
-        <a href="/super/" class="btn btn-outline-primary btn-sm">{% trans "Super Admin" %}</a>
-      {% endif %}
+      {% comment %} Tenant⟂operator isolation: a tenant page must never link to the
+         operator backoffice. The staff-gated "/super/" override was removed — operators
+         reach the control plane via the manager host, not from a tenant surface. {% endcomment %}
     </div>
   </div>
 </div>
