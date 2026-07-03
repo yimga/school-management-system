@@ -160,6 +160,9 @@ def build_owner_first_login_card(request) -> dict[str, Any] | None:
             "confirm_url": confirm_url,
             "assign_url": _safe_reverse("accounts:tenant_identity_invite"),
             "roster_url": _safe_reverse("accounts:tenant_identity_roster"),
+            # "Yes, I'll run it" opens the Owner Console (falls back to a plain
+            # dismiss if the console route isn't available).
+            "console_url": _safe_reverse("accounts:owner_console"),
         }
     except Exception as exc:  # noqa: BLE001 — a landing card must never break the page
         logger.debug("build_owner_first_login_card failed: %s", exc)

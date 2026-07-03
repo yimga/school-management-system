@@ -1,0 +1,102 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Owner Console" %}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/owner-console.css' %}">
+{% endblock %}
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<main class="rmc-page rmc-oc" id="main">
+  <div class="rmc-oc-shell">
+    <aside class="rmc-oc-side" aria-label="{% trans 'Owner Console navigation' %}">
+      <div class="rmc-oc-brand">
+        <span class="rmc-oc-logo" aria-hidden="true">{{ school.name|first|upper }}</span>
+        <span class="rmc-oc-brandname">{{ school.name }}<small>{% trans "Owner Console" %}</small></span>
+      </div>
+      <nav class="rmc-oc-nav">
+        {% for s in sections %}
+        <a href="{{ s.url }}" class="rmc-oc-navi{% if s.active %} rmc-oc-navi--active{% endif %}"{% if s.active %} aria-current="page"{% endif %}>
+          <i class="bi {{ s.icon }}" aria-hidden="true"></i><span>{{ s.label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <div class="rmc-oc-main">
+      <header class="rmc-oc-head">
+        <div>
+          <h1 class="rmc-oc-title">{% blocktrans with name=owner_name %}Good to see you, {{ name }}{% endblocktrans %}</h1>
+          <p class="rmc-oc-sub">{% blocktrans with school=school.name %}You own {{ school }} — everything here is yours to run or delegate.{% endblocktrans %}</p>
+        </div>
+        <span class="rmc-oc-chip"><span class="rmc-oc-av" aria-hidden="true">{{ owner_name|first|upper }}</span> {% trans "Owner" %} <span aria-hidden="true">👑</span></span>
+      </header>
+
+      <section class="rmc-oc-tiles" aria-label="{% trans 'At a glance' %}">
+        <div class="rmc-oc-tile">
+          <div class="rmc-oc-k">{% trans "People" %}</div>
+          <div class="rmc-oc-v">{{ people_count }}</div>
+          {% if roster_url %}<a class="rmc-oc-tlink" href="{{ roster_url }}">{% trans "Manage" %} →</a>{% endif %}
+        </div>
+        <div class="rmc-oc-tile">
+          <div class="rmc-oc-k">{% trans "Owners" %}</div>
+          <div class="rmc-oc-v">{{ owner_count }}</div>
+          {% if roster_url %}<a class="rmc-oc-tlink" href="{{ roster_url }}">{% trans "Co-owners & transfer" %} →</a>{% endif %}
+        </div>
+        <div class="rmc-oc-tile">
+          <div class="rmc-oc-k">{% trans "Plan" %}</div>
+          <div class="rmc-oc-v rmc-oc-v--sm">{{ plan_label }}</div>
+        </div>
+        <div class="rmc-oc-tile">
+          <div class="rmc-oc-k">{% trans "Grow your team" %}</div>
+          <div class="rmc-oc-v rmc-oc-v--sm">{% trans "Add people" %}</div>
+          {% if invite_url %}<a class="rmc-oc-tlink" href="{{ invite_url }}">{% trans "Invite" %} →</a>{% endif %}
+        </div>
+      </section>
+
+      <div class="rmc-oc-cols">
+        <section class="rmc-oc-panel">
+          <h2 class="rmc-oc-h2">{% trans "Delegation at a glance" %}</h2>
+          <div class="rmc-oc-tablewrap">
+            <table class="rmc-oc-table">
+              <thead><tr><th>{% trans "Person" %}</th><th>{% trans "Role" %}</th><th></th></tr></thead>
+              <tbody>
+                {% for o in owner_rows %}
+                <tr>
+                  <td>{{ o.name }} <span aria-hidden="true">👑</span></td>
+                  <td><span class="rmc-oc-role rmc-oc-role--owner">{% trans "Owner" %}</span> <span class="rmc-oc-role">{{ o.role }}</span></td>
+                  <td>{% if o.url %}<a href="{{ o.url }}">{% trans "Manage" %}</a>{% endif %}</td>
+                </tr>
+                {% endfor %}
+                {% for d in delegation_rows %}
+                <tr>
+                  <td>{{ d.name }}</td>
+                  <td><span class="rmc-oc-role">{{ d.role }}</span>{% if d.suspended %} <span class="rmc-oc-role rmc-oc-role--warn">{% trans "Suspended" %}</span>{% endif %}</td>
+                  <td>{% if d.url %}<a href="{{ d.url }}">{% trans "Manage" %}</a>{% endif %}</td>
+                </tr>
+                {% endfor %}
+                {% if not owner_rows and not delegation_rows %}
+                <tr><td colspan="3" class="rmc-oc-muted">{% trans "No members yet — invite your team to get started." %}</td></tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <aside class="rmc-oc-panel">
+          <h2 class="rmc-oc-h2">{% trans "Quick actions" %}</h2>
+          <div class="rmc-oc-actions">
+            {% if invite_url %}<a class="rmc-oc-btn rmc-oc-btn--primary" href="{{ invite_url }}"><span aria-hidden="true">👥</span> {% trans "Invite a person" %}</a>{% endif %}
+            {% if roster_url %}<a class="rmc-oc-btn" href="{{ roster_url }}"><span aria-hidden="true">🔑</span> {% trans "Co-owners & transfer" %}</a>{% endif %}
+            {% for s in sections %}{% if s.key == "rbac" %}<a class="rmc-oc-btn" href="{{ s.url }}"><span aria-hidden="true">🛡️</span> {% trans "Roles & access" %}</a>{% endif %}{% endfor %}
+          </div>
+          <p class="rmc-oc-note">{% trans "You keep full control — every role and co-owner change is reversible, and only owners can transfer the school." %}</p>
+        </aside>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}

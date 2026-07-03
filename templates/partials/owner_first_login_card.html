@@ -14,6 +14,7 @@
      aria-modal="true"
      aria-labelledby="rmc-ofl-title"
      data-confirm-url="{{ owner_first_login_card.confirm_url }}"
+     data-console-url="{{ owner_first_login_card.console_url|default:'' }}"
      data-csrf="{{ csrf_token }}">
   <div class="rmc-ofl-card">
     <div class="rmc-ofl-cap">
@@ -95,7 +96,10 @@
       } else if (action === 'defer') {
         record('defer', dismiss);
       } else {
-        record('confirm', dismiss);
+        var consoleUrl = root.getAttribute('data-console-url');
+        record('confirm', function () {
+          if (consoleUrl) { window.location.assign(consoleUrl); } else { dismiss(); }
+        });
       }
     });
   });

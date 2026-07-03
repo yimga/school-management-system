@@ -1,0 +1,180 @@
+/* ============================================================
+   Owner Console — tenant-skinned command center (slice 2)
+   Light + indigo, operator-grade polish, but unmistakably a
+   tenant surface (never the operator dark plane). Colours are
+   semantic tokens only, so the console is readable in light
+   AND dark themes automatically.
+   ============================================================ */
+
+.rmc-oc { max-width: 1200px; margin: 0 auto; }
+
+.rmc-oc-shell {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .rmc-oc-shell { grid-template-columns: 1fr; }
+}
+
+/* ── sidebar ─────────────────────────────────────────────── */
+.rmc-oc-side {
+  position: sticky;
+  top: 16px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 16px);
+  padding: 14px 10px;
+  box-shadow: var(--elev-1);
+}
+@media (max-width: 820px) { .rmc-oc-side { position: static; } }
+
+.rmc-oc-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 14px;
+}
+.rmc-oc-logo {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 15px;
+  background: var(--brand-gradient);
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: on-brand-gradient-white-text */
+}
+.rmc-oc-brandname { font-weight: 700; font-size: 13.5px; line-height: 1.15; color: var(--text-primary); }
+.rmc-oc-brandname small { display: block; font-weight: 500; font-size: 11px; color: var(--text-tertiary, var(--text-muted)); }
+
+.rmc-oc-nav { display: flex; flex-direction: column; gap: 2px; }
+.rmc-oc-navi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
+}
+.rmc-oc-navi:hover { background: var(--surface-overlay, var(--surface-canvas)); color: var(--text-primary); }
+.rmc-oc-navi--active { background: var(--school-primary-light, var(--surface-overlay)); color: var(--school-primary); font-weight: 700; }
+.rmc-oc-navi i { width: 18px; text-align: center; }
+
+/* ── main ────────────────────────────────────────────────── */
+.rmc-oc-main { min-width: 0; }
+
+.rmc-oc-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.rmc-oc-title { font-size: 22px; letter-spacing: -0.02em; margin: 0; color: var(--text-primary); }
+.rmc-oc-sub { margin: 4px 0 0; font-size: 13.5px; color: var(--text-tertiary, var(--text-muted)); }
+.rmc-oc-chip {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill, 999px);
+  padding: 5px 12px 5px 6px;
+}
+.rmc-oc-av {
+  width: 24px; height: 24px; flex: none;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 11px; font-weight: 800;
+  background: var(--brand-gradient);
+  color: var(--text-on-brand, #ffffff); /* off-token-allow: on-brand-gradient-white-text */
+}
+
+/* ── tiles ───────────────────────────────────────────────── */
+.rmc-oc-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.rmc-oc-tile {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  padding: 14px;
+  box-shadow: var(--elev-1);
+}
+.rmc-oc-k { font-size: 12px; font-weight: 600; color: var(--text-tertiary, var(--text-muted)); }
+.rmc-oc-v { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; color: var(--text-primary); }
+.rmc-oc-v--sm { font-size: 16px; }
+.rmc-oc-tlink { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--school-primary); text-decoration: none; }
+.rmc-oc-tlink:hover { text-decoration: underline; }
+
+/* ── columns / panels ────────────────────────────────────── */
+.rmc-oc-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
+}
+@media (max-width: 820px) { .rmc-oc-cols { grid-template-columns: 1fr; } }
+
+.rmc-oc-panel {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  padding: 16px;
+  box-shadow: var(--elev-1);
+}
+.rmc-oc-h2 { font-size: 14px; margin: 0 0 12px; color: var(--text-primary); }
+
+.rmc-oc-tablewrap { overflow-x: auto; }
+.rmc-oc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rmc-oc-table th {
+  text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-tertiary, var(--text-muted)); padding: 6px 8px; border-bottom: 1px solid var(--hairline);
+}
+.rmc-oc-table td { padding: 8px; border-bottom: 1px solid var(--hairline); color: var(--text-primary); }
+.rmc-oc-table tr:last-child td { border-bottom: 0; }
+.rmc-oc-table a { color: var(--school-primary); text-decoration: none; }
+.rmc-oc-table a:hover { text-decoration: underline; }
+.rmc-oc-muted { color: var(--text-tertiary, var(--text-muted)); }
+
+.rmc-oc-role {
+  display: inline-block;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: var(--radius-pill, 999px);
+  background: var(--school-primary-light, var(--surface-overlay));
+  color: var(--school-primary);
+  margin: 1px 2px;
+}
+.rmc-oc-role--owner { background: var(--surface-sunken, var(--surface-canvas)); color: var(--text-secondary); }
+.rmc-oc-role--warn {
+  background: color-mix(in oklab, var(--color-warning, #d97706) 16%, transparent);
+  color: var(--color-warning, #b45309); /* theme-locked-allow: status-warning-suspended-chip */
+}
+
+/* ── quick actions ───────────────────────────────────────── */
+.rmc-oc-actions { display: flex; flex-direction: column; gap: 8px; }
+.rmc-oc-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 13px; border-radius: var(--radius-sm, 8px);
+  font-size: 13px; font-weight: 700; text-decoration: none;
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas); color: var(--text-primary);
+  transition: border-color var(--motion-fast, 150ms), background var(--motion-fast, 150ms);
+}
+.rmc-oc-btn:hover { border-color: var(--school-primary); }
+.rmc-oc-btn--primary { background: var(--school-primary); color: var(--text-on-brand, #ffffff); border-color: var(--school-primary); } /* off-token-allow: on-brand-primary-button-text */
+.rmc-oc-note { margin: 12px 0 0; font-size: 12px; color: var(--text-tertiary, var(--text-muted)); }

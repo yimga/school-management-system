@@ -74,6 +74,7 @@ from .views_onboarding import (
     mark_tour_complete,
     owner_confirm_role,
 )
+from .views_owner_console import owner_console_overview
 from .views_delegation import (
     my_delegations,
     delegation_add,
@@ -592,6 +593,7 @@ urlpatterns = [
     ),
     path("backend/tour-complete/", mark_tour_complete, name="mark_tour_complete"),
     path("backend/confirm-owner/", owner_confirm_role, name="owner_confirm_role"),
+    path("owner/", owner_console_overview, name="owner_console"),
     path("backend/ops-watch/", backend_ops_watch_data, name="backend_ops_watch_data"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("backend/import/", backend_entity_import, name="backend_entity_import"),
