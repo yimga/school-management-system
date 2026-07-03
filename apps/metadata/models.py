@@ -521,3 +521,6 @@ class LayoutDefinition(models.Model):
 
     def __str__(self) -> str:
         return f"{self.code} ({self.scope})"
+
+
+from .models_derived_lineage import DerivedValueLineage  # noqa: F401,E402 — registers the record-level lineage model

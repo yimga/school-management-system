@@ -215,6 +215,40 @@ def _record_report_hash(user: User, report_card: ReportCard, pdf_bytes: bytes):
     _log_report_card_action(user, report_card, "hash-recorded", {"sha256": digest})
 
 
+def _record_report_card_lineage(report_card, context: dict) -> None:
+    """Stamp derived-value lineage at generation time (2026-07-02).
+
+    Term reports carry row-level provenance (the exact Evaluation rows the
+    context builder read); annual reports aggregate per-term averages without
+    materializing rows, so their lineage is an honest scope descriptor.
+    """
+    from apps.metadata.models_derived_lineage import record_derived_lineage
+
+    evaluation_ids = context.get("lineage_evaluation_ids")
+    if evaluation_ids:
+        record_derived_lineage(
+            output=report_card,
+            computation="report_card.term",
+            granularity="row",
+            inputs=[{"model": "evals.Evaluation", "pk": str(pk)} for pk in evaluation_ids],
+        )
+    else:
+        record_derived_lineage(
+            output=report_card,
+            computation="report_card.annual",
+            granularity="scope",
+            inputs=[
+                {
+                    "model": "evals.Evaluation",
+                    "scope": {
+                        "student": str(report_card.student_id),
+                        "academic_year": str(report_card.academic_year_id),
+                    },
+                }
+            ],
+        )
+
+
 @parent_portal_required
 @role_required(User.Role.PARENT)
 @audit_pii_view(model_name="ReportCard", object_id_kwarg="student_id", sensitivity="HIGH", reason="Parent term report PDF download")
@@ -284,6 +318,7 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     )
     rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
     _record_report_hash(request.user, rc, pdf_bytes)
+    _record_report_card_lineage(rc, context)
 
     _log_report_card_action(request.user, rc, "download-term", {"filename": filename})
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
@@ -445,6 +480,7 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
     filename = f"annual_report_{student.student_code}_{year.name}.pdf".replace("/", "-")
     rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
     _record_report_hash(request.user, rc, pdf_bytes)
+    _record_report_card_lineage(rc, context)
 
     _log_report_card_action(request.user, rc, "download-annual", {"filename": filename})
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")

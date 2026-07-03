@@ -919,6 +919,10 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "labels": labels,
         "metadata": _school_report_metadata(school),
         "school": school,
+        # Row-level provenance: the exact Evaluation rows this report was
+        # computed from — consumed by the ReportCard lineage stamp at
+        # generation time (derived-value lineage, 2026-07-02).
+        "lineage_evaluation_ids": [e.pk for e in evaluations],
     }
     ctx.update(_region_display_context(school))
     ctx["transcript_track"] = getattr(student, "transcript_track", "") or "ACADEMIC"

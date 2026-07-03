@@ -127,7 +127,7 @@ class Command(BaseCommand):
             except _COMPUTE_NIGHTLY_RISK_ERRORS:
                 # Never fail the batch on an explainability error.
                 contributions = []
-            RiskFactor.objects.update_or_create(
+            risk_row, _ = RiskFactor.objects.update_or_create(
                 school=school,
                 student=student,
                 defaults={
@@ -138,6 +138,27 @@ class Command(BaseCommand):
                     "computed_at": timezone.now(),
                 },
             )
+            # Derived-value lineage (2026-07-02): the score aggregates
+            # per-student feature windows without materializing input PKs,
+            # so lineage records the queryset scopes it actually read.
+            try:
+                from apps.analytics.ml.at_risk_features import DEFAULT_WINDOW_DAYS
+                from apps.metadata.models_derived_lineage import (
+                    record_derived_lineage,
+                    risk_scope_inputs,
+                )
+
+                record_derived_lineage(
+                    output=risk_row,
+                    computation="analytics.nightly_risk",
+                    granularity="scope",
+                    version=model_version or "heuristic",
+                    inputs=risk_scope_inputs(
+                        student.pk, DEFAULT_WINDOW_DAYS, model_version or ""
+                    ),
+                )
+            except Exception:  # noqa: BLE001 — lineage must never fail the batch
+                pass
             count += 1
             s = float(score)
             scores_for_summary.append(s)
