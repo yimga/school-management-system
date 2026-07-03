@@ -51,7 +51,11 @@ class SchoolTransferBatch(models.Model):
         Status.PREVIEWED: frozenset(
             {Status.PREVIEWED, Status.APPROVED, Status.CANCELLED}
         ),
-        Status.APPROVED: frozenset({Status.RUNNING, Status.CANCELLED}),
+        # APPROVED → PREVIEWED is the re-preview demotion: the population
+        # changed since sign-off, so the batch drops back and approvals reset.
+        Status.APPROVED: frozenset(
+            {Status.RUNNING, Status.PREVIEWED, Status.CANCELLED}
+        ),
         Status.RUNNING: frozenset(
             {
                 Status.COMPLETED,

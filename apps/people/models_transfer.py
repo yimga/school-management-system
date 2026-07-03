@@ -130,6 +130,8 @@ class TransferCase(models.Model):
         indexes = [
             models.Index(fields=["source_school", "status"]),
             models.Index(fields=["target_school", "status"]),
+            # The batch advancer's hot query (D.1).
+            models.Index(fields=["batch", "status"]),
         ]
 
     def __str__(self) -> str:

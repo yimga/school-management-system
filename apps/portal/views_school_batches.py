@@ -22,7 +22,9 @@ from django.views.decorators.http import require_http_methods
 logger = logging.getLogger(__name__)
 
 _ROW_CAP = 500
-_MAX_ADVANCE_CHUNK = 20
+# Bounded so a console-triggered chunk always finishes well inside the
+# advance lock's TTL (each case is a full export + apply).
+_MAX_ADVANCE_CHUNK = 10
 
 
 def _wants_json(request) -> bool:
@@ -163,20 +165,37 @@ def school_batch_create(request):
     if consent_mode not in SchoolTransferBatch.ConsentMode.values:
         return _respond(request, {"error": "unknown consent_mode"}, ok=False, status=400)
 
-    source = School.objects.filter(pk=(request.POST.get("source_school_id") or "").strip(), is_active=True).first()  # tenant-isolation-allow: operator-console-platform-scope-staff-required
-    target = School.objects.filter(pk=(request.POST.get("target_school_id") or "").strip(), is_active=True).first()  # tenant-isolation-allow: operator-console-platform-scope-staff-required
+    from django.core.exceptions import ValidationError
+
+    try:
+        source = School.objects.filter(pk=(request.POST.get("source_school_id") or "").strip(), is_active=True).first()  # tenant-isolation-allow: operator-console-platform-scope-staff-required
+        target = School.objects.filter(pk=(request.POST.get("target_school_id") or "").strip(), is_active=True).first()  # tenant-isolation-allow: operator-console-platform-scope-staff-required
+    except (ValidationError, ValueError):
+        # School pks are UUIDs — malformed input is "not found", never a 500.
+        return _respond(request, {"error": "source or target school not found"}, ok=False, status=404)
     if source is None or target is None:
         return _respond(request, {"error": "source or target school not found"}, ok=False, status=404)
     if source.pk == target.pk:
         return _respond(request, {"error": "target school must differ from source"}, ok=False, status=400)
 
-    def _ids(name: str) -> list[str]:
+    def _ids(name: str) -> tuple[list[str], list[str]]:
         raw = (request.POST.get(name) or "").strip()
-        return [part.strip() for part in raw.split(",") if part.strip()]
+        parts = [part.strip() for part in raw.split(",") if part.strip()]
+        good = [p for p in parts if p.isdigit()]
+        return good, [p for p in parts if not p.isdigit()]
 
     cohort = {}
-    classroom_ids = _ids("classroom_ids")
-    student_pks = _ids("student_pks")
+    classroom_ids, bad_classrooms = _ids("classroom_ids")
+    student_pks, bad_students = _ids("student_pks")
+    if bad_classrooms or bad_students:
+        # Cohort ids are integer pks — a stray token would otherwise blow up
+        # the preview queryset as an uncaught 500.
+        return _respond(
+            request,
+            {"error": f"cohort ids must be numeric — rejected: {', '.join((bad_classrooms + bad_students)[:10])}"},
+            ok=False,
+            status=400,
+        )
     if classroom_ids:
         cohort["classroom_ids"] = classroom_ids
     if student_pks:
@@ -194,6 +213,9 @@ def school_batch_create(request):
     try:
         preview_batch(batch)
     except BatchBlockedError as exc:
+        # Mirror merge_op_create: never leave an orphan draft behind a
+        # failed preview.
+        batch.advance(SchoolTransferBatch.Status.CANCELLED, note=str(exc)[:200])
         return _respond(request, {"error": str(exc), "batch": _batch_row(batch)}, ok=False, status=409)
     _audit_batch_action(request, batch, "batch opened + previewed")
     return _respond(request, {"batch": _batch_row(batch)}, status=201)

@@ -1,6 +1,34 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-07-03 (9.8-regime merge/split Wave D — school merge/split batches: SchoolTransferBatch dual-approved fan-out over the unmodified transfer engine, 3-attempt failure-isolation ledger, cron-only advancer, wind-down handoff to the existing offboarding export+deactivate — never purge.)
+**Last updated:** 2026-07-03 (9.8-regime merge/split Wave D.1 — adversarial audit closeout of the batch engine: 17 findings closed with per-finding regression tests; cross-target double-fan and wind-down stranding sealed at both the batch AND transfer-engine layers.)
+
+## 2026-07-03 — 9.8-regime merge/split Wave D.1: adversarial audit closeout of the batch engine (migration `people.0066`, no SW bump)
+
+**Context:** Wave D shipped same-day; a 4-track adversarial audit (security/authz, concurrency/failure, data correctness, conformance) returned 17 confirmed findings — every one closed here, each with a regression test. The two seeded hypotheses both CONFIRMED: the covered-set was scoped to one target pair, and wind-down never looked beyond the batch's own cases.
+
+**What closed**
+
+| Finding (severity) | Fix |
+|---|---|
+| Cross-target double-fan: a student mid-transfer to school C was fanned to school B too; the second case silently succeeded off the retired source row, forking the student into two live tenants and re-binding the passport (HIGH) | Two layers: `_already_covered_pks` now covers a live/successful case to ANY target, and — root cause — `run_transfer_case` itself refuses a TRANSFERRED/inactive source profile (`transfer_service.py`), protecting every caller incl. the single-case console. |
+| Wind-down stranding: deactivate passed with active students never in the batch (cohort-filtered merge, late enrollees, declined/failed cases) (HIGH) | `wind_down_source` now re-counts live enrollable students at the source (whole school, cohort-independent) and refuses with the count; "applied"-but-unreconciled and "approved"-but-unrun cases also block. ALUMNI deliberately stay (history, not enrollable — the export carries them; receipt records `alumni_remaining`). |
+| Cancel silently clobbered: an in-flight advance completing off a stale RUNNING instance overwrote a concurrent operator cancel `CANCELLED → COMPLETED` — making a cancelled merge wind-down-eligible (HIGH) | `_maybe_complete` re-reads the DB row and early-returns unless still RUNNING; `cancel_batch` additionally takes the run lock so it can never interleave. |
+| Unlocked double-start: two concurrent Start clicks both snapshot the covered set → duplicate cases per student, each with its own idempotency key (HIGH) | `start_batch` is single-flighted (`cache.add`) with a status re-read inside the lock; fan-out is atomic per student. |
+| Advance lock TTL (600s) shorter than a real chunk → expired-lock interleaving, ledger lost-updates, spurious attempt inflation retiring healthy cases (HIGH) | TTL → 3600s (covers worst-case chunk), console chunk cap 20 → 10. |
+| ALUMNI fanned out as live transfers: alumni stay `is_active=True`, so a merge moved ten years of graduates into the target as active students (HIGH) | Eligibility excludes ALUMNI alongside TRANSFERRED; PROBATION stays (still enrolled — deliberate, documented). |
+| APPLIED-but-parity-unverified counted as clean success → batch COMPLETED and wind-down passed over half-verified students (HIGH) | `_maybe_complete` counts unreconciled APPLIED cases as issues (→ COMPLETED_WITH_ISSUES, noted); wind-down blocks over them. |
+| Zero-eligible batch → instant COMPLETED → wind-down could deactivate a fully-populated school off a typo'd cohort (HIGH, compound) | Approval refuses when preview `to_move == 0`; the remaining-students guard independently blocks the deactivate. |
+| Preview/start divergence: approve 2, enrolment churn, start moves 42 under the old sign-off (MED-HIGH) | Preview stores a population fingerprint (sha256 of pks) + consent-mode snapshot; start refuses on mismatch; re-preview is now a legal APPROVED→PREVIEWED demotion that RESETS both approvals. Consent-mode flips after approval are refused the same way. |
+| Primary-approval overwrite race + history lost-updates (MED) | Primary slot claimed via atomic conditional UPDATE; secondary path re-reads status; cancel/wind-down/advance all serialize on locks. |
+| COMPENSATING stranding: a crash between the two compensation advances pinned the case (and batch, and wind-down) forever (MED) | Advancer reaps COMPENSATING cases older than 30 min → FAILED, journaled. |
+| Interrupted institutional fan-out: a case left below APPROVED was covered-but-never-runnable — batch never completed (MED) | Advancer heals DRAFT/CONSENT_PENDING stragglers on institutional batches; fan-out now atomic per student. |
+| Malformed cohort ids 500'd create/preview and orphaned a draft; malformed school UUID 500'd (MED/LOW) | Cohort ids validated numeric → 400 listing rejects; school lookups catch ValidationError → 404; failed preview cancels the draft (sibling parity). |
+| Missing `(batch, status)` index for the advancer's hot query (LOW) | `people.0066` adds it. |
+| Dead `status_filter` context — filter worked via URL but had no UI (LOW) | Transfers-style GET filter form added. |
+
+**Not a finding:** the conformance track's "docket missing Wave D" was the off-tree push protocol's stale local worktree — origin's docket has had the B/C/D sections all along. **Also verified-safe by the audit:** staff/CSRF coverage on every mutation, cohort cross-school injection (source-school scoping holds), max_cases clamping, single-operator dual-approval impossibility, export-is-a-true-handoff (no purge path from the batch), ledger integrity under the (now-serialized) advance path, migration 0065 parity, per-batch isolation in the periodic tick.
+
+**Proof:** 36/36 (19 Wave D + 17 new regression tests, one per closed finding class) + 48/48 adjacent transfer/merge suites + gates (render-safety 0, tenant-scan 0 new, marker-quality 0, `manage.py check`, migration-drift 0 real, url-name 0 unresolved, template-ref 0 unresolved).
 
 ## 2026-07-03 — 9.8-regime merge/split Wave D: school merge / split batches (migration `people.0065`, no SW bump)
 

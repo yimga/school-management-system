@@ -88,6 +88,14 @@ def _run_transfer_case_locked(case, *, actor=None) -> dict[str, Any]:
     ).first()
     if profile is None:
         raise TransferBlockedError("source student profile not found")
+    # D.1 audit closeout: a profile another case already moved (or an operator
+    # retired) must never silently fork into a second target — the second
+    # transfer would re-bind the passport and duplicate the student's records
+    # at a second live school.
+    if profile.status == StudentProfile.Status.TRANSFERRED or not profile.is_active:
+        raise TransferBlockedError(
+            "source student is already transferred or retired — refusing a second move"
+        )
 
     blockers = offline_transfer_blockers(profile)
     if blockers:

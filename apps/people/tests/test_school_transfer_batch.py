@@ -12,12 +12,13 @@ COMPLETED_WITH_ISSUES instead of stranding.
 from __future__ import annotations
 
 import os
-from datetime import date
+from datetime import date, timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Classroom, Department
 from apps.people.models import StudentProfile
@@ -25,6 +26,7 @@ from apps.people.models_school_batch import BatchStateError, SchoolTransferBatch
 from apps.people.models_transfer import TransferCase
 from apps.people.school_batch_service import (
     MAX_CASE_ATTEMPTS,
+    REAP_COMPENSATING_AFTER_SECONDS,
     BatchBlockedError,
     advance_batch,
     advance_running_batches,
@@ -370,6 +372,11 @@ class SchoolBatchConsoleTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_create_dual_approve_start_flow(self):
+        # D.1: approving an empty batch is refused, so the flow needs a
+        # real student to move.
+        StudentProfile.objects.create(
+            school=self.source, first_name="Flow", last_name="Kid", student_code="CB-1"
+        )
         response = self.client.post(
             reverse("portal:school_batch_create"),
             {
@@ -383,6 +390,7 @@ class SchoolBatchConsoleTests(TestCase):
         self.assertEqual(response.status_code, 201)
         batch_id = response.json()["batch"]["id"]
         self.assertEqual(response.json()["batch"]["status"], "previewed")
+        self.assertEqual(response.json()["batch"]["to_move"], 1)
 
         # First approval records the primary; same operator again → 409.
         response = self.client.post(
@@ -411,14 +419,50 @@ class SchoolBatchConsoleTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["batch"]["status"], "running")
+        self.assertEqual(
+            TransferCase.objects.filter(batch_id=batch_id).count(), 1
+        )
 
-        # Empty school: the first advance completes the batch cleanly.
+    def test_console_advance_completes_a_drained_batch(self):
+        batch = SchoolTransferBatch.objects.create(
+            kind=SchoolTransferBatch.Kind.MERGE,
+            source_school=self.source,
+            target_school=self.target,
+            consent_basis="Board resolution 44/2026",
+            status=SchoolTransferBatch.Status.RUNNING,
+        )
         response = self.client.post(
             reverse("portal:school_batch_advance"),
-            {"batch_id": batch_id, "format": "json"},
+            {"batch_id": str(batch.pk), "format": "json"},
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["batch"]["status"], "completed")
+
+    def test_malformed_cohort_ids_rejected_400(self):
+        response = self.client.post(
+            reverse("portal:school_batch_create"),
+            {
+                "kind": "split",
+                "source_school_id": str(self.source.pk),
+                "target_school_id": str(self.target.pk),
+                "classroom_ids": "12, abc",
+                "format": "json",
+            },
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("abc", response.json()["error"])
+
+    def test_malformed_school_uuid_404_not_500(self):
+        response = self.client.post(
+            reverse("portal:school_batch_create"),
+            {
+                "kind": "merge",
+                "source_school_id": "not-a-uuid",
+                "target_school_id": str(self.target.pk),
+                "format": "json",
+            },
+        )
+        self.assertEqual(response.status_code, 404)
 
     def test_same_school_rejected(self):
         response = self.client.post(
@@ -468,3 +512,225 @@ class SchoolBatchConsoleTests(TestCase):
         response = self.client.get(reverse("portal:school_batches_index"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "School merge / split")
+
+
+@patch.dict("os.environ", _ENV)
+class SchoolBatchAuditCloseoutTests(TestCase):
+    """D.1 — one regression test per confirmed 4-track audit finding."""
+
+    def setUp(self):
+        self.source, self.year, self.classroom = _make_campus(
+            "Audit Src", "audit-src", "SCI-AS", "F5A-AS"
+        )
+        self.target, _y, self.target_classroom = _make_campus(
+            "Audit Tgt", "audit-tgt", "SCI-AT", "F5A-AT"
+        )
+        self.third = School.objects.create(
+            name="Audit Third", slug="audit-third", subdomain="audit-third"
+        )
+        self.op1 = User.objects.create_user(
+            username="as_op1", password="pass123", is_staff=True
+        )
+        self.op2 = User.objects.create_user(
+            username="as_op2", password="pass123", is_staff=True
+        )
+
+    def _student(self, code, **kw):
+        return StudentProfile.objects.create(
+            school=self.source, first_name="A", last_name=code, student_code=code, **kw
+        )
+
+    def _batch(self, **kw):
+        defaults = dict(
+            kind=SchoolTransferBatch.Kind.MERGE,
+            source_school=self.source,
+            target_school=self.target,
+            consent_basis="Board resolution 9/2026",
+        )
+        defaults.update(kw)
+        return SchoolTransferBatch.objects.create(**defaults)
+
+    def _approve(self, batch):
+        record_batch_approval(batch, self.op1, batch.source_school.slug)
+        record_batch_approval(batch, self.op2, batch.source_school.slug)
+
+    def test_alumni_excluded_probation_included(self):
+        self._student("AS-ALUM", status=StudentProfile.Status.ALUMNI)
+        prob = self._student("AS-PROB", status=StudentProfile.Status.PROBATION)
+        batch = self._batch()
+        preview = preview_batch(batch)
+        self.assertEqual(preview["to_move"], 1)
+        self.assertEqual(preview["sample"][0]["pk"], str(prob.pk))
+
+    def test_cross_target_case_covers_student(self):
+        student = self._student("AS-XT")
+        TransferCase.objects.create(
+            source_school=self.source,
+            target_school=self.third,
+            source_profile_pk=str(student.pk),
+        )
+        batch = self._batch()
+        self.assertEqual(preview_batch(batch)["to_move"], 0)
+
+    def test_engine_refuses_retired_source_profile(self):
+        from apps.people.transfer_service import (
+            TransferBlockedError,
+            run_transfer_case,
+        )
+
+        student = self._student("AS-RET")
+        case = TransferCase.objects.create(
+            source_school=self.source,
+            target_school=self.target,
+            source_profile_pk=str(student.pk),
+        )
+        case.advance(TransferCase.Status.CONSENT_PENDING)
+        case.advance(TransferCase.Status.APPROVED)
+        student.status = StudentProfile.Status.TRANSFERRED
+        student.is_active = False
+        student.save(update_fields=["status", "is_active"])
+        with self.assertRaises(TransferBlockedError):
+            run_transfer_case(case, actor=self.op1)
+        case.refresh_from_db()
+        self.assertEqual(case.status, TransferCase.Status.APPROVED)
+
+    def test_cancel_wins_over_inflight_completion(self):
+        from apps.people import school_batch_service as svc
+
+        batch = self._batch(status=SchoolTransferBatch.Status.RUNNING)
+        stale = SchoolTransferBatch.objects.get(pk=batch.pk)
+        cancel_batch(batch, actor=self.op1)
+        summary = svc._maybe_complete(stale, {})
+        self.assertEqual(summary["status"], SchoolTransferBatch.Status.CANCELLED)
+        batch.refresh_from_db()
+        self.assertEqual(batch.status, SchoolTransferBatch.Status.CANCELLED)
+
+    def test_start_is_single_flight(self):
+        from django.core.cache import cache
+
+        self._student("AS-SF")
+        batch = self._batch()
+        preview_batch(batch)
+        self._approve(batch)
+        lock = f"rmc-school-batch-start-{batch.pk}"
+        self.assertTrue(cache.add(lock, "1", timeout=30))
+        try:
+            with self.assertRaises(BatchBlockedError):
+                start_batch(batch, actor=self.op1)
+        finally:
+            cache.delete(lock)
+
+    def test_zero_to_move_approval_refused(self):
+        batch = self._batch()
+        preview_batch(batch)
+        with self.assertRaises(BatchBlockedError):
+            record_batch_approval(batch, self.op1, "audit-src")
+
+    def test_population_divergence_blocks_start_then_repreview_resets_approvals(self):
+        self._student("AS-P1")
+        batch = self._batch()
+        preview_batch(batch)
+        self._approve(batch)
+        self._student("AS-P2")  # enrolment churn after sign-off
+        with self.assertRaises(BatchBlockedError):
+            start_batch(batch, actor=self.op1)
+        preview = preview_batch(batch)  # APPROVED → PREVIEWED demotion
+        batch.refresh_from_db()
+        self.assertEqual(batch.status, SchoolTransferBatch.Status.PREVIEWED)
+        self.assertIsNone(batch.approved_by_primary_id)
+        self.assertIsNone(batch.approved_by_secondary_id)
+        self.assertEqual(preview["to_move"], 2)
+
+    def test_consent_mode_flip_blocked_at_start(self):
+        self._student("AS-CM")
+        batch = self._batch(
+            consent_mode=SchoolTransferBatch.ConsentMode.PER_GUARDIAN,
+            consent_basis="",
+        )
+        preview_batch(batch)
+        self._approve(batch)
+        batch.consent_mode = SchoolTransferBatch.ConsentMode.INSTITUTIONAL
+        batch.consent_basis = "injected after approval"
+        batch.save(update_fields=["consent_mode", "consent_basis"])
+        with self.assertRaises(BatchBlockedError):
+            start_batch(batch, actor=self.op1)
+
+    def test_compensating_reaper(self):
+        batch = self._batch(status=SchoolTransferBatch.Status.RUNNING)
+        case = TransferCase.objects.create(
+            batch=batch,
+            source_school=self.source,
+            target_school=self.target,
+            source_profile_pk="1",
+            status=TransferCase.Status.COMPENSATING,
+        )
+        TransferCase.objects.filter(pk=case.pk).update(
+            updated_at=timezone.now()
+            - timedelta(seconds=REAP_COMPENSATING_AFTER_SECONDS + 60)
+        )
+        advance_batch(batch, actor=self.op1)
+        case.refresh_from_db()
+        self.assertEqual(case.status, TransferCase.Status.FAILED)
+        batch.refresh_from_db()
+        self.assertEqual(
+            batch.status, SchoolTransferBatch.Status.COMPLETED_WITH_ISSUES
+        )
+
+    def test_interrupted_institutional_fanout_healed(self):
+        batch = self._batch(status=SchoolTransferBatch.Status.RUNNING)
+        case = TransferCase.objects.create(
+            batch=batch,
+            source_school=self.source,
+            target_school=self.target,
+            source_profile_pk="999999",
+        )
+        advance_batch(batch, actor=self.op1)
+        case.refresh_from_db()
+        self.assertEqual(case.status, TransferCase.Status.APPROVED)
+        notes = " ".join(e.get("note", "") for e in case.history)
+        self.assertIn("re-advanced after interrupted", notes)
+
+    def test_applied_unreconciled_is_an_issue_and_blocks_wind_down(self):
+        batch = self._batch(status=SchoolTransferBatch.Status.RUNNING)
+        TransferCase.objects.create(
+            batch=batch,
+            source_school=self.source,
+            target_school=self.target,
+            source_profile_pk="1",
+            status=TransferCase.Status.APPLIED,
+        )
+        advance_batch(batch, actor=self.op1)
+        batch.refresh_from_db()
+        self.assertEqual(
+            batch.status, SchoolTransferBatch.Status.COMPLETED_WITH_ISSUES
+        )
+        with self.assertRaises(BatchBlockedError):
+            wind_down_source(batch, actor=self.op1, confirm_slug="audit-src")
+
+    def test_failed_case_is_an_issue(self):
+        batch = self._batch(status=SchoolTransferBatch.Status.RUNNING)
+        TransferCase.objects.create(
+            batch=batch,
+            source_school=self.source,
+            target_school=self.target,
+            source_profile_pk="1",
+            status=TransferCase.Status.FAILED,
+        )
+        advance_batch(batch, actor=self.op1)
+        batch.refresh_from_db()
+        self.assertEqual(
+            batch.status, SchoolTransferBatch.Status.COMPLETED_WITH_ISSUES
+        )
+
+    def test_wind_down_refuses_over_remaining_active_students(self):
+        student = self._student("AS-REMAIN")
+        batch = self._batch(status=SchoolTransferBatch.Status.COMPLETED)
+        with self.assertRaises(BatchBlockedError):
+            wind_down_source(batch, actor=self.op1, confirm_slug="audit-src")
+        # Alumni are history, not enrollable students — they stay with the
+        # source (export carries them) and never block the wind-down.
+        student.status = StudentProfile.Status.ALUMNI
+        student.save(update_fields=["status"])
+        receipt = wind_down_source(batch, actor=self.op1, confirm_slug="audit-src")
+        self.assertTrue(receipt["deactivated"])
+        self.assertEqual(receipt["alumni_remaining"], 1)
