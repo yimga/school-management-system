@@ -458,6 +458,23 @@ body.dashboard-preset-family-friendly[data-dashboard-page] .rmc-dh-tile {
   border-radius: 16px;
 }
 
+/* The six LIGHT presets pin a light --dashboard-surface (base-0 / light tint)
+   regardless of the effective theme, but never set the text tokens. Under a dark
+   effective theme the page's text tokens flip light → light text on a light card
+   = invisible. Pin dark text on these light surfaces so they stay readable in
+   dark mode (light theme already resolves dark text, so this is dark-scoped).
+   The two dark presets (high-contrast, midnight-ops) already set both. */
+html[data-theme="dark"] body.dashboard-preset-soft-glass[data-dashboard-page],
+html[data-theme="dark"] body.dashboard-preset-crisp-professional[data-dashboard-page],
+html[data-theme="dark"] body.dashboard-preset-warm-editorial[data-dashboard-page],
+html[data-theme="dark"] body.dashboard-preset-bento-focus[data-dashboard-page],
+html[data-theme="dark"] body.dashboard-preset-regional-heritage[data-dashboard-page],
+html[data-theme="dark"] body.dashboard-preset-family-friendly[data-dashboard-page] {
+  --dashboard-text-strong: var(--color-base-900); /* theme-locked-allow: dark-scoped-light-preset-readability */
+  --dashboard-text-muted: var(--color-base-600); /* theme-locked-allow: dark-scoped-light-preset-readability */
+  --dashboard-text: var(--color-base-800); /* theme-locked-allow: dark-scoped-light-preset-readability */
+}
+
 body.dashboard-preset-high-contrast[data-dashboard-page] .btn-outline-primary,
 body.dashboard-preset-high-contrast[data-dashboard-page] .backend-quick-action-btn {
   color: var(--text-tertiary, var(--color-base-50));
