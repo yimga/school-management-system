@@ -39,6 +39,79 @@ _OPTIONAL_HUB_ERRORS = (
 )
 
 
+def _preview_label(value: str) -> str:
+    return str(value or "").replace("_", " ").replace("-", " ").title()
+
+
+def _template_preview_payload(template, *, chrome_label: str = "") -> dict:
+    schema = getattr(template, "config_schema", None) or {}
+    if not isinstance(schema, dict):
+        schema = {}
+    modules = schema.get("modules") if isinstance(schema.get("modules"), dict) else {}
+    sections = schema.get("sections") if isinstance(schema.get("sections"), dict) else {}
+    theme = schema.get("theme") if isinstance(schema.get("theme"), dict) else {}
+    role_home = schema.get("role_home") if isinstance(schema.get("role_home"), dict) else {}
+    pack = getattr(template, "dashboard_pack", None)
+    visible_modules = [
+        _preview_label(key) for key, enabled in modules.items() if bool(enabled)
+    ]
+    hidden_modules = [
+        _preview_label(key) for key, enabled in modules.items() if not bool(enabled)
+    ]
+    hidden_sections = [
+        _preview_label(key) for key, enabled in sections.items() if not bool(enabled)
+    ]
+    kpis = [
+        _preview_label(key)
+        for key in schema.get("kpis", [])
+        if str(key or "").strip()
+    ]
+    focus_areas = [
+        str(item)
+        for item in role_home.get("focus_areas", [])
+        if str(item or "").strip()
+    ]
+    return {
+        "id": str(template.pk),
+        "name": template.name,
+        "description": template.description or "",
+        "pack": getattr(pack, "name", "") or "",
+        "pack_code": getattr(pack, "code", "") or schema.get("source_pack", "") or "",
+        "family": getattr(pack, "family", "") or "",
+        "chrome": chrome_label,
+        "eyebrow": role_home.get("eyebrow", "") or template.name,
+        "purpose": role_home.get("purpose", "") or template.description or "",
+        "focus_areas": focus_areas,
+        "kpis": kpis,
+        "visible_modules": visible_modules,
+        "hidden_modules": hidden_modules,
+        "hidden_sections": hidden_sections,
+        "theme": theme.get("visual_preset", "") or "",
+    }
+
+
+def _fallback_preview_payload(role_label: str) -> dict:
+    return {
+        "id": "",
+        "name": _("Platform default"),
+        "description": _(
+            "No role-specific template is assigned yet. Runtime falls back to the built-in role home."
+        ),
+        "pack": "",
+        "pack_code": "",
+        "family": "",
+        "chrome": "theme_pack_default",
+        "eyebrow": role_label,
+        "purpose": _("Built-in role home until a dashboard template is assigned."),
+        "focus_areas": [],
+        "kpis": [],
+        "visible_modules": [],
+        "hidden_modules": [],
+        "hidden_sections": [],
+        "theme": "",
+    }
+
+
 @never_cache
 @require_http_methods(["GET"])
 @login_required
@@ -198,11 +271,15 @@ def dashboard_configuration_hub(request):
             ),
         )
 
-    templates = list(DashboardTemplate.objects.filter(is_active=True).order_by("name"))
+    templates = list(
+        DashboardTemplate.objects.filter(is_active=True)
+        .select_related("dashboard_pack")
+        .order_by("name")
+    )
     assignments = {
         a.role: a
         for a in TenantLayoutAssignment.objects.filter(school=school).select_related(
-            "template"
+            "template", "template__dashboard_pack"
         )
     }
 
@@ -232,20 +309,49 @@ def dashboard_configuration_hub(request):
 
     role_choices = TenantLayoutAssignment.ROLE_CHOICES
     from apps.siteconfig.portal_chrome import describe_portal_chrome_override
+    from apps.platform_runtime.live_preview import get_preview_url
 
     # List of (role_value, role_label, assignment or None, chrome_label) for table
     assignment_rows = []
+    role_preview_profiles = {}
     for role_val, role_label in role_choices:
         assignment = assignments.get(role_val)
         template = assignment.template if assignment else None
+        chrome_label = describe_portal_chrome_override(template)
         assignment_rows.append(
             (
                 role_val,
                 role_label,
                 assignment,
-                describe_portal_chrome_override(template),
+                chrome_label,
             )
         )
+        current_profile = (
+            _template_preview_payload(template, chrome_label=chrome_label)
+            if template
+            else _fallback_preview_payload(role_label)
+        )
+        role_preview_profiles[role_val] = {
+            "role": role_val,
+            "label": role_label,
+            "current": current_profile,
+            "preview_urls": {
+                device: get_preview_url(
+                    role=role_val,
+                    device=device,
+                    tenant_id=getattr(school, "pk", None),
+                    path="/",
+                )
+                for device in ("desktop", "tablet", "mobile")
+            },
+        }
+    template_preview_profiles = {
+        str(template.pk): _template_preview_payload(
+            template,
+            chrome_label=describe_portal_chrome_override(template),
+        )
+        for template in templates
+    }
     dashboard_hub_url = reverse("siteconfig:dashboard_hub")
     # §2e row 8 page maturity: studio_os page_header + data-page-archetype (CONTROL_PLANE §5.1)
     return render_siteconfig_stem(
@@ -256,6 +362,8 @@ def dashboard_configuration_hub(request):
             "assignments": assignments,
             "assignment_rows": assignment_rows,
             "role_choices": role_choices,
+            "role_preview_profiles": role_preview_profiles,
+            "template_preview_profiles": template_preview_profiles,
             "school": school,
             "page_title": _("Configuration Center — dashboards by role"),
             "page_subtitle": _(

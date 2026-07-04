@@ -1261,21 +1261,6 @@ def _do_provision_tracked(
                 "Failed to compile tenant config snapshot for school %s", school_id
             )
 
-        # Seed the tenant experience policy (UI density / help / workspace / AI
-        # defaults) so a newly provisioned tenant lands with the complete
-        # intended experience instead of the empty-payload fallback. Idempotent
-        # (provision-seeded marker inside cockpit_payload); best-effort like the
-        # other non-critical Phase B sub-steps.
-        try:
-            from apps.siteconfig.models import SiteSettings
-            from apps.siteconfig.tenant_experience_seed import (
-                ensure_tenant_experience_policy,
-            )
-
-            ensure_tenant_experience_policy(SiteSettings.get_solo())
-        except (ImportError, AttributeError, TypeError, ValueError, DatabaseError) as e:
-            logger.debug("Optional tenant experience policy seed: %s", e)
-
         now = timezone.now().date()
         year_start = date(now.year, start_month, 1)
         if now.month < start_month:

@@ -76,6 +76,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # silently brick the state or blind the Tenant 360 timeline). Django-aware
     # (spine map values are SchoolLifecycleStage.Stage), so it lives in ci.yml.
     ("scripts/verify_unified_lifecycle_fsm_integrity.py", "ci.yml"),
+    # Authorization-consolidation ratchet — the zero-tolerance guarantee that
+    # fragmented access checks can only go DOWN is only real while this runs
+    # on every PR; without meta-protection a dropped step re-opens silent
+    # regrowth (B-validated gap, 2026-07-03).
+    ("scripts/scan_access_resolver_fragmentation.py", "architectural-boundaries.yml"),
 )
 
 

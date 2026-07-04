@@ -114,7 +114,7 @@ class TransferConsent(models.Model):
         instance = cls.objects.create(
             case=case,
             guardian_name=str(guardian_name)[:256],
-            guardian_email=str(guardian_email)[:254],
+            guardian_email=str(guardian_email)[:254],  # magic-number-allow: rfc5321-email-max-length
             token_sha256=_sha256_hex(raw_token),
             token_issued_at=now,
             expires_at=now + timedelta(days=max(1, int(expires_in_days))),

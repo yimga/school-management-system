@@ -100,7 +100,11 @@ def _overview_metrics(school) -> dict[str, Any]:
 
         base = SchoolMembership.objects.filter(school=school).select_related("user")
         people_count = base.count()
-        owners = list(base.filter(is_school_owner=True)[:12])
+        # Suspended owners keep their row but lose authority — the Overview
+        # tile must match the gate (is_active_owner), not flatter them.
+        owners = list(
+            base.filter(is_school_owner=True, suspended_at__isnull=True)[:12]
+        )
         detail_url_name = "accounts:tenant_identity_detail"
         for m in owners:
             owner_rows.append(

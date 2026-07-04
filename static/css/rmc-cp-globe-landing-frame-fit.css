@@ -6,6 +6,51 @@
   --rmc-globe-landing-card: #121829;
 }
 
+/* Manager globe landing: use the canvas width, leaving only a hairline gap
+   between the command deck and the fixed left/right shell rails. */
+body.control-plane-shell
+  .rmc-app-shell__canvas-body:has(.cp-layout[data-rmc-cp-globe-deck-v2="1"]) {
+  padding-inline: 2px;
+}
+
+body.control-plane-shell
+  .rmc-app-shell__canvas-body:has(.cp-layout[data-rmc-cp-globe-deck-v2="1"])
+  > .cp-layout[data-rmc-cp-globe-landing="1"][data-rmc-cp-globe-deck-v2="1"] {
+  width: 100%;
+  max-width: none;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+body.control-plane-shell
+  .cp-layout[data-rmc-cp-globe-landing="1"][data-rmc-cp-globe-deck-v2="1"]
+  #cp-main-content,
+body.control-plane-shell
+  .cp-layout[data-rmc-cp-globe-landing="1"][data-rmc-cp-globe-deck-v2="1"]
+  .cp-page-body,
+body.control-plane-shell
+  .cp-layout[data-rmc-cp-globe-landing="1"][data-rmc-cp-globe-deck-v2="1"]
+  .rmc-cp-landing-mode,
+body.control-plane-shell
+  .cp-layout[data-rmc-cp-globe-landing="1"][data-rmc-cp-globe-deck-v2="1"]
+  .rmc-cp-landing-pane,
+body.control-plane-shell
+  .cp-layout[data-rmc-cp-globe-landing="1"][data-rmc-cp-globe-deck-v2="1"]
+  .rmc-cp-200x-landing {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+body.control-plane-shell
+  .cp-layout[data-rmc-cp-globe-landing="1"][data-rmc-cp-globe-deck-v2="1"]
+  .rmc-globe-deck-v2__frame {
+  width: 100%;
+}
+
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-landing="1"] .rmc-globe-deck-v2__frame {
   background: var(--rmc-globe-landing-canvas);
   box-shadow:

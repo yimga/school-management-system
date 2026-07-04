@@ -10,7 +10,11 @@ from django.urls import reverse
 
 from apps.accounts.models import Permission
 from apps.siteconfig.models import Plan
-from apps.siteconfig.models_dashboard import DashboardTemplate
+from apps.siteconfig.models_dashboard import (
+    DashboardPack,
+    DashboardTemplate,
+    TenantLayoutAssignment,
+)
 from apps.schools.models import School, SchoolMembership
 
 _MGR = "manager.runmycampus.com"
@@ -101,6 +105,47 @@ class OperatorSiteconfigCpQaTests(TestCase):
         resp = self._get("siteconfig:dashboard_configuration_hub")
         self._assert_cp_page_quality(resp, expect_title_fragment="Dashboard configuration")
         self.assertIn("table-responsive", resp.content.decode())
+
+    def test_dashboard_configuration_live_preview_sidecar_is_non_mutating(self):
+        pack = DashboardPack.objects.create(
+            code="qa-preview-pack",
+            name="QA Preview Pack",
+            family="admin",
+            is_active=True,
+        )
+        DashboardTemplate.objects.create(
+            dashboard_pack=pack,
+            name="QA Preview Layout",
+            description="Previewable dashboard layout",
+            is_active=True,
+            config_schema={
+                "chrome": {"header_variant": "wide"},
+                "role_home": {
+                    "purpose": "Preview the dashboard before assigning it.",
+                    "focus_areas": ["Operations", "Approvals"],
+                },
+                "modules": {"ops_watch": True, "outstanding_fees": False},
+                "kpis": ["attendance_today", "weekly_presence"],
+                "theme": {"visual_preset": "crisp-professional"},
+                "sections": {"admin__legacy_panel": False},
+            },
+        )
+        session = self.client.session
+        session["school_id"] = str(self.school.id)
+        session.save()
+
+        before_count = TenantLayoutAssignment.objects.filter(school=self.school).count()
+        resp = self._get("siteconfig:dashboard_configuration_hub")
+        after_count = TenantLayoutAssignment.objects.filter(school=self.school).count()
+
+        self.assertEqual(before_count, after_count)
+        body = resp.content.decode("utf-8", errors="replace")
+        self.assertIn("data-rmc-dashboard-role-preview", body)
+        self.assertIn("rmc-dashboard-role-preview-data", body)
+        self.assertIn("rmc-dashboard-template-preview-data", body)
+        self.assertIn("Live preview sidecar", body)
+        self.assertIn("QA Preview Layout", body)
+        self.assertIn("/portal/preview?role=ADMIN", body)
 
     def test_theme_colors_standalone_meta(self):
         resp = self.client.get(

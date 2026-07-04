@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n static %}
 
-{% block title %}{% firstof SITE.site_name LOGIN_SCHOOL_NAME "School portal" %} · {% trans "Sign in" %}{% endblock %}
+{% block title %}{% trans "School portal login" %}{% endblock %}
 
 {% block body_class %}rmc-auth-immersive-page{% endblock %}
 
@@ -109,7 +109,7 @@
               {% elif PUBLIC_BRAND_MODE %}
                 {{ PUBLIC_BRAND_NAME }}
               {% else %}
-                {{ SITE.site_name|default:LOGIN_SCHOOL_NAME|default:"School portal" }}
+                {{ SITE.site_name|default:"School portal" }}
               {% endif %}
             </h2>
             <p class="rmc-auth-immersive__card-meta">{% trans "Secure portal" %} · {{ immersive.date_label }}</p>

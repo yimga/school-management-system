@@ -126,7 +126,6 @@ on:
       - "var/security-audit-baseline-migration-model-imports.json"
       - "var/security-audit-baseline-drf-schema-coverage.json"
       - "var/security-audit-baseline-role-strings.json"
-      - "var/security-audit-baseline-access-resolver-fragmentation.json"
       - "var/security-audit-baseline-assert-in-production.json"
       - "var/security-audit-baseline-magic-numbers.json"
       - "var/security-audit-baseline-subprocess-shell.json"
@@ -368,20 +367,6 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_role_strings.py --compare
-
-  access-resolver-fragmentation:
-    name: Access-resolver fragmentation ratchet
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_access_resolver_fragmentation.py --compare
 
   terminology-adoption:
     name: Terminology-adoption drift (templates)

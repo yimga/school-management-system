@@ -104,7 +104,7 @@ def _role_label(user, membership) -> str:
     # Present the second badge from the effective role; owners are admin-like.
     second = {
         "SUPERADMIN": _("Superadmin"),
-        "ADMIN": _("Admin"),
+        "ADMIN": _("Admin"),  # role-string-allow: role-keyed-display-label-map-not-a-gate
         "PRINCIPAL": _("Principal"),
         "LEADERSHIP": _("Leadership"),
     }.get(role, _("Admin"))

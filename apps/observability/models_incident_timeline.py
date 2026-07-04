@@ -72,7 +72,7 @@ def record_incident_update(incident, *, kind: str, body: str, user=None):
         return IncidentUpdate.objects.create(
             incident=incident,
             kind=kind,
-            body=(body or "")[:4000],
+            body=(body or "")[:4000],  # magic-number-allow: incident-note-body-cap-chars
             created_by=user if getattr(user, "is_authenticated", False) else None,
         )
     except Exception as exc:  # noqa: BLE001

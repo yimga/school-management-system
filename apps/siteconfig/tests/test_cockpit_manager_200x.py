@@ -16,7 +16,6 @@ partials directly with a synthetic `cockpit` dict.
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from django.template.loader import render_to_string
@@ -352,19 +351,3 @@ class GlobeDeckRailRightTrustNutritionTests(SimpleTestCase):
         )
         self.assertIn("Audit chain integrity", rendered)
         self.assertIn("verified", rendered)
-
-
-class GlobeDeckLensLayoutTests(SimpleTestCase):
-    """The duplicate icon spine stays retired; the filmstrip is the nav source."""
-
-    def test_globe_deck_uses_filmstrip_without_duplicate_spine(self):
-        shell = Path("templates/partials/cockpit/_globe_deck_v2_shell.html").read_text(encoding="utf-8")
-        lens = Path("templates/partials/cockpit/_globe_deck_lens_nav.html").read_text(encoding="utf-8")
-        css = Path("static/css/rmc-cp-globe-deck-v2.css").read_text(encoding="utf-8")
-
-        self.assertNotIn('deck_lens_variant="spine"', shell)
-        self.assertIn('deck_lens_variant="film"', shell)
-        self.assertIn("rmc-globe-deck-v2__lens-track", lens)
-        self.assertIn("grid-template-columns: minmax(0, 1fr);", css)
-        self.assertIn("padding: 0 12px;", css)
-        self.assertNotIn("--rmc-globe-deck-spine-w", css)

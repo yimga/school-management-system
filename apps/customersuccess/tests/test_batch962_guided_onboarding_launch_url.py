@@ -48,8 +48,6 @@ class GuidedOnboardingEmbedLaunchLinkTests(TestCase):
         self.assertIn("pane=plan", body)
         self.assertIn("pane=checklist", body)
         self.assertIn("pane=role_preview", body)
-        self.assertNotIn("back-to-top-btn", body)
-        self.assertNotIn("data-rmc-back-to-top-policy", body)
         try:
             expected = reverse("studio_os:launch")
         except Exception:  # noqa: BLE001

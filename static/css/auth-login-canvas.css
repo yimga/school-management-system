@@ -396,7 +396,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   border-radius: 2px;
   padding: 0;
   cursor: pointer;
-  background: rgba(255, 255, 255, .15); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .15);
 }
 
 .rmc-auth-immersive__dots button.is-on {
@@ -412,8 +412,8 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 .rmc-auth-immersive__tile {
   border-radius: 14px;
   padding: clamp(6px, 1.2vh, 11px) clamp(8px, 1.4vh, 12px);
-  background: rgba(255, 255, 255, .08); /* off-token-allow: white-overlay */
-  border: 1px solid rgba(255, 255, 255, .12); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .12);
   backdrop-filter: blur(8px);
 }
 
@@ -460,9 +460,9 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   font-weight: 700;
   padding: 3px 9px;
   border-radius: 999px;
-  background: rgba(16, 185, 129, .18); /* off-token-allow: success-emerald-overlay */
-  color: #6ee7b7; /* off-token-allow: hex-literal-decorative */
-  border: 1px solid rgba(16, 185, 129, .35); /* off-token-allow: success-emerald-overlay */
+  background: rgba(16, 185, 129, .18);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, .35);
 }
 
 .rmc-auth-immersive__dash {
@@ -472,7 +472,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   flex-direction: column;
   border-radius: 16px;
   border: 1px solid var(--rmc-auth-hair);
-  background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, .35)); /* off-token-allow: decorative-gradient */
+  background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, .35));
   overflow: hidden;
 }
 
@@ -481,7 +481,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: rgba(0, 0, 0, .35); /* off-token-allow: black-overlay */
+  background: rgba(0, 0, 0, .35);
   border-bottom: 1px solid var(--rmc-auth-hair);
   font-size: 11px;
   font-weight: 600;
@@ -509,8 +509,8 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 .rmc-auth-mini-card {
   padding: 10px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, .06); /* off-token-allow: white-overlay */
-  border: 1px solid rgba(255, 255, 255, .08); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .08);
 }
 
 .rmc-auth-mini-card__k {
@@ -539,13 +539,13 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 }
 
 .rmc-auth-mini-card--green {
-  border-color: rgba(34, 197, 94, .3); /* off-token-allow: success-emerald-overlay */
-  background: rgba(34, 197, 94, .1); /* off-token-allow: success-emerald-overlay */
+  border-color: rgba(34, 197, 94, .3);
+  background: rgba(34, 197, 94, .1);
 }
 
 .rmc-auth-mini-card--blue {
-  border-color: rgba(99, 102, 241, .3); /* off-token-allow: rgba-decorative */
-  background: rgba(99, 102, 241, .1); /* off-token-allow: rgba-decorative */
+  border-color: rgba(99, 102, 241, .3);
+  background: rgba(99, 102, 241, .1);
 }
 
 .rmc-auth-dash-row {
@@ -554,8 +554,8 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   gap: 10px;
   padding: 8px 10px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, .04); /* off-token-allow: white-overlay */
-  border: 1px solid rgba(255, 255, 255, .06); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .06);
   font-size: 11px;
 }
 
@@ -565,7 +565,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   border-radius: 8px;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, .08); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .08);
   flex-shrink: 0;
 }
 
@@ -581,9 +581,9 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   flex-shrink: 0;
 }
 
-.rmc-auth-dash-row__tag--ok { background: rgba(34, 197, 94, .2); /* off-token-allow: success-emerald-overlay */ color: #86efac; /* off-token-allow: hex-literal-decorative */ }
+.rmc-auth-dash-row__tag--ok { background: rgba(34, 197, 94, .2); color: #86efac; }
 .rmc-auth-dash-row__tag--warn { background: color-mix(in srgb, var(--school-primary) 20%, transparent); color: color-mix(in srgb, var(--school-primary) 50%, white); }
-.rmc-auth-dash-row__tag--info { background: rgba(99, 102, 241, .2); /* off-token-allow: rgba-decorative */ color: #a5b4fc; /* off-token-allow: hex-literal-decorative */ }
+.rmc-auth-dash-row__tag--info { background: rgba(99, 102, 241, .2); color: #a5b4fc; }
 
 .rmc-auth-dash-note {
   margin: 0;
@@ -598,8 +598,8 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   align-items: center;
   padding: 10px;
   border-radius: 12px;
-  background: rgba(99, 102, 241, .1); /* off-token-allow: rgba-decorative */
-  border: 1px solid rgba(99, 102, 241, .25); /* off-token-allow: rgba-decorative */
+  background: rgba(99, 102, 241, .1);
+  border: 1px solid rgba(99, 102, 241, .25);
 }
 
 .rmc-auth-child-card__avatar {
@@ -650,7 +650,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   aspect-ratio: 16 / 10;
   max-height: 14vh;
   border: 1px solid var(--rmc-auth-hair);
-  background: rgba(255, 255, 255, .04); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .04);
 }
 
 .rmc-auth-immersive__moment-link {
@@ -680,7 +680,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   padding: 8px 10px;
   font-size: 10px;
   font-weight: 600;
-  background: linear-gradient(transparent, rgba(0, 0, 0, .85)); /* off-token-allow: decorative-gradient */
+  background: linear-gradient(transparent, rgba(0, 0, 0, .85));
 }
 
 .rmc-auth-immersive__trust {
@@ -694,8 +694,8 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 .rmc-auth-immersive__trust span {
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .06); /* off-token-allow: white-overlay */
-  border: 1px solid rgba(255, 255, 255, .1); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .1);
 }
 
 .rmc-auth-immersive__auth {
@@ -721,7 +721,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   flex-shrink: 0;
   overflow: visible;
   background: var(--rmc-auth-glass);
-  border: 1px solid rgba(255, 255, 255, .14); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, .14);
   border-radius: 28px;
   padding: clamp(1.75rem, 4vw, 2.25rem);
   backdrop-filter: blur(28px);
@@ -806,7 +806,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   padding: 8px 6px;
   border-radius: 10px;
   color: var(--rmc-auth-muted);
-  background: rgba(255, 255, 255, .03); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .03);
   border: 1px solid transparent;
 }
 
@@ -853,7 +853,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   padding: 14px 18px 14px 16px;
   border-radius: 14px;
   border: 1px solid var(--rmc-auth-hair);
-  background: rgba(255, 255, 255, .04); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .04);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -876,7 +876,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   display: grid;
   place-items: center;
   font-size: 22px;
-  background: rgba(255, 255, 255, .06); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .06);
   flex-shrink: 0;
 }
 
@@ -925,7 +925,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   margin: .875rem 0;
   padding: 10px 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, .03); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .03);
   border: 1px solid var(--rmc-auth-hair);
 }
 
@@ -935,7 +935,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   text-transform: uppercase;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .06); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .06);
   color: var(--rmc-auth-muted);
 }
 
@@ -993,7 +993,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   padding: 1rem .65rem;
   border-radius: 16px;
   border: 1px solid var(--rmc-auth-hair);
-  background: rgba(255, 255, 255, .04); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .04);
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -1025,7 +1025,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   padding: 12px 10px;
   border-radius: 12px;
   border: 1px solid var(--rmc-auth-hair);
-  background: rgba(255, 255, 255, .04); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .04);
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
@@ -1058,7 +1058,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   padding: 13px 14px;
   border-radius: 12px;
   font-size: 15px;
-  background: rgba(255, 255, 255, .05); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .05);
   border-color: var(--rmc-auth-hair);
   color: var(--text-primary);
 }
@@ -1096,7 +1096,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   padding: 4px;
   border-radius: 12px;
   border: 1px solid var(--rmc-auth-hair);
-  background: rgba(255, 255, 255, .04); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .04);
 }
 
 .rmc-auth-immersive__tabs button {
@@ -1112,7 +1112,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 }
 
 .rmc-auth-immersive__tabs button.is-on {
-  background: rgba(255, 255, 255, .1); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .1);
   color: var(--text-primary);
 }
 
@@ -1145,8 +1145,8 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   display: inline-block;
   padding: 5px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .12); /* off-token-allow: white-overlay */
-  border: 1px solid rgba(255, 255, 255, .18); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .18);
 }
 
 /* Layout presets */
@@ -1351,7 +1351,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 .rmc-login-canvas-preview__mock-hero {
   padding: 8px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, .1); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, .1);
   font-size: 11px;
 }
 
@@ -1372,7 +1372,7 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 .rmc-login-canvas-preview__mock-bento span {
   padding: 4px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, .06); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, .06);
   font-size: 8px;
   text-align: center;
 }
@@ -1380,15 +1380,15 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
 .rmc-login-canvas-preview__mock-auth {
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, .25); /* off-token-allow: black-overlay */
+  background: rgba(0, 0, 0, .25);
 }
 
 .rmc-login-canvas-preview__mock-card {
   width: 72%;
   padding: 16px 10px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, .12); /* off-token-allow: white-overlay */
-  background: rgba(255, 255, 255, .08); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .08);
   text-align: center;
   font-size: 11px;
   font-weight: 700;

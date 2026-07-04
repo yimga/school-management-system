@@ -1,5 +1,5 @@
 {% load static i18n phase8_tags %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Configuration Center — dashboards by role" %}</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Configuration Center - dashboards by role" %}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2 professional-page" data-decision-engine="surface" data-rmc-os-center="configuration_center_dashboards" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "siteconfig/dashboard_configuration_hub.html" %}
@@ -15,59 +15,268 @@
       {% if not templates %}
         {% include "components/dashboard_empty_state.html" with icon="bi-layout-text-window-reverse" title=_("No dashboard templates yet") message=_("Create or import a dashboard template before you can assign roles.") purpose=_("Finish setup") action_url=cfg_hub_url action_text=_("Return to Configuration Center") empty_primary_task="configuration_center" empty_primary_step="siteconfig:no-templates" %}
       {% else %}
-        <form method="post" action="{% url 'siteconfig:dashboard_configuration_hub' %}">
-          {% csrf_token %}
-          <div class="row mb-3">
-            <label class="form-label col-md-2">{% trans "Assign template by role" %}</label>
-            <div class="col-md-4">
-              <select name="role" class="form-select form-select-sm" required>
-                <option value="">— Select role —</option>
-                {% for value, label in role_choices %}
-                  <option value="{{ value }}">{{ label }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="col-md-4">
-              <select name="template_id" class="form-select form-select-sm" required>
-                <option value="">— Select template —</option>
-                {% for t in templates %}
-                  <option value="{{ t.pk }}">{{ t.name }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="col-md-2">
-              <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+        {{ role_preview_profiles|json_script:"rmc-dashboard-role-preview-data" }}
+        {{ template_preview_profiles|json_script:"rmc-dashboard-template-preview-data" }}
+        <style>
+          .rmc-dashboard-preview-shell{border:1px solid rgba(148,163,184,.24);border-radius:16px;background:linear-gradient(135deg,rgba(15,23,42,.96),rgba(30,41,59,.88));color:#e5ecff;min-height:100%}
+          .rmc-dashboard-preview-shell .text-muted{color:#9aa9c2!important}
+          .rmc-dashboard-preview-card{border:1px solid rgba(148,163,184,.24);border-radius:14px;background:rgba(15,23,42,.7)}
+          .rmc-dashboard-preview-card--after{border-color:rgba(59,130,246,.42);box-shadow:0 0 0 1px rgba(59,130,246,.16) inset}
+          .rmc-dashboard-preview-device .btn{border-radius:999px}
+          .rmc-dashboard-preview-device .btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
+          .rmc-dashboard-preview-chip{display:inline-flex;align-items:center;border:1px solid rgba(148,163,184,.28);border-radius:999px;padding:.18rem .55rem;font-size:.75rem;background:rgba(15,23,42,.78);color:#e5ecff}
+          .rmc-dashboard-preview-screen{border:1px solid rgba(148,163,184,.18);border-radius:13px;background:#07111f;overflow:hidden}
+          .rmc-dashboard-preview-screen__top{display:flex;gap:.35rem;align-items:center;border-bottom:1px solid rgba(148,163,184,.16);padding:.55rem .7rem;background:rgba(15,23,42,.9)}
+          .rmc-dashboard-preview-dot{width:.48rem;height:.48rem;border-radius:999px;background:#38bdf8}
+          .rmc-dashboard-preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;padding:.7rem}
+          .rmc-dashboard-preview-tile{min-height:58px;border-radius:10px;background:linear-gradient(135deg,rgba(37,99,235,.38),rgba(20,184,166,.2));border:1px solid rgba(148,163,184,.18);padding:.45rem;font-size:.72rem}
+          .rmc-dashboard-preview-tile:nth-child(2){background:linear-gradient(135deg,rgba(16,185,129,.34),rgba(59,130,246,.18))}
+          .rmc-dashboard-preview-tile:nth-child(3){background:linear-gradient(135deg,rgba(245,158,11,.34),rgba(59,130,246,.16))}
+          .rmc-dashboard-preview-list{margin:0;padding-left:1rem}
+          .rmc-dashboard-preview-list li+li{margin-top:.2rem}
+          @media (max-width: 991.98px){.rmc-dashboard-preview-grid{grid-template-columns:1fr}.rmc-dashboard-preview-shell{margin-top:1rem}}
+        </style>
+        <div class="row g-4" data-rmc-dashboard-role-preview>
+          <div class="col-xl-5">
+            <form method="post" action="{% url 'siteconfig:dashboard_configuration_hub' %}" data-rmc-dashboard-assignment-form>
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="form-label" for="rmc-dashboard-role-select">{% trans "Assign template by role" %}</label>
+                <select id="rmc-dashboard-role-select" name="role" class="form-select form-select-sm" required data-rmc-dashboard-role-select>
+                  <option value="">{% trans "Select role" %}</option>
+                  {% for value, label in role_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="rmc-dashboard-template-select">{% trans "Dashboard template" %}</label>
+                <select id="rmc-dashboard-template-select" name="template_id" class="form-select form-select-sm" required data-rmc-dashboard-template-select>
+                  <option value="">{% trans "Select template" %}</option>
+                  {% for t in templates %}
+                    <option value="{{ t.pk }}">{{ t.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                <button type="submit" class="btn btn-primary btn-sm">{% trans "Assign" %}</button>
+                <span class="text-muted small">{% trans "Preview updates here before the assignment is saved." %}</span>
+              </div>
+            </form>
+            <div class="table-responsive" data-rmc-table-scroll="horizontal">
+              <table class="table table-sm table-bordered mb-0">
+                <caption class="visually-hidden">{% trans "Configuration Center - dashboards by role" %}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{% trans "Role" %}</th>
+                    <th scope="col">{% trans "Assigned template" %}</th>
+                    <th scope="col">{% trans "Portal chrome" %}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for role_val, role_label, assignment, chrome_label in assignment_rows %}
+                    <tr>
+                      <td>{{ role_label }}</td>
+                      <td>{% if assignment %}{{ assignment.template.name }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
+                      <td>
+                        {% if chrome_label == "theme_pack_default" %}
+                          <span class="text-muted">{% trans "From theme pack layout" %}</span>
+                        {% else %}
+                          <span class="rmc-badge text-capitalize">{{ chrome_label }}</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
           </div>
-        </form>
-        <div class="table-responsive" data-rmc-table-scroll="horizontal">
-        <table class="table table-sm table-bordered mb-0">
-          <caption class="visually-hidden">{% trans "Configuration Center — dashboards by role" %}</caption>
-          <thead>
-            <tr>
-              <th scope="col">{% trans "Role" %}</th>
-              <th scope="col">{% trans "Assigned template" %}</th>
-              <th scope="col">{% trans "Portal chrome" %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for role_val, role_label, assignment, chrome_label in assignment_rows %}
-              <tr>
-                <td>{{ role_label }}</td>
-                <td>{% if assignment %}{{ assignment.template.name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
-                <td>
-                  {% if chrome_label == "theme_pack_default" %}
-                    <span class="text-muted">{% trans "From theme pack layout" %}</span>
-                  {% else %}
-                    <span class="rmc-badge text-capitalize">{{ chrome_label }}</span>
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+          <div class="col-xl-7">
+            <section class="rmc-dashboard-preview-shell p-3 p-lg-4" aria-label="{% trans 'Live dashboard assignment preview' %}">
+              <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start mb-3">
+                <div>
+                  <p class="text-uppercase small fw-semibold text-muted mb-1">{% trans "Live preview sidecar" %}</p>
+                  <h2 class="h5 mb-1" data-rmc-dashboard-preview-title>{% trans "Choose a role and template" %}</h2>
+                  <p class="small text-muted mb-0" data-rmc-dashboard-preview-summary>{% trans "The preview will compare the current dashboard against the proposed assignment." %}</p>
+                </div>
+                <div class="btn-group btn-group-sm rmc-dashboard-preview-device" role="group" aria-label="{% trans 'Preview device' %}">
+                  <button type="button" class="btn btn-outline-light active" data-rmc-dashboard-device="desktop">{% trans "Desktop" %}</button>
+                  <button type="button" class="btn btn-outline-light" data-rmc-dashboard-device="tablet">{% trans "Tablet" %}</button>
+                  <button type="button" class="btn btn-outline-light" data-rmc-dashboard-device="mobile">{% trans "Mobile" %}</button>
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-lg-6">
+                  <article class="rmc-dashboard-preview-card p-3 h-100">
+                    <div class="d-flex justify-content-between gap-2 mb-2">
+                      <span class="rmc-dashboard-preview-chip">{% trans "Current" %}</span>
+                      <span class="small text-muted" data-rmc-dashboard-current-chrome></span>
+                    </div>
+                    <h3 class="h6 mb-1" data-rmc-dashboard-current-name>{% trans "No role selected" %}</h3>
+                    <p class="small text-muted mb-3" data-rmc-dashboard-current-purpose>{% trans "Select a role to see the current role home." %}</p>
+                    <div class="rmc-dashboard-preview-screen" aria-hidden="true">
+                      <div class="rmc-dashboard-preview-screen__top"><span class="rmc-dashboard-preview-dot"></span><span class="rmc-dashboard-preview-dot"></span><span class="rmc-dashboard-preview-dot"></span></div>
+                      <div class="rmc-dashboard-preview-grid" data-rmc-dashboard-current-tiles></div>
+                    </div>
+                    <div class="mt-3">
+                      <p class="small fw-semibold mb-1">{% trans "Visible signals" %}</p>
+                      <ul class="small text-muted rmc-dashboard-preview-list" data-rmc-dashboard-current-signals></ul>
+                    </div>
+                  </article>
+                </div>
+                <div class="col-lg-6">
+                  <article class="rmc-dashboard-preview-card rmc-dashboard-preview-card--after p-3 h-100">
+                    <div class="d-flex justify-content-between gap-2 mb-2">
+                      <span class="rmc-dashboard-preview-chip">{% trans "After assignment" %}</span>
+                      <span class="small text-muted" data-rmc-dashboard-after-chrome></span>
+                    </div>
+                    <h3 class="h6 mb-1" data-rmc-dashboard-after-name>{% trans "No template selected" %}</h3>
+                    <p class="small text-muted mb-3" data-rmc-dashboard-after-purpose>{% trans "Select a template to preview the proposed role dashboard." %}</p>
+                    <div class="rmc-dashboard-preview-screen" aria-hidden="true">
+                      <div class="rmc-dashboard-preview-screen__top"><span class="rmc-dashboard-preview-dot"></span><span class="rmc-dashboard-preview-dot"></span><span class="rmc-dashboard-preview-dot"></span></div>
+                      <div class="rmc-dashboard-preview-grid" data-rmc-dashboard-after-tiles></div>
+                    </div>
+                    <div class="mt-3">
+                      <p class="small fw-semibold mb-1">{% trans "Visible signals" %}</p>
+                      <ul class="small text-muted rmc-dashboard-preview-list" data-rmc-dashboard-after-signals></ul>
+                    </div>
+                  </article>
+                </div>
+              </div>
+              <div class="row g-3 mt-1">
+                <div class="col-lg-7">
+                  <div class="rmc-dashboard-preview-card p-3">
+                    <p class="small fw-semibold mb-2">{% trans "Assignment impact" %}</p>
+                    <ul class="small text-muted rmc-dashboard-preview-list mb-0" data-rmc-dashboard-impact></ul>
+                  </div>
+                </div>
+                <div class="col-lg-5">
+                  <div class="rmc-dashboard-preview-card p-3 h-100">
+                    <p class="small fw-semibold mb-2">{% trans "Open live role view" %}</p>
+                    <p class="small text-muted mb-2">{% trans "Live view opens the current role session for the selected device. The after preview remains non-mutating until Assign is clicked." %}</p>
+                    <a class="btn btn-outline-light btn-sm disabled" href="#" target="_blank" rel="noopener" data-rmc-dashboard-live-link>{% trans "Open preview" %}</a>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
-        <p class="text-muted small mb-0">{% trans "DashboardLayout and DashboardUserPreference still apply for per-user overrides. Template config_schema may include a chrome block (header_variant, footer_partial) to override portal header/footer for that role; otherwise the active theme pack layout applies." %}</p>
+        <p class="text-muted small mb-0 mt-3">{% trans "DashboardLayout and DashboardUserPreference still apply for per-user overrides. Template config_schema may include a chrome block (header_variant, footer_partial) to override portal header/footer for that role; otherwise the active theme pack layout applies." %}</p>
+        <script>
+          (function(){
+            var root = document.querySelector('[data-rmc-dashboard-role-preview]');
+            if (!root) return;
+            function readJson(id){
+              var node = document.getElementById(id);
+              if (!node) return {};
+              try { return JSON.parse(node.textContent || '{}'); } catch (err) { return {}; }
+            }
+            function escapeHtml(value){
+              return String(value || '').replace(/[&<>"']/g, function(ch){
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+              });
+            }
+            var roleData = readJson('rmc-dashboard-role-preview-data');
+            var templateData = readJson('rmc-dashboard-template-preview-data');
+            var roleSelect = root.querySelector('[data-rmc-dashboard-role-select]');
+            var templateSelect = root.querySelector('[data-rmc-dashboard-template-select]');
+            var liveLink = root.querySelector('[data-rmc-dashboard-live-link]');
+            var activeDevice = 'desktop';
+            function text(selector, value){
+              var node = root.querySelector(selector);
+              if (node) node.textContent = value || '';
+            }
+            function list(selector, items, empty){
+              var node = root.querySelector(selector);
+              if (!node) return;
+              var values = Array.isArray(items) ? items.filter(Boolean) : [];
+              if (!values.length && empty) values = [empty];
+              node.innerHTML = values.map(function(item){ return '<li>' + escapeHtml(item) + '</li>'; }).join('');
+            }
+            function tiles(selector, profile){
+              var node = root.querySelector(selector);
+              if (!node) return;
+              var values = (profile && profile.kpis && profile.kpis.length) ? profile.kpis : (profile && profile.focus_areas) || [];
+              if (!values.length) values = ['Role home', 'Queue', 'Recent activity'];
+              node.innerHTML = values.slice(0, 3).map(function(item){
+                return '<div class="rmc-dashboard-preview-tile">' + escapeHtml(item) + '</div>';
+              }).join('');
+            }
+            function signals(profile){
+              if (!profile) return [];
+              var out = [];
+              if (profile.theme) out.push('Theme: ' + profile.theme);
+              if (profile.kpis && profile.kpis.length) out.push('KPIs: ' + profile.kpis.join(', '));
+              if (profile.visible_modules && profile.visible_modules.length) out.push('Shows: ' + profile.visible_modules.join(', '));
+              if (profile.hidden_modules && profile.hidden_modules.length) out.push('Hides: ' + profile.hidden_modules.join(', '));
+              if (profile.hidden_sections && profile.hidden_sections.length) out.push('Portal sections hidden: ' + profile.hidden_sections.length);
+              return out;
+            }
+            function render(){
+              var roleKey = roleSelect ? roleSelect.value : '';
+              var templateKey = templateSelect ? templateSelect.value : '';
+              var role = roleData[roleKey] || null;
+              var current = role ? role.current : null;
+              var proposed = templateData[templateKey] || null;
+              text('[data-rmc-dashboard-preview-title]', role ? ('Previewing ' + role.label) : 'Choose a role and template');
+              text('[data-rmc-dashboard-preview-summary]', proposed ? ('Proposed template: ' + proposed.name) : 'Select a dashboard template to compare against the current role assignment.');
+              text('[data-rmc-dashboard-current-name]', current ? current.name : 'No role selected');
+              text('[data-rmc-dashboard-current-purpose]', current ? (current.purpose || current.description) : 'Select a role to see the current role home.');
+              text('[data-rmc-dashboard-current-chrome]', current ? (current.chrome || 'theme_pack_default') : '');
+              tiles('[data-rmc-dashboard-current-tiles]', current);
+              list('[data-rmc-dashboard-current-signals]', signals(current), 'Built-in role defaults');
+              text('[data-rmc-dashboard-after-name]', proposed ? proposed.name : 'No template selected');
+              text('[data-rmc-dashboard-after-purpose]', proposed ? (proposed.purpose || proposed.description) : 'Select a template to preview the proposed role dashboard.');
+              text('[data-rmc-dashboard-after-chrome]', proposed ? (proposed.chrome || 'theme_pack_default') : '');
+              tiles('[data-rmc-dashboard-after-tiles]', proposed);
+              list('[data-rmc-dashboard-after-signals]', signals(proposed), 'Waiting for template selection');
+              var impact = [];
+              if (!role) {
+                impact.push('Select a role to scope this assignment.');
+              } else if (!proposed) {
+                impact.push('Select a template to calculate assignment impact.');
+              } else {
+                impact.push('Role affected: ' + role.label);
+                impact.push('Current dashboard: ' + ((current && current.name) || 'Platform default'));
+                impact.push('After assignment: ' + proposed.name);
+                if (current && current.id && current.id === proposed.id) {
+                  impact.push('No template change selected for this role.');
+                }
+                if (proposed.hidden_modules && proposed.hidden_modules.length) {
+                  impact.push('Modules hidden after save: ' + proposed.hidden_modules.join(', '));
+                }
+                if (proposed.hidden_sections && proposed.hidden_sections.length) {
+                  impact.push('Portal sections hidden after save: ' + proposed.hidden_sections.join(', '));
+                }
+              }
+              list('[data-rmc-dashboard-impact]', impact);
+              if (liveLink) {
+                var urls = role && role.preview_urls ? role.preview_urls : {};
+                var href = urls[activeDevice] || '';
+                if (href) {
+                  liveLink.href = href;
+                  liveLink.classList.remove('disabled');
+                  liveLink.setAttribute('aria-disabled', 'false');
+                } else {
+                  liveLink.href = '#';
+                  liveLink.classList.add('disabled');
+                  liveLink.setAttribute('aria-disabled', 'true');
+                }
+              }
+            }
+            root.querySelectorAll('[data-rmc-dashboard-device]').forEach(function(btn){
+              btn.addEventListener('click', function(){
+                activeDevice = btn.getAttribute('data-rmc-dashboard-device') || 'desktop';
+                root.querySelectorAll('[data-rmc-dashboard-device]').forEach(function(item){ item.classList.remove('active'); });
+                btn.classList.add('active');
+                render();
+              });
+            });
+            if (roleSelect) roleSelect.addEventListener('change', render);
+            if (templateSelect) templateSelect.addEventListener('change', render);
+            render();
+          })();
+        </script>
       {% endif %}
     </div>
   </div>

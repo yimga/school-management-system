@@ -10,7 +10,6 @@ import logging
 from typing import Any
 
 from django.db import DatabaseError
-from django.core.exceptions import FieldError
 from django.db.models import ObjectDoesNotExist
 from django.urls import NoReverseMatch
 
@@ -29,7 +28,6 @@ _STUDIO_SOFT_FAILURES = (
     ValueError,
     KeyError,
     ObjectDoesNotExist,
-    FieldError,
     DatabaseError,
     NoReverseMatch,
 )
@@ -512,7 +510,7 @@ def get_studio_mode_hero_context(
     automation_health_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Template kwargs for studio_os/partials/_mode_hero.html on manager + tenant shells."""
-    from django.utils.translation import gettext as _, ngettext
+    from django.utils.translation import gettext as _
 
     from apps.schools.control_plane import use_control_plane_shell
 
@@ -591,17 +589,14 @@ def get_studio_mode_hero_context(
             failing = int(summary.get("failing_count") or 0)
             paused = int(summary.get("paused_count") or 0)
             if failing:
-                # ngettext + %-format (not gettext + str.format): a translated
-                # "{count}" msgid whose catalog drops/renames the brace makes
-                # str.format() raise → unhandled 500 on the automation studio.
-                hero["mode_health_label"] = ngettext(
-                    "%(count)d failed run", "%(count)d failed runs", failing
-                ) % {"count": failing}
+                hero["mode_health_label"] = _("{count} failed runs").format(
+                    count=failing
+                )
                 hero["mode_health_status"] = "warn"
             elif paused:
-                hero["mode_health_label"] = ngettext(
-                    "%(count)d paused pack", "%(count)d paused packs", paused
-                ) % {"count": paused}
+                hero["mode_health_label"] = _("{count} paused packs").format(
+                    count=paused
+                )
                 hero["mode_health_status"] = "warn"
             else:
                 hero["mode_health_label"] = _("Workflows healthy")
@@ -1265,7 +1260,7 @@ def get_automation_workflow_health_summary(
 
         if school is not None:
             assignments = WorkflowPackAssignment.objects.filter(school=school)
-            pack_ids = list(assignments.values_list("workflow_pack_id", flat=True))
+            pack_ids = list(assignments.values_list("pack_id", flat=True))
             pack_count = len(pack_ids)
             paused_count = int(
                 WorkflowPack.objects.filter(id__in=pack_ids, is_active=False).count()

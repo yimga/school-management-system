@@ -82,12 +82,20 @@ def strict_unknown_regions() -> bool:
     become a silent cross-border pass. Same env-or-setting contract as
     :func:`residency_enforced`; only consulted when enforcement is on.
     """
-    env = os.environ.get("DATA_RESIDENCY_STRICT_UNKNOWN", "").strip().lower() in (
-        "1",
-        "true",
-        "yes",
-    )
-    return env or bool(getattr(settings, "DATA_RESIDENCY_STRICT_UNKNOWN", False))
+    raw = os.environ.get("DATA_RESIDENCY_STRICT_UNKNOWN", "").strip().lower()
+    if raw in ("1", "true", "yes"):
+        return True
+    if raw in ("0", "false", "no"):
+        return False
+    explicit = getattr(settings, "DATA_RESIDENCY_STRICT_UNKNOWN", None)
+    if explicit is not None:
+        return bool(explicit)
+    # B-validated closeout (2026-07-03): unset now FOLLOWS enforcement —
+    # enforcing residency while silently passing an unresolvable region was
+    # fail-open for the exact case this control exists for. Single-region
+    # deployments that enforce cross-region matching but cannot resolve a
+    # region on every path opt out EXPLICITLY (DATA_RESIDENCY_STRICT_UNKNOWN=0).
+    return residency_enforced()
 
 
 def _norm(region: Any) -> str:
@@ -244,19 +252,31 @@ def cross_border_export_blocked(
     """
     if school is None:
         return False, ""
-
-    school_region = _norm(getattr(school, "data_region", None))
-    if not school_region:
+    if not residency_enforced():
         return False, ""
 
+    # Mirror the enforcer's resolution (effective_region defaults "global")
+    # so the UI predicate and the fail-closed gate can never disagree.
+    try:
+        from apps.schools.data_residency import effective_region as _eff
+
+        school_region = _norm(_eff(school))
+    except Exception:  # noqa: BLE001 — never crash the predicate; fall back to field
+        school_region = _norm(getattr(school, "data_region", None))
     dest = _norm(destination_region)
-    if not dest:
+
+    if not dest or not school_region:
+        if strict_unknown_regions():
+            missing = "destination" if not dest else "source"
+            return (
+                True,
+                f"Export blocked: {missing} region unknown under strict "
+                "residency enforcement. Resolve the region or explicitly set "
+                "DATA_RESIDENCY_STRICT_UNKNOWN=0.",
+            )
         return False, ""
 
     if school_region == dest:
-        return False, ""
-
-    if not residency_enforced():
         return False, ""
 
     return (

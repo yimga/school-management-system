@@ -468,9 +468,15 @@ CSP_ENFORCE = os.getenv("CSP_ENFORCE", "1") == "1"
 # AND at least one region replica is provisioned in DATABASES.
 DATA_RESIDENCY_ENFORCE = os.getenv("DATA_RESIDENCY_ENFORCE", "0") == "1"
 # Strict-sovereignty posture: with enforcement on, an UNKNOWN source or target
-# region blocks instead of silently passing. Default off — single-region
-# deployments have no region concept on most paths and must not brick.
-DATA_RESIDENCY_STRICT_UNKNOWN = os.getenv("DATA_RESIDENCY_STRICT_UNKNOWN", "0") == "1"
+# region blocks instead of silently passing. Tri-state: "1" forces strict,
+# "0" is an explicit opt-out, UNSET (None here) FOLLOWS DATA_RESIDENCY_ENFORCE
+# at call time — enforcing residency while silently passing unresolvable
+# regions was fail-open for the exact case the control exists for
+# (B-validated closeout 2026-07-03).
+_STRICT_UNKNOWN_RAW = os.getenv("DATA_RESIDENCY_STRICT_UNKNOWN", "").strip()
+DATA_RESIDENCY_STRICT_UNKNOWN = (
+    (_STRICT_UNKNOWN_RAW == "1") if _STRICT_UNKNOWN_RAW in ("0", "1") else None
+)
 
 # Wave K3 — at-risk ML artifact: where the predictor loads its joblib bundle.
 # Resolution order in `apps.analytics.ml.at_risk_model`:

@@ -13,16 +13,12 @@ body.setup-studio-page #main-content {
 
 .setup-studio-shell {
   display: grid;
-  gap: clamp(1rem, 1.6vw, 1.5rem);
+  gap: 1.25rem;
   max-width: 100%;
   min-width: 0;
   overflow-x: clip;
   width: 100%;
   box-sizing: border-box;
-}
-
-.studio-embed-body .setup-studio-shell {
-  padding-inline: 0;
 }
 
 .setup-studio-hero {
@@ -34,14 +30,13 @@ body.setup-studio-page #main-content {
 
 .setup-studio-panel {
   border: 1px solid var(--hairline);
-  border-radius: 18px;
+  border-radius: 24px;
   background: var(--surface-elevated);
   box-shadow: 0 18px 48px rgba(26, 22, 18, 0.08); /* off-token-allow: warm-neutral-overlay */
-  min-width: 0;
 }
 
 .setup-studio-launch {
-  padding: clamp(1.15rem, 1.8vw, 1.6rem);
+  padding: 1.4rem;
   background:
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.2), transparent 38%),
     linear-gradient(135deg, rgba(13, 110, 253, 0.94), rgba(25, 135, 84, 0.9)); /* off-token-allow: decorative-gradient */
@@ -69,7 +64,6 @@ body.setup-studio-page #main-content {
   margin: 0.8rem 0 1rem;
   color: rgba(255, 255, 255, 0.88); /* off-token-allow: white-overlay */
   max-width: 44rem;
-  line-height: 1.55;
 }
 
 .setup-studio-summary-strip {
@@ -173,7 +167,6 @@ body.setup-studio-page #main-content {
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.9rem;
-  min-width: 0;
 }
 
 .setup-studio-step-list,
@@ -218,10 +211,9 @@ body.setup-studio-page #main-content {
 .setup-studio-recommendation,
 .setup-studio-preview-card {
   padding: 0.9rem;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid var(--hairline);
   background: var(--surface-bg);
-  min-width: 0;
 }
 
 .setup-studio-preview-card.is-ready {
@@ -238,25 +230,11 @@ body.setup-studio-page #main-content {
   font-size: 0.92rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
 }
 
 .setup-studio-muted {
   color: var(--text-secondary, var(--bs-secondary-color));
   font-size: 0.9rem;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-}
-
-.studio-embed-body .setup-studio-panel.h-100 {
-  min-height: clamp(15rem, 25vh, 22rem);
-}
-
-.studio-embed-body .setup-studio-recommendation + .setup-studio-recommendation,
-.studio-embed-body .setup-studio-blocker + .setup-studio-blocker,
-.studio-embed-body .setup-studio-checklist-item + .setup-studio-checklist-item {
-  margin-top: 0;
 }
 
 .setup-studio-actions {

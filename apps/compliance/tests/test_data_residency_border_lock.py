@@ -11,8 +11,10 @@ The first real run caught that the original unknown-source test asserted a
 no-op, but ``effective_region`` never returns blank (defaults ``"global"``),
 so the gate fail-closes there — the test was corrected to assert the block.
 The historical unknown-region fail-open is now policy-controlled:
-``DATA_RESIDENCY_STRICT_UNKNOWN`` (default off, backward compatible) makes an
-unknown source/target region BLOCK at the gate instead of silently passing.
+``DATA_RESIDENCY_STRICT_UNKNOWN`` — and since the B-validated closeout
+(2026-07-03) its UNSET default FOLLOWS ``DATA_RESIDENCY_ENFORCE``: enforcing
+deployments fail closed on unknown source/target unless they explicitly opt
+out with ``DATA_RESIDENCY_STRICT_UNKNOWN=0``.
 Residual: the db-router / regional-middleware call sites still early-return
 when no region concept applies at all (single-region deployments must not
 brick); a strict multi-region deployment should pair the flag with pinned
@@ -99,8 +101,20 @@ class EnforceRegionMatchTests(PlainTestCase):
         self.assertEqual(ctx.exception.target_region, "us_east")
         audit_mock.assert_called_once()
 
-    @override_settings(DATA_RESIDENCY_ENFORCE=True)
-    def test_strict_noop_when_no_target(self):
+    @override_settings(DATA_RESIDENCY_ENFORCE=True, DATA_RESIDENCY_STRICT_UNKNOWN=None)
+    @patch("apps.compliance.cross_border_export._audit_residency_violation")
+    def test_enforce_alone_now_blocks_blank_target_by_default(self, audit_mock):
+        # B-validated closeout: the unset strict-unknown default FOLLOWS
+        # enforcement — the originally-cited fail-open (ENFORCE=1 alone,
+        # blank destination silently passes) is closed by default.
+        school = _school(region="eu_central")
+        with self.assertRaises(ResidencyViolation):
+            enforce_region_match(school, "", kind="db_route")
+        audit_mock.assert_called_once()
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=True, DATA_RESIDENCY_STRICT_UNKNOWN=False)
+    def test_explicit_opt_out_restores_unknown_pass(self):
+        # Single-region-shaped deployments opt out EXPLICITLY, never silently.
         school = _school(region="eu_central")
         enforce_region_match(school, None, kind="db_route")  # no raise
         enforce_region_match(school, "", kind="db_route")  # no raise
@@ -161,6 +175,22 @@ class CrossBorderExportTests(PlainTestCase):
         blocked, _ = cross_border_export_blocked(
             school, destination_region="us_east"
         )
+        self.assertFalse(blocked)
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=True, DATA_RESIDENCY_STRICT_UNKNOWN=None)
+    def test_export_predicate_agrees_with_enforcer_on_blank_destination(self):
+        # The UI-greying predicate and the fail-closed gate must never
+        # disagree: blank destination under default-strict enforcement greys
+        # the button too.
+        school = _school(region="eu_central")
+        blocked, msg = cross_border_export_blocked(school, destination_region="")
+        self.assertTrue(blocked)
+        self.assertIn("unknown", msg.lower())
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=True, DATA_RESIDENCY_STRICT_UNKNOWN=False)
+    def test_export_predicate_honors_explicit_opt_out(self):
+        school = _school(region="eu_central")
+        blocked, _ = cross_border_export_blocked(school, destination_region="")
         self.assertFalse(blocked)
 
     @override_settings(DATA_RESIDENCY_ENFORCE=True)

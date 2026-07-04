@@ -555,7 +555,7 @@ def client_event_capture(request):
         source = "window"
 
     # PII / size guard: drop stack frames past 4kB total.
-    stack = str(payload.get("stack") or "")[:4000]
+    stack = str(payload.get("stack") or "")[:4000]  # magic-number-allow: client-error-stack-cap-chars
     url = str(payload.get("url") or "")[:500]
     line = payload.get("line")
     col = payload.get("col")
@@ -1461,7 +1461,7 @@ def api_platform_incident_update_add(request, incident_id):
     entry = IncidentUpdate.objects.create(
         incident=incident,
         kind=kind,
-        body=body[:4000],
+        body=body[:4000],  # magic-number-allow: incident-note-body-cap-chars
         created_by=user,
     )
     return JsonResponse(

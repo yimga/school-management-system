@@ -2,6 +2,7 @@
 
 [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] {
   --rmc-globe-deck-rail-w: 260px;
+  --rmc-globe-deck-spine-w: 44px;
   --rmc-globe-deck-crown-h: 34px;
   --rmc-globe-deck-film-h: 36px;
   --rmc-globe-landing-frame-height: clamp(500px, calc(100dvh - 5.5rem - 2.5rem), 940px);
@@ -359,7 +360,7 @@
 .rmc-globe-deck-v2__main-row {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: var(--rmc-globe-deck-spine-w) minmax(0, 1fr);
 }
 
 .rmc-globe-deck-v2__lens--spine {
@@ -417,7 +418,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 12px;
+  padding: 0 12px 0 calc(var(--rmc-globe-deck-spine-w) + 8px);
   border-top: 1px solid var(--hairline);
   background: color-mix(in srgb, var(--surface-canvas) 96%, transparent);
   min-height: var(--rmc-globe-deck-film-h);
@@ -678,6 +679,7 @@
 @media (max-width: 1100px) {
   [data-rmc-shell-main="control-plane"] .cp-layout[data-rmc-cp-globe-deck-v2="1"] {
     --rmc-globe-deck-rail-w: 190px;
+    --rmc-globe-deck-spine-w: 40px;
   }
 
   .rmc-globe-deck-v2__pulse-mosaic {
