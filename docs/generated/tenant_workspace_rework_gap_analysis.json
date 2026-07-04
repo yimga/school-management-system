@@ -10,7 +10,11 @@
       "Studio work-mode rail and context widths narrowed across Experience, Automation, Outputs, Launch, and Control.",
       "Studio cockpit co-pilot rail changed from fixed 320px to responsive clamp and gap tightened.",
       "Report Card Builder and Feature Control shared command rails narrowed while preserving sticky sidecars.",
-      "Workflow Center side rail narrowed and workflow card minimum width reduced for denser wide-screen rows."
+      "Workflow Center side rail narrowed and workflow card minimum width reduced for denser wide-screen rows.",
+      "Legacy caps were removed from additional Studio-adjacent tenant command pages: School Studio, lifecycle command center, fast path, and provisioning status.",
+      "Analytics/report workspaces were converted from container-lg to full-width command workspace surfaces.",
+      "Named evidence/report surfaces now override the old --rmc-report-measure cap while focused personal/account forms remain intentionally narrow.",
+      "Fast-path, launch-lane, and provisioning timelines now form responsive wide-screen grids; governed report output receives taller preview space."
     ]
   },
   "surfaces": [
@@ -55,6 +59,24 @@
       "routes": ["Studio-linked preview surfaces"],
       "files_changed": ["templates/portal_base.html", "static/css/tenant-command-workspace.css"],
       "closure": "Scoped base command contract loaded tenant-wide for marked surfaces"
+    },
+    {
+      "family": "Tenant launch command pages",
+      "routes": ["/siteconfig/studio/", "/siteconfig/lifecycle/", "/siteconfig/launch/fast-path/", "/siteconfig/provisioning/"],
+      "files_changed": ["templates/siteconfig/tenant_studio_hub.html", "templates/siteconfig/tenant_lifecycle_command_center.html", "templates/siteconfig/tenant_launch_fast_path.html", "templates/siteconfig/tenant_provisioning_status.html", "static/css/tenant-command-workspace.css"],
+      "closure": "48-62rem caps replaced with command-workspace markers and responsive wide-screen grids"
+    },
+    {
+      "family": "Analytics/report workspaces",
+      "routes": ["/analytics/decision/", "/analytics/decision/<surface>/", "/analytics/events/", "/analytics/governed/reports/", "/analytics/governed/reports/<id>/"],
+      "files_changed": ["templates/analytics/decision_intelligence_dashboard.html", "templates/analytics/decision_surface_dashboard.html", "templates/analytics/event_analytics_dashboard.html", "templates/analytics/governed_report_builder.html", "templates/analytics/governed_saved_report_detail.html", "static/css/tenant-command-workspace.css"],
+      "closure": "container-lg caps replaced with full-width command workspace surfaces and a taller report output canvas"
+    },
+    {
+      "family": "Evidence/report catalogs",
+      "routes": ["scheduled reports", "report templates", "output history", "academic setup evidence", "AI governance", "billing plan", "term publish"],
+      "files_changed": ["static/css/tenant-command-workspace.css"],
+      "closure": "Named cp-evidence-page surfaces override the old report-measure cap while focused forms remain narrow"
     }
   ],
   "validation": {

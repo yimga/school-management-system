@@ -21,6 +21,25 @@
   min-width: 0;
 }
 
+/* Audit pass: legacy evidence/report pages frequently kept an inline
+   --rmc-report-measure cap. These are work surfaces, so let the shell width
+   belong to the table, report, builder, or preview instead of a centered column. */
+.cp-evidence-page[data-rmc-operator-evidence-surface],
+.cp-evidence-page[data-cp-evidence-surface],
+.cp-evidence-page[data-shell-surface],
+[data-rmc-command-workspace].container,
+[data-rmc-command-workspace].container-lg,
+[data-rmc-command-workspace].container-fluid,
+[data-rmc-governed-report-builder],
+[data-rmc-governed-saved-detail],
+[data-rmc-decision-intelligence],
+[data-rmc-decision-surface] {
+  width: 100%;
+  max-width: none !important;
+  min-width: 0;
+  margin-inline: 0;
+}
+
 [data-rmc-command-workspace] .container,
 [data-rmc-command-workspace] .container-fluid,
 .reportcard-builder-root .container,
@@ -260,6 +279,51 @@
   top: 0.75rem;
   display: grid;
   gap: var(--rmc-tcw-gap);
+}
+
+[data-rmc-command-workspace] > header,
+[data-rmc-command-workspace] > p,
+[data-rmc-command-workspace] .rmc-command-readable {
+  max-width: min(92ch, 100%);
+}
+
+[data-rmc-command-workspace="tenant-studio-hub"] [data-rmc-tenant-studio-readiness],
+[data-rmc-command-workspace="tenant-lifecycle-command-center"] > .row.g-3 {
+  --bs-gutter-x: var(--rmc-tcw-gap);
+  --bs-gutter-y: var(--rmc-tcw-gap);
+}
+
+@media (min-width: 1200px) {
+  [data-rmc-command-workspace="tenant-studio-hub"] [data-rmc-tenant-studio-fast-path] .list-group,
+  [data-rmc-command-workspace="tenant-studio-hub"] [data-rmc-tenant-studio-launch-lanes],
+  [data-rmc-command-workspace="tenant-launch-fast-path"] .list-group,
+  [data-rmc-command-workspace="tenant-provisioning-status"] [data-rmc-provisioning-timeline] {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(24rem, 100%), 1fr));
+    gap: var(--rmc-tcw-gap);
+    border: 0 !important;
+  }
+
+  [data-rmc-command-workspace="tenant-studio-hub"] [data-rmc-tenant-studio-fast-path] .list-group > .list-group-item,
+  [data-rmc-command-workspace="tenant-studio-hub"] [data-rmc-tenant-studio-launch-lanes] > .list-group-item,
+  [data-rmc-command-workspace="tenant-launch-fast-path"] .list-group > .list-group-item,
+  [data-rmc-command-workspace="tenant-provisioning-status"] [data-rmc-provisioning-timeline] > .list-group-item {
+    border: 1px solid var(--hairline, var(--bs-border-color));
+    border-radius: 12px;
+  }
+
+  [data-rmc-governed-report-builder] .row.g-4 {
+    align-items: stretch;
+  }
+
+  [data-rmc-governed-report-builder] .row.g-4 > [class*="col-"] {
+    min-width: 0;
+  }
+
+  [data-rmc-governed-report-builder] #gr-output {
+    min-height: clamp(28rem, 62vh, 54rem);
+    max-height: none !important;
+  }
 }
 
 @media (max-width: 1199.98px) {

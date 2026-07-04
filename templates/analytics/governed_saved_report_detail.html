@@ -8,7 +8,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div data-rmc-scroll-policy="paginate" class="container-lg py-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-governed-saved-detail="1" data-rmc-os-center="insights_saved_report">
+<div data-rmc-scroll-policy="paginate" class="container-fluid py-4" data-rmc-command-workspace="analytics-governed-saved-report" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-governed-saved-detail="1" data-rmc-os-center="insights_saved_report">
   {% trans "Insights" as sv_eyebrow %}
   {% trans "Saved governed definition — run via POST to refresh rows; no ad-hoc SQL." as sv_purpose %}
   {% include "components/rmc_os_page_header.html" with os_center_key="insights_saved_report" center_eyebrow=sv_eyebrow center_title=report.name center_purpose=sv_purpose %}

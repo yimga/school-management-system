@@ -7,7 +7,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div data-rmc-scroll-policy="paginate" class="container-lg py-4" data-rmc-decision-surface="{{ surface_key }}">
+<div data-rmc-scroll-policy="paginate" class="container-fluid py-4" data-rmc-command-workspace="analytics-decision-surface" data-rmc-decision-surface="{{ surface_key }}">
   {% include "analytics/includes/decision_nav.html" %}
   <h1 class="h4 mb-2">{{ surface_title }}</h1>
   {% if founder_only %}

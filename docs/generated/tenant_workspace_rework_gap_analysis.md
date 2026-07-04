@@ -15,6 +15,9 @@ The touched surfaces were re-audited for horizontal waste after the 100X impleme
 - Studio cockpit: replaced fixed 320px co-pilot rail and fixed 16px gap with responsive clamps.
 - Report Card Builder and Feature Controls: narrowed shared control/sidecar rails while preserving sticky side actions.
 - Workflow Center: narrowed the side rail and reduced workflow-card minimum width so more cards fit per row on large screens.
+- Narrow-page audit sweep: removed legacy `container` / `container-lg` / inline width caps from additional Studio-adjacent tenant command pages and analytics/report-builder surfaces, while preserving intentionally narrow personal/account forms.
+- Evidence/report surfaces: added a scoped full-width override for named `cp-evidence-page` surfaces so report catalogs, schedules, governance, and audit evidence pages no longer inherit the old `--rmc-report-measure` cap.
+- Command content density: converted fast-path, launch-lane, and provisioning timelines into responsive multi-column grids on wide screens and expanded governed-report output height so new width becomes useful workspace, not stretched text.
 
 ## Closure Matrix
 
@@ -30,6 +33,9 @@ The touched surfaces were re-audited for horizontal waste after the 100X impleme
 | Dashboard previews | Dashboard-by-role and role preview surfaces linked from Studio/Launch | `templates/portal_base.html`, `static/css/tenant-command-workspace.css` | Closed at shared tenant shell level for marked command/preview surfaces |
 | Theme/customizer previews | Experience mode, theme colors embed, customizer links | `static/css/studio-shell-layout.css`, `static/css/studio-workspace.css`, `templates/portal_base.html` | Closed through Studio Experience workspace and base command contract |
 | Forms/admissions/communications previews | Setup/import, role workflow, communication preview links | `templates/customersuccess/guided_onboarding*.html`, role workflow center templates, `templates/portal_base.html` | Closed through setup/workflow command contract; no business logic changed |
+| Tenant launch command pages | School Studio, lifecycle command center, fast path, provisioning status | `templates/siteconfig/tenant_studio_hub.html`, `templates/siteconfig/tenant_lifecycle_command_center.html`, `templates/siteconfig/tenant_launch_fast_path.html`, `templates/siteconfig/tenant_provisioning_status.html`, `static/css/tenant-command-workspace.css` | Closed by replacing 48-62rem caps with shared command-workspace markers and responsive wide-screen grids |
+| Analytics/report workspaces | Decision intelligence, decision surfaces, event analytics, governed report builder, saved report detail | `templates/analytics/decision_intelligence_dashboard.html`, `templates/analytics/decision_surface_dashboard.html`, `templates/analytics/event_analytics_dashboard.html`, `templates/analytics/governed_report_builder.html`, `templates/analytics/governed_saved_report_detail.html`, `static/css/tenant-command-workspace.css` | Closed by replacing `container-lg` caps with full-width command workspace surfaces and taller report output canvas |
+| Evidence/report catalogs | Bulk letters, scheduled reports, report templates, output history, academic setup evidence, AI governance, billing plan, tenant report schedules, term publish | `static/css/tenant-command-workspace.css` | Closed by overriding named evidence/report caps without touching focused personal forms |
 
 ## Validation
 
