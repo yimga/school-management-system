@@ -24,9 +24,75 @@
   var ws = null;
   var reconnectDelay = 1000;
   var MAX_RECONNECT = 15000;
+  var TYPING_THROTTLE = 2500; // min ms between "typing" pings we emit
+  var TYPING_CLEAR = 5000; // clear the peer's indicator this long after last ping
+  var lastTypingSent = 0;
+  var typingTimer = null;
+  var lastSelfBubble = null; // most recent "You" bubble, for the read receipt
+  var pendingReadFromAgent = false; // agent line awaiting our read acknowledgement
 
   function setStatus(txt) {
     if (statusEl) statusEl.textContent = txt || "";
+  }
+
+  function isVisible() {
+    return !document.visibilityState || document.visibilityState === "visible";
+  }
+
+  function sendTyping() {
+    if (!ws || ws.readyState !== 1) return;
+    var now = Date.now();
+    if (now - lastTypingSent < TYPING_THROTTLE) return;
+    lastTypingSent = now;
+    ws.send(JSON.stringify({ action: "typing" }));
+  }
+
+  function maybeSendRead() {
+    if (!ws || ws.readyState !== 1) return;
+    if (!isVisible() || !pendingReadFromAgent) return;
+    pendingReadFromAgent = false;
+    ws.send(JSON.stringify({ action: "read" }));
+  }
+
+  function showTyping() {
+    if (!thread) return;
+    hideEmpty();
+    var el = document.getElementById("rmc-slc-typing");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "rmc-slc-typing";
+      el.className = "rmc-slc-typing";
+      el.setAttribute("aria-live", "polite");
+      el.textContent = "Support is typing";
+      var dots = document.createElement("span");
+      dots.className = "rmc-slc-typing-dots";
+      dots.setAttribute("aria-hidden", "true");
+      dots.textContent = "…";
+      el.appendChild(dots);
+    }
+    thread.appendChild(el); // keep it pinned to the bottom
+    thread.scrollTop = thread.scrollHeight;
+    if (typingTimer) clearTimeout(typingTimer);
+    typingTimer = setTimeout(hideTyping, TYPING_CLEAR);
+  }
+
+  function hideTyping() {
+    if (typingTimer) {
+      clearTimeout(typingTimer);
+      typingTimer = null;
+    }
+    var el = document.getElementById("rmc-slc-typing");
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  function markSelfRead() {
+    if (!lastSelfBubble) return;
+    var meta = lastSelfBubble.querySelector(".rmc-slc-msg-meta");
+    if (!meta || meta.querySelector(".rmc-slc-receipt")) return;
+    var tick = document.createElement("span");
+    tick.className = "rmc-slc-receipt";
+    tick.textContent = " · Read";
+    meta.appendChild(tick);
   }
 
   function hideEmpty() {
@@ -53,6 +119,7 @@
     wrap.appendChild(meta);
     thread.appendChild(wrap);
     thread.scrollTop = thread.scrollHeight;
+    if (role !== "agent") lastSelfBubble = wrap; // remember for the read receipt
   }
 
   function addSystemLine(kind) {
@@ -79,10 +146,25 @@
       return;
     }
     if (!data || typeof data !== "object") return;
+    if (data.type === "typing") {
+      if (data.sender_role === "agent") showTyping();
+      return;
+    }
+    if (data.type === "read") {
+      if (data.sender_role === "agent") markSelfRead();
+      return;
+    }
     if (data.type === "history") {
       var msgs = data.messages || [];
+      var sawAgent = false;
       for (var i = 0; i < msgs.length; i++) {
-        addBubble(roleFor(msgs[i]), msgs[i].message || "");
+        var r = roleFor(msgs[i]);
+        addBubble(r, msgs[i].message || "");
+        if (r === "agent") sawAgent = true;
+      }
+      if (sawAgent) {
+        pendingReadFromAgent = true; // opening the widget reads prior replies
+        maybeSendRead();
       }
       return;
     }
@@ -91,7 +173,13 @@
         addSystemLine(data.system);
         return;
       }
-      addBubble(roleFor(data), data.message || "");
+      hideTyping();
+      var role = roleFor(data);
+      addBubble(role, data.message || "");
+      if (role === "agent") {
+        pendingReadFromAgent = true;
+        maybeSendRead();
+      }
       return;
     }
     if (data.type === "ack") {
@@ -156,6 +244,8 @@
         onSubmit(e);
       }
     });
+    input.addEventListener("input", sendTyping);
   }
+  document.addEventListener("visibilitychange", maybeSendRead);
   connect();
 })();

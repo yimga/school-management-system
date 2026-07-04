@@ -31,9 +31,74 @@
   var activeSchoolName = "";
   var reconnectDelay = 1000;
   var MAX_RECONNECT = 15000;
+  var TYPING_THROTTLE = 2500; // min ms between "typing" pings we emit
+  var TYPING_CLEAR = 5000; // clear the peer's indicator this long after last ping
+  var lastTypingSent = 0;
+  var typingTimer = null;
+  var lastAgentBubble = null; // most recent "You" bubble, for the read receipt
+  var pendingReadFromCustomer = false; // customer line awaiting our read ack
 
   function setConn(state) {
     if (conn) conn.setAttribute("data-state", state);
+  }
+
+  function isVisible() {
+    return !document.visibilityState || document.visibilityState === "visible";
+  }
+
+  function sendTyping() {
+    if (!ws || ws.readyState !== 1 || !activeTicket) return;
+    var now = Date.now();
+    if (now - lastTypingSent < TYPING_THROTTLE) return;
+    lastTypingSent = now;
+    ws.send(JSON.stringify({ action: "typing", ticket_id: activeTicket }));
+  }
+
+  function maybeSendRead() {
+    if (!ws || ws.readyState !== 1 || !activeTicket) return;
+    if (!isVisible() || !pendingReadFromCustomer) return;
+    pendingReadFromCustomer = false;
+    ws.send(JSON.stringify({ action: "read", ticket_id: activeTicket }));
+  }
+
+  function showTyping() {
+    if (!thread) return;
+    var el = document.getElementById("rmc-sac-typing");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "rmc-sac-typing";
+      el.className = "rmc-sac-typing";
+      el.setAttribute("aria-live", "polite");
+      el.textContent = "Customer is typing";
+      var dots = document.createElement("span");
+      dots.className = "rmc-sac-typing-dots";
+      dots.setAttribute("aria-hidden", "true");
+      dots.textContent = "…";
+      el.appendChild(dots);
+    }
+    thread.appendChild(el); // keep it pinned to the bottom
+    thread.scrollTop = thread.scrollHeight;
+    if (typingTimer) clearTimeout(typingTimer);
+    typingTimer = setTimeout(hideTyping, TYPING_CLEAR);
+  }
+
+  function hideTyping() {
+    if (typingTimer) {
+      clearTimeout(typingTimer);
+      typingTimer = null;
+    }
+    var el = document.getElementById("rmc-sac-typing");
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
+  function markAgentRead() {
+    if (!lastAgentBubble) return;
+    var meta = lastAgentBubble.querySelector(".rmc-sac-msg-meta");
+    if (!meta || meta.querySelector(".rmc-sac-receipt")) return;
+    var tick = document.createElement("span");
+    tick.className = "rmc-sac-receipt";
+    tick.textContent = " · Read";
+    meta.appendChild(tick);
   }
 
   function fmtTime(iso) {
@@ -63,6 +128,7 @@
     wrap.appendChild(meta);
     thread.appendChild(wrap);
     thread.scrollTop = thread.scrollHeight;
+    if (role === "agent") lastAgentBubble = wrap; // remember for the read receipt
   }
 
   function addSystemLine(kind) {
@@ -140,6 +206,9 @@
 
   function clearThread() {
     if (thread) thread.textContent = "";
+    lastAgentBubble = null;
+    pendingReadFromCustomer = false;
+    hideTyping();
   }
 
   function enableComposer(on) {
@@ -193,7 +262,11 @@
     if (data.type === "subscribed") {
       clearThread();
       var hist = data.history || [];
-      for (var i = 0; i < hist.length; i++) addBubble(hist[i]);
+      var sawCustomer = false;
+      for (var i = 0; i < hist.length; i++) {
+        addBubble(hist[i]);
+        if (hist[i].sender_role === "customer") sawCustomer = true;
+      }
       activeSchoolName = data.school_name || "";
       if (headSubject && data.subject) headSubject.textContent = data.subject;
       if (headMeta) {
@@ -204,6 +277,26 @@
       setResolveButton(data.status);
       enableComposer(true);
       if (input) input.focus();
+      if (sawCustomer) {
+        pendingReadFromCustomer = true; // opening the ticket reads what they sent
+        maybeSendRead();
+      }
+      return;
+    }
+    if (data.type === "typing") {
+      if (
+        data.sender_role === "customer" &&
+        (!data.ticket_id || data.ticket_id === activeTicket)
+      )
+        showTyping();
+      return;
+    }
+    if (data.type === "read") {
+      if (
+        data.sender_role === "customer" &&
+        (!data.ticket_id || data.ticket_id === activeTicket)
+      )
+        markAgentRead();
       return;
     }
     if (data.type === "chat_message") {
@@ -212,7 +305,12 @@
         addSystemLine(data.system);
         return;
       }
+      hideTyping();
       addBubble(data);
+      if (data.sender_role === "customer") {
+        pendingReadFromCustomer = true;
+        maybeSendRead();
+      }
       return;
     }
     if (data.type === "activity") {
@@ -292,6 +390,8 @@
         onSubmit(e);
       }
     });
+    input.addEventListener("input", sendTyping);
   }
+  document.addEventListener("visibilitychange", maybeSendRead);
   connect();
 })();

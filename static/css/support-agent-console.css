@@ -213,6 +213,40 @@
   padding: 0.2rem 0.5rem;
 }
 
+/* Ephemeral "Customer is typing…" line + "Read" receipt on the last own bubble. */
+.rmc-sac-typing {
+  align-self: flex-start;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding: 0.1rem 0.2rem;
+}
+
+.rmc-sac-typing-dots {
+  display: inline-block;
+  animation: rmc-sac-typing-blink 1.2s steps(1, end) infinite;
+}
+
+@keyframes rmc-sac-typing-blink {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-sac-typing-dots {
+    animation: none;
+  }
+}
+
+.rmc-sac-receipt {
+  color: var(--bs-primary);
+  font-weight: 600;
+}
+
 @media (max-width: 991.98px) {
   .rmc-sac-queue { max-height: 34vh; }
   .rmc-sac-chat-card { min-height: 60vh; }

@@ -126,3 +126,37 @@
   color: var(--text-secondary);
   padding: 0.2rem 0.5rem;
 }
+
+/* Ephemeral "Support is typing…" line + "Read" receipt on the last own bubble. */
+.rmc-slc-typing {
+  align-self: flex-start;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding: 0.1rem 0.2rem;
+}
+
+.rmc-slc-typing-dots {
+  display: inline-block;
+  animation: rmc-slc-typing-blink 1.2s steps(1, end) infinite;
+}
+
+@keyframes rmc-slc-typing-blink {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-slc-typing-dots {
+    animation: none;
+  }
+}
+
+.rmc-slc-receipt {
+  color: var(--bs-primary);
+  font-weight: 600;
+}

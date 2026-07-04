@@ -377,6 +377,15 @@ class SupportChatConsumer(_TenantScopedSyncConsumer):
         except json.JSONDecodeError:
             await self.send(text_data=json.dumps({"error": "Invalid JSON"}))
             return
+        action = (
+            (payload.get("action") or "").strip().lower()
+            if isinstance(payload, dict)
+            else ""
+        )
+        if action in ("typing", "read"):
+            # Ephemeral presence signal — DB-free, room-scoped, no ack frame.
+            await self._relay_presence(action)
+            return
         message = (payload.get("message") or payload.get("text") or "").strip()
         if not message:
             await self.send(text_data=json.dumps({"error": "message required"}))
@@ -439,6 +448,38 @@ class SupportChatConsumer(_TenantScopedSyncConsumer):
                     "author_id": event.get("author_id"),
                     "sender_role": event.get("sender_role", ""),
                     "system": event.get("system", ""),
+                }
+            )
+        )
+
+    async def _relay_presence(self, kind):
+        """Fan an ephemeral ``typing`` / ``read`` signal into this customer's
+        private (school, user) room so a subscribed operator console sees it.
+        DB-free and room-scoped — never published to the platform-wide operator
+        group, so it can never reach another tenant. The customer's own echo is
+        filtered client-side by ``sender_role``.
+        """
+        if not getattr(self, "channel_layer", None) or not getattr(
+            self, "room_group_name", None
+        ):
+            return
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "presence.signal",
+                "kind": kind,
+                "sender_role": "customer",
+                "ticket_id": "",
+            },
+        )
+
+    async def presence_signal(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": event.get("kind", ""),
+                    "sender_role": event.get("sender_role", ""),
+                    "ticket_id": event.get("ticket_id", ""),
                 }
             )
         )
@@ -718,6 +759,9 @@ class SupportAgentConsumer(AsyncWebsocketConsumer):
             await self._handle_message(ticket_id, message)
         elif action in ("resolve", "reopen"):
             await self._handle_status(ticket_id, action)
+        elif action in ("typing", "read"):
+            # Ephemeral presence into the subscribed customer room — no ack.
+            await self._relay_presence(action)
         else:
             await self.send(text_data=json.dumps({"error": "unknown_action"}))
 
@@ -854,6 +898,26 @@ class SupportAgentConsumer(AsyncWebsocketConsumer):
             )
         )
 
+    async def _relay_presence(self, kind):
+        """Fan an ephemeral ``typing`` / ``read`` signal into the customer's
+        currently-subscribed room. Uses the already-bound ``subscribed_room`` (no
+        DB hit), so an operator can only signal into a ticket it has actively
+        subscribed to — never an arbitrary tenant's room.
+        """
+        channel_layer = getattr(self, "channel_layer", None)
+        room = getattr(self, "subscribed_room", None)
+        if channel_layer is None or not room:
+            return
+        await channel_layer.group_send(
+            room,
+            {
+                "type": "presence.signal",
+                "kind": kind,
+                "sender_role": "agent",
+                "ticket_id": getattr(self, "subscribed_ticket_id", "") or "",
+            },
+        )
+
     async def support_activity(self, event):
         await self.send(
             text_data=json.dumps(
@@ -878,6 +942,17 @@ class SupportAgentConsumer(AsyncWebsocketConsumer):
                     "author_id": event.get("author_id"),
                     "sender_role": event.get("sender_role", ""),
                     "system": event.get("system", ""),
+                }
+            )
+        )
+
+    async def presence_signal(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": event.get("kind", ""),
+                    "sender_role": event.get("sender_role", ""),
+                    "ticket_id": event.get("ticket_id", ""),
                 }
             )
         )

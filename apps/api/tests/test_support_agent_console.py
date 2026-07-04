@@ -539,3 +539,128 @@ class SupportAgentConsoleTests(TransactionTestCase):
         evt = await layer.receive("cust.sys.chan")
         self.assertEqual(evt["sender_role"], "system")
         self.assertEqual(evt["system"], "resolve")
+
+    # ── gold-plating: typing indicators + read receipts (ephemeral presence) ────
+    def _customer_ws(self, layer, room):
+        c = consumers.SupportChatConsumer()
+        c.scope = {
+            "user": self.user,
+            "school": self.school,
+            "school_id": str(self.school.pk),
+            "school_access_denied": False,
+        }
+        c.user = self.user
+        c.channel_layer = layer
+        c.room_group_name = room
+        c.send = AsyncMock()
+        return c
+
+    async def test_customer_typing_relays_to_private_room(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        from channels.layers import InMemoryChannelLayer
+
+        layer = InMemoryChannelLayer()
+        room = support_chat_room_name(str(self.school.pk), str(self.user.pk))
+        await layer.group_add(room, "op.typing.chan")
+        c = self._customer_ws(layer, room)
+        await c.receive(json.dumps({"action": "typing"}))
+        # ephemeral: nothing is echoed back to the sender
+        c.send.assert_not_awaited()
+        evt = await layer.receive("op.typing.chan")
+        self.assertEqual(evt["type"], "presence.signal")
+        self.assertEqual(evt["kind"], "typing")
+        self.assertEqual(evt["sender_role"], "customer")
+
+    async def test_customer_presence_writes_no_ticket_or_reply(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        from asgiref.sync import sync_to_async
+        from channels.layers import InMemoryChannelLayer
+        from apps.siteconfig.models_feature_controls import (
+            GlobalSupportTicket,
+            GlobalSupportTicketReply,
+        )
+
+        before_t = await sync_to_async(GlobalSupportTicket.objects.count)()
+        before_r = await sync_to_async(GlobalSupportTicketReply.objects.count)()
+        layer = InMemoryChannelLayer()
+        room = support_chat_room_name(str(self.school.pk), str(self.user.pk))
+        c = self._customer_ws(layer, room)
+        await c.receive(json.dumps({"action": "read"}))
+        after_t = await sync_to_async(GlobalSupportTicket.objects.count)()
+        after_r = await sync_to_async(GlobalSupportTicketReply.objects.count)()
+        self.assertEqual((before_t, before_r), (after_t, after_r))
+
+    async def test_agent_typing_relays_to_subscribed_room(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        from channels.layers import InMemoryChannelLayer
+
+        layer = InMemoryChannelLayer()
+        room = support_chat_room_name(str(self.school.pk), str(self.user.pk))
+        await layer.group_add(room, "cust.typing.chan")
+        agent = self._agent_ws()
+        agent.channel_layer = layer
+        agent.subscribed_room = room
+        agent.subscribed_ticket_id = str(self.ticket.pk)
+        await agent.receive(
+            json.dumps({"action": "typing", "ticket_id": str(self.ticket.pk)})
+        )
+        agent.send.assert_not_awaited()
+        evt = await layer.receive("cust.typing.chan")
+        self.assertEqual(evt["type"], "presence.signal")
+        self.assertEqual(evt["kind"], "typing")
+        self.assertEqual(evt["sender_role"], "agent")
+        self.assertEqual(evt["ticket_id"], str(self.ticket.pk))
+
+    async def test_agent_presence_without_subscription_is_noop(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        # No subscribed_room → the signal is dropped, no crash, no frame.
+        c = self._agent_ws()
+        await c.receive(
+            json.dumps({"action": "read", "ticket_id": str(self.ticket.pk)})
+        )
+        c.send.assert_not_awaited()
+
+    async def test_presence_signal_handler_forwards_on_both_sides(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        cust = consumers.SupportChatConsumer()
+        cust.send = AsyncMock()
+        await cust.presence_signal(
+            {"kind": "read", "sender_role": "agent", "ticket_id": ""}
+        )
+        f1 = json.loads(cust.send.await_args.kwargs["text_data"])
+        self.assertEqual(f1["type"], "read")
+        self.assertEqual(f1["sender_role"], "agent")
+
+        agent = consumers.SupportAgentConsumer()
+        agent.send = AsyncMock()
+        await agent.presence_signal(
+            {"kind": "typing", "sender_role": "customer", "ticket_id": "t9"}
+        )
+        f2 = json.loads(agent.send.await_args.kwargs["text_data"])
+        self.assertEqual(f2["type"], "typing")
+        self.assertEqual(f2["sender_role"], "customer")
+        self.assertEqual(f2["ticket_id"], "t9")
+
+    async def test_customer_typing_reaches_operator_socket_end_to_end(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        from channels.layers import InMemoryChannelLayer
+
+        layer = InMemoryChannelLayer()
+        room = support_chat_room_name(str(self.school.pk), str(self.user.pk))
+        # an operator subscribed to this ticket's room
+        await layer.group_add(room, "op.e2e.chan")
+        cust = self._customer_ws(layer, room)
+        await cust.receive(json.dumps({"action": "typing"}))
+        evt = await layer.receive("op.e2e.chan")
+        agent = consumers.SupportAgentConsumer()
+        agent.send = AsyncMock()
+        await agent.presence_signal(evt)
+        frame = json.loads(agent.send.await_args.kwargs["text_data"])
+        self.assertEqual(frame["type"], "typing")
+        self.assertEqual(frame["sender_role"], "customer")
