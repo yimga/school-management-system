@@ -498,6 +498,8 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[ari
   }
 
   #portalHeader .tp-primary-nav-inline .tp-primary-nav {
+    display: inline-flex !important;
+    flex-direction: row !important;
     width: auto !important;
     max-width: 100%;
     gap: 4px;
@@ -506,10 +508,16 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[ari
   }
 
   #portalHeader .tp-primary-nav__more {
+    display: inline-flex !important;
     flex: 0 0 auto;
+    align-items: center;
+    min-width: max-content;
   }
 
   #portalHeader .tp-primary-nav__more .tp-primary-nav__item {
+    display: inline-flex !important;
+    align-items: center;
+    white-space: nowrap !important;
     height: 30px;
     padding: 7px 13px;
     border: 1px solid var(--hairline);

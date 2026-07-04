@@ -10,6 +10,7 @@ import logging
 from apps.dashboard.admin_context import build_admin_dashboard_context
 
 from django.conf import settings
+from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ImproperlyConfigured
 from django.db import DatabaseError
 from django.http import HttpResponseRedirect
@@ -17,7 +18,7 @@ from django.shortcuts import redirect
 from django.template import TemplateDoesNotExist, TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.urls import NoReverseMatch, path, reverse
+from django.urls import NoReverseMatch, path, reverse, set_urlconf
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -51,6 +52,8 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
 
     @classmethod
     def _is_platform_host(cls, request) -> bool:
+        if getattr(request, "school", None) is not None:
+            return False
         return cls._host_kind(request) in {"manager", "local", ""}
 
     def is_platform_site(self) -> bool:
@@ -139,6 +142,7 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             base_context=self.each_context(request),
             title=self.index_title,
         )
+        context["app_list"] = self.get_app_list(request)
         if extra_context:
             context.update(extra_context)
         return TemplateResponse(request, self.index_template_name, context)
@@ -190,6 +194,9 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         return custom_urls + urls
 
     def get_app_list(self, request, app_label=None):
+        request_urlconf = getattr(request, "urlconf", None)
+        if request_urlconf:
+            set_urlconf(request_urlconf)
         try:
             app_dict = self._build_app_dict(request, app_label)
         except LookupError as e:
@@ -374,18 +381,57 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
 
 
 class TenantAdminSite(BaseRunMyCampusAdminSite):
+    login_form = AuthenticationForm
+    login_template = "auth/tenant_admin_login.html"
     site_header = "Tenant Administration"
     site_title = "Tenant Administration"
     index_title = "Tenant Administration"
     index_template_name = "admin/index_tenant.html"
 
     def has_permission(self, request):
-        return bool(
-            not self._is_platform_host(request)
-            and request.user.is_active
-            and request.user.is_staff
-            and request.user.is_superuser
-        )
+        if self._is_platform_host(request):
+            return False
+        user = getattr(request, "user", None)
+        if not (
+            user
+            and getattr(user, "is_authenticated", False)
+            and getattr(user, "is_active", False)
+        ):
+            return False
+        school = getattr(request, "school", None)
+        if school is None:
+            return False
+        if getattr(user, "is_superuser", False):
+            return True
+        try:
+            from apps.accounts.auth_backends_role_perms import ADMIN_LIKE_ROLES
+            from apps.schools.models import SchoolMembership
+
+            membership = (
+                SchoolMembership.objects.filter(
+                    school=school,
+                    user_id=getattr(user, "pk", None),
+                    suspended_at__isnull=True,
+                )
+                .only("role", "is_school_owner")
+                .first()
+            )
+            if membership is None:
+                return False
+            if getattr(membership, "is_school_owner", False):
+                return True
+            role_codes = {
+                (getattr(membership, "role", "") or "").upper(),
+                (getattr(user, "role", "") or "").upper(),
+            }
+            if role_codes & ADMIN_LIKE_ROLES:
+                return True
+            return bool(
+                hasattr(user, "has_feature_permission")
+                and user.has_feature_permission("settings.manage", school=school)
+            )
+        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
+            return False
 
 
 class PlatformAdminSite(BaseRunMyCampusAdminSite):
@@ -614,7 +660,7 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
         return app_list
 
 
-tenant_admin_site = TenantAdminSite(name="admin")
+tenant_admin_site = TenantAdminSite(name="tenant_admin")
 platform_admin_site = PlatformAdminSite(name="admin")
 # No shared registry: platform and tenant admin have separate registries.
 # Use register_tenant_admin, register_platform_admin, or register_both in app admin.py.

@@ -4,7 +4,7 @@ from django.test import Client, TestCase, override_settings
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 
 _MGR_HOST = "manager.runmycampus.com"
@@ -26,8 +26,8 @@ class AdministrationModelTests(TestCase):
         self.assertEqual(alias_response.status_code, 302)
         self.assertEqual(alias_response["Location"], "/admin/")
 
-    def test_tenant_user_is_blocked_from_platform_configuration(self):
-        School.objects.create(
+    def test_tenant_configuration_opens_school_center_not_platform_configuration(self):
+        school = School.objects.create(
             name="Tenant One",
             slug="tenant-one",
             subdomain="tenant-one",
@@ -40,6 +40,12 @@ class AdministrationModelTests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
+        SchoolMembership.objects.create(
+            user=user,
+            school=school,
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
         TOTPDevice.objects.create(user=user, name="test-device", confirmed=True)
         tenant.login(username="tenant_cfg_blocked", password="x" * 8)
         session = tenant.session
@@ -48,5 +54,6 @@ class AdministrationModelTests(TestCase):
 
         response = tenant.get("/configuration/")
 
-        self.assertEqual(response.status_code, 403)
-        self.assertIn(b"control-plane access", response.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"rmc-school-configuration-center", response.content)
+        self.assertNotIn(b"rmc-platform-configuration-center", response.content)

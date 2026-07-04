@@ -1,26 +1,23 @@
 {% load i18n %}
-{% comment %} v3.54.0 (2026-05-21): Experience live preview pane — visual experience
-   control room. Responsive iframe (aspect-ratio 16/10), role/audience
-   selector when studio_role_preview_entries is populated, applied/draft
-   badges from theme_contrast_report + theme_recent_change_meta. All routes
-   are real (studio_role_preview_entries comes from get_setup_studio_payload
-   or fallback to accounts:backend_dashboard / portal:parent_dashboard).
-   When empty, shows an honest "Preview unavailable" state — never fakes.
-
-   Classes are defined in static/css/studio-experience-mode.css. {% endcomment %}
-<section class="rmc-studio-experience-preview studio-os__card mt-3"
+<section class="rmc-studio-experience-preview rmc-live-preview-contract studio-os__card mt-3"
          aria-labelledby="rmc-studio-experience-preview-heading"
-         data-rmc-studio-experience-preview="1">
-  <header class="d-flex flex-wrap align-items-center gap-2 mb-2">
-    <h2 id="rmc-studio-experience-preview-heading" class="h6 mb-0 me-2">{% trans "Live preview" %}</h2>
-    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-studio-experience-state-badges" aria-label="{% trans 'Preview state' %}">
+         data-rmc-studio-experience-preview="1"
+         data-rmc-live-preview-contract="1"
+         data-preview-timeout-ms="8000"
+         data-preview-live-label="{% trans 'Live preview rendered' %}"
+         data-preview-loading-label="{% trans 'Rendering live preview' %}"
+         data-preview-timeout-label="{% trans 'Inline preview is taking too long. Use a fallback view.' %}"
+         data-preview-error-label="{% trans 'Inline preview was blocked. Use a fallback view.' %}">
+  <header class="rmc-live-preview-contract__header">
+    <div>
+      <h2 id="rmc-studio-experience-preview-heading" class="h6 rmc-live-preview-contract__title">{% trans "Live preview" %}</h2>
+      <p class="small text-muted mb-0">{% trans "Draft theme changes render here before publish; fallback views stay available if the frame is blocked." %}</p>
+    </div>
+    <div class="rmc-studio-experience-state-badges" aria-label="{% trans 'Preview state' %}">
       {% if theme_recent_change_meta %}
-      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn"
-            title="{% trans 'Unpublished theme changes detected on this tenant.' %}">{% trans "Draft" %}</span>
+      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn">{% trans "Draft" %}</span>
       {% else %}
-      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--ok"
-            title="{% trans 'Theme on disk matches the last published state.' %}">{% trans "Applied" %}</span>
+      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--ok">{% trans "Applied" %}</span>
       {% endif %}
       {% if theme_contrast_report %}
         {% if theme_contrast_report.status == "ok" %}
@@ -33,11 +30,11 @@
   </header>
 
   {% if studio_role_preview_entries %}
-  <div class="rmc-studio-experience-preview__toolbar">
+  <div class="rmc-live-preview-contract__toolbar rmc-studio-experience-preview__toolbar">
     <label for="rmc-studio-experience-preview-role">{% trans "Preview as" %}</label>
     <select id="rmc-studio-experience-preview-role"
             class="form-select form-select-sm rmc-studio-experience-preview__role-select"
-            data-rmc-studio-experience-preview-role="1"
+            data-rmc-preview-role
             aria-controls="rmc-studio-experience-preview-frame">
       {% for r in studio_role_preview_entries %}
         {% if r.url %}
@@ -45,19 +42,42 @@
         {% endif %}
       {% endfor %}
     </select>
+    <label for="rmc-studio-experience-preview-device">{% trans "Device" %}</label>
+    <select id="rmc-studio-experience-preview-device" class="form-select form-select-sm w-auto" data-rmc-preview-device aria-controls="rmc-studio-experience-preview-frame">
+      <option value="desktop">{% trans "Desktop" %}</option>
+      <option value="tablet">{% trans "Tablet" %}</option>
+      <option value="mobile">{% trans "Mobile" %}</option>
+    </select>
     <noscript><span class="small text-muted">{% trans "Open a role link below to preview." %}</span></noscript>
   </div>
 
-  <div class="rmc-studio-experience-preview__frame" id="rmc-studio-experience-preview-frame">
+  <div class="rmc-live-preview-contract__evidence" aria-label="{% trans 'Preview evidence' %}">
+    <span><strong>{% trans "Source" %}:</strong> {% if theme_recent_change_meta %}{% trans "draft" %}{% else %}{% trans "published" %}{% endif %}</span>
+    <span><strong>{% trans "Scope" %}:</strong> {{ school.name|default:SITE.site_name|default:"tenant" }}</span>
+    <span><strong>{% trans "Route" %}:</strong> <code class="small">{% trans "role home" %}</code></span>
+    <span><strong>{% trans "Status" %}:</strong> <span data-rmc-preview-status>{% trans "Rendering live preview" %}</span></span>
+  </div>
+
+  <div class="rmc-live-preview-contract__fallbacks" data-rmc-preview-fallbacks hidden>
+    <span class="small text-muted">{% trans "Preview recovery" %}</span>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-rmc-preview-retry>{% trans "Retry inline" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-preview-modal>{% trans "Modal preview" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-preview-popout>{% trans "Popout" %}</button>
+    <a class="btn btn-sm btn-outline-secondary" href="#" target="_blank" rel="noopener noreferrer" data-rmc-preview-new-tab>{% trans "Open in new tab" %}</a>
+    <span class="small text-muted">{% trans "Snapshot fallback uses the last rendered tenant role view when live rendering is unavailable." %}</span>
+  </div>
+
+  <div class="rmc-live-preview-contract__frame rmc-studio-experience-preview__frame" id="rmc-studio-experience-preview-frame" data-rmc-preview-frame-shell data-preview-device="desktop">
     {% with first=studio_role_preview_entries.0 %}
       {% if first.url %}
       <iframe id="rmc-studio-experience-preview-iframe"
               title="{% trans 'Tenant role preview' %}"
               src="{{ first.url }}"
+              data-rmc-preview-frame
               loading="lazy"
               referrerpolicy="same-origin"></iframe>
       {% else %}
-      <span class="rmc-studio-experience-preview__empty">{% trans "Preview unavailable — no preview URL on the first role entry." %}</span>
+      <span class="rmc-live-preview-contract__empty rmc-studio-experience-preview__empty">{% trans "Preview unavailable - no preview URL on the first role entry." %}</span>
       {% endif %}
     {% endwith %}
   </div>
@@ -65,24 +85,27 @@
   <ul class="list-unstyled small mt-2 mb-0">
     {% for r in studio_role_preview_entries %}
       {% if r.url %}
-      <li class="mb-1"><a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.label|default:r.role }}</a> <span class="text-muted">— {% trans "open in new tab" %}</span></li>
+      <li class="mb-1"><a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.label|default:r.role }}</a> <span class="text-muted">- {% trans "open in new tab" %}</span></li>
       {% endif %}
     {% endfor %}
   </ul>
-
-  <script>
-  (function () {
-    var sel = document.getElementById('rmc-studio-experience-preview-role');
-    var frame = document.getElementById('rmc-studio-experience-preview-iframe');
-    if (!sel || !frame) { return; }
-    sel.addEventListener('change', function () {
-      if (sel.value) { frame.src = sel.value; }
-    });
-  })();
-  </script>
   {% else %}
-  <div class="rmc-studio-experience-preview__empty" role="status" aria-live="polite">
-    <span>{% trans "Preview unavailable — no tenant context selected. Select a school context to render role-scoped previews." %}</span>
+  <div class="rmc-live-preview-contract__empty rmc-studio-experience-preview__empty" role="status" aria-live="polite">
+    <span>{% trans "Preview unavailable - no tenant context selected. Select a school context to render role-scoped previews." %}</span>
   </div>
   {% endif %}
 </section>
+
+<div class="modal fade" id="rmc-live-preview-modal" tabindex="-1" aria-labelledby="rmc-live-preview-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen-lg-down modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="rmc-live-preview-modal-title">{% trans "Live preview" %}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe class="rmc-live-preview-modal-frame" data-rmc-live-preview-modal-frame title="{% trans 'Modal live preview' %}" loading="lazy" referrerpolicy="same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+</div>

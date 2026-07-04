@@ -12,6 +12,7 @@ from django.http import (
     HttpResponsePermanentRedirect,
 )
 from django.shortcuts import redirect
+from django.urls import set_urlconf
 from django.utils.deprecation import MiddlewareMixin
 
 from apps.platform_runtime.helpers import get_effective_flags
@@ -639,21 +640,26 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
         # Local/test hosts keep full URL surface for developer workflows and legacy tests.
         if kind == "local":
             request.urlconf = "config.urls"
+            set_urlconf(request.urlconf)
             return None
         if kind == "manager":
             request.urlconf = "config.manager_urls"
+            set_urlconf(request.urlconf)
             return None
         if kind == "api":
             request.urlconf = "config.api_urls"
+            set_urlconf(request.urlconf)
             return None
         if kind == "docs":
             request.urlconf = "config.docs_urls"
+            set_urlconf(request.urlconf)
             return None
         base_domain = _get_base_domain()
         if _is_base_domain(host, base_domain):
             request.urlconf = "config.public_urls"
         else:
             request.urlconf = "config.tenant_urls"
+        set_urlconf(request.urlconf)
         return None
 
 
@@ -1107,18 +1113,6 @@ class TenantMiddleware(MiddlewareMixin):
                 return _response_for_unknown_tenant_host(request, subdomain)
 
         request.school = school
-        # Tenant backend admin dashboard: on tenant subdomain /admin/ -> redirect to tenant Backend URL
-        if school and path.startswith("/admin/"):
-            try:
-                from apps.schools.tenant_url import build_tenant_backend_url
-
-                return HttpResponseRedirect(
-                    build_tenant_backend_url(
-                        request, school, path="/authentication/backend/"
-                    )
-                )
-            except (AttributeError, ImportError, TypeError, ValueError):
-                pass
         if school:
             request.session["school_id"] = str(school.id)
             try:

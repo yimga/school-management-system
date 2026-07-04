@@ -54,32 +54,61 @@ def permission_required(
     login_url: str | None = None,
     redirect_field_name: str = "next",
 ):
-    def check(user) -> bool:
+    tenant_config_codes = {"settings.manage", "settings.feature_control"}
+
+    def check(user, *, school=None) -> bool:
         if not user.is_authenticated:
             return False
         if getattr(user, "is_superuser", False):
             return True
-        return any(user.has_feature_permission(code) for code in codes)
+        for code in codes:
+            try:
+                if user.has_feature_permission(code, school=school):
+                    return True
+            except TypeError:
+                if user.has_feature_permission(code):
+                    return True
+        if tenant_config_codes.intersection(codes):
+            try:
+                from apps.accounts.auth_backends_role_perms import ADMIN_LIKE_ROLES
 
-    if not raise_exception:
-        return user_passes_test(
-            check,
-            login_url=login_url,
-            redirect_field_name=redirect_field_name,
-        )
+                if (getattr(user, "role", "") or "").upper() in ADMIN_LIKE_ROLES:
+                    return True
+            except (AttributeError, ImportError, TypeError, ValueError):
+                pass
+            if school is not None:
+                try:
+                    from apps.schools.models import SchoolMembership
+
+                    return SchoolMembership.objects.filter(
+                        school=school,
+                        user_id=getattr(user, "pk", None),
+                        is_school_owner=True,
+                        suspended_at__isnull=True,
+                    ).exists()
+                except (AttributeError, ImportError, TypeError, ValueError):
+                    return False
+        return False
 
     def _decorator(view_func):
         @wraps(view_func)
         def _inner(request, *args, **kwargs):
             u = request.user
+            school = getattr(request, "school", None)
             if not u.is_authenticated:
                 return redirect_to_login(
-                    request,
+                    request.get_full_path(),
                     login_url or settings.LOGIN_URL,
                     redirect_field_name,
                 )
-            if not check(u):
-                return HttpResponseForbidden("Permission denied")
+            if not check(u, school=school):
+                if raise_exception:
+                    return HttpResponseForbidden("Permission denied")
+                return redirect_to_login(
+                    request.get_full_path(),
+                    login_url or settings.LOGIN_URL,
+                    redirect_field_name,
+                )
             return view_func(request, *args, **kwargs)
 
         return _inner

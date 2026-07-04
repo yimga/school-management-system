@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from django.test import SimpleTestCase
 
 from apps.accounts.auth_backends_role_perms import (
+    _USER_PERM_CACHE_ATTR,
     RolePermissionBackend,
     bridge_eligible,
 )
@@ -56,3 +57,11 @@ class BridgeEligibilityTests(SimpleTestCase):
             RolePermissionBackend().get_all_permissions(_user(role="ADMIN"), obj=object()),
             set(),
         )
+
+    def test_cached_bridged_permissions_expose_module_perms(self):
+        user = _user(role="ADMIN")
+        setattr(user, _USER_PERM_CACHE_ATTR, {"people.view_studentprofile"})
+        backend = RolePermissionBackend()
+
+        self.assertTrue(backend.has_module_perms(user, "people"))
+        self.assertFalse(backend.has_module_perms(user, "siteconfig"))

@@ -7,6 +7,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
 <link rel="stylesheet" href="{% static 'css/tenant-command-workspace.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-live-preview-contract.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -18,4 +19,5 @@
 {% phase8_dashboard_declaration "siteconfig/feature_control_panel.html" %}
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 {% include "siteconfig/partials/feature_control_panel_body.html" %}
+<script src="{% static 'js/rmc-live-preview-contract.js' %}"></script>
 {% endblock %}

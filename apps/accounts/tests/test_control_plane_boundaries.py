@@ -1,9 +1,11 @@
+from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import NoReverseMatch, resolve, reverse
 
 from apps.accounts.models import User
+from apps.accounts.decorators import permission_required
 from apps.accounts.permissions import can_access_module
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.academics.models_tenant_runtime import ReportCardStyleAssignment
 from apps.global_registries.models import HolidayCalendar
 from apps.siteconfig import models as _siteconfig_models
@@ -90,6 +92,205 @@ class AdminRegistryBoundaryTests(SimpleTestCase):
 
         self.assertIn(DynamicFieldDefinition, tenant_admin_site._registry)
         self.assertIn(DynamicFieldValue, tenant_admin_site._registry)
+
+
+class TenantAdminAccessBoundaryTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.school = School.objects.create(
+            name="Tenant Admin School",
+            slug="tenant-admin-school",
+            subdomain="tenant-admin-school",
+            is_active=True,
+        )
+
+    def _request_for(self, user, *, host_kind="tenant", school=None):
+        request = self.factory.get("/admin/")
+        request.user = user
+        request.public_host_kind = host_kind
+        request.school = school if school is not None else self.school
+        return request
+
+    def test_tenant_role_admin_without_django_staff_can_open_tenant_admin(self):
+        user = User.objects.create_user(
+            username="tenant_role_admin",
+            password="testpass123",
+            role=User.Role.ADMIN,
+            is_staff=False,
+            is_superuser=False,
+        )
+        SchoolMembership.objects.create(
+            user=user,
+            school=self.school,
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
+
+        self.assertTrue(tenant_admin_site.has_permission(self._request_for(user)))
+
+    def test_tenant_school_owner_without_django_staff_can_open_tenant_admin(self):
+        user = User.objects.create_user(
+            username="tenant_owner_admin",
+            password="testpass123",
+            role=User.Role.TEACHER,
+            is_staff=False,
+            is_superuser=False,
+        )
+        SchoolMembership.objects.create(
+            user=user,
+            school=self.school,
+            role=User.Role.TEACHER,
+            is_school_owner=True,
+        )
+
+        self.assertTrue(tenant_admin_site.has_permission(self._request_for(user)))
+
+    def test_tenant_admin_site_does_not_open_on_manager_host(self):
+        user = User.objects.create_user(
+            username="tenant_admin_on_manager",
+            password="testpass123",
+            role=User.Role.ADMIN,
+        )
+        SchoolMembership.objects.create(
+            user=user,
+            school=self.school,
+            role=User.Role.ADMIN,
+        )
+
+        self.assertFalse(
+            tenant_admin_site.has_permission(
+                self._request_for(user, host_kind="manager")
+            )
+        )
+
+    def test_resolved_school_prevents_tenant_admin_from_being_classified_as_platform(self):
+        user = User.objects.create_user(
+            username="tenant_admin_without_host_kind",
+            password="testpass123",
+            role=User.Role.ADMIN,
+        )
+        SchoolMembership.objects.create(
+            user=user,
+            school=self.school,
+            role=User.Role.ADMIN,
+        )
+        request = self._request_for(user)
+        request.public_host_kind = None
+
+        self.assertTrue(tenant_admin_site.has_permission(request))
+
+    def test_tenant_admin_denies_suspended_owner_and_non_admin_member(self):
+        owner = User.objects.create_user(
+            username="suspended_tenant_owner",
+            password="testpass123",
+            role=User.Role.ADMIN,
+        )
+        teacher = User.objects.create_user(
+            username="tenant_teacher_staff",
+            password="testpass123",
+            role=User.Role.TEACHER,
+            is_staff=True,
+        )
+        from django.utils import timezone
+
+        SchoolMembership.objects.create(
+            user=owner,
+            school=self.school,
+            role=User.Role.ADMIN,
+            is_school_owner=True,
+            suspended_at=timezone.now(),
+        )
+        SchoolMembership.objects.create(
+            user=teacher,
+            school=self.school,
+            role=User.Role.TEACHER,
+        )
+
+        self.assertFalse(tenant_admin_site.has_permission(self._request_for(owner)))
+        self.assertFalse(tenant_admin_site.has_permission(self._request_for(teacher)))
+
+    def test_tenant_admin_site_uses_tenant_login_form_and_template(self):
+        from django.contrib.auth.forms import AuthenticationForm
+
+        self.assertIs(tenant_admin_site.login_form, AuthenticationForm)
+        self.assertEqual(tenant_admin_site.login_template, "auth/tenant_admin_login.html")
+        self.assertEqual(platform_admin_site.login_template, "auth/admin_login.html")
+
+
+class TenantConfigurationPermissionDecoratorTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.school = School.objects.create(
+            name="Tenant Config School",
+            slug="tenant-config-school",
+            subdomain="tenant-config-school",
+            is_active=True,
+        )
+
+    def _request_for(self, user):
+        request = self.factory.get("/siteconfig/reports/builder/")
+        request.user = user
+        request.school = self.school
+        request.public_host_kind = "tenant"
+        return request
+
+    def test_admin_like_scalar_role_can_enter_tenant_settings_without_explicit_feature_grant(self):
+        user = User.objects.create_user(
+            username="tenant_config_scalar_admin",
+            password="testpass123",
+            role=User.Role.ADMIN,
+        )
+        SchoolMembership.objects.create(
+            user=user,
+            school=self.school,
+            role=User.Role.ADMIN,
+        )
+
+        @permission_required("settings.manage", raise_exception=True)
+        def protected_view(request):
+            return HttpResponse("ok")
+
+        response = protected_view(self._request_for(user))
+        self.assertEqual(response.status_code, 200)
+
+    def test_school_owner_can_enter_tenant_settings_without_explicit_feature_grant(self):
+        user = User.objects.create_user(
+            username="tenant_config_owner",
+            password="testpass123",
+            role=User.Role.TEACHER,
+        )
+        SchoolMembership.objects.create(
+            user=user,
+            school=self.school,
+            role=User.Role.TEACHER,
+            is_school_owner=True,
+        )
+
+        @permission_required("settings.manage", raise_exception=True)
+        def protected_view(request):
+            return HttpResponse("ok")
+
+        response = protected_view(self._request_for(user))
+        self.assertEqual(response.status_code, 200)
+
+    def test_non_admin_member_still_cannot_enter_tenant_settings(self):
+        user = User.objects.create_user(
+            username="tenant_config_teacher",
+            password="testpass123",
+            role=User.Role.TEACHER,
+        )
+        SchoolMembership.objects.create(
+            user=user,
+            school=self.school,
+            role=User.Role.TEACHER,
+        )
+
+        @permission_required("settings.manage", raise_exception=True)
+        def protected_view(request):
+            return HttpResponse("ok")
+
+        response = protected_view(self._request_for(user))
+        self.assertEqual(response.status_code, 403)
 
 
 class AdminPlaneUrlConfTests(SimpleTestCase):

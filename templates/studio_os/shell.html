@@ -9,11 +9,9 @@
 {% block extrastyle %}
 {{ block.super }}
 {% include "studio_os/partials/shell_extrastyle.html" %}
-{% comment %} v3.53.0 (2026-05-21): Studio OS Mission Cockpit chrome (additive). {% endcomment %}
-<link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
-<link rel="stylesheet" href="{% static 'css/studio-os-cockpit.css' %}">
-{% comment %} v3.53.1 (2026-05-21): Persistent AI presence on the cockpit rail. {% endcomment %}
-<link rel="stylesheet" href="{% static 'css/rmc-copilot-rail.css' %}">
+{% comment %} v4.10.0 (2026-07-04): Studio now owns one workspace per page.
+   The former empty Mission Cockpit wrapper is intentionally not loaded here;
+   it pushed the real workbench below a blank first viewport. {% endcomment %}
 {% comment %} v3.54.0 (2026-05-21): Overview command cockpit (rendered when current_mode is None) {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/studio-overview-cockpit.css' %}">
 {% comment %} v3.59.2 (2026-05-22): Studio OS canvas-body 200x polish — Source Serif 4 headers,
@@ -90,7 +88,10 @@
     </div>
   </section>
 
-  {% comment %} v3.53.0 (2026-05-21): Mission Cockpit chrome wraps the studio-os grid.
+  {% if False %}
+  {% comment %} Retired v3.53 empty Mission Cockpit chrome. Kept unreachable for
+     historical audit context while the v4.10 one-workspace contract owns the page.
+     v3.53.0 (2026-05-21): Mission Cockpit chrome wraps the studio-os grid.
      The 3 cockpit partials (signal / canvas / co-pilot rail) are additive —
      legacy .studio-os layout continues to render inside the canvas region. {% endcomment %}
   <div class="rmc-cockpit" data-rmc-cockpit="studio-os">
@@ -98,8 +99,9 @@
     {% include "studio_os/partials/cockpit_canvas.html" with cockpit_inline=True %}
     {% include "studio_os/partials/cockpit_copilot_rail.html" %}
   </div>
+  {% endif %}
 
-  <div class="studio-os">
+  <div class="studio-os{% if current_mode %} studio-os--mode-owned{% else %} studio-os--overview{% endif %}">
     <nav class="studio-os__rail" aria-label="{% trans 'Studio modes' %}" role="navigation" data-shell-sidebar="{{ rmc_shell.studio_os_sidebar_token|default:'studio-rail' }}" data-shell-sidebar-mount="rail" data-tour="studio-rail">
       <div class="studio-os__home" id="studio-rail-label">{% trans "Work modes" %}</div>
       <a href="{% url 'studio_os:shell' %}" data-rmc-nav-accent="1" class="{% if not current_mode %}active{% endif %}" {% if not current_mode %}aria-current="page"{% endif %}><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i> {% trans "Overview" %}</a>
@@ -321,6 +323,7 @@ duplicated the unified engine. studio_os__shell.js still carries the shell's
 theme-save / focus-trap logic and its palette IIFE safely no-ops without it.
 {% endcomment %}
 <script src="{% static 'js/_pages/studio_os__shell.js' %}"></script>
+<script src="{% static 'js/rmc-live-preview-contract.js' %}"></script>
 {% if request.public_host_kind == 'manager' %}
 {% include "partials/cp_context_drawer_shell.html" %}
 {% endif %}

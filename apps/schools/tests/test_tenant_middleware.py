@@ -47,6 +47,17 @@ class TenantMiddlewareTests(TestCase):
         self.assertEqual(request.school.id, self.school.id)
         self.assertEqual(request.session.get("school_id"), str(self.school.id))
 
+    def test_tenant_admin_path_is_not_redirected_to_backend(self):
+        with self.settings(MULTI_TENANT_BASE_DOMAIN="example.com"), patch.dict(
+            os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False
+        ):
+            request = self._request("/admin/", "tenant-alpha.example.com")
+            response = self.middleware.process_request(request)
+
+        self.assertIsNone(response)
+        self.assertEqual(request.school.id, self.school.id)
+        self.assertEqual(request.session.get("school_id"), str(self.school.id))
+
     def test_clears_stale_session_school_when_no_tenant_resolved(self):
         with self.settings(MULTI_TENANT_BASE_DOMAIN="example.com"), patch.dict(
             os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False

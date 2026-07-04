@@ -103,3 +103,7 @@ class RolePermissionBackend(BaseBackend):
 
     def has_perm(self, user_obj, perm, obj=None) -> bool:
         return perm in self.get_all_permissions(user_obj, obj=obj)
+
+    def has_module_perms(self, user_obj, app_label: str) -> bool:
+        prefix = f"{app_label}."
+        return any(perm.startswith(prefix) for perm in self.get_all_permissions(user_obj))

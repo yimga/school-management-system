@@ -35,7 +35,7 @@
                     {% if is_manager_host %}
                         RunMyCampus Manager — {% trans "System &amp; data" %}
                     {% elif request.resolver_match and request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
-                        {% trans "Platform Backoffice" %}
+                        {% trans "Tenant Administration" %}
                     {% else %}
                         {% trans "Backend - operations and workflows" %}
                     {% endif %}

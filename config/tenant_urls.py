@@ -95,7 +95,6 @@ from apps.platform_runtime.views_administration import (
     tenant_blueprint_setup,
     tenant_import_setup,
     tenant_pack_setup,
-    tenant_configuration_forbidden,
 )
 
 
@@ -321,8 +320,8 @@ urlpatterns = [
     path("internal-admin/", internal_admin_alias_redirect, name="internal_admin"),
     path("internal-admin/<path:remaining>", internal_admin_alias_redirect),
     path("admin/", tenant_admin_site.urls),
-    path("configuration/", tenant_configuration_forbidden, name="tenant_configuration_forbidden"),
-    path("configuration/<path:remaining>", tenant_configuration_forbidden),
+    path("configuration/", school_configuration_center, name="tenant_configuration_center"),
+    path("configuration/<path:remaining>", school_configuration_center),
     path("school/settings/", school_configuration_center, name="school_configuration_center"),
     path("school/configuration/", school_configuration_center, name="school_configuration_center_canonical"),
     path("school/setup/blueprints/", tenant_blueprint_setup, name="tenant_blueprint_setup"),

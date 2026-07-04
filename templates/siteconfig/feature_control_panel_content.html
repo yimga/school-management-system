@@ -299,6 +299,12 @@
       <div class="rmc-command-panel__body">
         <div class="rmc-command-eyebrow">{% trans "Publish guardrail" %}</div>
         <h2 class="h6 mb-2">{% trans "Feature impact" %}</h2>
+        <div class="rmc-live-preview-contract__evidence mb-3" aria-label="{% trans 'Feature preview evidence' %}">
+          <span><strong>{% trans "Source" %}:</strong> {% trans "unsaved toggles" %}</span>
+          <span><strong>{% trans "Scope" %}:</strong> {{ school.name|default:SITE.site_name|default:"tenant" }}</span>
+          <span><strong>{% trans "Route" %}:</strong> <code class="small">{% trans "affected role surfaces" %}</code></span>
+          <span><strong>{% trans "Status" %}:</strong> {% trans "diff preview before save" %}</span>
+        </div>
         <div class="rmc-command-impact-grid">
           <div class="rmc-command-impact"><small>{% trans "Active" %}</small><strong>{{ active_count }}/{{ total_count }}</strong></div>
           <div class="rmc-command-impact"><small>{% trans "Preview" %}</small><strong>{% trans "Required" %}</strong></div>
@@ -313,6 +319,12 @@
           <button type="button" class="btn btn-sm btn-primary" id="btnPreviewDiffSidecar">
             <i class="bi bi-eye me-1"></i>{% trans "Preview changes" %}
           </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.open('{% url 'accounts:backend_dashboard' %}', 'rmc-feature-preview', 'popup,width=1280,height=900')">
+            <i class="bi bi-window me-1"></i>{% trans "Popout affected dashboard" %}
+          </button>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}" target="_blank" rel="noopener noreferrer">
+            <i class="bi bi-box-arrow-up-right me-1"></i>{% trans "Open affected dashboard" %}
+          </a>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:feature_control_audit' %}">
             <i class="bi bi-clock-history me-1"></i>{% trans "Audit log" %}
           </a>

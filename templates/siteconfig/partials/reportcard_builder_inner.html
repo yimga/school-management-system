@@ -263,11 +263,18 @@
     <aside class="rmc-command-panel reportcard-builder-sidecar" aria-label="{% trans 'Report card preview controls and publish gate' %}">
       <div class="rmc-command-panel__body">
         <h2 class="h6 mb-2">{% trans "Preview controls" %}</h2>
+        <div class="rmc-live-preview-contract__evidence mb-3" aria-label="{% trans 'Report preview evidence' %}">
+          <span><strong>{% trans "Source" %}:</strong> {% trans "draft style selection" %}</span>
+          <span><strong>{% trans "Scope" %}:</strong> {{ school.name|default:SITE.site_name|default:"tenant" }}</span>
+          <span><strong>{% trans "Route" %}:</strong> <code class="small">{% trans "report card preview" %}</code></span>
+          <span><strong>{% trans "Status" %}:</strong> {% trans "live with PDF fallback" %}</span>
+        </div>
         <div class="d-grid gap-2 mb-3">
           {% if styles and preview_default_style_slug %}
           <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:reportcard_style_preview' preview_default_style_slug %}" target="_blank" rel="noopener noreferrer">{% trans "Open HTML preview" %}</a>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_style_pdf' preview_default_style_slug 'term' %}" target="_blank" rel="noopener noreferrer">{% trans "Open term PDF" %}</a>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_style_pdf' preview_default_style_slug 'annual' %}" target="_blank" rel="noopener noreferrer">{% trans "Open annual PDF" %}</a>
+          <button class="btn btn-sm btn-outline-secondary" type="button" onclick="window.open('{% url 'siteconfig:reportcard_style_preview' preview_default_style_slug %}', 'rmc-reportcard-preview', 'popup,width=1200,height=900')">{% trans "Popout preview" %}</button>
           {% else %}
           <p class="small text-muted mb-0">{% trans "Create or select a report style to enable direct previews." %}</p>
           {% endif %}

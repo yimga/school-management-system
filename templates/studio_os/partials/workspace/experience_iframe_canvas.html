@@ -1,21 +1,46 @@
 {% load i18n static %}
-{% comment %} v3.54.0 (2026-05-21): responsive iframe shell — fluid width, height
-   clamp(420px,60vh,720px), token-driven hairline border. Replaces the legacy
-   class-only `.studio-os-iframe` (which had a fixed 80vh min-height and no
-   container clamp) so the experience iframe never forces horizontal scroll
-   inside the workspace main column. .rmc-studio-experience-iframe-shell is
-   defined in static/css/studio-experience-mode.css. {% endcomment %}
 {% if experience_left_rail %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-studio-experience-iframe-shell" data-rmc-studio-experience-iframe="1">
-  <iframe id="studio-experience-iframe"
-          title="{% trans 'Experience preview' %}"
-          src="{{ experience_left_rail.0.url }}"
-          loading="lazy"
-          referrerpolicy="same-origin"></iframe>
-</div>
+<section class="rmc-live-preview-contract"
+         data-rmc-live-preview-contract="1"
+         data-preview-timeout-ms="8000"
+         aria-label="{% trans 'Experience live preview' %}">
+  <div class="rmc-live-preview-contract__evidence" aria-label="{% trans 'Preview evidence' %}">
+    <span><strong>{% trans "Source" %}:</strong> {% trans "draft workspace" %}</span>
+    <span><strong>{% trans "Scope" %}:</strong> {{ school.name|default:SITE.site_name|default:"tenant" }}</span>
+    <span><strong>{% trans "Route" %}:</strong> <code class="small">{{ experience_left_rail.0.label|default:"Experience" }}</code></span>
+    <span><strong>{% trans "Status" %}:</strong> <span data-rmc-preview-status>{% trans "Rendering live preview" %}</span></span>
+  </div>
+  <div class="rmc-live-preview-contract__fallbacks" data-rmc-preview-fallbacks hidden>
+    <span class="small text-muted">{% trans "Preview recovery" %}</span>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-rmc-preview-retry>{% trans "Retry inline" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-preview-modal>{% trans "Modal preview" %}</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-preview-popout>{% trans "Popout" %}</button>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ experience_left_rail.0.url }}" target="_blank" rel="noopener noreferrer" data-rmc-preview-new-tab>{% trans "Open in new tab" %}</a>
+  </div>
+  <div class="rmc-studio-experience-iframe-shell" data-rmc-studio-experience-iframe="1" data-rmc-preview-frame-shell data-preview-device="desktop">
+    <iframe id="studio-experience-iframe"
+            title="{% trans 'Experience preview' %}"
+            src="{{ experience_left_rail.0.url }}"
+            data-rmc-preview-frame
+            loading="lazy"
+            referrerpolicy="same-origin"></iframe>
+  </div>
+  <div class="modal fade" id="rmc-live-preview-modal" tabindex="-1" aria-labelledby="rmc-live-preview-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen-lg-down modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="rmc-live-preview-modal-title">{% trans "Live preview" %}</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+        </div>
+        <div class="modal-body p-0">
+          <iframe class="rmc-live-preview-modal-frame" data-rmc-live-preview-modal-frame title="{% trans 'Modal live preview' %}" loading="lazy" referrerpolicy="same-origin"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% else %}
-<div class="rmc-studio-experience-preview__empty" role="status" aria-live="polite">
-  <span>{% trans "Preview unavailable — no experience rail entries are configured." %}</span>
+<div class="rmc-live-preview-contract__empty rmc-studio-experience-preview__empty" role="status" aria-live="polite">
+  <span>{% trans "Preview unavailable - no experience rail entries are configured." %}</span>
 </div>
 {% endif %}

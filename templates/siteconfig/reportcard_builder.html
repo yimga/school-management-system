@@ -8,6 +8,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
 <link rel="stylesheet" href="{% static 'css/tenant-command-workspace.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-live-preview-contract.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -17,4 +18,5 @@
 {% include "components/next_action_strip.html" %}
 
 {% include "siteconfig/partials/reportcard_builder_body.html" %}
+<script src="{% static 'js/rmc-live-preview-contract.js' %}"></script>
 {% endblock %}

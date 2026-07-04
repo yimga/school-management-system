@@ -1,0 +1,119 @@
+/*
+ * RunMyCampus live preview contract.
+ * Shared by Studio and tenant configuration pages where users must inspect a
+ * draft/user-facing change before publish. The frame may fail; the recovery
+ * actions must not.
+ */
+
+.rmc-live-preview-contract {
+  display: grid;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.rmc-live-preview-contract__header,
+.rmc-live-preview-contract__toolbar,
+.rmc-live-preview-contract__evidence,
+.rmc-live-preview-contract__fallbacks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.rmc-live-preview-contract__header {
+  justify-content: space-between;
+}
+
+.rmc-live-preview-contract__title {
+  margin: 0;
+}
+
+.rmc-live-preview-contract__toolbar label {
+  margin: 0;
+  color: var(--text-secondary, var(--bs-secondary-color));
+}
+
+.rmc-live-preview-contract__evidence {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--hairline, var(--bs-border-color));
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-canvas, var(--bs-tertiary-bg));
+  font-size: var(--type-size-caption, 0.78rem);
+}
+
+.rmc-live-preview-contract__evidence span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-live-preview-contract__fallbacks {
+  padding: 0.5rem;
+  border: 1px dashed var(--hairline-strong, var(--bs-border-color));
+  border-radius: var(--radius-md, 10px);
+  background: color-mix(in srgb, var(--surface-elevated, var(--bs-body-bg)) 88%, transparent);
+}
+
+.rmc-live-preview-contract__fallbacks[hidden] {
+  display: none;
+}
+
+.rmc-live-preview-contract__frame {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--hairline, var(--bs-border-color));
+  border-radius: var(--radius-lg, 14px);
+  background: var(--surface-canvas, var(--bs-tertiary-bg));
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+}
+
+.rmc-live-preview-contract__frame iframe {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--surface-elevated, var(--bs-body-bg));
+}
+
+.rmc-live-preview-contract__frame[data-preview-device="tablet"] {
+  aspect-ratio: 4 / 3;
+  max-width: min(100%, 58rem);
+  margin-inline: auto;
+}
+
+.rmc-live-preview-contract__frame[data-preview-device="mobile"] {
+  aspect-ratio: 9 / 16;
+  max-width: min(100%, 25rem);
+  margin-inline: auto;
+}
+
+.rmc-live-preview-contract__empty {
+  display: grid;
+  place-items: center;
+  min-height: clamp(18rem, 42vh, 34rem);
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary, var(--bs-secondary-color));
+}
+
+.rmc-live-preview-modal-frame {
+  width: 100%;
+  height: min(78vh, 52rem);
+  border: 0;
+  background: var(--surface-elevated, var(--bs-body-bg));
+}
+
+@media (max-width: 767.98px) {
+  .rmc-live-preview-contract__header {
+    align-items: flex-start;
+  }
+
+  .rmc-live-preview-contract__toolbar .form-select {
+    width: 100%;
+  }
+}

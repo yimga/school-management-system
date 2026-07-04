@@ -92,7 +92,7 @@
             </div>
           </div>
           <div class="col-xl-7">
-            <section class="rmc-dashboard-preview-shell p-3 p-lg-4" aria-label="{% trans 'Live dashboard assignment preview' %}">
+            <section class="rmc-dashboard-preview-shell rmc-live-preview-contract p-3 p-lg-4" aria-label="{% trans 'Live dashboard assignment preview' %}" data-rmc-dashboard-preview-contract="1">
               <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start mb-3">
                 <div>
                   <p class="text-uppercase small fw-semibold text-muted mb-1">{% trans "Live preview sidecar" %}</p>
@@ -104,6 +104,12 @@
                   <button type="button" class="btn btn-outline-light" data-rmc-dashboard-device="tablet">{% trans "Tablet" %}</button>
                   <button type="button" class="btn btn-outline-light" data-rmc-dashboard-device="mobile">{% trans "Mobile" %}</button>
                 </div>
+              </div>
+              <div class="rmc-live-preview-contract__evidence mb-3" aria-label="{% trans 'Dashboard preview evidence' %}">
+                <span><strong>{% trans "Source" %}:</strong> {% trans "unsaved assignment" %}</span>
+                <span><strong>{% trans "Scope" %}:</strong> {{ school.name|default:SITE.site_name|default:"tenant" }}</span>
+                <span><strong>{% trans "Route" %}:</strong> <code class="small">{% trans "role dashboard" %}</code></span>
+                <span><strong>{% trans "Status" %}:</strong> {% trans "live comparison before assign" %}</span>
               </div>
               <div class="row g-3">
                 <div class="col-lg-6">
@@ -155,6 +161,7 @@
                     <p class="small fw-semibold mb-2">{% trans "Open live role view" %}</p>
                     <p class="small text-muted mb-2">{% trans "Live view opens the current role session for the selected device. The after preview remains non-mutating until Assign is clicked." %}</p>
                     <a class="btn btn-outline-light btn-sm disabled" href="#" target="_blank" rel="noopener" data-rmc-dashboard-live-link>{% trans "Open preview" %}</a>
+                    <button class="btn btn-outline-light btn-sm mt-2" type="button" data-rmc-dashboard-popout disabled>{% trans "Popout preview" %}</button>
                   </div>
                 </div>
               </div>
@@ -253,14 +260,23 @@
               if (liveLink) {
                 var urls = role && role.preview_urls ? role.preview_urls : {};
                 var href = urls[activeDevice] || '';
+                var popout = root.querySelector('[data-rmc-dashboard-popout]');
                 if (href) {
                   liveLink.href = href;
                   liveLink.classList.remove('disabled');
                   liveLink.setAttribute('aria-disabled', 'false');
+                  if (popout) {
+                    popout.disabled = false;
+                    popout.onclick = function(){ window.open(href, 'rmc-dashboard-preview', 'popup,width=1280,height=900'); };
+                  }
                 } else {
                   liveLink.href = '#';
                   liveLink.classList.add('disabled');
                   liveLink.setAttribute('aria-disabled', 'true');
+                  if (popout) {
+                    popout.disabled = true;
+                    popout.onclick = null;
+                  }
                 }
               }
             }

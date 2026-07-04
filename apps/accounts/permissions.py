@@ -834,6 +834,13 @@ def tenant_operator_hub_eligible(user) -> bool:
         pass
     role = getattr(user, "role", None) or ""
     code = str(role).strip().upper()
+    try:
+        from apps.accounts.auth_backends_role_perms import ADMIN_LIKE_ROLES
+
+        if code in ADMIN_LIKE_ROLES:
+            return True
+    except (AttributeError, ImportError, TypeError, ValueError):
+        pass
     if code in TENANT_OPERATOR_EXCLUDED_STANDALONE_ROLES:
         return False
     return bool(getattr(user, "is_staff", False))

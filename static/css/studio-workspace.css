@@ -4,9 +4,9 @@
  */
 
 .rmc-studio-workspace {
-  --studio-workspace-rail-width: clamp(12rem, 14vw, 15.5rem);
+  --studio-workspace-rail-width: clamp(11rem, 13vw, 14rem);
   --studio-workspace-rail-min: 11.5rem;
-  --studio-workspace-context-width: clamp(13rem, 16vw, 18rem);
+  --studio-workspace-context-width: clamp(14rem, 17vw, 20rem);
   --studio-workspace-gap: clamp(0.55rem, 1vw, 0.8rem);
   display: grid;
   grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr);
@@ -14,7 +14,7 @@
   align-items: stretch;
   width: 100%;
   min-width: 0;
-  min-height: min(72vh, 58rem);
+  min-height: 0;
 }
 
 .rmc-studio-workspace__rail {
@@ -58,7 +58,7 @@
 }
 
 .rmc-studio-workspace--experience.rmc-studio-workspace--three-col {
-  grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr) var(--studio-workspace-context-width);
+  grid-template-columns: var(--studio-workspace-rail-width) minmax(30rem, 1fr) var(--studio-workspace-context-width);
 }
 
 .rmc-studio-workspace .studio-os__card {
@@ -132,5 +132,19 @@
 }
 
 .rmc-studio-workspace--experience .rmc-studio-workspace__context.studio-os__experience-context {
+  min-width: 0;
+}
+
+.rmc-studio-workspace__rail,
+.rmc-studio-workspace__context {
+  overscroll-behavior: contain;
+}
+
+.rmc-studio-workspace__main > section:first-child,
+.rmc-studio-workspace__main > div:first-child {
+  margin-top: 0;
+}
+
+.rmc-studio-workspace .rmc-live-preview-contract {
   min-width: 0;
 }

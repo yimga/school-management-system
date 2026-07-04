@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect, render
-from django.urls import include, path, reverse
+from django.urls import include, path, resolve, reverse, set_urlconf
 from django.views.i18n import set_language
 from django.views.decorators.cache import cache_page
 from django.views.generic.base import RedirectView
@@ -48,7 +48,6 @@ from apps.portal.views_at_risk_labeling import (
     at_risk_labeling_queue as portal_at_risk_labeling_view,
 )
 from apps.accounts.views_theme import set_theme_preference
-from config.admin import platform_admin_site
 from apps.schools.competitive_marketing_views import (
     marketing_implementation_assurance,
     marketing_pricing_packages_clarity,
@@ -88,6 +87,41 @@ from apps.schools.marketing_views import (
     marketing_personality_page,
     marketing_threshold_era_preview,
 )
+
+
+def admin_host_dispatch(request, remaining: str = ""):
+    """Route /admin/ to the tenant or platform admin tree by resolved host scope."""
+    from apps.schools.host_routing import get_canonical_base_domain, public_host_kind
+    from apps.schools.models import School, SchoolDomain
+
+    host = (request.get_host() or "").split(":", 1)[0].strip().lower()
+    host_kind = (getattr(request, "public_host_kind", None) or public_host_kind(host) or "").lower()
+    school = getattr(request, "school", None)
+    if school is None and host_kind not in {"manager", "base", "local", "api", "docs"}:
+        base_domain = get_canonical_base_domain()
+        subdomain = ""
+        if base_domain and host.endswith("." + base_domain):
+            subdomain = host[: -(len(base_domain) + 1)]
+        school = (
+            School.objects.filter(subdomain__iexact=subdomain, is_active=True).first()
+            if subdomain
+            else None
+        )
+        if school is None:
+            domain = (
+                SchoolDomain.objects.select_related("school")
+                .filter(domain__iexact=host, is_verified=True)
+                .first()
+            )
+            school = getattr(domain, "school", None)
+        if school is not None:
+            request.school = school
+    target_urlconf = "config.tenant_urls" if school is not None else "config.manager_urls"
+    set_urlconf(target_urlconf)
+    request.urlconf = target_urlconf
+    match = resolve(request.path_info, urlconf=target_urlconf)
+    request.resolver_match = match
+    return match.func(request, *match.args, **match.kwargs)
 from apps.schools.views_e2e_signup_helpers import e2e_signup_verification_token
 from apps.schools.signup_views import (
     signup_school,
@@ -405,8 +439,9 @@ urlpatterns = [
             fromlist=["legacy_customizer_redirect"],
         ).legacy_customizer_redirect,
     ),
-    # Admin interfaces - /admin/ only for superuser/staff
-    path("admin/", platform_admin_site.urls),
+    # Admin interfaces - host-aware dispatch keeps tenant /admin/ out of platform admin.
+    path("admin/", admin_host_dispatch, name="admin_host_dispatch"),
+    path("admin/<path:remaining>", admin_host_dispatch),
     # API schema (RBAC-protected; same as schema UI) — legacy DRF schema view.
     path("api/schema/", schema_view, name="api-schema"),
     path("api/schema/ui/", api_schema_ui, name="api-schema-ui"),

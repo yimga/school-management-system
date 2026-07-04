@@ -1,0 +1,1393 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tenant Studio Work Modes - Screenshot-Calibrated Gap Fix Approval</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #111a2d;
+      --panel-2: #172238;
+      --panel-3: #1e2b43;
+      --ink: #eef4ff;
+      --muted: #aab7cc;
+      --dim: #718098;
+      --line: rgba(181, 198, 226, 0.18);
+      --line-strong: rgba(181, 198, 226, 0.34);
+      --blue: #4b7cff;
+      --cyan: #19b9d6;
+      --green: #39d98a;
+      --gold: #e5b84b;
+      --red: #f05d5e;
+      --paper: #f4f7fb;
+      --paper-ink: #172033;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.32);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    a { color: inherit; }
+
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(11, 16, 32, 0.94);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 220px;
+      max-width: 260px;
+      font-weight: 800;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #39d98a, #4b7cff 54%, #e5b84b);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.24);
+    }
+
+    .brand small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .tenant-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 0 0 auto;
+      margin-inline-start: 8px;
+      white-space: nowrap;
+    }
+
+    .nav-pill,
+    .more-pill,
+    .control-pill {
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      color: var(--ink);
+      padding: 0 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .nav-pill.active {
+      background: rgba(75, 124, 255, 0.22);
+      border-color: rgba(75, 124, 255, 0.62);
+    }
+
+    .more-pill {
+      background: rgba(255,255,255,0.08);
+      border-color: var(--line-strong);
+    }
+
+    .search {
+      min-width: 220px;
+      max-width: 420px;
+      flex: 1 1 340px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(229, 184, 75, 0.35);
+      border-radius: 999px;
+      background: rgba(229, 184, 75, 0.08);
+      color: var(--muted);
+      padding: 0 10px 0 14px;
+      margin-inline-start: auto;
+    }
+
+    .search span:first-child {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .kbd {
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 1px 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 40px;
+      min-height: 0;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: #0d1426;
+      padding: 10px 10px 18px;
+      overflow: auto;
+    }
+
+    .side-head {
+      height: 36px;
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) 32px;
+      align-items: center;
+      gap: 7px;
+      border-bottom: 1px solid var(--line);
+      margin: -2px -2px 10px;
+      padding-bottom: 8px;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--ink);
+      background: rgba(255,255,255,0.04);
+      font-weight: 800;
+    }
+
+    .side-search {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 0 8px;
+      color: var(--dim);
+      background: rgba(255,255,255,0.04);
+      min-width: 0;
+    }
+
+    .side-search span:first-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .side-group {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.025);
+      overflow: hidden;
+    }
+
+    .side-group h3 {
+      margin: 0;
+      padding: 9px 12px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 12px;
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 650;
+    }
+
+    .side-link small { color: var(--red); }
+
+    .main {
+      min-width: 0;
+      overflow: auto;
+      padding: 16px;
+    }
+
+    .tool-rail {
+      border-left: 1px solid var(--line);
+      background: #0d1426;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 4px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 16px;
+      margin-bottom: 14px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 6px; font-size: 26px; }
+    h2 { margin-bottom: 10px; font-size: 18px; }
+    h3 { margin-bottom: 7px; font-size: 14px; }
+    p { color: var(--muted); }
+
+    .hero p { max-width: 880px; margin-bottom: 0; }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.green { color: var(--green); border-color: rgba(57, 217, 138, 0.42); }
+    .badge.gold { color: var(--gold); border-color: rgba(229, 184, 75, 0.45); }
+    .badge.blue { color: #92afff; border-color: rgba(75, 124, 255, 0.52); }
+    .badge.red { color: #ffaaa6; border-color: rgba(240, 93, 94, 0.45); }
+
+    .compare {
+      display: grid;
+      grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .diagnosis {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .failure-map {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0d1424;
+      min-height: 420px;
+      padding: 10px;
+      display: grid;
+      grid-template-rows: 34px 54px minmax(0, 1fr) 86px;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .failure-header,
+    .failure-workmodes,
+    .failure-bottom {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(255,255,255,0.035);
+    }
+
+    .failure-header {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr) 220px;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+    }
+
+    .failure-workmodes {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .failure-pill {
+      height: 28px;
+      min-width: 74px;
+      border-radius: 999px;
+      background: rgba(181,198,226,0.12);
+      border: 1px solid var(--line);
+    }
+
+    .failure-pill.active {
+      background: rgba(255,255,255,0.82);
+      border-color: rgba(75,124,255,0.9);
+    }
+
+    .failure-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 250px;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .waste-zone {
+      border: 1px dashed rgba(229, 184, 75, 0.4);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.008));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--gold);
+      font-weight: 850;
+      min-height: 260px;
+      padding: 16px;
+    }
+
+    .failure-right {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #172238;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .failure-bottom {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 170px minmax(0, 1fr) 190px;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .failure-bleed {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 18px;
+      background: rgba(46, 63, 88, 0.9);
+      border-top: 1px solid rgba(181,198,226,0.18);
+      border-bottom: 1px solid rgba(181,198,226,0.18);
+    }
+
+    .failure-bleed:nth-child(1) { top: 18px; }
+    .failure-bleed:nth-child(2) { top: 47px; }
+    .failure-bleed:nth-child(3) { top: 74px; }
+
+    .callout-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .callout-list li {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--red);
+      border-radius: 7px;
+      background: rgba(255,255,255,0.035);
+      padding: 9px 10px;
+      color: var(--muted);
+    }
+
+    .callout-list strong {
+      color: var(--ink);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.035);
+    }
+
+    .panel-body { padding: 14px; }
+
+    .old-studio {
+      height: 520px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 230px;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      background: #11182a;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .old-metrics {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(110px, 1fr));
+      gap: 8px;
+    }
+
+    .old-card {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #121b2e;
+      padding: 10px;
+      min-height: 72px;
+    }
+
+    .old-empty {
+      border: 1px dashed rgba(229, 184, 75, 0.28);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.015);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dim);
+      min-height: 250px;
+    }
+
+    .old-right {
+      grid-row: 2 / 4;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #172238;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .old-bottom {
+      grid-column: 1;
+      height: 145px;
+      border: 1px solid rgba(75, 124, 255, 0.22);
+      background: rgba(30, 43, 67, 0.9);
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      overflow: hidden;
+    }
+
+    .stripe {
+      height: 26px;
+      border-bottom: 1px solid rgba(181, 198, 226, 0.2);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .overlap-note {
+      position: absolute;
+      left: 18px;
+      right: 250px;
+      bottom: 68px;
+      border: 1px solid rgba(240, 93, 94, 0.65);
+      background: rgba(240, 93, 94, 0.14);
+      color: #ffd1cf;
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-weight: 800;
+    }
+
+    .new-studio {
+      min-height: 620px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 10px;
+      background: #0f1728;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .mode-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.035);
+      overflow-x: auto;
+    }
+
+    .mode-tab {
+      flex: 0 0 auto;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 12px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      color: var(--muted);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .mode-tab.active {
+      color: var(--ink);
+      background: rgba(75, 124, 255, 0.24);
+      border-color: rgba(75, 124, 255, 0.62);
+    }
+
+    .workbench {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(180px, 0.18fr) minmax(520px, 1fr) minmax(240px, 0.26fr);
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .rail,
+    .canvas,
+    .context {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .rail { padding: 10px; }
+    .context { padding: 10px; }
+
+    .rail-item {
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 9px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .rail-item.active {
+      color: var(--ink);
+      background: rgba(57, 217, 138, 0.11);
+      border-color: rgba(57, 217, 138, 0.35);
+    }
+
+    .canvas {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      background: #0d1424;
+    }
+
+    .canvas-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.035);
+    }
+
+    .split-canvas {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.42fr) minmax(360px, 0.58fr);
+      gap: 10px;
+      padding: 10px;
+      min-height: 0;
+    }
+
+    .settings-stack,
+    .preview-stack {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .setting-card,
+    .mini-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.035);
+      padding: 10px;
+    }
+
+    .form-row {
+      min-height: 34px;
+      display: grid;
+      grid-template-columns: minmax(100px, 0.36fr) minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      border-top: 1px solid rgba(181, 198, 226, 0.12);
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    .field {
+      min-height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      padding: 0 9px;
+      min-width: 0;
+    }
+
+    .live-preview {
+      min-height: 360px;
+      background: var(--paper);
+      color: var(--paper-ink);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 14px;
+      box-shadow: inset 0 0 0 1px rgba(23,32,51,0.08);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+    }
+
+    .preview-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(23,32,51,0.12);
+      padding-bottom: 10px;
+    }
+
+    .preview-blocks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .preview-card {
+      border: 1px solid rgba(23,32,51,0.13);
+      border-radius: 8px;
+      padding: 10px;
+      background: white;
+      min-height: 92px;
+    }
+
+    .phone {
+      width: 160px;
+      min-height: 300px;
+      border: 8px solid #151c2b;
+      border-radius: 22px;
+      background: var(--paper);
+      color: var(--paper-ink);
+      padding: 10px;
+      box-shadow: var(--shadow);
+      margin-inline: auto;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .mode-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 12px;
+      min-height: 146px;
+    }
+
+    .mode-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .mode-card p {
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .surface-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .exceptional-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .exceptional-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025)),
+        var(--panel);
+      padding: 12px;
+      min-height: 178px;
+    }
+
+    .exceptional-card strong {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .exceptional-card p {
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .surface {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      padding: 12px;
+      min-height: 170px;
+    }
+
+    .surface-preview {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #0d1424;
+      min-height: 78px;
+      padding: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .bar {
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(181,198,226,0.22);
+      margin: 6px 0;
+    }
+
+    .bar.green { background: rgba(57,217,138,0.55); }
+    .bar.gold { background: rgba(229,184,75,0.55); }
+    .bar.blue { background: rgba(75,124,255,0.58); }
+
+    .prompt-box {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #07101f;
+      color: #dce7fb;
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      max-height: 560px;
+      overflow: auto;
+    }
+
+    .mode-treatment {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .treatment-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.035);
+      padding: 10px;
+      min-height: 150px;
+    }
+
+    .treatment-card strong {
+      display: block;
+      color: var(--green);
+      margin-bottom: 5px;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .check {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.035);
+      padding: 10px;
+    }
+
+    .check strong { color: var(--green); }
+
+    @media (max-width: 1380px) {
+      .brand { min-width: 190px; }
+      .search { max-width: 315px; flex-basis: 280px; }
+      .control-pill.hide-mid { display: none; }
+      .workbench { grid-template-columns: 180px minmax(420px, 1fr) 230px; }
+    }
+
+    @media (max-width: 1120px) {
+      .topbar { flex-wrap: wrap; }
+      .tenant-nav { order: 3; width: 100%; margin-inline-start: 0; }
+      .search { max-width: none; }
+      .shell { grid-template-columns: 1fr; }
+      .sidebar, .tool-rail { display: none; }
+      .compare, .diagnosis, .workbench, .split-canvas, .surface-grid, .exceptional-grid, .mode-grid, .mode-treatment, .checklist { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar" aria-label="Tenant header approval preview">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>New Test High School <small>School command surface</small></span>
+      </div>
+      <nav class="tenant-nav" aria-label="Primary tenant navigation">
+        <a class="nav-pill active" href="#">Home</a>
+        <a class="nav-pill" href="#">Finance</a>
+        <a class="nav-pill" href="#">Messages</a>
+        <a class="nav-pill" href="#">Analytics</a>
+        <button class="more-pill" type="button">More</button>
+      </nav>
+      <div class="search" role="search">
+        <span>Search students, teachers, invoices...</span>
+        <span class="kbd">Ctrl+K</span>
+      </div>
+      <div class="header-actions">
+        <span class="badge blue">LIVE New student enrolled</span>
+        <button class="control-pill hide-mid" type="button">Console</button>
+        <button class="control-pill" type="button">Configure</button>
+      </div>
+    </header>
+
+    <div class="shell">
+      <aside class="sidebar" aria-label="Sidebar preview">
+        <div class="side-head">
+          <button class="icon-btn" type="button">I</button>
+          <div class="side-search"><span>Filter...</span><span class="kbd">/</span></div>
+          <button class="icon-btn" type="button">G</button>
+        </div>
+        <div class="side-group">
+          <h3>Frequent</h3>
+          <a class="side-link" href="#">Workflow Center <small>often</small></a>
+          <a class="side-link" href="#">Dashboard <small>often</small></a>
+          <a class="side-link" href="#">Staff Identity <small>often</small></a>
+        </div>
+        <div class="side-group">
+          <h3>Studio</h3>
+          <a class="side-link" href="#">Overview <span>pin</span></a>
+          <a class="side-link" href="#">Experience <span>pin</span></a>
+          <a class="side-link" href="#">Automation <span>pin</span></a>
+          <a class="side-link" href="#">Outputs <span>pin</span></a>
+          <a class="side-link" href="#">Launch <span>pin</span></a>
+          <a class="side-link" href="#">Control <span>pin</span></a>
+        </div>
+        <div class="side-group">
+          <h3>Configuration</h3>
+          <a class="side-link" href="#">Feature Controls <span>pin</span></a>
+          <a class="side-link" href="#">Report Builder <span>pin</span></a>
+          <a class="side-link" href="#">Dashboards by Role <span>pin</span></a>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="hero">
+          <div>
+            <h1>Studio and Tenant Configuration Rework Approval</h1>
+            <p>This preview is now calibrated to the full Studio screenshot: almost the entire first viewport is wasted, the useful Theme/Experience controls start below the fold, content bleeds under sticky bars, right rails duplicate preview/context work, and the tenant header More button wraps under the primary nav instead of staying on the same line.</p>
+          </div>
+          <div class="badges">
+            <span class="badge green">Screenshot calibrated</span>
+            <span class="badge gold">No production template changes here</span>
+            <span class="badge blue">Header contract included</span>
+          </div>
+        </section>
+
+        <section class="diagnosis" aria-label="Screenshot diagnosis">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>What The Screenshot Shows</h2>
+              <span class="badge red">Real current state</span>
+            </div>
+            <div class="panel-body">
+              <div class="failure-map" aria-label="Current screenshot failure map">
+                <div class="failure-header">
+                  <div class="bar blue"></div>
+                  <div class="bar"></div>
+                  <div class="bar gold"></div>
+                </div>
+                <div class="failure-workmodes">
+                  <strong>Work modes</strong>
+                  <span class="failure-pill"></span>
+                  <span class="failure-pill active"></span>
+                  <span class="failure-pill"></span>
+                  <span class="failure-pill"></span>
+                  <span class="failure-pill"></span>
+                </div>
+                <div class="failure-body">
+                  <div class="waste-zone">The first viewport is mostly empty canvas. The actual Experience workbench begins far below this area.</div>
+                  <aside class="failure-right">
+                    <h3>Right rail</h3>
+                    <p>Preview, recommendations, recent activity, impact, and publish compete for height while central content is empty.</p>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar gold"></div>
+                    <div class="bar"></div>
+                  </aside>
+                </div>
+                <div class="failure-bottom">
+                  <div class="failure-bleed"></div>
+                  <div class="failure-bleed"></div>
+                  <div class="failure-bleed"></div>
+                  <div><div class="bar blue"></div><div class="bar red"></div></div>
+                  <div><div class="bar"></div><div class="bar green"></div></div>
+                  <div><div class="bar gold"></div><div class="bar"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Updated Diagnosis</h2>
+              <span class="badge gold">Must be designed out</span>
+            </div>
+            <div class="panel-body">
+              <ul class="callout-list">
+                <li><strong>The shell is stacked, not composed.</strong> Header, command bar, mode bar, hero, cockpit canvas, Studio canvas, mode workspace, sticky preview bar, and right rail are all acting like separate page owners.</li>
+                <li><strong>Experience starts too late.</strong> The theme controls and preview are pushed below a giant empty middle area, so the page looks broken before the user reaches the real work.</li>
+                <li><strong>Sticky bars are covering content.</strong> Preview/Publish and horizontal bands sit over the workspace instead of living inside a stable canvas header/footer.</li>
+                <li><strong>Right rails duplicate context.</strong> Preview-as, recommendations, recent activity, and publish state appear apart from the controls they explain.</li>
+                <li><strong>All modes inherit the same broken geometry.</strong> Automation, Outputs, Launch, Control, Feature Controls, Workflow Center, Report Builder, and preview-heavy setup pages need mode-specific canvases under one shared contract.</li>
+                <li><strong>Tenant header is still wrong.</strong> More must sit on the same line as Home, Finance, Messages, Analytics; search and utilities must yield width before nav wraps.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="compare" aria-label="Before and after comparison">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Before: Current Failure Pattern</h2>
+              <span class="badge red">Overlapping layers</span>
+            </div>
+            <div class="panel-body">
+              <div class="old-studio">
+                <div class="old-metrics">
+                  <div class="old-card"><strong>Tenant</strong><p>New Test High Sch...</p></div>
+                  <div class="old-card"><strong>Focus</strong><p>Experience</p></div>
+                  <div class="old-card"><strong>Pending</strong><p>3</p></div>
+                  <div class="old-card"><strong>Draft</strong><p>0</p></div>
+                  <div class="old-card"><strong>Active</strong><p>53</p></div>
+                  <div class="old-card"><strong>Readiness</strong><p>%</p></div>
+                </div>
+                <div class="old-empty">Large empty middle canvas with no primary work surface</div>
+                <aside class="old-right">
+                  <h3>Co-pilot</h3>
+                  <p>Insights and previews occupy a separate tall rail while the canvas stays mostly empty.</p>
+                  <div class="stripe"></div>
+                  <div class="stripe"></div>
+                  <div class="stripe"></div>
+                  <div class="stripe"></div>
+                  <h3>Preview as</h3>
+                  <p>Teacher dashboard<br>Parent portal<br>Finance console</p>
+                </aside>
+                <div class="old-bottom">
+                  <div>
+                    <div class="stripe"></div>
+                    <div class="stripe"></div>
+                    <div class="stripe"></div>
+                    <div class="stripe"></div>
+                  </div>
+                  <div>
+                    <div class="stripe"></div>
+                    <div class="stripe"></div>
+                    <div class="stripe"></div>
+                    <div class="stripe"></div>
+                  </div>
+                </div>
+                <div class="overlap-note">Content begins under a sticky action band and is partially blocked.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h2>After: Single Workspace Contract, Mode-Specific Canvases</h2>
+              <span class="badge green">Canvas-first</span>
+            </div>
+            <div class="panel-body">
+              <div class="new-studio">
+                <div class="mode-nav" aria-label="Studio work modes">
+                  <span class="mode-tab">Overview</span>
+                  <span class="mode-tab active">Experience</span>
+                  <span class="mode-tab">Automation</span>
+                  <span class="mode-tab">Outputs</span>
+                  <span class="mode-tab">Launch</span>
+                  <span class="mode-tab">Control</span>
+                </div>
+                <div class="canvas-toolbar">
+                  <div>
+                    <strong>Experience workbench starts immediately below mode tabs</strong>
+                    <span class="badge gold">Draft not published</span>
+                    <span class="badge green">Contrast pass</span>
+                  </div>
+                  <div class="badges">
+                    <span class="badge blue">Preview: Teacher</span>
+                    <span class="badge">Desktop</span>
+                    <span class="badge">Mobile</span>
+                    <span class="badge green">Publish ready</span>
+                  </div>
+                </div>
+                <div class="workbench">
+                  <nav class="rail" aria-label="Experience sections">
+                    <div class="rail-item active">Brand system <span>1</span></div>
+                    <div class="rail-item">Theme packs <span>2</span></div>
+                    <div class="rail-item">Portal layout <span>3</span></div>
+                    <div class="rail-item">Role previews <span>4</span></div>
+                    <div class="rail-item">Rollback <span>5</span></div>
+                  </nav>
+                  <section class="canvas" aria-label="Primary work canvas">
+                    <div class="canvas-toolbar">
+                      <strong>Theme and portal experience</strong>
+                      <div class="badges"><span class="badge green">Live preview locked in canvas</span></div>
+                    </div>
+                    <div class="split-canvas">
+                      <div class="settings-stack">
+                        <div class="setting-card">
+                          <h3>Brand identity</h3>
+                          <div class="form-row"><span>School name</span><span class="field">New Test High School</span></div>
+                          <div class="form-row"><span>Primary</span><span class="field">Accessible blue</span></div>
+                          <div class="form-row"><span>Accent</span><span class="field">Success green</span></div>
+                        </div>
+                        <div class="setting-card">
+                          <h3>Theme packs</h3>
+                          <p>Preview the admin shell, teacher dashboard, parent portal, and finance console before publish. No controls should render below a giant blank gap.</p>
+                          <div class="badges"><span class="badge green">Contrast pass</span><span class="badge blue">No overflow</span></div>
+                        </div>
+                      </div>
+                      <div class="preview-stack">
+                        <div class="live-preview">
+                          <div class="preview-top">
+                            <strong>Teacher dashboard live preview</strong>
+                            <span>New Test High School</span>
+                          </div>
+                          <div class="preview-blocks">
+                            <div class="preview-card"><strong>Today</strong><div class="bar blue"></div><div class="bar"></div></div>
+                            <div class="preview-card"><strong>Attendance</strong><div class="bar green"></div><div class="bar"></div></div>
+                            <div class="preview-card"><strong>Messages</strong><div class="bar gold"></div><div class="bar"></div></div>
+                            <div class="preview-card"><strong>Actions</strong><div class="bar blue"></div><div class="bar green"></div></div>
+                          </div>
+                          <div class="badges"><span class="badge green">Desktop</span><span class="badge">Tablet</span><span class="badge">Phone</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                  <aside class="context" aria-label="Context and publish">
+                    <div class="mini-card"><h3>Publish guard</h3><p>Shows what will change across portals before the tenant owner confirms.</p></div>
+                    <div class="mini-card"><h3>Preview as</h3><p>Admin shell<br>Teacher dashboard<br>Parent portal<br>Finance console</p></div>
+                    <div class="mini-card"><h3>Audit</h3><p>Draft saved, contrast checked, rollback snapshot ready.</p></div>
+                  </aside>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Mode-by-Mode Direction</h2>
+            <span class="badge blue">Tenant-wide pattern</span>
+          </div>
+          <div class="panel-body">
+            <div class="mode-grid">
+              <div class="mode-card"><strong>Overview</strong><p>Replace the empty host-mode band with a compact command summary, readiness, recent work, and launch blockers directly in the first viewport.</p><span class="badge green">No dead canvas</span></div>
+              <div class="mode-card"><strong>Experience</strong><p>Make theme controls and live preview the first real surface. No giant blank area, no sticky bar covering the form, no duplicate preview rail.</p><span class="badge gold">Highest priority</span></div>
+              <div class="mode-card"><strong>Automation</strong><p>Do not reuse the scrambled Experience geometry. Show workflow graph, simulation, approval gates, activation, and rollback in one canvas.</p><span class="badge green">Preview before activate</span></div>
+              <div class="mode-card"><strong>Outputs</strong><p>Do not bury previews. Put document/report catalog, live report preview, export history, and publishing checks above the fold.</p><span class="badge blue">Report aware</span></div>
+              <div class="mode-card"><strong>Launch</strong><p>Use a launch command board: blockers, checklist, role previews, tenant readiness, and publish actions without setup clutter bands.</p><span class="badge green">No setup clutter</span></div>
+              <div class="mode-card"><strong>Control</strong><p>Feature changes need impact preview, affected roles, dependency graph, audit trail, and rollback controls. Never a loose list.</p><span class="badge red">Risk gated</span></div>
+              <div class="mode-card"><strong>Workflow Center</strong><p>Replace stacked lists with an operational board: intake, active runs, exceptions, approvals, automations.</p><span class="badge blue">Action board</span></div>
+              <div class="mode-card"><strong>Report Builder</strong><p>Keep style catalog and assignment flow visible while the report preview owns most of the canvas.</p><span class="badge green">Live preview first</span></div>
+            </div>
+            <div class="mode-treatment">
+              <div class="treatment-card"><strong>Shared rule</strong>Every mode gets the same outer grammar: mode tabs, compact canvas header, dominant primary canvas, local left rail only when it helps, right context only when it is tied to the active object.</div>
+              <div class="treatment-card"><strong>Different inner surfaces</strong>Experience should look like a theme lab. Automation should look like a flow simulator. Outputs should look like a publishing desk. Launch should look like a readiness cockpit. Control should look like a risk console.</div>
+              <div class="treatment-card"><strong>Remove old geometry</strong>Do not stack cockpit shell, Studio shell, mode shell, and embedded legacy pages on top of each other. The implementation must flatten the shells and make one scroller own the page.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:14px;">
+          <div class="panel-head">
+            <h2>Other Surfaces That Need the Same Treatment</h2>
+            <span class="badge gold">Audit sweep target</span>
+          </div>
+          <div class="panel-body">
+            <div class="surface-grid">
+              <div class="surface">
+                <h3>Feature Controls</h3>
+                <p>Feature toggles should never be a plain list. The page needs a left feature inventory, a center impact simulator, and a right audit/rollback rail.</p>
+                <div class="surface-preview"><div><div class="bar green"></div><div class="bar"></div></div><div><div class="bar gold"></div><div class="bar blue"></div></div></div>
+              </div>
+              <div class="surface">
+                <h3>Workflow Center</h3>
+                <p>Use swimlanes for requested, running, blocked, approval, and completed workflows. Put detail preview in a persistent side panel.</p>
+                <div class="surface-preview"><div><div class="bar blue"></div><div class="bar blue"></div></div><div><div class="bar gold"></div><div class="bar green"></div></div></div>
+              </div>
+              <div class="surface">
+                <h3>Dashboards by Role</h3>
+                <p>Keep assignments, visibility rules, and live dashboard preview in one screen so admins know what each user role will see.</p>
+                <div class="surface-preview"><div><div class="bar green"></div><div class="bar"></div></div><div><div class="bar blue"></div><div class="bar"></div></div></div>
+              </div>
+              <div class="surface">
+                <h3>Theme Customizer</h3>
+                <p>Unify it with Experience mode. Do not send users to a visually different legacy page unless it uses the same workspace contract.</p>
+                <div class="surface-preview"><div><div class="bar gold"></div><div class="bar green"></div></div><div class="phone"><div class="bar blue"></div><div class="bar"></div></div></div>
+              </div>
+              <div class="surface">
+                <h3>Forms and Admissions</h3>
+                <p>Builder, applicant preview, validation, documents, and publish status should be visible without scrolling through empty bands.</p>
+                <div class="surface-preview"><div><div class="bar blue"></div><div class="bar"></div></div><div><div class="bar green"></div><div class="bar gold"></div></div></div>
+              </div>
+              <div class="surface">
+                <h3>Communications Previews</h3>
+                <p>Message composer needs recipient segment, template controls, SMS/email preview, compliance footer, and send audit in one canvas.</p>
+                <div class="surface-preview"><div><div class="bar green"></div><div class="bar"></div></div><div><div class="bar gold"></div><div class="bar"></div></div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:14px;">
+          <div class="panel-head">
+            <h2>What Takes Studio From Fixed To Exceptional</h2>
+            <span class="badge green">Platform-wide tenant standard</span>
+          </div>
+          <div class="panel-body">
+            <div class="exceptional-grid">
+              <div class="exceptional-card">
+                <strong>Mission-first surfaces</strong>
+                <p>Every mode opens with the current decision, health, blocker, and next best action. Users should never ask what the page is for.</p>
+                <span class="badge green">First viewport earns its space</span>
+              </div>
+              <div class="exceptional-card">
+                <strong>Live preview by default</strong>
+                <p>Anything that changes what users see must show a role/device preview before save or publish: admin, teacher, parent, student, finance.</p>
+                <span class="badge blue">Preview before publish</span>
+              </div>
+              <div class="exceptional-card">
+                <strong>Preview must always work</strong>
+                <p>If inline preview cannot render, the page must offer modal, split-view, popout, or new-tab preview with the same draft state.</p>
+                <span class="badge red">No dead preview frames</span>
+              </div>
+              <div class="exceptional-card">
+                <strong>Impact simulator</strong>
+                <p>Feature toggles, themes, dashboards, workflows, communications, and forms should show affected roles, pages, data, and risks.</p>
+                <span class="badge gold">Know the blast radius</span>
+              </div>
+              <div class="exceptional-card">
+                <strong>One publish contract</strong>
+                <p>Draft, preview, validate, approve, publish, rollback, and audit should work the same way across Studio and Studio-adjacent pages.</p>
+                <span class="badge green">Muscle memory</span>
+              </div>
+              <div class="exceptional-card">
+                <strong>Mode-specific canvases</strong>
+                <p>Shared shell, different work surface. Experience is a design lab. Automation is a flow simulator. Outputs is a publishing desk. Control is a risk console.</p>
+                <span class="badge blue">Not one layout copied everywhere</span>
+              </div>
+              <div class="exceptional-card">
+                <strong>Tenant inheritance clarity</strong>
+                <p>Show what comes from platform default, region, package, school override, draft, and published state. No hidden cascade surprises.</p>
+                <span class="badge gold">Sovereign tenant aware</span>
+              </div>
+              <div class="exceptional-card">
+                <strong>Operational polish</strong>
+                <p>Use stable dimensions, dense but readable cards, strong empty states, keyboard-safe controls, clear loading states, and no text overlap.</p>
+                <span class="badge green">Professional under pressure</span>
+              </div>
+              <div class="exceptional-card">
+                <strong>Evidence loop</strong>
+                <p>Each page should expose proof: last saved, last published, preview freshness, validation status, audit events, and rollback snapshot.</p>
+                <span class="badge blue">Trust built into UI</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="compare" style="margin-top:14px;">
+          <div class="panel">
+            <div class="panel-head"><h2>Implementation Prompt</h2><span class="badge blue">Copy-ready</span></div>
+            <div class="panel-body">
+              <div class="prompt-box">Implement the approved tenant Studio and tenant configuration layout rework in the existing RunMyCampus codebase. Do not rebuild the product or replace working domain logic. Preserve routes, forms, permissions, audit behavior, preview endpoints, and tenant boundaries.
+
+Primary problems to fix from the live screenshot:
+1. Tenant Studio renders a huge empty middle viewport before the real mode workbench starts.
+2. Theme/Experience mode is visibly scrambled: useful controls are pushed below the fold, text and panels bleed into one another, and sticky Preview/Publish bars cover content.
+3. All other Studio work modes inherit the same broken geometry. Do not treat this as an Experience-only bug.
+4. Feature Controls, Report Card Builder, Workflow Center, dashboard previews, theme/customizer, launch preview, forms/admissions, and communications preview surfaces have the same family of problems: fragmented panels, weak preview ownership, wasted canvas, and context rails disconnected from the active task.
+5. The current shell stacks too many owners: command toolbar, mode bar, cockpit canvas, Studio canvas, right rail, mode workspace, sticky action bands, and embedded legacy pages. Flatten this into one owned workspace per page.
+6. Sticky action bars and co-pilot/context rails must never block or cover primary content.
+7. The tenant header "More" button must render on the same line as Home, Finance, Messages, and Analytics. It must not wrap underneath. Reduce the search width enough to keep the primary nav together and move that nav cluster closer to the visual center.
+
+Required layout contract:
+- One shared tenant workspace contract for all Studio modes and similar configuration pages.
+- Desktop grid: optional left local rail, dominant center primary canvas, optional right context/publish/audit rail.
+- The center canvas must be the dominant surface and consume available width.
+- Context rails must be useful, object-specific, and never steal the main canvas or overlap it.
+- Preview-heavy pages must make the live preview first-class: visible above the fold, role/device switchable, and paired with the controls that affect it.
+- Remove dead host-mode/work-mode bands where they do not carry current decision value.
+- Keep action bars inside the canvas header/footer, not as floating/sticky blocks over content.
+- Use one page scroller. Nested scroll containers are allowed only for bounded rails and must not create content bleeding.
+- Do not embed legacy pages as full-width iframes unless their chrome is stripped and their content obeys this workspace contract.
+- Use responsive collapse: desktop 3-pane, tablet 2-pane or stacked context, mobile one-column with tabs.
+
+Mode-specific expectations:
+- Overview: command summary, readiness, blockers, recent work, launch next actions in the first viewport.
+- Experience: theme settings, palette/contrast controls, role/device live preview, rollback and publish guard in one visible workbench.
+- Automation: workflow graph/simulation, activation status, approval gates, exception handling, rollback.
+- Outputs: report/document catalog, selected output preview, publishing/export history, compliance checks.
+- Launch: launch checklist, blockers, role previews, readiness confidence, publish/go-live controls.
+- Control: feature inventory, affected roles, dependency graph, risk/impact simulator, audit and rollback.
+
+Exceptional product standard to apply platform-wide and tenant-wide:
+- Make the first viewport valuable on every Studio and Studio-adjacent page. It must contain the active decision, current state, blockers, next action, and the primary work surface.
+- Use the same publish lifecycle everywhere: draft, preview, validate, approve when needed, publish, rollback, audit. Do not invent different save/publish patterns per page.
+- Make live preview the default for every visible tenant-facing change: theme, dashboard, role home, sidebar/navigation, forms/admissions, report cards, communications, launch pages, and feature controls.
+- Treat live preview as a hard platform contract, not a best-effort enhancement. Users must be able to see what their change will look like before applying it, 100% of the time, across platform-wide and tenant-wide configuration.
+- Build a preview fallback ladder for every preview-capable page:
+  1. Inline live preview in the same workbench when technically safe and readable.
+  2. Split-view preview when controls and preview both need significant space.
+  3. Modal preview for focused inspection without leaving the workflow.
+  4. Popout preview window when the surface needs full viewport space or independent resizing.
+  5. Open-in-new-tab preview when browser/security/frame restrictions prevent inline rendering.
+  6. Static rendered snapshot only as the final fallback, clearly labeled with freshness and limitations.
+- Preview state must use the unsaved draft values where possible, not only the last published values. If a draft cannot be rendered live, explain why and offer the nearest reliable preview fallback.
+- Preview controls must include role, device/viewport, theme state, language/direction where relevant, and published-vs-draft comparison for user-facing surfaces.
+- Dead preview frames are unacceptable. If iframe render fails, times out, is blocked by CSP/X-Frame-Options, or cannot authenticate, the UI must automatically show recovery actions: retry, modal, popout, new tab, or snapshot.
+- Every preview must show status evidence: draft/published source, last rendered time, route being previewed, role being previewed, tenant/school scope, and whether the preview is live or fallback.
+- Add impact awareness to risky changes. Show affected roles, affected pages, inherited defaults, dependencies, data risk, user-visible change, and rollback status before publish.
+- Show tenant inheritance explicitly. Distinguish platform default, country/region baseline, package/template default, tenant override, draft value, and published value.
+- Make each mode visually distinct by job-to-be-done while sharing one shell contract. Experience should feel like a design lab; Automation like a flow/simulation board; Outputs like a publishing desk; Launch like a readiness cockpit; Control like a governed risk console.
+- Replace passive right rails with object-aware context. The right rail should always explain or validate the selected item, never duplicate unrelated preview links or recent activity.
+- Replace generic empty space with useful states: empty tenant, no draft, no preview target, no workflow, no report style, no feature dependency, no launch blocker.
+- Add command-quality navigation: mode tabs, local section rail, object search/filter, breadcrumb, keyboard focus, and clear return paths without duplicated nav.
+- Use stable responsive dimensions: no horizontal scroll, no text clipping, no overlapping sticky bars, no layout jumps, no hidden controls behind footer/tool rail, no nested scroll unless bounded.
+- Keep tenant-wide changes future-proof: apply through shared components and CSS contracts so past, present, and future tenants inherit the fix without per-tenant patches.
+- Preserve accessibility: visible focus states, semantic headings, keyboardable tabs, role/device preview selectors with labels, sufficient contrast, and screen-reader-safe status updates.
+- Preserve performance: avoid heavy iframe nesting where possible, strip embedded chrome, lazy-load previews below the fold, and avoid expensive reflows from sticky/fixed panels.
+- Preserve evidence: show last saved, last published, preview freshness, validation result, audit entry, actor display, and rollback snapshot on every publish-capable page.
+
+Apply to:
+- /studio/ Overview
+- /studio/experience/
+- /studio/automation/
+- /studio/output/
+- /studio/launch/
+- /studio/control/
+- Workflow Center
+- Feature Controls
+- Report Card Builder
+- Dashboards by Role and dashboard preview surfaces
+- Theme/customizer and launch preview pages
+- Forms/admissions builders and communications preview pages that match this rendering problem
+
+Validation:
+- Audit route/template inventory for all pages matching the old narrow/empty/overlap pattern.
+- Use browser screenshots at desktop and mobile widths.
+- Confirm no overlap, no horizontal scroll, no clipped text, no giant blank first viewport, no duplicate More button, no duplicate preview/control rails, and no sticky bars covering content.
+- Confirm the exceptional product standard is met: first viewport usefulness, preview availability, live-preview fallback ladder, impact awareness, tenant inheritance clarity, publish lifecycle consistency, accessibility, performance, and audit evidence.
+- Force preview failure tests: blocked iframe, slow preview, unauthenticated preview, missing draft data, mobile viewport, role switch, language/RTL switch, and stale preview. Each must recover with a usable modal, popout, new-tab, retry, or snapshot path.
+- Run Django checks, template render smoke tests, and targeted Studio/siteconfig tests.
+- Document exactly which templates/pages were changed and what gaps remain.</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h2>Approval Checklist</h2><span class="badge green">What I will verify</span></div>
+            <div class="panel-body">
+              <div class="checklist">
+                <div class="check"><strong>Header:</strong><br>More stays inline with Home, Finance, Messages, Analytics at desktop widths.</div>
+                <div class="check"><strong>Experience:</strong><br>Theme controls and live preview are visible together without the giant empty gap.</div>
+                <div class="check"><strong>Studio modes:</strong><br>Overview, Automation, Outputs, Launch, Control use the same workspace contract.</div>
+                <div class="check"><strong>Feature Controls:</strong><br>Feature list, impact preview, audit, and rollback have a coherent surface.</div>
+                <div class="check"><strong>Report Builder:</strong><br>Preview gets the largest canvas, with assignments and workflow beside it.</div>
+                <div class="check"><strong>No blockers:</strong><br>Sticky bars, preview rails, and co-pilot panels do not cover content.</div>
+                <div class="check"><strong>Full width:</strong><br>Pages stretch close to sidebars and use available screen space intelligently.</div>
+                <div class="check"><strong>Audit:</strong><br>Route/template sweep proves no matching narrow/empty page was missed.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="tool-rail" aria-label="Tools rail preview">
+        <button class="icon-btn" type="button">AI</button>
+        <button class="icon-btn" type="button">?</button>
+        <button class="icon-btn" type="button">K</button>
+        <button class="icon-btn" type="button">T</button>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>

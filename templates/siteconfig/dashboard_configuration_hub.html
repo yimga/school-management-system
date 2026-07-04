@@ -7,6 +7,8 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
+<link rel="stylesheet" href="{% static 'css/tenant-command-workspace.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-live-preview-contract.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -18,4 +20,5 @@
 {% phase8_dashboard_declaration "siteconfig/dashboard_configuration_hub.html" %}
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 {% include "siteconfig/partials/dashboard_configuration_hub_body.html" %}
+<script src="{% static 'js/rmc-live-preview-contract.js' %}"></script>
 {% endblock %}

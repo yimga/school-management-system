@@ -70,3 +70,14 @@ class ModuleAccessMiddlewareTests(TestCase):
         request.user = user
         response = self.middleware(request)
         self.assertEqual(response.status_code, 200)
+
+    def test_admin_path_bypasses_module_access_middleware(self):
+        user = User.objects.create_user(username="tenantadminbypass", password="pass1234")
+        user.role = User.Role.ADMIN
+        user.save(update_fields=["role"])
+        request = self.factory.get("/admin/")
+        request.user = user
+
+        response = self.middleware(request)
+
+        self.assertEqual(response.status_code, 200)
