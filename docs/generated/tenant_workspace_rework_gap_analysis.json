@@ -14,7 +14,8 @@
       "Legacy caps were removed from additional Studio-adjacent tenant command pages: School Studio, lifecycle command center, fast path, and provisioning status.",
       "Analytics/report workspaces were converted from container-lg to full-width command workspace surfaces.",
       "Named evidence/report surfaces now override the old --rmc-report-measure cap while focused personal/account forms remain intentionally narrow.",
-      "Fast-path, launch-lane, and provisioning timelines now form responsive wide-screen grids; governed report output receives taller preview space."
+      "Fast-path, launch-lane, and provisioning timelines now form responsive wide-screen grids; governed report output receives taller preview space.",
+      "Tenant/operator headers now use a three-zone tenant contract, a roughly 25% narrower tenant search field, same-line tenant More control, and matching compact More pill treatment on /super/ and /admin/ operator surfaces."
     ]
   },
   "surfaces": [
@@ -77,6 +78,12 @@
       "routes": ["scheduled reports", "report templates", "output history", "academic setup evidence", "AI governance", "billing plan", "term publish"],
       "files_changed": ["static/css/tenant-command-workspace.css"],
       "closure": "Named cp-evidence-page surfaces override the old report-measure cap while focused forms remain narrow"
+    },
+    {
+      "family": "Tenant/operator headers",
+      "routes": ["tenant shell", "/super/", "/admin/"],
+      "files_changed": ["static/css/rmc-tenant-header-100x.css", "static/css/rmc-cp-header-200x.css", "templates/components/rmc_operator_workspace_dropdown.html"],
+      "closure": "Tenant header rebalanced to brand / centered nav / compact search-actions zones; tenant search reduced about 25%; tenant, super, and admin More controls share the same compact pill grammar"
     }
   ],
   "validation": {

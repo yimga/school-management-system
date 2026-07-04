@@ -3,7 +3,7 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="dropdown rmc-operator-workspace-dropdown" data-rmc-operator-workspace-dropdown data-rmc-shell-viewport-safe="1">
   <button type="button"
-          class="btn btn-sm btn-outline-light dropdown-toggle rmc-platform-header__chip d-inline-flex align-items-center gap-1"
+          class="btn btn-sm btn-outline-light dropdown-toggle rmc-platform-header__chip rmc-platform-header__more-chip d-inline-flex align-items-center gap-1"
           id="rmcWorkspaceDropdown"
           data-bs-toggle="dropdown"
           data-bs-auto-close="outside"
@@ -12,9 +12,9 @@
           data-bs-offset="0,8"
           aria-expanded="false"
           aria-haspopup="true"
-          aria-label="{% trans 'Switch workspace' %}">
-    <i class="bi bi-layers" aria-hidden="true"></i>
-    <span class="d-none d-md-inline">{% trans "Workspace" %}</span>
+          aria-label="{% trans 'More operator options' %}">
+    <span aria-hidden="true">...</span>
+    <span class="d-none d-md-inline">{% trans "More" %}</span>
   </button>
   <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" aria-labelledby="rmcWorkspaceDropdown">
     {% for link in RMC_OPERATOR_SURFACE_SPINE %}

@@ -899,3 +899,69 @@ body.control-plane-shell .cp-header__row--utility .cp-presence__status {
   margin-top: 1px;
 }
 
+/* ============================================================
+   Operator/admin More parity (2026-07-04)
+   ------------------------------------------------------------
+   Match the tenant header's More grammar on both /super/ and
+   /admin/: compact pill, literal ellipsis, same active/hover
+   treatment, and no "workspace" visual language in the header.
+   ============================================================ */
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__more-chip,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__more-chip,
+body.control-plane-shell .cp-header .cp-primary-nav__more-trigger,
+body.admin-manager-shell .cp-header .cp-primary-nav__more-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 72px;
+  height: 32px;
+  padding: 0 13px !important; /* style-allow: operator-more-tenant-parity */
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--cp-chrome-hairline, var(--hairline));
+  background: rgba(255, 255, 255, 0.05); /* off-token-allow: dark-chrome-header-chip */
+  color: var(--cp-chrome-text, var(--text-primary));
+  font-size: 12px !important; /* style-allow: operator-more-tenant-parity */
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__more-chip:hover,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__more-chip:hover,
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__more-chip:focus-visible,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__more-chip:focus-visible,
+body.control-plane-shell .cp-header .cp-primary-nav__more-trigger:hover,
+body.admin-manager-shell .cp-header .cp-primary-nav__more-trigger:hover,
+body.control-plane-shell .cp-header .cp-primary-nav__more-trigger:focus-visible,
+body.admin-manager-shell .cp-header .cp-primary-nav__more-trigger:focus-visible {
+  background: color-mix(in srgb, var(--brand-primary) 16%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 42%, var(--cp-chrome-hairline, var(--hairline)));
+  color: var(--cp-chrome-text, var(--text-primary));
+}
+
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__more-chip::after,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__more-chip::after,
+body.control-plane-shell .cp-header .cp-primary-nav__more-trigger::after,
+body.admin-manager-shell .cp-header .cp-primary-nav__more-trigger::after {
+  margin-left: 0;
+  opacity: 0.75;
+}
+
+body.control-plane-shell .cp-header__row--utility .rmc-operator-workspace-dropdown .dropdown-menu,
+body.admin-manager-shell .cp-header__row--utility .rmc-operator-workspace-dropdown .dropdown-menu {
+  min-width: 240px;
+  padding: 6px;
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--cp-chrome-hairline, var(--hairline));
+  background: var(--surface-elevated, #0e1424);
+  box-shadow: var(--elev-3, 0 18px 50px rgba(0, 0, 0, 0.55));
+}
+
+body.control-plane-shell .cp-header__row--utility .rmc-operator-workspace-dropdown .dropdown-item,
+body.admin-manager-shell .cp-header__row--utility .rmc-operator-workspace-dropdown .dropdown-item {
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+

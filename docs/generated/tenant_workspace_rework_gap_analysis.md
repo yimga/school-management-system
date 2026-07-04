@@ -18,6 +18,7 @@ The touched surfaces were re-audited for horizontal waste after the 100X impleme
 - Narrow-page audit sweep: removed legacy `container` / `container-lg` / inline width caps from additional Studio-adjacent tenant command pages and analytics/report-builder surfaces, while preserving intentionally narrow personal/account forms.
 - Evidence/report surfaces: added a scoped full-width override for named `cp-evidence-page` surfaces so report catalogs, schedules, governance, and audit evidence pages no longer inherit the old `--rmc-report-measure` cap.
 - Command content density: converted fast-path, launch-lane, and provisioning timelines into responsive multi-column grids on wide screens and expanded governed-report output height so new width becomes useful workspace, not stretched text.
+- Tenant/operator header audit: rebalanced the tenant header into brand / centered primary nav / compact search-actions zones, reduced the tenant search width by roughly 25%, kept the tenant `More` control on the same line as Home/Finance/Messages/Analytics, and normalized the `/super/` plus `/admin/` operator More controls to the same compact pill grammar.
 
 ## Closure Matrix
 
@@ -36,6 +37,7 @@ The touched surfaces were re-audited for horizontal waste after the 100X impleme
 | Tenant launch command pages | School Studio, lifecycle command center, fast path, provisioning status | `templates/siteconfig/tenant_studio_hub.html`, `templates/siteconfig/tenant_lifecycle_command_center.html`, `templates/siteconfig/tenant_launch_fast_path.html`, `templates/siteconfig/tenant_provisioning_status.html`, `static/css/tenant-command-workspace.css` | Closed by replacing 48-62rem caps with shared command-workspace markers and responsive wide-screen grids |
 | Analytics/report workspaces | Decision intelligence, decision surfaces, event analytics, governed report builder, saved report detail | `templates/analytics/decision_intelligence_dashboard.html`, `templates/analytics/decision_surface_dashboard.html`, `templates/analytics/event_analytics_dashboard.html`, `templates/analytics/governed_report_builder.html`, `templates/analytics/governed_saved_report_detail.html`, `static/css/tenant-command-workspace.css` | Closed by replacing `container-lg` caps with full-width command workspace surfaces and taller report output canvas |
 | Evidence/report catalogs | Bulk letters, scheduled reports, report templates, output history, academic setup evidence, AI governance, billing plan, tenant report schedules, term publish | `static/css/tenant-command-workspace.css` | Closed by overriding named evidence/report caps without touching focused personal forms |
+| Tenant/operator headers | Tenant shell, `/super/`, `/admin/` manager shell | `static/css/rmc-tenant-header-100x.css`, `static/css/rmc-cp-header-200x.css`, `templates/components/rmc_operator_workspace_dropdown.html` | Closed by shared three-zone tenant header, 25% narrower tenant search, same-line tenant More pill, and operator/admin More pill parity |
 
 ## Validation
 
