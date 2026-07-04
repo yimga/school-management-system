@@ -20,6 +20,15 @@ from apps.schools.super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 logger = logging.getLogger(__name__)
 
 
+def _is_manager_scope(request: HttpRequest) -> bool:
+    kind = getattr(request, "public_host_kind", None)
+    urlconf = getattr(request, "urlconf", None)
+    return (
+        (kind == "manager" or urlconf == "config.manager_urls")
+        and getattr(request, "school", None) is None
+    )
+
+
 @require_super_access_with_host
 def entity_catalog_overview(request: HttpRequest) -> HttpResponse:
     """
@@ -36,18 +45,24 @@ def entity_catalog_overview(request: HttpRequest) -> HttpResponse:
         )
     except CONTROL_PLANE_METRIC_FAILURES as ex:
         logger.debug("entity_catalog_overview: catalog rows unavailable: %s", ex)
-    try:
-        admin_changelist = reverse("admin:metadata_entitycatalogentry_changelist")
-    except NoReverseMatch:
-        admin_changelist = ""
-    try:
-        admin_config_audit = reverse("admin:metadata_configmutationauditlog_changelist")
-    except NoReverseMatch:
-        admin_config_audit = ""
+    admin_changelist = ""
+    admin_config_audit = ""
+    if _is_manager_scope(request):
+        try:
+            admin_changelist = reverse("admin:metadata_entitycatalogentry_changelist")
+        except NoReverseMatch:
+            admin_changelist = ""
+        try:
+            admin_config_audit = reverse("admin:metadata_configmutationauditlog_changelist")
+        except NoReverseMatch:
+            admin_config_audit = ""
     uc = getattr(request, "urlconf", None)
-    try:
-        full_catalog = reverse("super:metadata_catalog", urlconf=uc)
-    except NoReverseMatch:
+    if _is_manager_scope(request):
+        try:
+            full_catalog = reverse("super:metadata_catalog", urlconf=uc)
+        except NoReverseMatch:
+            full_catalog = ""
+    else:
         full_catalog = ""
     if is_control_plane_request(request):
         try:

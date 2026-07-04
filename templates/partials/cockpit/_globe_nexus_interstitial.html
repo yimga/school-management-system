@@ -23,10 +23,12 @@
           <div class="lx-world__nexus-filament-pulse"></div>
         </div>
         <div class="lx-world__nexus-nodes">
+          {% if request.public_host_kind == 'manager' and not request.school %}
           <a class="lx-world__nexus-node lx-world__nexus-node--live" href="{% url 'super:schools_list' %}">
             <span class="lx-world__nexus-node-dot"></span>
             <span class="lx-world__nexus-node-label">{% trans "Directory" %}</span>
           </a>
+          {% endif %}
           <a class="lx-world__nexus-node" href="{% url 'siteconfig:cockpit_configure' %}#cockpit-tenant-experience-policy">
             <span class="lx-world__nexus-node-dot"></span>
             <span class="lx-world__nexus-node-label">{% trans "Experience" %}</span>

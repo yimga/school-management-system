@@ -5,7 +5,11 @@
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
+    {% if request.public_host_kind == 'manager' and not request.school %}
     <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    {% else %}
+    <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Home" %}</a></li>
+    {% endif %}
     {% if metadata_operator_hub_url %}
     <li class="breadcrumb-item"><a href="{{ metadata_operator_hub_url }}">{% trans "Metadata & lineage" %}</a></li>
     {% endif %}
@@ -20,10 +24,10 @@
   {% if metadata_dynamic_fields_url %}
   <a class="btn btn-outline-light" href="{{ metadata_dynamic_fields_url }}">{% trans "Dynamic fields (EAV)" %}</a>
   {% endif %}
-  {% if admin_entity_catalog_url and user.is_superuser %}
+  {% if admin_entity_catalog_url and user.is_superuser and request.public_host_kind == 'manager' and not request.school %}
   <a class="btn btn-outline-secondary" href="{{ admin_entity_catalog_url }}" title="{% trans 'Django admin: row-level catalog CRUD' %}">{% trans "Advanced: Admin entity rows" %}</a>
   {% endif %}
-  {% if admin_config_audit_url and user.is_superuser %}
+  {% if admin_config_audit_url and user.is_superuser and request.public_host_kind == 'manager' and not request.school %}
   <a class="btn btn-outline-secondary" href="{{ admin_config_audit_url }}">{% trans "Advanced: Config audit (admin)" %}</a>
   {% endif %}
 </div>
@@ -77,7 +81,9 @@
           <td class="text-end">—</td>
           <td class="text-end">{{ f.dependencies.all|length }}</td>
           <td>
+            {% if request.public_host_kind == 'manager' and not request.school %}
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:metadata_catalog_field_impact' entity_code=ent.code field_name=f.field_name %}">{% trans "Impact" %}</a>
+            {% endif %}
           </td>
         </tr>
         {% empty %}

@@ -145,13 +145,34 @@ class ControlOutcomeCenterTests(SimpleTestCase):
             self.assertEqual(set(row["criteria"]), required)
             self.assertTrue(row["proofs"])
 
-    def test_tenant_request_still_resolves_super_via_manager_fallback(self):
-        """Outcome registry uses manager urlconf fallback when tenant resolver lacks super: names."""
+    def test_tenant_request_never_resolves_super_via_manager_fallback(self):
+        """Tenant control-center data must not manufacture operator-plane URLs."""
         rf = RequestFactory().get("/")
         rf.urlconf = "config.tenant_urls"
+        rf.public_host_kind = None
+        rf.school = object()
         rf.user = AnonymousUser()
         groups = build_outcome_groups_for_request(rf)
-        self.assertEqual(len(groups), 9)
+        self.assertTrue(groups)
+        for group in groups:
+            for link in group["links"]:
+                self.assertNotIn("/super/", link["url"])
+                self.assertFalse(link["url"].startswith("/admin/"))
+
+        for link in build_feature_control_operator_quick_links(rf):
+            self.assertNotIn("/super/", link["url"])
+            self.assertFalse(link["url"].startswith("/admin/"))
+
+        for link in build_ccc_staging_publish_links_for_request(rf):
+            self.assertNotIn("/super/", link["url"])
+            self.assertFalse(link["url"].startswith("/admin/"))
+
+        for step in build_operator_control_model_for_request(rf):
+            self.assertNotIn("/super/", step["primary"]["url"])
+            self.assertFalse(step["primary"]["url"].startswith("/admin/"))
+            for related in step.get("related") or ():
+                self.assertNotIn("/super/", related["url"])
+                self.assertFalse(related["url"].startswith("/admin/"))
 
     def test_operator_control_model_six_steps_on_manager(self):
         """Phase 3 operator model: all six steps resolve with primary + evidence URLs."""

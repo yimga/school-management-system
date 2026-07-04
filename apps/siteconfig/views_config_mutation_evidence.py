@@ -20,6 +20,15 @@ from apps.schools.super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 logger = logging.getLogger(__name__)
 
 
+def _is_manager_scope(request: HttpRequest) -> bool:
+    kind = getattr(request, "public_host_kind", None)
+    urlconf = getattr(request, "urlconf", None)
+    return (
+        (kind == "manager" or urlconf == "config.manager_urls")
+        and getattr(request, "school", None) is None
+    )
+
+
 @require_super_access_with_host
 def config_mutation_audit_evidence(request: HttpRequest) -> HttpResponse:
     rows: list = []
@@ -44,10 +53,11 @@ def config_mutation_audit_evidence(request: HttpRequest) -> HttpResponse:
     except NoReverseMatch:
         feature_audit = ""
     admin_changelist = ""
-    try:
-        admin_changelist = reverse("admin:metadata_configmutationauditlog_changelist")
-    except NoReverseMatch:
-        pass
+    if _is_manager_scope(request):
+        try:
+            admin_changelist = reverse("admin:metadata_configmutationauditlog_changelist")
+        except NoReverseMatch:
+            pass
     return render(
         request,
         "siteconfig/config_mutation_audit_evidence.html",

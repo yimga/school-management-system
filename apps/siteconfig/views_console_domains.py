@@ -32,6 +32,21 @@ from apps.siteconfig.control_outcome_center import (
 
 logger = logging.getLogger(__name__)
 
+
+def _is_manager_scope(request: HttpRequest | None) -> bool:
+    if request is None:
+        return False
+    kind = getattr(request, "public_host_kind", None)
+    urlconf = getattr(request, "urlconf", None)
+    return (
+        (kind == "manager" or urlconf == "config.manager_urls")
+        and getattr(request, "school", None) is None
+    )
+
+
+def _is_operator_url_name(name: str | None) -> bool:
+    return bool(name and name.startswith(("super:", "admin:")))
+
 # Per-domain actions for 9.5/10: search, preview, diff (compare before apply), audit (change history), rollback (revert where relevant).
 # Use None to hide; reverse() name or path string. Operator-safe: outcomes not jargon.
 CONSOLE_ACTIONS = {
@@ -176,6 +191,8 @@ CONSOLE_DOMAINS = [
 
 def _safe_reverse(name: str, request=None):
     """Resolve URL by name; support admin: namespace. Returns None on NoReverseMatch and logs at debug."""
+    if _is_operator_url_name(name) and not _is_manager_scope(request):
+        return None
     try:
         if name.startswith("admin:"):
             return reverse(name)
@@ -191,6 +208,8 @@ def _build_console_domains_context(request: HttpRequest) -> list[dict[str, Any]]
     for d in CONSOLE_DOMAINS:
         resolved_links = []
         for label, name in d["links"]:
+            if _is_operator_url_name(name) and not _is_manager_scope(request):
+                continue
             try:
                 url = reverse(name)
                 resolved_links.append({"label": label, "url": url})
@@ -210,19 +229,19 @@ def _build_console_domains_context(request: HttpRequest) -> list[dict[str, Any]]
                 "name": d["name"],
                 "outcome": d["outcome"],
                 "resolved_links": resolved_links,
-                "search_url": _safe_reverse(actions.get("search"))
+                "search_url": _safe_reverse(actions.get("search"), request)
                 if actions.get("search")
                 else None,
-                "preview_url": _safe_reverse(actions.get("preview"))
+                "preview_url": _safe_reverse(actions.get("preview"), request)
                 if actions.get("preview")
                 else None,
-                "diff_url": _safe_reverse(actions.get("diff"))
+                "diff_url": _safe_reverse(actions.get("diff"), request)
                 if actions.get("diff")
                 else None,
-                "audit_url": _safe_reverse(actions.get("audit"))
+                "audit_url": _safe_reverse(actions.get("audit"), request)
                 if actions.get("audit")
                 else None,
-                "rollback_url": _safe_reverse(actions.get("rollback"))
+                "rollback_url": _safe_reverse(actions.get("rollback"), request)
                 if actions.get("rollback")
                 else None,
             }
@@ -232,6 +251,8 @@ def _build_console_domains_context(request: HttpRequest) -> list[dict[str, Any]]
 
 def _build_platform_config_context(request: HttpRequest) -> list[dict[str, Any]]:
     """Platform config cards for manager: site settings, regions, plans, feature toggles, AI. Only used on manager."""
+    if not _is_manager_scope(request):
+        return []
     cards = []
     entries = [
         (
@@ -314,6 +335,8 @@ def _build_platform_config_context(request: HttpRequest) -> list[dict[str, Any]]
 
 def _build_operational_links_context(request: HttpRequest) -> list[dict[str, str]]:
     """Operational quick links for manager: schools, incidents, billing, migration."""
+    if not _is_manager_scope(request):
+        return []
     out = []
     for label, url_name in [
         ("Platform operator hub", "super:platform_operator_hub"),
@@ -403,13 +426,19 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
         "ccc_outcome_compact": getattr(request, "public_host_kind", None) != "manager",
         "ccc_onboarding": ccc_onboarding,
     }
-    try:
-        context["super_dashboard_url"] = reverse("super:dashboard")
-    except NoReverseMatch:
-        context["super_dashboard_url"] = None
-    try:
-        context["platform_operator_hub_url"] = reverse("super:platform_operator_hub")
-    except NoReverseMatch:
+    if _is_manager_scope(request):
+        try:
+            context["super_dashboard_url"] = reverse("super:dashboard")
+        except NoReverseMatch:
+            context["super_dashboard_url"] = None
+        try:
+            context["platform_operator_hub_url"] = reverse("super:platform_operator_hub")
+        except NoReverseMatch:
+            context["platform_operator_hub_url"] = None
+    else:
+        context["super_dashboard_url"] = _safe_reverse(
+            "accounts:backend_dashboard", request
+        )
         context["platform_operator_hub_url"] = None
     context["platform_config"] = _build_platform_config_context(request)
     context["operational_links"] = _build_operational_links_context(request)

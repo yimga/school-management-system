@@ -4,7 +4,11 @@
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
+    {% if request.public_host_kind == 'manager' and not request.school %}
     <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    {% else %}
+    <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Home" %}</a></li>
+    {% endif %}
     <li class="breadcrumb-item active" aria-current="page">{% trans "Metadata & lineage" %}</li>
   </ol>
 </nav>
@@ -18,10 +22,10 @@
   {% if full_metadata_catalog_url %}
   <a class="btn btn-outline-light" href="{{ full_metadata_catalog_url }}">{% trans "Full metadata catalog" %}</a>
   {% endif %}
-  {% if user.is_superuser and admin_entity_catalog_url %}
+  {% if user.is_superuser and admin_entity_catalog_url and request.public_host_kind == 'manager' and not request.school %}
   <a class="btn btn-outline-secondary" href="{{ admin_entity_catalog_url }}" title="{% trans 'Django admin: row-level catalog CRUD' %}">{% trans "Advanced: Admin entity rows" %}</a>
   {% endif %}
-  {% if user.is_superuser and admin_config_audit_url %}
+  {% if user.is_superuser and admin_config_audit_url and request.public_host_kind == 'manager' and not request.school %}
   <a class="btn btn-outline-secondary" href="{{ admin_config_audit_url }}">{% trans "Advanced: Config audit (admin)" %}</a>
   {% endif %}
 </div>
@@ -54,7 +58,7 @@
           {% if metadata_dynamic_fields_url %}
           <a class="btn btn-sm btn-outline-light" href="{{ metadata_dynamic_fields_url }}">{% trans "Open dynamic fields" %}</a>
           {% endif %}
-          {% if user.is_superuser and admin_dynamic_definition_url %}
+          {% if user.is_superuser and admin_dynamic_definition_url and request.public_host_kind == 'manager' and not request.school %}
           <a class="btn btn-sm btn-outline-secondary ms-1" href="{{ admin_dynamic_definition_url }}">{% trans "Advanced: Admin CRUD" %}</a>
           {% endif %}
         </div>

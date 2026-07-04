@@ -20,6 +20,15 @@ from apps.schools.super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 logger = logging.getLogger(__name__)
 
 
+def _is_manager_scope(request: HttpRequest) -> bool:
+    kind = getattr(request, "public_host_kind", None)
+    urlconf = getattr(request, "urlconf", None)
+    return (
+        (kind == "manager" or urlconf == "config.manager_urls")
+        and getattr(request, "school", None) is None
+    )
+
+
 @require_super_access_with_host
 def metadata_dynamic_fields_operator(request: HttpRequest) -> HttpResponse:
     context: dict = {}
@@ -53,18 +62,21 @@ def metadata_dynamic_fields_operator(request: HttpRequest) -> HttpResponse:
             context["metadata_operator_hub_url"] = ""
     else:
         context["metadata_operator_hub_url"] = ""
-    try:
-        context["admin_dynamic_definition_url"] = reverse(
-            "admin:metadata_dynamicfielddefinition_changelist"
-        )
-    except NoReverseMatch:
-        context["admin_dynamic_definition_url"] = ""
-    try:
-        context["admin_dynamic_value_url"] = reverse(
-            "admin:metadata_dynamicfieldvalue_changelist"
-        )
-    except NoReverseMatch:
-        context["admin_dynamic_value_url"] = ""
+    context["admin_dynamic_definition_url"] = ""
+    context["admin_dynamic_value_url"] = ""
+    if _is_manager_scope(request):
+        try:
+            context["admin_dynamic_definition_url"] = reverse(
+                "admin:metadata_dynamicfielddefinition_changelist"
+            )
+        except NoReverseMatch:
+            context["admin_dynamic_definition_url"] = ""
+        try:
+            context["admin_dynamic_value_url"] = reverse(
+                "admin:metadata_dynamicfieldvalue_changelist"
+            )
+        except NoReverseMatch:
+            context["admin_dynamic_value_url"] = ""
     return render(
         request,
         "siteconfig/metadata_dynamic_fields_operator.html",

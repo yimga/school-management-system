@@ -327,7 +327,7 @@
           {% if request.user.is_authenticated %}
             {% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
             {% if nav_role == 'TEACHER' %}
-              {% if request.public_host_kind == 'manager' %}
+              {% if request.public_host_kind == 'manager' and not request.school %}
               <li><a class="lx-copilot__shortcut" href="{% url 'accounts:backend_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'My classes' %}</span></a></li>
               {% else %}
               <li><a class="lx-copilot__shortcut" href="{% url 'portal:teacher_dashboard_alias' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'My classes' %}</span></a></li>
@@ -335,14 +335,14 @@
               <li><a class="lx-copilot__shortcut" href="{% url 'evals:teacher_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">▤</span><span>{% trans 'Gradebook' %}</span></a></li>
               <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
             {% elif nav_role == 'PARENT' %}
-              {% if request.public_host_kind == 'manager' %}
+              {% if request.public_host_kind == 'manager' and not request.school %}
               <li><a class="lx-copilot__shortcut" href="{% url 'super:dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'Control plane' %}</span></a></li>
               {% else %}
               <li><a class="lx-copilot__shortcut" href="{% url 'portal:parent_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'My children' %}</span></a></li>
               {% endif %}
               <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
             {% elif nav_role == 'STUDENT' %}
-              {% if request.public_host_kind == 'manager' %}
+              {% if request.public_host_kind == 'manager' and not request.school %}
               <li><a class="lx-copilot__shortcut" href="{% url 'super:dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">▤</span><span>{% trans 'Control plane' %}</span></a></li>
               {% else %}
               <li><a class="lx-copilot__shortcut" href="{% url 'portal:student_portal_grades' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">▤</span><span>{% trans 'My grades' %}</span></a></li>

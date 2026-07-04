@@ -13,6 +13,8 @@ from apps.schools.control_plane import require_super_access_with_host
 
 
 def _rev(request: HttpRequest, name: str, **kwargs) -> str:
+    if name.startswith(("super:", "admin:")) and not _is_manager_scope(request):
+        return ""
     uc = getattr(request, "urlconf", None)
     try:
         if kwargs:
@@ -20,6 +22,15 @@ def _rev(request: HttpRequest, name: str, **kwargs) -> str:
         return reverse(name, urlconf=uc)
     except NoReverseMatch:
         return ""
+
+
+def _is_manager_scope(request: HttpRequest) -> bool:
+    kind = getattr(request, "public_host_kind", None)
+    urlconf = getattr(request, "urlconf", None)
+    return (
+        (kind == "manager" or urlconf == "config.manager_urls")
+        and getattr(request, "school", None) is None
+    )
 
 
 @require_super_access_with_host
@@ -30,24 +41,25 @@ def metadata_operator_hub(request: HttpRequest) -> HttpResponse:
     """
     admin_entity = ""
     admin_config_audit = ""
-    try:
-        admin_entity = reverse("admin:metadata_entitycatalogentry_changelist")
-    except NoReverseMatch:
-        pass
-    try:
-        admin_config_audit = reverse("admin:metadata_configmutationauditlog_changelist")
-    except NoReverseMatch:
-        pass
     admin_dynamic_def = ""
     admin_dynamic_val = ""
-    try:
-        admin_dynamic_def = reverse("admin:metadata_dynamicfielddefinition_changelist")
-    except NoReverseMatch:
-        pass
-    try:
-        admin_dynamic_val = reverse("admin:metadata_dynamicfieldvalue_changelist")
-    except NoReverseMatch:
-        pass
+    if _is_manager_scope(request):
+        try:
+            admin_entity = reverse("admin:metadata_entitycatalogentry_changelist")
+        except NoReverseMatch:
+            pass
+        try:
+            admin_config_audit = reverse("admin:metadata_configmutationauditlog_changelist")
+        except NoReverseMatch:
+            pass
+        try:
+            admin_dynamic_def = reverse("admin:metadata_dynamicfielddefinition_changelist")
+        except NoReverseMatch:
+            pass
+        try:
+            admin_dynamic_val = reverse("admin:metadata_dynamicfieldvalue_changelist")
+        except NoReverseMatch:
+            pass
     return render(
         request,
         "siteconfig/metadata_operator_hub.html",

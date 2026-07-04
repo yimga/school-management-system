@@ -21,7 +21,7 @@
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'studio_os:experience' %}">Customizer</a>
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Configuration Control Center" %}</a>
           {% if SUPER_ADMIN_UI_ENABLED %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
-          {% if request.public_host_kind == 'manager' %}
+          {% if request.public_host_kind == 'manager' and not request.school %}
           <a class="btn btn-primary btn-sm" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-1"></i>Schools</a>
           {% endif %}
           {% endif %}{% endif %}
@@ -35,7 +35,7 @@
       </div>
       <div class="rmc-banner border mt-2 mb-0 py-2 px-3 small">
         <strong>{% trans "Capabilities" %}</strong> — {% blocktrans %}grouped by module family below. Each flag is explainable via <strong>Audit log</strong> (who/when); effective state may also depend on runtime, packs, policy, entitlements, and tenant overrides — see Configuration Control Center for the full outcome map.{% endblocktrans %}
-        {% if SUPER_ADMIN_UI_ENABLED and request.public_host_kind == 'manager' %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
+        {% if SUPER_ADMIN_UI_ENABLED and request.public_host_kind == 'manager' and not request.school %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
         {% blocktrans %}To <strong>create a new school/site</strong>, use{% endblocktrans %} <a href="{% url 'super:dashboard' %}">{% trans_term "Schools" key="school" plural=True %}</a> → {% trans "Create School" %} ({% trans "multi-tenant provisioning" %}).
         {% endif %}{% endif %}
       </div>

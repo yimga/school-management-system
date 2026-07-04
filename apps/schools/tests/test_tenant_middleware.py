@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpResponseRedirect
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import Resolver404, resolve
@@ -36,6 +37,27 @@ class TenantSuperPathRedirectBoundaryTests(SimpleTestCase):
         self.assertEqual(response["Location"], "/authentication/backend/")
         self.assertIs(request.school, school)
         self.assertEqual(request.session.get("school_id"), "school-123")
+
+    def test_unresolved_tenant_super_path_fails_closed_without_manager_redirect(self):
+        factory = RequestFactory()
+        request = factory.get("/super/command-center/", HTTP_HOST="tenant-alpha.example.com")
+        request.session = {}
+        reserved = ReservedPublicHostAccessMiddleware(lambda request: None)
+
+        with patch.dict(
+            os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False
+        ), patch("apps.schools.middleware._resolve_school_from_request", return_value=None), patch(
+            "apps.schools.middleware._bind_pending_school_for_tenant_auth",
+            return_value=False,
+        ), patch(
+            "apps.schools.middleware._response_for_unknown_tenant_host",
+            return_value=HttpResponseRedirect("https://example.com/school-not-found/?slug=tenant-alpha"),
+        ):
+            response = reserved.process_request(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("manager.", response["Location"])
+        self.assertIn("/school-not-found/", response["Location"])
 
 
 @override_settings(ALLOWED_HOSTS=["*"])

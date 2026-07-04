@@ -242,7 +242,22 @@ _SCOPE_RANK: dict[str, int] = {
 }
 
 
-def get_actions_for_user(user, school) -> list[CommandAction]:
+def _is_manager_request(request, school) -> bool:
+    if request is None:
+        return True
+    kind = getattr(request, "public_host_kind", None)
+    urlconf = getattr(request, "urlconf", None)
+    return (
+        (kind == "manager" or urlconf == "config.manager_urls")
+        and school is None
+    )
+
+
+def _is_operator_action(action: CommandAction) -> bool:
+    return action.url.startswith(("/super/", "/admin/"))
+
+
+def get_actions_for_user(user, school, request=None) -> list[CommandAction]:
     """Filter the catalog by user scope + tenant context.
 
     * Anonymous users always get an empty list.
@@ -258,6 +273,8 @@ def get_actions_for_user(user, school) -> list[CommandAction]:
     role = (getattr(user, "role", "") or "").upper()
     out: list[CommandAction] = []
     for action in all_registered():
+        if _is_operator_action(action) and not _is_manager_request(request, school):
+            continue
         needed = _SCOPE_RANK.get(action.scope, 99)
         if needed > rank:
             continue
@@ -290,7 +307,7 @@ class CommandBarActionsView(LoginRequiredMixin, View):
 
     def get(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
         school = getattr(request, "school", None)
-        actions = get_actions_for_user(request.user, school)
+        actions = get_actions_for_user(request.user, school, request=request)
         payload = {
             "actions": serialize_actions(actions),
             "count": len(actions),

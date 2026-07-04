@@ -8,7 +8,11 @@
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
+    {% if request.public_host_kind == 'manager' and not request.school %}
     <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    {% else %}
+    <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Home" %}</a></li>
+    {% endif %}
     {% if metadata_operator_hub_url %}
     <li class="breadcrumb-item"><a href="{{ metadata_operator_hub_url }}">{% trans "Metadata & lineage" %}</a></li>
     {% endif %}

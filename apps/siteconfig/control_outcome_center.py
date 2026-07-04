@@ -140,16 +140,35 @@ OPERATOR_SURFACE_MATURITY_PROOFS: dict[str, dict[str, Any]] = {
 LinkTarget = str | tuple[str, dict[str, Any]]
 
 
+def _is_manager_scope(request=None) -> bool:
+    if request is None:
+        return True
+    kind = getattr(request, "public_host_kind", None)
+    urlconf = getattr(request, "urlconf", None)
+    return (
+        (kind == "manager" or urlconf == "config.manager_urls")
+        and getattr(request, "school", None) is None
+    )
+
+
+def _is_operator_route(url_name: str) -> bool:
+    return url_name.startswith(("super:", "admin:"))
+
+
 def _rev(url_name: str, request=None) -> str | None:
     """
-    Resolve URLs for operator surfaces. Prefer the active resolver, then manager
-    urlconf (many ``super:`` names exist only on ``config.manager_urls``).
+    Resolve URLs for control-center surfaces.
+
+    Tenant requests must not manufacture operator URLs from ``config.manager_urls``.
+    Operator-only names are only resolved on the manager host.
     """
+    if _is_operator_route(url_name) and not _is_manager_scope(request):
+        return None
     primary = getattr(request, "urlconf", None) if request is not None else None
     fallbacks: list[str] = []
     if primary:
         fallbacks.append(primary)
-    if "config.manager_urls" not in fallbacks:
+    if _is_manager_scope(request) and "config.manager_urls" not in fallbacks:
         fallbacks.append("config.manager_urls")
     last_exc: Exception | None = None
     for urlconf in fallbacks:
@@ -166,11 +185,13 @@ def _rev_with_kwargs(
     url_name: str, kwargs: dict[str, Any], request=None
 ) -> str | None:
     """Like ``_rev`` but passes ``kwargs`` to ``reverse`` (e.g. ``super:admin_bridge``)."""
+    if _is_operator_route(url_name) and not _is_manager_scope(request):
+        return None
     primary = getattr(request, "urlconf", None) if request is not None else None
     fallbacks: list[str] = []
     if primary:
         fallbacks.append(primary)
-    if "config.manager_urls" not in fallbacks:
+    if _is_manager_scope(request) and "config.manager_urls" not in fallbacks:
         fallbacks.append("config.manager_urls")
     last_exc: Exception | None = None
     for urlconf in fallbacks:
@@ -477,8 +498,8 @@ def validate_operator_surface_maturity_proofs() -> list[str]:
 def build_outcome_groups_for_request(request) -> list[dict[str, Any]]:
     """
     Resolved outcome groups for Configuration Control Center and Control Studio.
-    Omits individual links that do not reverse; uses active ``request.urlconf`` then
-    ``config.manager_urls`` so ``super:`` and manager-only names resolve on tenant hosts too.
+    Omits individual links that do not reverse. Tenant requests never resolve
+    ``super:`` or ``admin:`` destinations through the manager URLconf.
     """
     out: list[dict[str, Any]] = []
     for spec in OUTCOME_GROUP_SPECS:
@@ -555,15 +576,14 @@ def build_feature_control_operator_quick_links(request) -> list[dict[str, Any]]:
     Resolved tool strip for Feature Control and manager config grids.
     Omits ``super:`` targets on non-manager hosts so links are not dead on tenant subdomains.
     """
-    host = getattr(request, "public_host_kind", None)
     out: list[dict[str, Any]] = []
     for label, url_ref, stability in FEATURE_CONTROL_OPERATOR_QUICK_LINKS:
         super_ref = (
-            url_ref.startswith("super:")
+            url_ref.startswith(("super:", "admin:"))
             if isinstance(url_ref, str)
-            else str(url_ref[0]).startswith("super:")
+            else str(url_ref[0]).startswith(("super:", "admin:"))
         )
-        if host not in (None, "manager") and super_ref:
+        if super_ref and not _is_manager_scope(request):
             continue
         if isinstance(url_ref, str):
             url = _rev(url_ref, request)
@@ -610,15 +630,14 @@ def build_ccc_staging_publish_links_for_request(request) -> list[dict[str, Any]]
     Resolved CTAs for publish/staging/rollback on the Configuration Control Center.
     Omits ``super:`` targets on non-manager hosts (mirrors feature-control quick links).
     """
-    host = getattr(request, "public_host_kind", None)
     out: list[dict[str, Any]] = []
     for label, url_ref, stability in CCC_STAGING_PUBLISH_SPECS:
         super_ref = (
-            url_ref.startswith("super:")
+            url_ref.startswith(("super:", "admin:"))
             if isinstance(url_ref, str)
-            else str(url_ref[0]).startswith("super:")
+            else str(url_ref[0]).startswith(("super:", "admin:"))
         )
-        if host not in (None, "manager") and super_ref:
+        if super_ref and not _is_manager_scope(request):
             continue
         if isinstance(url_ref, str):
             url = _rev(url_ref, request)

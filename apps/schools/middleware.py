@@ -700,8 +700,10 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
                 if getattr(request, "session", None) is not None:
                     request.session["school_id"] = str(school.id)
                 return HttpResponseRedirect("/authentication/backend/")
-            forwarded = request.get_full_path()
-            return _redirect_to_manager_host(request, path=forwarded)
+            subdomain = _extract_subdomain(host, _get_base_domain() or None)
+            if _bind_pending_school_for_tenant_auth(request, subdomain):
+                return HttpResponseRedirect("/authentication/backend/")
+            return _response_for_unknown_tenant_host(request, subdomain)
 
         # /t/<slug>/ on base domain: always redirect to canonical subdomain (no path-based serving).
         if _path_starts_with_tenant_prefix(path):

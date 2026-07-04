@@ -123,3 +123,11 @@ class CommandBarRegistryFilterTests(SimpleTestCase):
             self.assertFalse(a.url.startswith("http://"), a.url)
             self.assertFalse(a.url.startswith("https://"), a.url)
             self.assertTrue(a.url.startswith("/"), f"unexpected URL: {a.url}")
+
+    def test_tenant_request_hides_operator_plane_actions_even_for_staff(self):
+        """Staff on a tenant host must not see manager /super/ or /admin/ commands."""
+        staff = _user(is_staff=True)
+        request = SimpleNamespace(public_host_kind=None)
+        for a in get_actions_for_user(staff, _school(), request=request):
+            self.assertFalse(a.url.startswith("/super/"), a.url)
+            self.assertFalse(a.url.startswith("/admin/"), a.url)

@@ -1,6 +1,8 @@
 {% load i18n %}
+{% if request.public_host_kind == 'manager' and not request.school %}
 {% url 'super:command_center' as cp_command_center_url %}
 {% url 'super:dashboard' as cp_super_dashboard_url %}
+{% endif %}
 {% comment %}
 Consolidated operator header — one high-density band (utility + inline ticker + primary nav).
 Replaces the former triple stack: utility row + marquee ticker + canvas primary nav.

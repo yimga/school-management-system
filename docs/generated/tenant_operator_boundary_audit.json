@@ -1,0 +1,31 @@
+{
+  "checks": [
+    {
+      "detail": "tenant-host /super/ must resolve to tenant backend or unknown-tenant handling, never manager redirect",
+      "name": "tenant_super_path_fails_closed",
+      "passed": true
+    },
+    {
+      "detail": "control outcome resolver must not use manager URLconf for tenant operator routes",
+      "name": "outcome_center_operator_routes_manager_only",
+      "passed": true
+    },
+    {
+      "detail": "command palette must hide /super/ and /admin/ actions outside manager scope",
+      "name": "command_palette_filters_operator_actions_by_request",
+      "passed": true
+    },
+    {
+      "detail": "tenant Configuration Control Center must not receive platform/operator links",
+      "name": "configuration_center_hides_operator_links_on_tenant",
+      "passed": true
+    },
+    {
+      "detail": "all audited shared super URL tags are manager-scoped",
+      "name": "tenant_shared_templates_guard_super_urls",
+      "passed": true
+    }
+  ],
+  "findings": [],
+  "status": "PASS"
+}

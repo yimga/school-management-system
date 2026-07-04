@@ -5,7 +5,11 @@
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0">
+    {% if request.public_host_kind == 'manager' and not request.school %}
     <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    {% else %}
+    <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Home" %}</a></li>
+    {% endif %}
     {% if metadata_operator_hub_url %}
     <li class="breadcrumb-item"><a href="{{ metadata_operator_hub_url }}">{% trans "Metadata & lineage" %}</a></li>
     {% endif %}
@@ -19,10 +23,10 @@
   {% if entity_catalog_url %}
   <a class="btn btn-outline-light" href="{{ entity_catalog_url }}">{% trans "Entity catalog" %}</a>
   {% endif %}
-  {% if user.is_superuser and admin_dynamic_definition_url %}
+  {% if user.is_superuser and admin_dynamic_definition_url and request.public_host_kind == 'manager' and not request.school %}
   <a class="btn btn-outline-secondary" href="{{ admin_dynamic_definition_url }}">{% trans "Advanced: Admin field definitions" %}</a>
   {% endif %}
-  {% if user.is_superuser and admin_dynamic_value_url %}
+  {% if user.is_superuser and admin_dynamic_value_url and request.public_host_kind == 'manager' and not request.school %}
   <a class="btn btn-outline-secondary" href="{{ admin_dynamic_value_url }}">{% trans "Advanced: Admin field values" %}</a>
   {% endif %}
 </div>
