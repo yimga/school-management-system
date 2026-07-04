@@ -231,3 +231,119 @@ class AIChatConsumer(AsyncWebsocketConsumer):
             )
         else:
             await self.send(text_data=json.dumps({"reply": text, "meta": meta}))
+
+
+# ── Wave 7.4 follow-up: human support live-chat ──────────────────────────────
+_SUPPORT_CHAT_MAX_CHARS = 4000  # magic-number-allow: support-chat-message-cap-chars
+
+
+def persist_support_chat_message(user, school, body):
+    """Record an inbound live-chat line as a submitter-visible reply on the user's
+    open support ticket (creating one if none is open). Returns (ticket_id,
+    reply_id) as strings. Pure ORM — safe under ``sync_to_async``. The ticket is
+    the same ``GlobalSupportTicket`` the Owner Console Support section surfaces, so
+    a chat and a raised ticket are one record, not two systems.
+    """
+    from apps.siteconfig.models_feature_controls import (
+        GlobalSupportTicket,
+        GlobalSupportTicketReply,
+    )
+
+    open_statuses = [
+        GlobalSupportTicket.Status.OPEN,
+        GlobalSupportTicket.Status.IN_PROGRESS,
+        GlobalSupportTicket.Status.WAITING,
+    ]
+    ticket = (
+        GlobalSupportTicket.objects.filter(
+            school=school, user=user, status__in=open_statuses
+        )
+        .order_by("-created_at")
+        .first()
+    )
+    if ticket is None:
+        ticket = GlobalSupportTicket.objects.create(
+            school=school,
+            user=user,
+            subject="Live chat",
+            status=GlobalSupportTicket.Status.OPEN,
+            metadata={"channel": "live_chat"},
+        )
+    reply = GlobalSupportTicketReply.objects.create(
+        ticket=ticket,
+        author=user,
+        body=body,
+        visibility=GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE,
+    )
+    return str(ticket.pk), str(reply.pk)
+
+
+class SupportChatConsumer(_TenantScopedSyncConsumer):
+    """Human support live-chat over WebSocket (the deferred Wave 7.4 slice).
+
+    Extends the tenant-scoped base, so the channel group is ``support_chat`` keyed
+    on ``(school, user)`` — one customer's chat is private and never reaches another
+    tenant or another user. Each inbound line is persisted as a submitter-visible
+    reply on the user's open support ticket, then best-effort broadcast to the
+    private room so a connected agent console (a later slice) sees it live. It is
+    auth-required + tenant-bound via ``TenantChannelsMiddleware`` (inherited) and
+    fail-soft: a write error returns an error frame, never drops the socket.
+    """
+
+    room_prefix = "support_chat"
+
+    async def receive(self, text_data):
+        try:
+            payload = json.loads(text_data) if text_data else {}
+        except json.JSONDecodeError:
+            await self.send(text_data=json.dumps({"error": "Invalid JSON"}))
+            return
+        message = (payload.get("message") or payload.get("text") or "").strip()
+        if not message:
+            await self.send(text_data=json.dumps({"error": "message required"}))
+            return
+        message = message[:_SUPPORT_CHAT_MAX_CHARS]
+
+        school = self.scope.get("school")
+        if school is None:
+            await self.send(text_data=json.dumps({"error": "no_school"}))
+            return
+
+        from asgiref.sync import sync_to_async
+
+        try:
+            ticket_id, reply_id = await sync_to_async(persist_support_chat_message)(
+                self.user, school, message
+            )
+        except Exception:  # noqa: BLE001 — never drop the socket on a write error
+            await self.send(text_data=json.dumps({"error": "unavailable"}))
+            return
+
+        # Best-effort live fan-out to the private (school, user) room.
+        if getattr(self, "channel_layer", None) and getattr(self, "room_group_name", None):
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "chat.message",
+                    "message": message,
+                    "ticket_id": ticket_id,
+                    "author_id": getattr(self.user, "pk", None),
+                },
+            )
+        await self.send(
+            text_data=json.dumps(
+                {"type": "ack", "ticket_id": ticket_id, "reply_id": reply_id}
+            )
+        )
+
+    async def chat_message(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "chat_message",
+                    "message": event.get("message", ""),
+                    "ticket_id": event.get("ticket_id", ""),
+                    "author_id": event.get("author_id"),
+                }
+            )
+        )
