@@ -1,31 +1,31 @@
 {
   "generated": "2026-07-03",
-  "scope": "Tenant and operator pages with Studio-like nested workspaces, live previews, workflow centers, feature controls, report-card builders, and setup/launch previews.",
+  "scope": "Tenant and operator pages with Studio-like nested workspaces, live previews, workflow centers, feature controls, report-card builders, and setup/launch previews. Final pass reconciled live templates against var/design-previews/tenant-studio-100x-workmode-rework.html.",
   "status": "closed_with_browser_risk",
   "surfaces": [
     {
       "family": "Studio shell",
       "routes": ["/studio/", "/studio/experience/", "/studio/automation/", "/studio/output/", "/studio/launch/", "/studio/control/"],
-      "files_changed": ["static/css/studio-shell-layout.css", "static/css/studio-workspace.css", "templates/studio_os/partials/shell_extrastyle.html"],
-      "closure": "Shared horizontal mode strip and denser workspace contract"
+      "files_changed": ["templates/studio_os/shell.html", "static/css/studio-shell-layout.css", "static/css/studio-workspace.css", "static/css/tenant-command-workspace.css", "templates/studio_os/partials/shell_extrastyle.html"],
+      "closure": "Shared horizontal mode strip, compact 100X command header, and denser workspace contract"
     },
     {
       "family": "Report card builder",
       "routes": ["/siteconfig/reports/builder/"],
       "files_changed": ["templates/siteconfig/partials/reportcard_builder_inner.html", "templates/siteconfig/reportcard_builder.html", "static/css/tenant-command-workspace.css"],
-      "closure": "Command workbench with bounded preview and scrollable builder rail"
+      "closure": "Command workbench with bounded preview, scrollable builder rail, and preview/publish sidecar"
     },
     {
       "family": "Feature controls",
       "routes": ["/siteconfig/features/"],
-      "files_changed": ["templates/siteconfig/feature_control_panel.html", "templates/siteconfig/feature_control_panel_content.html", "static/css/tenant-command-workspace.css"],
-      "closure": "Command contract with impact summary"
+      "files_changed": ["templates/siteconfig/feature_control_panel.html", "templates/siteconfig/feature_control_panel_content.html", "static/css/tenant-command-workspace.css", "static/js/_pages/siteconfig__feature_control_panel_content-1.js"],
+      "closure": "Command contract with persistent impact/rollout sidecar and wired sidecar preview action"
     },
     {
       "family": "Workflow Center",
       "routes": ["/studio/hubs/workflow/", "/accounts/workflow-center/"],
       "files_changed": ["templates/accounts/workflow_center.html", "templates/accounts/workflow_center_embed.html", "templates/accounts/partials/workflow_center_main.html", "static/css/workflow-center.css"],
-      "closure": "Main workbench plus status/navigation side panel"
+      "closure": "Main workbench plus status/navigation side panel; duplicate hero actions and context removed"
     },
     {
       "family": "Role workflow centers",
@@ -48,11 +48,13 @@
   ],
   "validation": {
     "manage_check": "passed",
+    "makemigrations_check_dry_run": "passed_no_changes_detected",
     "compileall": "passed",
+    "django_template_load": "passed_for_studio_workflow_reportcard_feature_control_templates",
     "diff_check": "passed",
     "playwright_available": true,
     "playwright_version": "1.58.2",
-    "local_html_preview": "passed",
+    "local_html_preview": "passed_dom_sections_confirmed",
     "local_route_browser_validation": "blocked_by_err_ssl_protocol_error_on_ports_8000_8001_8020",
     "focused_django_tests": "blocked_by_locked_or_slow_sqlite_test_database"
   },

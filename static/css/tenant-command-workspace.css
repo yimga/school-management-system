@@ -150,6 +150,24 @@
   border-radius: var(--rmc-tcw-radius);
 }
 
+.rmc-studio-command-header {
+  margin-bottom: var(--rmc-tcw-gap);
+}
+
+.reportcard-builder-sidecar,
+.feature-control-sidecar {
+  align-self: start;
+  position: sticky;
+  top: 0.75rem;
+}
+
+.reportcard-builder-sidecar .btn,
+.feature-control-sidecar .btn {
+  justify-content: flex-start;
+  white-space: normal;
+  text-align: left;
+}
+
 .reportcard-builder-root .row.g-3 {
   --bs-gutter-x: var(--rmc-tcw-gap);
   --bs-gutter-y: var(--rmc-tcw-gap);
@@ -185,6 +203,10 @@
 .feature-control-command .feature-control-card {
   box-shadow: none;
   border: 1px solid var(--hairline, var(--bs-border-color)) !important;
+}
+
+.feature-control-command .feature-control-main-panel {
+  overflow: visible;
 }
 
 .feature-control-command .feature-control-header,
@@ -247,6 +269,8 @@
     grid-template-columns: 1fr;
   }
 
+  .reportcard-builder-sidecar,
+  .feature-control-sidecar,
   .workflow-command-layout__side {
     position: static;
   }

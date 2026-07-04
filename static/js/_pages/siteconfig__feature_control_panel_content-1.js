@@ -300,15 +300,18 @@
   const diffModalBody = document.getElementById('diffModalBody');
   const diffModalSave = document.getElementById('diffModalSave');
   const btnPreviewDiff = document.getElementById('btnPreviewDiff');
-  if (btnPreviewDiff && diffModalBody) {
-    btnPreviewDiff.addEventListener('click', function() {
+  const btnPreviewDiffSidecar = document.getElementById('btnPreviewDiffSidecar');
+  function showDiffPreview() {
+    if (diffModalBody) {
       diffModalBody.innerHTML = buildDiffHtml();
       if (typeof bootstrap !== 'undefined' && diffModal) {
         var modal = new bootstrap.Modal(diffModal);
         modal.show();
       }
-    });
+    }
   }
+  if (btnPreviewDiff) btnPreviewDiff.addEventListener('click', showDiffPreview);
+  if (btnPreviewDiffSidecar) btnPreviewDiffSidecar.addEventListener('click', showDiffPreview);
   if (diffModalSave && diffModal) {
     diffModalSave.addEventListener('click', function() {
       if (typeof bootstrap !== 'undefined' && bootstrap.Modal.getInstance(diffModal)) {

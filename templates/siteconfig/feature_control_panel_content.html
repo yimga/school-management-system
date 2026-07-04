@@ -2,6 +2,8 @@
 {% load terminology_tags %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid {% if studio_inline %}py-1 px-0{% else %}py-3{% endif %} professional-page cp-evidence-page feature-control-command" data-rmc-command-workspace="feature-control" data-shell-surface="feature-control-panel" data-cp-evidence-surface="feature-control" data-rmc-operator-evidence-surface="1" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-scroll-policy="paginate">
+  <div class="rmc-command-workbench rmc-command-workbench--side feature-control-workbench">
+    <div class="rmc-command-panel feature-control-main-panel">
   <div class="card shadow-sm border-0 overflow-hidden feature-control-card rmc-command-surface">
     {% if not studio_inline %}
     <div class="card-header feature-control-header bg-light border-bottom py-3 px-4">
@@ -290,6 +292,50 @@
         <strong>Offline sync:</strong> When the server is reachable again, queued data (attendance, grades, entity/API writes) syncs automatically. Users can click <strong>Sync now</strong> in the portal header to sync manually. A reachability check runs before showing "Syncing…". For platform-wide offline and data integrity with concurrent users, see <strong>Offline platform &amp; data integrity</strong> in docs.
       </p>
     </div>
+  </div>
+    </div>
+
+    <aside class="rmc-command-panel feature-control-sidecar" aria-label="{% trans 'Feature impact and rollout' %}" data-rmc-feature-control-sidecar="1">
+      <div class="rmc-command-panel__body">
+        <div class="rmc-command-eyebrow">{% trans "Publish guardrail" %}</div>
+        <h2 class="h6 mb-2">{% trans "Feature impact" %}</h2>
+        <div class="rmc-command-impact-grid">
+          <div class="rmc-command-impact"><small>{% trans "Active" %}</small><strong>{{ active_count }}/{{ total_count }}</strong></div>
+          <div class="rmc-command-impact"><small>{% trans "Preview" %}</small><strong>{% trans "Required" %}</strong></div>
+          <div class="rmc-command-impact"><small>{% trans "Audit" %}</small><strong>{% trans "On" %}</strong></div>
+          <div class="rmc-command-impact"><small>{% trans "Rollback" %}</small><strong>{% if can_revert %}{% trans "Ready" %}{% else %}{% trans "Tracked" %}{% endif %}</strong></div>
+        </div>
+        <p class="small text-muted mb-0 mt-3">{% trans "Before publishing, verify role menus, workflows, dashboards, data capture, offline behavior, and tenant policy boundaries for every changed capability family." %}</p>
+      </div>
+      <div class="rmc-command-panel__body border-top">
+        <h2 class="h6 mb-2">{% trans "Rollout actions" %}</h2>
+        <div class="d-grid gap-2">
+          <button type="button" class="btn btn-sm btn-primary" id="btnPreviewDiffSidecar">
+            <i class="bi bi-eye me-1"></i>{% trans "Preview changes" %}
+          </button>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:feature_control_audit' %}">
+            <i class="bi bi-clock-history me-1"></i>{% trans "Audit log" %}
+          </a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:feature_control_export' %}">
+            <i class="bi bi-download me-1"></i>{% trans "Export evidence" %}
+          </a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:console_domains_hub' %}">
+            <i class="bi bi-sliders me-1"></i>{% trans "Configuration center" %}
+          </a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'studio_os:experience' %}">
+            <i class="bi bi-palette me-1"></i>{% trans "Open customizer" %}
+          </a>
+        </div>
+      </div>
+      <div class="rmc-command-panel__body border-top">
+        <h2 class="h6 mb-2">{% trans "Change safety" %}</h2>
+        <ul class="small text-muted ps-3 mb-0">
+          <li>{% trans "Critical switches require operator confirmation." %}</li>
+          <li>{% trans "Saved changes stay explainable through the audit log." %}</li>
+          <li>{% trans "Import and export remain tenant-scoped evidence flows." %}</li>
+        </ul>
+      </div>
+    </aside>
   </div>
 </div>
 

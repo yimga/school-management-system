@@ -66,6 +66,30 @@
   {% include "studio_os/partials/studio_guidance_panel.html" %}
   {% endif %}
 
+  <section class="rmc-command-surface rmc-command-header rmc-studio-command-header" aria-label="{% trans 'Studio command surface' %}" data-rmc-studio-command-header="1">
+    <div>
+      <div class="small text-muted text-uppercase fw-semibold mb-1">{% trans "Studio command surface" %}</div>
+      <h2 class="h4 mb-0">
+        {% if current_mode %}
+          {% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %} {% trans "workspace" %}
+        {% else %}
+          {% trans "Studio 100X command surface" %}
+        {% endif %}
+      </h2>
+      <p>{% trans "Configure, preview, audit, and publish tenant changes from one compact workspace." %}</p>
+    </div>
+    <div class="rmc-command-actions" aria-label="{% trans 'Studio scope and safety' %}">
+      <span class="rmc-badge rmc-badge--muted">{% trans "Host mode" %}: {{ rmc_shell.shell_data_studio_host|default:"tenant"|title }}</span>
+      {% if current_mode %}
+      <span class="rmc-badge rmc-badge--brand">{% trans "Mode" %}: {% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %}</span>
+      {% else %}
+      <span class="rmc-badge rmc-badge--brand">{% trans "Mode" %}: {% trans "Overview" %}</span>
+      {% endif %}
+      <span class="rmc-badge rmc-badge--info">{% trans "Preview required" %}</span>
+      <span class="rmc-badge rmc-badge--success">{% trans "Audit on" %}</span>
+    </div>
+  </section>
+
   {% comment %} v3.53.0 (2026-05-21): Mission Cockpit chrome wraps the studio-os grid.
      The 3 cockpit partials (signal / canvas / co-pilot rail) are additive —
      legacy .studio-os layout continues to render inside the canvas region. {% endcomment %}

@@ -64,7 +64,7 @@
   </div>
   {% endif %}
 
-  <div class="rmc-command-workbench reportcard-builder-workbench">
+  <div class="rmc-command-workbench rmc-command-workbench--side reportcard-builder-workbench">
     <div class="rmc-command-panel rmc-command-panel--scroll reportcard-builder-controls">
       <div class="card shadow-sm mb-3 ds-card">
         <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -260,6 +260,35 @@
     <div class="rmc-command-panel rmc-command-preview reportcard-builder-preview">
       {% include "siteconfig/partials/mock_reportcard_preview.html" %}
     </div>
+    <aside class="rmc-command-panel reportcard-builder-sidecar" aria-label="{% trans 'Report card preview controls and publish gate' %}">
+      <div class="rmc-command-panel__body">
+        <h2 class="h6 mb-2">{% trans "Preview controls" %}</h2>
+        <div class="d-grid gap-2 mb-3">
+          {% if styles and preview_default_style_slug %}
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:reportcard_style_preview' preview_default_style_slug %}" target="_blank" rel="noopener noreferrer">{% trans "Open HTML preview" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_style_pdf' preview_default_style_slug 'term' %}" target="_blank" rel="noopener noreferrer">{% trans "Open term PDF" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_style_pdf' preview_default_style_slug 'annual' %}" target="_blank" rel="noopener noreferrer">{% trans "Open annual PDF" %}</a>
+          {% else %}
+          <p class="small text-muted mb-0">{% trans "Create or select a report style to enable direct previews." %}</p>
+          {% endif %}
+        </div>
+        <h2 class="h6 mb-2">{% trans "Publish gate" %}</h2>
+        <div class="rmc-command-impact-grid mb-3">
+          <div class="rmc-command-impact"><small>{% trans "Assigned" %}</small><strong>{{ assigned_classroom_count }}/{{ total_classroom_count }}</strong></div>
+          <div class="rmc-command-impact"><small>{% trans "Unassigned" %}</small><strong>{{ unassigned_classroom_count }}</strong></div>
+        </div>
+        {% if unassigned_classroom_count %}
+        <p class="small text-muted mb-2">{% trans "Publishing should wait until classroom assignment coverage and default mappings are complete." %}</p>
+        {% else %}
+        <p class="small text-muted mb-2">{% trans "Assignment coverage is ready. Review the live preview before publishing." %}</p>
+        {% endif %}
+        <div class="d-grid gap-2">
+          {% if scheduled_reports_delivery_hub_url %}<a class="btn btn-sm btn-outline-primary" href="{{ scheduled_reports_delivery_hub_url }}">{% trans "Scheduled delivery" %}</a>{% endif %}
+          {% if report_output_history_evidence_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ report_output_history_evidence_url }}">{% trans "Output history" %}</a>{% endif %}
+          {% if report_templates_catalog_evidence_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ report_templates_catalog_evidence_url }}">{% trans "Templates catalog" %}</a>{% endif %}
+        </div>
+      </div>
+    </aside>
   </div>
 
   <script type="application/json" id="page-data-siteconfig__partials__reportcard_builder_inner-1">{

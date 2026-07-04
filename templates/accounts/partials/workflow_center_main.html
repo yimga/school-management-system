@@ -12,31 +12,12 @@
   <div class="workflow-command-layout">
     <div class="workflow-command-layout__main">
   <section class="workflow-hero mt-3" aria-labelledby="workflow-hero-desc">
-    <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
-        <i class="bi bi-pin-angle me-1"></i>{% trans "Use Dashboard as default view" %}
-      </a>
-      <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">
-        <i class="bi bi-journal-text me-1"></i>{% trans "Help / KB" %}
-      </a>
-    </div>
     <p id="workflow-hero-desc" class="small text-muted mb-0">{% trans "Fits general and technical education worldwide (GCE, BAC, BEPC, CAP, GCSE, A-Level, K–12, etc.); use the steps that match your subsystem—no rigid sequence." %}</p>
-    <div class="mt-2 small text-muted">
-      {% trans "Active year:" %} <strong>{{ active_year.name|default:"—" }}</strong> · {% trans "Active term:" %} <strong>{% firstof active_term.name active_term "—" %}</strong>
-    </div>
     {% if workflow_progress %}
     <div class="workflow-progress-summary">
       <span class="rmc-badge rmc-badge--brand">{{ classroom_pl }}: {{ workflow_progress.classrooms|default:0 }}</span>
       <span class="rmc-badge rmc-badge--success">{{ student_pl }}: {{ workflow_progress.students|default:0 }}</span>
       <span class="rmc-badge rmc-badge--info">{{ teacher_pl }}: {{ workflow_progress.teachers|default:0 }}</span>
-    </div>
-    {% endif %}
-    {% if steps %}
-    <div class="workflow-quick-jump mt-2 pt-2" style="border-top: 1px solid var(--workflow-quick-jump-divider, rgba(168, 160, 146,0.2));">
-      <span class="text-muted me-2">{% trans "Jump to:" %}</span>
-      {% for step in steps %}
-        <a href="#step-{{ step.step_key }}" class="me-2"><i class="bi {{ step.icon|default:'bi-circle' }} me-1"></i>{{ step.title }}</a>
-      {% endfor %}
     </div>
     {% endif %}
   </section>
