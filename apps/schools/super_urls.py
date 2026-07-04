@@ -15,6 +15,7 @@ from apps.orchestration import views as orchestration_views
 from . import super_views
 from apps.portal.views_ai_mode import ai_mode_view as _ai_mode_view
 from . import super_views_subscription_manage
+from . import super_views_support_live
 from . import super_views_beyond_reach
 from . import views_mat_group_hub
 from .control_plane import require_super_access_with_host
@@ -935,6 +936,13 @@ urlpatterns = [
         "support/",
         require_super_access_with_host(super_views.super_support_dashboard),
         name="support_dashboard",
+    ),
+    path(
+        "support/live/",
+        require_super_access_with_host(
+            super_views_support_live.super_support_live_console
+        ),
+        name="support_live_console",
     ),
     path(
         "support/export.csv",

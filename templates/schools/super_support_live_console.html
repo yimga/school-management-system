@@ -1,0 +1,80 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Live support console" %} — {% trans "Support" %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/support-agent-console.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:support_dashboard' %}">{% trans "Support" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Live console" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div id="rmc-sac-root" class="rmc-sac-root" data-ws-path="/ws/support/agent/">
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rmc-sac-queue-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <span class="fw-semibold">{% trans "Active conversations" %}</span>
+          <span class="badge text-bg-secondary" id="rmc-sac-count">{{ live_open_count }}</span>
+        </div>
+        <div class="rmc-sac-queue" id="rmc-sac-queue" role="listbox" aria-label="{% trans 'Active support conversations' %}">
+          {% for t in live_tickets %}
+          <button type="button" class="rmc-sac-queue-item" role="option"
+                  data-ticket-id="{{ t.id }}"
+                  data-subject="{{ t.subject }}"
+                  data-school="{{ t.school_name }}"
+                  data-user="{{ t.user_display }}"
+                  data-status="{{ t.status_label }}">
+            <span class="rmc-sac-qi-top">
+              <span class="rmc-sac-qi-school">{{ t.school_name|default:_("Unknown school") }}</span>
+              {% if t.is_live_chat %}<span class="badge text-bg-success rmc-sac-livebadge">{% trans "Live" %}</span>{% endif %}
+            </span>
+            <span class="rmc-sac-qi-subject">{{ t.subject|default:_("(no subject)") }}</span>
+            <span class="rmc-sac-qi-meta">{{ t.user_display }} · {{ t.status_label }}</span>
+          </button>
+          {% empty %}
+          <div class="rmc-sac-queue-empty text-secondary small">{% trans "No active conversations right now." %}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rmc-sac-chat-card">
+        <div class="card-header rmc-sac-chat-head">
+          <div class="rmc-sac-head-empty text-secondary">{% trans "Select a conversation to begin." %}</div>
+          <div class="rmc-sac-head-active d-none">
+            <div class="fw-semibold" id="rmc-sac-head-subject"></div>
+            <div class="small text-secondary" id="rmc-sac-head-meta"></div>
+          </div>
+          <span class="rmc-sac-conn" id="rmc-sac-conn" data-state="connecting" aria-hidden="true" title="{% trans 'Connection status' %}"></span>
+        </div>
+        <div class="rmc-sac-thread" id="rmc-sac-thread" aria-live="polite" aria-atomic="false"></div>
+        <form class="rmc-sac-composer" id="rmc-sac-composer" autocomplete="off">
+          <label class="visually-hidden" for="rmc-sac-input">{% trans "Reply to the customer" %}</label>
+          <textarea id="rmc-sac-input" class="form-control rmc-sac-input" rows="2" maxlength="4000"
+                    placeholder="{% trans 'Type a reply…' %}" disabled></textarea>
+          <button type="submit" class="btn btn-primary" id="rmc-sac-send" disabled>{% trans "Send" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <p class="small text-secondary mt-2 mb-0">
+    {% trans "Replies are visible to the customer and recorded on their support ticket. Use the ticket detail page for internal notes." %}
+  </p>
+</div>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script src="{% static 'js/support-agent-console.js' %}" defer></script>
+{% endblock %}

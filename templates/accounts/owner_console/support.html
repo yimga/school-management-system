@@ -1,5 +1,8 @@
 {% extends "accounts/owner_console/_console_base.html" %}
-{% load i18n %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/support-live-chat.css' %}">
+{% endblock %}
 {% block oc_pagetitle %}{% trans "Support" %}{% endblock %}
 {% block oc_title %}{% trans "Support" %}{% endblock %}
 {% block oc_sub %}{% trans "Get help, raise a ticket, or search the knowledge base — all in one place." %}{% endblock %}
@@ -22,6 +25,12 @@
   </a>
   {% endif %}
 </div>
+
+<section class="rmc-oc-surface" aria-labelledby="rmc-slc-h">
+  <h2 class="rmc-oc-surf-h" id="rmc-slc-h">{% trans "Live chat with support" %}</h2>
+  <p class="rmc-oc-surf-p">{% trans "Chat with the RunMyCampus support team in real time. Messages are saved to your support ticket." %}</p>
+  {% include "accounts/owner_console/_live_chat_widget.html" %}
+</section>
 
 <div class="rmc-oc-surfaces">
   <section class="rmc-oc-surface">

@@ -1,0 +1,22 @@
+{% load i18n static %}
+{% comment %}
+Owner Console — live support chat widget (Wave 7.4 customer side).
+
+Connects to ws/support/chat/ (SupportChatConsumer), which binds the room to the
+signed-in user's own (school, user) — the client names no room. Messages persist
+to the user's open GlobalSupportTicket and are answered live from the operator
+live console (/super/support/live/). Loaded only where the user is authenticated.
+{% endcomment %}
+<div id="rmc-slc-root" class="rmc-slc" data-ws-path="/ws/support/chat/" data-user-id="{{ request.user.pk }}">
+  <div class="rmc-slc-thread" id="rmc-slc-thread" aria-live="polite" aria-atomic="false">
+    <div class="rmc-slc-empty" id="rmc-slc-empty">{% trans "Start the conversation — send a message and a support agent will reply here." %}</div>
+  </div>
+  <form class="rmc-slc-composer" id="rmc-slc-composer" autocomplete="off">
+    <label class="visually-hidden" for="rmc-slc-input">{% trans "Message support" %}</label>
+    <textarea id="rmc-slc-input" class="rmc-slc-input" rows="1" maxlength="4000"
+              placeholder="{% trans 'Type your message…' %}" disabled></textarea>
+    <button type="submit" class="rmc-oc-btn rmc-oc-btn--primary" id="rmc-slc-send" disabled>{% trans "Send" %}</button>
+  </form>
+  <div class="rmc-slc-status" id="rmc-slc-status" role="status" aria-live="polite"></div>
+</div>
+<script src="{% static 'js/support-live-chat.js' %}" defer></script>

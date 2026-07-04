@@ -328,6 +328,7 @@ class SupportChatConsumer(_TenantScopedSyncConsumer):
                     "message": message,
                     "ticket_id": ticket_id,
                     "author_id": getattr(self.user, "pk", None),
+                    "sender_role": "customer",
                 },
             )
         await self.send(
@@ -344,6 +345,321 @@ class SupportChatConsumer(_TenantScopedSyncConsumer):
                     "message": event.get("message", ""),
                     "ticket_id": event.get("ticket_id", ""),
                     "author_id": event.get("author_id"),
+                    "sender_role": event.get("sender_role", ""),
+                }
+            )
+        )
+
+
+# ── Wave 7.4 follow-up: operator ("agent-side") support live-chat ─────────────
+# The operator half of the support live-chat loop. A platform support agent
+# connects from the manager host, where TenantChannelsMiddleware leaves the scope
+# with school_access_denied=True (no tenant bind) — so this consumer is NOT
+# tenant-room bound like SupportChatConsumer. It is gated on the *operator
+# identity* of the connecting user and joins the private (school, user) room
+# derived from whichever ticket the agent subscribes to. That room name is
+# computed server-side from the DB ticket, never from client input, so an
+# operator can only ever reach a real ticket's room.
+_SUPPORT_AGENT_HISTORY_LIMIT = 40  # magic-number-allow: agent-console-history-frame-cap
+
+
+def support_chat_room_name(school_id, user_id):
+    """The private support-chat channel group for one (school, user).
+
+    Must stay byte-identical to ``tenant_sync_room_name("support_chat", scope)``
+    (apps/schools/channels_tenant_middleware.py) so the operator's broadcast lands
+    in the exact room the customer's ``SupportChatConsumer`` is listening on.
+    Locked by ``test_support_agent_console.test_room_formula_matches_customer``.
+    """
+    return f"support_chat_{school_id}_{user_id}"
+
+
+def agent_console_access(user) -> bool:
+    """True iff ``user`` may operate the live support console.
+
+    Mirrors ``require_platform_scope(PLATFORM_SCOPE_TEAM_READ)`` — control-plane
+    access AND the team.read scope — so the WebSocket gate is exactly the HTTP
+    view gate. Deliberately NOT Django ``is_staff``: tenant staff must never reach
+    an operator surface. Superuser passes. Fail-closed on any import/attribute
+    error (the underlying control-plane helpers already swallow DB errors).
+    """
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    try:
+        from apps.platform_runtime.operator_identity import (
+            PLATFORM_SCOPE_TEAM_READ,
+            user_has_platform_scope,
+        )
+        from apps.schools.control_plane import user_has_control_plane_access
+    except ImportError:
+        return False
+    try:
+        if not user_has_control_plane_access(user):
+            return False
+        return user_has_platform_scope(user, PLATFORM_SCOPE_TEAM_READ)
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
+def persist_support_agent_reply(agent_user, ticket_id, body):
+    """Record an operator's live-chat line as a submitter-visible reply on the
+    customer's ticket, advance SLA / assignment / status, and return the routing
+    fields needed to fan the message out to the customer's private room.
+
+    Returns ``{reply_id, ticket_id, school_id, user_id}`` (strings; ``user_id`` is
+    None for a userless ticket) or None if the ticket no longer exists. Pure ORM —
+    safe under ``sync_to_async``. Does NOT run ``run_support_ticket_reply_hooks``:
+    a live chat line is delivered over the socket, and firing per-line
+    email/webhook notifications would spam the customer. The persisted reply still
+    surfaces on the ticket for offline recall.
+    """
+    from django.utils import timezone
+
+    from apps.siteconfig import support_fsm
+    from apps.siteconfig.models_feature_controls import (
+        GlobalSupportTicket,
+        GlobalSupportTicketReply,
+    )
+
+    ticket = (
+        GlobalSupportTicket.objects.select_related("school", "user")
+        .filter(pk=ticket_id)
+        .first()
+    )
+    if ticket is None:
+        return None
+    reply = GlobalSupportTicketReply.objects.create(
+        ticket=ticket,
+        author=agent_user,
+        body=body,
+        visibility=GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE,
+    )
+    changed = []
+    if ticket.first_response_at is None:
+        ticket.first_response_at = timezone.now()
+        changed.append("first_response_at")
+    if ticket.assigned_to_id is None:
+        ticket.assigned_to = agent_user
+        changed.append("assigned_to")
+    if ticket.status == GlobalSupportTicket.Status.OPEN and support_fsm.can_transition(
+        ticket.status, GlobalSupportTicket.Status.IN_PROGRESS
+    ):
+        ticket.status = GlobalSupportTicket.Status.IN_PROGRESS
+        changed.append("status")
+    if changed:
+        changed.append("updated_at")
+        ticket.save(update_fields=changed)
+    return {
+        "reply_id": str(reply.pk),
+        "ticket_id": str(ticket.pk),
+        "school_id": str(ticket.school_id),
+        "user_id": str(ticket.user_id) if ticket.user_id else None,
+    }
+
+
+def load_support_ticket_for_agent(ticket_id):
+    """Context for the operator console when it subscribes to a ticket.
+
+    Returns ``{ticket_id, school_id, user_id, subject, status, school_name,
+    history[]}`` or None if the ticket is gone. History is the last N
+    submitter-visible lines — the shared customer/agent conversation, oldest
+    first. Internal operator notes are excluded; they live on the ticket detail
+    page, not the live pane. Pure ORM — safe under ``sync_to_async``.
+    """
+    from apps.siteconfig.models_feature_controls import (
+        GlobalSupportTicket,
+        GlobalSupportTicketReply,
+    )
+
+    ticket = (
+        GlobalSupportTicket.objects.select_related("school", "user")
+        .filter(pk=ticket_id)
+        .first()
+    )
+    if ticket is None:
+        return None
+    recent = list(
+        ticket.thread_replies.filter(
+            visibility=GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE
+        ).order_by("-created_at")[:_SUPPORT_AGENT_HISTORY_LIMIT]
+    )
+    recent.reverse()
+    history = [
+        {
+            "body": r.body,
+            "author_id": r.author_id,
+            "created_at": r.created_at.isoformat(),
+            "sender_role": (
+                "customer"
+                if (r.author_id and r.author_id == ticket.user_id)
+                else "agent"
+            ),
+        }
+        for r in recent
+    ]
+    return {
+        "ticket_id": str(ticket.pk),
+        "school_id": str(ticket.school_id),
+        "user_id": str(ticket.user_id) if ticket.user_id else None,
+        "subject": ticket.subject,
+        "status": ticket.status,
+        "school_name": getattr(ticket.school, "name", "") or "",
+        "history": history,
+    }
+
+
+class SupportAgentConsumer(AsyncWebsocketConsumer):
+    """Operator-side live support chat (the /super/ half of the loop).
+
+    Not tenant-room bound (see the module note above): gated on operator identity,
+    joins the private room derived from whichever ticket the agent subscribes to,
+    and posts submitter-visible replies that fan out to the customer's
+    ``SupportChatConsumer``. Auth + operator-gated on connect; fail-soft on every
+    write; message capped at ``_SUPPORT_CHAT_MAX_CHARS``.
+    """
+
+    async def connect(self):
+        self.user = self.scope.get("user")
+        self.subscribed_room = None
+        self.subscribed_ticket_id = None
+        if not self.user or not getattr(self.user, "is_authenticated", False):
+            await self.close(code=4401)  # magic-number-allow: websocket-close-code-unauthorized
+            return
+        from asgiref.sync import sync_to_async
+
+        try:
+            allowed = await sync_to_async(agent_console_access)(self.user)
+        except (AttributeError, TypeError, ValueError):
+            allowed = False
+        if not allowed:
+            await self.close(code=4403)  # magic-number-allow: websocket-close-code-forbidden
+            return
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if getattr(self, "channel_layer", None) and getattr(
+            self, "subscribed_room", None
+        ):
+            await self.channel_layer.group_discard(
+                self.subscribed_room, self.channel_name
+            )
+
+    async def receive(self, text_data):
+        try:
+            payload = json.loads(text_data) if text_data else {}
+        except json.JSONDecodeError:
+            await self.send(text_data=json.dumps({"error": "Invalid JSON"}))
+            return
+        if not isinstance(payload, dict):
+            await self.send(text_data=json.dumps({"error": "bad_payload"}))
+            return
+        action = (payload.get("action") or "").strip().lower()
+        ticket_id = (payload.get("ticket_id") or "").strip()
+        if action == "subscribe":
+            await self._handle_subscribe(ticket_id)
+        elif action == "message":
+            message = payload.get("message") or payload.get("text") or ""
+            await self._handle_message(ticket_id, message)
+        else:
+            await self.send(text_data=json.dumps({"error": "unknown_action"}))
+
+    async def _handle_subscribe(self, ticket_id):
+        if not ticket_id:
+            await self.send(text_data=json.dumps({"error": "ticket_required"}))
+            return
+        from asgiref.sync import sync_to_async
+
+        try:
+            info = await sync_to_async(load_support_ticket_for_agent)(ticket_id)
+        except Exception:  # noqa: BLE001 — never drop the socket on a read error
+            await self.send(text_data=json.dumps({"error": "unavailable"}))
+            return
+        if info is None:
+            await self.send(text_data=json.dumps({"error": "not_found"}))
+            return
+        # Re-key the subscription to this ticket's private room.
+        channel_layer = getattr(self, "channel_layer", None)
+        if channel_layer is not None and self.subscribed_room:
+            await channel_layer.group_discard(self.subscribed_room, self.channel_name)
+        self.subscribed_room = None
+        self.subscribed_ticket_id = info["ticket_id"]
+        if info["user_id"] and channel_layer is not None:
+            room = support_chat_room_name(info["school_id"], info["user_id"])
+            await channel_layer.group_add(room, self.channel_name)
+            self.subscribed_room = room
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "subscribed",
+                    "ticket_id": info["ticket_id"],
+                    "subject": info["subject"],
+                    "status": info["status"],
+                    "school_name": info["school_name"],
+                    "live": bool(self.subscribed_room),
+                    "history": info["history"],
+                }
+            )
+        )
+
+    async def _handle_message(self, ticket_id, raw_message):
+        message = (raw_message or "").strip()
+        if not message:
+            await self.send(text_data=json.dumps({"error": "message required"}))
+            return
+        if not ticket_id:
+            await self.send(text_data=json.dumps({"error": "ticket_required"}))
+            return
+        message = message[:_SUPPORT_CHAT_MAX_CHARS]
+
+        from asgiref.sync import sync_to_async
+
+        try:
+            result = await sync_to_async(persist_support_agent_reply)(
+                self.user, ticket_id, message
+            )
+        except Exception:  # noqa: BLE001 — never drop the socket on a write error
+            await self.send(text_data=json.dumps({"error": "unavailable"}))
+            return
+        if result is None:
+            await self.send(text_data=json.dumps({"error": "not_found"}))
+            return
+
+        # Fan out to the customer's private (school, user) room so their
+        # SupportChatConsumer delivers it live. Room derived from the DB ticket.
+        channel_layer = getattr(self, "channel_layer", None)
+        if result["user_id"] and channel_layer is not None:
+            room = support_chat_room_name(result["school_id"], result["user_id"])
+            await channel_layer.group_send(
+                room,
+                {
+                    "type": "chat.message",
+                    "message": message,
+                    "ticket_id": result["ticket_id"],
+                    "author_id": getattr(self.user, "pk", None),
+                    "sender_role": "agent",
+                },
+            )
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "ack",
+                    "ticket_id": result["ticket_id"],
+                    "reply_id": result["reply_id"],
+                }
+            )
+        )
+
+    async def chat_message(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "chat_message",
+                    "message": event.get("message", ""),
+                    "ticket_id": event.get("ticket_id", ""),
+                    "author_id": event.get("author_id"),
+                    "sender_role": event.get("sender_role", ""),
                 }
             )
         )

@@ -14,6 +14,7 @@ try:
             re_path(r"ws/classrooms/$", consumers.ClassroomSyncConsumer.as_asgi()),
             re_path(r"ws/ai/chat/$", consumers.AIChatConsumer.as_asgi()),
             re_path(r"ws/support/chat/$", consumers.SupportChatConsumer.as_asgi()),
+            re_path(r"ws/support/agent/$", consumers.SupportAgentConsumer.as_asgi()),
         ]
     else:
         websocket_urlpatterns = []

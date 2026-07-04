@@ -41,6 +41,7 @@
   {% endif %}
   <div class="d-flex flex-wrap gap-2 mb-3" style="margin-top: -0.5rem;">
     <a href="{% url 'super:command_center' %}" class="btn btn-sm btn-outline-warning">{% trans "Open command center" %}</a>
+    <a href="{% url 'super:support_live_console' %}" class="btn btn-sm btn-outline-primary">{% trans "Live console" %}</a>
     <a href="{% url 'super:support_tickets_export_csv' %}?status={{ status_filter|urlencode }}&priority={{ priority_filter|urlencode }}" class="btn btn-sm btn-outline-secondary">{% trans "Export CSV" %}</a>
     <a href="{% url 'super:support_csat_dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "CSAT analytics" %}</a>
     <a href="{% url 'super:support_auto_rules_dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Auto-ticket rules" %}</a>
