@@ -7,8 +7,8 @@
 
 :root {
   --rmc-tcw-gap: clamp(0.6rem, 1vw, 0.9rem);
-  --rmc-tcw-rail: clamp(18rem, 25vw, 25rem);
-  --rmc-tcw-side: clamp(15rem, 18vw, 20rem);
+  --rmc-tcw-rail: clamp(16rem, 20vw, 22rem);
+  --rmc-tcw-side: clamp(13.5rem, 15vw, 18rem);
   --rmc-tcw-radius: var(--radius-lg, 14px);
 }
 
@@ -79,14 +79,14 @@
 
 .rmc-command-workbench {
   display: grid;
-  grid-template-columns: minmax(min(100%, var(--rmc-tcw-rail)), 0.36fr) minmax(0, 1fr);
+  grid-template-columns: minmax(min(100%, 16rem), var(--rmc-tcw-rail)) minmax(0, 1fr);
   gap: var(--rmc-tcw-gap);
   align-items: stretch;
   min-width: 0;
 }
 
 .rmc-command-workbench--side {
-  grid-template-columns: minmax(min(100%, var(--rmc-tcw-rail)), 0.32fr) minmax(0, 1fr) minmax(14rem, var(--rmc-tcw-side));
+  grid-template-columns: minmax(min(100%, 16rem), var(--rmc-tcw-rail)) minmax(0, 1fr) minmax(13.5rem, var(--rmc-tcw-side));
 }
 
 .rmc-command-panel {
@@ -245,7 +245,7 @@
 
 .workflow-command-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(15rem, var(--rmc-tcw-side));
+  grid-template-columns: minmax(0, 1fr) minmax(13.5rem, var(--rmc-tcw-side));
   gap: var(--rmc-tcw-gap);
   align-items: start;
 }

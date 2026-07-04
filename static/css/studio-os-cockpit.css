@@ -14,9 +14,9 @@
 
 :root {
   --cockpit-signal-h: 56px;
-  --cockpit-rail-w: 320px;
+  --cockpit-rail-w: clamp(17rem, 18vw, 20rem);
   --cockpit-canvas-min-h: 60vh;
-  --cockpit-gap: 16px;
+  --cockpit-gap: clamp(10px, 0.9vw, 14px);
 }
 
 /* Top-level cockpit grid. Activated by data-rmc-cockpit on the

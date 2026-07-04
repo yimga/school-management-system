@@ -6,6 +6,16 @@ Generated: 2026-07-03
 
 This audit covers tenant/operator pages that use the same rendering pattern as Studio: nested workspaces, local rails, preview panes, feature controls, workflow steps, report-card previews, and launch/setup previews. A second parity pass compared the live templates against the approved `var/design-previews/tenant-studio-100x-workmode-rework.html` design and closed the remaining command-header, sidecar, duplicate-control, and preview-action gaps.
 
+## Screen Real Estate Pass
+
+The touched surfaces were re-audited for horizontal waste after the 100X implementation. Bootstrap container max-widths were already removed from command workspaces, so the remaining work was rail economics: keeping navigation/sidecar panels useful while giving the primary canvas, previews, and grids the extra width first.
+
+- Studio shell: reduced outer gutter, narrowed the right impact rail ceiling, and tightened canvas/right padding.
+- Studio work modes: narrowed shared mode rails and context rails so Experience, Automation, Outputs, Launch, and Control reserve more width for the active canvas.
+- Studio cockpit: replaced fixed 320px co-pilot rail and fixed 16px gap with responsive clamps.
+- Report Card Builder and Feature Controls: narrowed shared control/sidecar rails while preserving sticky side actions.
+- Workflow Center: narrowed the side rail and reduced workflow-card minimum width so more cards fit per row on large screens.
+
 ## Closure Matrix
 
 | Surface family | Representative routes | Files changed | Status |

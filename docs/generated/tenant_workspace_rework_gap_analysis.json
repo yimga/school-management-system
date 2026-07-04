@@ -2,6 +2,17 @@
   "generated": "2026-07-03",
   "scope": "Tenant and operator pages with Studio-like nested workspaces, live previews, workflow centers, feature controls, report-card builders, and setup/launch previews. Final pass reconciled live templates against var/design-previews/tenant-studio-100x-workmode-rework.html.",
   "status": "closed_with_browser_risk",
+  "screen_real_estate_pass": {
+    "status": "closed",
+    "finding": "Bootstrap max-width constraints were already removed; remaining waste came from rail and sidecar width ceilings.",
+    "changes": [
+      "Studio shell gutter and right rail ceiling tightened so the canvas receives more width.",
+      "Studio work-mode rail and context widths narrowed across Experience, Automation, Outputs, Launch, and Control.",
+      "Studio cockpit co-pilot rail changed from fixed 320px to responsive clamp and gap tightened.",
+      "Report Card Builder and Feature Control shared command rails narrowed while preserving sticky sidecars.",
+      "Workflow Center side rail narrowed and workflow card minimum width reduced for denser wide-screen rows."
+    ]
+  },
   "surfaces": [
     {
       "family": "Studio shell",

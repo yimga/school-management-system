@@ -4,9 +4,9 @@
  */
 
 .rmc-studio-workspace {
-  --studio-workspace-rail-width: clamp(13rem, 16vw, 17rem);
-  --studio-workspace-rail-min: 12rem;
-  --studio-workspace-context-width: clamp(14rem, 18vw, 20rem);
+  --studio-workspace-rail-width: clamp(12rem, 14vw, 15.5rem);
+  --studio-workspace-rail-min: 11.5rem;
+  --studio-workspace-context-width: clamp(13rem, 16vw, 18rem);
   --studio-workspace-gap: clamp(0.55rem, 1vw, 0.8rem);
   display: grid;
   grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr);
@@ -47,7 +47,7 @@
 }
 
 .rmc-studio-workspace--control {
-  grid-template-columns: minmax(var(--studio-workspace-rail-min), 15rem) minmax(0, 1fr);
+  grid-template-columns: minmax(var(--studio-workspace-rail-min), 14rem) minmax(0, 1fr);
 }
 
 .rmc-studio-workspace--launch,
