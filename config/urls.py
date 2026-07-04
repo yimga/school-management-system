@@ -116,6 +116,8 @@ def admin_host_dispatch(request, remaining: str = ""):
             school = getattr(domain, "school", None)
         if school is not None:
             request.school = school
+        else:
+            return HttpResponseForbidden("Tenant admin requires a resolved tenant.")
     target_urlconf = "config.tenant_urls" if school is not None else "config.manager_urls"
     set_urlconf(target_urlconf)
     request.urlconf = target_urlconf

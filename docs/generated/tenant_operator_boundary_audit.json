@@ -24,8 +24,106 @@
       "detail": "all audited shared super URL tags are manager-scoped",
       "name": "tenant_shared_templates_guard_super_urls",
       "passed": true
+    },
+    {
+      "detail": "tenant host /admin/ must bind tenant_admin_site only",
+      "name": "tenant_urlconf_uses_tenant_admin_site",
+      "passed": true
+    },
+    {
+      "detail": "manager host /admin/ must bind platform_admin_site only",
+      "name": "manager_urlconf_uses_platform_admin_site",
+      "passed": true
+    },
+    {
+      "detail": "root /admin/ dispatcher must not fall into platform admin for unresolved tenant-like hosts",
+      "name": "root_admin_dispatch_unresolved_tenant_fails_closed",
+      "passed": true
+    },
+    {
+      "detail": "tenant and platform admin must use separate AdminSite registries",
+      "name": "admin_registries_are_separate",
+      "passed": true
+    },
+    {
+      "detail": "Studio deep links must not manufacture /super/ or /admin/ URLs unless explicitly manager-scoped",
+      "name": "studio_deep_links_fail_closed_for_operator_namespaces",
+      "passed": true
+    },
+    {
+      "detail": "tenant config backend must be reachable on tenant host through configuration/school/siteconfig surfaces",
+      "name": "tenant_has_distinct_configuration_backend_routes",
+      "passed": true
+    },
+    {
+      "detail": "runtime resolver for tenant /admin/ must use tenant_admin_site",
+      "name": "runtime_tenant_admin_resolves_tenant_site",
+      "passed": true
+    },
+    {
+      "detail": "runtime resolver for manager /admin/ must use platform_admin_site",
+      "name": "runtime_manager_admin_resolves_platform_site",
+      "passed": true
+    },
+    {
+      "detail": "tenant URLconf must not expose super: namespace",
+      "name": "runtime_tenant_urlconf_has_no_super_namespace",
+      "passed": true
+    },
+    {
+      "detail": "manager URLconf must not expose tenant portal namespace",
+      "name": "runtime_manager_urlconf_has_no_tenant_portal_namespace",
+      "passed": true
     }
   ],
+  "closed_gaps": [
+    "Tenant-host /super/ no longer redirects to manager host.",
+    "Tenant Configuration Control Center suppresses operator links.",
+    "Tenant command palette suppresses /super/ and /admin/ actions.",
+    "Shared Studio/siteconfig templates guard operator URL tags by manager scope.",
+    "Root /admin/ dispatcher fails closed for unresolved tenant-like hosts.",
+    "Studio deep links fail closed for super:/admin: unless explicitly manager-scoped.",
+    "Tenant and platform admin sites resolve through distinct URLconfs and registries."
+  ],
   "findings": [],
-  "status": "PASS"
+  "reference_patterns": [
+    {
+      "pattern": "Separate authentication from tenant isolation; enforce tenant-aware authorization at API enforcement points.",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/saas-multitenant-api-access-authorization/introduction.html",
+      "vendor": "AWS"
+    },
+    {
+      "pattern": "Use tenant/org identifiers and metadata-driven runtime separation so each tenant customizes independently.",
+      "url": "https://architect.salesforce.com/docs/architect/fundamentals/guide/platform-multitenant-architecture.html",
+      "vendor": "Salesforce"
+    },
+    {
+      "pattern": "Use explicit access scopes and separate admin/storefront/customer access classes.",
+      "url": "https://shopify.dev/docs/api/usage/access-scopes",
+      "vendor": "Shopify"
+    }
+  ],
+  "status": "PASS",
+  "watch_gaps": [
+    {
+      "area": "PostgreSQL/RLS data-plane proof",
+      "reason": "This command proves route/link/admin separation, not row-level SQL policy behavior.",
+      "status": "UNVERIFIED_BY_THIS_AUDIT"
+    },
+    {
+      "area": "Object storage and media prefixes",
+      "reason": "Needs storage-provider fixture or integration audit to prove tenant prefix isolation.",
+      "status": "UNVERIFIED_BY_THIS_AUDIT"
+    },
+    {
+      "area": "Async jobs and cache tenant context",
+      "reason": "Needs task queue/cache key audit to prove tenant context propagation outside requests.",
+      "status": "UNVERIFIED_BY_THIS_AUDIT"
+    },
+    {
+      "area": "All API serializers/querysets",
+      "reason": "Needs queryset/RLS scanner plus endpoint smoke matrix by tenant membership.",
+      "status": "UNVERIFIED_BY_THIS_AUDIT"
+    }
+  ]
 }

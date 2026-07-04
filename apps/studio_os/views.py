@@ -107,7 +107,7 @@ def _resolve_automation_iframe_src(pane: str, request=None) -> str:
     if key not in mapping:
         return ""
     vn, emb = mapping[key]
-    u = resolve_studio_href(vn, embed=emb) or ""
+    u = resolve_studio_href(vn, embed=emb, request=request) or ""
     if request and u and url_is_cross_origin_request(request, u):
         return ""
     return u
@@ -211,7 +211,7 @@ def _resolve_launch_iframe_src(request, pane: str) -> str:
     vn, emb = mapping[key]
     if host_kind != "manager" and vn.startswith(("super:", "admin:")):
         return ""
-    u = resolve_studio_href(vn, embed=emb) or ""
+    u = resolve_studio_href(vn, embed=emb, request=request) or ""
     if request and u and url_is_cross_origin_request(request, u):
         return ""
     return u
@@ -1177,7 +1177,7 @@ def _resolve_legacy_urls(request):
         ("import_hub", "studio_os:import_hub"),
     ]:
         if name not in legacy or not legacy.get(name):
-            u = studio_resolve_url(url_name)
+            u = studio_resolve_url(url_name, request=request)
             if u:
                 legacy[name] = u
     return legacy
@@ -1193,7 +1193,7 @@ def _studio_rail_append(
 ) -> None:
     from apps.studio_os.deep_links import resolve_studio_href, url_is_cross_origin_request
 
-    u = resolve_studio_href(viewname, embed=embed)
+    u = resolve_studio_href(viewname, embed=embed, request=request)
     if not u:
         return
     item_embed = bool(embed)
@@ -1201,7 +1201,7 @@ def _studio_rail_append(
     if request is not None and url_is_cross_origin_request(request, u):
         external = True
         item_embed = False
-        u = resolve_studio_href(viewname, embed=False) or u
+        u = resolve_studio_href(viewname, embed=False, request=request) or u
     rail.append(
         {"label": label, "url": u, "embed": item_embed, "external": external}
     )

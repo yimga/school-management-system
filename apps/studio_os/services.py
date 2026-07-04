@@ -72,7 +72,7 @@ def get_studio_preview_url(mode: str, request: Any = None) -> str:
     except NoReverseMatch:
         from apps.studio_os.deep_links import studio_resolve_url
 
-        base = studio_resolve_url(name)
+        base = studio_resolve_url(name, request=request)
         if not base:
             return ""
         out = f"{base}?{qs}" if qs else base
@@ -359,7 +359,7 @@ def get_studio_overview_deck(
             except NoReverseMatch:
                 from apps.studio_os.deep_links import studio_resolve_url
 
-                url = studio_resolve_url(url_name) or ""
+                url = studio_resolve_url(url_name, request=request) or ""
         mode_cards.append(
             {
                 "id": mode_id,
@@ -670,7 +670,7 @@ def get_studio_recommendations(request, mode: str | None) -> list[dict[str, Any]
         try:
             return reverse(name)
         except NoReverseMatch:
-            u = studio_resolve_url(name)
+            u = studio_resolve_url(name, request=request)
             return u or None
 
     recs = []
@@ -776,7 +776,7 @@ def get_studio_command_palette_entries(request) -> list[dict[str, Any]]:
         try:
             return reverse(name)
         except NoReverseMatch:
-            return studio_resolve_url(name) or None
+            return studio_resolve_url(name, request=request) or None
 
     entries = []
 
@@ -1610,4 +1610,3 @@ def get_automation_simulation_preview(request: Any) -> dict[str, Any] | None:
     except _STUDIO_SOFT_FAILURES as e:
         logger.warning("get_automation_simulation_preview: %s", e)
         return None
-

@@ -1,7 +1,7 @@
 """
 Resolve Studio / shell links when some URL namespaces exist only on tenant or only on manager.
 STUDIO_APPROVAL_HUB_TENANT_BASE_URL — tenant origin for siteconfig/* from manager.
-MANAGER_PLATFORM_BASE_URL — manager origin for super/* from tenant.
+MANAGER_PLATFORM_BASE_URL — manager origin for explicitly manager-scoped super/* links.
 """
 
 from __future__ import annotations
@@ -113,6 +113,17 @@ def _manager_base() -> str:
     ).strip().rstrip("/")
 
 
+def request_is_manager_scope(request: HttpRequest | None) -> bool:
+    if request is None:
+        return False
+    kind = getattr(request, "public_host_kind", None)
+    urlconf = getattr(request, "urlconf", None)
+    return (
+        (kind == "manager" or urlconf == "config.manager_urls")
+        and getattr(request, "school", None) is None
+    )
+
+
 def url_is_cross_origin_request(request: HttpRequest | None, url: str) -> bool:
     """
     True if url is absolute and its host differs from the current request host.
@@ -137,15 +148,25 @@ def url_is_cross_origin_request(request: HttpRequest | None, url: str) -> bool:
 
 
 def studio_resolve_url(
-    viewname: str, *, args: Any = None, kwargs: Any = None
+    viewname: str,
+    *,
+    args: Any = None,
+    kwargs: Any = None,
+    request: HttpRequest | None = None,
+    allow_operator: bool = False,
 ) -> str:
     """
     Prefer reverse(); then path rules. siteconfig:* uses tenant base when set.
-    super:* / admin:* / marketing_landing use manager base when set.
-    Other paths are returned relative (same origin).
+    super:* / admin:* are manager-only and require an explicit manager scope.
+    Other paths are returned relative (same origin). This helper intentionally
+    fails closed so tenant Studio cannot manufacture operator-plane URLs.
     """
     args = args or ()
     kwargs = kwargs or {}
+    operator_name = viewname.startswith(("super:", "admin:"))
+    operator_allowed = allow_operator or request_is_manager_scope(request)
+    if operator_name and not operator_allowed:
+        return ""
     try:
         return reverse(viewname, args=args, kwargs=kwargs)
     except NoReverseMatch:
@@ -159,7 +180,7 @@ def studio_resolve_url(
             return f"{tb}{path}"
         # Same-origin path when tenant base is unset (normal tenant/manager single-host deploys).
         return path
-    if viewname.startswith("super:") or viewname.startswith("admin:"):
+    if operator_name:
         mb = _manager_base()
         return f"{mb}{path}" if mb else path
     if viewname.startswith(
@@ -180,9 +201,19 @@ def studio_resolve_url(
     return path
 
 
-def resolve_studio_href(viewname: str, *, embed: bool = False) -> str | None:
+def resolve_studio_href(
+    viewname: str,
+    *,
+    embed: bool = False,
+    request: HttpRequest | None = None,
+    allow_operator: bool = False,
+) -> str | None:
     """URL for Studio rails; None if unresolvable. Optional ?embed=1."""
-    u = studio_resolve_url(viewname)
+    u = studio_resolve_url(
+        viewname,
+        request=request,
+        allow_operator=allow_operator,
+    )
     if not u:
         return None
     if embed:

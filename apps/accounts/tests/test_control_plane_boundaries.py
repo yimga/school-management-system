@@ -216,6 +216,23 @@ class TenantAdminAccessBoundaryTests(TestCase):
         self.assertEqual(tenant_admin_site.login_template, "auth/tenant_admin_login.html")
         self.assertEqual(platform_admin_site.login_template, "auth/admin_login.html")
 
+    @override_settings(ALLOWED_HOSTS=["*"], MULTI_TENANT_BASE_DOMAIN="example.com")
+    def test_root_admin_dispatch_fails_closed_for_unresolved_tenant_host(self):
+        from config.urls import admin_host_dispatch
+
+        request = self.factory.get("/admin/", HTTP_HOST="missing.example.com")
+        request.public_host_kind = None
+        request.user = self.tenant_admin = User.objects.create_user(
+            username="unresolved_tenant_admin",
+            password="testpass123",
+            role=User.Role.ADMIN,
+        )
+
+        response = admin_host_dispatch(request)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn(b"resolved tenant", response.content)
+
 
 class TenantConfigurationPermissionDecoratorTests(TestCase):
     def setUp(self):

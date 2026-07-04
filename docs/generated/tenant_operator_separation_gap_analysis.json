@@ -1,0 +1,62 @@
+{
+  "closed_gaps": [
+    "Tenant-host /super/ no longer redirects to manager host.",
+    "Tenant Configuration Control Center suppresses operator links.",
+    "Tenant command palette suppresses /super/ and /admin/ actions.",
+    "Shared Studio/siteconfig templates guard operator URL tags by manager scope.",
+    "Root /admin/ dispatcher fails closed for unresolved tenant-like hosts.",
+    "Studio deep links fail closed for super:/admin: unless explicitly manager-scoped.",
+    "Tenant and platform admin sites resolve through distinct URLconfs and registries."
+  ],
+  "reference_patterns": [
+    {
+      "pattern": "Separate authentication from tenant isolation; enforce tenant-aware authorization at API enforcement points.",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/saas-multitenant-api-access-authorization/introduction.html",
+      "vendor": "AWS"
+    },
+    {
+      "pattern": "Use tenant/org identifiers and metadata-driven runtime separation so each tenant customizes independently.",
+      "url": "https://architect.salesforce.com/docs/architect/fundamentals/guide/platform-multitenant-architecture.html",
+      "vendor": "Salesforce"
+    },
+    {
+      "pattern": "Use explicit access scopes and separate admin/storefront/customer access classes.",
+      "url": "https://shopify.dev/docs/api/usage/access-scopes",
+      "vendor": "Shopify"
+    }
+  ],
+  "rule": "Tenant frontend, tenant configuration backend, and operator control plane are distinct surfaces. Tenant scope must never resolve into operator scope.",
+  "source_files": [
+    "config/tenant_urls.py",
+    "config/manager_urls.py",
+    "config/urls.py",
+    "config/admin.py",
+    "apps/schools/middleware.py",
+    "apps/studio_os/deep_links.py",
+    "apps/siteconfig/control_outcome_center.py",
+    "apps/siteconfig/command_bar_registry.py"
+  ],
+  "status": "PASS",
+  "watch_gaps": [
+    {
+      "area": "PostgreSQL/RLS data-plane proof",
+      "reason": "This command proves route/link/admin separation, not row-level SQL policy behavior.",
+      "status": "UNVERIFIED_BY_THIS_AUDIT"
+    },
+    {
+      "area": "Object storage and media prefixes",
+      "reason": "Needs storage-provider fixture or integration audit to prove tenant prefix isolation.",
+      "status": "UNVERIFIED_BY_THIS_AUDIT"
+    },
+    {
+      "area": "Async jobs and cache tenant context",
+      "reason": "Needs task queue/cache key audit to prove tenant context propagation outside requests.",
+      "status": "UNVERIFIED_BY_THIS_AUDIT"
+    },
+    {
+      "area": "All API serializers/querysets",
+      "reason": "Needs queryset/RLS scanner plus endpoint smoke matrix by tenant membership.",
+      "status": "UNVERIFIED_BY_THIS_AUDIT"
+    }
+  ]
+}

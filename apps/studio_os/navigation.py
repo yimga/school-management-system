@@ -20,7 +20,7 @@ def _studio_rail_append(
     host_kind = getattr(request, "public_host_kind", None) if request is not None else None
     if host_kind != "manager" and viewname.startswith(("super:", "admin:")):
         return
-    u = resolve_studio_href(viewname, embed=embed)
+    u = resolve_studio_href(viewname, embed=embed, request=request)
     if not u:
         return
     item_embed = bool(embed)
@@ -28,7 +28,7 @@ def _studio_rail_append(
     if request is not None and url_is_cross_origin_request(request, u):
         external = True
         item_embed = False
-        u = resolve_studio_href(viewname, embed=False) or u
+        u = resolve_studio_href(viewname, embed=False, request=request) or u
     rail.append(
         {"label": label, "url": u, "embed": item_embed, "external": external}
     )
@@ -53,7 +53,9 @@ def build_control_governance_rail(request) -> list[dict]:
         embed=True,
         request=request,
     )
-    u_audit = resolve_studio_href("siteconfig:feature_control_audit", embed=False)
+    u_audit = resolve_studio_href(
+        "siteconfig:feature_control_audit", embed=False, request=request
+    )
     if u_audit:
         ext_audit = bool(request and url_is_cross_origin_request(request, u_audit))
         control_rail.append(
@@ -175,7 +177,7 @@ def _reverse_mode_base(request, url_name: str) -> str:
     except NoReverseMatch:
         from apps.studio_os.deep_links import studio_resolve_url
 
-        return studio_resolve_url(url_name) or ""
+        return studio_resolve_url(url_name, request=request) or ""
 
 
 def _request_pane(request, default: str = "overview") -> str:

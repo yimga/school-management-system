@@ -26,9 +26,10 @@ class StudioDeepLinksTests(TestCase):
         MANAGER_PLATFORM_BASE_URL="https://manager.example.org",
     )
     @patch("apps.studio_os.deep_links.reverse", side_effect=NoReverseMatch())
-    def test_studio_resolve_super_on_manager_base(self, _mock_rev):
+    def test_studio_resolve_super_requires_explicit_operator_scope(self, _mock_rev):
+        self.assertEqual(studio_resolve_url("super:analytics_overview"), "")
         self.assertEqual(
-            studio_resolve_url("super:analytics_overview"),
+            studio_resolve_url("super:analytics_overview", allow_operator=True),
             "https://manager.example.org/super/analytics/",
         )
 
