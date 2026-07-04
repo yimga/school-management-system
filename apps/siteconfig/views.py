@@ -1016,6 +1016,20 @@ def _resolve_preview_student(request):
     return queryset.first() or _mock_preview_student()
 
 
+def _is_real_student(student) -> bool:
+    """True only for a persisted ``StudentProfile``.
+
+    The report-preview surfaces fall back to ``_mock_preview_student()`` (a
+    ``SimpleNamespace``) when the tenant has no active students yet. That mock is
+    fine for *display* (name / code) but must never reach the DB-querying report
+    context builders — ``term_report_context`` / ``annual_report_context`` filter
+    ``student=<obj>``, and a non-model receiver raises
+    ``TypeError: Field 'id' expected a number``. Gate the real-data path on this so
+    a fresh tenant renders the sample preview instead of 500-ing.
+    """
+    return isinstance(student, StudentProfile) and student.pk is not None
+
+
 def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, student):
     site = get_effective_site_settings(school=getattr(student, "school", None))
     metadata = _build_style_metadata(site)
@@ -1033,7 +1047,7 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
         "SITE": site,
     }
     if report_type == ReportCard.Type.TERM:
-        if year and term:
+        if year and term and _is_real_student(student):
             term_ctx = term_report_context(student, year, term)
             context.update(term_ctx)
             context.update({"year": year, "term": term})
@@ -1097,7 +1111,7 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
     else:
         annual_ctx = (
             annual_report_context(student, year)
-            if year
+            if year and _is_real_student(student)
             else {
                 "term_rows": [],
                 "annual_average": None,
@@ -1132,7 +1146,7 @@ def reportcard_style_preview(request, slug: str):
     student = _resolve_preview_student(request)
     metadata = _build_style_metadata(site)
 
-    if year and term:
+    if year and term and _is_real_student(student):
         base_ctx = term_report_context(student, year, term)
         rows = base_ctx["rows"][:6]
         summary = base_ctx["summary"]
