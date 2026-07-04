@@ -23,7 +23,11 @@
 {% block breadcrumbs %}
 <nav aria-label="{% trans 'Breadcrumb' %}">
   <ol class="breadcrumb mb-0 flex-wrap">
+    {% if request.public_host_kind == 'manager' and not request.school %}
     <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Home" %}</a></li>
+    {% else %}
+    <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Home" %}</a></li>
+    {% endif %}
     <li class="breadcrumb-item active" aria-current="page">{% trans "Studio" %}</li>
   </ol>
 </nav>

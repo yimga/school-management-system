@@ -292,7 +292,7 @@ SiteSettings.cockpit_payload.
         <a class="nav-link nav-pill" href="{% url 'studio_os:experience' %}"><i class="bi bi-palette me-2"></i>{% trans "Customizer" %}</a>
         <a class="nav-link nav-pill" href="{% url 'siteconfig:request_custom_requirement' %}"><i class="bi bi-lightning-charge me-2"></i>{% trans "Request custom requirement" %}</a>
         {% endif %}
-        {% if SUPER_ADMIN_UI_ENABLED and request.public_host_kind == 'manager' %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
+        {% if SUPER_ADMIN_UI_ENABLED and request.public_host_kind == 'manager' and not request.school %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
         <a class="nav-link nav-pill" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-2"></i>{% trans_term "Schools" key="school" plural=True %}</a>
         {% endif %}{% endif %}
         

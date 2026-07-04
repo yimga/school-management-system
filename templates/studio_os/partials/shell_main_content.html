@@ -15,7 +15,7 @@
       {% endif %}
     </h1>
     <div class="d-flex align-items-center gap-2 ms-auto">
-      {% if request.public_host_kind == 'manager' %}
+      {% if request.public_host_kind == 'manager' and not request.school %}
       <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Home — control plane' %}"><i class="bi bi-house-door me-1"></i>{% trans "Home" %}</a>
       {% endif %}
       <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Studio home' %}">

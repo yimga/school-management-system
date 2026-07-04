@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from django.test import SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -138,6 +138,20 @@ class NoPiiInAuditListTests(SimpleTestCase):
             "actor_display", block,
             "shell.html control audit list must render actor_display (PII-safe)",
         )
+
+
+class TenantStudioLinkBoundaryTests(SimpleTestCase):
+    def test_tenant_control_rail_does_not_emit_operator_links(self) -> None:
+        from apps.studio_os.navigation import build_control_governance_rail
+
+        request = RequestFactory().get("/studio/control/")
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+
+        urls = [entry.get("url") or "" for entry in build_control_governance_rail(request)]
+        self.assertTrue(urls)
+        self.assertFalse(any(url.startswith("/super/") for url in urls), urls)
+        self.assertFalse(any("manager.runmycampus.com" in url for url in urls), urls)
 
 
 class NoRoleStringLiteralsTests(SimpleTestCase):

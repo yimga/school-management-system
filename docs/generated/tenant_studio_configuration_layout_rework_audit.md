@@ -90,6 +90,9 @@ Passed:
   - `/siteconfig/reports/builder/`: status 200 with `Report preview evidence`.
 - Manager-host smoke:
   - `/admin/` and `/admin/login/` on `manager.runmycampus.com` route to the existing operator policy and redirect to `/super/` when unauthenticated.
+- Tenant/operator boundary regression proof:
+  - `python manage.py test apps.schools.tests.test_tenant_middleware.TenantSuperPathRedirectBoundaryTests apps.studio_os.tests.test_studio_focus_layout.StudioFocusDedupeTests.test_tenant_studio_focus_sidebar_omits_operator_destinations apps.studio_os.tests.test_studio_os_operator_tenant_boundaries.TenantStudioLinkBoundaryTests --noinput`
+  - Secure Django Client smoke on `tour-analytics.runmycampus.com`: `/super/command-center/` returns `302` to `/authentication/backend/`, never to `manager.runmycampus.com`.
 
 Closed Proof Gaps:
 
@@ -97,6 +100,8 @@ Closed Proof Gaps:
 - Report Card Builder direct tenant proof now passes after applying the pending local migrations.
 - Tenant `/configuration/` no longer routes to the platform configuration center.
 - Tenant `/admin/` no longer redirects to `/authentication/backend/` and no longer renders manager/platform admin labels.
+- Tenant `/super/command-center/` no longer bounces tenant subdomains/custom domains into the operator plane; resolved tenant hosts are kept tenant-local and redirected to the School Command Center.
+- Tenant Studio rails and focus sidebar no longer emit operator-owned `super:*` / manager admin destinations.
 
 Residual Local Test Environment Note:
 

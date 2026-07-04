@@ -35,10 +35,17 @@
   <p class="cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Leave Studio" %}</p>
   <ul class="nav flex-column gap-1">
     <li class="nav-item">
+      {% if request.public_host_kind == 'manager' and not request.school %}
       <a class="nav-link text-white-50 d-flex align-items-center small" href="{% url 'super:dashboard' %}">
         <i class="bi bi-arrow-left-circle me-2" aria-hidden="true"></i>
         <span>{% trans "Full control plane" %}</span>
       </a>
+      {% else %}
+      <a class="nav-link text-white-50 d-flex align-items-center small" href="{% url 'accounts:backend_dashboard' %}">
+        <i class="bi bi-arrow-left-circle me-2" aria-hidden="true"></i>
+        <span>{% trans "School command center" %}</span>
+      </a>
+      {% endif %}
     </li>
   </ul>
 </nav>

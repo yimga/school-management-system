@@ -1,9 +1,10 @@
 import os
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import Resolver404, resolve
 
 from apps.schools.middleware import (
@@ -15,6 +16,26 @@ from apps.schools.middleware import (
     _bind_pending_school_for_tenant_auth,
 )
 from apps.schools.models import School, SchoolDomain
+
+
+@override_settings(ALLOWED_HOSTS=["*"])
+class TenantSuperPathRedirectBoundaryTests(SimpleTestCase):
+    def test_resolved_tenant_super_path_never_redirects_to_manager_host(self):
+        factory = RequestFactory()
+        request = factory.get("/super/command-center/", HTTP_HOST="tenant-alpha.example.com")
+        request.session = {}
+        school = SimpleNamespace(id="school-123")
+        reserved = ReservedPublicHostAccessMiddleware(lambda request: None)
+
+        with patch.dict(
+            os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False
+        ), patch("apps.schools.middleware._resolve_school_from_request", return_value=school):
+            response = reserved.process_request(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/authentication/backend/")
+        self.assertIs(request.school, school)
+        self.assertEqual(request.session.get("school_id"), "school-123")
 
 
 @override_settings(ALLOWED_HOSTS=["*"])

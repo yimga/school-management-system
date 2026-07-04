@@ -197,6 +197,7 @@ def _resolve_launch_iframe_src(request, pane: str) -> str:
     from apps.studio_os.deep_links import resolve_studio_href, url_is_cross_origin_request
 
     key = (pane or "").strip().lower()
+    host_kind = getattr(request, "public_host_kind", None) if request is not None else None
     mapping = {
         "onboarding": ("siteconfig:guided_onboarding", True),
         "create_school": ("super:create_school_wizard", True),
@@ -208,6 +209,8 @@ def _resolve_launch_iframe_src(request, pane: str) -> str:
     if key not in mapping:
         return ""
     vn, emb = mapping[key]
+    if host_kind != "manager" and vn.startswith(("super:", "admin:")):
+        return ""
     u = resolve_studio_href(vn, embed=emb) or ""
     if request and u and url_is_cross_origin_request(request, u):
         return ""
@@ -239,6 +242,7 @@ def studio_system_config_console(request):
         "/"
     )
     links = []
+    allow_manager_links = getattr(request, "public_host_kind", None) == "manager"
 
     def _add_local(label, viewname, embed=False):
         try:
@@ -258,7 +262,7 @@ def studio_system_config_console(request):
             return False
 
     def _add_manager(label, path, hint):
-        if not mgr:
+        if not mgr or not allow_manager_links:
             return
         links.append(
             {

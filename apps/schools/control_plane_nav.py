@@ -1220,6 +1220,8 @@ def build_studio_focus_sidebar(request) -> list[dict]:
     )
 
     urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
+    host_kind = getattr(request, "public_host_kind", None)
+    is_manager_host = host_kind == "manager"
     path = getattr(request, "path", "") or ""
     try:
         from apps.studio_os.navigation import manager_studio_mode_from_path
@@ -1230,6 +1232,8 @@ def build_studio_focus_sidebar(request) -> list[dict]:
 
     items: list[dict] = []
     for nav_item in for_shell(SHELL_STUDIO_FOCUS, ["PROPRIETOR"]):  # role-string-allow: nav-shell-role-filter-argument
+        if not is_manager_host and nav_item.url_name.startswith(("super:", "admin:")):
+            continue
         if nav_item.section == "shortcuts" and active_mode:
             continue  # shortcuts only render when no mode is active
         url = _safe_reverse(nav_item.url_name, urlconf=urlconf)

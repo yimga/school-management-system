@@ -17,6 +17,9 @@ def _studio_rail_append(
 ) -> None:
     from apps.studio_os.deep_links import resolve_studio_href, url_is_cross_origin_request
 
+    host_kind = getattr(request, "public_host_kind", None) if request is not None else None
+    if host_kind != "manager" and viewname.startswith(("super:", "admin:")):
+        return
     u = resolve_studio_href(viewname, embed=embed)
     if not u:
         return

@@ -691,8 +691,15 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
         kind = public_host_kind(host)
         request.public_host_kind = kind
 
-        # Super-admin command center is canonical on manager.<base>.
+        # Super-admin command center is canonical on manager.<base>, but never
+        # bounce tenant subdomains/custom domains into the operator plane.
         if kind is None and path.startswith("/super/"):
+            school = _resolve_school_from_request(request)
+            if school is not None:
+                request.school = school
+                if getattr(request, "session", None) is not None:
+                    request.session["school_id"] = str(school.id)
+                return HttpResponseRedirect("/authentication/backend/")
             forwarded = request.get_full_path()
             return _redirect_to_manager_host(request, path=forwarded)
 

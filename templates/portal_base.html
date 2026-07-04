@@ -206,7 +206,7 @@
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
-    {% if request.public_host_kind == 'manager' %}
+    {% if request.public_host_kind == 'manager' and not request.school %}
     <header class="rmc-app-shell__header" role="banner" data-rmc-shell-header="portal-manager">
       {% include "partials/control_plane_unified_header.html" %}
     </header>
@@ -224,7 +224,7 @@
           <i class="bi bi-list" aria-hidden="true"></i>
         </button>
 
-        {% if request.public_host_kind == 'manager' %}
+        {% if request.public_host_kind == 'manager' and not request.school %}
         {% url 'super:dashboard' as backend_url %}
         {% url 'super:dashboard' as teacher_url %}
         {% url 'super:dashboard' as parent_url %}

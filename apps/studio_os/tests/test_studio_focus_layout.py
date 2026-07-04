@@ -1,7 +1,7 @@
 """Wave 1 — manager Studio focus layout (compact sidebar, reduced chrome)."""
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase, override_settings
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from apps.schools.control_plane_nav import (
@@ -51,6 +51,16 @@ class StudioFocusDedupeTests(TestCase):
         out = _dedupe_studio_focus_items(items)
         self.assertEqual(len(out), 2)
 
+    def test_tenant_studio_focus_sidebar_omits_operator_destinations(self):
+        request = RequestFactory().get("/studio/")
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        items = build_studio_focus_sidebar(request)
+        urls = [it.get("url") or "" for it in items]
+        self.assertTrue(urls)
+        self.assertFalse(any(url.startswith("/super/") for url in urls), urls)
+        self.assertNotIn("Command center", [it.get("label") for it in items])
+
 
 @override_settings(
     ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"]
@@ -79,6 +89,7 @@ class StudioFocusLayoutTests(TestCase):
 
     def test_build_studio_focus_sidebar_has_modes(self):
         request = self.client.get("/studio/").wsgi_request
+        request.public_host_kind = "manager"
         request.urlconf = "config.manager_urls"
         items = build_studio_focus_sidebar(request)
         labels = {it["label"] for it in items}
@@ -91,6 +102,7 @@ class StudioFocusLayoutTests(TestCase):
 
     def test_build_studio_focus_sidebar_control_includes_governance(self):
         request = self.client.get("/studio/control/").wsgi_request
+        request.public_host_kind = "manager"
         request.urlconf = "config.manager_urls"
         items = build_studio_focus_sidebar(request)
         labels = [it["label"] for it in items]
@@ -100,6 +112,7 @@ class StudioFocusLayoutTests(TestCase):
 
     def test_build_studio_focus_sidebar_launch_includes_panes(self):
         request = self.client.get("/studio/launch/?pane=onboarding").wsgi_request
+        request.public_host_kind = "manager"
         request.urlconf = "config.manager_urls"
         items = build_studio_focus_sidebar(request)
         labels = [it["label"] for it in items]
