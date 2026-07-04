@@ -4,29 +4,38 @@
  */
 
 .rmc-studio-workspace {
-  --studio-workspace-rail-width: min(12.5rem, 100%);
-  --studio-workspace-rail-min: 11rem;
-  --studio-workspace-gap: clamp(0.75rem, 2vw, 1rem);
+  --studio-workspace-rail-width: clamp(13rem, 16vw, 17rem);
+  --studio-workspace-rail-min: 12rem;
+  --studio-workspace-context-width: clamp(14rem, 18vw, 20rem);
+  --studio-workspace-gap: clamp(0.55rem, 1vw, 0.8rem);
   display: grid;
   grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr);
   gap: var(--studio-workspace-gap);
-  align-items: start;
+  align-items: stretch;
   width: 100%;
   min-width: 0;
+  min-height: min(72vh, 58rem);
 }
 
 .rmc-studio-workspace__rail {
   width: var(--studio-workspace-rail-width);
   min-width: 0;
+  max-height: min(72vh, 58rem);
+  overflow: auto;
+  scrollbar-width: thin;
 }
 
 .rmc-studio-workspace__main {
   min-width: 0;
+  min-height: 0;
 }
 
 .rmc-studio-workspace__context {
-  width: min(13.5rem, 100%);
+  width: var(--studio-workspace-context-width);
   min-width: 0;
+  max-height: min(72vh, 58rem);
+  overflow: auto;
+  scrollbar-width: thin;
 }
 
 .rmc-studio-workspace--two-col {
@@ -34,11 +43,11 @@
 }
 
 .rmc-studio-workspace--three-col {
-  grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr) min(13.5rem, 100%);
+  grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr) var(--studio-workspace-context-width);
 }
 
 .rmc-studio-workspace--control {
-  grid-template-columns: minmax(var(--studio-workspace-rail-min), 13rem) minmax(0, 1fr);
+  grid-template-columns: minmax(var(--studio-workspace-rail-min), 15rem) minmax(0, 1fr);
 }
 
 .rmc-studio-workspace--launch,
@@ -46,6 +55,21 @@
 .rmc-studio-workspace--output,
 .rmc-studio-workspace--experience {
   grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr);
+}
+
+.rmc-studio-workspace--experience.rmc-studio-workspace--three-col {
+  grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr) var(--studio-workspace-context-width);
+}
+
+.rmc-studio-workspace .studio-os__card {
+  margin-bottom: var(--studio-workspace-gap);
+}
+
+.rmc-studio-workspace [class*="preview"],
+.rmc-studio-workspace iframe,
+.rmc-studio-workspace .rmc-output-iframe-frame {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .rmc-studio-workspace__mobile-tabs {

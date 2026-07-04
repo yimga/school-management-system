@@ -1,0 +1,263 @@
+/*
+ * Tenant command workspace contract.
+ * Shared by Studio-adjacent pages that used to render as stacked cards with
+ * large preview blanks: Workflow Center, report card builder, feature controls,
+ * dashboard/config previews, launch previews, and tenant setup surfaces.
+ */
+
+:root {
+  --rmc-tcw-gap: clamp(0.6rem, 1vw, 0.9rem);
+  --rmc-tcw-rail: clamp(18rem, 25vw, 25rem);
+  --rmc-tcw-side: clamp(15rem, 18vw, 20rem);
+  --rmc-tcw-radius: var(--radius-lg, 14px);
+}
+
+[data-rmc-command-workspace],
+.reportcard-builder-root,
+.feature-control-command,
+#workflow-main {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+[data-rmc-command-workspace] .container,
+[data-rmc-command-workspace] .container-fluid,
+.reportcard-builder-root .container,
+.feature-control-command.container-fluid,
+#workflow-main.container-fluid {
+  max-width: none;
+}
+
+.rmc-command-surface {
+  border: 1px solid var(--hairline, var(--bs-border-color));
+  border-radius: var(--rmc-tcw-radius);
+  background: color-mix(in srgb, var(--surface-elevated, var(--bs-body-bg)) 92%, transparent); /* theme-locked-allow: surface-glass-mix */
+  box-shadow: var(--shadow-sm, 0 8px 28px rgba(15, 23, 42, 0.08));
+  min-width: 0;
+}
+
+.rmc-command-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--rmc-tcw-gap);
+  align-items: center;
+  padding: clamp(0.85rem, 1.4vw, 1.15rem);
+  margin-bottom: var(--rmc-tcw-gap);
+}
+
+.rmc-command-header h1,
+.rmc-command-header h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 1.8vw, 1.75rem);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.rmc-command-header p {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary, var(--bs-secondary-color));
+  max-width: 80ch;
+}
+
+.rmc-command-actions,
+.rmc-command-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.rmc-command-strip {
+  padding: 0.6rem;
+  margin-bottom: var(--rmc-tcw-gap);
+  border: 1px solid var(--hairline, var(--bs-border-color));
+  border-radius: var(--rmc-tcw-radius);
+  background: var(--surface-elevated, var(--bs-body-bg));
+}
+
+.rmc-command-workbench {
+  display: grid;
+  grid-template-columns: minmax(min(100%, var(--rmc-tcw-rail)), 0.36fr) minmax(0, 1fr);
+  gap: var(--rmc-tcw-gap);
+  align-items: stretch;
+  min-width: 0;
+}
+
+.rmc-command-workbench--side {
+  grid-template-columns: minmax(min(100%, var(--rmc-tcw-rail)), 0.32fr) minmax(0, 1fr) minmax(14rem, var(--rmc-tcw-side));
+}
+
+.rmc-command-panel {
+  border: 1px solid var(--hairline, var(--bs-border-color));
+  border-radius: var(--rmc-tcw-radius);
+  background: var(--surface-elevated, var(--bs-body-bg));
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rmc-command-panel__body {
+  padding: clamp(0.85rem, 1.2vw, 1rem);
+}
+
+.rmc-command-panel--scroll {
+  max-height: min(76vh, 64rem);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.rmc-command-preview {
+  min-height: clamp(30rem, 66vh, 54rem);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rmc-command-preview iframe {
+  flex: 1 1 auto;
+  min-height: clamp(28rem, 62vh, 50rem);
+}
+
+.rmc-command-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  gap: 0.5rem;
+}
+
+.rmc-command-impact {
+  border: 1px solid var(--hairline, var(--bs-border-color));
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  background: var(--surface-canvas, var(--bs-tertiary-bg));
+  min-width: 0;
+}
+
+.rmc-command-impact small {
+  display: block;
+  color: var(--text-secondary, var(--bs-secondary-color));
+  font-size: var(--type-size-caption, 0.78rem);
+}
+
+.rmc-command-impact strong {
+  display: block;
+  font-size: clamp(1.1rem, 1.8vw, 1.55rem);
+  line-height: 1.1;
+}
+
+.reportcard-builder-root .card,
+.feature-control-command .card {
+  border-radius: var(--rmc-tcw-radius);
+}
+
+.reportcard-builder-root .row.g-3 {
+  --bs-gutter-x: var(--rmc-tcw-gap);
+  --bs-gutter-y: var(--rmc-tcw-gap);
+}
+
+.reportcard-builder-root .builder-scroll-panel {
+  max-height: min(38vh, 27rem);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.reportcard-builder-root #live-report-preview {
+  height: 100%;
+  min-height: clamp(34rem, 70vh, 58rem);
+}
+
+.reportcard-builder-root #live-report-preview .card-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.reportcard-builder-root .report-preview-shell {
+  flex: 1 1 auto;
+  min-height: clamp(28rem, 58vh, 48rem);
+}
+
+.reportcard-builder-root .report-preview-shell-inner,
+.reportcard-builder-root .report-preview-frame {
+  min-height: clamp(28rem, 58vh, 48rem) !important;
+}
+
+.feature-control-command .feature-control-card {
+  box-shadow: none;
+  border: 1px solid var(--hairline, var(--bs-border-color)) !important;
+}
+
+.feature-control-command .feature-control-header,
+.feature-control-command .card-footer {
+  background: var(--surface-elevated, var(--bs-body-bg)) !important;
+}
+
+.feature-control-command .feature-cat-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 0.35rem;
+  border: 1px solid var(--hairline, var(--bs-border-color));
+  border-radius: var(--rmc-tcw-radius);
+  background: color-mix(in srgb, var(--surface-elevated, var(--bs-body-bg)) 94%, transparent); /* theme-locked-allow: surface-glass-mix */
+  backdrop-filter: blur(12px);
+}
+
+.feature-control-command .feature-categories-stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.65rem;
+}
+
+.feature-control-command .feature-category-card {
+  background: var(--surface-canvas, var(--bs-tertiary-bg)) !important;
+}
+
+.feature-control-command .feature-toggle-row {
+  border-bottom: 1px solid var(--hairline, var(--bs-border-color));
+}
+
+.feature-control-command .feature-toggle-row:last-child {
+  border-bottom: 0;
+}
+
+.workflow-command-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, var(--rmc-tcw-side));
+  gap: var(--rmc-tcw-gap);
+  align-items: start;
+}
+
+.workflow-command-layout__main,
+.workflow-command-layout__side {
+  min-width: 0;
+}
+
+.workflow-command-layout__side {
+  position: sticky;
+  top: 0.75rem;
+  display: grid;
+  gap: var(--rmc-tcw-gap);
+}
+
+@media (max-width: 1199.98px) {
+  .rmc-command-workbench,
+  .rmc-command-workbench--side,
+  .workflow-command-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-command-layout__side {
+    position: static;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .rmc-command-header {
+    grid-template-columns: 1fr;
+  }
+
+  .rmc-command-actions {
+    justify-content: flex-start;
+  }
+}

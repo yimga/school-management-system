@@ -4,6 +4,7 @@
 {% block title %}{% trans "Setup Studio" %}{% endblock %}
 
 {% block studio_embed_extrahead %}
+  <link rel="stylesheet" href="{% static 'css/tenant-command-workspace.css' %}">
   <link rel="stylesheet" href="{% static 'css/setup-studio-onboarding.css' %}">
 {% endblock %}
 
@@ -13,7 +14,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section class="container-fluid py-3 setup-studio-shell" data-page-archetype="setup-studio-embed" data-ux-qa-marker="setup-studio">
+<section class="container-fluid py-3 setup-studio-shell" data-rmc-command-workspace="setup-studio-embed" data-page-archetype="setup-studio-embed" data-ux-qa-marker="setup-studio">
   <div class="setup-studio-panel setup-studio-launch mb-3">
     <div class="setup-studio-eyebrow">
       <i class="bi bi-rocket-takeoff" aria-hidden="true"></i>

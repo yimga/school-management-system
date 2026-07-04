@@ -6,9 +6,11 @@
 {% term "student" plural=True capitalize=True as student_pl %}
 {% term "teacher" plural=True capitalize=True as teacher_pl %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" id="workflow-main">
+<div class="container-fluid py-2" data-rmc-command-workspace="workflow-center" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" id="workflow-main">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
+  <div class="workflow-command-layout">
+    <div class="workflow-command-layout__main">
   <section class="workflow-hero mt-3" aria-labelledby="workflow-hero-desc">
     <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
@@ -84,5 +86,45 @@
         </div>
       </article>
     {% endfor %}
+  </div>
+    </div>
+    <aside class="workflow-command-layout__side" aria-label="{% trans 'Workflow status and navigation' %}">
+      <section class="rmc-command-panel">
+        <div class="rmc-command-panel__body">
+          <h2 class="h6 mb-2">{% trans "Workflow status" %}</h2>
+          <div class="rmc-command-impact-grid">
+            <div class="rmc-command-impact"><small>{{ classroom_pl }}</small><strong>{{ workflow_progress.classrooms|default:0 }}</strong></div>
+            <div class="rmc-command-impact"><small>{{ student_pl }}</small><strong>{{ workflow_progress.students|default:0 }}</strong></div>
+            <div class="rmc-command-impact"><small>{{ teacher_pl }}</small><strong>{{ workflow_progress.teachers|default:0 }}</strong></div>
+          </div>
+          <p class="small text-muted mb-0 mt-2">{% trans "Active year:" %} <strong>{{ active_year.name|default:"-" }}</strong> · {% trans "Active term:" %} <strong>{% firstof active_term.name active_term "-" %}</strong></p>
+        </div>
+      </section>
+      {% if steps %}
+      <section class="rmc-command-panel">
+        <div class="rmc-command-panel__body">
+          <h2 class="h6 mb-2">{% trans "Jump to step" %}</h2>
+          <div class="workflow-quick-jump d-grid gap-2">
+            {% for step in steps %}
+              <a href="#step-{{ step.step_key }}" class="text-decoration-none"><i class="bi {{ step.icon|default:'bi-circle' }} me-1"></i>{{ step.title }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+      {% endif %}
+      <section class="rmc-command-panel">
+        <div class="rmc-command-panel__body">
+          <h2 class="h6 mb-2">{% trans "Next actions" %}</h2>
+          <div class="d-grid gap-2">
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
+              <i class="bi bi-pin-angle me-1"></i>{% trans "Use Dashboard as default" %}
+            </a>
+            <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">
+              <i class="bi bi-journal-text me-1"></i>{% trans "Help / KB" %}
+            </a>
+          </div>
+        </div>
+      </section>
+    </aside>
   </div>
 </div>

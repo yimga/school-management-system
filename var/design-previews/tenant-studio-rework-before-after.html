@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tenant Studio Rework - Before / After</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07101f;
+      --shell: #0b1327;
+      --panel: #111b34;
+      --panel-2: #0d162b;
+      --line: #243250;
+      --line-2: #314260;
+      --text: #edf4ff;
+      --muted: #9ba9c1;
+      --dim: #65738b;
+      --blue: #4b7cff;
+      --cyan: #16c7ff;
+      --green: #28d17c;
+      --gold: #ffbf3d;
+      --red: #ff5b6c;
+      --orange: #ff8a4b;
+      --side: 285px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 18% 10%, rgba(75, 124, 255, .12), transparent 24%), var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+    .topbar {
+      height: 48px;
+      display: grid;
+      grid-template-columns: var(--side) 1fr 360px;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      background: #0b1124;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 4;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+    .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #35b8ff, #ff775c);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.18) inset;
+      font-weight: 900;
+    }
+    .nav { display: flex; align-items: center; gap: 14px; color: #dce7fb; }
+    .nav b { color: var(--text); }
+    .search {
+      height: 28px;
+      border-radius: 999px;
+      background: #121b31;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      min-width: 0;
+    }
+    .right-actions { display: flex; justify-content: end; align-items: center; gap: 10px; color: var(--muted); }
+    .pill {
+      border: 1px solid var(--line);
+      background: #121b31;
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: #dbe7fa;
+      white-space: nowrap;
+    }
+    .frame {
+      display: grid;
+      grid-template-columns: var(--side) minmax(0, 1fr) 42px;
+      min-height: calc(100vh - 48px);
+    }
+    .sidebar {
+      background: #0b1327;
+      border-right: 1px solid var(--line);
+      padding: 10px;
+      overflow: hidden;
+    }
+    .side-head {
+      display: grid;
+      grid-template-columns: 30px 1fr 30px 72px;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .iconbtn {
+      height: 30px;
+      border: 1px solid var(--line);
+      background: #111a2e;
+      color: #dbe7fb;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+    }
+    .filter {
+      height: 30px;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #121b31;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 9px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .nav-label { color: var(--muted); font-size: 12px; text-align: right; }
+    .side-section {
+      border: 1px solid var(--line);
+      background: #0f1830;
+      border-radius: 10px;
+      margin: 8px 0;
+      padding: 10px;
+    }
+    .section-title {
+      color: var(--muted);
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: .08em;
+      margin-bottom: 8px;
+      text-align: center;
+      font-weight: 800;
+    }
+    .side-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      color: #dce7fb;
+      font-size: 12px;
+    }
+    .side-item.active {
+      background: linear-gradient(90deg, #ff665f, #ffc05e);
+      color: #fff;
+      font-weight: 800;
+    }
+    .side-item span:last-child { color: #ff6978; opacity: .85; }
+    .toolrail {
+      background: #090f20;
+      border-left: 1px solid var(--line);
+      padding-top: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .tool {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: #151f39;
+      color: #cfdcff;
+      border: 1px solid var(--line);
+    }
+    .workspace {
+      padding: 16px;
+      overflow: auto;
+      min-width: 0;
+    }
+    .comparison {
+      display: grid;
+      grid-template-columns: minmax(520px, 1fr) minmax(520px, 1.15fr);
+      gap: 18px;
+      align-items: start;
+      min-width: 1080px;
+    }
+    .mock {
+      border: 1px solid var(--line-2);
+      background: rgba(13, 22, 43, .92);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .mock-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #101a32;
+    }
+    .mock-title { font-size: 15px; font-weight: 900; }
+    .badge {
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+      background: #0c1427;
+    }
+    .before-body {
+      padding: 18px 20px 34px;
+      min-height: 1320px;
+      position: relative;
+    }
+    .crumb { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; margin-bottom: 46px; }
+    .legacy-toolbar {
+      height: 42px;
+      display: grid;
+      grid-template-columns: 34px 220px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      background: #0a1224;
+      border: 1px solid var(--line);
+      padding: 0 12px;
+      margin-bottom: 16px;
+    }
+    .assistant {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 145px;
+      margin-bottom: 18px;
+    }
+    .legacy-metrics {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin: -50px 16px 18px;
+      position: relative;
+      z-index: 2;
+    }
+    .mini-card {
+      border: 1px solid var(--line);
+      background: #0f1830;
+      border-radius: 8px;
+      padding: 9px;
+      min-height: 70px;
+    }
+    .mini-card b { display: block; margin-top: 8px; font-size: 20px; }
+    .legacy-grid {
+      display: grid;
+      grid-template-columns: 210px 1fr 240px;
+      min-height: 820px;
+      border: 1px solid var(--line);
+      background: #0b1327;
+    }
+    .legacy-rail, .legacy-right { padding: 18px; background: #0e1730; }
+    .legacy-rail { border-right: 1px solid var(--line); }
+    .legacy-right { border-left: 1px solid var(--line); }
+    .legacy-canvas { padding: 20px; }
+    .mode-list div { padding: 8px 0; color: var(--muted); }
+    .mode-list div.active { color: var(--text); background: #e7eefb; padding: 9px 12px; margin-inline: -18px; }
+    .mode-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .mode-card {
+      min-height: 120px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101a33;
+      padding: 14px;
+    }
+    .large-empty {
+      height: 420px;
+      border-top: 1px solid var(--line);
+      margin-top: 24px;
+      color: var(--dim);
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+    .after-body {
+      padding: 14px;
+      min-height: 1320px;
+    }
+    .after-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 278px;
+      gap: 12px;
+      align-items: start;
+    }
+    .after-main {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
+    .compact-command {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, #111d38, #0c152a);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .compact-command h1 { margin: 0 0 3px; font-size: 18px; }
+    .compact-command p { margin: 0; color: var(--muted); font-size: 12px; }
+    .mode-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .mode-tabs a {
+      text-decoration: none;
+      color: #dce7fb;
+      border: 1px solid var(--line);
+      background: #111b32;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .mode-tabs a.active { background: #eaf1ff; color: #13213d; }
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1.1fr repeat(4, minmax(110px, .7fr));
+      gap: 8px;
+    }
+    .status-card {
+      border: 1px solid var(--line);
+      background: #101a32;
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 72px;
+    }
+    .status-card strong { display: block; font-size: 18px; margin-top: 4px; }
+    .status-card small { color: var(--muted); text-transform: uppercase; font-weight: 800; font-size: 10px; letter-spacing: .08em; }
+    .workbench {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+    .mode-panel, .canvas-panel, .side-panel {
+      border: 1px solid var(--line);
+      background: #0f1830;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .mode-panel h2, .canvas-panel h2, .side-panel h2 { margin: 0 0 10px; font-size: 13px; }
+    .mode-action {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 9px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      color: #dce7fb;
+      margin-bottom: 7px;
+      background: #0b1428;
+    }
+    .mode-action.active {
+      border-color: rgba(75, 124, 255, .8);
+      background: linear-gradient(135deg, rgba(75,124,255,.22), rgba(22,199,255,.08));
+    }
+    .mode-action small { display: block; color: var(--muted); margin-top: 2px; }
+    .next-action {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid rgba(75,124,255,.45);
+      background: #101b36;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .feature {
+      min-height: 118px;
+      border: 1px solid var(--line);
+      background: #101a32;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .feature h3 { margin: 0 0 8px; font-size: 15px; }
+    .feature p { margin: 0 0 12px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .list-card {
+      border: 1px solid var(--line);
+      background: #0b1428;
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 160px;
+    }
+    .list-card div { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.06); color: #dce7fb; }
+    .list-card span { color: var(--muted); }
+    .side-panel {
+      position: sticky;
+      top: 62px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sidebox {
+      border: 1px solid var(--line);
+      background: #0b1428;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .sidebox h3 {
+      margin: 0 0 8px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .sidebox p, .sidebox a { color: #dbe7fb; font-size: 12px; line-height: 1.4; }
+    .sidebox a { display: block; padding: 5px 0; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .audit {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .audit-card {
+      border: 1px solid var(--line);
+      background: #0b1428;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .audit-card b { display: block; margin-bottom: 5px; color: #fff; }
+    .audit-card span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--green);
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .waste {
+      position: absolute;
+      right: 28px;
+      top: 350px;
+      width: 180px;
+      padding: 10px;
+      border: 1px dashed var(--red);
+      border-radius: 10px;
+      color: #ffd4d9;
+      background: rgba(255, 91, 108, .08);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    @media (max-width: 1320px) {
+      .comparison { grid-template-columns: 1fr; min-width: 0; }
+      .topbar { grid-template-columns: var(--side) 1fr; }
+      .right-actions { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="logo">N</div><div>New Test High School<br><span style="color:var(--muted);font-size:11px;">Admin workspace</span></div></div>
+    <nav class="nav"><b>Home</b><span>Finance</span><span>Messages</span><span>Analytics</span><span class="pill">More</span></nav>
+    <div class="right-actions"><div class="search">Search students, teachers, invoices... <b>Ctrl+K</b></div><span class="pill">Console</span><span class="pill">Configure</span></div>
+  </header>
+
+  <div class="frame">
+    <aside class="sidebar">
+      <div class="side-head">
+        <div class="iconbtn">[]</div>
+        <div class="filter">Filter... <b>/</b></div>
+        <div class="iconbtn">⚙</div>
+        <div class="nav-label">Navigation</div>
+      </div>
+      <section class="side-section">
+        <div class="section-title">Frequent</div>
+        <div class="side-item"><b>Workflow Center</b><span>often</span></div>
+        <div class="side-item"><b>Dashboard</b><span>often</span></div>
+        <div class="side-item"><b>Staff Identity</b><span>often</span></div>
+      </section>
+      <section class="side-section">
+        <div class="section-title">Communication</div>
+        <div class="side-item"><b>Messages</b><span>pin</span></div>
+        <div class="side-item active"><b>Message Groups</b><span>pin</span></div>
+        <div class="side-item"><b>School-wide Announcements</b><span>pin</span></div>
+        <div class="side-item"><b>School-wide Announcements</b><span>pin</span></div>
+        <div class="side-item"><b>School-wide Announcements</b><span>pin</span></div>
+      </section>
+      <section class="side-section">
+        <div class="section-title">Support</div>
+        <div class="side-item"><b>Help center</b><span>pin</span></div>
+        <div class="side-item"><b>Tickets</b><span>pin</span></div>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <div class="comparison">
+        <section class="mock">
+          <div class="mock-head">
+            <div class="mock-title">Before - current Tenant Studio rendering</div>
+            <span class="badge">Recognized current shell</span>
+          </div>
+          <div class="before-body">
+            <div class="crumb">HOME / STUDIO</div>
+            <div class="legacy-toolbar">
+              <div class="iconbtn">▦</div>
+              <div class="filter">Search Studio <b>Ctrl K</b></div>
+              <div></div>
+              <b>Studio</b>
+            </div>
+            <div class="assistant">
+              <b>Studio guided assistant</b>
+              <p style="color:var(--muted);line-height:1.5;">Suggests next steps across Studio modes. Questions and guidance take a full row before the real workspace appears.</p>
+              <div class="sidebox" style="margin-top:8px;"><b>Questions answered here</b><br><span style="color:var(--muted);">Where do I start? Will changes go live immediately?</span></div>
+            </div>
+            <div class="legacy-metrics">
+              <div class="mini-card"><small>TENANT</small><b>New...</b></div>
+              <div class="mini-card"><small>FOCUS</small><b>Overview</b></div>
+              <div class="mini-card"><small>PENDING</small><b>3</b></div>
+              <div class="mini-card"><small>DRAFTS</small><b>0</b></div>
+              <div class="mini-card"><small>AUTOMATION</small><b>53</b></div>
+              <div class="mini-card"><small>BLOCKERS</small><b>0</b></div>
+            </div>
+            <div class="legacy-grid">
+              <div class="legacy-rail">
+                <div class="section-title">Work modes</div>
+                <div class="mode-list">
+                  <div class="active">Overview</div>
+                  <div>Experience</div>
+                  <div>Automation</div>
+                  <div>Outputs</div>
+                  <div>Launch</div>
+                  <div>Control</div>
+                </div>
+              </div>
+              <div class="legacy-canvas">
+                <div class="next-action"><div><small>NEXT BEST ACTION</small><h2 style="margin:.3rem 0;">Open Studio</h2><span style="color:var(--muted);">Choose a mode to shape experience, automate, publish, launch, or govern.</span></div><button class="btn" style="background:var(--red);">Open</button></div>
+                <div class="mode-cards">
+                  <div class="mode-card"><h3>Experience</h3><p style="color:var(--muted)">Shape branding, theme, and portals.</p></div>
+                  <div class="mode-card"><h3>Automation</h3><p style="color:var(--muted)">Workflows, approvals, automation.</p></div>
+                  <div class="mode-card"><h3>Outputs</h3><p style="color:var(--muted)">Reports, documents, and exports.</p></div>
+                  <div class="mode-card"><h3>Launch</h3><p style="color:var(--muted)">Setup and go live.</p></div>
+                  <div class="mode-card"><h3>Control</h3><p style="color:var(--muted)">Capabilities, policies, runtime.</p></div>
+                </div>
+                <div class="split">
+                  <div class="list-card"><b>Launch readiness</b><p style="color:var(--muted)">Setup is still early. Focus on blueprint, branding, plan, and roster completion first.</p></div>
+                  <div class="list-card"><b>Recently edited</b><div>Feature control saved <span>2026</span></div><div>Feature control saved <span>2026</span></div></div>
+                </div>
+                <div class="large-empty">Large unused vertical canvas after the main cards</div>
+              </div>
+              <div class="legacy-right">
+                <div class="sidebox"><h3>Preview as</h3><a>Teacher dashboard</a><a>Parent portal</a><a>Finance console</a><a>Student portal</a></div>
+                <div class="sidebox"><h3>Recommended</h3><p>Shape experience, automate, publish, launch, or govern.</p></div>
+                <div class="sidebox"><h3>Recent activity</h3><p>Feature control saved 2026-05-31</p><p>Feature control saved 2026-02-14</p></div>
+                <div class="sidebox"><h3>Impact & publish</h3><p>Studio readiness and next best action repeat the canvas.</p></div>
+              </div>
+            </div>
+            <div class="waste"><b>Audit finding:</b><br>Navigation, assistant, metrics, mode rail, canvas, and right rail are stacked and repeated. The first useful action appears too low, and the center/right reserve space even when content is sparse.</div>
+          </div>
+        </section>
+
+        <section class="mock">
+          <div class="mock-head">
+            <div class="mock-title">After - proposed compact Tenant Studio rework</div>
+            <span class="badge">Approval preview only</span>
+          </div>
+          <div class="after-body">
+            <div class="after-layout">
+              <div class="after-main">
+                <section class="compact-command">
+                  <div>
+                    <h1>Studio</h1>
+                    <p>One workspace for experience, automation, outputs, launch, and control. Guidance is inline, not a full-page blocker.</p>
+                    <div class="mode-tabs">
+                      <a class="active" href="#">Overview</a>
+                      <a href="#">Experience</a>
+                      <a href="#">Automation</a>
+                      <a href="#">Outputs</a>
+                      <a href="#">Launch</a>
+                      <a href="#">Control</a>
+                    </div>
+                  </div>
+                  <button class="btn">Open next action</button>
+                </section>
+
+                <section class="status-grid">
+                  <div class="status-card"><small>Tenant focus</small><strong>New Test High School</strong><span style="color:var(--muted);font-size:12px;">Overview mode</span></div>
+                  <div class="status-card"><small>Pending launches</small><strong>3</strong></div>
+                  <div class="status-card"><small>Drafts</small><strong>0</strong></div>
+                  <div class="status-card"><small>Automation</small><strong>53</strong></div>
+                  <div class="status-card"><small>Blockers</small><strong>0</strong></div>
+                </section>
+
+                <section class="workbench">
+                  <div class="mode-panel">
+                    <h2>Work modes</h2>
+                    <div class="mode-action active"><span>▦</span><div><b>Overview</b><small>Current status and next action</small></div><span>1</span></div>
+                    <div class="mode-action"><span>✦</span><div><b>Experience</b><small>Branding, theme, portals</small></div><span>2</span></div>
+                    <div class="mode-action"><span>⌘</span><div><b>Automation</b><small>Workflows and approvals</small></div><span>3</span></div>
+                    <div class="mode-action"><span>⇱</span><div><b>Outputs</b><small>Reports and documents</small></div><span>4</span></div>
+                    <div class="mode-action"><span>↗</span><div><b>Launch</b><small>Readiness and rollout</small></div><span>5</span></div>
+                    <div class="mode-action"><span>☷</span><div><b>Control</b><small>Feature flags and policy</small></div><span>6</span></div>
+                  </div>
+                  <div class="canvas-panel">
+                    <div class="next-action">
+                      <div>
+                        <small style="color:var(--muted);font-weight:800;">NEXT BEST ACTION</small>
+                        <h2 style="margin:.3rem 0;">Apply the recommended blueprint</h2>
+                        <span style="color:var(--muted);">This replaces the tall assistant block with one actionable line and a clear primary action.</span>
+                      </div>
+                      <button class="btn">Apply blueprint</button>
+                    </div>
+                    <div class="feature-grid">
+                      <article class="feature"><h3>Experience</h3><p>Shape branding, theme, and role portals with live preview.</p><span class="mark">Ready to open</span></article>
+                      <article class="feature"><h3>Automation</h3><p>Review workflows, approvals, and staged activation.</p><span class="mark">53 active</span></article>
+                      <article class="feature"><h3>Outputs</h3><p>Manage reports, documents, exports, and report cards.</p><span class="mark">Preview first</span></article>
+                      <article class="feature"><h3>Launch</h3><p>Complete blueprint, roster, plan, and readiness steps.</p><span style="color:var(--gold);font-weight:800;">3 pending</span></article>
+                      <article class="feature"><h3>Control</h3><p>Govern feature flags, policies, permissions, and rollback.</p><span class="mark">Audit enabled</span></article>
+                      <article class="feature"><h3>Quick links</h3><p>Approval hub, import hub, document library, message groups.</p><span class="mark">Inline rail</span></article>
+                    </div>
+                    <div class="split">
+                      <div class="list-card"><b>Launch readiness</b><div>Blueprint attached <span>Missing</span></div><div>Branding imported <span>Ready</span></div><div>Roster imported <span>Missing</span></div><button class="btn" style="margin-top:12px;">Open Launch</button></div>
+                      <div class="list-card"><b>Recent activity</b><div>Feature control saved <span>May 31</span></div><div>Dashboard preview updated <span>May 30</span></div><div>Launch checklist reviewed <span>May 29</span></div></div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="audit">
+                  <div class="audit-card"><b>Width</b><span>Use the tenant workspace edge-to-edge instead of capping Studio at 1440px.</span></div>
+                  <div class="audit-card"><b>Height</b><span>Move assistant questions into contextual side/inline cards and remove top dead bands.</span></div>
+                  <div class="audit-card"><b>Duplication</b><span>Keep one mode nav, one preview area, one next action, and one activity rail.</span></div>
+                  <div class="audit-card"><b>Approval scope</b><span>No real template changes until this browser direction is approved.</span></div>
+                </section>
+              </div>
+
+              <aside class="side-panel">
+                <div class="sidebox"><h3>Co-pilot</h3><p>Questions remain available, but they live in a compact contextual rail instead of pushing the workspace down.</p></div>
+                <div class="sidebox"><h3>Preview as</h3><a>Teacher dashboard</a><a>Parent portal</a><a>Finance console</a><a>Student portal</a></div>
+                <div class="sidebox"><h3>Impact & publish</h3><p>Show publish impact, readiness, and rollback status only once.</p><button class="btn" style="width:100%;">Open live preview</button></div>
+                <div class="sidebox"><h3>Recommended</h3><p>Apply blueprint before customizing screens one by one.</p></div>
+              </aside>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <aside class="toolrail">
+      <div class="tool">✦</div>
+      <div class="tool">⊙</div>
+      <div class="tool">⚡</div>
+      <div class="tool">⌘</div>
+      <div class="tool">?</div>
+    </aside>
+  </div>
+</body>
+</html>

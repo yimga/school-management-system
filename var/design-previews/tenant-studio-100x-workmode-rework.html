@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tenant Studio 100X Workmode Rework</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070d1a;
+      --top: #0b1124;
+      --sidebar: #0c1428;
+      --panel: #101a31;
+      --panel2: #0b1326;
+      --panel3: #141f39;
+      --ink: #edf4ff;
+      --muted: #9aa9c2;
+      --dim: #65748e;
+      --line: #243453;
+      --line2: #334868;
+      --blue: #4c7dff;
+      --cyan: #12c7f7;
+      --green: #2ad37f;
+      --gold: #f4bd45;
+      --red: #ff5d6d;
+      --violet: #a78bfa;
+      --orange: #ff8a4b;
+      --left: 286px;
+      --tools: 44px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 22% 8%, rgba(76, 125, 255, .16), transparent 24rem),
+        radial-gradient(circle at 74% 18%, rgba(42, 211, 127, .10), transparent 28rem),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+
+    .tenant-topbar {
+      height: 50px;
+      display: grid;
+      grid-template-columns: var(--left) minmax(0, 1fr) 430px;
+      gap: 12px;
+      align-items: center;
+      padding: 0 14px;
+      background: rgba(11, 17, 36, .96);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      background: linear-gradient(135deg, #36c2ff, #ff7a58);
+      color: #fff;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.2) inset;
+      flex: 0 0 auto;
+    }
+
+    .brand-text {
+      min-width: 0;
+      font-weight: 850;
+      line-height: 1.05;
+    }
+
+    .brand-text small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+      color: #dce7fb;
+      white-space: nowrap;
+    }
+
+    .top-nav a {
+      text-decoration: none;
+      color: #dce7fb;
+      font-weight: 700;
+    }
+
+    .top-nav a.active { color: #fff; }
+
+    .global-search {
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid rgba(244, 189, 69, .4);
+      background: rgba(244, 189, 69, .10);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      min-width: 260px;
+      max-width: 420px;
+      flex: 1 1 320px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: end;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #111b32;
+      color: #dfe9fb;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .chip.good { border-color: rgba(42, 211, 127, .45); color: #b9ffd9; }
+    .chip.warn { border-color: rgba(244, 189, 69, .45); color: #ffe0a3; }
+    .chip.red { border-color: rgba(255, 93, 109, .45); color: #ffd2d8; }
+    .chip.blue { border-color: rgba(76, 125, 255, .55); color: #d7e2ff; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: var(--left) minmax(0, 1fr) var(--tools);
+      min-height: calc(100vh - 50px);
+    }
+
+    .sidebar {
+      background: rgba(12, 20, 40, .98);
+      border-right: 1px solid var(--line);
+      padding: 10px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .side-top {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) 30px 72px;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 9px;
+    }
+
+    .iconbox {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #111b33;
+      color: #d9e5f9;
+      font-weight: 900;
+    }
+
+    .filter {
+      height: 30px;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #111b33;
+      color: var(--muted);
+      padding: 0 9px;
+      font-size: 12px;
+    }
+
+    .nav-word {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .side-group {
+      border: 1px solid var(--line);
+      background: #0e1730;
+      border-radius: 11px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+
+    .side-title {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      font-size: 10px;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 7px;
+    }
+
+    .side-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: #dce7fb;
+      padding: 7px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      min-width: 0;
+    }
+
+    .side-row b {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .side-row span:last-child { color: var(--red); opacity: .85; }
+    .side-row.active {
+      background: linear-gradient(90deg, #ff655d, #ffc058);
+      color: #fff;
+      font-weight: 900;
+    }
+
+    .tools {
+      border-left: 1px solid var(--line);
+      background: #090f20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding-top: 12px;
+    }
+
+    .tool {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: #151f39;
+      border: 1px solid var(--line);
+      color: #d7e3ff;
+      font-weight: 900;
+    }
+
+    .workspace {
+      min-width: 0;
+      padding: 14px;
+      overflow: auto;
+    }
+
+    .stage {
+      max-width: none;
+      margin: 0;
+      min-width: 0;
+    }
+
+    .audit-map {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: rgba(16, 26, 49, .92);
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.24);
+      min-width: 0;
+    }
+
+    .panel-pad { padding: 14px; }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+
+    .panel-head h2,
+    .panel-head h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .pain {
+      border: 1px solid var(--line);
+      background: #0b1429;
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 92px;
+    }
+
+    .pain b {
+      display: block;
+      margin-bottom: 5px;
+      color: #fff;
+    }
+
+    .pain p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4;
+      font-size: 12px;
+    }
+
+    .target-list {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .target {
+      border: 1px solid rgba(76, 125, 255, .38);
+      background: linear-gradient(135deg, rgba(76, 125, 255, .15), rgba(18, 199, 247, .06));
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 86px;
+    }
+
+    .target b {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .target span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .studio100 {
+      border: 1px solid var(--line2);
+      background: rgba(9, 15, 31, .94);
+      border-radius: 16px;
+      overflow: hidden;
+      min-width: 1040px;
+    }
+
+    .studio-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      background:
+        linear-gradient(135deg, rgba(76, 125, 255, .16), rgba(42, 211, 127, .07)),
+        #0d1730;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .studio-title h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .studio-title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      line-height: 1.4;
+      max-width: 920px;
+    }
+
+    .studio-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: end;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 9px;
+      padding: 8px 12px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      font-weight: 850;
+      cursor: pointer;
+      white-space: nowrap;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 34px;
+    }
+
+    .btn.ghost {
+      background: #111b32;
+      border-color: var(--line);
+      color: #dfe9fb;
+    }
+
+    .btn.warn {
+      background: linear-gradient(135deg, #f4bd45, #ff8a4b);
+      color: #182033;
+    }
+
+    .mode-strip {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 6px;
+      padding: 10px 12px;
+      background: #0b1428;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .mode-tab {
+      border: 1px solid var(--line);
+      background: #111b32;
+      color: #dfe9fb;
+      border-radius: 10px;
+      padding: 9px 8px;
+      cursor: pointer;
+      min-width: 0;
+      text-align: left;
+    }
+
+    .mode-tab strong {
+      display: block;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mode-tab span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mode-tab.active {
+      background: #eaf1ff;
+      color: #12203a;
+      border-color: #d7e6ff;
+    }
+
+    .mode-tab.active span { color: #496080; }
+
+    .mode-panel { display: none; }
+    .mode-panel.active { display: block; }
+
+    .workmode-shell {
+      display: grid;
+      grid-template-columns: 258px minmax(0, 1fr) 304px;
+      gap: 12px;
+      padding: 12px;
+      min-width: 0;
+      align-items: start;
+    }
+
+    .mode-rail,
+    .mode-side,
+    .mode-main {
+      min-width: 0;
+    }
+
+    .mode-rail,
+    .mode-side {
+      position: sticky;
+      top: 64px;
+    }
+
+    .rail-card,
+    .side-card,
+    .canvas-card {
+      border: 1px solid var(--line);
+      background: #101a31;
+      border-radius: 13px;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .rail-card + .rail-card,
+    .side-card + .side-card,
+    .canvas-card + .canvas-card { margin-top: 10px; }
+
+    .kicker {
+      color: var(--muted);
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .rail-item {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 9px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: #0b1428;
+      margin-bottom: 7px;
+    }
+
+    .rail-item.active {
+      border-color: rgba(76, 125, 255, .6);
+      background: linear-gradient(135deg, rgba(76, 125, 255, .20), rgba(18, 199, 247, .06));
+    }
+
+    .rail-item b {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .rail-item small {
+      display: block;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: #0b1428;
+      border-radius: 11px;
+      padding: 10px;
+      min-height: 74px;
+    }
+
+    .metric small {
+      display: block;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 900;
+      font-size: 10px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .hero-action {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid rgba(76, 125, 255, .42);
+      background:
+        linear-gradient(135deg, rgba(76, 125, 255, .14), rgba(18, 199, 247, .05)),
+        #101a31;
+      border-radius: 13px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .hero-action h2 {
+      margin: 3px 0 4px;
+      font-size: 18px;
+    }
+
+    .hero-action p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .bento.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .bento.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .tile {
+      border: 1px solid var(--line);
+      background: #0b1428;
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 132px;
+      min-width: 0;
+    }
+
+    .tile h3 {
+      margin: 0 0 7px;
+      font-size: 15px;
+    }
+
+    .tile p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 12px;
+    }
+
+    .tile .tile-foot {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .preview-workbench {
+      display: grid;
+      grid-template-columns: minmax(300px, .72fr) minmax(0, 1.28fr);
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .control-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .field {
+      border: 1px solid var(--line);
+      background: #0b1428;
+      border-radius: 10px;
+      padding: 9px;
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .fake-input {
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #111b32;
+      color: #dfe9fb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 9px;
+      min-width: 0;
+    }
+
+    .preview-frame {
+      border: 1px solid #d7e2f2;
+      background: #edf4ff;
+      color: #1b2740;
+      border-radius: 13px;
+      min-height: 520px;
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 16px 50px rgba(0,0,0,.35);
+    }
+
+    .preview-frame.dark {
+      background: #101827;
+      color: #ecf4ff;
+      border-color: #263956;
+    }
+
+    .preview-toolbar {
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(11, 19, 38, .9);
+      color: #eaf1ff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 10px;
+      margin-bottom: 12px;
+    }
+
+    .mini-dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .mini-widget {
+      border: 1px solid rgba(20, 35, 60, .18);
+      background: #fff;
+      border-radius: 11px;
+      padding: 12px;
+      min-height: 96px;
+      color: #1c2942;
+    }
+
+    .preview-frame.dark .mini-widget {
+      background: #17233a;
+      border-color: #2b3d5e;
+      color: #eef5ff;
+    }
+
+    .doc-preview {
+      width: min(540px, 86%);
+      min-height: 640px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      color: #1d2942;
+      padding: 28px;
+      box-shadow: 0 18px 70px rgba(20, 30, 50, .20);
+    }
+
+    .doc-line {
+      height: 10px;
+      border-radius: 999px;
+      background: #dce7f5;
+      margin: 10px 0;
+    }
+
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 18px;
+    }
+
+    .doc-cell {
+      height: 44px;
+      border: 1px solid #dbe5f2;
+      background: #f7faff;
+      border-radius: 6px;
+    }
+
+    .flow-canvas {
+      min-height: 430px;
+      border: 1px dashed rgba(76, 125, 255, .45);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        #0b1428;
+      background-size: 32px 32px;
+      border-radius: 13px;
+      padding: 24px;
+      position: relative;
+    }
+
+    .node {
+      position: absolute;
+      width: 168px;
+      border: 1px solid var(--line2);
+      background: #101a31;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 16px 38px rgba(0,0,0,.25);
+    }
+
+    .node small { color: var(--muted); }
+    .node.one { left: 40px; top: 50px; }
+    .node.two { left: 285px; top: 160px; }
+    .node.three { right: 60px; top: 68px; }
+    .node.four { right: 140px; bottom: 60px; }
+
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .step {
+      border: 1px solid var(--line);
+      background: #0b1428;
+      border-radius: 11px;
+      padding: 10px;
+      min-height: 130px;
+    }
+
+    .step b { display: block; margin-bottom: 6px; }
+    .step p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+    .feature-map {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .feature-row {
+      border: 1px solid var(--line);
+      background: #0b1428;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .feature-row b {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .toggle {
+      width: 38px;
+      height: 20px;
+      border-radius: 999px;
+      background: rgba(42, 211, 127, .25);
+      border: 1px solid rgba(42, 211, 127, .5);
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .toggle:after {
+      content: "";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      right: 3px;
+      top: 2px;
+      background: var(--green);
+    }
+
+    .toggle.off {
+      background: rgba(255, 93, 109, .18);
+      border-color: rgba(255, 93, 109, .38);
+    }
+
+    .toggle.off:after {
+      right: auto;
+      left: 3px;
+      background: var(--red);
+    }
+
+    .side-card h3,
+    .rail-card h3,
+    .canvas-card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .side-card p,
+    .rail-card p,
+    .canvas-card p {
+      color: var(--muted);
+      line-height: 1.45;
+      margin: 0 0 8px;
+      font-size: 12px;
+    }
+
+    .line-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .line-list a,
+    .line-list div {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      padding: 6px 0;
+      color: #dfe9fb;
+      font-size: 12px;
+    }
+
+    .line-list span {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .policy-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .tiny {
+      border: 1px solid var(--line);
+      background: #111b32;
+      color: #dce7fb;
+      padding: 4px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .approval-notes {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--line);
+      background: #0b1428;
+    }
+
+    .note {
+      border: 1px solid var(--line);
+      background: #101a31;
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 90px;
+    }
+
+    .note b { display: block; margin-bottom: 5px; }
+    .note span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+    .implementation-sweep {
+      margin-top: 12px;
+      border: 1px solid rgba(18, 199, 247, .28);
+      background: linear-gradient(135deg, rgba(18, 199, 247, .08), rgba(42, 211, 127, .05)), #0b1326;
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .sweep-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .sweep-head h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .sweep-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      max-width: 980px;
+      line-height: 1.5;
+    }
+
+    .sweep-grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr .95fr;
+      gap: 10px;
+    }
+
+    .sweep-card {
+      border: 1px solid var(--line);
+      background: rgba(7, 13, 26, .68);
+      border-radius: 15px;
+      padding: 13px;
+      min-width: 0;
+    }
+
+    .sweep-card h3 {
+      margin: 0 0 9px;
+      font-size: 14px;
+    }
+
+    .sweep-list {
+      display: grid;
+      gap: 7px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .sweep-list li {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      color: var(--muted);
+      line-height: 1.35;
+      font-size: 12px;
+    }
+
+    .sweep-list strong {
+      color: #edf4ff;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .closure-bar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .closure-step {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #101a31;
+      padding: 10px;
+      min-height: 88px;
+    }
+
+    .closure-step b {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .closure-step span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 1420px) {
+      .tenant-topbar { grid-template-columns: var(--left) 1fr; }
+      .top-actions { display: none; }
+      .audit-map { grid-template-columns: 1fr; }
+      .studio100 { min-width: 960px; }
+    }
+
+    @media (max-width: 980px) {
+      .sweep-head { display: block; }
+      .sweep-grid, .closure-bar { grid-template-columns: 1fr; }
+      .sweep-list li { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="tenant-topbar">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div class="brand-text">New Test High School <small>School command surface</small></div>
+    </div>
+    <nav class="top-nav" aria-label="Tenant top navigation">
+      <a class="active" href="#">Home</a>
+      <a href="#">Finance</a>
+      <a href="#">Messages</a>
+      <a href="#">Analytics</a>
+      <span class="chip">More</span>
+      <div class="global-search">Search students, teachers, invoices... <b>Ctrl+K</b></div>
+    </nav>
+    <div class="top-actions">
+      <span class="chip good">Live: student enrolled</span>
+      <span class="chip">Console</span>
+      <span class="chip blue">Configure</span>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="side-top">
+        <div class="iconbox">[]</div>
+        <div class="filter">Filter... <b>/</b></div>
+        <div class="iconbox">G</div>
+        <div class="nav-word">Navigation</div>
+      </div>
+      <section class="side-group">
+        <div class="side-title">Frequent</div>
+        <div class="side-row"><b>Workflow Center</b><span>often</span></div>
+        <div class="side-row"><b>Dashboard</b><span>often</span></div>
+        <div class="side-row"><b>Staff Identity & Access</b><span>often</span></div>
+      </section>
+      <section class="side-group">
+        <div class="side-title">Quick access</div>
+        <div class="side-row"><b>Workflow Center</b><span>2</span></div>
+        <div class="side-row"><b>Preferences</b><span>pin</span></div>
+      </section>
+      <section class="side-group">
+        <div class="side-title">Studio family</div>
+        <div class="side-row active"><b>Studio</b><span>now</span></div>
+        <div class="side-row"><b>Report card builder</b><span>pin</span></div>
+        <div class="side-row"><b>Feature controls</b><span>pin</span></div>
+      </section>
+      <section class="side-group">
+        <div class="side-title">Communication</div>
+        <div class="side-row"><b>Messages</b><span>pin</span></div>
+        <div class="side-row"><b>Message Groups</b><span>pin</span></div>
+        <div class="side-row"><b>Announcements</b><span>pin</span></div>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <div class="stage">
+        <section class="audit-map" aria-label="Audit findings">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>What must be fixed</h2>
+              <span class="chip red">current waste pattern</span>
+            </div>
+            <div class="panel-pad pain-grid">
+              <article class="pain"><b>Host/work mode loop</b><p>Host mode and work mode occupy separate cards/rails. Operators see status instead of action.</p></article>
+              <article class="pain"><b>Preview pages collapse into empty frames</b><p>Experience and report card builder reserve huge preview panes even when the preview is blocked or idle.</p></article>
+              <article class="pain"><b>Repeated navigation</b><p>Global sidebar, Studio rail, mode cards, top links, and right rail all compete for the same choices.</p></article>
+              <article class="pain"><b>Cards do not earn their size</b><p>Header, badge strip, tabs, and helper copy push the working surface below the fold.</p></article>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h2>100X direction</h2>
+              <span class="chip good">tenant-wide pattern</span>
+            </div>
+            <div class="panel-pad target-list">
+              <article class="target"><b>One Studio chrome</b><span>Every mode shares the same command header, segmented mode switcher, compact rail, canvas, and sidecar.</span></article>
+              <article class="target"><b>Preview-first modes</b><span>Experience, Outputs, report cards, and Control put live preview beside controls, not below them.</span></article>
+              <article class="target"><b>Host mode becomes metadata</b><span>Tenant/admin/scope status becomes chips and guardrails, not a full empty section.</span></article>
+              <article class="target"><b>Approval before code</b><span>This is an HTML direction preview. Real template changes wait for your mode-by-mode approval.</span></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="studio100" aria-label="Studio 100X approval preview">
+          <header class="studio-top">
+            <div class="studio-title">
+              <h1>Studio 100X command surface</h1>
+              <p>Tenant-wide redesign for past, present, and future tenants. It closes the host/work-mode loop, removes duplicate rails, and turns preview-heavy pages into focused workbenches.</p>
+              <div class="policy-bar">
+                <span class="chip blue">Host mode: Tenant</span>
+                <span class="chip good">Preview required before publish</span>
+                <span class="chip warn">3 launch items pending</span>
+                <span class="chip">Audit trail on</span>
+              </div>
+            </div>
+            <div class="studio-actions">
+              <a class="btn ghost" href="#">Open command palette</a>
+              <a class="btn" href="#">Continue next action</a>
+            </div>
+          </header>
+
+          <nav class="mode-strip" aria-label="Work modes">
+            <button class="mode-tab active" data-mode="overview"><strong>Overview</strong><span>Mission and next action</span></button>
+            <button class="mode-tab" data-mode="experience"><strong>Experience</strong><span>Theme and live preview</span></button>
+            <button class="mode-tab" data-mode="automation"><strong>Automation</strong><span>Workflow simulator</span></button>
+            <button class="mode-tab" data-mode="outputs"><strong>Outputs</strong><span>Reports and documents</span></button>
+            <button class="mode-tab" data-mode="launch"><strong>Launch</strong><span>Readiness runway</span></button>
+            <button class="mode-tab" data-mode="control"><strong>Control</strong><span>Governance cockpit</span></button>
+            <button class="mode-tab" data-mode="reportcard"><strong>Report cards</strong><span>Builder and preview</span></button>
+            <button class="mode-tab" data-mode="features"><strong>Feature controls</strong><span>Impact and rollout</span></button>
+          </nav>
+
+          <section class="mode-panel active" data-panel="overview">
+            <div class="workmode-shell">
+              <aside class="mode-rail">
+                <div class="rail-card">
+                  <div class="kicker">Work modes</div>
+                  <div class="rail-item active"><span class="iconbox">1</span><div><b>Overview</b><small>Readiness, status, next move</small></div><span class="tiny">Now</span></div>
+                  <div class="rail-item"><span class="iconbox">2</span><div><b>Experience</b><small>Theme and preview</small></div><span class="tiny">Draft</span></div>
+                  <div class="rail-item"><span class="iconbox">3</span><div><b>Outputs</b><small>Reports and report cards</small></div><span class="tiny">7</span></div>
+                  <div class="rail-item"><span class="iconbox">4</span><div><b>Control</b><small>Policies and flags</small></div><span class="tiny">Audit</span></div>
+                </div>
+                <div class="rail-card">
+                  <h3>Loop closed</h3>
+                  <p>Host mode and work mode are no longer separate empty panels. Host mode is always visible as compact scope metadata.</p>
+                </div>
+              </aside>
+              <div class="mode-main">
+                <div class="metric-row">
+                  <div class="metric"><small>Launch readiness</small><strong>67%</strong></div>
+                  <div class="metric"><small>Draft experiences</small><strong>3</strong></div>
+                  <div class="metric"><small>Active workflows</small><strong>53</strong></div>
+                  <div class="metric"><small>Open blockers</small><strong>0</strong></div>
+                </div>
+                <div class="hero-action">
+                  <div><div class="kicker">Next best action</div><h2>Apply the recommended blueprint before customizing screens.</h2><p>The first useful action is now at the top. Guidance is attached to the action instead of occupying a tall assistant block.</p></div>
+                  <a class="btn" href="#">Apply blueprint</a>
+                </div>
+                <div class="bento">
+                  <article class="tile"><h3>Experience</h3><p>Live preview for admin, teacher, parent, student, and finance roles with draft/applied comparison.</p><div class="tile-foot"><span class="tiny">Open</span><span class="tiny">Preview</span></div></article>
+                  <article class="tile"><h3>Automation</h3><p>Build, simulate, stage, and rollback workflows from one canvas.</p><div class="tile-foot"><span class="tiny">53 active</span><span class="tiny">Simulator</span></div></article>
+                  <article class="tile"><h3>Outputs</h3><p>Report library, document library, credentials, report cards, and delivery health in one output cockpit.</p><div class="tile-foot"><span class="tiny">4 templates</span><span class="tiny">7 unassigned</span></div></article>
+                  <article class="tile"><h3>Launch</h3><p>Plan, checklist, infrastructure, preview-by-role, blockers, and publish readiness.</p><div class="tile-foot"><span class="tiny">3 pending</span></div></article>
+                  <article class="tile"><h3>Control</h3><p>Feature flags, RBAC, policy impact, audit, rollback, and staged rollout.</p><div class="tile-foot"><span class="tiny">Audit on</span></div></article>
+                  <article class="tile"><h3>Co-pilot</h3><p>Questions stay available in the sidecar, contextual to the selected mode and current task.</p><div class="tile-foot"><span class="tiny">Contextual</span></div></article>
+                </div>
+              </div>
+              <aside class="mode-side">
+                <div class="side-card"><h3>Preview as</h3><div class="line-list"><a href="#">Admin shell <span>Live</span></a><a href="#">Teacher dashboard <span>Live</span></a><a href="#">Parent portal <span>Live</span></a><a href="#">Student portal <span>Live</span></a></div></div>
+                <div class="side-card"><h3>Co-pilot</h3><p>Ask mode-specific questions without pushing the workspace down.</p><a class="btn ghost" href="#">Ask about next step</a></div>
+                <div class="side-card"><h3>Publish impact</h3><p>Every mode shows exactly what will change, who sees it, and how rollback works.</p></div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="mode-panel" data-panel="experience">
+            <div class="workmode-shell">
+              <aside class="mode-rail">
+                <div class="rail-card">
+                  <div class="kicker">Experience sections</div>
+                  <div class="rail-item active"><span class="iconbox">T</span><div><b>Theme tokens</b><small>Colors, type, density</small></div><span class="tiny">Draft</span></div>
+                  <div class="rail-item"><span class="iconbox">P</span><div><b>Portal shells</b><small>Admin, teacher, parent</small></div><span class="tiny">5</span></div>
+                  <div class="rail-item"><span class="iconbox">D</span><div><b>Dashboard packs</b><small>Role-specific layouts</small></div><span class="tiny">Preview</span></div>
+                  <div class="rail-item"><span class="iconbox">C</span><div><b>Communication style</b><small>Tone and templates</small></div><span class="tiny">New</span></div>
+                </div>
+                <div class="rail-card"><h3>Change safety</h3><p>High-impact changes require live preview, contrast check, confirmation, and audit capture.</p></div>
+              </aside>
+              <div class="mode-main">
+                <div class="hero-action">
+                  <div><div class="kicker">Experience preview lab</div><h2>Edit visual system and see the role portal immediately.</h2><p>No more separate theme page plus hidden preview. Controls and preview sit together.</p></div>
+                  <a class="btn warn" href="#">Preview before publish</a>
+                </div>
+                <div class="preview-workbench">
+                  <div class="control-stack">
+                    <div class="canvas-card">
+                      <h3>Visual controls</h3>
+                      <div class="form-row">
+                        <div class="field"><label>Primary</label><div class="fake-input">Deep blue <span class="tiny">#244CFF</span></div></div>
+                        <div class="field"><label>Accent</label><div class="fake-input">Campus green <span class="tiny">Pass</span></div></div>
+                      </div>
+                      <div class="form-row" style="margin-top:8px;">
+                        <div class="field"><label>Density</label><div class="fake-input">Compact professional <span>3</span></div></div>
+                        <div class="field"><label>Role</label><div class="fake-input">Teacher dashboard <span>Live</span></div></div>
+                      </div>
+                      <div class="policy-bar"><span class="tiny">Contrast pass</span><span class="tiny">Unsaved draft</span><span class="tiny">Rollback ready</span></div>
+                    </div>
+                    <div class="canvas-card">
+                      <h3>Experience impact</h3>
+                      <div class="line-list"><div>Admin shell <span>Theme + nav</span></div><div>Teacher dashboard <span>Cards + density</span></div><div>Parent portal <span>Color + typography</span></div><div>Login page <span>Brand only</span></div></div>
+                    </div>
+                  </div>
+                  <div class="preview-frame dark">
+                    <div class="preview-toolbar"><b>Teacher dashboard live preview</b><span class="chip good">Draft preview</span></div>
+                    <div class="mini-dashboard">
+                      <div class="mini-widget"><b>Today classes</b><p>4 classes, 2 assessments due.</p></div>
+                      <div class="mini-widget"><b>Attendance pulse</b><p>96% marked, 3 follow-ups.</p></div>
+                      <div class="mini-widget"><b>Assignments</b><p>7 submissions need review.</p></div>
+                      <div class="mini-widget"><b>AI suggestions</b><p>3 safe classroom nudges.</p></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <aside class="mode-side">
+                <div class="side-card"><h3>Role previews</h3><div class="line-list"><a href="#">Admin shell <span>Open</span></a><a href="#">Teacher dashboard <span>Open</span></a><a href="#">Parent portal <span>Open</span></a><a href="#">Finance console <span>Open</span></a></div></div>
+                <div class="side-card"><h3>Publish gate</h3><p>Preview checked, contrast passed, affected surfaces listed, rollback snapshot captured.</p><a class="btn" href="#">Confirm and publish</a></div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="mode-panel" data-panel="automation">
+            <div class="workmode-shell">
+              <aside class="mode-rail">
+                <div class="rail-card"><div class="kicker">Automation lanes</div><div class="rail-item active"><span class="iconbox">W</span><div><b>Workflow health</b><small>Active and failing flows</small></div><span class="tiny">53</span></div><div class="rail-item"><span class="iconbox">S</span><div><b>Simulation</b><small>Run before activation</small></div><span class="tiny">Safe</span></div><div class="rail-item"><span class="iconbox">R</span><div><b>Replay/rollback</b><small>Audit every run</small></div><span class="tiny">On</span></div></div>
+              </aside>
+              <div class="mode-main">
+                <div class="hero-action"><div><div class="kicker">Workflow simulator</div><h2>Design flows visually, simulate impact, then stage activation.</h2><p>Automation gets a real canvas, not an iframe with a small fallback link.</p></div><a class="btn" href="#">Run simulation</a></div>
+                <div class="flow-canvas">
+                  <div class="node one"><b>Trigger</b><small>New student enrolled</small></div>
+                  <div class="node two"><b>Decision</b><small>Grade + guardian status</small></div>
+                  <div class="node three"><b>Actions</b><small>Create tasks, send messages</small></div>
+                  <div class="node four"><b>Audit</b><small>Record idempotent run</small></div>
+                </div>
+                <div class="bento three" style="margin-top:10px;"><article class="tile"><h3>Dry-run result</h3><p>42 records touched, 0 unsafe writes, 2 approvals required.</p></article><article class="tile"><h3>Rollback plan</h3><p>Snapshot and inverse actions available before activation.</p></article><article class="tile"><h3>Tenant scope</h3><p>All tasks and cache keys remain scoped to the active school.</p></article></div>
+              </div>
+              <aside class="mode-side"><div class="side-card"><h3>Simulation log</h3><div class="line-list"><div>Trigger resolved <span>Pass</span></div><div>Policy check <span>Pass</span></div><div>Approval required <span>2</span></div></div></div><div class="side-card"><h3>Suggested next</h3><a class="btn" href="#">Stage activation</a></div></aside>
+            </div>
+          </section>
+
+          <section class="mode-panel" data-panel="outputs">
+            <div class="workmode-shell">
+              <aside class="mode-rail">
+                <div class="rail-card"><div class="kicker">Output centers</div><div class="rail-item active"><span class="iconbox">R</span><div><b>Report cards</b><small>Styles, assignments, preview</small></div><span class="tiny">7</span></div><div class="rail-item"><span class="iconbox">D</span><div><b>Documents</b><small>Library and templates</small></div><span class="tiny">Ready</span></div><div class="rail-item"><span class="iconbox">S</span><div><b>Scheduled delivery</b><small>Evidence and history</small></div><span class="tiny">On</span></div></div>
+              </aside>
+              <div class="mode-main">
+                <div class="hero-action"><div><div class="kicker">Output readiness center</div><h2>Reports, documents, credentials, and delivery health on one page.</h2><p>Outputs becomes the command center that opens report card builder as a native workspace.</p></div><a class="btn" href="#">Open report card builder</a></div>
+                <div class="bento">
+                  <article class="tile"><h3>Report card builder</h3><p>7 unassigned classrooms. Live preview uses native document canvas.</p><div class="tile-foot"><span class="tiny">Needs action</span></div></article>
+                  <article class="tile"><h3>Document library</h3><p>Templates, signatures, conversions, and school letterhead readiness.</p><div class="tile-foot"><span class="tiny">Ready</span></div></article>
+                  <article class="tile"><h3>Scheduled delivery</h3><p>Delivery windows, recipients, history, and export handlers.</p><div class="tile-foot"><span class="tiny">4 handlers</span></div></article>
+                </div>
+                <div class="preview-frame" style="margin-top:10px;min-height:360px;"><div class="preview-toolbar"><b style="color:#edf4ff;">Output preview timeline</b><span class="chip good">No failed jobs</span></div><div class="doc-line" style="width:80%;"></div><div class="doc-line" style="width:62%;"></div><div class="doc-grid"><div class="doc-cell"></div><div class="doc-cell"></div><div class="doc-cell"></div><div class="doc-cell"></div></div></div>
+              </div>
+              <aside class="mode-side"><div class="side-card"><h3>Evidence</h3><div class="line-list"><a href="#">Report output history <span>Open</span></a><a href="#">Templates catalog <span>Open</span></a><a href="#">Delivery hub <span>Open</span></a></div></div></aside>
+            </div>
+          </section>
+
+          <section class="mode-panel" data-panel="launch">
+            <div class="workmode-shell">
+              <aside class="mode-rail"><div class="rail-card"><div class="kicker">Launch runway</div><div class="rail-item active"><span class="iconbox">1</span><div><b>Blueprint</b><small>Attach baseline</small></div><span class="tiny">Missing</span></div><div class="rail-item"><span class="iconbox">2</span><div><b>Roster</b><small>Import live data</small></div><span class="tiny">Missing</span></div><div class="rail-item"><span class="iconbox">3</span><div><b>Preview</b><small>Role proof</small></div><span class="tiny">Ready</span></div><div class="rail-item"><span class="iconbox">4</span><div><b>Launch</b><small>Publish and monitor</small></div><span class="tiny">Locked</span></div></div></aside>
+              <div class="mode-main">
+                <div class="hero-action"><div><div class="kicker">Launch readiness</div><h2>A runway, not a scattered checklist.</h2><p>Launch mode shows blockers, proof, role previews, and final publish gate in the same workbench.</p></div><a class="btn warn" href="#">Resolve blockers</a></div>
+                <div class="roadmap">
+                  <div class="step"><b>Blueprint</b><p>No active blueprint attached yet.</p><span class="chip red">Blocker</span></div>
+                  <div class="step"><b>Roster</b><p>Students and staff data not imported yet.</p><span class="chip red">Blocker</span></div>
+                  <div class="step"><b>Branding</b><p>School brand loaded and ready.</p><span class="chip good">Ready</span></div>
+                  <div class="step"><b>Role preview</b><p>Teacher, parent, student, admin previews available.</p><span class="chip good">Ready</span></div>
+                  <div class="step"><b>Go live</b><p>Locked until blockers clear.</p><span class="chip warn">Pending</span></div>
+                </div>
+              </div>
+              <aside class="mode-side"><div class="side-card"><h3>Launch confidence</h3><div class="metric"><small>Score</small><strong>67%</strong></div></div><div class="side-card"><h3>Role proof</h3><div class="line-list"><a href="#">Admin shell <span>Open</span></a><a href="#">Teacher dashboard <span>Open</span></a><a href="#">Parent portal <span>Open</span></a></div></div></aside>
+            </div>
+          </section>
+
+          <section class="mode-panel" data-panel="control">
+            <div class="workmode-shell">
+              <aside class="mode-rail"><div class="rail-card"><div class="kicker">Governance</div><div class="rail-item active"><span class="iconbox">F</span><div><b>Feature flags</b><small>Enable and stage</small></div><span class="tiny">Live</span></div><div class="rail-item"><span class="iconbox">P</span><div><b>Policy</b><small>RBAC and scope</small></div><span class="tiny">Audit</span></div><div class="rail-item"><span class="iconbox">R</span><div><b>Rollback</b><small>Last safe state</small></div><span class="tiny">Ready</span></div></div></aside>
+              <div class="mode-main">
+                <div class="hero-action"><div><div class="kicker">Control cockpit</div><h2>Govern capabilities with impact previews, not wall-of-toggle lists.</h2><p>Control mode becomes a decision console: what changes, who sees it, and how to roll it back.</p></div><a class="btn" href="#">Review staged change</a></div>
+                <div class="feature-map">
+                  <div class="feature-row"><b>Advanced attendance <span class="toggle"></span></b><p>Teachers, admin, offline sync. Low risk.</p></div>
+                  <div class="feature-row"><b>Finance console <span class="toggle"></span></b><p>Finance staff only. Billing boundary active.</p></div>
+                  <div class="feature-row"><b>AI drafting <span class="toggle off"></span></b><p>Disabled for this tenant until policy accepted.</p></div>
+                  <div class="feature-row"><b>Parent portal <span class="toggle"></span></b><p>Preview required for theme changes.</p></div>
+                  <div class="feature-row"><b>Report exports <span class="toggle"></span></b><p>Handlers registered and audited.</p></div>
+                  <div class="feature-row"><b>Marketplace <span class="toggle off"></span></b><p>Owner-controlled external launch item.</p></div>
+                </div>
+                <div class="bento two" style="margin-top:10px;"><article class="tile"><h3>Impact preview</h3><p>14 roles affected, 3 menus changed, 2 workflows gain new actions, 0 billing changes.</p></article><article class="tile"><h3>Audit and rollback</h3><p>Change request, approver, source, old values, and rollback snapshot are captured before publish.</p></article></div>
+              </div>
+              <aside class="mode-side"><div class="side-card"><h3>Staged change</h3><p>Enable AI drafting for staff only after policy acceptance.</p><a class="btn warn" href="#">Require approval</a></div><div class="side-card"><h3>Recent control audit</h3><div class="line-list"><div>Feature saved <span>May 31</span></div><div>Policy updated <span>May 29</span></div></div></div></aside>
+            </div>
+          </section>
+
+          <section class="mode-panel" data-panel="reportcard">
+            <div class="workmode-shell">
+              <aside class="mode-rail"><div class="rail-card"><div class="kicker">Builder flow</div><div class="rail-item active"><span class="iconbox">S</span><div><b>Styles</b><small>Catalog and variants</small></div><span class="tiny">12</span></div><div class="rail-item"><span class="iconbox">A</span><div><b>Assignments</b><small>Classrooms and defaults</small></div><span class="tiny">0/7</span></div><div class="rail-item"><span class="iconbox">P</span><div><b>Preview</b><small>Term and annual PDF</small></div><span class="tiny">Live</span></div><div class="rail-item"><span class="iconbox">D</span><div><b>Delivery</b><small>Scheduled output</small></div><span class="tiny">4</span></div></div></aside>
+              <div class="mode-main">
+                <div class="hero-action"><div><div class="kicker">Report card builder rework</div><h2>Style, assign, preview, and publish without a giant failed iframe.</h2><p>The document preview becomes an active canvas with health, role, term, annual, and export controls always visible.</p></div><a class="btn" href="#">Save and preview</a></div>
+                <div class="preview-workbench">
+                  <div class="control-stack">
+                    <div class="canvas-card"><h3>Style catalog</h3><div class="fake-input">Search styles, slugs, descriptions <span>/</span></div><div class="line-list" style="margin-top:8px;"><div>Academic Authority <span>Active</span></div><div>Bento Schoolboard <span>Active</span></div><div>Minimal Transcript <span>Draft</span></div></div></div>
+                    <div class="canvas-card"><h3>Assignment health</h3><div class="metric-row" style="grid-template-columns:repeat(2,1fr);"><div class="metric"><small>Assigned</small><strong>0/7</strong></div><div class="metric"><small>Unassigned</small><strong>7</strong></div></div><a class="btn ghost" href="#">Open classroom assignment</a></div>
+                  </div>
+                  <div class="preview-frame">
+                    <div class="preview-toolbar"><b style="color:#edf4ff;">Academic Authority - term preview</b><span class="chip good">HTML ready</span><span class="chip warn">PDF fallback</span></div>
+                    <div class="doc-preview">
+                      <h2 style="margin:0 0 4px;">New Test High School</h2>
+                      <p style="margin:0;color:#61708a;">Term report - Academic Authority</p>
+                      <div class="doc-line" style="width:70%;margin-top:24px;"></div>
+                      <div class="doc-line" style="width:45%;"></div>
+                      <div class="doc-grid"><div class="doc-cell"></div><div class="doc-cell"></div><div class="doc-cell"></div><div class="doc-cell"></div><div class="doc-cell"></div><div class="doc-cell"></div><div class="doc-cell"></div><div class="doc-cell"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <aside class="mode-side"><div class="side-card"><h3>Preview controls</h3><div class="line-list"><a href="#">Term HTML <span>Open</span></a><a href="#">Annual HTML <span>Open</span></a><a href="#">Term PDF <span>Open</span></a><a href="#">Annual PDF <span>Open</span></a></div></div><div class="side-card"><h3>Publish gate</h3><p>Cannot publish until classroom assignment coverage and default mappings are complete.</p><a class="btn warn" href="#">Fix 7 assignments</a></div></aside>
+            </div>
+          </section>
+
+          <section class="mode-panel" data-panel="features">
+            <div class="workmode-shell">
+              <aside class="mode-rail"><div class="rail-card"><div class="kicker">Feature control</div><div class="rail-item active"><span class="iconbox">C</span><div><b>Capability families</b><small>Grouped by workflow</small></div><span class="tiny">Map</span></div><div class="rail-item"><span class="iconbox">I</span><div><b>Impact review</b><small>Roles, menus, tasks</small></div><span class="tiny">Required</span></div><div class="rail-item"><span class="iconbox">A</span><div><b>Audit ledger</b><small>Evidence and rollback</small></div><span class="tiny">On</span></div></div></aside>
+              <div class="mode-main">
+                <div class="hero-action"><div><div class="kicker">Feature controls rework</div><h2>From toggle list to operational impact map.</h2><p>Every change shows impacted roles, surfaces, workflows, data boundaries, and rollback before it can publish.</p></div><a class="btn" href="#">Create staged change</a></div>
+                <div class="bento two">
+                  <article class="tile"><h3>Before</h3><p>Operators flip feature states without a strong visual explanation of what changes on tenant pages.</p></article>
+                  <article class="tile"><h3>After</h3><p>Feature families are grouped by school workflow with live surface preview and approval gate.</p></article>
+                </div>
+                <div class="feature-map" style="margin-top:10px;">
+                  <div class="feature-row"><b>Academic management <span class="toggle"></span></b><p>Menus: 5. Roles: Admin, teacher. Risk: low.</p></div>
+                  <div class="feature-row"><b>Finance management <span class="toggle"></span></b><p>Menus: 4. Roles: Finance. Risk: medium.</p></div>
+                  <div class="feature-row"><b>AI assistant <span class="toggle off"></span></b><p>Menus: 2. Policy: missing. Risk: high.</p></div>
+                  <div class="feature-row"><b>Communications <span class="toggle"></span></b><p>Menus: 6. Roles: staff. Risk: low.</p></div>
+                  <div class="feature-row"><b>Offline mode <span class="toggle"></span></b><p>Device trust, sync queue, purge rules.</p></div>
+                  <div class="feature-row"><b>Marketplace <span class="toggle off"></span></b><p>External owner launch dependency.</p></div>
+                </div>
+              </div>
+              <aside class="mode-side"><div class="side-card"><h3>Impact sidecar</h3><div class="line-list"><div>Roles affected <span>14</span></div><div>Menus changed <span>8</span></div><div>Workflows touched <span>3</span></div><div>Rollback snapshot <span>Ready</span></div></div></div><div class="side-card"><h3>Approval</h3><p>Publish is disabled until impacted pages and role previews pass validation.</p><a class="btn warn" href="#">Run impact audit</a></div></aside>
+            </div>
+          </section>
+
+          <section class="implementation-sweep" aria-label="Implementation sweep after approval">
+            <div class="sweep-head">
+              <div>
+                <div class="kicker">After approval: exact build scope</div>
+                <h2>One shared tenant workspace system, then page-by-page closure.</h2>
+                <p>The next level is not another cosmetic pass. It is a shared layout contract used by Studio, Workflow Center, Feature Control, report card builder, and every tenant configuration page that currently renders as a tall nested shell with wasted space.</p>
+              </div>
+              <span class="chip good">Tenant-wide</span>
+            </div>
+            <div class="sweep-grid">
+              <article class="sweep-card">
+                <h3>Build once</h3>
+                <ul class="sweep-list">
+                  <li><strong>Layout</strong><span>Create a reusable command-workspace shell: compact header, mode strip, left task rail, main live workbench, right impact sidecar.</span></li>
+                  <li><strong>Chrome</strong><span>Remove duplicated host mode/work mode panels, duplicated search blocks, and assistant blocks that push work below the fold.</span></li>
+                  <li><strong>Preview</strong><span>Standardize live preview states: loading, blocked iframe, HTML fallback, PDF fallback, role preview, and publish gate.</span></li>
+                  <li><strong>Safety</strong><span>Every publish-capable page shows impacted roles, menus, workflows, audit record, and rollback availability before save.</span></li>
+                </ul>
+              </article>
+              <article class="sweep-card">
+                <h3>Audit sweep</h3>
+                <ul class="sweep-list">
+                  <li><strong>Studio</strong><span>Overview, Experience, Automation, Outputs, Launch, and Control work modes.</span></li>
+                  <li><strong>Workflow</strong><span>Workflow Center, approval hub, import hub, migration wizard, visual workflow designer, and Studio embeds.</span></li>
+                  <li><strong>Controls</strong><span>Feature controls, capability toggles, policy impact pages, RBAC/admin decision pages, and rollout/rollback surfaces.</span></li>
+                  <li><strong>Previews</strong><span>Report card builder, dashboard-by-role, theme/customizer, forms/admissions, communications, launch preview-by-role.</span></li>
+                </ul>
+              </article>
+              <article class="sweep-card">
+                <h3>Done means</h3>
+                <ul class="sweep-list">
+                  <li><strong>No blanks</strong><span>No giant empty panels, failed preview frames, hidden controls, or duplicate bottom/help widgets left behind.</span></li>
+                  <li><strong>No misses</strong><span>Routes and templates are inventoried, grouped, fixed, then rechecked against the inventory.</span></li>
+                  <li><strong>Proof</strong><span>Browser screenshots for key pages, Django checks, compileall, template scan, and a gap-analysis report.</span></li>
+                  <li><strong>Commit</strong><span>Only after validation passes, commit and push the approved implementation to main.</span></li>
+                </ul>
+              </article>
+            </div>
+            <div class="closure-bar">
+              <div class="closure-step"><b>1. Inventory</b><span>Find every page using Studio-like nested workspace, iframe preview, feature-control, workflow, or report-builder patterns.</span></div>
+              <div class="closure-step"><b>2. Refactor</b><span>Move those pages onto the shared workspace contract without changing business logic or tenant contracts.</span></div>
+              <div class="closure-step"><b>3. Validate</b><span>Open the pages in browser, inspect role/mode variants, run automated checks, and record remaining gaps.</span></div>
+              <div class="closure-step"><b>4. Close</b><span>Fix the gaps found by the audit, rerun validation, then commit and push when the sweep is clean.</span></div>
+            </div>
+          </section>
+
+          <footer class="approval-notes">
+            <article class="note"><b>Apply once</b><span>Use one shared Studio workspace component so all current and future tenants inherit the rework.</span></article>
+            <article class="note"><b>Do not fake previews</b><span>If iframe/PDF fails, show a compact preview health state and actionable fallback, not a blank page.</span></article>
+            <article class="note"><b>Preview modes first</b><span>Experience, Report cards, Outputs, and Control get priority because they have the biggest wasted space.</span></article>
+            <article class="note"><b>Keep sidebars useful</b><span>Global tenant nav remains outside Studio. Studio only owns local mode and task navigation.</span></article>
+            <article class="note"><b>Audit before implementation</b><span>After approval, implement behind shared CSS/templates, then crawl every mode and preview surface.</span></article>
+          </footer>
+        </section>
+      </div>
+    </main>
+
+    <aside class="tools">
+      <div class="tool">A</div>
+      <div class="tool">O</div>
+      <div class="tool">F</div>
+      <div class="tool">P</div>
+      <div class="tool">?</div>
+    </aside>
+  </div>
+
+  <script>
+    (function () {
+      var tabs = Array.prototype.slice.call(document.querySelectorAll(".mode-tab"));
+      var panels = Array.prototype.slice.call(document.querySelectorAll(".mode-panel"));
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          var mode = tab.getAttribute("data-mode");
+          tabs.forEach(function (item) { item.classList.toggle("active", item === tab); });
+          panels.forEach(function (panel) {
+            panel.classList.toggle("active", panel.getAttribute("data-panel") === mode);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
