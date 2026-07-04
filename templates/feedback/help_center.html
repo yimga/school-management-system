@@ -28,6 +28,15 @@
 
   {% include "feedback/partials/help_center_support_lane.html" %}
 
+  <link rel="stylesheet" href="{% static 'css/support-live-chat.css' %}">
+  <section class="card border-0 shadow-sm mb-4" aria-labelledby="rmc-slc-hc-h" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Live chat' %}">
+    <div class="card-body">
+      <h2 class="h6 mb-1" id="rmc-slc-hc-h">{% trans "Live chat with support" %}</h2>
+      <p class="small text-secondary mb-2">{% trans "Chat with the RunMyCampus support team in real time. Messages are saved to your support ticket." %}</p>
+      {% include "accounts/owner_console/_live_chat_widget.html" %}
+    </div>
+  </section>
+
   {% include "partials/help_community_lane.html" %}
 
   {% include "partials/help_persona_quickstart.html" with kb_search_url=kb_search_url %}

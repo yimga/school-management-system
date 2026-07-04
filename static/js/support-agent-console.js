@@ -24,9 +24,11 @@
   var headActive = root.querySelector(".rmc-sac-head-active");
   var headSubject = document.getElementById("rmc-sac-head-subject");
   var headMeta = document.getElementById("rmc-sac-head-meta");
+  var resolveBtn = document.getElementById("rmc-sac-resolve");
 
   var ws = null;
   var activeTicket = null;
+  var activeSchoolName = "";
   var reconnectDelay = 1000;
   var MAX_RECONNECT = 15000;
 
@@ -63,6 +65,79 @@
     thread.scrollTop = thread.scrollHeight;
   }
 
+  function addSystemLine(kind) {
+    if (!thread) return;
+    var line = document.createElement("div");
+    line.className = "rmc-sac-sys";
+    line.textContent =
+      kind === "resolve"
+        ? "You marked this conversation resolved."
+        : kind === "reopen"
+        ? "You reopened this conversation."
+        : "";
+    if (!line.textContent) return;
+    thread.appendChild(line);
+    thread.scrollTop = thread.scrollHeight;
+  }
+
+  function buildQueueItem(data) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "rmc-sac-queue-item";
+    btn.setAttribute("role", "option");
+    btn.setAttribute("data-ticket-id", data.ticket_id || "");
+    btn.setAttribute("data-subject", data.preview || "");
+    btn.setAttribute("data-school", data.school_name || "");
+    btn.setAttribute("data-user", data.user_display || "");
+    var top = document.createElement("span");
+    top.className = "rmc-sac-qi-top";
+    var school = document.createElement("span");
+    school.className = "rmc-sac-qi-school";
+    school.textContent = data.school_name || "Unknown school";
+    top.appendChild(school);
+    var subject = document.createElement("span");
+    subject.className = "rmc-sac-qi-subject";
+    subject.textContent = data.preview || "";
+    var meta = document.createElement("span");
+    meta.className = "rmc-sac-qi-meta";
+    meta.textContent = data.user_display || "";
+    btn.appendChild(top);
+    btn.appendChild(subject);
+    btn.appendChild(meta);
+    return btn;
+  }
+
+  function upsertQueue(data) {
+    if (!queue || !data.ticket_id) return;
+    var existing = queue.querySelector(
+      '.rmc-sac-queue-item[data-ticket-id="' + data.ticket_id + '"]'
+    );
+    if (existing) {
+      var subjEl = existing.querySelector(".rmc-sac-qi-subject");
+      if (subjEl && data.preview) subjEl.textContent = data.preview;
+      queue.insertBefore(existing, queue.firstChild);
+      if (data.ticket_id !== activeTicket) existing.classList.add("is-unread");
+    } else {
+      var item = buildQueueItem(data);
+      if (data.ticket_id !== activeTicket) item.classList.add("is-unread");
+      queue.insertBefore(item, queue.firstChild);
+      var empty = queue.querySelector(".rmc-sac-queue-empty");
+      if (empty && empty.parentNode) empty.parentNode.removeChild(empty);
+    }
+  }
+
+  function setResolveButton(status) {
+    if (!resolveBtn) return;
+    resolveBtn.classList.remove("d-none");
+    if (status === "RESOLVED" || status === "CLOSED") {
+      resolveBtn.textContent = "Reopen";
+      resolveBtn.setAttribute("data-action", "reopen");
+    } else {
+      resolveBtn.textContent = "Resolve";
+      resolveBtn.setAttribute("data-action", "resolve");
+    }
+  }
+
   function clearThread() {
     if (thread) thread.textContent = "";
   }
@@ -83,6 +158,7 @@
       var on = items[i].getAttribute("data-ticket-id") === ticketId;
       items[i].classList.toggle("is-active", on);
       items[i].setAttribute("aria-selected", on ? "true" : "false");
+      if (on) items[i].classList.remove("is-unread");
     }
   }
 
@@ -99,6 +175,8 @@
     var school = btn.getAttribute("data-school") || "";
     var user = btn.getAttribute("data-user") || "";
     clearThread();
+    activeSchoolName = school;
+    if (resolveBtn) resolveBtn.classList.add("d-none");
     setActive(ticketId, subject, [school, user].filter(Boolean).join(" · "));
     subscribe(ticketId);
   }
@@ -116,19 +194,38 @@
       clearThread();
       var hist = data.history || [];
       for (var i = 0; i < hist.length; i++) addBubble(hist[i]);
+      activeSchoolName = data.school_name || "";
       if (headSubject && data.subject) headSubject.textContent = data.subject;
       if (headMeta) {
-        headMeta.textContent = [data.school_name, data.status]
+        headMeta.textContent = [activeSchoolName, data.status]
           .filter(Boolean)
           .join(" · ");
       }
+      setResolveButton(data.status);
       enableComposer(true);
       if (input) input.focus();
       return;
     }
     if (data.type === "chat_message") {
       if (data.ticket_id && activeTicket && data.ticket_id !== activeTicket) return;
+      if (data.sender_role === "system") {
+        addSystemLine(data.system);
+        return;
+      }
       addBubble(data);
+      return;
+    }
+    if (data.type === "activity") {
+      upsertQueue(data);
+      return;
+    }
+    if (data.type === "status") {
+      setResolveButton(data.status);
+      if (headMeta && data.ticket_id === activeTicket) {
+        headMeta.textContent = [activeSchoolName, data.status]
+          .filter(Boolean)
+          .join(" · ");
+      }
       return;
     }
     if (data.type === "ack") {
@@ -181,6 +278,13 @@
 
   if (queue) queue.addEventListener("click", onQueueClick);
   if (composer) composer.addEventListener("submit", onSubmit);
+  if (resolveBtn) {
+    resolveBtn.addEventListener("click", function () {
+      if (!activeTicket || !ws || ws.readyState !== 1) return;
+      var action = resolveBtn.getAttribute("data-action") || "resolve";
+      ws.send(JSON.stringify({ action: action, ticket_id: activeTicket }));
+    });
+  }
   if (input) {
     input.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) {

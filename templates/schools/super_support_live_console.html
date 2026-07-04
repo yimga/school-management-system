@@ -56,7 +56,10 @@
             <div class="fw-semibold" id="rmc-sac-head-subject"></div>
             <div class="small text-secondary" id="rmc-sac-head-meta"></div>
           </div>
-          <span class="rmc-sac-conn" id="rmc-sac-conn" data-state="connecting" aria-hidden="true" title="{% trans 'Connection status' %}"></span>
+          <div class="rmc-sac-head-tools">
+            <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="rmc-sac-resolve" data-action="resolve">{% trans "Resolve" %}</button>
+            <span class="rmc-sac-conn" id="rmc-sac-conn" data-state="connecting" aria-hidden="true" title="{% trans 'Connection status' %}"></span>
+          </div>
         </div>
         <div class="rmc-sac-thread" id="rmc-sac-thread" aria-live="polite" aria-atomic="false"></div>
         <form class="rmc-sac-composer" id="rmc-sac-composer" autocomplete="off">

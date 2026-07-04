@@ -55,6 +55,22 @@
     thread.scrollTop = thread.scrollHeight;
   }
 
+  function addSystemLine(kind) {
+    if (!thread) return;
+    hideEmpty();
+    var line = document.createElement("div");
+    line.className = "rmc-slc-sys";
+    line.textContent =
+      kind === "resolve"
+        ? "Support marked this conversation resolved."
+        : kind === "reopen"
+        ? "This conversation was reopened."
+        : "";
+    if (!line.textContent) return;
+    thread.appendChild(line);
+    thread.scrollTop = thread.scrollHeight;
+  }
+
   function onMessage(ev) {
     var data;
     try {
@@ -63,7 +79,18 @@
       return;
     }
     if (!data || typeof data !== "object") return;
+    if (data.type === "history") {
+      var msgs = data.messages || [];
+      for (var i = 0; i < msgs.length; i++) {
+        addBubble(roleFor(msgs[i]), msgs[i].message || "");
+      }
+      return;
+    }
     if (data.type === "chat_message") {
+      if (data.sender_role === "system") {
+        addSystemLine(data.system);
+        return;
+      }
       addBubble(roleFor(data), data.message || "");
       return;
     }

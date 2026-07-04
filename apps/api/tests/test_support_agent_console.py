@@ -32,8 +32,10 @@ from django.test import TransactionTestCase
 from apps.api import consumers
 from apps.api.consumers import (
     agent_console_access,
+    load_customer_chat_history,
     load_support_ticket_for_agent,
     persist_support_agent_reply,
+    set_support_ticket_status,
     support_chat_room_name,
 )
 from apps.schools.channels_tenant_middleware import tenant_sync_room_name
@@ -368,3 +370,172 @@ class SupportAgentConsoleTests(TransactionTestCase):
 
         patterns = [str(getattr(p, "pattern", "")) for p in routing.websocket_urlpatterns]
         self.assertTrue(any("support/agent" in p for p in patterns), patterns)
+
+    # ── completeness: customer history on connect ──────────────────────────────
+    def test_customer_history_helper_scopes_and_excludes_internal(self):
+        from apps.siteconfig.models_feature_controls import GlobalSupportTicketReply as R
+
+        R.objects.create(
+            ticket=self.ticket, author=self.user, body="my earlier line",
+            visibility=R.Visibility.SUBMITTER_VISIBLE,
+        )
+        R.objects.create(
+            ticket=self.ticket, author=self.operator, body="internal only",
+            visibility=R.Visibility.INTERNAL,
+        )
+        history = load_customer_chat_history(self.user, self.school)
+        bodies = [h["message"] for h in history]
+        self.assertIn("my earlier line", bodies)
+        self.assertNotIn("internal only", bodies)
+        line = next(h for h in history if h["message"] == "my earlier line")
+        self.assertEqual(line["sender_role"], "customer")
+
+    def test_customer_history_empty_without_open_ticket(self):
+        from apps.schools.models import School
+
+        s = uuid4().hex[:8]
+        lonely_school = School.objects.create(
+            name="No Tickets", subdomain=f"nt-{s}", slug=f"nt-{s}", is_active=True,
+        )
+        self.assertEqual(load_customer_chat_history(self.user, lonely_school), [])
+
+    async def test_customer_connect_sends_history(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        from asgiref.sync import sync_to_async
+        from channels.layers import InMemoryChannelLayer
+        from apps.siteconfig.models_feature_controls import GlobalSupportTicketReply as R
+
+        await sync_to_async(R.objects.create)(
+            ticket=self.ticket, author=self.user, body="earlier msg",
+            visibility=R.Visibility.SUBMITTER_VISIBLE,
+        )
+        c = consumers.SupportChatConsumer()
+        c.scope = {
+            "user": self.user,
+            "school": self.school,
+            "school_id": str(self.school.pk),
+            "school_access_denied": False,
+        }
+        c.channel_layer = InMemoryChannelLayer()
+        c.channel_name = "cust.hist.chan"
+        c.accept = AsyncMock()
+        c.close = AsyncMock()
+        c.send = AsyncMock()
+        await c.connect()
+        c.accept.assert_awaited()
+        frames = [
+            json.loads(call.kwargs["text_data"]) for call in c.send.await_args_list
+        ]
+        hist = [f for f in frames if f.get("type") == "history"]
+        self.assertTrue(hist)
+        self.assertTrue(any(m["message"] == "earlier msg" for m in hist[0]["messages"]))
+
+    # ── completeness: live agent queue (presence group + activity) ─────────────
+    async def test_customer_message_publishes_activity(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        from channels.layers import InMemoryChannelLayer
+
+        layer = InMemoryChannelLayer()
+        await layer.group_add(consumers._SUPPORT_AGENTS_GROUP, "console.chan")
+        c = consumers.SupportChatConsumer()
+        c.scope = {
+            "user": self.user,
+            "school": self.school,
+            "school_id": str(self.school.pk),
+            "school_access_denied": False,
+        }
+        c.user = self.user
+        c.channel_layer = layer
+        c.room_group_name = support_chat_room_name(
+            str(self.school.pk), str(self.user.pk)
+        )
+        c.send = AsyncMock()
+        await c.receive(json.dumps({"message": "please help"}))
+        evt = await layer.receive("console.chan")
+        self.assertEqual(evt["type"], "support.activity")
+        self.assertEqual(evt["preview"], "please help")
+        self.assertEqual(evt["sender_role"], "customer")
+        self.assertTrue(evt["ticket_id"])
+
+    async def test_agent_joins_presence_and_forwards_activity(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        from channels.layers import InMemoryChannelLayer
+
+        layer = InMemoryChannelLayer()
+        agent = consumers.SupportAgentConsumer()
+        agent.scope = {"user": self.operator}
+        agent.channel_layer = layer
+        agent.channel_name = "agent.presence.chan"
+        agent.accept = AsyncMock()
+        agent.close = AsyncMock()
+        agent.send = AsyncMock()
+        await agent.connect()
+        agent.accept.assert_awaited()
+        # a customer-activity broadcast reaches this agent's channel...
+        await layer.group_send(
+            consumers._SUPPORT_AGENTS_GROUP,
+            {
+                "type": "support.activity",
+                "ticket_id": "t-1",
+                "school_name": "S",
+                "user_display": "U",
+                "preview": "hi",
+                "sender_role": "customer",
+            },
+        )
+        evt = await layer.receive("agent.presence.chan")
+        self.assertEqual(evt["type"], "support.activity")
+        # ...and the handler forwards it to the socket as an "activity" frame
+        await agent.support_activity(evt)
+        frame = self._last_frame(agent)
+        self.assertEqual(frame["type"], "activity")
+        self.assertEqual(frame["ticket_id"], "t-1")
+        self.assertEqual(frame["preview"], "hi")
+
+    # ── completeness: resolve / reopen from the console ─────────────────────────
+    def test_set_status_resolve_then_reopen(self):
+        from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+        r = set_support_ticket_status(self.operator, str(self.ticket.pk), "resolve")
+        self.assertEqual(r["status"], GlobalSupportTicket.Status.RESOLVED)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.status, GlobalSupportTicket.Status.RESOLVED)
+        r2 = set_support_ticket_status(self.operator, str(self.ticket.pk), "reopen")
+        self.assertEqual(r2["status"], GlobalSupportTicket.Status.OPEN)
+
+    def test_set_status_invalid_transition_is_rejected(self):
+        from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+        self.ticket.status = GlobalSupportTicket.Status.CLOSED
+        self.ticket.save(update_fields=["status"])
+        r = set_support_ticket_status(self.operator, str(self.ticket.pk), "resolve")
+        self.assertEqual(r.get("error"), "invalid_transition")
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.status, GlobalSupportTicket.Status.CLOSED)
+
+    async def test_agent_resolve_acks_and_notifies_customer_room(self):
+        if not _channels_ready():
+            self.skipTest("channels not available")
+        from channels.layers import InMemoryChannelLayer
+
+        layer = InMemoryChannelLayer()
+        room = support_chat_room_name(str(self.school.pk), str(self.user.pk))
+        await layer.group_add(room, "cust.sys.chan")
+        agent = consumers.SupportAgentConsumer()
+        agent.scope = {"user": self.operator}
+        agent.user = self.operator
+        agent.channel_layer = layer
+        agent.channel_name = "agent.resolve.chan"
+        agent.subscribed_room = None
+        agent.subscribed_ticket_id = None
+        agent.send = AsyncMock()
+        await agent._handle_status(str(self.ticket.pk), "resolve")
+        frame = self._last_frame(agent)
+        self.assertEqual(frame["type"], "status")
+        self.assertEqual(frame["status"], "RESOLVED")
+        evt = await layer.receive("cust.sys.chan")
+        self.assertEqual(evt["sender_role"], "system")
+        self.assertEqual(evt["system"], "resolve")

@@ -181,6 +181,38 @@
   align-self: flex-end;
 }
 
+/* ── Head tools, unread queue marker, system line ───────────────────────── */
+.rmc-sac-head-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.rmc-sac-queue-item.is-unread {
+  background: var(--surface-canvas);
+}
+
+.rmc-sac-queue-item.is-unread .rmc-sac-qi-school::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--bs-primary);
+  margin-inline-end: 0.35rem;
+  vertical-align: middle;
+}
+
+.rmc-sac-sys {
+  align-self: center;
+  max-width: 90%;
+  text-align: center;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  padding: 0.2rem 0.5rem;
+}
+
 @media (max-width: 991.98px) {
   .rmc-sac-queue { max-height: 34vh; }
   .rmc-sac-chat-card { min-height: 60vh; }

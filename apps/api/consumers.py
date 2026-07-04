@@ -278,6 +278,66 @@ def persist_support_chat_message(user, school, body):
     return str(ticket.pk), str(reply.pk)
 
 
+# Platform-wide presence group: every connected operator console joins it so a
+# new customer message can surface live in their queue. Only SupportAgentConsumer
+# (operator-gated) ever JOINS it; SupportChatConsumer only publishes to it, so a
+# tenant user never receives another tenant's activity.
+_SUPPORT_AGENTS_GROUP = "support_agents"
+_SUPPORT_ACTIVITY_PREVIEW_CHARS = 120  # magic-number-allow: support-activity-queue-preview-cap
+_SUPPORT_CHAT_HISTORY_LIMIT = 40  # magic-number-allow: support-chat-history-frame-cap
+
+
+def _support_user_display(user):
+    """Short human label for a support participant (name, else username)."""
+    if user is None:
+        return ""
+    full = (getattr(user, "get_full_name", lambda: "")() or "").strip()
+    return full or (getattr(user, "get_username", lambda: "")() or "")
+
+
+def load_customer_chat_history(user, school):
+    """Recent submitter-visible lines on the customer's OWN open ticket, oldest
+    first, for the widget to render on connect. Returns [] if no open ticket.
+    Pure ORM — safe under ``sync_to_async``. Scoped by school AND user, so a
+    customer only ever sees their own conversation.
+    """
+    from apps.siteconfig.models_feature_controls import (
+        GlobalSupportTicket,
+        GlobalSupportTicketReply,
+    )
+
+    open_statuses = [
+        GlobalSupportTicket.Status.OPEN,
+        GlobalSupportTicket.Status.IN_PROGRESS,
+        GlobalSupportTicket.Status.WAITING,
+    ]
+    ticket = (
+        GlobalSupportTicket.objects.filter(
+            school=school, user=user, status__in=open_statuses
+        )
+        .order_by("-created_at")
+        .first()
+    )
+    if ticket is None:
+        return []
+    recent = list(
+        ticket.thread_replies.filter(
+            visibility=GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE
+        ).order_by("-created_at")[:_SUPPORT_CHAT_HISTORY_LIMIT]
+    )
+    recent.reverse()
+    return [
+        {
+            "message": r.body,
+            "created_at": r.created_at.isoformat(),
+            "sender_role": (
+                "customer" if (r.author_id and r.author_id == user.pk) else "agent"
+            ),
+        }
+        for r in recent
+    ]
+
+
 class SupportChatConsumer(_TenantScopedSyncConsumer):
     """Human support live-chat over WebSocket (the deferred Wave 7.4 slice).
 
@@ -291,6 +351,25 @@ class SupportChatConsumer(_TenantScopedSyncConsumer):
     """
 
     room_prefix = "support_chat"
+
+    async def connect(self):
+        # Base binds the private (school, user) room and accepts (or closes).
+        await super().connect()
+        if not getattr(self, "room_group_name", None):
+            return
+        school = self.scope.get("school")
+        if school is None:
+            return
+        from asgiref.sync import sync_to_async
+
+        try:
+            history = await sync_to_async(load_customer_chat_history)(self.user, school)
+        except Exception:  # noqa: BLE001 — history is best-effort, never block the socket
+            history = []
+        if history:
+            await self.send(
+                text_data=json.dumps({"type": "history", "messages": history})
+            )
 
     async def receive(self, text_data):
         try:
@@ -331,6 +410,19 @@ class SupportChatConsumer(_TenantScopedSyncConsumer):
                     "sender_role": "customer",
                 },
             )
+        # Surface the new activity to every connected operator console.
+        if getattr(self, "channel_layer", None):
+            await self.channel_layer.group_send(
+                _SUPPORT_AGENTS_GROUP,
+                {
+                    "type": "support.activity",
+                    "ticket_id": ticket_id,
+                    "school_name": getattr(school, "name", "") or "",
+                    "user_display": _support_user_display(self.user),
+                    "preview": message[:_SUPPORT_ACTIVITY_PREVIEW_CHARS],
+                    "sender_role": "customer",
+                },
+            )
         await self.send(
             text_data=json.dumps(
                 {"type": "ack", "ticket_id": ticket_id, "reply_id": reply_id}
@@ -346,6 +438,7 @@ class SupportChatConsumer(_TenantScopedSyncConsumer):
                     "ticket_id": event.get("ticket_id", ""),
                     "author_id": event.get("author_id"),
                     "sender_role": event.get("sender_role", ""),
+                    "system": event.get("system", ""),
                 }
             )
         )
@@ -510,6 +603,62 @@ def load_support_ticket_for_agent(ticket_id):
     }
 
 
+def set_support_ticket_status(agent_user, ticket_id, action):
+    """Resolve or reopen a ticket from the console via the support FSM.
+
+    ``action`` is "resolve" (→ RESOLVED) or "reopen" (→ OPEN). Returns
+    ``{ticket_id, status, school_id, user_id}`` on success, ``{"error":
+    "invalid_transition", "status": <current>}`` if the FSM forbids the move, or
+    None if the ticket is gone. Pure ORM — safe under ``sync_to_async``.
+    """
+    from apps.siteconfig import support_fsm
+    from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+
+    target = (
+        GlobalSupportTicket.Status.RESOLVED
+        if action == "resolve"
+        else GlobalSupportTicket.Status.OPEN
+    )
+    ticket = (
+        GlobalSupportTicket.objects.select_related("school", "user")
+        .filter(pk=ticket_id)
+        .first()
+    )
+    if ticket is None:
+        return None
+    if not support_fsm.can_transition(ticket.status, target):
+        return {"error": "invalid_transition", "status": ticket.status}
+    changed = ["status", "updated_at"]
+    ticket.status = target
+    if ticket.assigned_to_id is None:
+        ticket.assigned_to = agent_user
+        changed.append("assigned_to")
+    ticket.save(update_fields=changed)
+    # Audit parity with the ticket-detail status branch (best-effort).
+    try:
+        from apps.platform_runtime.events import emit_platform_event
+
+        emit_platform_event(
+            "support_desk_ticket_updated",
+            {
+                "ticket_id": str(ticket.pk),
+                "school_id": str(ticket.school_id),
+                "actor_id": getattr(agent_user, "id", None),
+                "changed_fields": changed,
+                "source": "live_console",
+            },
+            school_id=ticket.school_id,
+        )
+    except (AttributeError, ImportError, LookupError, TypeError, ValueError):
+        pass
+    return {
+        "ticket_id": str(ticket.pk),
+        "status": ticket.status,
+        "school_id": str(ticket.school_id),
+        "user_id": str(ticket.user_id) if ticket.user_id else None,
+    }
+
+
 class SupportAgentConsumer(AsyncWebsocketConsumer):
     """Operator-side live support chat (the /super/ half of the loop).
 
@@ -537,14 +686,19 @@ class SupportAgentConsumer(AsyncWebsocketConsumer):
             await self.close(code=4403)  # magic-number-allow: websocket-close-code-forbidden
             return
         await self.accept()
+        # Join the platform-wide operator presence group so a new customer chat
+        # surfaces live in the queue without a page reload.
+        channel_layer = getattr(self, "channel_layer", None)
+        if channel_layer is not None:
+            await channel_layer.group_add(_SUPPORT_AGENTS_GROUP, self.channel_name)
 
     async def disconnect(self, close_code):
-        if getattr(self, "channel_layer", None) and getattr(
-            self, "subscribed_room", None
-        ):
-            await self.channel_layer.group_discard(
-                self.subscribed_room, self.channel_name
-            )
+        channel_layer = getattr(self, "channel_layer", None)
+        if channel_layer is None:
+            return
+        if getattr(self, "subscribed_room", None):
+            await channel_layer.group_discard(self.subscribed_room, self.channel_name)
+        await channel_layer.group_discard(_SUPPORT_AGENTS_GROUP, self.channel_name)
 
     async def receive(self, text_data):
         try:
@@ -562,6 +716,8 @@ class SupportAgentConsumer(AsyncWebsocketConsumer):
         elif action == "message":
             message = payload.get("message") or payload.get("text") or ""
             await self._handle_message(ticket_id, message)
+        elif action in ("resolve", "reopen"):
+            await self._handle_status(ticket_id, action)
         else:
             await self.send(text_data=json.dumps({"error": "unknown_action"}))
 
@@ -651,6 +807,67 @@ class SupportAgentConsumer(AsyncWebsocketConsumer):
             )
         )
 
+    async def _handle_status(self, ticket_id, action):
+        if not ticket_id:
+            await self.send(text_data=json.dumps({"error": "ticket_required"}))
+            return
+        from asgiref.sync import sync_to_async
+
+        try:
+            result = await sync_to_async(set_support_ticket_status)(
+                self.user, ticket_id, action
+            )
+        except Exception:  # noqa: BLE001 — never drop the socket on a write error
+            await self.send(text_data=json.dumps({"error": "unavailable"}))
+            return
+        if result is None:
+            await self.send(text_data=json.dumps({"error": "not_found"}))
+            return
+        if result.get("error"):
+            await self.send(
+                text_data=json.dumps(
+                    {"error": result["error"], "status": result.get("status")}
+                )
+            )
+            return
+        # Let the customer see the state change as a system note in their room.
+        channel_layer = getattr(self, "channel_layer", None)
+        if result.get("user_id") and channel_layer is not None:
+            await channel_layer.group_send(
+                support_chat_room_name(result["school_id"], result["user_id"]),
+                {
+                    "type": "chat.message",
+                    "message": "",
+                    "ticket_id": result["ticket_id"],
+                    "author_id": None,
+                    "sender_role": "system",
+                    "system": action,
+                },
+            )
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "status",
+                    "ticket_id": result["ticket_id"],
+                    "status": result["status"],
+                }
+            )
+        )
+
+    async def support_activity(self, event):
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "activity",
+                    "ticket_id": event.get("ticket_id", ""),
+                    "school_name": event.get("school_name", ""),
+                    "user_display": event.get("user_display", ""),
+                    "preview": event.get("preview", ""),
+                    "sender_role": event.get("sender_role", ""),
+                }
+            )
+        )
+
     async def chat_message(self, event):
         await self.send(
             text_data=json.dumps(
@@ -660,6 +877,7 @@ class SupportAgentConsumer(AsyncWebsocketConsumer):
                     "ticket_id": event.get("ticket_id", ""),
                     "author_id": event.get("author_id"),
                     "sender_role": event.get("sender_role", ""),
+                    "system": event.get("system", ""),
                 }
             )
         )
