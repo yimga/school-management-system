@@ -1,6 +1,26 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-07-03 (9.8-regime PROMPT B re-audit + A-wave 1: residency border-lock fails CLOSED by default on unknown regions under enforcement; UI predicate mirrors the enforcer; access-resolver ratchet meta-protected; owner tile suspension-aware; two red compare-gates closed. RESTORES the docket after a peer worktree sweep reverted it to the pre-Wave-B state.)
+**Last updated:** 2026-07-05
+
+## 2026-07-05 — Config-SOT adoption ratchet + access-resolver job restoration (9.8-regime A-wave)
+
+**Strategic trace (PROMPT S §S7):** closes the lowest B-scored repo domain (config SOT 6.5 — resolver shipped Wave A `aa43a98d6` with ~zero adoption) by freezing the fragmented read tail so it can only go DOWN; feeds the S6 "AWS reliability" row (one choke point for future draft/preview/publish + per-key ownership routing).
+
+**What landed**
+
+| Change | Files |
+|---|---|
+| NEW one-way ratchet `scan_config_resolver_fragmentation.py` — AST-counts consumer calls to `get_effective_site_settings` / `get_legacy_site_settings_compat` / `get_platform_site_settings_record` in `apps/` + `services/` outside the SOT modules (`platform_runtime/{helpers,config_resolver,site_settings_read_access,runtime_resolver,runtime_defaults_first_class}.py`, `siteconfig/config_service.py`; tests+migrations skipped). Baseline **182** (introduction 183 = 152 raw-namespace + 31 raw-singleton-record; first slice −1 same day). `--compare` line-insensitive `(path,name)` multiset; marker `# config-resolver-allow: <reason>` | `scripts/scan_config_resolver_fragmentation.py`, `var/security-audit-baseline-config-resolver-fragmentation.json` |
+| CI job `config-resolver-fragmentation` + `REQUIRED_GATES` meta-protection + documented-baselines map entry + CLAUDE.md scanner row (182) | `.github/workflows/architectural-boundaries.yml`, `scripts/verify_ci_gate_wiring.py`, `scripts/check_documented_baselines.py`, `CLAUDE.md` |
+| **Repair of a CONFIRMED origin RED:** the tenant-operator-boundary commit series (`0c751a796`→`e3add30ba`) rewrote `architectural-boundaries.yml` and silently DROPPED the `access-resolver-fragmentation` job while `REQUIRED_GATES` still demands it — exactly the silent-unwiring class `verify_ci_gate_wiring.py` was built to catch (the meta-gate was red on origin/main). Job restored verbatim alongside the new one. | `.github/workflows/architectural-boundaries.yml` |
+| First adoption slice (the exemplar recipe): `observability/views.py::_build_admin_weather_config` single-key read migrated from `get_effective_site_settings(...)` + `getattr(site, "backend_feature_flags", ...)` to `get_effective_config(key="backend_feature_flags", request=request, default=None)`; baseline re-pinned 183→182 | `apps/observability/views.py` |
+| 11 stdlib unittests locking the ratchet core (reader detection incl. attribute form, SOT/tests/migrations exemptions, allow-marker, canonical-reader passthrough, `services/` coverage, multiset compare: line-drift never trips / +1 occurrence does / burndown never trips) | `scripts/tests/test_scan_config_resolver_fragmentation.py` |
+
+**Facade harmony (contradiction closed):** `apps.platform_runtime.config_resolver.get_effective_config` (single-KEY read) and `apps.siteconfig.config_service` (typed per-DOMAIN objects) are complementary layers over the ONE merged resolver (`platform_runtime/helpers.py::get_effective_site_settings` — RuntimeDefaults → School.settings → wizard overlay, request/TTL-cached), not rivals. Key-shaped reads → keyed accessor; domain-shaped reads → domain facade; precedence + caching inherited, never duplicated.
+
+**Evidence:** scanner report 182 / `--compare` rc=0; `verify_ci_gate_wiring` 0 un-wired and `check_documented_baselines` no-drift both re-verified against the RECONSTRUCTED pushed tree (origin blobs + only this wave — local tree carries a sibling session's unpushed isolation work that was deliberately NOT swept); 11/11 scanner unittests; `apps.siteconfig.tests.test_admin_dashboard_adaptability` 12 pass / 6 skip / 1 fail — the fail (`test_admin_weather_templates_use_internal_weather_api`) is **pre-existing on origin** (test + `templates/admin/admin_dashboard.html` byte-identical to origin; the template was gutted to a deprecation shim without its test) and is REGISTERED, not introduced.
+
+**Deploy:** no migrations, no CSS/JS (no SW bump). Burndown queue: 182 sites (top: `siteconfig/views.py` 9, `accounts/views.py` 8, `portal/views_parent.py` 8, `reports/views.py` 4, `siteconfig/forms.py` 4). Recipe: single-key sites → `get_effective_config`; domain-shaped sites → `config_service` domain objects; write-path singleton handles → `# config-resolver-allow: write-path-singleton-persistence`.
 
 ## 2026-07-03 - 9.8-regime PROMPT B re-audit + A-wave 1 closeout (no migration, no SW bump)
 

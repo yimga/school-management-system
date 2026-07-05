@@ -1516,3 +1516,31 @@ jobs:
           python scripts/audit_section_nav_platform.py --strict --write
           python scripts/scan_main_content_text_utilities.py
           python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1
+
+  access-resolver-fragmentation:
+    name: Access-resolver fragmentation ratchet
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_access_resolver_fragmentation.py --compare
+
+  config-resolver-fragmentation:
+    name: Config-resolver adoption ratchet
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_config_resolver_fragmentation.py --compare

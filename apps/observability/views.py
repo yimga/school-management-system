@@ -26,7 +26,7 @@ from django.db.models import Count, Q, Sum, Avg
 from django.core.exceptions import ValidationError
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from django.core.cache import cache
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +90,10 @@ def _p95(values: list[float]) -> float | None:
 def _build_admin_weather_config(request=None) -> dict:
     from apps.siteconfig.models import default_header_weather_config
 
-    site = get_effective_site_settings(request=request)
-    flags = getattr(site, "backend_feature_flags", None) or {}
+    flags = (
+        get_effective_config(key="backend_feature_flags", request=request, default=None)
+        or {}
+    )
     weather_defaults = default_header_weather_config()
     raw_unit = str(
         flags.get(

@@ -81,6 +81,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # on every PR; without meta-protection a dropped step re-opens silent
     # regrowth (B-validated gap, 2026-07-03).
     ("scripts/scan_access_resolver_fragmentation.py", "architectural-boundaries.yml"),
+    # Config-SOT adoption ratchet (2026-07-05) — the read-side twin: the frozen
+    # tail of raw get_effective_site_settings / singleton-record reads can only
+    # go DOWN, and new code must read through get_effective_config /
+    # config_service. Same silent-regrowth risk without meta-protection.
+    ("scripts/scan_config_resolver_fragmentation.py", "architectural-boundaries.yml"),
 )
 
 
