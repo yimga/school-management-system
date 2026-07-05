@@ -64,6 +64,37 @@ SCENARIOS = [
         "module": "apps.security.tests.test_tenant_route_leakage",
         "description": "Control-plane routes denied on tenant host",
     },
+    # Tenant⟂operator isolation program (2026-07-05) — the closed audit holes.
+    {
+        "id": "is_staff_tenant_admin_operator_surface",
+        "module": "apps.schools.tests.test_super_segment_tenant_guard",
+        "description": "H1: is_staff tenant admin denied operator surfaces on the tenant host "
+        "(super-segment middleware guard + views re-gated to require_control_plane_access)",
+    },
+    {
+        "id": "operator_to_tenant_confinement_live",
+        "module": "apps.accounts.tests.test_tenant_host_isolation_revival",
+        "description": "H2/H6/H7: SUPERADMIN-role operator confined to signed impersonation on a "
+        "tenant host (revived guard); impersonation session TTL enforced; break-glass superuser "
+        "access audited",
+    },
+    {
+        "id": "forwarded_host_operator_spoof",
+        "module": "apps.schools.tests.test_forwarded_host_hardening",
+        "description": "H3: a forged X-Forwarded-Host cannot select the operator (manager) urlconf",
+    },
+    {
+        "id": "operator_route_enumeration_coverage",
+        "module": "scripts.verify_tenant_cannot_reach_operator_routes",
+        "description": "H4.5: every super: operator route (enumerated across host-split urlconfs) is "
+        "covered by the tenant-host super-segment guard",
+    },
+    {
+        "id": "support_helper_data_layer_authz",
+        "module": "apps.api.tests.test_support_agent_console",
+        "description": "H5: operator support-chat helpers fail closed for a non-operator identity "
+        "(data-layer defense-in-depth, not just the connect gate)",
+    },
 ]
 
 
@@ -115,11 +146,42 @@ def _write_md(data: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _check() -> int:
+    """CI freshness gate: the committed artifact's scenario matrix must match the
+    current SCENARIOS (someone adding/removing a scenario must regenerate + commit).
+    Ignores the volatile ``generated_at`` / ``test_run`` fields."""
+    current = build_report()
+    try:
+        committed = json.loads(JSON_OUT.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        print(
+            "FAIL: penetration report artifact missing/unreadable — run "
+            "`python scripts/generate_tenant_isolation_penetration_report.py --write`",
+            file=sys.stderr,
+        )
+        return 1
+    if committed.get("scenarios") != current["scenarios"]:
+        print(
+            "FAIL: penetration scenario matrix drifted from the committed artifact — run "
+            "`python scripts/generate_tenant_isolation_penetration_report.py --write`",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"penetration report artifact current: {current['scenario_count']} scenarios")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--run-tests", action="store_true")
+    parser.add_argument(
+        "--check", action="store_true", help="assert committed artifact matches current scenarios"
+    )
     args = parser.parse_args()
+
+    if args.check:
+        return _check()
 
     test_result = _run_tests() if args.run_tests else None
     data = build_report(test_result=test_result)
@@ -127,7 +189,9 @@ def main() -> int:
     JSON_OUT.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     MD_OUT.write_text(_write_md(data), encoding="utf-8")
     print(f"Wrote {JSON_OUT.relative_to(ROOT)}")
-    return 0 if data["verdict"].startswith("PENETRATION SUITE READY") else 1
+    if args.run_tests:
+        return 0 if data["verdict"].startswith("PENETRATION SUITE READY") else 1
+    return 0
 
 
 if __name__ == "__main__":

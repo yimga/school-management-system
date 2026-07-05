@@ -20,6 +20,7 @@ from __future__ import annotations
 import logging
 
 from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
@@ -51,7 +52,7 @@ def _is_staff(request) -> bool:
     return bool(user is not None and getattr(user, "is_staff", False))
 
 
-@staff_member_required
+@require_control_plane_access
 @require_GET
 def platform_health_center(request):
     """Operator Decision Console: broken promises + over-SLA backlog items."""

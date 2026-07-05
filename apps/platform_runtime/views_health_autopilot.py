@@ -19,6 +19,7 @@ from datetime import timedelta
 from urllib.parse import urlencode
 
 from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -91,7 +92,7 @@ def _proposal_row(prop: dict) -> dict:
     }
 
 
-@staff_member_required
+@require_control_plane_access
 @require_GET
 def health_autopilot_console(request):
     """Consolidated AI + self-healing operator console."""
@@ -256,7 +257,7 @@ def health_autopilot_console(request):
     )
 
 
-@staff_member_required
+@require_control_plane_access
 @require_POST
 def health_autopilot_apply(request):
     """Human-authorized one-shot apply of a curated reversible remediation.

@@ -210,6 +210,28 @@ def models_school_filter_for(school):
     return Q(school__isnull=True) | Q(school=school)
 
 
+def _subject_is_superuser(subject: dict) -> bool:
+    """True when the PDP subject is a Django superuser (platform god-mode).
+
+    Fast path: call sites may set ``subject["is_superuser"]``. Fallback: resolve from
+    ``user_id`` so the platform superadmin is never bounded by tenant policy even when
+    the flag wasn't threaded through the subject. Never raises — a lookup failure just
+    means "not god-mode" and the request falls through to normal rule evaluation.
+    """
+    if subject.get("is_superuser"):
+        return True
+    uid = subject.get("user_id")
+    if not uid:
+        return False
+    try:
+        from django.contrib.auth import get_user_model
+        from django.db import DatabaseError
+
+        return get_user_model().objects.filter(pk=uid, is_superuser=True).exists()
+    except (DatabaseError, ValueError, TypeError, LookupError):
+        return False
+
+
 @transaction.atomic
 def decide(
     subject: dict,
@@ -249,10 +271,18 @@ def decide(
     }
     _inject_rebac_context(ctx, subject, school)
     matched_rule: PolicyRule | None = None
-    effect = "implicit_deny"
-    reason = "no rule matched"
+    # Platform superadmin god-mode: a Django superuser is never bounded by tenant
+    # policy. The allow is still logged below (as a superuser allow) so the
+    # break-glass action leaves a decision-log trail. Skips the rule query entirely.
+    is_god = _subject_is_superuser(ctx["subject"])
+    effect = "allow" if is_god else "implicit_deny"
+    reason = (
+        "allow: platform superuser (is_superuser) — god-mode, bypasses PDP rules"
+        if is_god
+        else "no rule matched"
+    )
 
-    for rule in _applicable_rules(school):
+    for rule in [] if is_god else _applicable_rules(school):
         if not _matches_subject(rule, ctx["subject"]):
             continue
         if not _matches_action(rule, action):

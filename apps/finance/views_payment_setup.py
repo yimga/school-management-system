@@ -5,7 +5,8 @@ Operator-facing payment readiness checklist (global corridors + campus policy).
 from __future__ import annotations
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.step_up import require_step_up
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
 
@@ -14,7 +15,8 @@ from apps.billing.regional_payment_readiness import compute_payment_readiness
 from .views_common import _active_profile
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
+@require_step_up()
 def payment_readiness_setup(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:

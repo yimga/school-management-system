@@ -11,7 +11,7 @@ import logging
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.accounts.decorators import tenant_admin_required
 from django.contrib.auth.decorators import login_required
 from django.db import models, transaction
 from django.http import HttpRequest, HttpResponseForbidden
@@ -324,7 +324,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
     return finance_save_redirect(request, "finance:invoices")
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def finance_access_bulk(request: HttpRequest):
     """
     Staff page to bulk-grant guardian finance access by year/class with

@@ -86,6 +86,23 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # go DOWN, and new code must read through get_effective_config /
     # config_service. Same silent-regrowth risk without meta-protection.
     ("scripts/scan_config_resolver_fragmentation.py", "architectural-boundaries.yml"),
+    # Tenant->operator boundary (H1 seal) — no is_staff-only operator gate on a
+    # tenant-reachable view. The platform mints is_staff tenant admins, so
+    # @staff_member_required is not an operator gate; this must run every PR or a
+    # new operator surface can silently land on the tenant host gated only by
+    # is_staff (2026-07-05).
+    ("scripts/scan_staff_gate_on_tenant_surface.py", "architectural-boundaries.yml"),
+    # Tenant->operator boundary (H4 seal, 2026-07-05) — the four axes the isolation
+    # audit found ungated: no tenant template links to an operator route; every
+    # super: route is covered by the tenant-host guard (end-to-end negative proof);
+    # every /super/ view carries a platform-scope decorator; offboarding stays
+    # operator-only.
+    ("scripts/scan_tenant_template_operator_links.py", "architectural-boundaries.yml"),
+    ("scripts/verify_tenant_cannot_reach_operator_routes.py", "ci.yml"),
+    ("scripts/verify_super_platform_scope_coverage.py", "ci.yml"),
+    ("scripts/verify_tenant_offboarding_operator_only.py", "ci.yml"),
+    # H4.7 — the penetration scenario matrix stays fresh (regenerated + committed).
+    ("scripts/generate_tenant_isolation_penetration_report.py", "architectural-boundaries.yml"),
 )
 
 

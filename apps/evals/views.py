@@ -6,7 +6,6 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib import messages
 
 logger = logging.getLogger(__name__)
-from django.contrib.admin.views.decorators import staff_member_required
 from django import forms
 import csv
 import io
@@ -18,7 +17,7 @@ import json
 from django.db import DatabaseError
 from django.core.exceptions import ValidationError
 
-from apps.accounts.decorators import role_required, teacher_portal_required
+from apps.accounts.decorators import role_required, teacher_portal_required, tenant_admin_required
 from apps.accounts.models import User
 from apps.observability.tracing import trace_view
 from apps.academics.models import (
@@ -2368,7 +2367,7 @@ def rosetta_grade_preview_api(request: HttpRequest):
     return JsonResponse(view_grade_in_target_system(ev, to_scale))
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def class_ranking_view(request: HttpRequest):
     """Class ranking (best to worst) for a given year/term/classroom.
 
@@ -2478,7 +2477,7 @@ def class_ranking_view(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def school_ranking_view(request: HttpRequest):
     """School-wide ranking for a given year/term.
 
@@ -2561,7 +2560,7 @@ def school_ranking_view(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def evaluation_admin(request: HttpRequest):
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     year, active_term = get_active_year_and_term()
@@ -2867,7 +2866,7 @@ def evaluation_admin(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def evaluation_evidence_upload(request: HttpRequest):
     evaluation_id = request.GET.get("evaluation")
     evaluation = None
@@ -2908,7 +2907,7 @@ class GradeImportUploadForm(forms.Form):
     file = forms.FileField(help_text="Upload a CSV with the expected headers.")
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def grade_import_upload_view(request: HttpRequest):
     """
@@ -2927,7 +2926,7 @@ def grade_import_upload_view(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def grade_import_template_view(request: HttpRequest):
     """
     Serve a CSV template for bulk grade imports (same fields as the management command).
@@ -2954,7 +2953,7 @@ def grade_import_template_view(request: HttpRequest):
     return response
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def grade_approval_list(request: HttpRequest):
     from apps.evals.runtime_helpers import get_policy_for_request
 
@@ -2983,7 +2982,7 @@ def grade_approval_list(request: HttpRequest):
     return render(request, "evals/grade_approval_list.html", context)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @trace_view("grade.approval.detail", op="view.hot_path")
 def grade_approval_detail(request: HttpRequest, request_id):
     from apps.evals.runtime_helpers import get_policy_for_request
@@ -3116,7 +3115,7 @@ def grade_approval_detail(request: HttpRequest, request_id):
 # ========== COMPLIANCE & ADVANCED IMPORT VIEWS ==========
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def compliance_dashboard_view(request):
     """
@@ -3164,7 +3163,7 @@ def compliance_dashboard_view(request):
     return render(request, "evals/compliance_dashboard.html", context)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def extend_deadline_view(request, subject_assignment_id):
     """
@@ -3215,7 +3214,7 @@ def extend_deadline_view(request, subject_assignment_id):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def grade_import_preview_api(request):
     """API endpoint for grade import preview with validation."""
@@ -3290,7 +3289,7 @@ def grade_import_preview_api(request):
 
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def grade_import_apply_api(request):
     """API endpoint for applying (persisting) grade import."""
@@ -3397,7 +3396,7 @@ def grade_import_apply_api(request):
         )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 @role_required(User.Role.ADMIN, User.Role.HOD, User.Role.TEACHER, "HEAD_OF_ACADEMICS")
 def audit_trail_view(request, evaluation_id):
@@ -3424,7 +3423,7 @@ def audit_trail_view(request, evaluation_id):
     return render(request, "evals/audit_trail.html", context)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def resolve_offline_conflict_view(request, offline_entry_id):
     """Manual conflict resolution for offline mark entries."""
@@ -3485,7 +3484,7 @@ def resolve_offline_conflict_view(request, offline_entry_id):
     return render(request, "evals/resolve_offline_conflict.html", context)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def import_job_monitor_view(request):
     """Monitor and manage import jobs."""

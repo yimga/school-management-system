@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -14,7 +13,7 @@ import hashlib
 from types import SimpleNamespace
 
 from django.contrib.auth.decorators import login_required
-from apps.accounts.decorators import role_required, parent_portal_required
+from apps.accounts.decorators import role_required, parent_portal_required, tenant_admin_required
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
@@ -813,7 +812,7 @@ def report_share(request: HttpRequest, token: str):
     return HttpResponseForbidden("Unknown report type.")
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def publish_term_results(request: HttpRequest):
     school = _report_scope_school(request)
     year, active_term = _active_year_and_term_for_school(school)
@@ -1084,7 +1083,7 @@ def publish_term_results(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def statistical_return(request: HttpRequest):
     """
     Annual statistical return for regional/Ministry submission: success rates, gender ratio, teacher-student ratio by class.
@@ -1227,7 +1226,7 @@ def statistical_return(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def promotion_preview(request: HttpRequest):
     """
     Promotion preview / borderline list: by academic year, list students with annual average,

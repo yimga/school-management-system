@@ -12,16 +12,30 @@ from types import SimpleNamespace
 from typing import Any
 
 from asgiref.sync import sync_to_async
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 
 logger = logging.getLogger(__name__)
 
 
 def _host_from_scope(scope: dict[str, Any]) -> str:
+    # Mirrors HTTP _request_host_raw: honor X-Forwarded-Host only from a trusted
+    # edge and use the RIGHTMOST (trusted-proxy) token so a client-prepended value
+    # can't select the operator host over the socket.
     headers = dict(scope.get("headers") or [])
-    forwarded = headers.get(b"x-forwarded-host", b"").decode("latin-1").strip()
+    trust_forwarded = bool(
+        getattr(
+            settings,
+            "TRUST_X_FORWARDED_HOST",
+            getattr(settings, "USE_X_FORWARDED_HOST", False),
+        )
+    )
+    forwarded = ""
+    if trust_forwarded:
+        forwarded = headers.get(b"x-forwarded-host", b"").decode("latin-1").strip()
     if forwarded:
-        candidate = forwarded.split(",")[0].strip()
+        parts = [p.strip() for p in forwarded.split(",") if p.strip()]
+        candidate = parts[-1] if parts else ""
     else:
         candidate = headers.get(b"host", b"").decode("latin-1").strip()
     if ":" in candidate:

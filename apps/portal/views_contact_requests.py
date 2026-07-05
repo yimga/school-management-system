@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.accounts.decorators import parent_portal_required, role_required
+from apps.accounts.decorators import (
+    parent_portal_required,
+    role_required,
+    tenant_admin_required,
+)
 from apps.accounts.models import User
 from apps.communication.models import ContactRequest
 
@@ -105,7 +107,7 @@ def _can_triage(user: User) -> bool:
     return user.roles.filter(code__in=list(TRIAGE_ROLES)).exists()
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def staff_contact_request_list(request: HttpRequest):
     if not _can_triage(request.user):
         return HttpResponseForbidden(
@@ -138,7 +140,7 @@ def staff_contact_request_list(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def staff_contact_request_detail(request: HttpRequest, request_id):
     if not _can_triage(request.user):
         return HttpResponseForbidden(

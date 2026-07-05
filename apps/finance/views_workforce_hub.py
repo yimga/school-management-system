@@ -5,7 +5,7 @@ Workforce & money command center (HR + payroll + finance ops) — batch 1511.
 from __future__ import annotations
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.accounts.decorators import tenant_admin_required
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
@@ -19,7 +19,7 @@ from apps.people.models import TeacherLeaveRequest
 from .views_common import _active_profile
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def workforce_command_center(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:

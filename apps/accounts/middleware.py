@@ -416,6 +416,23 @@ class ModuleAccessMiddleware:
         return None
 
 
+def _impersonation_expired(imp) -> bool:
+    """True when a session impersonation marker has outlived its dedicated TTL (H7).
+
+    Independent of the ordinary role session timeout: the entry token is short-lived
+    (IMPERSONATION_TOKEN_MAX_AGE_SECONDS) but the session marker used to persist until
+    explicit exit. Markers written before this change (no ``granted_at``) are not
+    force-expired, for backward compatibility."""
+    granted = (imp or {}).get("granted_at")
+    if not granted:
+        return False
+    try:
+        max_age = int(getattr(settings, "IMPERSONATION_SESSION_MAX_AGE_SECONDS", 3600))
+        return (timezone.now().timestamp() - float(granted)) > max_age
+    except (TypeError, ValueError):
+        return False
+
+
 class TenantHostControlPlaneIsolationMiddleware:
     """
     Platform operators must enter tenant hosts through the signed impersonation flow,
@@ -444,7 +461,11 @@ class TenantHostControlPlaneIsolationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if getattr(request, "public_host_kind", None) != "tenant":
+        # Runs only on real tenant hosts. `public_host_kind` never returns the
+        # literal "tenant" (a tenant subdomain resolves to None), so this must key
+        # off the positive `is_tenant_host` marker set by UrlConfSwitcherMiddleware
+        # — the previous `!= "tenant"` check dead-coded this whole guard.
+        if not getattr(request, "is_tenant_host", False):
             return self.get_response(request)
 
         path = request.path or "/"
@@ -454,11 +475,12 @@ class TenantHostControlPlaneIsolationMiddleware:
             return self.get_response(request)
 
         user = getattr(request, "user", None)
-        if (
-            not user
-            or not user.is_authenticated
-            or getattr(user, "is_superuser", False)
-        ):
+        if not user or not user.is_authenticated:
+            return self.get_response(request)
+        if getattr(user, "is_superuser", False):
+            # Break-glass: platform root may browse any tenant host directly. This is
+            # the least-observable operator->tenant path, so record it (H6, throttled).
+            self._audit_break_glass(request, user)
             return self.get_response(request)
 
         role = (getattr(user, "role", "") or "").upper()
@@ -467,10 +489,47 @@ class TenantHostControlPlaneIsolationMiddleware:
 
         impersonation = request.session.get("impersonation") or {}
         school = getattr(request, "school", None)
-        if school and str(impersonation.get("school_id") or "") == str(school.id):
+        if (
+            school
+            and str(impersonation.get("school_id") or "") == str(school.id)
+            and not _impersonation_expired(impersonation)
+        ):
             return self.get_response(request)
 
+        # No live impersonation (missing, wrong school, or past its dedicated TTL, H7)
+        # — a SUPERADMIN-role operator must (re-)enter through the signed flow.
         return redirect(build_manager_absolute_url(request, "/super/"))
+
+    _BREAK_GLASS_AUDIT_THROTTLE_SECONDS = 3600
+
+    def _audit_break_glass(self, request, user):
+        """Record superuser direct (un-impersonated) tenant-host access.
+
+        Throttled per (user, school) via the cache so a browsing session emits one
+        record, not one per request. PII-free (pks only) and best-effort — never
+        breaks the request. Skipped when the superuser is actually using the signed
+        impersonation flow (already audited at mint)."""
+        try:
+            school = getattr(request, "school", None)
+            if school is None:
+                return
+            imp = request.session.get("impersonation") or {}
+            if str(imp.get("school_id") or "") == str(school.id):
+                return
+            from django.core.cache import cache
+
+            key = f"break_glass_audit:{getattr(user, 'pk', '?')}:{school.id}"
+            if cache.get(key):
+                return
+            cache.set(key, 1, timeout=self._BREAK_GLASS_AUDIT_THROTTLE_SECONDS)
+            logging.getLogger("security.break_glass").warning(
+                "break-glass tenant-host access: superuser_pk=%s school_id=%s path=%s",
+                getattr(user, "pk", "?"),
+                school.id,
+                request.path,
+            )
+        except (AttributeError, TypeError, ValueError, ImportError):
+            pass
 
 
 class ManagerTenantPrimarySurfaceBlockMiddleware:
@@ -554,7 +613,10 @@ class ImpersonationReadOnlyGuardMiddleware:
         return self.get_response(request)
 
     def process_request(self, request):
-        if (getattr(request, "public_host_kind", None) or "").lower() != "tenant":
+        # Tenant hosts only. Keys off the positive `is_tenant_host` marker
+        # (UrlConfSwitcherMiddleware); the previous `!= "tenant"` check never
+        # matched a real tenant host and dead-coded the read-only impersonation guard.
+        if not getattr(request, "is_tenant_host", False):
             return None
         if request.method in self.SAFE_METHODS:
             return None

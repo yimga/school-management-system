@@ -120,9 +120,22 @@ def should_show_manager_login_surface(request) -> bool:
 
 
 def use_operator_login_template(request) -> bool:
-    """Corporate control-plane login vs tenant immersive role-picker login."""
+    """Corporate control-plane login vs tenant immersive role-picker login.
+
+    A TENANT subdomain must NEVER render the operator / control-plane ("Manager")
+    login skin — not even for an already-authenticated visitor bounced here by a
+    permission gate, and not for a ``next=/super/`` / ``?cp=1`` query. Doing so was
+    the second half of the finance-lockout bug: an owner denied by a staff gate was
+    redirected to ``/authentication/login/`` and, being authenticated,
+    ``should_show_manager_login_surface`` returned True → the tenant subdomain served
+    the operator sign-in page. The operator skin belongs only to the manager host
+    (checked first) or the base/public host when the visitor explicitly signals
+    operator intent (handled by ``should_show_manager_login_surface`` below).
+    """
     if getattr(request, "public_host_kind", None) == "manager":
         return True
+    if getattr(request, "is_tenant_host", False):
+        return False
     return should_show_manager_login_surface(request)
 
 

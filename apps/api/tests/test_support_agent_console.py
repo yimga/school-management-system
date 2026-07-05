@@ -165,7 +165,7 @@ class SupportAgentConsoleTests(TransactionTestCase):
             ticket=self.ticket, author=self.operator, body="secret note",
             visibility=R.Visibility.INTERNAL,
         )
-        info = load_support_ticket_for_agent(str(self.ticket.pk))
+        info = load_support_ticket_for_agent(self.operator, str(self.ticket.pk))
         bodies = [h["body"] for h in info["history"]]
         self.assertIn("help me", bodies)
         self.assertNotIn("secret note", bodies)
@@ -175,7 +175,33 @@ class SupportAgentConsoleTests(TransactionTestCase):
         self.assertEqual(info["user_id"], str(self.user.pk))
 
     def test_load_ticket_missing_returns_none(self):
-        self.assertIsNone(load_support_ticket_for_agent(str(uuid.uuid4())))
+        self.assertIsNone(load_support_ticket_for_agent(self.operator, str(uuid.uuid4())))
+
+    # ── Wave 5: data-layer authorization (defense-in-depth) ─────────────────────
+    def test_helpers_fail_closed_for_non_operator(self):
+        """A non-operator identity (e.g. a tenant is_staff user, or a regression that
+        bypassed the connect gate) gets None from every operator support helper —
+        the authorization is enforced in the data layer, not only at connect."""
+        from django.contrib.auth import get_user_model
+
+        initial_status = self.ticket.status
+        tenant_user = get_user_model()(
+            username="tenant-admin-x", email="ta@example.com", is_staff=True
+        )
+        tenant_user.set_unusable_password()
+        tenant_user.save()
+        self.assertIsNone(
+            load_support_ticket_for_agent(tenant_user, str(self.ticket.pk))
+        )
+        self.assertIsNone(
+            persist_support_agent_reply(tenant_user, str(self.ticket.pk), "x")
+        )
+        self.assertIsNone(
+            set_support_ticket_status(tenant_user, str(self.ticket.pk), "resolve")
+        )
+        # And the ticket was NOT mutated by the rejected calls.
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.status, initial_status)
 
     # ── connect gate ────────────────────────────────────────────────────────────
     async def test_connect_accepts_operator(self):

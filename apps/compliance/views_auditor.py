@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -104,7 +105,7 @@ _GRANTS_PAGE_SIZE = 100  # magic-number-allow: console listing cap
 _SCHOOL_PICKER_CAP = 500  # magic-number-allow: school <select> safety cap
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class AuditorGrantConsoleView(View):
     """Operator console: create / list / revoke external-auditor grants.
 

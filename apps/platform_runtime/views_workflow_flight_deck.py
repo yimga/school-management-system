@@ -6,6 +6,7 @@ import json
 
 
 from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -76,7 +77,7 @@ def _flight_deck_endpoints() -> dict[str, str]:
     }
 
 
-@staff_member_required
+@require_control_plane_access
 @require_GET
 def flight_deck_view(request):
     """Full-page operator workflow command center."""

@@ -16,6 +16,7 @@ import logging
 from typing import Any
 
 from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -136,7 +137,7 @@ class WizardSearchAPIView(LoginRequiredMixin, View):
             return JsonResponse({"results": [], "count": 0, "error": "search_unavailable"}, status=200)
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class BulkPromoteCockpitPresetAPIView(LoginRequiredMixin, View):
     """POST { preset: <slug>, role: <ROLE>, page: <page> } applies a preset to
     the role/page default layout.

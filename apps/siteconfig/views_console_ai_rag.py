@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any
 
 from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
@@ -80,7 +81,7 @@ def _err(message: str, status: int = 400) -> JsonResponse:
 
 @require_POST
 @csrf_protect
-@staff_member_required
+@require_control_plane_access
 def ingest_policy_docs(request: HttpRequest) -> JsonResponse:
     """Operator-triggered RAG ingest for one tenant."""
     try:

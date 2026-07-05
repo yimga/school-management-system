@@ -12,7 +12,6 @@ from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.management import CommandError, call_command
 from django.db import DatabaseError, OperationalError, connection
@@ -71,7 +70,7 @@ from .models import (
 from .theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .tenant_config import apply_tenant_settings_overrides
-from apps.accounts.decorators import permission_required
+from apps.accounts.decorators import permission_required, tenant_admin_required
 from apps.accounts.models import User
 from apps.schools.control_plane import require_super_access_with_host
 from apps.siteconfig.control_plane_render import (
@@ -274,7 +273,7 @@ def _snapshot_theme_field_values(instance, field_names):
     return snapshot
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def preview_from_form(request):
     """
     Accept POST with current Site Settings (or theme) form data; validate and stash in session,
@@ -348,7 +347,7 @@ def preview_from_form(request):
     return JsonResponse({"redirect_url": redirect_url})
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def maintenance_view(request):
     return render_siteconfig_stem(
         request,
@@ -2337,7 +2336,7 @@ def template_gallery_page(request):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def toggle_preview_mode(request):
     enabled = bool(request.session.get(PREVIEW_MODE_SESSION_KEY))
     request.session[PREVIEW_MODE_SESSION_KEY] = not enabled
@@ -2349,7 +2348,7 @@ def toggle_preview_mode(request):
     return redirect(next_url)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def set_act_as_role(request):
     if request.method != "POST":
         next_url = _safe_next_url(
@@ -2886,7 +2885,7 @@ def admission_number_preview_api(request):
 
 
 @login_required
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def feedback_roadmap(request):
     """Legacy ProductFeedback roadmap — redirects to apps.feedback operator surface.
 
