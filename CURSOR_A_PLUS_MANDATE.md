@@ -1,10 +1,11 @@
 # RUNMYCAMPUS — A+ END-TO-END IMPLEMENTATION MANDATE (for Cursor)
 
-> **Hand this entire file to Cursor.** It contains two prompts:
-> 1. **PROMPT A — THE BUILD MANDATE** (implement everything end-to-end to A+ / ≥98% on every metric).
+> **Hand this entire file to the executing agent (Cursor / Claude Code).** It contains three prompts:
+> 0. **PROMPT S — THE STRATEGY LAYER** (read FIRST: ambition, diagnosis, where-to-play / not-play, the choice-cascade gate, and the strategic scorecard rows. Strategy AIMS the build; it never relaxes it).
+> 1. **PROMPT A — THE BUILD MANDATE** (implement everything end-to-end to A+ — ≥98/100, i.e. **9.8/10 minimum under the lowest-dimension scoring regime** — on every metric).
 > 2. **PROMPT B — THE FINAL AUDIT** (re-audit, produce an A+ scorecard, and decide GO / NO-GO; if NO-GO, loop back to Prompt A).
 >
-> Run **Prompt A** until it self-reports all gates green, then run **Prompt B**. If Prompt B returns NO-GO, feed its findings back into Prompt A and repeat. **Do not stop until Prompt B returns GO.**
+> Run **Prompt A** until it self-reports all gates green, then run **Prompt B**. If Prompt B returns NO-GO, feed its findings back into Prompt A and repeat. **Do not stop until Prompt B returns GO. Standards are never softened — softening the bar is itself a NO-GO.**
 
 ---
 
@@ -14,6 +15,84 @@
 - **Production DB is PostgreSQL.** Local/test default is SQLite. **SQLite hides Postgres-only bugs (RLS, exclusion constraints, JSON ops, constraint timing). You MUST validate correctness-critical work on real Postgres** (workflows already exist: `tenants-rls.yml`, `playwright-tenant-postgres.yml`).
 - **This is a SHARED, HIGH-CHURN working tree.** Other agents/sessions commit constantly. Obey the **Integrity Rules** (Part 0). Never `git add -A`. Never delete or revert work you did not author. Never use `|| true`, `2>/dev/null`, `--no-verify`, `.skip`, `xfail`, or baseline edits to make a gate *appear* green.
 - A prior independent audit (summarized in Part 2) found the platform is **real and strong on infrastructure** but that **marketing/docstrings run ahead of wiring** in several headline areas. **Your job is to make reality match — and exceed — the claims, with proof.**
+
+---
+
+# PROMPT S — THE STRATEGY LAYER (read FIRST; strategy governs the build)
+
+> Added 2026-07-05 after reviewing the "From Reactive Planning to Strategic Thinking" framework (five elements of strategy · strategic-thinking mindsets · four failure modes · choice cascade). Honest self-diagnosis of this mandate: it has a world-class **execution and learning system** (the A→B loop) but was exposed to three of the four classic strategy failure modes — *too broad* ("everything ≥98" with no sequencing), *too activity-based* (metrics without the choices behind them written down), and *trade-off-avoidant* (250 countries treated as one undifferentiated launch). This layer fixes the aim. **It relaxes nothing** — every gate, ceiling, and the 9.8 minimum stand exactly as written. Strategy decides the ORDER and the WHY; Prompts A and B still decide DONE.
+
+## S1 — AMBITION (which mountain)
+
+Become the **operating system for schools worldwide** — the way Shopify is for commerce, AWS for infrastructure, Salesforce for CRM, Linux for sovereign computing, Amazon for breadth. Concretely: any school on Earth — from a 3-teacher school on a cash economy and a 2G connection to a 40-campus network — can self-serve from signup to a fully operating, locally-native, offline-capable school OS **in under one hour, with no consultant**, and can leave at any time with all of its data (which is exactly why it won't want to).
+
+## S2 — DIAGNOSIS (what is really true)
+
+- Incumbents (PowerSchool, Blackbaud, Veracross, Skyward, FACTS) are US/EU-centric, connectivity-assuming, USD-priced, consultant-installed, and lock data in. **Their moat is switching cost, not product love.**
+- The underserved majority of the world's schools run on bad networks, cheap devices, cash + mobile money, local grading scales, local languages, and — increasingly — data-sovereignty law. Nobody serves them with premium self-serve software; they get spreadsheets or thin local clones.
+- Therefore the real contest is NOT feature parity with incumbents. It is **(a) instant genesis, (b) local-native from day one, (c) offline survival, (d) sovereignty, (e) painless migration IN.** That is why metrics 25–28 are the moat, and why **Migration Cloud is the wedge that attacks the incumbents' only moat.**
+
+## S3 — STRATEGIC CHOICES (where we play, how we win, what we will NOT do)
+
+**Where we play first (beachheads, not 250-at-once):** self-serve private K-12 schools in connectivity-constrained, currency-diverse markets — Tier-1 beachhead cohorts per the country-readiness matrix (W7): West Africa (NG/GH/CM/CI), East Africa (KE/UG/TZ/RW), South Asia (IN/PK/BD/NP), SE Asia (PH/ID/VN), LatAm (BR/MX/CO/PE). The 250-country ambition is a **readiness LADDER, not a launch plan**: a country is "open" when its readiness row (language, grading scale, currency + payment rail, calendar, residency posture, identity fields) is green. The country-readiness matrix is a strategy artifact, not a metadata table.
+
+**How we win:** the four moats (metrics 25–28) + time-to-value (S-TTV below) + PPP-honest pricing + the Migration Cloud switching-cost attack + the marketplace/SDK ecosystem flywheel + local-first AI grounded in tenant truth.
+
+**What we will NOT do (binding not-do list — violating it is strategic drift):**
+1. No consultant-led implementations. Anything that requires a consultant is a product bug.
+2. No per-school forks or custom code. Runtime configurability (EAV, cascade, manifest) is the only personalization path.
+3. No US-district-procurement play until the self-serve engine is proven in beachheads. Districts are a Tier-2 entry earned by reputation, not RFPs.
+4. No scale-out infra (K8s/Ceph/NATS/Kafka/ClickHouse) before the >50-school / district-isolation trigger. Portability preserved; money saved.
+5. No counsel-blocked write-paths (FACTS/Skyward), no fake green, no bar-softening — ever.
+6. No new feature work that cannot name its strategic choice (see the S7 gate).
+
+## S4 — CAPABILITIES & UNIQUE ASSETS (what we uniquely leverage)
+
+~1M-LOC multi-tenant OS with FORCE-RLS isolation · a self-protecting CI-gate culture (a **quality moat no competitor can copy quickly**) · two-rail offline (SODP+WAL) + CRDT governance · Migration Cloud (6-vendor extractors + MAA legal rail + sealed-box crypto) · 250-country pricing + PPP engine · world-scale grading registry · marketplace + workflow engine + PDP · per-tenant DR + self-host posture · 24 locales · RBAC-gated local-first AI copilots.
+
+## S5 — EXECUTION & LEARNING SYSTEM (two loops, not one)
+
+- **Loop 1 — repo truth (running, unchanged):** PROMPT A builds → PROMPT B adversarially re-scores → B's next-work packet binds the next wave. 9.8 minimum, lowest-dimension scoring, no averaging, no exceptions.
+- **Loop 2 — market truth (currently MISSING; now mandatory to stand up):** beachhead pilots → activation/retention telemetry → country-ladder promotion. No amount of repo work substitutes for this loop. B classifies its legs EXTERNAL_PROOF_REQUIRED, but the canvas (S9) surfaces them every cycle so they cannot be forgotten. **The single most strategic decision currently mis-filed as "operational": choosing and signing the first pilot cohort.**
+
+## S6 — BENCHMARK DNA (what "the X of education" means, concretely)
+
+| Benchmark | Their edge | Our counterpart (repo-real today) | Gap to close |
+|---|---|---|---|
+| **Shopify** | Signup → first sale in minutes | Onboarding wizard genesis→launch | Measure + gate **TTV: signup → operating school < 1 hour** (S1 row) |
+| **Linux** | Sovereignty, no lock-in, trust | Self-host runtime + encrypted export + residency enforcement (metrics 27/28) | Restore/self-host proven in CI; publish the sovereignty pledge |
+| **Salesforce** | Ecosystem + configurability | Marketplace, EAV, workflow engine, published SDKs | Developer-adoption metrics; first external app; partner program |
+| **AWS** | Reliability + primitives + trust | RLS, 26+ gates, DR, observability, SLO registry | Postgres-CI ground truth always green; public status/SLO page |
+| **Amazon** | Start narrow, win, expand (books → everything) | Country-readiness matrix (W7) | Beachhead-ladder discipline; resist 250-at-once |
+
+## S7 — THE CHOICE-CASCADE GATE (for every NEW workstream)
+
+Before any agent opens a NEW workstream (anything beyond the 28 metrics + S-rows), it must answer, in ≤10 lines on the scoreboard: **problem? · who is affected? · success measure? · options considered? · trade-off accepted? · capability leveraged? · what must be true? · what we measure in 90 days.** A workstream that cannot answer is REJECTED as activity-without-direction (failure modes 1–2). This gate sequences work; it NEVER excuses skipping a red gate or shrinking an existing metric's bar.
+
+## S8 — STRATEGIC SCORECARD ROWS (PROMPT B scores these alongside the 28)
+
+The repo-side enabler of each row is held to the same ≥98 / 9.8 bar; the market leg is classified honestly (EXTERNAL_PROOF_REQUIRED until pilots run — never counted as done, never dropped from the register):
+
+| S# | Strategic metric | Bar |
+|---|---|---|
+| S1 | **Time-to-value**: signup → operating school (real data, no consultant) | < 1 hour, E2E-proven |
+| S2 | **Migration wedge**: incumbent SIS → RunMyCampus, end-to-end | < 1 day per school, proven per vendor |
+| S3 | **Country readiness ladder** | Tier-1 beachhead rows 100% green in the W7 matrix |
+| S4 | **Local-money completeness** | ≥3 live rails + PPP tuition + cash micro-ledger (metric 26) |
+| S5 | **Offline survival** | 7-day contract PROVEN (metric 25) |
+| S6 | **Sovereignty pledge** | Export + self-host + residency proven (27/28) AND published |
+| S7 | **Ecosystem flywheel** | SDKs published, marketplace live, first external app shipped |
+| S8 | **Market-truth loop** | Pilot cohort signed; activation/retention telemetry flowing |
+
+## S9 — 90-DAY STRATEGIC CANVAS (refresh every audit cycle; append, never delete)
+
+- **Core problem:** incumbent-locked + underserved schools cannot self-serve a world-class school OS.
+- **Changing environment:** AI disruption, data-sovereignty law, mobile-money ubiquity, post-COVID digitization budgets.
+- **Priority stakeholders:** school owners/proprietors (buyers) · teachers (daily users) · parents (payers) · students · regulators.
+- **Three choices on the table:** beachhead cohort selection · PDP enforcement promotion · config-SOT adoption ratchet.
+- **Trade-off accepted:** depth in beachheads over breadth in 250 countries.
+- **Advantage leveraged:** the offline + migration + sovereignty moat, compounded by the CI-gate quality culture.
+- **90-day measures:** every one of the 28 + S rows ≥9.8 repo-side or honestly EXTERNAL-classified · pilot cohort signed · TTV measured end-to-end.
 
 ---
 
@@ -207,6 +286,8 @@ You are an **independent, adversarial audit fleet**. Assume the implementers are
 3. **Hunt the known failure modes:** latent flags (producer without applier), services/formulas called only by tests, tables that ship empty, no-op bridges, `|| true` / `continue-on-error` masking, baseline/allowlist edits hiding findings, deleted/weakened tests, docstrings that overstate, SQLite-only "passing" of Postgres-only logic, cross-tenant leakage, money-as-float, PII in logs, secrets in tracked files.
 4. **Expansive:** also score anything a best-in-class platform needs that isn't in the 28 (note it as an extra metric and score it).
 5. **Run, don't assume:** execute `bash scripts/pre_deploy_gate.sh`, every metric-specific gate, the Postgres workflows (`tenants-rls.yml`, `playwright-tenant-postgres.yml`), the test suite, Lighthouse, axe/pa11y, `bandit`. Paste real output.
+6. **Score under the 9.8 regime (adopted 2026-07; supersedes plain /100 averaging):** a domain's score is its **LOWEST applicable dimension** (arch / completeness / isolation / security / offline / config-consistency / RBAC / reliability / recovery / a11y / UI / AI-grounding / test-depth / runtime-proof / maintainability / portability / auditability), NEVER the average — an average must never hide a weak dimension. Hard ceilings: isolation/security hole → ≤4.9; materially incomplete / duplicate engine → ≤6.9; high repo-side gap → ≤7.9; missing runtime proof (PG / browser / offline / restore / a11y) → ≤8.9; failure-injection or second-audit incomplete → ≤9.4; contradiction register non-empty → ≤9.7. **9.8/10 ≡ 98/100 — the bar is unchanged; the arithmetic is stricter.** Classify every claimed gap as CONFIRMED (repro command) / PHANTOM (evidence it exists) / EXTERNAL_PROOF_REQUIRED (Postgres CI / real browser / prod env / pilots / counsel).
+7. **Strategic-drift check (PROMPT S):** score the S1–S8 strategic rows alongside the 28; verify every wave shipped since the last audit traces to a named strategic choice (S3) or a confirmed RED from the previous packet — flag any orphan activity as drift (failure modes 1–2). Verify the not-do list (S3) was not violated. Market legs are classified EXTERNAL_PROOF_REQUIRED honestly — never counted as done, never dropped from the register — but each row's repo-side enabler must still hit ≥9.8.
 
 ## Required output — THE SCORECARD
 
@@ -223,6 +304,7 @@ Auditor fleet: <models/agents>  | Commit audited: <sha>  | Tree size: <git ls-tr
 | 26| Micro-Financing & Local Cash Rails | ... | ... | ... | ... |
 | 27| Data Sovereignty / Border-Lock Routing | ... | ... | ... | ... |
 | 28| Immutable DR Snapshots + Self-Host Runtime | ... | ... | ... | ... |
+| S1–S8 | Strategic rows (PROMPT S §S8: TTV, migration wedge, country ladder, local money, offline, sovereignty, ecosystem, market loop) | ... | ... | repo-leg evidence + market-leg classification | ... |
 | E+| <extra metrics found> | ... | ... | ... | ... |
 
 OVERALL: <average + min>    BLOCKERS (any forbidden pattern): <list or NONE>
@@ -231,8 +313,8 @@ DECISION: GO  (only if EVERY metric ≥ 98 AND zero blockers)
 ```
 
 ## Decision rule
-- **GO** — and only GO — if **every** metric (the 28 + any extras) is **≥ 98** AND there are **zero** forbidden patterns AND the full gate sweep + Postgres jobs are green with output you ran yourself.
-- **NO-GO** otherwise. Emit the ordered, specific gap list (`file:line`, what's missing, which gate is red, which test is absent).
+- **GO** — and only GO — if **every** metric (the 28 + the S-rows' repo-side legs + any extras) is **≥ 98 (9.8/10 lowest-dimension)** AND there are **zero** forbidden patterns AND the full gate sweep + Postgres jobs are green with output you ran yourself. S-row market legs that are EXTERNAL_PROOF_REQUIRED are listed with their exact external closure path (pilot, Postgres CI, counsel, prod env) — they do not block a repo-scope GO, but the verdict must be REPO-SCOPE-QUALIFIED and the external register stays visible.
+- **NO-GO** otherwise. Emit the ordered, specific gap list (`file:line`, what's missing, which gate is red, which test is absent), **ordered by (strategic weight per PROMPT S × score gap)** so the next A-wave attacks the lowest-scoring, most strategically loaded domain first.
 
 ## On NO-GO
 Hand the gap list **back to PROMPT A**, which reopens those metrics and loops. **Repeat A → B → A → B until PROMPT B returns GO.** Do not soften the bar to force a GO — softening the bar is itself a NO-GO.
@@ -266,4 +348,4 @@ Hand the gap list **back to PROMPT A**, which reopens those metrics and loops. *
 ---
 
 ### FINAL WORD TO THE FLEET
-Build for the school. Make it sovereign, local-first, offline-capable, premium, and provably correct. **Every claim carries evidence; every gate is green; every metric is ≥98 — or it is not done.** Loop A→B until B says **GO**.
+Build for the school. Make it sovereign, local-first, offline-capable, premium, and provably correct. **Every claim carries evidence; every gate is green; every metric is ≥98 (9.8 minimum, lowest dimension) — or it is not done.** Strategy (PROMPT S) chooses the mountain and the order of the climb; it never shortens the mountain. Loop A→B until B says **GO** — and remember the closing question of the strategy discipline this file now carries: *the decision you are treating as operational (the first pilot cohort) is the most strategic one on the board.*
