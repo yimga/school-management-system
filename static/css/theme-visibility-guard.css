@@ -260,3 +260,48 @@ html[data-theme="dark"] .theme-experience-page .admin-dashboard-palette-card,
 html[data-bs-theme="dark"] .theme-experience-page .admin-dashboard-palette-card {
   background: var(--vis-surface-muted) !important;
 }
+
+/* ============================================================================
+   Legibility guard (2026-07-05) — "everything visible, nothing blurred"
+   Platform-wide (this file is loaded in every shell) with the tenant hero /
+   dashboard as the primary target. Two failure modes are neutralised:
+
+   1) Gradient-CLIPPED heading text. `background-clip:text` + transparent fill
+      disables sub-pixel antialiasing (glyphs look FUZZY) and renders the text
+      INVISIBLE whenever the brand gradient fails to paint (stale SW cache, a
+      bad tenant custom-property, an un-fallback'd `var(--school-gradient)`).
+      We render these headings as crisp, solid, theme-aware text instead.
+
+   2) Frosted CONTENT panels. `backdrop-filter: blur()` over a busy page bleeds
+      the background through and drops text contrast. We make the named
+      text-bearing panels solid + un-blurred so their copy reads sharply. This
+      matches what the platform already does under
+      `@media (prefers-reduced-transparency: reduce)`.
+   ============================================================================ */
+
+/* 1) Crisp, guaranteed-contrast headings (kills fuzz + the invisible mode). */
+.tp-page-h1 strong,
+.page-h1 strong,
+.rmc-page-header strong,
+.rmc-page-header-glow strong,
+.rmc-page-header h1 strong,
+html[data-rmc-tp-v3-shell="1"] .tp-page-h1 strong,
+.error-code,
+.error-code-display {
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: border-box !important;
+          background-clip: border-box !important;
+  -webkit-text-fill-color: var(--vis-heading-strong, var(--text-primary, var(--vis-text))) !important;
+          color: var(--vis-heading-strong, var(--text-primary, var(--vis-text))) !important;
+}
+
+/* 2) Solid, un-blurred text panels on tenant surfaces (crisp copy). */
+.dashboard-chart-card,
+.backend-v2-panel,
+.backend-v2-rail-card {
+  background: var(--vis-surface) !important;
+  -webkit-backdrop-filter: none !important;
+          backdrop-filter: none !important;
+  color: var(--vis-text) !important;
+}

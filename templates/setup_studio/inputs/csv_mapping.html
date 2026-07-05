@@ -7,6 +7,8 @@
 <div class="rmc-wizard-csv-pair">
       <span><strong>{{ source_col.value }}</strong></span>
       <span aria-hidden="true">→</span>
+      {% comment %}Carry the source column identity so the server can rebuild {source_column: target_field} — the select name alone is index-based.{% endcomment %}
+      <input type="hidden" name="mapping_col_{{ forloop.counter0 }}" value="{{ source_col.value }}">
       <select name="mapping_{{ forloop.counter0 }}">
         <option value="">{% trans "— not mapped —" %}</option>
         {% for tgt in source_col.metadata.targets %}
@@ -14,5 +16,9 @@
         {% endfor %}
       </select>
     </div>
+  {% empty %}
+    <p class="rmc-wizard-field__helper" data-rmc-wizard-csv-empty>
+      {% trans "No source columns were detected to map here yet. You can continue — field mapping is refined in Migration Cloud after this step." %}
+    </p>
   {% endfor %}
 </fieldset>

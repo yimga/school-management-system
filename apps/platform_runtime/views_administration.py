@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
@@ -47,6 +48,7 @@ from apps.platform_runtime.operational_center_nav import (
     configuration_center_frame_context,
     pack_marketplace_frame_context,
     school_configuration_frame_context,
+    tenant_import_setup_frame_context,
 )
 from apps.platform_runtime.pack_apply import apply_pack
 from apps.platform_runtime.pack_contract import get_pack, list_packs
@@ -462,6 +464,18 @@ def tenant_import_setup(request):
     school, denied = require_tenant_lifecycle_school(request)
     if denied is not None:
         return denied
+
+    def _card_url(name: str, fallback: str) -> str:
+        # Resolve against the live (tenant) urlconf so the CTA always lands on a
+        # routed view. The previous hardcoded paths (``/admin/accounts/student/import/``,
+        # ``/siteconfig/onboarding/step/staff/``, ``/migration/``) are NOT mounted on
+        # the tenant host, so every card 404'd. Fall back to the known tenant path if
+        # a name is ever renamed rather than 500-ing the whole imports page.
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            return fallback
+
     import_cards = [
         {
             "key": "students",
@@ -469,7 +483,7 @@ def tenant_import_setup(request):
             "detail": "Start with a clean roster so attendance, reports, fees, and parent access have real records.",
             "template_label": "Student CSV template",
             "cta_label": "Open student import",
-            "cta_url": "/admin/accounts/student/import/",
+            "cta_url": _card_url("accounts:migration_wizard", "/authentication/backend/migration-wizard/"),
         },
         {
             "key": "staff",
@@ -477,7 +491,7 @@ def tenant_import_setup(request):
             "detail": "Load staff before assigning classes, subjects, attendance owners, or approval flows.",
             "template_label": "Staff CSV template",
             "cta_label": "Open staff setup",
-            "cta_url": "/siteconfig/onboarding/step/staff/",
+            "cta_url": _card_url("accounts:backend_teacher_list", "/authentication/backend/teachers/"),
         },
         {
             "key": "fees",
@@ -485,7 +499,7 @@ def tenant_import_setup(request):
             "detail": "Bring fee categories and balances after the roster is ready; keep manual receipts auditable.",
             "template_label": "Finance import checklist",
             "cta_label": "Open finance setup",
-            "cta_url": "/finance/payment-setup/",
+            "cta_url": _card_url("finance:payment_readiness_setup", "/finance/payment-setup/"),
         },
         {
             "key": "migration_cloud",
@@ -493,7 +507,10 @@ def tenant_import_setup(request):
             "detail": "Use connector intake when the source system is PowerSchool, Veracross, FACTS, spreadsheets, or a custom SIS.",
             "template_label": "Connector handoff",
             "cta_label": "Open migration intake",
-            "cta_url": "/migration/",
+            "cta_url": _card_url(
+                "migration_cloud_connector:connector-home",
+                "/school/setup/migration-cloud/",
+            ),
         },
     ]
     return render(
@@ -503,6 +520,10 @@ def tenant_import_setup(request):
             "school": school,
             "import_cards": import_cards,
             "page_marker": "rmc-tenant-import-setup",
+            # Frame header (eyebrow / title / purpose / status badge / nav groups).
+            # Sibling setup views all spread their frame context; this one omitted
+            # it, so the operational-center header rendered bare.
+            **tenant_import_setup_frame_context(),
         },
     )
 

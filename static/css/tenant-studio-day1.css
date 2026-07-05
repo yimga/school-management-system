@@ -175,6 +175,23 @@ html[data-rmc-tenant-studio-day1-armed] .rmc-day1-seed-chip {
   font-size: var(--type-size-body, 0.95rem);
 }
 
+/* "We resized your logo" confirmation — lives in the always-visible brand meta
+   block (the upload widget hides on success). Theme-aware tokens so it stays
+   legible in light and dark. */
+.rmc-day1-logo-notice {
+  margin: var(--space-2, 0.5rem) 0 0;
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  border-radius: var(--radius-2, 0.5rem);
+  background: var(--surface-elevated, var(--surface-canvas));
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  font-size: var(--type-size-caption, 0.85rem);
+}
+
+.rmc-day1-logo-notice.is-hidden {
+  display: none;
+}
+
 .rmc-day1-logo-upload-form {
   display: grid;
   gap: var(--space-3, 0.75rem);

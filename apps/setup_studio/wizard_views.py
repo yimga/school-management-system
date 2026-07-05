@@ -446,6 +446,26 @@ def _parse_post_payload(request: HttpRequest, step: wizard_engine.StepDefinition
         }
     if step.input_type == "file_upload" or step.input_type == "image_upload":
         return {"value": request.FILES.get("value")}
+    if step.input_type == "csv_mapping":
+        # The csv_mapping widget renders one <select name="mapping_{i}"> per
+        # source column plus a paired <input name="mapping_col_{i}"> carrying the
+        # source column's identity. Reconstruct {source_column: target_field}.
+        # Without this branch the payload fell through to {"value": POST["value"]}
+        # — a field that does not exist — so review_mapping ALWAYS failed
+        # ``required`` validation and the wizard could never advance past it.
+        mapping: dict[str, Any] = {}
+        for post_key in request.POST:
+            if not post_key.startswith("mapping_") or post_key.startswith("mapping_col_"):
+                continue
+            target = (request.POST.get(post_key) or "").strip()
+            if not target:
+                continue
+            idx = post_key[len("mapping_"):]
+            source = (request.POST.get("mapping_col_" + idx) or "").strip() or post_key
+            mapping[source] = target
+        # Only the ``value`` key — the step schema rejects unexpected fields, and
+        # the writer (apply_field_mapping) already falls back to ``value``.
+        return {"value": mapping}
     return {"value": request.POST.get("value")}
 
 

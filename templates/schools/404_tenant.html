@@ -64,7 +64,15 @@
       {% include "schools/partials/school_finder_bento.html" with finder_id="campus-not-found-results" input_id="campus-not-found-input" query=query results=results %}
 
       <div class="text-center mt-4">
-        <a href="{% url 'marketing_landing' %}" class="btn btn-outline-primary">{% trans "Back to home" %}</a>
+        {% comment %}
+          This template is the handler404 for tenant subdomains too, where the
+          marketing-host name 'marketing_landing' is NOT registered. The url..as
+          form below sets an empty string (never raises NoReverseMatch) when the
+          name is absent, so it degrades to "/" instead of crashing the branded
+          404 into the bare static fallback.
+        {% endcomment %}
+        {% url 'marketing_landing' as marketing_home_url %}
+        <a href="{{ marketing_home_url|default:'/' }}" class="btn btn-outline-primary">{% trans "Back to home" %}</a>
       </div>
     </div>
   </div>
