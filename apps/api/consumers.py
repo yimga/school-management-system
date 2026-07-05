@@ -537,6 +537,20 @@ def agent_console_access(user) -> bool:
         return False
 
 
+def _agent_authorized_for_support(agent_user) -> bool:
+    """Data-layer defense-in-depth for the operator support helpers.
+
+    The operator console is a global support desk (cross-tenant by design — any
+    ``team.read`` operator may work any tenant's ticket), so these helpers do a
+    bare ``filter(pk=ticket_id)`` with no tenant scoping. Their only protection was
+    ``SupportAgentConsumer``'s connect-time ``agent_console_access`` gate. This
+    re-asserts that same operator identity INSIDE each helper so a regression that
+    reordered/dropped the connect gate (or any future non-socket caller) cannot
+    drive a cross-tenant read/write with a tenant identity. Fail-closed.
+    """
+    return agent_console_access(agent_user)
+
+
 def persist_support_agent_reply(agent_user, ticket_id, body):
     """Record an operator's live-chat line as a submitter-visible reply on the
     customer's ticket, advance SLA / assignment / status, and return the routing
@@ -551,6 +565,9 @@ def persist_support_agent_reply(agent_user, ticket_id, body):
     """
     from django.utils import timezone
 
+    if not _agent_authorized_for_support(agent_user):
+        return None
+
     from apps.siteconfig import support_fsm
     from apps.siteconfig.models_feature_controls import (
         GlobalSupportTicket,
@@ -559,7 +576,7 @@ def persist_support_agent_reply(agent_user, ticket_id, body):
 
     ticket = (
         GlobalSupportTicket.objects.select_related("school", "user")
-        .filter(pk=ticket_id)
+        .filter(pk=ticket_id)  # tenant-isolation-allow: operator-support-console-cross-tenant-by-design-authz-gated-above
         .first()
     )
     if ticket is None:
@@ -593,15 +610,19 @@ def persist_support_agent_reply(agent_user, ticket_id, body):
     }
 
 
-def load_support_ticket_for_agent(ticket_id):
+def load_support_ticket_for_agent(agent_user, ticket_id):
     """Context for the operator console when it subscribes to a ticket.
 
     Returns ``{ticket_id, school_id, user_id, subject, status, school_name,
-    history[]}`` or None if the ticket is gone. History is the last N
-    submitter-visible lines — the shared customer/agent conversation, oldest
-    first. Internal operator notes are excluded; they live on the ticket detail
-    page, not the live pane. Pure ORM — safe under ``sync_to_async``.
+    history[]}`` or None if the ticket is gone (or the caller is not an authorized
+    operator). History is the last N submitter-visible lines — the shared
+    customer/agent conversation, oldest first. Internal operator notes are
+    excluded; they live on the ticket detail page, not the live pane. Pure ORM —
+    safe under ``sync_to_async``.
     """
+    if not _agent_authorized_for_support(agent_user):
+        return None
+
     from apps.siteconfig.models_feature_controls import (
         GlobalSupportTicket,
         GlobalSupportTicketReply,
@@ -609,7 +630,7 @@ def load_support_ticket_for_agent(ticket_id):
 
     ticket = (
         GlobalSupportTicket.objects.select_related("school", "user")
-        .filter(pk=ticket_id)
+        .filter(pk=ticket_id)  # tenant-isolation-allow: operator-support-console-cross-tenant-by-design-authz-gated-above
         .first()
     )
     if ticket is None:
@@ -652,6 +673,9 @@ def set_support_ticket_status(agent_user, ticket_id, action):
     "invalid_transition", "status": <current>}`` if the FSM forbids the move, or
     None if the ticket is gone. Pure ORM — safe under ``sync_to_async``.
     """
+    if not _agent_authorized_for_support(agent_user):
+        return None
+
     from apps.siteconfig import support_fsm
     from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
@@ -662,7 +686,7 @@ def set_support_ticket_status(agent_user, ticket_id, action):
     )
     ticket = (
         GlobalSupportTicket.objects.select_related("school", "user")
-        .filter(pk=ticket_id)
+        .filter(pk=ticket_id)  # tenant-isolation-allow: operator-support-console-cross-tenant-by-design-authz-gated-above
         .first()
     )
     if ticket is None:
@@ -772,7 +796,7 @@ class SupportAgentConsumer(AsyncWebsocketConsumer):
         from asgiref.sync import sync_to_async
 
         try:
-            info = await sync_to_async(load_support_ticket_for_agent)(ticket_id)
+            info = await sync_to_async(load_support_ticket_for_agent)(self.user, ticket_id)
         except Exception:  # noqa: BLE001 — never drop the socket on a read error
             await self.send(text_data=json.dumps({"error": "unavailable"}))
             return

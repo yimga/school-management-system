@@ -34,7 +34,11 @@ class TenantHostControlPlaneIsolationMiddlewareTests(TestCase):
         request.session.save()
         request.user = self.superadmin
         request.school = self.school
-        request.public_host_kind = "tenant"
+        # Production reality: a tenant subdomain resolves to public_host_kind=None
+        # (never the literal "tenant"); the guard keys off the positive is_tenant_host
+        # marker set by UrlConfSwitcherMiddleware.
+        request.public_host_kind = None
+        request.is_tenant_host = True
         return request
 
     def test_superadmin_without_impersonation_is_redirected_to_manager_host(self):

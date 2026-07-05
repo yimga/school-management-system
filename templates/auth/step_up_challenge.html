@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirm your identity" %}{% endblock %}
+
+{% block content %}
+<section class="error-page" aria-labelledby="step-up-title">
+  <div class="container" style="max-width: 32rem;">
+    <div class="card">
+      <div class="card-body">
+        <div class="text-center mb-3" aria-hidden="true"><i class="bi bi-shield-lock fs-1"></i></div>
+        <h1 id="step-up-title" class="h4 text-center mb-2">{% trans "Confirm it's you" %}</h1>
+        <p class="text-muted text-center mb-4">
+          {% blocktrans %}This is a sensitive action, so we ask you to re-confirm your identity. You'll stay signed in — this just unlocks the action for a short time.{% endblocktrans %}
+        </p>
+
+        {% if error %}
+          <div class="alert alert-danger" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'accounts:step_up' %}" autocomplete="off" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+
+          <div class="mb-3">
+            <label class="form-label" for="step-up-password">{% trans "Password" %}</label>
+            <input class="form-control" type="password" id="step-up-password" name="password"
+                   autocomplete="current-password" required autofocus>
+          </div>
+
+          {% if has_mfa %}
+            <div class="mb-2">
+              <label class="form-label" for="step-up-otp">{% trans "Authenticator code" %}</label>
+              <input class="form-control" type="text" id="step-up-otp" name="otp_token"
+                     inputmode="numeric" autocomplete="one-time-code"
+                     placeholder="{% trans '6-digit code or backup code' %}" required>
+            </div>
+            <p class="text-muted small mb-3">{% trans "Open your authenticator app, or use one of your saved backup codes." %}</p>
+          {% endif %}
+
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-unlock me-1"></i>{% trans "Confirm and continue" %}
+          </button>
+        </form>
+
+        <p class="text-muted small text-center mt-3 mb-0">
+          {% blocktrans %}Access stays unlocked for about {{ window_minutes }} minutes.{% endblocktrans %}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

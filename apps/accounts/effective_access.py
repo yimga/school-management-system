@@ -62,6 +62,16 @@ def school_permission_access(user, school, action) -> bool:
     return has_school_permission(user, school, action)
 
 
+def tenant_admin_access(user, school, *, codes=("settings.manage",)) -> bool:
+    """May ``user`` administer this tenant? (owner / role=ADMIN / settings.manage;
+    superuser bypass). The gate behind the ``tenant_admin_required`` decorator — use
+    this for non-decorator (in-body / template-context) tenant-admin checks so the
+    rule stays in one place."""
+    from apps.accounts.decorators import user_is_tenant_admin
+
+    return user_is_tenant_admin(user, school, codes=codes)
+
+
 def role_access(user, role: str) -> bool:
     """Does ``user`` hold this role (hierarchy + temporary grants honoured)?"""
     from apps.accounts.permissions import has_role
@@ -93,4 +103,5 @@ __all__ = [
     "school_permission_access",
     "student_data_access",
     "student_grades_edit_access",
+    "tenant_admin_access",
 ]

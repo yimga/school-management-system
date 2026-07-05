@@ -39,6 +39,12 @@ jobs:
         run: python scripts/verify_field_reference_integrity.py --compare
       - name: Verify relation-path integrity
         run: python scripts/verify_relation_path_integrity.py --compare
+      - name: Verify tenant cannot reach operator routes (super-segment coverage)
+        run: python scripts/verify_tenant_cannot_reach_operator_routes.py
+      - name: Verify /super/ per-view platform-scope coverage
+        run: python scripts/verify_super_platform_scope_coverage.py
+      - name: Verify tenant offboarding is operator-only
+        run: python scripts/verify_tenant_offboarding_operator_only.py
       - name: Verify RuntimeDefaults first-class <-> model parity (config SOT drift)
         run: python scripts/verify_runtime_defaults_model_parity.py
       - name: Verify unified-lifecycle FSM integrity (states/transitions/spine map)

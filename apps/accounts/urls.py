@@ -9,6 +9,7 @@ from django.contrib.auth.views import (
 )
 
 from .password_reset import PortalPasswordResetForm
+from .views_step_up import step_up_challenge
 
 from .views import (
     auth_root_redirect,
@@ -245,6 +246,7 @@ app_name = "accounts"
 urlpatterns = [
     path("", auth_root_redirect, name="root"),  # rbac-allow: pre-auth dispatcher
     path("login/", login_view, name="login"),  # rbac-allow: login page must be anonymous-reachable
+    path("step-up/", step_up_challenge, name="step_up"),  # rbac-allow: @login_required inside; re-auth challenge
     path("logout/", logout_view, name="logout"),
     path("impersonate/", impersonate_entry, name="impersonate_entry"),
     path("end-impersonation/", end_impersonation, name="end_impersonation"),

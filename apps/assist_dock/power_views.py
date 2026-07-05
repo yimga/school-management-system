@@ -19,6 +19,7 @@ import json
 import logging
 
 from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from services.http_auth_guards import login_required_api as login_required
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render
@@ -110,7 +111,7 @@ def theme_landing(request):
     )
 
 
-@staff_member_required
+@require_control_plane_access
 @require_safe
 def inspect_landing(request):
     """Super-only RBAC + settings introspection overlay for a page.
@@ -135,7 +136,7 @@ def inspect_landing(request):
     )
 
 
-@staff_member_required
+@require_control_plane_access
 @require_safe
 def impersonate_landing(request):
     """Super-only impersonation picker — routes to the real flow when present.

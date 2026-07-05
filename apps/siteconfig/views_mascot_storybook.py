@@ -4,12 +4,12 @@ variant on a single page so designers can review the system in one glance.
 
 from __future__ import annotations
 
-from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
+from apps.accounts.decorators import tenant_admin_required
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+
+@tenant_admin_required
 def mascot_storybook(request):
     """Render every advisor pose + variant in a single grid."""
     poses = [

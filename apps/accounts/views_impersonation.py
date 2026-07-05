@@ -10,6 +10,7 @@ import json
 from django.conf import settings
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.shortcuts import redirect
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -75,6 +76,10 @@ def impersonate_entry(request):
         "school_id": str(school.id),
         "actor_id": payload["user_id"],
         "read_only": payload.get("read_only", True),
+        # Dedicated impersonation-session TTL (H7): the marker expires on its own
+        # clock (IMPERSONATION_SESSION_MAX_AGE_SECONDS) independent of the role
+        # session timeout, forcing a re-mint through the signed flow.
+        "granted_at": int(timezone.now().timestamp()),
     }
     request.session.modified = True
     return redirect(next_url)

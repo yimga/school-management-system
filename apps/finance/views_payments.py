@@ -17,7 +17,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.accounts.decorators import tenant_admin_required
 from django.db import transaction
 from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
@@ -75,7 +75,7 @@ from .views_common import (
 logger = logging.getLogger(__name__)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def payment_list(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
@@ -196,7 +196,7 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def cash_office_closure(request: HttpRequest):
     """
     Daily cash closure: recomputes cash collected from completed CASH payments
@@ -288,7 +288,7 @@ def cash_office_closure(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def split_allocation(request: HttpRequest):
     """
     Record a single payment split across fee types.
@@ -413,7 +413,7 @@ def split_allocation(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def scan_teller_placeholder(request: HttpRequest):
     """
     OCR scan helper for physical teller / receipt uploads.

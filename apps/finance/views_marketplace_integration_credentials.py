@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.step_up import require_step_up
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
@@ -21,7 +22,8 @@ from services.post_delete_navigation import redirect_after_save
 from .views_common import _active_profile
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
+@require_step_up()
 @require_http_methods(["GET", "POST"])
 def marketplace_integration_credentials(request: HttpRequest):
     profile = _active_profile(request)

@@ -133,6 +133,11 @@ if not DEBUG and not ALLOWED_HOSTS:
 # Behind HTTPS proxy (e.g. Render, Heroku): trust X-Forwarded-Proto and X-Forwarded-Host
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
+# Host classification (tenant vs operator/manager urlconf) honors X-Forwarded-Host
+# only when the edge is trusted, and uses the rightmost (trusted-proxy) token so a
+# forged/prepended header can't select the operator host. Set to "0" on deployments
+# whose edge does NOT strip/replace client-supplied X-Forwarded-Host.
+TRUST_X_FORWARDED_HOST = os.getenv("TRUST_X_FORWARDED_HOST", "1") not in ("0", "false", "False", "no")
 # CSRF: allow HTTPS origins (Django 4.0+). On Render, set CSRF_TRUSTED_ORIGINS or RENDER_EXTERNAL_HOSTNAME is used.
 _csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "").strip()
 _render_host = (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip()
@@ -1278,6 +1283,18 @@ MANAGER_CSRF_COOKIE_DOMAIN = _manager_csrf_cookie_domain_env or None
 # Signed impersonation token TTL (seconds); must match unsign max_age on tenant consume.
 IMPERSONATION_TOKEN_MAX_AGE_SECONDS = int(
     os.getenv("IMPERSONATION_TOKEN_MAX_AGE_SECONDS", "3600")
+)
+# Dedicated impersonation SESSION TTL (H7): the session marker expires on its own
+# clock, independent of the role session timeout, forcing a re-mint via the signed
+# flow. Defaults to the entry-token lifetime (1h).
+IMPERSONATION_SESSION_MAX_AGE_SECONDS = int(
+    os.getenv("IMPERSONATION_SESSION_MAX_AGE_SECONDS", "3600")
+)
+# Sudo-style step-up elevation window: after a re-auth challenge (password + fresh
+# MFA), sensitive tenant-config actions guarded by @require_step_up stay unlocked on
+# the SAME session for this many seconds before another challenge is required.
+STEP_UP_REAUTH_MAX_AGE_SECONDS = int(
+    os.getenv("STEP_UP_REAUTH_MAX_AGE_SECONDS", "600")
 )
 # When true, switch_to_tenant requires a non-empty justification (POST impersonation_reason).
 IMPERSONATION_REQUIRE_JUSTIFICATION = (

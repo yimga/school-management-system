@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-20T02:18:30+00:00",
+  "generated_at": "2026-07-05T10:43:42.280209+00:00",
   "pii_free": true,
-  "scenario_count": 9,
+  "scenario_count": 14,
   "scenarios": [
     {
       "description": "Foreign student PK on wrong tenant host \u2192 not 200",
@@ -24,7 +24,7 @@
       "module": "apps.security.tests.test_boundary_penetration"
     },
     {
-      "description": "rls_school / ORM school filter hides foreign student row",
+      "description": "rls_school context hides foreign student row",
       "id": "rls_query_isolation",
       "module": "apps.security.tests.test_boundary_penetration"
     },
@@ -47,17 +47,35 @@
       "description": "Control-plane routes denied on tenant host",
       "id": "platform_route_from_tenant",
       "module": "apps.security.tests.test_tenant_route_leakage"
+    },
+    {
+      "description": "H1: is_staff tenant admin denied operator surfaces on the tenant host (super-segment middleware guard + views re-gated to require_control_plane_access)",
+      "id": "is_staff_tenant_admin_operator_surface",
+      "module": "apps.schools.tests.test_super_segment_tenant_guard"
+    },
+    {
+      "description": "H2/H6/H7: SUPERADMIN-role operator confined to signed impersonation on a tenant host (revived guard); impersonation session TTL enforced; break-glass superuser access audited",
+      "id": "operator_to_tenant_confinement_live",
+      "module": "apps.accounts.tests.test_tenant_host_isolation_revival"
+    },
+    {
+      "description": "H3: a forged X-Forwarded-Host cannot select the operator (manager) urlconf",
+      "id": "forwarded_host_operator_spoof",
+      "module": "apps.schools.tests.test_forwarded_host_hardening"
+    },
+    {
+      "description": "H4.5: every super: operator route (enumerated across host-split urlconfs) is covered by the tenant-host super-segment guard",
+      "id": "operator_route_enumeration_coverage",
+      "module": "scripts.verify_tenant_cannot_reach_operator_routes"
+    },
+    {
+      "description": "H5: operator support-chat helpers fail closed for a non-operator identity (data-layer defense-in-depth, not just the connect gate)",
+      "id": "support_helper_data_layer_authz",
+      "module": "apps.api.tests.test_support_agent_console"
     }
   ],
   "test_run": {
-    "exit_code": 0,
-    "modules": [
-      "apps.security.tests.test_boundary_penetration",
-      "apps.tenancy.tests.test_rls_boundary_contracts",
-      "apps.accounts.tests.test_impersonation_audit_integrity"
-    ],
-    "status": "pass",
-    "summary": "16 OK, 2 skipped (Postgres-only RLS GUC checks)"
+    "status": "not_run"
   },
-  "verdict": "PENETRATION SUITE READY \u2014 REPO SCOPE"
+  "verdict": "PENETRATION SUITE PENDING \u2014 RUN TESTS"
 }

@@ -316,14 +316,47 @@ SUPPORT_HOST_ALLOWED_PREFIXES = (
 )
 
 
+def _forwarded_host_candidate(forwarded: str) -> str:
+    """Trusted value from an ``X-Forwarded-Host`` header.
+
+    Reverse proxies APPEND to forwarded headers, so the RIGHTMOST token is the
+    value set by the closest (trusted) hop; leftmost tokens can be client-injected.
+    Taking the last token closes the trivial prepend spoof — a client sending
+    ``X-Forwarded-Host: manager.<base>, real-host`` on a tenant connection to force
+    operator (manager) urlconf selection. (Host classification only *selects*
+    routing; the manager host is still fail-closed behind
+    ``user_has_control_plane_access`` — this hardens defense-in-depth so routing is
+    not attacker-selectable.) Deployments whose edge does NOT sanitize/replace this
+    header should set ``TRUST_X_FORWARDED_HOST=0``.
+    """
+    parts = [p.strip() for p in forwarded.split(",") if p.strip()]
+    return parts[-1] if parts else ""
+
+
+def _trust_forwarded_host() -> bool:
+    return bool(
+        getattr(
+            settings,
+            "TRUST_X_FORWARDED_HOST",
+            getattr(settings, "USE_X_FORWARDED_HOST", False),
+        )
+    )
+
+
 def _request_host_raw(request) -> str:
     """
     Return normalized host from request metadata without triggering Django's
     ALLOWED_HOSTS validation. This lets legacy-domain redirect logic run first.
+
+    ``X-Forwarded-Host`` is honored only when the edge is trusted
+    (``TRUST_X_FORWARDED_HOST`` / ``USE_X_FORWARDED_HOST``) and the trusted
+    (rightmost) token is used, so a forged header can't select the operator host.
     """
-    forwarded = (request.META.get("HTTP_X_FORWARDED_HOST") or "").strip()
+    forwarded = ""
+    if _trust_forwarded_host():
+        forwarded = (request.META.get("HTTP_X_FORWARDED_HOST") or "").strip()
     if forwarded:
-        candidate = forwarded.split(",")[0].strip()
+        candidate = _forwarded_host_candidate(forwarded)
     else:
         candidate = (
             request.META.get("HTTP_HOST") or request.META.get("SERVER_NAME") or ""
@@ -637,6 +670,13 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
         kind = public_host_kind(host)
         # Set early so templates (e.g. portal_base) can use it; manager urlconf has no 'kb' namespace.
         request.public_host_kind = kind
+        # Positive tenant-host marker. `public_host_kind` never returns the string
+        # "tenant" (a tenant subdomain resolves to None), which silently dead-coded
+        # the operator-confinement + read-only-impersonation guards that keyed on
+        # `public_host_kind == "tenant"`. Set True only when we definitively route a
+        # request to config.tenant_urls (below) so those guards fire on real tenant
+        # hosts. Fail-safe default is False.
+        request.is_tenant_host = False
         # Local/test hosts keep full URL surface for developer workflows and legacy tests.
         if kind == "local":
             request.urlconf = "config.urls"
@@ -659,6 +699,7 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
             request.urlconf = "config.public_urls"
         else:
             request.urlconf = "config.tenant_urls"
+            request.is_tenant_host = True
         set_urlconf(request.urlconf)
         return None
 
@@ -1406,24 +1447,51 @@ class TenantLastActivityMiddleware(MiddlewareMixin):
         return response
 
 
+def _is_operator_super_route(path: str) -> bool:
+    """True when the path targets an operator ("super") route.
+
+    Two shapes:
+      * the canonical ``/super/...`` prefix (manager host / operator plane), and
+      * a ``super`` path SEGMENT anywhere (``/portal/super/merges/``,
+        ``/api/v1/super/tenant-inspect/...``): the platform's operator-route
+        convention leaking under a tenant-host prefix, which bypasses the
+        ``/super/``-prefix guard. Every ``super/`` route across all
+        tenant-reachable urlconfs is operator by convention (verified — no tenant
+        feature uses it), so requiring control-plane access on any ``super``
+        segment is the structural seal for H1 (operator route on a tenant host).
+    """
+    if path.startswith("/super/"):
+        return True
+    return "super" in (path or "").strip("/").split("/")
+
+
 class TenantSuperAdminRequiredMiddleware(MiddlewareMixin):
     """
-    Restrict /super/ to users with SUPERADMIN role or is_superuser.
-    Must run after AuthenticationMiddleware. Add after TenantMiddleware.
+    Restrict operator ("super") routes to users with control-plane access.
+
+    Fires on the ``/super/`` prefix AND on any ``super`` path segment (e.g. a
+    ``/portal/super/...`` operator route mounted on the tenant host), so an
+    is_staff tenant admin can never reach an operator surface that leaked under a
+    tenant prefix. Must run after AuthenticationMiddleware. Add after
+    TenantMiddleware.
     """
 
     def process_request(self, request):
-        if not request.path.startswith("/super/"):
+        path = request.path or "/"
+        if not _is_operator_super_route(path):
             return None
-        # Global toggle: when Super Admin UI is disabled, block /super/.
-        try:
-            flags = get_effective_flags(request)
-            if not flags.get("enable_super_admin_ui", True):
-                from django.http import HttpResponseForbidden
+        # Global toggle: when Super Admin UI is disabled, block the canonical
+        # /super/ operator plane. (Scoped to the prefix so a tenant's effective
+        # flags never affect the mid-path segment guard below.)
+        if path.startswith("/super/"):
+            try:
+                flags = get_effective_flags(request)
+                if not flags.get("enable_super_admin_ui", True):
+                    from django.http import HttpResponseForbidden
 
-                return HttpResponseForbidden("Super Admin is disabled.")
-        except (AttributeError, TypeError, ValueError):
-            pass
+                    return HttpResponseForbidden("Super Admin is disabled.")
+            except (AttributeError, TypeError, ValueError):
+                pass
         if not request.user.is_authenticated:
             from django.contrib.auth.views import redirect_to_login
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.accounts.decorators import tenant_admin_required
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
@@ -18,7 +18,7 @@ from .views_common import _active_profile
 from .services import finance_dashboard_data
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def dashboard(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:

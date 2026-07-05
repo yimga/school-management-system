@@ -6,7 +6,6 @@ import json
 import logging
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
 from django.db import DatabaseError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -25,6 +24,7 @@ from apps.academics.models import (
     SubjectAssignment,
 )
 from apps.academics.services import get_active_year_and_term
+from apps.accounts.decorators import tenant_admin_required
 from apps.evals.models import Evaluation
 from apps.people.models import TeacherProfile
 from apps.siteconfig.cache_utils import tenant_cache_key
@@ -94,7 +94,7 @@ def _analytics_request_school(request: HttpRequest):
     return getattr(request, "school", None)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def dashboard(request: HttpRequest):
     # Part B.5: Optional response cache. Enable via Feature Control (enable_analytics_dashboard_cache) or analytics_dashboard_cache_seconds > 0.
     site = get_effective_site_settings(request=request)
@@ -489,7 +489,7 @@ def dashboard(request: HttpRequest):
     return response
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def master_sheet(request: HttpRequest):
     active_year, active_term = get_active_year_and_term()
     if not active_year or not active_term:
@@ -630,7 +630,7 @@ def master_sheet(request: HttpRequest):
     return render(request, "analytics/master_sheet.html", context)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def grading_deadlines(request: HttpRequest):
     """
     Grading deadlines management.

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required as _login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseForbidden
 
 # Re-export for views that import from apps.accounts.decorators
@@ -114,6 +115,97 @@ def permission_required(
         return _inner
 
     return _decorator
+
+
+# Roles/codes that the tenant-admin gate treats as the admin tier by default.
+_TENANT_ADMIN_DEFAULT_CODES = ("settings.manage",)
+
+
+def user_is_tenant_admin(user, school=None, *, codes=_TENANT_ADMIN_DEFAULT_CODES) -> bool:
+    """Canonical tenant-admin authorization check for a given school.
+
+    True when ``user`` is the tenant-admin tier for ``school``:
+      - a platform superuser (god-mode; audited as break-glass by the tenant-host
+        middleware), OR
+      - holds one of ``codes`` via ``has_feature_permission`` (school-scoped), OR
+      - carries an ``ADMIN_LIKE`` role (ADMIN/PROPRIETOR/PRINCIPAL/…), OR
+      - is a non-suspended school owner (``SchoolMembership.is_school_owner``).
+
+    This is the same contract as ``permission_required('settings.manage')`` and is the
+    correct replacement for ``@staff_member_required`` on tenant-admin surfaces:
+    ``is_staff`` is NOT a reliable tenant-admin signal. The platform mints self-service
+    owners as ``role=ADMIN`` / ``is_school_owner`` WITHOUT ``is_staff`` (see
+    ``apps/schools/tasks.py``), so a staff gate locks an owner out of their own school
+    while ``is_staff``-minted tenant admins pass — exactly backwards from intent.
+    Fails closed on any lookup error.
+    """
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    for code in codes:
+        try:
+            if user.has_feature_permission(code, school=school):
+                return True
+        except TypeError:
+            if user.has_feature_permission(code):
+                return True
+        except (AttributeError, ValueError):
+            pass
+    try:
+        from apps.accounts.auth_backends_role_perms import ADMIN_LIKE_ROLES
+
+        if (getattr(user, "role", "") or "").upper() in ADMIN_LIKE_ROLES:
+            return True
+    except (AttributeError, ImportError, TypeError, ValueError):
+        pass
+    if school is not None:
+        try:
+            from apps.schools.models import SchoolMembership
+
+            # tenant-isolation-allow: owner-membership-check-is-explicitly-school-scoped
+            return SchoolMembership.objects.filter(
+                school=school,
+                user_id=getattr(user, "pk", None),
+                is_school_owner=True,
+                suspended_at__isnull=True,
+            ).exists()
+        except (AttributeError, ImportError, TypeError, ValueError):
+            return False
+    return False
+
+
+def tenant_admin_required(view_func=None, *, codes=_TENANT_ADMIN_DEFAULT_CODES):
+    """Gate a tenant-admin surface on the tenant-admin tier.
+
+    Allows the school owner / ``role=ADMIN`` / ``has_feature_permission('settings.manage')``
+    tier for ``request.school``, plus a platform-superuser bypass (audited break-glass).
+    On denial for an authenticated user it ``raise PermissionDenied`` so the request
+    renders the branded tenant 403 (``handler403`` -> ``templates/errors/403.html``)
+    rather than bouncing to ``/authentication/login/`` — which, for an already-logged-in
+    user, would render the operator "Manager / Control plane" login skin.
+
+    Usage: ``@tenant_admin_required`` or ``@tenant_admin_required(codes=("finance.manage",))``.
+    This is the sanctioned replacement for ``@staff_member_required`` on any view
+    reachable from ``config/tenant_urls.py`` (see ``user_is_tenant_admin`` for why
+    ``is_staff`` is the wrong signal).
+    """
+
+    def _decorate(fn):
+        @wraps(fn)
+        def _inner(request, *args, **kwargs):
+            user = getattr(request, "user", None)
+            if not getattr(user, "is_authenticated", False):
+                return redirect_to_login(request.get_full_path())
+            if user_is_tenant_admin(user, getattr(request, "school", None), codes=codes):
+                return fn(request, *args, **kwargs)
+            raise PermissionDenied
+
+        return _inner
+
+    if view_func is not None and callable(view_func):
+        return _decorate(view_func)
+    return _decorate
 
 
 def portal_toggle_required(flag_name: str, message: str):

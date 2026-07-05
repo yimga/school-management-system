@@ -15,7 +15,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.accounts.decorators import tenant_admin_required
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -273,7 +273,7 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def generate_fees(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
@@ -323,7 +323,7 @@ def generate_fees(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @require_POST
 def notify_guardians_new_invoices(request: HttpRequest):
     """Send new-invoice notifications to guardians for the last bulk-generated invoices."""
@@ -823,7 +823,7 @@ def resend_reminder(request: HttpRequest, invoice_id: int) -> HttpResponse:
     return finance_detail_redirect(request, invoice.id)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def invoice_receipt(
     request: HttpRequest, invoice_id: int, payment_id: int | None = None
 ):

@@ -7,7 +7,7 @@ Requires ``request.school`` from tenant middleware so snapshots stay school-scop
 from __future__ import annotations
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.accounts.decorators import tenant_admin_required
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
@@ -78,7 +78,7 @@ def _payment_readiness_primary_cta(
     return setup_url, _("Complete payment setup")
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def payment_readiness_dashboard(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.accounts.decorators import tenant_admin_required
 from django.core.paginator import Paginator
 import csv
 import io
@@ -37,7 +37,7 @@ def _queued_intents_qs(request, profile):
     return qs
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def offline_payment_intent_queue(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
@@ -57,7 +57,7 @@ def offline_payment_intent_queue(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @require_POST
 def offline_payment_intent_approve(request: HttpRequest, intent_id: int):
     from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
@@ -91,7 +91,7 @@ def offline_payment_intent_approve(request: HttpRequest, intent_id: int):
     return finance_save_redirect(request, "finance:offline_payment_intent_queue")
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @require_POST
 def offline_payment_intent_bulk_approve(request: HttpRequest):
     """Approve up to 50 queued intents per POST (SFDP 1445)."""
@@ -150,7 +150,7 @@ def offline_payment_intent_bulk_approve(request: HttpRequest):
     return finance_save_redirect(request, "finance:offline_payment_intent_queue")
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @require_GET
 def offline_payment_intent_queue_export(request: HttpRequest):
     """CSV export of queued offline intents for audit (SFDP 1445)."""

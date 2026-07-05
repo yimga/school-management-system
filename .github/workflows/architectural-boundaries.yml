@@ -256,6 +256,76 @@ jobs:
         run: |
           python scripts/scan_sentry_boundary.py --compare
 
+  staff-gate-tenant-surface:
+    name: is_staff operator-gate on tenant surface (H1 seal)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: No is_staff-only operator gate on a tenant-reachable view
+        run: |
+          python scripts/scan_staff_gate_on_tenant_surface.py --strict
+
+  access-resolver-fragmentation:
+    name: Access-resolver fragmentation ratchet
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_access_resolver_fragmentation.py --compare
+
+  config-resolver-fragmentation:
+    name: Config-resolver adoption ratchet
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_config_resolver_fragmentation.py --compare
+
+  tenant-template-operator-links:
+    name: No tenant-facing template links to an operator route (H4.6)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_tenant_template_operator_links.py --compare
+
+  tenant-isolation-penetration-freshness:
+    name: Tenant-isolation penetration scenario matrix is current (H4.7)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Penetration report artifact must match current scenarios
+        run: |
+          python scripts/generate_tenant_isolation_penetration_report.py --check
+
   print-statements:
     name: print() statement boundary
     runs-on: ubuntu-latest

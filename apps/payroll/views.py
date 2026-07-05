@@ -6,7 +6,6 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
@@ -15,6 +14,7 @@ from django.views.decorators.http import require_GET
 from django.db.models import Count
 from django.utils import timezone
 
+from apps.accounts.decorators import tenant_admin_required
 from .forms import LeaveRequestForm
 from .models import LeaveRequest, PayrollEmployee, PayrollRun, Payslip
 from .services import generate_payslips, get_active_payroll_profile
@@ -27,7 +27,7 @@ def _employee_for_user(user) -> PayrollEmployee | None:
         return None
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def dashboard(request: HttpRequest):
     profile = get_active_payroll_profile()
     if not profile:
@@ -228,7 +228,7 @@ def dashboard(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 @require_GET
 def export_disbursement(request: HttpRequest, run_id: int):
     """CSV bank disbursement file for an approved/processed payroll run."""
@@ -255,7 +255,7 @@ def export_disbursement(request: HttpRequest, run_id: int):
     return response
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def run_detail(request: HttpRequest, run_id: int):
     run = get_object_or_404(PayrollRun, id=run_id)
     payslips = Payslip.objects.filter(payroll_run=run).select_related(
@@ -277,7 +277,7 @@ def run_detail(request: HttpRequest, run_id: int):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def generate_run(request: HttpRequest, run_id: int):
     run = get_object_or_404(PayrollRun, id=run_id)
     if run.status == PayrollRun.Status.PAID:
@@ -340,7 +340,7 @@ def employee_leave(request: HttpRequest):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@tenant_admin_required
 def create_run(request: HttpRequest):
     profile = get_active_payroll_profile()
     if not profile:
