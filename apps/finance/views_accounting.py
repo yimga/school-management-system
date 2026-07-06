@@ -9,7 +9,7 @@ import json
 from decimal import Decimal
 
 from django.conf import settings
-from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.decorators import require_permission
 from django.db import models
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
@@ -32,7 +32,7 @@ from .views_common import (
 )
 
 
-@tenant_admin_required
+@require_permission("accounting.view", "accounting.manage")
 def trial_balance(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
@@ -129,7 +129,7 @@ def expense_vs_budget(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("accounting.view", "accounting.manage")
 def suspense_queue(request: HttpRequest):
     """Queue of unidentified deposits awaiting allocation."""
     queue = (
@@ -158,7 +158,7 @@ def suspense_queue(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("accounting.manage")
 @require_POST
 def claim_suspense_payment(request: HttpRequest, suspense_id: int):
     """

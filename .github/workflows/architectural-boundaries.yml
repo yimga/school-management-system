@@ -298,6 +298,20 @@ jobs:
         run: |
           python scripts/scan_config_resolver_fragmentation.py --compare
 
+  granular-rbac-adoption:
+    name: Granular-RBAC adoption ratchet
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_granular_rbac_adoption.py --compare
+
   tenant-template-operator-links:
     name: No tenant-facing template links to an operator route (H4.6)
     runs-on: ubuntu-latest

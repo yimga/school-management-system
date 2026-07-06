@@ -18,7 +18,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.views.generic import ListView
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
 from django.db.models import Q, Count
 from django.utils import timezone
@@ -30,6 +30,7 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 
+from apps.compliance.auth_utils import is_admin_or_staff
 from apps.compliance.models_audit import AuditLog, UserActivitySession, AccessLog
 from apps.compliance.tenant_scope import (
     get_compliance_scope_school,
@@ -44,7 +45,27 @@ FAILED_ACCESS_FILTER = ~SUCCESS_ACCESS_FILTER
 FORBIDDEN_ACCESS_FILTER = Q(status=AccessLog.Status.FORBIDDEN) | Q(status="403")
 
 
-@method_decorator(login_required, name="dispatch")
+def _can_view_compliance_reports(user):
+    """Read-tier gate for the compliance audit-trail / dashboard reports.
+
+    RBAC-completion (2026-07) TIGHTENING: these audit-trail reports were
+    previously ``login_required`` only — any authenticated user could read
+    them. Restrict to admin/staff/leadership, ``compliance.manage`` (both via
+    ``is_admin_or_staff``), or read-tier ``compliance.view`` holders. Anonymous
+    users still redirect to login exactly as before. Guarded so a DB hiccup
+    fails closed, not open.
+    """
+    if not (user and user.is_authenticated):
+        return False
+    if is_admin_or_staff(user):
+        return True
+    try:
+        return bool(user.has_feature_permission("compliance.view"))
+    except Exception:
+        return False
+
+
+@method_decorator(user_passes_test(_can_view_compliance_reports), name="dispatch")
 class AuditTrailReportView(ListView):
     """
     Display comprehensive audit trail with filtering by date, user, model, action, sensitivity.
@@ -107,7 +128,7 @@ class AuditTrailReportView(ListView):
         return context
 
 
-@method_decorator(login_required, name="dispatch")
+@method_decorator(user_passes_test(_can_view_compliance_reports), name="dispatch")
 class DataAccessReportView(View):
     """
     Generate data access summary:
@@ -166,7 +187,7 @@ class DataAccessReportView(View):
         return render(request, "compliance/data_access_report.html", context)
 
 
-@method_decorator(login_required, name="dispatch")
+@method_decorator(user_passes_test(_can_view_compliance_reports), name="dispatch")
 class PermissionOverviewView(View):
     """
     Permission overview:
@@ -217,7 +238,7 @@ class PermissionOverviewView(View):
         return render(request, "compliance/permission_overview.html", context)
 
 
-@method_decorator(login_required, name="dispatch")
+@method_decorator(user_passes_test(_can_view_compliance_reports), name="dispatch")
 class IntegrityCheckReportView(View):
     """
     Data integrity check report:
@@ -308,7 +329,7 @@ class IntegrityCheckReportView(View):
         return render(request, "compliance/integrity_check_report.html", context)
 
 
-@method_decorator(login_required, name="dispatch")
+@method_decorator(user_passes_test(_can_view_compliance_reports), name="dispatch")
 class AnomalyDetectionView(View):
     """
     Anomaly detection report:
@@ -402,7 +423,7 @@ class AnomalyDetectionView(View):
         return render(request, "compliance/anomaly_detection.html", context)
 
 
-@method_decorator(login_required, name="dispatch")
+@method_decorator(user_passes_test(_can_view_compliance_reports), name="dispatch")
 class ExportComplianceReportView(View):
     """
     Export compliance report in multiple formats (JSON, CSV, PDF).

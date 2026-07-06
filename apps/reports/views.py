@@ -13,7 +13,7 @@ import hashlib
 from types import SimpleNamespace
 
 from django.contrib.auth.decorators import login_required
-from apps.accounts.decorators import role_required, parent_portal_required, tenant_admin_required
+from apps.accounts.decorators import role_required, parent_portal_required, require_permission
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
@@ -812,7 +812,7 @@ def report_share(request: HttpRequest, token: str):
     return HttpResponseForbidden("Unknown report type.")
 
 
-@tenant_admin_required
+@require_permission("reports.manage")
 def publish_term_results(request: HttpRequest):
     school = _report_scope_school(request)
     year, active_term = _active_year_and_term_for_school(school)
@@ -1083,7 +1083,7 @@ def publish_term_results(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("reports.manage")
 def statistical_return(request: HttpRequest):
     """
     Annual statistical return for regional/Ministry submission: success rates, gender ratio, teacher-student ratio by class.
@@ -1226,7 +1226,7 @@ def statistical_return(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("reports.manage")
 def promotion_preview(request: HttpRequest):
     """
     Promotion preview / borderline list: by academic year, list students with annual average,
@@ -1390,10 +1390,18 @@ def regulatory_export(request: HttpRequest):
     from apps.reports.moe_presets import get_moe_presets
     from apps.reports.services import build_regulatory_export
 
+    try:
+        _has_reports_manage = request.user.has_feature_permission(
+            "reports.manage", school=getattr(request, "school", None)
+        )
+    except (AttributeError, TypeError, ValueError):
+        _has_reports_manage = False
+
     if not (
         request.user.is_staff
         or (getattr(request.user, "role", "") or "").upper()
         in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "BURSAR")
+        or _has_reports_manage
     ):
         return HttpResponseForbidden("Staff only.")
     presets = get_moe_presets()

@@ -25,11 +25,19 @@ from apps.compliance.tenant_scope import get_compliance_scope_school
 def _is_ferpa_officer(user) -> bool:
     if not (user and user.is_authenticated):
         return False
-    return (
+    if (
         user.is_superuser
         or user.is_staff
         or user.has_perm("compliance.view_ferpadisclosure")
-    )
+    ):
+        return True
+    # RBAC-completion: ADDITIVELY admit read-tier `compliance.view` holders
+    # (e.g. a custom DPO/registrar role an owner grants). Existing officials
+    # keep access. Guarded so a DB hiccup fails closed.
+    try:
+        return bool(user.has_feature_permission("compliance.view"))
+    except Exception:
+        return False
 
 
 @login_required

@@ -1555,6 +1555,55 @@ def build_portal_sidebar_items(request, site):
                 }
             )
 
+    # Grant-responsive operational nav: a user whose ROLE isn't in the staff floor but who
+    # was explicitly GRANTED a granular feature permission (e.g. a custom "Bursar" role with
+    # finance.manage, or an HR role with payroll.manage) still needs to DISCOVER the surface
+    # they can now reach. Staff-role users already got these in the admin block above, so this
+    # only fires for non-staff, non-family, non-teacher effective roles. Each item is gated on
+    # its own code, so nothing is surfaced that the back-end would then 403.
+    if (
+        not show_staff_admin_nav
+        and not family_effective_role
+        and nav_role != User.Role.TEACHER
+    ):
+        if _safe_has_feature_permission(
+            user, "finance.view"
+        ) or _safe_has_feature_permission(user, "finance.manage"):
+            items.append(
+                {
+                    "id": "finance_dashboard",
+                    "label": "Finance Dashboard",
+                    "url": _safe_reverse("finance:dashboard"),
+                    "icon": "bi-currency-exchange",
+                    "section": "Financial Management",
+                    "badge": finance_badge,
+                }
+            )
+        if _safe_has_feature_permission(
+            user, "payroll.view"
+        ) or _safe_has_feature_permission(user, "payroll.manage"):
+            items.append(
+                {
+                    "id": "payroll",
+                    "label": "Payroll",
+                    "url": _safe_reverse("payroll:dashboard"),
+                    "icon": "bi-cash-stack",
+                    "section": "Financial Management",
+                    "badge": None,
+                }
+            )
+        if _safe_has_feature_permission(user, "analytics.view"):
+            items.append(
+                {
+                    "id": "analytics",
+                    "label": "Analytics",
+                    "url": _safe_reverse("analytics:dashboard"),
+                    "icon": "bi-graph-up-arrow",
+                    "section": "Analytics & Reports",
+                    "badge": None,
+                }
+            )
+
     # Drop items with no URL
     items = [x for x in items if x.get("url")]
 

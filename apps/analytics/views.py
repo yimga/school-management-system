@@ -688,6 +688,19 @@ def grading_deadlines(request: HttpRequest):
     return render(request, "analytics/deadlines.html", context)
 
 
+def _holds_feature_code(user, code: str, school=None) -> bool:
+    """Additive RBAC: True when the user holds the granular feature-permission code.
+
+    Only ever ADDS an alternative grant path alongside the existing role/is_staff
+    allow checks — it never removes or narrows them. Returns False on any error so
+    a missing/legacy user model can never lose today's access.
+    """
+    try:
+        return bool(user.has_feature_permission(code, school=school))
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
 def _can_access_strategic_report(user):
     """Proprietor, Leadership, Admin, or strategic.report permission."""
     if not user or not user.is_authenticated:
@@ -772,6 +785,7 @@ def at_risk_dashboard(request: HttpRequest):
     if (
         role not in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "TEACHER", "HOD", "DEAN")
         and not request.user.is_staff
+        and not _holds_feature_code(request.user, "analytics.view", school)
     ):
         return HttpResponseForbidden("Not allowed.")
 
@@ -815,6 +829,7 @@ def _at_risk_roles_ok(user) -> bool:
     return (
         role in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "TEACHER", "HOD", "DEAN")
         or user.is_staff
+        or _holds_feature_code(user, "analytics.view")
     )
 
 
@@ -957,6 +972,7 @@ def executive_dashboard(request: HttpRequest):
     if (
         role not in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "PROPRIETOR")
         and not request.user.is_staff
+        and not _holds_feature_code(request.user, "strategic.report", school)
     ):
         return HttpResponseForbidden("Not allowed.")
     return render(request, "analytics/executive_dashboard.html", {"school": school})

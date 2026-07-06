@@ -5,7 +5,7 @@ Workforce & money command center (HR + payroll + finance ops) — batch 1511.
 from __future__ import annotations
 
 from django.conf import settings
-from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.decorators import require_permission
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
@@ -19,7 +19,7 @@ from apps.people.models import TeacherLeaveRequest
 from .views_common import _active_profile
 
 
-@tenant_admin_required
+@require_permission("finance.view", "finance.manage")
 def workforce_command_center(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:

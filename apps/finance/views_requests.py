@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib import messages
-from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.decorators import require_permission
 from django.db import models
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponseForbidden
@@ -27,7 +27,7 @@ def _requests_inbox_url(view_mode: str, severity_filter: str) -> str:
     )
 
 
-@tenant_admin_required
+@require_permission("finance.view", "finance.manage")
 def notifications(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
@@ -60,7 +60,7 @@ def notifications(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("finance.view", "finance.manage")
 def finance_requests(request: HttpRequest):
     # tenant-isolation-allow: recipient-scoped-current-user-owns-notification
     base_qs = Notification.objects.filter(

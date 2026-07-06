@@ -17,7 +17,7 @@ import json
 from django.db import DatabaseError
 from django.core.exceptions import ValidationError
 
-from apps.accounts.decorators import role_required, teacher_portal_required, tenant_admin_required
+from apps.accounts.decorators import require_permission, role_required, teacher_portal_required
 from apps.accounts.models import User
 from apps.observability.tracing import trace_view
 from apps.academics.models import (
@@ -2367,7 +2367,7 @@ def rosetta_grade_preview_api(request: HttpRequest):
     return JsonResponse(view_grade_in_target_system(ev, to_scale))
 
 
-@tenant_admin_required
+@require_permission("grades.manage")
 def class_ranking_view(request: HttpRequest):
     """Class ranking (best to worst) for a given year/term/classroom.
 
@@ -2477,7 +2477,7 @@ def class_ranking_view(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("grades.manage")
 def school_ranking_view(request: HttpRequest):
     """School-wide ranking for a given year/term.
 
@@ -2560,7 +2560,7 @@ def school_ranking_view(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("grades.manage")
 def evaluation_admin(request: HttpRequest):
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     year, active_term = get_active_year_and_term()
@@ -2866,7 +2866,7 @@ def evaluation_admin(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("grades.manage")
 def evaluation_evidence_upload(request: HttpRequest):
     evaluation_id = request.GET.get("evaluation")
     evaluation = None
@@ -2907,8 +2907,7 @@ class GradeImportUploadForm(forms.Form):
     file = forms.FileField(help_text="Upload a CSV with the expected headers.")
 
 
-@tenant_admin_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
+@require_permission("grades.manage")
 def grade_import_upload_view(request: HttpRequest):
     """
     Staff-facing bulk grade import wizard. Renders the dropzone-based 4-step UI;
@@ -2926,7 +2925,7 @@ def grade_import_upload_view(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("grades.manage")
 def grade_import_template_view(request: HttpRequest):
     """
     Serve a CSV template for bulk grade imports (same fields as the management command).
@@ -2953,7 +2952,7 @@ def grade_import_template_view(request: HttpRequest):
     return response
 
 
-@tenant_admin_required
+@require_permission("grades.manage")
 def grade_approval_list(request: HttpRequest):
     from apps.evals.runtime_helpers import get_policy_for_request
 
@@ -2982,7 +2981,7 @@ def grade_approval_list(request: HttpRequest):
     return render(request, "evals/grade_approval_list.html", context)
 
 
-@tenant_admin_required
+@require_permission("grades.manage")
 @trace_view("grade.approval.detail", op="view.hot_path")
 def grade_approval_detail(request: HttpRequest, request_id):
     from apps.evals.runtime_helpers import get_policy_for_request
@@ -3115,8 +3114,7 @@ def grade_approval_detail(request: HttpRequest, request_id):
 # ========== COMPLIANCE & ADVANCED IMPORT VIEWS ==========
 
 
-@tenant_admin_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
+@require_permission("grades.manage")
 def compliance_dashboard_view(request):
     """
     Dashboard showing teacher grading compliance status.
@@ -3163,8 +3161,7 @@ def compliance_dashboard_view(request):
     return render(request, "evals/compliance_dashboard.html", context)
 
 
-@tenant_admin_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
+@require_permission("grades.manage")
 def extend_deadline_view(request, subject_assignment_id):
     """
     Extend grading deadline for a subject assignment.
@@ -3214,8 +3211,7 @@ def extend_deadline_view(request, subject_assignment_id):
     )
 
 
-@tenant_admin_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
+@require_permission("grades.manage")
 def grade_import_preview_api(request):
     """API endpoint for grade import preview with validation."""
     from apps.evals.importers import preview_import_with_validation
@@ -3289,8 +3285,7 @@ def grade_import_preview_api(request):
 
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
-@tenant_admin_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
+@require_permission("grades.manage")
 def grade_import_apply_api(request):
     """API endpoint for applying (persisting) grade import."""
     from apps.evals.importers import apply_import
@@ -3396,9 +3391,8 @@ def grade_import_apply_api(request):
         )
 
 
-@tenant_admin_required
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-@role_required(User.Role.ADMIN, User.Role.HOD, User.Role.TEACHER, "HEAD_OF_ACADEMICS")
+@require_permission("grades.enter", "grades.manage")
 def audit_trail_view(request, evaluation_id):
     """View audit trail for an evaluation."""
     from apps.analytics.services import get_audit_trail
@@ -3423,8 +3417,7 @@ def audit_trail_view(request, evaluation_id):
     return render(request, "evals/audit_trail.html", context)
 
 
-@tenant_admin_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
+@require_permission("grades.manage")
 def resolve_offline_conflict_view(request, offline_entry_id):
     """Manual conflict resolution for offline mark entries."""
     from apps.evals.models import OfflineMarkEntry
@@ -3484,8 +3477,7 @@ def resolve_offline_conflict_view(request, offline_entry_id):
     return render(request, "evals/resolve_offline_conflict.html", context)
 
 
-@tenant_admin_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
+@require_permission("grades.manage")
 def import_job_monitor_view(request):
     """Monitor and manage import jobs."""
     from apps.analytics.models import GradeImportJob

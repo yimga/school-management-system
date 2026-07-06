@@ -72,6 +72,35 @@ def tenant_admin_access(user, school, *, codes=("settings.manage",)) -> bool:
     return user_is_tenant_admin(user, school, codes=codes)
 
 
+def permission_access(
+    user,
+    school,
+    codes,
+    *,
+    allow_admin: bool = True,
+    allow_roles=(),
+    admin_codes=("settings.manage",),
+) -> bool:
+    """Additive granular-RBAC gate: may ``user`` reach a surface gated on ``codes``?
+
+    True when ANY code is held (``has_feature_permission``, school-scoped) OR — additively —
+    the caller is the tenant-admin tier (``allow_admin``) or carries an allowed role
+    (``allow_roles``); superuser bypass. The resolver behind the ``require_permission``
+    decorator — use this for non-decorator (in-body / template-context) granular checks so
+    every surface asks the question the same way, and PDP/ReBAC/decision-logging can wire in
+    here once."""
+    from apps.accounts.decorators import user_has_permission
+
+    return user_has_permission(
+        user,
+        school,
+        codes,
+        allow_admin=allow_admin,
+        allow_roles=allow_roles,
+        admin_codes=admin_codes,
+    )
+
+
 def role_access(user, role: str) -> bool:
     """Does ``user`` hold this role (hierarchy + temporary grants honoured)?"""
     from apps.accounts.permissions import has_role
@@ -99,6 +128,7 @@ __all__ = [
     "invoice_access",
     "invoice_edit_access",
     "module_access",
+    "permission_access",
     "role_access",
     "school_permission_access",
     "student_data_access",

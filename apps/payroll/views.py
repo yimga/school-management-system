@@ -14,7 +14,7 @@ from django.views.decorators.http import require_GET
 from django.db.models import Count
 from django.utils import timezone
 
-from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.decorators import require_permission
 from .forms import LeaveRequestForm
 from .models import LeaveRequest, PayrollEmployee, PayrollRun, Payslip
 from .services import generate_payslips, get_active_payroll_profile
@@ -27,7 +27,7 @@ def _employee_for_user(user) -> PayrollEmployee | None:
         return None
 
 
-@tenant_admin_required
+@require_permission("payroll.view", "payroll.manage")
 def dashboard(request: HttpRequest):
     profile = get_active_payroll_profile()
     if not profile:
@@ -228,7 +228,7 @@ def dashboard(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("payroll.view", "payroll.manage")
 @require_GET
 def export_disbursement(request: HttpRequest, run_id: int):
     """CSV bank disbursement file for an approved/processed payroll run."""
@@ -255,7 +255,7 @@ def export_disbursement(request: HttpRequest, run_id: int):
     return response
 
 
-@tenant_admin_required
+@require_permission("payroll.view", "payroll.manage")
 def run_detail(request: HttpRequest, run_id: int):
     run = get_object_or_404(PayrollRun, id=run_id)
     payslips = Payslip.objects.filter(payroll_run=run).select_related(
@@ -277,7 +277,7 @@ def run_detail(request: HttpRequest, run_id: int):
     )
 
 
-@tenant_admin_required
+@require_permission("payroll.manage")
 def generate_run(request: HttpRequest, run_id: int):
     run = get_object_or_404(PayrollRun, id=run_id)
     if run.status == PayrollRun.Status.PAID:
@@ -340,7 +340,7 @@ def employee_leave(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("payroll.manage")
 def create_run(request: HttpRequest):
     profile = get_active_payroll_profile()
     if not profile:

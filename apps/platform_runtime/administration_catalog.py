@@ -532,27 +532,33 @@ REGISTRIES: tuple[dict[str, str], ...] = (
 )
 
 
+# Each section carries a ``permission`` code: the granular RBAC permission that gates the
+# surface the section links to. The config-hub template renders a section only when the
+# viewer holds that code (or the tenant-admin tier), so a delegated non-admin — a bursar
+# granted finance.view, a DPO granted compliance.view — sees exactly the config surfaces they
+# can actually open, instead of a wall of cards that 403 on click.
 TENANT_CONFIGURATION_SECTIONS: tuple[dict[str, str], ...] = (
-    {"name": "School Profile", "status": "ready", "missing": "none", "route": "/siteconfig/console/", "primary_action": "Open profile configuration"},
-    {"name": "Academic Year / Term", "status": "ready", "missing": "none", "route": "/siteconfig/academic-years/", "primary_action": "Review academic year setup"},
-    {"name": "Classes / Subjects", "status": "ready", "missing": "none", "route": "/academics/", "primary_action": "Open academic structure"},
-    {"name": "Grading Rules", "status": "ready", "missing": "none", "route": "/siteconfig/grading-settings/", "primary_action": "Open grading rules"},
-    {"name": "Report Templates", "status": "ready", "missing": "none", "route": "/siteconfig/reports/builder/", "primary_action": "Open report builder"},
-    {"name": "Fees", "status": "ready", "missing": "PSP live collection can remain external_required", "route": "/finance/", "primary_action": "Open money center"},
-    {"name": "Roles / Permissions", "status": "ready", "missing": "none", "route": "/admin/", "primary_action": "Open technical role records"},
-    {"name": "Parent Portal", "status": "ready", "missing": "none", "route": "/portal/", "primary_action": "Open parent portal preview"},
-    {"name": "Teacher Portal", "status": "ready", "missing": "none", "route": "/portal/teacher/", "primary_action": "Open teacher workspace"},
-    {"name": "Apps", "status": "ready", "missing": "marketplace monetization external_required", "route": "/settings/app-catalog/", "primary_action": "Open school app catalog"},
-    {"name": "Workflows", "status": "ready", "missing": "none", "route": "/studio/automation/", "primary_action": "Open automation studio"},
-    {"name": "Offline Settings", "status": "ready", "missing": "none", "route": "/portal/offline-sync/", "primary_action": "Open offline sync"},
+    {"name": "School Profile", "status": "ready", "missing": "none", "route": "/siteconfig/console/", "primary_action": "Open profile configuration", "permission": "settings.manage"},
+    {"name": "Academic Year / Term", "status": "ready", "missing": "none", "route": "/siteconfig/academic-years/", "primary_action": "Review academic year setup", "permission": "settings.manage"},
+    {"name": "Classes / Subjects", "status": "ready", "missing": "none", "route": "/academics/", "primary_action": "Open academic structure", "permission": "settings.manage"},
+    {"name": "Grading Rules", "status": "ready", "missing": "none", "route": "/siteconfig/grading-settings/", "primary_action": "Open grading rules", "permission": "grades.manage"},
+    {"name": "Report Templates", "status": "ready", "missing": "none", "route": "/siteconfig/reports/builder/", "primary_action": "Open report builder", "permission": "reports.manage"},
+    {"name": "Fees", "status": "ready", "missing": "PSP live collection can remain external_required", "route": "/finance/", "primary_action": "Open money center", "permission": "finance.view"},
+    {"name": "Roles / Permissions", "status": "ready", "missing": "none", "route": "/admin/", "primary_action": "Open technical role records", "permission": "settings.manage"},
+    {"name": "Parent Portal", "status": "ready", "missing": "none", "route": "/portal/", "primary_action": "Open parent portal preview", "permission": "portal.manage"},
+    {"name": "Teacher Portal", "status": "ready", "missing": "none", "route": "/portal/teacher/", "primary_action": "Open teacher workspace", "permission": "portal.manage"},
+    {"name": "Apps", "status": "ready", "missing": "marketplace monetization external_required", "route": "/settings/app-catalog/", "primary_action": "Open school app catalog", "permission": "settings.manage"},
+    {"name": "Workflows", "status": "ready", "missing": "none", "route": "/studio/automation/", "primary_action": "Open automation studio", "permission": "settings.manage"},
+    {"name": "Offline Settings", "status": "ready", "missing": "none", "route": "/portal/offline-sync/", "primary_action": "Open offline sync", "permission": "settings.manage"},
     {
         "name": "Branding / Theme",
         "status": "ready",
         "missing": "none",
         "route": "/siteconfig/theme-experience/hub/",
         "primary_action": "Open theme & experience hub",
+        "permission": "settings.manage",
     },
-    {"name": "Security / Audit", "status": "ready", "missing": "none", "route": "/compliance/", "primary_action": "Open school audit"},
+    {"name": "Security / Audit", "status": "ready", "missing": "none", "route": "/compliance/", "primary_action": "Open school audit", "permission": "compliance.view"},
 )
 
 

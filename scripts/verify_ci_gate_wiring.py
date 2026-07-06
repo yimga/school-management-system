@@ -86,6 +86,13 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # go DOWN, and new code must read through get_effective_config /
     # config_service. Same silent-regrowth risk without meta-protection.
     ("scripts/scan_config_resolver_fragmentation.py", "architectural-boundaries.yml"),
+    # Granular-RBAC adoption ratchet (2026-07-05) — coarse admin-tier gates
+    # (@tenant_admin_required / permission_required("settings.*")) on tenant
+    # operational surfaces (finance/payroll/evals/reports/analytics/compliance)
+    # can only go DOWN; a new coarse gate on a delegable surface fails CI. Must run
+    # every PR or the "every operational surface is grantable to a non-admin role"
+    # guarantee silently regrows.
+    ("scripts/scan_granular_rbac_adoption.py", "architectural-boundaries.yml"),
     # Tenant->operator boundary (H1 seal) — no is_staff-only operator gate on a
     # tenant-reachable view. The platform mints is_staff tenant admins, so
     # @staff_member_required is not an operator gate; this must run every PR or a
