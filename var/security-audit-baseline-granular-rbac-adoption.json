@@ -1,25 +1,6 @@
 {
-  "finding_count": 3,
+  "finding_count": 0,
   "generated_at": "2026-07-05",
   "note": "Coarse admin-tier gates on operational-app views pending granular migration.",
-  "findings": [
-    {
-      "file": "apps/analytics/views.py",
-      "line": 97,
-      "view": "dashboard",
-      "kind": "tenant_admin_required"
-    },
-    {
-      "file": "apps/analytics/views.py",
-      "line": 633,
-      "view": "grading_deadlines",
-      "kind": "tenant_admin_required"
-    },
-    {
-      "file": "apps/analytics/views.py",
-      "line": 492,
-      "view": "master_sheet",
-      "kind": "tenant_admin_required"
-    }
-  ]
+  "findings": []
 }

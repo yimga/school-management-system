@@ -24,7 +24,7 @@ from apps.academics.models import (
     SubjectAssignment,
 )
 from apps.academics.services import get_active_year_and_term
-from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.decorators import require_permission
 from apps.evals.models import Evaluation
 from apps.people.models import TeacherProfile
 from apps.siteconfig.cache_utils import tenant_cache_key
@@ -94,7 +94,7 @@ def _analytics_request_school(request: HttpRequest):
     return getattr(request, "school", None)
 
 
-@tenant_admin_required
+@require_permission("analytics.manage")
 def dashboard(request: HttpRequest):
     # Part B.5: Optional response cache. Enable via Feature Control (enable_analytics_dashboard_cache) or analytics_dashboard_cache_seconds > 0.
     site = get_effective_site_settings(request=request)
@@ -489,7 +489,7 @@ def dashboard(request: HttpRequest):
     return response
 
 
-@tenant_admin_required
+@require_permission("analytics.manage")
 def master_sheet(request: HttpRequest):
     active_year, active_term = get_active_year_and_term()
     if not active_year or not active_term:
@@ -630,7 +630,7 @@ def master_sheet(request: HttpRequest):
     return render(request, "analytics/master_sheet.html", context)
 
 
-@tenant_admin_required
+@require_permission("grades.manage")
 def grading_deadlines(request: HttpRequest):
     """
     Grading deadlines management.
