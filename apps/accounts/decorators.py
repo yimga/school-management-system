@@ -208,6 +208,103 @@ def tenant_admin_required(view_func=None, *, codes=_TENANT_ADMIN_DEFAULT_CODES):
     return _decorate
 
 
+def user_has_permission(
+    user,
+    school=None,
+    codes=(),
+    *,
+    allow_admin: bool = True,
+    allow_roles: tuple[str, ...] = (),
+    admin_codes: tuple[str, ...] = _TENANT_ADMIN_DEFAULT_CODES,
+) -> bool:
+    """Additive granular-RBAC resolver: may ``user`` reach a surface gated on ``codes``?
+
+    Returns True when ANY of these hold (a UNION — hence "additive"; a surface never loses
+    the access it grants today):
+      - ``user`` is a platform superuser (god-mode), OR
+      - ``user`` holds ANY of ``codes`` via ``has_feature_permission`` (school-scoped), OR
+      - ``allow_admin`` and ``user`` is the tenant-admin tier for ``school``
+        (owner / ADMIN_LIKE role / ``admin_codes``), OR
+      - ``allow_roles`` and ``user`` carries any of those roles.
+
+    This is the resolver behind ``require_permission`` and the sanctioned way to make a
+    surface honour a granular permission code WITHOUT removing the access it grants today:
+    seed the code to the roles that already reach the surface (so the code path reproduces
+    current access) and gate on the code — a bursar/HR user granted ``finance.manage`` /
+    ``payroll.manage`` then reaches the HTML surface a bare ``@tenant_admin_required`` used
+    to deny (``is_staff`` / ADMIN-tier only). Fails closed on any lookup error.
+    """
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    if isinstance(codes, str):
+        codes = (codes,)
+    for code in codes:
+        try:
+            if user.has_feature_permission(code, school=school):
+                return True
+        except TypeError:
+            if user.has_feature_permission(code):
+                return True
+        except (AttributeError, ValueError):
+            pass
+    if allow_admin and user_is_tenant_admin(user, school, codes=admin_codes):
+        return True
+    if allow_roles and _has_any_role(user, tuple(allow_roles)):
+        return True
+    return False
+
+
+def require_permission(
+    *codes: str,
+    allow_admin: bool = True,
+    allow_roles: tuple[str, ...] = (),
+    admin_codes: tuple[str, ...] = _TENANT_ADMIN_DEFAULT_CODES,
+):
+    """Gate a tenant surface on a granular permission code — the canonical additive RBAC gate.
+
+    Access is granted when ANY of ``codes`` is held (via ``has_feature_permission`` for
+    ``request.school``), OR — additively — the caller is the tenant-admin tier
+    (``allow_admin``, default on) or carries an allowed role (``allow_roles``). A platform
+    superuser always passes (god-mode). Because every path is a union, converting a surface
+    to this gate can only PRESERVE-or-WIDEN access, never narrow it.
+
+    Denial semantics match ``tenant_admin_required``: an UNAUTHENTICATED request is bounced
+    to login; an AUTHENTICATED-but-unauthorized request ``raise PermissionDenied`` so it
+    renders the branded tenant 403 (``handler403`` -> ``templates/errors/403.html``) instead
+    of the operator "Manager / Control plane" login skin.
+
+    Read surfaces list every code that should see them
+    (``@require_permission("finance.view", "finance.manage")``); write surfaces list only the
+    managing code (``@require_permission("finance.manage")``). Prefer seeding a code to the
+    roles that reach a surface today (a resync migration like ``0048``) over passing
+    ``allow_roles`` literals — that keeps role strings out of view modules and the
+    ``scan_role_strings`` gate quiet.
+    """
+
+    def _decorate(fn):
+        @wraps(fn)
+        def _inner(request, *args, **kwargs):
+            user = getattr(request, "user", None)
+            if not getattr(user, "is_authenticated", False):
+                return redirect_to_login(request.get_full_path())
+            if user_has_permission(
+                user,
+                getattr(request, "school", None),
+                codes,
+                allow_admin=allow_admin,
+                allow_roles=allow_roles,
+                admin_codes=admin_codes,
+            ):
+                return fn(request, *args, **kwargs)
+            raise PermissionDenied
+
+        return _inner
+
+    return _decorate
+
+
 def portal_toggle_required(flag_name: str, message: str):
     def decorator(view_func):
         @wraps(view_func)

@@ -35,6 +35,16 @@ def _can_view_evaluation(user, evaluation: Evaluation) -> bool:
     }
     if role in admin_roles:
         return True
+    # Additive granular-RBAC: anyone granted grades.enter / grades.manage (e.g. a
+    # registrar/HOD custom role) may view this evaluation drill-down.
+    try:
+        _school = getattr(evaluation, "school", None)
+        if user.has_feature_permission(
+            "grades.enter", school=_school
+        ) or user.has_feature_permission("grades.manage", school=_school):
+            return True
+    except (AttributeError, TypeError, ValueError):
+        pass
     if role == User.Role.TEACHER:
         teacher_profile = getattr(user, "teacher_profile", None)
         return bool(teacher_profile and evaluation.teacher_id == teacher_profile.id)

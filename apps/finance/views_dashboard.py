@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 
 from django.conf import settings
-from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.decorators import require_permission
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
@@ -18,7 +18,7 @@ from .views_common import _active_profile
 from .services import finance_dashboard_data
 
 
-@tenant_admin_required
+@require_permission("finance.view", "finance.manage")
 def dashboard(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:

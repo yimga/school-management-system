@@ -24,11 +24,21 @@ from services.post_delete_navigation import redirect_after_save
 
 
 def _is_data_rights_operator(user):
-    return user.is_authenticated and (
+    if not user.is_authenticated:
+        return False
+    if (
         user.is_superuser
         or user.is_staff
         or user.has_perm("compliance.manage_data_rights")
-    )
+    ):
+        return True
+    # RBAC-completion: ADDITIVELY admit manage-tier `compliance.manage` holders
+    # (e.g. a custom DPO role an owner grants). Existing operators keep access.
+    # Guarded so a DB hiccup fails closed.
+    try:
+        return bool(user.has_feature_permission("compliance.manage"))
+    except Exception:
+        return False
 
 
 def _operator_scoped(request, model):

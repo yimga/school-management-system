@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render
 
+from apps.compliance.auth_utils import is_admin_or_staff
 from apps.compliance.data_quality import data_quality_checks, summarize
 
 
@@ -21,6 +22,22 @@ def data_quality_center(request: HttpRequest) -> HttpResponse:
     if school is None:
         return HttpResponseForbidden(
             "Data Quality Center is only available from a tenant school context."
+        )
+
+    # RBAC-completion (2026-07) TIGHTENING: previously any authenticated user in
+    # a tenant context could read this. Restrict to admin/staff/leadership,
+    # `compliance.manage` (both via is_admin_or_staff), or read-tier
+    # `compliance.view` holders. Guarded so a DB hiccup fails closed.
+    user = request.user
+    allowed = is_admin_or_staff(user)
+    if not allowed:
+        try:
+            allowed = bool(user.has_feature_permission("compliance.view"))
+        except Exception:
+            allowed = False
+    if not allowed:
+        return HttpResponseForbidden(
+            "You do not have permission to view the Data Quality Center."
         )
 
     issues = data_quality_checks(school=school)

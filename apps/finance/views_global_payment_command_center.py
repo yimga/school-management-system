@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from django.conf import settings
-from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.decorators import require_permission
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
 
@@ -15,7 +15,7 @@ from apps.finance.regional_payment_profiles import (
 )
 
 
-@tenant_admin_required
+@require_permission("finance.view", "finance.manage")
 def global_payment_command_center(request: HttpRequest):
     school = getattr(request, "school", None)
     if not school:

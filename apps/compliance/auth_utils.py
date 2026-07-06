@@ -14,4 +14,13 @@ def is_admin_or_staff(user):
     if not user or not user.is_authenticated:
         return False
     role = get_user_role(user)
-    return user.is_superuser or user.is_staff or role in ("ADMIN", "LEADERSHIP")
+    if user.is_superuser or user.is_staff or role in ("ADMIN", "LEADERSHIP"):
+        return True
+    # RBAC-completion: ADDITIVELY admit holders of the granular
+    # `compliance.manage` code (e.g. a custom DPO/registrar role an owner
+    # grants) — appropriate for these management CBVs. Nobody who had access
+    # before loses it. Guarded so a DB hiccup fails closed, not open.
+    try:
+        return bool(user.has_feature_permission("compliance.manage"))
+    except Exception:
+        return False

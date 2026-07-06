@@ -7,7 +7,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib import messages
-from apps.accounts.decorators import tenant_admin_required
+from apps.accounts.decorators import require_permission
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
@@ -34,7 +34,7 @@ def _active_profile(request: HttpRequest | None = None):
     return ComplianceProfile.objects.filter(is_active=True).first()
 
 
-@tenant_admin_required
+@require_permission("finance.view", "finance.manage")
 def finance_reports(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
@@ -103,7 +103,7 @@ def finance_reports(request: HttpRequest):
     )
 
 
-@tenant_admin_required
+@require_permission("finance.view", "finance.manage")
 def submit_report_request(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
