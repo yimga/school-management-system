@@ -552,7 +552,7 @@ PERMISSION_GROUPS = {
     "Finance": ["finance.view", "finance.manage"],
     "Payroll": ["payroll.view", "payroll.manage"],
     "Grades": ["grades.enter", "grades.manage"],
-    "Analytics": ["analytics.view"],
+    "Analytics": ["analytics.view", "analytics.manage"],
     "Compliance": ["compliance.view", "compliance.manage"],
     "Reports": ["reports.manage"],
     "Settings": ["settings.manage"],

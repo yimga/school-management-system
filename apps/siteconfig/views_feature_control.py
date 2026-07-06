@@ -33,7 +33,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 
-from apps.accounts.decorators import permission_required
+from apps.accounts.decorators import permission_required, require_permission
 from apps.siteconfig.config_service import (
     get_effective_site_settings,
     get_platform_site_settings_record,
@@ -1292,7 +1292,55 @@ def feature_control_export(request):
     return response
 
 
-@permission_required("settings.feature_control")
+# --- Per-category RBAC (2026-07-06) --------------------------------------------------
+# Each Feature Control category maps to the granular permission that lets a delegated
+# non-admin manage ONLY that category's toggles. settings.feature_control (or the admin
+# tier: owner / ADMIN-like / superuser) still manages EVERY category — additive, no one
+# loses access. The `system` category stays admin-only (mapped to the base gate): its
+# maintenance / notification switches are never delegated.
+FEATURE_CATEGORY_PERMISSION = {
+    "academic": "grades.manage",
+    "administrative": "settings.manage",
+    "support": "communication.manage",
+    "finance_permissions": "finance.manage",
+    "backend": "settings.manage",
+    "system": "settings.feature_control",
+}
+_FEATURE_CONTROL_BASE_CODE = "settings.feature_control"
+# Codes that may OPEN the panel: the base grant OR any category grant.
+_FEATURE_CONTROL_PANEL_CODES = tuple(
+    dict.fromkeys([_FEATURE_CONTROL_BASE_CODE, *FEATURE_CATEGORY_PERMISSION.values()])
+)
+
+
+def _feature_key_to_category() -> dict:
+    """feature-toggle key -> its category id (from FEATURE_CATEGORIES)."""
+    out = {}
+    for cat_id, rows in FEATURE_CATEGORIES.items():
+        for row in rows:
+            out[row[0]] = cat_id
+    return out
+
+
+def accessible_feature_categories(user, school=None) -> set:
+    """Category ids the user may VIEW/EDIT. The base grant settings.feature_control (or the
+    admin tier) unlocks every category; otherwise only categories whose granular code the
+    user holds. Fail-closed (empty set)."""
+    from apps.accounts.effective_access import permission_access
+
+    try:
+        if permission_access(user, school, (_FEATURE_CONTROL_BASE_CODE,)):
+            return set(FEATURE_CATEGORIES.keys())
+        return {
+            cat_id
+            for cat_id, code in FEATURE_CATEGORY_PERMISSION.items()
+            if permission_access(user, school, (code,))
+        }
+    except (AttributeError, TypeError, ValueError):
+        return set()
+
+
+@require_permission(*_FEATURE_CONTROL_PANEL_CODES)
 @never_cache
 @require_http_methods(["GET", "POST"])
 def feature_control_panel(request):
@@ -1316,6 +1364,13 @@ def feature_control_panel(request):
 
     if request.method == "POST":
         action_type = request.POST.get("action", "save")
+        _fc_accessible = accessible_feature_categories(
+            request.user, getattr(request, "school", None)
+        )
+        _fc_full = _fc_accessible == set(FEATURE_CATEGORIES.keys())
+        if action_type == "revert" and not _fc_full:
+            messages.error(request, "Reverting Feature Control requires full access.")
+            return _feature_control_panel_redirect_response(request)
         if action_type == "revert" and REVERT_SESSION_KEY in request.session:
             prev = request.session.pop(REVERT_SESSION_KEY, {})
             if prev:
@@ -1351,9 +1406,13 @@ def feature_control_panel(request):
 
         form_data = {}
         current_weather = _get_weather_selector_state(site)
-        weather_payload, weather_state = _resolve_weather_payload_from_post(
-            site, request.POST
-        )
+        if _fc_full:
+            weather_payload, weather_state = _resolve_weather_payload_from_post(
+                site, request.POST
+            )
+        else:
+            # Weather is a system-tier setting — a per-category delegate never changes it.
+            weather_payload, weather_state = {}, current_weather
         defaults = default_backend_feature_flags()
         current_feature_settings = (
             site.get_feature_control_settings()
@@ -1371,6 +1430,12 @@ def feature_control_panel(request):
         )
         posted_max_items = current_max_items
         import_data = request.FILES.get("import_file")
+        if import_data and not _fc_full:
+            messages.error(
+                request,
+                "Importing a full Feature Control config requires full access.",
+            )
+            return _feature_control_panel_redirect_response(request)
         if import_data:
             if import_data.size > 2 * 1024 * 1024:  # 2MB max
                 messages.error(request, "Import file is too large (max 2 MB).")
@@ -1410,7 +1475,7 @@ def feature_control_panel(request):
                 logger.warning("Feature control import failed: %s", ex)
                 messages.error(request, "Invalid import file. Use a valid JSON export.")
                 return _feature_control_panel_redirect_response(request)
-        else:
+        elif _fc_full:
             for key in current:
                 form_data[key] = request.POST.get(f"feature_{key}") == "on"
             posted_max_items = _clamp_int(
@@ -1422,8 +1487,19 @@ def feature_control_panel(request):
             form_data["student_results_visibility"] = request.POST.get(
                 "student_results_visibility", ""
             )
+        else:
+            # Delegate (holds a per-category code, not full settings.feature_control):
+            # rebuild from CURRENT and overlay ONLY toggles in categories they may manage,
+            # so a posted change to any other toggle / special field is a guaranteed no-op.
+            _key_cat = _feature_key_to_category()
+            for key in current:
+                if _key_cat.get(key) in _fc_accessible:
+                    form_data[key] = request.POST.get(f"feature_{key}") == "on"
+                else:
+                    form_data[key] = current.get(key)
+            posted_max_items = current_max_items
 
-        weather_changed = any(
+        weather_changed = _fc_full and any(
             [
                 weather_payload.get("header_weather_location_id")
                 != current_weather.get("location_id"),
@@ -1537,7 +1613,12 @@ def get_feature_control_panel_context(request):
     }
     categories = []
     active_count = 0
+    _fc_accessible = accessible_feature_categories(
+        request.user, getattr(request, "school", None)
+    )
     for cat_id, rows in FEATURE_CATEGORIES.items():
+        if cat_id not in _fc_accessible:
+            continue
         label, icon = cat_labels.get(
             cat_id, (cat_id.replace("_", " ").title(), "bi-circle")
         )
