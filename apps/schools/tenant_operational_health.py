@@ -252,10 +252,11 @@ def resolve_tenant_operational_health(
 
     if surface in ("teacher", "parent", "student"):
         try:
-            from apps.siteconfig.config_service import get_effective_site_settings
+            from apps.platform_runtime.config_resolver import get_effective_config
 
-            site = get_effective_site_settings(request=request) if request else None
-            if surface == "parent" and site and not getattr(site, "enable_parent_portal", True):
+            if surface == "parent" and request and not get_effective_config(
+                key="enable_parent_portal", request=request, default=True
+            ):
                 tier = _merge_tier(tier, TIER_DEGRADED)
                 signals.append(
                     {
@@ -264,7 +265,9 @@ def resolve_tenant_operational_health(
                         "tone": "warning",
                     }
                 )
-            if surface == "teacher" and site and not getattr(site, "enable_teacher_portal", True):
+            if surface == "teacher" and request and not get_effective_config(
+                key="enable_teacher_portal", request=request, default=True
+            ):
                 tier = _merge_tier(tier, TIER_DEGRADED)
                 signals.append(
                     {
@@ -273,7 +276,9 @@ def resolve_tenant_operational_health(
                         "tone": "warning",
                     }
                 )
-            if surface == "student" and site and not getattr(site, "enable_student_portal", True):
+            if surface == "student" and request and not get_effective_config(
+                key="enable_student_portal", request=request, default=True
+            ):
                 tier = _merge_tier(tier, TIER_DEGRADED)
                 signals.append(
                     {

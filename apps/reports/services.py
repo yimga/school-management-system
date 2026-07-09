@@ -47,6 +47,7 @@ def _approved_or_unrequested_subject_assignment_filter(
 
 
 def _site_settings_for_school(school=None):
+    # config-resolver-allow: namespace object returned to callers (wrapper helper)
     return get_effective_site_settings(school=school)
 
 

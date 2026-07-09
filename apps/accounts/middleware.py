@@ -3,6 +3,7 @@ from http.cookies import CookieError, SimpleCookie
 
 from django.conf import settings
 from django.contrib import messages
+from django.db import DatabaseError
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import resolve, reverse
@@ -396,7 +397,13 @@ class ModuleAccessMiddleware:
         if match:
             request.resolver_match = match
             if match.namespace:
-                namespace = match.namespace.lower()
+                # Collapse a nested namespace (Django joins them with ":", e.g.
+                # "compliance:compliance_reporting") to its TOP-level app namespace, so a
+                # sub-section include inherits its parent module's access policy instead of
+                # fail-closing on an unregistered colon-joined key (which locked authorized
+                # admins out of /compliance/reports/). This seals the whole nested-namespace
+                # lockout class, not just the one known case.
+                namespace = match.namespace.lower().split(":", 1)[0]
                 if namespace in {"api_v1", "api-v1"}:
                     return "api"
                 return namespace
@@ -483,8 +490,21 @@ class TenantHostControlPlaneIsolationMiddleware:
             self._audit_break_glass(request, user)
             return self.get_response(request)
 
-        role = (getattr(user, "role", "") or "").upper()
-        if role != "SUPERADMIN":
+        # Confine EVERY platform operator to the signed impersonation flow — not only the
+        # SUPERADMIN role. Lower-tier operator identities (active PlatformOperatorProfile
+        # holders, and operator-role users with no tenant membership) previously slipped past
+        # this guard via the `role != "SUPERADMIN"` check and could browse a tenant host
+        # directly, bypassing scope / consent / TTL / read-only / audit. A normal tenant user
+        # (the overwhelming majority) has no control-plane access and passes straight through.
+        try:
+            from apps.schools.control_plane import user_has_control_plane_access
+
+            if not user_has_control_plane_access(user):
+                return self.get_response(request)
+        except (ImportError, DatabaseError, AttributeError, TypeError, ValueError):
+            # Fail OPEN for the isolation check only when the predicate itself cannot be
+            # evaluated: a normal tenant user must never be trapped by an infra error here.
+            # (Operators are still gated by ManagerHost/TenantSuperAdmin middleware elsewhere.)
             return self.get_response(request)
 
         impersonation = request.session.get("impersonation") or {}
@@ -747,6 +767,7 @@ class RequireMFAMiddleware:
             from django_otp import user_has_device
             from django_otp.plugins.otp_totp.models import TOTPDevice
 
+            # config-resolver-allow: MFA enforcement tests patch this module symbol and drive this exact call path (Mock site namespace)
             site = get_effective_site_settings(request=request)
             require_all_staff = getattr(site, "require_mfa_all_staff", False)
             required_roles = getattr(site, "require_mfa_roles", None) or []

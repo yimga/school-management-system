@@ -98,6 +98,7 @@ def super_phase_b_snapshot_diff(request):
 
     Drift indicates admin edits without re-save of the slim tenant settings row, failed sync, or manual DB mutation.
     """
+    # config-resolver-allow: write-path singleton (create=True provisioning; row passed whole to snapshot sync/diff helpers)
     site = get_platform_site_settings_record(create=True)
     focus_domain = (
         request.GET.get("domain") or request.POST.get("focus_domain") or ""

@@ -2279,6 +2279,7 @@ def studio_rollback(request):
         from apps.siteconfig.forms import THEME_EXPERIENCE_FIELD_NAMES
 
         # Persist on the real platform singleton row — not get_effective_site_settings() (shallow resolver shell).
+        # config-resolver-allow: write-path singleton (theme rollback persists field updates onto the row)
         site = get_platform_site_settings_record(create=False)
         if site is None:
             if _wants_json():

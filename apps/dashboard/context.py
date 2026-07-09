@@ -358,6 +358,7 @@ def build_dashboard_extras(
 
         backend_defaults = default_backend_feature_flags()
         backend_flags = dict(backend_defaults)
+        # config-resolver-allow: bare site.pk reads rely on AttributeError abort when the resolver returns None
         site = get_effective_site_settings(request=request)
         rt = getattr(request, "tenant_runtime", None)
         backend_flags.update(get_effective_flags(request))

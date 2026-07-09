@@ -677,12 +677,11 @@ def get_guided_onboarding_steps(school):
     except OPTIONAL_ONBOARDING_STEP_FAILURES:
         pass
     try:
-        from apps.siteconfig.config_service import get_effective_site_settings
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        site = get_effective_site_settings(school=school)
         has_grading = bool(
-            getattr(site, "grading_scale", None)
-            or getattr(site, "default_grading_scale", None)
+            get_effective_config(school=school, key="grading_scale")
+            or get_effective_config(school=school, key="default_grading_scale")
         )
         steps.append(
             {
@@ -693,9 +692,9 @@ def get_guided_onboarding_steps(school):
             }
         )
         has_branding = bool(
-            (getattr(site, "site_name", None) or "").strip()
-            or getattr(site, "logo", None)
-            or (getattr(site, "school_name", None) or "").strip()
+            (get_effective_config(school=school, key="site_name") or "").strip()
+            or get_effective_config(school=school, key="logo")
+            or (get_effective_config(school=school, key="school_name") or "").strip()
         )
         steps.append(
             {

@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from apps.people.models import StudentGuardian
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.models import default_backend_feature_flags
 
 
@@ -9,10 +9,9 @@ class Command(BaseCommand):
     help = "Report guardians who cannot view finance when opt-in is required."
 
     def handle(self, *args, **options):
-        site = get_effective_site_settings()
         flags = {
             **default_backend_feature_flags(),
-            **(site.backend_feature_flags or {}),
+            **(get_effective_config(key="backend_feature_flags") or {}),
         }
         require = bool(flags.get("require_guardian_finance_opt_in"))
 

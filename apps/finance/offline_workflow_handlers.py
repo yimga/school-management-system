@@ -93,12 +93,15 @@ def _record_capture(
 
 def _profile_for_school(school_id: int):
     from apps.finance.models import ComplianceProfile
+    from apps.platform_runtime.config_resolver import get_effective_config
     from apps.schools.models import School
-    from apps.siteconfig.config_service import get_effective_site_settings
 
     school = School.objects.filter(pk=school_id).first()
-    site = get_effective_site_settings(school=school) if school else None
-    profile = getattr(site, "compliance_profile", None) if site else None
+    profile = (
+        get_effective_config(school=school, key="compliance_profile")
+        if school
+        else None
+    )
     if profile is not None:
         return profile
     return ComplianceProfile.objects.filter(is_active=True).first()

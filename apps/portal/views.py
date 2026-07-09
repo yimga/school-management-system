@@ -312,6 +312,7 @@ def unified_calendar(request: HttpRequest):
         "portal/unified_calendar.html",
         {
             "events": events,
+            # config-resolver-allow: namespace object stored into template context as "site"
             "site": get_effective_site_settings(request=request),
             "is_teacher": role == User.Role.TEACHER,
             "is_parent": role == User.Role.PARENT,

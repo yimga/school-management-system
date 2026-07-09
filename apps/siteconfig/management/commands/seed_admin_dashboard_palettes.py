@@ -1477,6 +1477,7 @@ class Command(BaseCommand):
                 updated_count += 1
                 self.stdout.write(self.style.WARNING(f"  ~ Updated: {pack.name}"))
 
+        # config-resolver-allow: write-path singleton (create=True provisions the platform SiteSettings row before branding seed)
         get_platform_site_settings_record(create=True)
         pgb, _ = PlatformGlobalBranding.objects.get_or_create(pk=1)
         if not pgb.admin_theme_pack_id:

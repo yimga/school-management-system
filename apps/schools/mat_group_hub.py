@@ -155,14 +155,11 @@ def load_registry_from_operator_settings() -> tuple[MATGroup, ...]:
     except Exception:  # noqa: BLE001
         pass
     try:
-        from apps.platform_runtime.helpers import get_platform_site_settings_record
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        ss = get_platform_site_settings_record(create=False)
+        payload = get_effective_config(key="cockpit_payload", default=None) or {}
     except Exception:  # noqa: BLE001
         return ()
-    if ss is None:
-        return ()
-    payload = getattr(ss, "cockpit_payload", None) or {}
     if not isinstance(payload, dict):
         return ()
     raw = payload.get("mat_groups")

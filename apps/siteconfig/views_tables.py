@@ -71,6 +71,7 @@ def table_settings_view(request):
         messages.success(request, _("Table defaults saved for this school."))
         return redirect("siteconfig:table_settings")
 
+    # config-resolver-allow: namespace passed to _bool_default_on helper; 6 distinct attributes read
     site = get_effective_site_settings(request=request)
     ctx = {
         "can_manage": can_manage,

@@ -145,6 +145,7 @@ def _ensure_demo_finance_profile(school: School) -> None:
         if not profile.is_active:
             profile.is_active = True
             profile.save(update_fields=["is_active"])
+        # config-resolver-allow: write-path singleton (create=True provisioning; persists compliance_profile_id via apply_feature_control_state)
         site = get_platform_site_settings_record(create=True)
         if getattr(site, "compliance_profile_id", None) != profile.pk:
             site.apply_feature_control_state(

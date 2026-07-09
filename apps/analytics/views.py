@@ -97,6 +97,7 @@ def _analytics_request_school(request: HttpRequest):
 @require_permission("analytics.manage")
 def dashboard(request: HttpRequest):
     # Part B.5: Optional response cache. Enable via Feature Control (enable_analytics_dashboard_cache) or analytics_dashboard_cache_seconds > 0.
+    # config-resolver-allow: six distinct analytics threshold attributes read from one resolve
     site = get_effective_site_settings(request=request)
     flags = get_effective_flags(request)
     cache_ttl = 0

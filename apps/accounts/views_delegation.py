@@ -9,7 +9,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from .models import Delegation, DelegationActionLog
 from .forms import DelegationForm
 from .delegation import (
@@ -67,8 +67,11 @@ def delegation_add(request):
                 except (ImportError, AttributeError, TypeError, ValueError):
                     pass
                 try:
-                    site = get_effective_site_settings(request=request)
-                    notify = getattr(site, "delegation_notify_delegate_on_start", "off")
+                    notify = get_effective_config(
+                        key="delegation_notify_delegate_on_start",
+                        request=request,
+                        default="off",
+                    )
                     if notify in ("email", "both") and d.delegate.email:
                         from apps.schoolops.email_compat import send_mail
                         from django.conf import settings as django_settings

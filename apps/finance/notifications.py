@@ -19,7 +19,7 @@ _skip_new_invoice_notify: contextvars.ContextVar[bool] = contextvars.ContextVar(
 
 from apps.finance.models import Invoice, Payment, Notification
 from apps.people.models import StudentGuardian
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 
 logger = logging.getLogger(__name__)
 
@@ -59,11 +59,12 @@ def notify_guardians_new_invoice(
     """
     if not force and _skip_new_invoice_notify.get():
         return 0
-    site = get_effective_site_settings(
-        school=getattr(invoice, "school", None)
-        or getattr(getattr(invoice, "student", None), "school", None)
+    school = getattr(invoice, "school", None) or getattr(
+        getattr(invoice, "student", None), "school", None
     )
-    if not getattr(site, "finance_notify_guardians_new_invoice", True):
+    if not get_effective_config(
+        school=school, key="finance_notify_guardians_new_invoice", default=True
+    ):
         return 0
     guardians = _guardians_with_finance_access(invoice)
     if not guardians:
@@ -95,7 +96,9 @@ def notify_guardians_new_invoice(
         )
         count += 1
     if send_email is None:
-        send_email = getattr(site, "finance_notify_new_invoice_email", False)
+        send_email = get_effective_config(
+            school=school, key="finance_notify_new_invoice_email", default=False
+        )
     if send_email and count:
         _send_new_invoice_emails(invoice, guardians)
     return count
@@ -143,11 +146,12 @@ def notify_guardians_payment_received(
     invoice = payment.invoice
     if not invoice:
         return 0
-    site = get_effective_site_settings(
-        school=getattr(invoice, "school", None)
-        or getattr(getattr(invoice, "student", None), "school", None)
+    school = getattr(invoice, "school", None) or getattr(
+        getattr(invoice, "student", None), "school", None
     )
-    if not getattr(site, "finance_notify_guardians_payment_received", True):
+    if not get_effective_config(
+        school=school, key="finance_notify_guardians_payment_received", default=True
+    ):
         return 0
     guardians = _guardians_with_finance_access(invoice)
     if not guardians:
@@ -175,7 +179,9 @@ def notify_guardians_payment_received(
         )
         count += 1
     if send_email is None:
-        send_email = getattr(site, "finance_notify_payment_received_email", False)
+        send_email = get_effective_config(
+            school=school, key="finance_notify_payment_received_email", default=False
+        )
     if send_email and count:
         _send_payment_received_emails(payment, guardians)
     return count

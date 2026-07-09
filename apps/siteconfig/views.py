@@ -603,6 +603,7 @@ def build_reportcard_builder_context(
     Context for report card builder: full portal page or Output Studio native pane.
     Forms bind to POST when present; workflow_step follows POST form_type or GET step.
     """
+    # config-resolver-allow: namespace stored in template context and method-called (resolve_default_report_style)
     settings_obj = get_effective_site_settings(request=request)
     if settings_obj is None:
         settings_obj = build_platform_default_site_settings()
@@ -1030,6 +1031,7 @@ def _is_real_student(student) -> bool:
 
 
 def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, student):
+    # config-resolver-allow: namespace passed to _build_style_metadata and stored in report context as SITE
     site = get_effective_site_settings(school=getattr(student, "school", None))
     metadata = _build_style_metadata(site)
     year, term = get_active_year_and_term()
@@ -1140,6 +1142,7 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
 @xframe_options_sameorigin
 def reportcard_style_preview(request, slug: str):
     style = get_object_or_404(ReportCardStyle, slug=slug)
+    # config-resolver-allow: namespace passed to _build_style_metadata for preview rendering
     site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()
     student = _resolve_preview_student(request)
@@ -1747,6 +1750,7 @@ def theme_colors_page(request):
                 except NoReverseMatch:
                     pass
             return redirect(f"{reverse('siteconfig:theme_colors')}?standalone=1")
+    # config-resolver-allow: namespace passed to _get_theme_experience_settings and used as ThemeColorsForm instance
     site = get_effective_site_settings(request=request)
     if site is None:
         site = build_platform_default_site_settings()
@@ -1982,6 +1986,7 @@ def perform_theme_experience_publish(request):
     """
     from .forms import ThemeColorsForm
 
+    # config-resolver-allow: namespace used as ThemeColorsForm save instance (mutated via form.save)
     site = get_effective_site_settings(request=request)
     if site is None:
         site = build_platform_default_site_settings()
@@ -2082,6 +2087,7 @@ def get_theme_colors_context(request):
     Build theme & experience context for Studio OS or other callers.
     Same keys as theme_colors_page (GET path). No permission check (caller must ensure access).
     """
+    # config-resolver-allow: namespace used as ThemeColorsForm instance and passed to context builders
     site = get_effective_site_settings(request=request)
     if site is None:
         site = build_platform_default_site_settings()
@@ -2181,6 +2187,7 @@ def brand_import_from_url_view(request):
     if result.get("error"):
         messages.error(request, result["error"])
         return redirect(_theme_experience_canonical_url())
+    # config-resolver-allow: object mutated via apply_theme_experience_state(save=True)
     site = get_effective_site_settings(request=request)
     if site and site.pk:
         field_updates = {}
@@ -2229,6 +2236,7 @@ def template_gallery_page(request):
     """
     from apps.packages.engine import metadata_apply_preview_bundle
 
+    # config-resolver-allow: object mutated via apply_theme_pack(save=True) on template apply
     site = get_effective_site_settings(request=request)
     if site is None:
         site = build_platform_default_site_settings()
@@ -2770,6 +2778,7 @@ def branding_api(request):
     from .branding import resolve_brand_profile
 
     brand = resolve_brand_profile(
+        # config-resolver-allow: namespace passed to resolve_brand_profile
         school=school, site=get_effective_site_settings(request=request)
     )
     return JsonResponse(

@@ -21,8 +21,8 @@ from apps.finance.models import Invoice, Payment
 from apps.people.models import StudentProfile
 from apps.siteconfig.config_service import (
     get_effective_flags,
-    get_effective_site_settings,
 )
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.api.ministry_connectors import (
     ministry_runtime_status,
     submit_cartescolaire,
@@ -157,7 +157,6 @@ def cartescolaire_placeholder(request):
         .annotate(count=Count("id"))
         .order_by("classroom__name")
     }
-    site = get_effective_site_settings(request=request)
     runtime = ministry_runtime_status()
     sync = {
         "attempted": False,
@@ -167,7 +166,7 @@ def cartescolaire_placeholder(request):
     if _wants_sync(request) and sync["enabled"]:
         sync["attempted"] = True
         sync_payload = {
-            "school_code": site.school_code,
+            "school_code": get_effective_config(key="school_code", request=request),
             "academic_year": active_year.name,
             "records": records,
             "summary": {
@@ -182,7 +181,7 @@ def cartescolaire_placeholder(request):
         {
             "status": "ok",
             "export_type": "cartescolaire",
-            "school_code": site.school_code,
+            "school_code": get_effective_config(key="school_code", request=request),
             "academic_year": active_year.name,
             "record_count": len(records),
             "truncated": students_qs.count() > len(records),

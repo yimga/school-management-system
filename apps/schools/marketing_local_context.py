@@ -1452,12 +1452,9 @@ def _load_tenant_marketing_voice(request) -> dict[str, Any]:
         school = getattr(request, "school", None)
         if school is None:
             return {}
-        from apps.platform_runtime.helpers import get_platform_site_settings_record
-        # tenant-isolation-allow: site-settings-singleton-per-tenant-schema-isolated-by-host
-        settings_row = get_platform_site_settings_record(create=False)
-        if settings_row is None:
-            return {}
-        payload = getattr(settings_row, "cockpit_payload", None) or {}
+        from apps.platform_runtime.config_resolver import get_effective_config
+
+        payload = get_effective_config(key="cockpit_payload", default=None) or {}
         if not isinstance(payload, dict):
             return {}
         mv = payload.get("marketing_voice")
@@ -1486,12 +1483,9 @@ def _load_tenant_page_marketing_voice(request, tenant_mv: dict[str, Any]) -> dic
         school = getattr(request, "school", None)
         if school is None:
             return {}
-        from apps.platform_runtime.helpers import get_platform_site_settings_record
-        # tenant-isolation-allow: site-settings-singleton-per-tenant-schema-isolated-by-host
-        settings_row = get_platform_site_settings_record(create=False)
-        if settings_row is None:
-            return {}
-        payload = getattr(settings_row, "cockpit_payload", None) or {}
+        from apps.platform_runtime.config_resolver import get_effective_config
+
+        payload = get_effective_config(key="cockpit_payload", default=None) or {}
         mv = (payload.get("marketing_voice") if isinstance(payload, dict) else {}) or {}
         per_page = mv.get("per_page") if isinstance(mv, dict) else None
         if not isinstance(per_page, dict) or not per_page:

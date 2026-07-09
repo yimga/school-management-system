@@ -22,6 +22,7 @@ class Command(BaseCommand):
         admin_user = self._get_admin_user()
         region = RegionConfig.get_default()
 
+        # config-resolver-allow: write-path singleton (create=True provisioning + apply_feature_control_state mutation)
         site = get_platform_site_settings_record(create=True)
         if site is None:
             raise RuntimeError("Site settings baseline could not be initialized")

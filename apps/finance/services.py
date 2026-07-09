@@ -76,6 +76,7 @@ DEFAULT_SIGNATURE_HEADER = "X-Signature"
 
 
 def _site_settings_for_school(school=None):
+    # config-resolver-allow: namespace object returned to callers (wrapper helper)
     return get_effective_site_settings(school=school)
 
 

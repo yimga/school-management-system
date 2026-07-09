@@ -213,6 +213,7 @@ def automation_hub(request):
     except NoReverseMatch:
         pass
     try:
+        # config-resolver-allow: bare site.pk identity read feeds site_settings_change_url; soft-failure fallback not foldable into default=
         site = get_effective_site_settings(request=request)
         site_settings_url = site_settings_change_url(request, site.pk)
     except ACCOUNTS_SOFT_FAILURES as e:
@@ -316,6 +317,7 @@ def workflow_center(request):
         early = _manager_host_without_school_workflow_redirect(request)
         if early is not None:
             return early
+    # config-resolver-allow: namespace passed to template context ('site') plus site.pk reads for admin URLs
     site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()
     progress = _workflow_progress(year)
@@ -640,6 +642,7 @@ def academic_rules(request):
     """
     from apps.reports.models import PromotionRule
 
+    # config-resolver-allow: namespace passed to template context ('site')
     site = get_effective_site_settings(request=request)
     year, _term_unused = get_active_year_and_term()
     rules = []

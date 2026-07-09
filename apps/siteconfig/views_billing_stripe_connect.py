@@ -51,6 +51,7 @@ def billing_stripe_connect(request):
     processor_ready = bool(cfg and stripe_secret_key(cfg))
     connect_cfg = platform_connect_config(cfg) if cfg else {"enabled": False}
 
+    # config-resolver-allow: whole singleton row passed to tenant_stripe_connect_allowed policy helper
     site_row = get_platform_site_settings_record(create=False)
     allow_tenant = tenant_stripe_connect_allowed(site_row)
 
@@ -87,6 +88,7 @@ def billing_stripe_connect_start(request):
         messages.warning(request, "No active school context.")
         return redirect(reverse("siteconfig:billing_plan_readonly"))
 
+    # config-resolver-allow: whole singleton row passed to tenant_stripe_connect_allowed policy helper
     if not tenant_stripe_connect_allowed(get_platform_site_settings_record(create=False)):
         messages.error(request, "Platform operator has disabled tenant Stripe Connect onboarding.")
         return redirect(reverse("siteconfig:billing_stripe_connect"))

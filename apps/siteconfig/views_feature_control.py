@@ -64,9 +64,11 @@ def _resolve_feature_control_site(request):
     the save target caused partial POSTs to persist flags that disagreed with what tests
     (and operators) read back from the real singleton / RuntimeDefaults column.
     """
+    # config-resolver-allow: write-path singleton (create=True row returned as save target for feature-control POSTs)
     persisted = get_platform_site_settings_record(create=True)
     if persisted is not None:
         return persisted
+    # config-resolver-allow: namespace returned to callers as fallback save target
     site = get_effective_site_settings(request=request)
     if site is not None and getattr(site, "pk", None):
         return site
@@ -75,6 +77,7 @@ def _resolve_feature_control_site(request):
 
 def _sync_feature_control_phase_b_snapshots() -> None:
     """Refresh Phase B domain rows after RuntimeDefaults/feature writes (no direct save on slim row)."""
+    # config-resolver-allow: whole singleton row passed to sync_phase_b_domain_snapshots_from_site
     persisted = get_platform_site_settings_record(create=False)
     if persisted is None:
         return

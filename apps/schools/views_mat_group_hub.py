@@ -145,6 +145,7 @@ def _get_operator_site_settings():
         from apps.platform_runtime.helpers import get_platform_site_settings_record
     except Exception:  # noqa: BLE001
         return None
+    # config-resolver-allow: row returned to callers that persist edits via set_cockpit_payload (write path)
     return get_platform_site_settings_record(create=False)
 
 

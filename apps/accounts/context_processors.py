@@ -12,6 +12,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 
 logger = logging.getLogger(__name__)
 
@@ -432,11 +433,14 @@ def dashboard_context(request):
             # Resolve tenant currency symbol so the Balance card never assumes USD.
             tenant_currency_code = ""
             try:
-                site_obj = get_effective_site_settings(request=request)
                 tenant_currency_code = (
-                    getattr(site_obj, "default_currency", "")
+                    get_effective_config(
+                        key="default_currency", request=request, default=""
+                    )
                     or getattr(
-                        getattr(site_obj, "region", None), "default_currency", ""
+                        get_effective_config(key="region", request=request),
+                        "default_currency",
+                        "",
                     )
                     or ""
                 )
@@ -574,6 +578,7 @@ def site_settings_context(request):
     Caches the result to avoid repeated database queries.
     """
     try:
+        # config-resolver-allow: SITE namespace handed to templates plus get_theme_vars() method call
         site = get_effective_site_settings(request=request)
         if site is None:
             return {}

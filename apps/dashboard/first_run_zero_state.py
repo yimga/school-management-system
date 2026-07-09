@@ -189,10 +189,9 @@ def _admin_setup_surface_active(request) -> bool:
     if school is None:
         return False
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        site = get_effective_site_settings(request=request)
-        flags = getattr(site, "backend_flags", None) or {}
+        flags = get_effective_config(key="backend_flags", request=request) or {}
         if not bool(flags.get("backend_adaptive_setup_landing", True)):
             return False
         threshold = int(
@@ -244,10 +243,9 @@ def build_first_run_zero_state(request) -> dict[str, Any] | None:
         progress_percent = None
         next_action = None
         try:
-            from apps.platform_runtime.helpers import get_effective_site_settings
+            from apps.platform_runtime.config_resolver import get_effective_config
 
-            site = get_effective_site_settings(request=request)
-            if getattr(site, "empty_first_run", None) is not False:
+            if get_effective_config(key="empty_first_run", request=request) is not False:
                 school = _resolve_school(request)
                 if school is not None:
                     # get_school_onboarding_progress runs ~13 queries (and a

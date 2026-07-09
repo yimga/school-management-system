@@ -31,6 +31,7 @@ from django.template.loader import render_to_string
 from apps.compliance.decorators import audit_pii_view
 
 from apps.academics.models import AcademicYear
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.config_service import get_effective_site_settings
 
 from .models import (
@@ -180,8 +181,7 @@ def invoice_list(request: HttpRequest):
             f"<td>{_d(inv.issued_date)}</td></tr>"
             for inv in ordered_qs[:500]
         )
-        site = get_effective_site_settings(request=request)
-        title = getattr(site, "site_name", None) or "Invoices"
+        title = get_effective_config(key="site_name", request=request) or "Invoices"
         html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Invoices</title>
 <style>body{{font-family:system-ui,sans-serif;font-size:10pt;margin:12mm;}}
 table{{width:100%;border-collapse:collapse;}} th,td{{border:1px solid #ddd;padding:6px;text-align:left;}}
@@ -341,10 +341,8 @@ def notify_guardians_new_invoices(request: HttpRequest):
     total = notify_guardians_new_invoices_bulk(
         invoice_ids,
         created_by=request.user,
-        send_email=getattr(
-            get_effective_site_settings(request=request),
-            "finance_notify_new_invoice_email",
-            False,
+        send_email=get_effective_config(
+            key="finance_notify_new_invoice_email", request=request, default=False
         ),
     )
     messages.success(
@@ -604,6 +602,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         messages.error(request, "This invoice is already fully paid.")
         return finance_detail_redirect(request, invoice.id)
 
+    # config-resolver-allow: method-bearing domain read (get_finance_runtime_config) on the effective namespace
     site_settings = get_effective_site_settings(request=request)
     finance_runtime = (
         site_settings.get_finance_runtime_config()

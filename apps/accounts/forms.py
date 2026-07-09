@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from .models import AccessRole, Permission, User, UserPreference
 from .delegation import get_allowed_delegate_queryset, SCOPE_CHOICES
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 
 
 # User preference form for background logo and opacity
@@ -539,8 +539,10 @@ class DelegationForm(forms.Form):
         if start and end and self.delegator:
             teacher_profile = getattr(self.delegator, "teacher_profile", None)
             school = getattr(teacher_profile, "school", None)
-            site = get_effective_site_settings(school=school)
-            max_days = getattr(site, "delegation_max_days", 14) or 14
+            max_days = (
+                get_effective_config(school=school, key="delegation_max_days", default=14)
+                or 14
+            )
             if (end - start).days > max_days:
                 raise ValidationError(
                     f"Duration cannot exceed {max_days} days (admin setting)."

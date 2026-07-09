@@ -454,6 +454,7 @@ def _try_site_settings_keys(request) -> list[str]:
         school = getattr(request, "school", None)
         if school is None:
             return []
+        # config-resolver-allow: namespace used only as a resolver-availability None-probe (no attribute reads)
         settings = get_effective_site_settings(request=request, school=school)
         if settings is None:
             return []

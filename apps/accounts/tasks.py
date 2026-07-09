@@ -37,6 +37,7 @@ def _expire_past_delegations_body() -> dict:
     qs = Delegation.objects.filter(is_active=True).select_related("delegator")  # tenant-isolation-allow: celery-delegation-lifecycle-cross-user-graph-reviewed
     to_expire = []
     for d in qs:
+        # config-resolver-allow: namespace stored in to_expire and re-read after the loop
         site = get_effective_site_settings(school=_school_for_user(d.delegator))
         if not getattr(site, "delegation_auto_revoke", True):
             continue
@@ -286,6 +287,7 @@ def _apply_rollover_proposal_impl(
 
     source_year = proposal.source_year
     target_year = proposal.target_year
+    # config-resolver-allow: method call get_backend_feature_flags() on the namespace object
     site = get_effective_site_settings(school=getattr(proposal, "school", None))
     if callable(getattr(site, "get_backend_feature_flags", None)):
         flags = site.get_backend_feature_flags()

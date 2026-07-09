@@ -637,6 +637,7 @@ def get_report_card_style_for_student(
 
     from apps.siteconfig.config_service import get_effective_site_settings
 
+    # config-resolver-allow: resolve_default_report_style() method invoked on the settings namespace, not a plain key read
     site = get_effective_site_settings(school=getattr(student, "school", None))
     style = site.resolve_default_report_style(report_type) if site else None
     if style and style.is_active:

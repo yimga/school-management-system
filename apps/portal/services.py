@@ -84,6 +84,7 @@ def _cache_prefix_for_school(school=None) -> str:
 
 
 def _site_settings_for_school(school=None):
+    # config-resolver-allow: helper returns the namespace object to callers
     return get_effective_site_settings(school=school)
 
 

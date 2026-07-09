@@ -783,8 +783,10 @@ def build_admin_dashboard_context(
         expire_date__gte=now - datetime.timedelta(hours=24)
     ).count()
 
+    # config-resolver-allow: namespace passed whole to _build_admin_weather_config() + get_admin_theme() method + 6+ attrs read
     site = get_effective_site_settings(request=request)
     if site is None or not getattr(site, "pk", None):
+        # config-resolver-allow: write-path singleton (create=True provisions the row when the resolver has none)
         persisted = get_platform_site_settings_record(create=True)
         if persisted is not None:
             site = persisted

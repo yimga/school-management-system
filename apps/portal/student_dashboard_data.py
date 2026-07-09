@@ -156,6 +156,7 @@ def build_student_home_extras(
     try:
         from apps.siteconfig.config_service import get_effective_site_settings
 
+        # config-resolver-allow: namespace object passed to get_student_results_visibility_from_site
         site = get_effective_site_settings(request=request)
     except _SOFT:
         pass

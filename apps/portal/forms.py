@@ -7,7 +7,7 @@ from django.db.utils import DatabaseError
 from django.utils.translation import gettext_lazy as _
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from .models import (
     LessonPlan,
     LessonPlanAttachment,
@@ -149,10 +149,9 @@ class LinkChildForm(forms.Form):
         if not school_code and policy:
             school_code = (policy.get("admissions") or {}).get("school_code")
         if not school_code:
-            site = get_effective_site_settings(school=school)
             school_code = (
                 _default_school_code(school)
-                or getattr(site, "school_code", None)
+                or get_effective_config(key="school_code", school=school)
                 or "SCH"
             )
         super().__init__(*args, **kwargs)
@@ -743,16 +742,23 @@ class StudentOnboardingForm(forms.Form):
 
             admissions = self._admissions_policy
             if not admissions:
-                site = get_effective_site_settings(school=getattr(self, "school", None))
                 admissions = {
-                    "admission_number_mode": getattr(
-                        site, "admission_number_mode", "AUTO_OR_MANUAL"
+                    "admission_number_mode": get_effective_config(
+                        key="admission_number_mode",
+                        school=getattr(self, "school", None),
+                        default="AUTO_OR_MANUAL",
                     ),
                     "admission_number_pattern": (
-                        getattr(site, "admission_number_pattern", None) or ""
+                        get_effective_config(
+                            key="admission_number_pattern",
+                            school=getattr(self, "school", None),
+                        )
+                        or ""
                     )
                     or "",
-                    "school_code": getattr(site, "school_code", None)
+                    "school_code": get_effective_config(
+                        key="school_code", school=getattr(self, "school", None)
+                    )
                     or _default_school_code(None),
                 }
             mode = admissions.get("admission_number_mode", "AUTO_OR_MANUAL")

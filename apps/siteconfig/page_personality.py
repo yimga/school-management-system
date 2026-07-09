@@ -288,6 +288,7 @@ def _resolve_site_settings(request):
     try:
         from .config_service import get_effective_site_settings
 
+        # config-resolver-allow: namespace object returned to caller with pk-guarded singleton fallback chain
         site = get_effective_site_settings(request=request)
         if site is not None and getattr(site, "pk", None) is not None:
             return site

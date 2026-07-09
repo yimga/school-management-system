@@ -296,6 +296,7 @@ def _build_context(
         try:
             from apps.siteconfig.config_service import get_effective_site_settings
 
+            # config-resolver-allow: row method get_backend_feature_flags() is invoked (not a plain keyed attribute read)
             site_settings = get_effective_site_settings(request=request, school=school)
             backend_flags = (
                 site_settings.get_backend_feature_flags()

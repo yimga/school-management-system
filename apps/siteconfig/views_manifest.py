@@ -51,14 +51,11 @@ def _logo_version_token(request) -> str:
     when the tenant uploads a new logo.
     """
     try:
-        from apps.siteconfig.config_service import get_effective_site_settings
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        settings_obj = get_effective_site_settings(request=request)
+        logo = get_effective_config(key="logo", request=request)
     except (ImportError, RuntimeError, Exception):
         return ""
-    if settings_obj is None:
-        return ""
-    logo = getattr(settings_obj, "logo", None)
     if not (logo and getattr(logo, "name", "")):
         return ""
     try:

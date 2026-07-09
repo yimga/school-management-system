@@ -46,6 +46,7 @@ def _resolve_site_settings_instance(request: HttpRequest) -> Any:
     try:
         from .config_service import get_effective_site_settings
 
+        # config-resolver-allow: namespace returned as the form instance ThemePersonalityForm edits and saves
         site = get_effective_site_settings(request=request)
         if site is not None and getattr(site, "pk", None) is not None:
             return site

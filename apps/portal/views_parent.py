@@ -76,6 +76,7 @@ from apps.platform_runtime.helpers import (
     get_effective_support_contact_settings,
     get_site_display_name,
 )
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
@@ -236,6 +237,7 @@ def parent_workflow_center(request: HttpRequest):
     finance_overdue = widget_data.get("finance", {}).get("overdue", 0)
 
     year, term = get_active_year_and_term(school=getattr(request, "school", None))
+    # config-resolver-allow: namespace object passed to resolve_parent_grade_dashboard_access
     site = get_effective_site_settings(request=request)
     from apps.portal.student_results_visibility import (
         resolve_parent_grade_dashboard_access,
@@ -424,7 +426,6 @@ def child_digital_id(request: HttpRequest, student_id: int):
             "You are not authorized to view this student's ID."
         )
     student = link.student
-    site = get_effective_site_settings(request=request)
     classroom = getattr(student, "classroom", None)
     grade_label = (
         classroom.name
@@ -445,7 +446,7 @@ def child_digital_id(request: HttpRequest, student_id: int):
         request,
         "portal/digital_id_student.html",
         {
-            "site_name": getattr(site, "site_name", None) or "School",
+            "site_name": get_effective_config(key="site_name", request=request) or "School",
             "student": student,
             "name": student.get_full_name(),
             "grade_label": grade_label,
@@ -472,10 +473,9 @@ def portal_stats(request: HttpRequest):
         if idx > 0:
             prev_term = terms[idx - 1]
 
-    site = get_effective_site_settings(request=request)
-    pass_mark = site.pass_mark
-    weak_threshold = site.weak_subject_threshold
-    improvement_delta = site.improvement_delta_threshold
+    pass_mark = get_effective_config(key="pass_mark", request=request)
+    weak_threshold = get_effective_config(key="weak_subject_threshold", request=request)
+    improvement_delta = get_effective_config(key="improvement_delta_threshold", request=request)
 
     students = guardian_students(request.user, results_only=True)
     widget_data = parent_dashboard_widget_data(students)
@@ -511,7 +511,9 @@ def portal_stats(request: HttpRequest):
             academic_year=year,
             term=term,
             pass_mark=pass_mark,
-            use_promotion_rule=site.use_promotion_rule_for_pass,
+            use_promotion_rule=get_effective_config(
+                key="use_promotion_rule_for_pass", request=request
+            ),
         )
         if specialty_ids:
             specialty_rows = [
@@ -631,6 +633,7 @@ def parent_child_results(request: HttpRequest, student_id: int):
 
     student = link.student
 
+    # config-resolver-allow: namespace object passed to get_student_results_visibility_from_site
     site = get_effective_site_settings(request=request)
     from apps.portal.student_results_visibility import (
         get_student_results_visibility_from_site,
@@ -796,6 +799,7 @@ def parent_dashboard(request: HttpRequest):
     student_ids = [s.id for s in students] if students else []
     school = getattr(request, "school", None)
     year, _term = get_active_year_and_term(school=school)
+    # config-resolver-allow: namespace object passed to resolve_parent_grade_dashboard_access
     site = get_effective_site_settings(request=request)
     from apps.portal.student_results_visibility import (
         resolve_parent_grade_dashboard_access,
@@ -989,6 +993,7 @@ def parent_dashboard(request: HttpRequest):
                     for c in candidates
                 },
             }
+    # config-resolver-allow: namespace object stored into template context as "site"
     site = get_effective_site_settings(request=request)
     role = get_user_role(request.user)
     portal_quick_actions = filter_portal_items(site.portal_quick_actions, role)
@@ -1420,14 +1425,13 @@ def link_child(request: HttpRequest):
     Legacy single-page form view (kept for backwards compatibility).
     New users should use link_child_wizard for a better experience.
     """
-    site = get_effective_site_settings(request=request)
     policy = get_policy_for_request(request)
     form = LinkChildForm(
         request.POST or None,
         guardian_user=request.user,
         policy=policy,
         school=getattr(request, "school", None),
-        school_code=site.school_code,
+        school_code=get_effective_config(key="school_code", request=request),
     )
     if request.method == "POST" and form.is_valid():
         guardian_link = form.save()
@@ -1463,11 +1467,13 @@ def link_child(request: HttpRequest):
         "parent/link_child.html",
         {
             "form": form,
-            "school_code": site.school_code,
+            "school_code": get_effective_config(key="school_code", request=request),
             "completeness_pct": form.completeness_score(),
-            "referral_bonus": site.referral_bonus_amount,
-            "support_email": site.company_email,
-            "support_phone": site.company_phone,
+            "referral_bonus": get_effective_config(
+                key="referral_bonus_amount", request=request
+            ),
+            "support_email": get_effective_config(key="company_email", request=request),
+            "support_phone": get_effective_config(key="company_phone", request=request),
             "whatsapp_invite_link": _whatsapp_invite_link(request),
         },
     )
@@ -1491,7 +1497,6 @@ def link_child_wizard(request: HttpRequest):
     if engine_resp is not None:
         return engine_resp
 
-    site = get_effective_site_settings(request=request)
     session_key = "link_child_wizard_data"
     wizard_data = request.session.get(session_key, {})
     step = int(request.GET.get("step", "1"))
@@ -1511,7 +1516,7 @@ def link_child_wizard(request: HttpRequest):
             guardian_user=request.user,
             policy=policy,
             school=getattr(request, "school", None),
-            school_code=site.school_code,
+            school_code=get_effective_config(key="school_code", request=request),
         )
         if step == 1:
             admission = request.POST.get("admission_number", "").strip()
@@ -1623,7 +1628,7 @@ def link_child_wizard(request: HttpRequest):
         guardian_user=request.user,
         policy=policy,
         school=getattr(request, "school", None),
-        school_code=site.school_code,
+        school_code=get_effective_config(key="school_code", request=request),
     )
     if wizard_data:
         for key, value in wizard_data.items():
@@ -1658,11 +1663,13 @@ def link_child_wizard(request: HttpRequest):
             "total_steps": total_steps,
             "progress_pct": progress_pct,
             "student_info": student_info,
-            "school_code": site.school_code,
+            "school_code": get_effective_config(key="school_code", request=request),
             "completeness_pct": form.completeness_score() if wizard_data else 0,
-            "referral_bonus": site.referral_bonus_amount,
-            "support_email": site.company_email,
-            "support_phone": site.company_phone,
+            "referral_bonus": get_effective_config(
+                key="referral_bonus_amount", request=request
+            ),
+            "support_email": get_effective_config(key="company_email", request=request),
+            "support_phone": get_effective_config(key="company_phone", request=request),
             "whatsapp_invite_link": _whatsapp_invite_link(request),
         },
     )

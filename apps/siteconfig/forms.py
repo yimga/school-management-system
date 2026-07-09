@@ -11,7 +11,7 @@ from django.db.models import Q
 from apps.academics.models import Classroom
 from apps.brand_experience.models import ThemePack
 from apps.brand_experience.platform_global_branding import PlatformGlobalBranding
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.platform_runtime.models import RuntimeDefaults
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.runtime_blueprints.models import ReportCardStyle
@@ -902,11 +902,12 @@ class UserPreferenceForm(forms.ModelForm):
             selected = default_dashboard_widgets(role)
         self.initial["dashboard_widgets"] = selected
         if self.user:
-            site = get_effective_site_settings(
-                request=self.request,
+            default_collapsed = get_effective_config(
                 school=_school_for_user(self.user, request=self.request),
+                key="default_sidebar_collapsed",
+                request=self.request,
+                default=False,
             )
-            default_collapsed = getattr(site, "default_sidebar_collapsed", False)
             dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
                 user=self.user,
                 defaults={"sidebar_collapsed": default_collapsed},
@@ -954,11 +955,12 @@ class UserPreferenceForm(forms.ModelForm):
         if commit:
             preference.save()
             try:
-                site = get_effective_site_settings(
-                    request=self.request,
+                default_collapsed = get_effective_config(
                     school=_school_for_user(preference.user, request=self.request),
+                    key="default_sidebar_collapsed",
+                    request=self.request,
+                    default=False,
                 )
-                default_collapsed = getattr(site, "default_sidebar_collapsed", False)
                 dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
                     user=preference.user,
                     defaults={"sidebar_collapsed": default_collapsed},
@@ -1328,6 +1330,7 @@ class ThemeColorsForm(forms.ModelForm):
             try:
                 from apps.siteconfig.config_service import get_effective_site_settings
 
+                # config-resolver-allow: resolved settings object stored as the form instance
                 instance = get_effective_site_settings(request=request)
                 if instance is not None:
                     self.instance = instance
@@ -1557,6 +1560,7 @@ class ThemeColorsForm(forms.ModelForm):
             try:
                 from apps.siteconfig.config_service import get_effective_site_settings
 
+                # config-resolver-allow: resolved settings object becomes the save instance (mutated)
                 instance = get_effective_site_settings(request=None)
             except _SITECONFIG_FORMS_RESOLVE_ERRORS:
                 log_exception_with_context(

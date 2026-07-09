@@ -35,6 +35,7 @@ def sidebar_badge_counts(request):
         from apps.platform_runtime.helpers import get_effective_site_settings
         from apps.siteconfig.portal_sidebar_items import build_portal_sidebar_items
 
+        # config-resolver-allow: namespace passed to build_portal_sidebar_items
         site = get_effective_site_settings(request=request)
         for item in build_portal_sidebar_items(request, site) or []:
             count = item.get("badge")
@@ -102,6 +103,7 @@ def sidebar_settings_view(request):
         messages.success(request, _("Sidebar defaults saved for this school."))
         return redirect("siteconfig:sidebar_settings")
 
+    # config-resolver-allow: namespace passed to _bool_default_on helper for tri-state default-on toggle reads
     site = get_effective_site_settings(request=request)
     ctx = {
         "can_manage": can_manage,

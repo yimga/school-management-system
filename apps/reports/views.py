@@ -27,6 +27,7 @@ from apps.reports.models import (
     TermPublishStatus,
 )
 from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.reports.services import (
     annual_report_context,
     are_terms_published,
@@ -48,8 +49,10 @@ from apps.siteconfig.models import ReportCardStyle, get_report_card_style_for_st
 
 
 def _reports_enabled(request: HttpRequest | None = None) -> bool:
-    site = get_effective_site_settings(request=request)
-    return bool(site.enable_reports_pdf and site.report_downloads_enabled)
+    return bool(
+        get_effective_config(key="enable_reports_pdf", request=request)
+        and get_effective_config(key="report_downloads_enabled", request=request)
+    )
 
 
 def _report_scope_school(request: HttpRequest):
@@ -697,8 +700,9 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
             )
             messages.success(request, "Share link emailed successfully.")
 
-    site = get_effective_site_settings(request=request)
-    enable_whatsapp_share = getattr(site, "enable_whatsapp_parent_portal", False)
+    enable_whatsapp_share = get_effective_config(
+        key="enable_whatsapp_parent_portal", request=request, default=False
+    )
     return render(
         request,
         "reports/share_link.html",
@@ -714,8 +718,7 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
 
 
 def report_share(request: HttpRequest, token: str):
-    site = get_effective_site_settings(request=request)
-    if not site.enable_parent_portal:
+    if not get_effective_config(key="enable_parent_portal", request=request):
         return HttpResponseForbidden("Parent portal is disabled.")
     if not _reports_enabled(request):
         return HttpResponseForbidden("Report downloads are disabled by the school.")
@@ -839,6 +842,7 @@ def publish_term_results(request: HttpRequest):
         classrooms = classrooms.filter(school__isnull=True)
     classrooms = classrooms.order_by("name")
 
+    # config-resolver-allow: namespace object passed to notify_term_results_published
     site = get_effective_site_settings(request=request)
     require_approved_before_publish = getattr(
         site, "reports_require_approved_grades_before_publish", False

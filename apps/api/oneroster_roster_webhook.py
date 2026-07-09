@@ -87,11 +87,15 @@ def platform_marketplace_integration_webhook(request):
     raw = request.body or b""
     body_sha256 = hashlib.sha256(raw).hexdigest()
 
-    from apps.siteconfig.config_service import get_effective_site_settings
+    from apps.platform_runtime.config_resolver import get_effective_config
     from apps.platform_runtime.models import PlatformIntegrationWebhookEvent
 
-    eff = get_effective_site_settings(request=None, school=None)
-    secret = str(getattr(eff, "webhook_signing_secret", None) or "").strip()
+    secret = str(
+        get_effective_config(
+            key="webhook_signing_secret", request=None, school=None, default=None
+        )
+        or ""
+    ).strip()
 
     event_type = ""
     try:

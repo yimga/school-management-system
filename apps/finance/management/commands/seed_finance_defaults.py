@@ -123,6 +123,7 @@ class Command(BaseCommand):
 
         # Wire platform RuntimeDefaults to the neutral 'Generic Global' profile rather than
         # Cameroon — this is the profile a fresh tenant inherits, so it MUST be country-neutral.
+        # config-resolver-allow: write-path singleton (create=True provisioning; record mutated via apply_feature_control_state)
         site = get_platform_site_settings_record(create=True)
         if site is not None:
             from apps.platform_runtime.models import RuntimeDefaults

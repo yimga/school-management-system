@@ -22,6 +22,7 @@ def get_unified_theme_tokens(school: Any = None, request: Any = None) -> Dict[st
     try:
         from apps.siteconfig.config_service import get_effective_site_settings
 
+        # config-resolver-allow: bound method get_theme_experience_settings() is invoked on the namespace, not a key read
         site = get_effective_site_settings(request=request, school=school)
         if site is not None and callable(
             getattr(site, "get_theme_experience_settings", None)

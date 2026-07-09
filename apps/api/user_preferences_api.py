@@ -60,6 +60,7 @@ class PortalPreferencesAPI(APIView):
                 getattr(request, "SITE", None) if hasattr(request, "SITE") else None
             )
             if site is None:
+                # config-resolver-allow: namespace object passed to build_portal_sidebar_items
                 site = get_effective_site_settings(request=request)
             items = build_portal_sidebar_items(request, site)
             return {
