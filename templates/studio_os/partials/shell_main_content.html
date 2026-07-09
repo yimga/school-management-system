@@ -87,6 +87,9 @@
           </section>
         {% elif embed_url %}
           <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Studio mode content' %}"></iframe>
+          <div class="d-flex flex-wrap gap-2 mt-2" data-rmc-studio-mode-recovery="1">
+            <a class="btn btn-outline-primary btn-sm" href="{{ embed_url }}" target="_blank" rel="noopener">{% trans "Open in full window" %}</a>
+          </div>
         {% else %}
           <div class="studio-os__card">
             {% if request.public_host_kind == 'manager' %}

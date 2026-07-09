@@ -2,7 +2,7 @@
 {% load i18n %}
 {% include "admin/components/theme_preview_assets.html" %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="theme-experience-page container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
+<div class="theme-experience-page container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-command-workspace="theme-experience">
   {% include "studio_os/components/page_header.html" with title=_("Theme & Experience") subtitle=_("These settings apply to Site Settings (Theme pack & Admin theme pack).") action_url=back_url action_text=_("Back to Site Settings") %}
 
   {% if preview_mode_active %}
@@ -17,7 +17,7 @@
       <p class="small text-muted mb-2">{% trans "Enter your school's website URL to fetch site name and primary color. We will not store the URL." %}</p>
       <form method="post" action="{% url 'siteconfig:brand_import_from_url' %}" class="d-flex flex-wrap gap-2 align-items-end">
         {% csrf_token %}
-        <input type="url" name="url" class="form-control form-control-sm" style="max-width: 20rem;" placeholder="https://yourschool.edu" required>
+        <input type="url" name="url" class="form-control form-control-sm rmc-url-input" placeholder="https://yourschool.edu" required>
         <label class="d-flex align-items-center gap-1 small">
           <input type="checkbox" name="consent" value="1" required>
           {% trans "I consent to fetch this URL" %}
