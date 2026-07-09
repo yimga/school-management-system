@@ -307,11 +307,12 @@ def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:
 # Ordered waves; jobs within a wave run in parallel, waves run serially so
 # the next wave sees its parent rows already in the tenant schema.
 _DEPENDENCY_WAVES: tuple[frozenset[str], ...] = (
-    frozenset({"students", "staff", "sections"}),                   # wave 0: independent roots
-    frozenset({"enrollment", "guardians", "schedule"}),             # wave 1: depend on wave 0
-    frozenset({"attendance", "grades", "behavior", "finance", "transcripts",  # wave 2: depend on wave 1
+    frozenset({"structure"}),                                       # wave 0: academic scaffold (SPLIT provisioning) — MUST precede students/enrollment/grades
+    frozenset({"students", "staff", "sections"}),                   # wave 1: independent roots
+    frozenset({"enrollment", "guardians", "schedule"}),             # wave 2: depend on wave 1
+    frozenset({"attendance", "grades", "behavior", "finance", "transcripts",  # wave 3: depend on wave 2
                "health", "library", "transport", "hostel", "cafeteria"}),
-    frozenset({"custom_fields"}),                                   # wave 3: catch-all last
+    frozenset({"custom_fields"}),                                   # wave 4: catch-all last
 )
 
 

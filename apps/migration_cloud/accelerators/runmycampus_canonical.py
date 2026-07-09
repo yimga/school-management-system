@@ -56,6 +56,7 @@ CANONICAL_FILENAME_TO_DOMAIN: dict[str, str] = {
     "teachers.csv": "staff",
     "guardians.csv": "guardians",
     "parents.csv": "guardians",
+    "structure.csv": "structure",
     "enrollment.csv": "enrollment",
     "enrollments.csv": "enrollment",
     "sections.csv": "sections",
@@ -116,6 +117,16 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
         # Curriculum track — required for grade placement parity
         # (Evaluation.clean: student specialty must match the assignment's).
         "specialty",
+    },
+    "structure": {
+        # SPLIT-only academic scaffold provisioned at the target BEFORE
+        # enrollment/grades (StructureLander). Identity-mapped so every column
+        # reaches the lander; a header outside this set is shunted to
+        # custom_fields and lost.
+        "academic_year", "year_start", "year_end", "year_is_active",
+        "term", "term_label", "term_position", "term_start", "term_end",
+        "department", "classroom", "specialty", "subject", "coefficient",
+        "teacher_ref", "teacher_first_name", "teacher_last_name", "teacher_email",
     },
     "sections": {
         "section_external_id", "subject_code", "subject_name",

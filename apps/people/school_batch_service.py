@@ -70,7 +70,7 @@ class BatchBlockedError(RuntimeError):
     """A guard refused the batch action — the batch FSM was NOT advanced."""
 
 
-def _batch_domains() -> list[str]:
+def _batch_domains(batch=None) -> list[str]:
     # Full default set (2026-07-09): the grades lander now resolves the
     # term/subject/assignment/teacher FK graph at the target, and every
     # evaluation ALSO rides the archival `transcripts` domain (vault items
@@ -78,7 +78,19 @@ def _batch_domains() -> list[str]:
     # provenance-stamped vault records always.
     from apps.interop.student_transfer_export import TRANSFER_DEFAULT_DOMAINS
 
-    return list(TRANSFER_DEFAULT_DOMAINS)
+    domains = list(TRANSFER_DEFAULT_DOMAINS)
+    # SPLIT-only academic scaffold (2026-07-09): a split lands its cohort into a
+    # fresh/greenfield target that has none of the source's calendar, classes,
+    # subjects or assignments, so enrollment + grades would quarantine 100% and
+    # the split school would arrive with an empty gradebook. Prepend the
+    # `structure` domain (StructureLander, wave 0) to PROVISION that scaffold
+    # before students/enrollment/grades. A MERGE targets an existing school and
+    # maps to its OWN structure — it never fabricates the source's.
+    from apps.people.models_school_batch import SchoolTransferBatch
+
+    if batch is not None and getattr(batch, "kind", None) == SchoolTransferBatch.Kind.SPLIT:
+        domains = ["structure", *domains]
+    return domains
 
 
 def eligible_student_qs(batch):
@@ -167,7 +179,7 @@ def preview_batch(batch) -> dict[str, Any]:
             {"pk": str(pk), "name": f"{first} {last}".strip()}
             for pk, first, last in to_move[:10]
         ],
-        "domains": _batch_domains(),
+        "domains": _batch_domains(batch),
         "generated_at": timezone.now().isoformat(),
     }
     if approvals_reset:
@@ -302,7 +314,7 @@ def _start_batch_locked(batch, *, actor) -> dict[str, Any]:
             "(which resets approvals) and re-approve the new set"
         )
 
-    domains = _batch_domains()
+    domains = _batch_domains(batch)
     created = 0
     for profile in profiles:
         # Atomic per student: a crash mid-fan-out never leaves a case below

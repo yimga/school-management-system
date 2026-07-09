@@ -18,6 +18,7 @@ models, with DFV fallback retained for out-of-order bundles):
     * ``guardians``              → ``apps.people.StudentGuardian``     (linked via student_external_id)
     * ``staff``                  → ``apps.people.TeacherProfile``      (upsert on external_id)
     * ``enrollment``             → updates StudentProfile grade_level / enrollment_status / section
+    * ``structure``              → provisions the academic scaffold (AcademicYear/Term/Department/Classroom/Specialty/Subject/SubjectAssignment + a target-scoped teacher) for a SPLIT into an empty target, in wave 0 so enrollment+grades resolve
     * ``sections``               → ``apps.academics.Classroom``        (upsert on code/slug)
     * ``attendance``             → ``apps.academics.Attendance``       (upsert on student+date)
     * ``grades``                 → ``apps.evals.Evaluation``           (upsert on student+term+subject)
@@ -68,6 +69,7 @@ from . import enrollment_lander  # noqa: F401
 from . import finance_lander  # noqa: F401
 from . import grades_lander  # noqa: F401
 from . import sections_lander  # noqa: F401
+from . import structure_lander  # noqa: F401 — SPLIT academic scaffold (wave 0)
 # v3.26 — long-tail closure: the 11 remaining canonical domains
 # graduate from dynamic_field fallback to first-class landers.
 from . import alumni_lander  # noqa: F401

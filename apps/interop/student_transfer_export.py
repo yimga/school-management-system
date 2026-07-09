@@ -282,6 +282,71 @@ def extract_student_domain_rows(
         if transcript_rows:
             out["transcripts"] = transcript_rows
 
+    if "structure" in wanted:
+        # SPLIT-only academic scaffold: one row per SubjectAssignment the
+        # student's grades reference, carrying the full graph the target's
+        # StructureLander provisions BEFORE enrollment/grades so a split into
+        # an empty tenant lands a LIVE gradebook (a merge omits this domain and
+        # maps to the destination school's own structure). Idempotent at the
+        # target, so a whole cohort's overlapping rows collapse.
+        from apps.evals.models import Evaluation
+
+        structure_rows = []
+        seen_assignments: set[Any] = set()
+        struct_evals = Evaluation.objects.filter(student=profile).select_related(  # tenant-isolation-allow: scoped-via-student-profile-school-fk-transfer-export
+            "subject_assignment__subject",
+            "subject_assignment__classroom__department",
+            "subject_assignment__specialty__department",
+            "subject_assignment__term",
+            "subject_assignment__academic_year",
+            "academic_year",
+            "term",
+            "teacher__user",
+        )
+        for ev in struct_evals.iterator():
+            sa = getattr(ev, "subject_assignment", None)
+            if sa is None or sa.pk in seen_assignments:
+                continue
+            seen_assignments.add(sa.pk)
+            year = getattr(sa, "academic_year", None) or getattr(ev, "academic_year", None)
+            term = getattr(sa, "term", None) or getattr(ev, "term", None)
+            classroom = getattr(sa, "classroom", None)
+            specialty = getattr(sa, "specialty", None)
+            subject = getattr(sa, "subject", None)
+            dept = getattr(classroom, "department", None) or getattr(
+                specialty, "department", None
+            )
+            teacher_user = getattr(getattr(ev, "teacher", None), "user", None)
+            structure_rows.append(
+                _drop_empty(
+                    {
+                        "academic_year": getattr(year, "name", "") or "",
+                        "year_start": _iso(getattr(year, "start_date", None)),
+                        "year_end": _iso(getattr(year, "end_date", None)),
+                        "year_is_active": _bool_str(getattr(year, "is_active", False)),
+                        "term": getattr(term, "name", "") or "",
+                        "term_label": getattr(term, "custom_label", "") or "",
+                        "term_position": str(getattr(term, "position", "") or ""),
+                        "term_start": _iso(getattr(term, "start_date", None)),
+                        "term_end": _iso(getattr(term, "end_date", None)),
+                        "department": getattr(dept, "name", "") or "",
+                        "classroom": getattr(classroom, "name", "") or "",
+                        "specialty": getattr(specialty, "name", "") or "",
+                        "subject": getattr(subject, "name", "") or "",
+                        "coefficient": str(getattr(sa, "coefficient", "") or ""),
+                        "teacher_ref": getattr(teacher_user, "username", "") or "",
+                        "teacher_first_name": getattr(teacher_user, "first_name", "")
+                        or "",
+                        "teacher_last_name": getattr(teacher_user, "last_name", "")
+                        or "",
+                        "teacher_email": getattr(teacher_user, "email", "") or "",
+                    },
+                    keep=("academic_year", "term", "classroom", "specialty", "subject"),
+                )
+            )
+        if structure_rows:
+            out["structure"] = structure_rows
+
     return out
 
 
