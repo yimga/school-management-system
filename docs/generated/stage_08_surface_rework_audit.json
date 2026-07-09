@@ -1,0 +1,1452 @@
+{
+  "audit": "stage_08_surface_rework",
+  "findings": [
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body[data-rmc-admin-shell=\"1\"][data-rmc-nav-bridge-host=\"manager\"] .dashboard-header .dashboard-subtitle { max-width: 720px }",
+      "line": 95,
+      "path": "static/css/admin-200x-shell-overlay.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "-html=\"unfold\"] body[data-rmc-admin-shell=\"1\"][data-rmc-nav-bridge-host=\"manager\"] .dashboard-header .dashboard-subtitle { max-width: 720px }",
+      "line": 393,
+      "path": "static/css/admin-200x-shell-overlay.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".theme-pack-filter-row .form-control { max-width: 360px }",
+      "line": 68,
+      "path": "static/css/admin-color-preview.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".hero-subtitle { max-width: 420px }",
+      "line": 93,
+      "path": "static/css/admin-components.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".modal { max-width: 600px }",
+      "line": 606,
+      "path": "static/css/admin-components.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "Pin all instances    to the same corner and hide every sibling after the first. */ body.admin-manager-shell .lx-notebook { max-width: 360px }",
+      "line": 399,
+      "path": "static/css/admin-manager-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "(\u270e) OR click here. Single source of truth. */ body.admin-manager-shell .lx-notebook[data-rmc-notebook-state=\"minimized\"] { max-width: 220px }",
+      "line": 409,
+      "path": "static/css/admin-manager-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "html:not([data-rmc-admin-density=\"comfortable\"]) body.admin-manager-shell .cp-hero__lede { max-width: 72ch }",
+      "line": 780,
+      "path": "static/css/admin-manager-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-admin-catalog-search-wrap input[type=\"search\"] { max-width: 32rem }",
+      "line": 33,
+      "path": "static/css/admin-platform-catalog.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body.admin-sidebar-compact #nav-sidebar { max-width: 4.5rem }",
+      "line": 404,
+      "path": "static/css/admin-sidebar-polish.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body.admin-sidebar-compact .admin-sidebar-column .fixed.w-\\[288px\\] { max-width: 4.5rem }",
+      "line": 410,
+      "path": "static/css/admin-sidebar-polish.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "fied-page)) .admin-sidebar-column, #page:not(.admin-cp-unified-page):not(:has(.admin-cp-unified-page)) > div:first-child { max-width: 288px }",
+      "line": 21,
+      "path": "static/css/admin-sidebar-scroll.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-auth-immersive__hero-marquee-item span { max-width: 36ch }",
+      "line": 323,
+      "path": "static/css/auth-login-canvas.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-auth-immersive__slide strong { max-width: 32ch }",
+      "line": 374,
+      "path": "static/css/auth-login-canvas.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body[data-dashboard-page=\"backend\"] #portalHeader .topbar-search.header-search-container { max-width: 540px }",
+      "line": 30,
+      "path": "static/css/backend-dashboard-v2.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".backend-role-home-sub { max-width: 56rem }",
+      "line": 961,
+      "path": "static/css/backend-dashboard-v2.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".badge-verify-card { max-width: 28rem }",
+      "line": 18,
+      "path": "static/css/badge-verify.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "ile only; desktop gets proper width (no \"mobile strip\" on large screens) */ body.control-plane-shell .cp-login-container { max-width: 480px }",
+      "line": 123,
+      "path": "static/css/control-plane-ultra.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "layout is not a narrow strip */ body.control-plane-shell .manager-login-card, body.control-plane-shell .admin-login-card { max-width: 420px }",
+      "line": 188,
+      "path": "static/css/control-plane-ultra.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".cp-operator-hub .cpoh-sub { max-width: 46rem }",
+      "line": 65,
+      "path": "static/css/cp_operator_hub.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "hboard-card, .metrics-section, .chart-section, .admin-page, .parent-dashboard, .teacher-dashboard, .compliance-dashboard { max-width: 1600px }",
+      "line": 19,
+      "path": "static/css/dashboard-responsive.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".ds-empty__body { max-width: 32rem }",
+      "line": 146,
+      "path": "static/css/design-system-phase2-enforcement.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "(.btn) > .form-select, [role=\"search\"].d-flex:has(.btn) > .form-control, [role=\"search\"].d-flex:has(.btn) > .form-select { max-width: 28rem }",
+      "line": 240,
+      "path": "static/css/design-system-phase2-enforcement.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "ax-width, breathable padding */ .wizard-container, [data-shell-page=\"onboarding-wizard\"], [data-rmc-onboarding-page=\"1\"] { max-width: 880px }",
+      "line": 1636,
+      "path": "static/css/design-tokens.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".wizard-step-label { max-width: 11ch }",
+      "line": 1714,
+      "path": "static/css/design-tokens.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".wizard-step-description { max-width: 60ch }",
+      "line": 1757,
+      "path": "static/css/design-tokens.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "nboarding-wizard\"] h1 + .text-muted, [data-rmc-onboarding-page=\"1\"] h1 + .text-muted, .wizard-container h1 + .text-muted { max-width: 60ch }",
+      "line": 1808,
+      "path": "static/css/design-tokens.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".admin-login-card { max-width: 420px }",
+      "line": 2424,
+      "path": "static/css/design-tokens.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* ----- CONFIRM DIALOG (bespoke .confirm-dialog pattern) ----- */ .confirm-dialog, [data-rmc-confirm-dialog] { max-width: 440px }",
+      "line": 2668,
+      "path": "static/css/design-tokens.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-kbd-cheatsheet__filter { max-width: 20rem }",
+      "line": 4269,
+      "path": "static/css/design-tokens.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-mapping__explain p { max-width: 28rem }",
+      "line": 4547,
+      "path": "static/css/design-tokens.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-empty-state__body { max-width: 32rem }",
+      "line": 5001,
+      "path": "static/css/design-tokens.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".hub-page .hub-copy { max-width: 52ch }",
+      "line": 47,
+      "path": "static/css/hub-premium.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-lux-intro__summary { max-width: 56ch }",
+      "line": 328,
+      "path": "static/css/lux-workspace.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-lux-error__panel { max-width: 480px }",
+      "line": 1304,
+      "path": "static/css/lux-workspace.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".cp-hero-copy { max-width: 62rem }",
+      "line": 87,
+      "path": "static/css/manager-control-plane.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".cp-sidebar-col.cp-sidebar-compact { max-width: 4rem }",
+      "line": 1171,
+      "path": "static/css/manager-control-plane.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".cp-keyboard-help-panel { max-width: 400px }",
+      "line": 1217,
+      "path": "static/css/manager-control-plane.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".manager-login-card,   .admin-login-card { max-width: 440px }",
+      "line": 69,
+      "path": "static/css/manager-login.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".manager-login-card,   .admin-login-card { max-width: 460px }",
+      "line": 76,
+      "path": "static/css/manager-login.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-mkt-sticky-cta__inner { max-width: 64rem }",
+      "line": 844,
+      "path": "static/css/marketing-home.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".detail-headline { max-width: 24ch }",
+      "line": 45,
+      "path": "static/css/marketing-static-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".detail-subheadline { max-width: 68ch }",
+      "line": 49,
+      "path": "static/css/marketing-static-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".glass-tooltip.teacher-hover-bubble { max-width: 280px }",
+      "line": 70,
+      "path": "static/css/micro-feedback.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-nas-chip-desc { max-width: 42ch }",
+      "line": 101,
+      "path": "static/css/next-action-strip.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "doff page (.omig-handoff)    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */  .omig-handoff { max-width: 760px }",
+      "line": 242,
+      "path": "static/css/onboarding-migration.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".org-chart-card { max-width: 140px }",
+      "line": 18,
+      "path": "static/css/org-chart.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "e in light    AND dark themes automatically.    ============================================================ */  .rmc-oc { max-width: 1200px }",
+      "line": 9,
+      "path": "static/css/owner-console.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-ofl-card { max-width: 520px }",
+      "line": 27,
+      "path": "static/css/owner-first-login.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* main content area */ [data-rmc-aesthetic=\"v2\"] main.main { max-width: 1400px }",
+      "line": 137,
+      "path": "static/css/patterns.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "======================================================================== */ [data-rmc-aesthetic=\"v2\"] .report-card-paper { max-width: 820px }",
+      "line": 844,
+      "path": "static/css/patterns.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "[data-rmc-aesthetic=\"v2\"] .login-brand-side h1 { max-width: 520px }",
+      "line": 1062,
+      "path": "static/css/patterns.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "[data-rmc-aesthetic=\"v2\"] .login-brand-side p { max-width: 480px }",
+      "line": 1068,
+      "path": "static/css/patterns.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "[data-rmc-aesthetic=\"v2\"] .login-brand-side .testimonial { max-width: 420px }",
+      "line": 1075,
+      "path": "static/css/patterns.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "[data-rmc-aesthetic=\"v2\"] .login-form { max-width: 380px }",
+      "line": 1095,
+      "path": "static/css/patterns.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "e-archetype=\"role-home\"] > .container-lg, [data-rmc-aesthetic=\"v2\"] [data-page-archetype=\"role-home\"] > .container-fluid { max-width: 1400px }",
+      "line": 1463,
+      "path": "static/css/patterns.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "[data-rmc-aesthetic=\"v2\"] .rmc-empty-state .rmc-empty-message { max-width: 480px }",
+      "line": 1691,
+      "path": "static/css/patterns.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".error-container { max-width: 600px }",
+      "line": 220,
+      "path": "static/css/phase2-base-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "main { max-width: 38rem }",
+      "line": 300,
+      "path": "static/css/phase2-base-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "main { max-width: 38rem }",
+      "line": 343,
+      "path": "static/css/phase2-base-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "main { max-width: 480px }",
+      "line": 498,
+      "path": "static/css/phase2-base-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "p { max-width: 32rem }",
+      "line": 525,
+      "path": "static/css/phase2-base-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* Preview wrapper */   .theme-experience-preview-wrap { max-width: 1120px }",
+      "line": 73,
+      "path": "static/css/phase2-control-plane-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* ========== templates/parent/link_child_wizard.html ========== */ .wizard-container { max-width: 600px }",
+      "line": 1970,
+      "path": "static/css/phase2-portal-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* ========== templates/parent/results.html ========== */ .results-page { max-width: 56rem }",
+      "line": 2162,
+      "path": "static/css/phase2-portal-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "e.html ========== */ /* block 1 */ /* KB article: clean layout, avoid jammed text */   .kb-article-page .article-content { max-width: 72ch }",
+      "line": 2322,
+      "path": "static/css/phase2-portal-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* Preview wrapper */   .theme-experience-preview-wrap { max-width: 1120px }",
+      "line": 2659,
+      "path": "static/css/phase2-portal-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* ========== templates/student/onboarding_wizard.html ========== */ .wizard-container { max-width: 700px }",
+      "line": 2691,
+      "path": "static/css/phase2-portal-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* ========== templates/teacher/onboarding_wizard.html ========== */ .wizard-container { max-width: 600px }",
+      "line": 2855,
+      "path": "static/css/phase2-portal-bundle.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "[data-dashboard-page] .dashboard-subtitle, [data-dashboard-page] .section-title, .cp-hero-copy { max-width: 60ch }",
+      "line": 319,
+      "path": "static/css/platform-high-end.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".topbar-search.header-search-container { max-width: 520px }",
+      "line": 157,
+      "path": "static/css/portal-base-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".topbar-search.header-search-container { max-width: 390px }",
+      "line": 585,
+      "path": "static/css/portal-base-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "#portalHeader .topbar-search.header-search-container { max-width: 460px }",
+      "line": 732,
+      "path": "static/css/portal-base-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "#portalHeader .topbar-lang-btn { max-width: 112px }",
+      "line": 761,
+      "path": "static/css/portal-base-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "#portalHeader .topbar-lang-btn > span { max-width: 68px }",
+      "line": 766,
+      "path": "static/css/portal-base-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "#portalHeader .topbar-username { max-width: 96px }",
+      "line": 773,
+      "path": "static/css/portal-base-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".dashboard-empty-message { max-width: 400px }",
+      "line": 892,
+      "path": "static/css/portal-ui-components.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".dashboard-empty-purpose { max-width: 400px }",
+      "line": 898,
+      "path": "static/css/portal-ui-components.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* --- from templates/components/global_search.html --- */ .global-search { max-width: 400px }",
+      "line": 1310,
+      "path": "static/css/portal-ui-components.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* block 2 */ /* Toast notification styles */ .notification-toast { max-width: 400px }",
+      "line": 2084,
+      "path": "static/css/portal-ui-components.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".toast-notification { max-width: 420px }",
+      "line": 2528,
+      "path": "static/css/portal-ui-components.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-account-mfa-qr-wrap img { max-width: 15rem }",
+      "line": 346,
+      "path": "static/css/rmc-account-surface.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body.admin-manager-shell.change-list #result_list th, body.admin-manager-shell.change-list #result_list td { max-width: 24rem }",
+      "line": 152,
+      "path": "static/css/rmc-admin-changelist-live.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".change-list #result_list td.action-checkbox, body.admin-manager-shell.change-list #result_list td.action-checkbox input { max-width: 2.75rem }",
+      "line": 172,
+      "path": "static/css/rmc-admin-changelist-live.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "ger-login-civic` chrome.    ============================================================ */ .rmc-admin-mirror-civic-form { max-width: 480px }",
+      "line": 708,
+      "path": "static/css/rmc-admin-mirror.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".cp-hero__lede { max-width: 720px }",
+      "line": 313,
+      "path": "static/css/rmc-admin-v1-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".cp-section__search { max-width: 420px }",
+      "line": 535,
+      "path": "static/css/rmc-admin-v1-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".cp-empty__hint { max-width: 360px }",
+      "line": 1328,
+      "path": "static/css/rmc-admin-v1-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-viz-tooltip { max-width: 14rem }",
+      "line": 138,
+      "path": "static/css/rmc-analytics-viz.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* ===== v4.00.93 Wave C \u2014 power chip landings + prefs UI ================== */  .rmc-assist-power { max-width: 720px }",
+      "line": 403,
+      "path": "static/css/rmc-assist-dock.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "-back-to-top:hover .rmc-back-to-top__caption,   .back-to-top-btn.rmc-back-to-top:focus-visible .rmc-back-to-top__caption { max-width: 8rem }",
+      "line": 306,
+      "path": "static/css/rmc-back-to-top.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-admin-zone-intro__text { max-width: 62ch }",
+      "line": 97,
+      "path": "static/css/rmc-backend-admin-bento.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-civic-footer__inner { max-width: 1280px }",
+      "line": 44,
+      "path": "static/css/rmc-civic-footer.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "                    */ /* ------------------------------------------------------------------ */ .rmc-civic-footer__legal { max-width: 1100px }",
+      "line": 249,
+      "path": "static/css/rmc-civic-footer.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".feature-cat-tab__label { max-width: 12ch }",
+      "line": 1744,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "lve  * to the dark CP palette by default; portal shell tokens reflow automatically. */ .rmc-page--migration-cloud-intake { max-width: 86rem }",
+      "line": 1831,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-mc-customer-page { max-width: 80rem }",
+      "line": 3071,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* schoolops/operator/meal_plan_analytics page-specific modifiers */ .rmc-page--operator-meal-plan-analytics { max-width: 80rem }",
+      "line": 3434,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-lede--sm { max-width: 60ch }",
+      "line": 3644,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-os-page__inner { max-width: 80rem }",
+      "line": 3703,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-page--canonical-template-picker, .rmc-page--migration-connector { max-width: 80rem }",
+      "line": 3713,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "tivate, .rmc-page--migration-cloud-command-center, .rmc-page--operator-audit-dashboard, .rmc-page--operator-dsar-runbook { max-width: 80rem }",
+      "line": 3905,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "-operator-tokens, .rmc-page--operator-webhook-audit, .rmc-page--operator-webhooks, .rmc-page--operator-webhook-subscribe { max-width: 80rem }",
+      "line": 4081,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-page--maa-v2-promotion, .rmc-page--migration-cloud-health { max-width: 80rem }",
+      "line": 4276,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "ontext.mfa_nudge_context on every shell    when a required user is let through instead of hard-walled. */ .rmc-mfa-nudge { max-width: 64rem }",
+      "line": 5982,
+      "path": "static/css/rmc-class-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-empty-state__desc { max-width: 42ch }",
+      "line": 471,
+      "path": "static/css/rmc-cockpit-skin-v8.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "y outside the manager platform header. */ .cp-navbar:not([data-rmc-shell-header=\"control-plane\"]) .cp-topbar-search-wrap { max-width: 520px }",
+      "line": 385,
+      "path": "static/css/rmc-cool-apple-polish.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-copilot-rail__context-tenant { max-width: 140px }",
+      "line": 43,
+      "path": "static/css/rmc-copilot-rail.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".lx-world-lab__note { max-width: 920px }",
+      "line": 577,
+      "path": "static/css/rmc-cp-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".lx-world__glass-dock-metric { max-width: 12rem }",
+      "line": 755,
+      "path": "static/css/rmc-cp-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".lx-world__holo-cell-spark { max-width: 34px }",
+      "line": 1615,
+      "path": "static/css/rmc-cp-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".lx-world__void-zone--mr { max-width: 160px }",
+      "line": 2062,
+      "path": "static/css/rmc-cp-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".lx-world__void-zone--bl { max-width: 240px }",
+      "line": 2063,
+      "path": "static/css/rmc-cp-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".lx-world__void-zone--br { max-width: 190px }",
+      "line": 2064,
+      "path": "static/css/rmc-cp-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".lx-copilot__empty-lede { max-width: 28ch }",
+      "line": 3551,
+      "path": "static/css/rmc-cp-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "tate: collapse to a slim title-only pill, retain ability to expand. */ .lx-notebook[data-rmc-notebook-state=\"minimized\"] { max-width: 240px }",
+      "line": 3732,
+      "path": "static/css/rmc-cp-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-cp-landing-mode__tabs { max-width: 28rem }",
+      "line": 4589,
+      "path": "static/css/rmc-cp-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "-main=\"control-plane\"] .cp-layout[data-rmc-cp-globe-landing=\"1\"] .rmc-globe-deck-v2__globe-cell .lx-world__void-zone--mr { max-width: 150px }",
+      "line": 137,
+      "path": "static/css/rmc-cp-globe-landing-frame-fit.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "-main=\"control-plane\"] .cp-layout[data-rmc-cp-globe-landing=\"1\"] .rmc-globe-deck-v2__globe-cell .lx-world__void-zone--br { max-width: 175px }",
+      "line": 141,
+      "path": "static/css/rmc-cp-globe-landing-frame-fit.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".cp-header__row--utility .rmc-platform-header__command { max-width: 560px }",
+      "line": 84,
+      "path": "static/css/rmc-cp-header-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body.admin-manager-shell .cp-header__row--utility .cp-brand, body.control-plane-shell .cp-header__row--utility .cp-brand { max-width: 320px }",
+      "line": 784,
+      "path": "static/css/rmc-cp-header-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "--utility .rmc-platform-header__command, body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__command { max-width: 280px }",
+      "line": 814,
+      "path": "static/css/rmc-cp-header-200x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-wfp-header-slot .rmc-wfp-inline__copy { max-width: 9rem }",
+      "line": 116,
+      "path": "static/css/rmc-cp-stacked-header.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-wfp-header-slot .rmc-wfp-bar { max-width: 9rem }",
+      "line": 131,
+      "path": "static/css/rmc-cp-stacked-header.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-email__container { max-width: 600px }",
+      "line": 59,
+      "path": "static/css/rmc-email-civic.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-iso-panel-empty__message { max-width: 28rem }",
+      "line": 352,
+      "path": "static/css/rmc-isomorphic-grid.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": " \u2014 shown on surfaces without the copilot    rail, so the bulk action is useful everywhere. */ .rmc-copilot-answer-dialog { max-width: 36rem }",
+      "line": 116,
+      "path": "static/css/rmc-list-bulk-select.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* Campus / school workspace switcher (multi-tenant header). */ .rmc-campus-switcher__select { max-width: 14rem }",
+      "line": 259,
+      "path": "static/css/rmc-long-page-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-empty__message, .dashboard-empty-message { max-width: 36ch }",
+      "line": 484,
+      "path": "static/css/rmc-long-page-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* Named CP / operator grid primitives \u2014 reflow when sidebar is wide or rail-narrow */ @container rmc-shell-canvas ( { max-width: 720px }",
+      "line": 358,
+      "path": "static/css/rmc-nav-sidebar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "@container rmc-shell-canvas (min-width: 721px) and ( { max-width: 1080px }",
+      "line": 386,
+      "path": "static/css/rmc-nav-sidebar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-corner-notification { max-width: 420px }",
+      "line": 24,
+      "path": "static/css/rmc-notification-corner.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body.portal-body-with-layout, body.manager-portal-bridge)    :is(#main-content, .portal-page-body)    .cp-steering__copy { max-width: 72ch }",
+      "line": 223,
+      "path": "static/css/rmc-operational-center-frame.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-operator-tools__tray-empty-lede, .rmc-operator-tools__panel-empty-lede { max-width: 22rem }",
+      "line": 369,
+      "path": "static/css/rmc-operator-tools-tray.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": " row. Domain-tinted top border.    ============================================================ */  .rmc-hover-inspector { max-width: 320px }",
+      "line": 277,
+      "path": "static/css/rmc-page-personality.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-pagination__count { max-width: 24rem }",
+      "line": 149,
+      "path": "static/css/rmc-pagination-grammar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".cp-navbar .cp-topbar-bell__badge, [data-rmc-platform-header=\"manager\"] .cp-topbar-bell__badge { max-width: 2.1rem }",
+      "line": 101,
+      "path": "static/css/rmc-platform-chrome-layout.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-section-nav--horizontal .rmc-section-nav__list a { max-width: 14rem }",
+      "line": 142,
+      "path": "static/css/rmc-platform-inner-pages.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body[data-rmc-notebook-footer-dock=\"1\"] .rmc-footer-notebook-anchor .lx-notebook[data-rmc-notebook-state=\"minimized\"] { max-width: 280px }",
+      "line": 203,
+      "path": "static/css/rmc-platform-vertical-compact.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-setup-surface__lede { max-width: 56ch }",
+      "line": 93,
+      "path": "static/css/rmc-setup-surface.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-launch-ceremony__lede { max-width: 42ch }",
+      "line": 481,
+      "path": "static/css/rmc-setup-surface.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-signup-type-card { max-width: 140px }",
+      "line": 31,
+      "path": "static/css/rmc-signup-v2.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-signup-type-cards--language .rmc-signup-type-card { max-width: 220px }",
+      "line": 95,
+      "path": "static/css/rmc-signup-v2.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-signup-done__card { max-width: 560px }",
+      "line": 147,
+      "path": "static/css/rmc-signup-v2.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* Multi-select hint text under the field label. */ .rmc-signup-field__help { max-width: 72ch }",
+      "line": 341,
+      "path": "static/css/rmc-signup-v2.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* Teacher \u2014 refer an incident form */ .rmc-discipline-refer { max-width: 640px }",
+      "line": 58,
+      "path": "static/css/rmc-tenant-activation-surfaces.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".tp-section__lede { max-width: 64ch }",
+      "line": 532,
+      "path": "static/css/rmc-tenant-canvas-100x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".tp-empty__hint { max-width: 360px }",
+      "line": 938,
+      "path": "static/css/rmc-tenant-dashboard-v2.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body.portal-body-with-layout:not(.control-plane-shell) #preview-header-brand { max-width: 240px }",
+      "line": 91,
+      "path": "static/css/rmc-tenant-header-100x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .topbar-search { max-width: 560px }",
+      "line": 114,
+      "path": "static/css/rmc-tenant-header-100x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "#portalHeader #preview-header-brand { max-width: 280px }",
+      "line": 403,
+      "path": "static/css/rmc-tenant-header-100x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "#portalHeader .topbar-search.header-search-container { max-width: 345px }",
+      "line": 531,
+      "path": "static/css/rmc-tenant-header-100x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "#portalHeader .topbar-search.header-search-container { max-width: 260px }",
+      "line": 554,
+      "path": "static/css/rmc-tenant-header-100x.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-tperf__bar-fill { max-width: 48px }",
+      "line": 47,
+      "path": "static/css/rmc-tenant-performance.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".lx-trust-pillars__time { max-width: 9.5rem }",
+      "line": 346,
+      "path": "static/css/rmc-trust-pillars.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-prefs-locale__lead { max-width: 52ch }",
+      "line": 48,
+      "path": "static/css/rmc-user-preferences.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-wizard-grid { max-width: 1280px }",
+      "line": 81,
+      "path": "static/css/rmc-wizard.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-wizard-stepper__bar { max-width: 48px }",
+      "line": 142,
+      "path": "static/css/rmc-wizard.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-wcx-hero__copy { max-width: 64ch }",
+      "line": 49,
+      "path": "static/css/rmc-world-class-experience.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ":root { max-width: 1320px }",
+      "line": 30,
+      "path": "static/css/root-base-shell.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".setup-studio-subtitle { max-width: 44rem }",
+      "line": 66,
+      "path": "static/css/setup-studio-onboarding.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".preview-device { max-width: 940px }",
+      "line": 67,
+      "path": "static/css/site-settings-preview.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".preview-device[data-preview-mode=\"desktop\"] { max-width: 940px }",
+      "line": 131,
+      "path": "static/css/site-settings-preview.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".preview-device[data-preview-mode=\"tablet\"] { max-width: 680px }",
+      "line": 142,
+      "path": "static/css/site-settings-preview.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".preview-device[data-preview-mode=\"mobile\"] { max-width: 360px }",
+      "line": 153,
+      "path": "static/css/site-settings-preview.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".statement-logo img, .navbar-brand img, .brand-logo img, .header-logo img { max-width: 160px }",
+      "line": 106,
+      "path": "static/css/statement-header.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".statement-header .navbar-brand,   #portalHeader .navbar-brand,   .statement-logo,   .header-logo { max-width: 200px }",
+      "line": 175,
+      "path": "static/css/statement-header.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".studio-command-deck__lede { max-width: 42rem }",
+      "line": 21,
+      "path": "static/css/studio-command-deck.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".studio-mode-hero__purpose { max-width: 42rem }",
+      "line": 23,
+      "path": "static/css/studio-mode-hero.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".studio-operator-toolbar__select { max-width: 24rem }",
+      "line": 27,
+      "path": "static/css/studio-operator-toolbar.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "d a 3-row band). One row now.    Reusable via templates/studio_os/partials/studio_command_pill.html. */ .studio-cmd-pill { max-width: 22rem }",
+      "line": 225,
+      "path": "static/css/studio-shell-layout.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".org-chart-card { max-width: 140px }",
+      "line": 839,
+      "path": "static/css/teacher-dashboard-modern.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-command-header p { max-width: 80ch }",
+      "line": 150,
+      "path": "static/css/tenant-command-workspace.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".rmc-day1-act-header { max-width: 42rem }",
+      "line": 26,
+      "path": "static/css/tenant-studio-day1.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "vation tokens as the brand-reveal frame  * above so the two compositions read as one surface.  */  .rmc-day1-logo-upload { max-width: 36rem }",
+      "line": 154,
+      "path": "static/css/tenant-studio-day1.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "/* ----- Act 3: lock-in ----- */  .rmc-day1-lock-summary { max-width: 36rem }",
+      "line": 507,
+      "path": "static/css/tenant-studio-day1.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".tenant-studio-wizard .tenant-studio-form-card { max-width: 42rem }",
+      "line": 59,
+      "path": "static/css/tenant-studio-wizard.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "[data-tooltip]::after { max-width: 280px }",
+      "line": 21,
+      "path": "static/css/tooltips.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": ".runmycampus-tooltip-bubble { max-width: 280px }",
+      "line": 48,
+      "path": "static/css/tooltips.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    },
+    {
+      "category": "css_width_cap_review",
+      "evidence": "body.dashboard-page-parent .parent-dashboard .container-lg { max-width: 1200px }",
+      "line": 237,
+      "path": "static/css/ultra-luxury-ui-system.css",
+      "recommendation": "Confirm this cap is not applied to Studio, admin, tenant configuration, or preview work surfaces.",
+      "severity": "LOW"
+    }
+  ],
+  "summary": {
+    "critical": 0,
+    "high": 0,
+    "low": 180,
+    "medium": 0,
+    "total": 180
+  }
+}

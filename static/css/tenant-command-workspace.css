@@ -15,7 +15,8 @@
 [data-rmc-command-workspace],
 .reportcard-builder-root,
 .feature-control-command,
-#workflow-main {
+#workflow-main,
+.theme-experience-full-width .theme-experience-page {
   width: 100%;
   max-width: none;
   min-width: 0;
@@ -45,8 +46,77 @@
 [data-rmc-command-workspace] .container-fluid,
 .reportcard-builder-root .container,
 .feature-control-command.container-fluid,
-#workflow-main.container-fluid {
+#workflow-main.container-fluid,
+.theme-experience-full-width .container,
+.theme-experience-full-width .container-fluid {
   max-width: none;
+}
+
+/* Theme & Experience standalone surfaces: same canvas-first discipline as
+   Studio, but keep the local preview available because this page is itself the
+   configuration destination. */
+.theme-experience-full-width .theme-experience-page {
+  margin-inline: 0;
+  padding-inline: clamp(0.5rem, 1vw, 0.9rem);
+}
+
+.theme-experience-full-width .theme-experience-grid {
+  display: grid;
+  grid-template-columns: minmax(min(100%, 24rem), 0.75fr) minmax(0, 1.25fr);
+  gap: var(--rmc-tcw-gap);
+  align-items: start;
+}
+
+.theme-experience-full-width .theme-experience-left,
+.theme-experience-full-width .theme-experience-right {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.theme-experience-full-width .theme-experience-left {
+  position: sticky;
+  top: 0.75rem;
+  max-height: min(76vh, 58rem);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.theme-experience-full-width .theme-experience-preview-wrap {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+
+.theme-experience-full-width .theme-experience-preview-wrap .theme-preview-card,
+.theme-experience-full-width .theme-experience-preview-wrap .preview-device {
+  max-width: 100%;
+}
+
+.theme-experience-full-width .theme-experience-preview-wrap .preview-device {
+  min-height: clamp(34rem, 68vh, 62rem);
+}
+
+.theme-experience-full-width .theme-experience-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 0.65rem;
+  border: 1px solid var(--hairline, var(--bs-border-color));
+  border-radius: var(--rmc-tcw-radius);
+  background: color-mix(in srgb, var(--surface-elevated, var(--bs-body-bg)) 92%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+@media (max-width: 1199.98px) {
+  .theme-experience-full-width .theme-experience-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-experience-full-width .theme-experience-left {
+    position: static;
+    max-height: none;
+  }
 }
 
 .rmc-command-surface {
@@ -348,5 +418,105 @@
 
   .rmc-command-actions {
     justify-content: flex-start;
+  }
+}
+
+/* Stage 08 approval: Theme & Experience is a configuration cockpit, not a
+   narrow form. Keep preview large, place settings in an inspector, and let
+   side content collapse before anything can overlap or leak. */
+[data-rmc-command-workspace="theme-experience"],
+.theme-experience-full-width [data-rmc-command-workspace="theme-experience"] {
+  width: 100%;
+  max-width: none !important;
+}
+
+[data-rmc-command-workspace="theme-experience"] .rmc-url-input {
+  width: min(34rem, 100%);
+  max-width: none;
+}
+
+[data-rmc-command-workspace="theme-experience"] #theme-colors-form {
+  min-width: 0;
+}
+
+[data-rmc-command-workspace="theme-experience"] .theme-experience-grid {
+  display: grid;
+  grid-template-columns: minmax(26rem, 0.85fr) minmax(36rem, 1.75fr);
+  gap: var(--rmc-tcw-gap);
+  align-items: start;
+  max-width: none;
+  width: 100%;
+}
+
+[data-rmc-command-workspace="theme-experience"] .theme-experience-left,
+[data-rmc-command-workspace="theme-experience"] .theme-experience-right,
+[data-rmc-command-workspace="theme-experience"] .theme-experience-main,
+[data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap {
+  min-width: 0;
+  max-width: none;
+}
+
+[data-rmc-command-workspace="theme-experience"] .theme-experience-left {
+  position: sticky;
+  top: 0.75rem;
+  align-self: start;
+  max-height: min(76vh, 58rem);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+[data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap {
+  position: sticky;
+  top: 0.75rem;
+  width: 100%;
+}
+
+[data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap .card,
+[data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap iframe,
+[data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap [class*="preview"] {
+  max-width: 100%;
+}
+
+[data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap iframe,
+[data-rmc-command-workspace="theme-experience"] .theme-preview-frame,
+[data-rmc-command-workspace="theme-experience"] .preview-device,
+[data-rmc-command-workspace="theme-experience"] .rmc-live-preview-contract__frame {
+  min-height: clamp(36rem, 72vh, 64rem);
+}
+
+[data-rmc-command-workspace="theme-experience"] .theme-experience-form-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: var(--rmc-tcw-gap);
+}
+
+[data-rmc-command-workspace="theme-experience"] .theme-experience-form-body > * {
+  min-width: 0;
+}
+
+[data-rmc-command-workspace="theme-experience"] .theme-experience-actions {
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding: 0.75rem;
+  border: 1px solid var(--hairline, var(--bs-border-color));
+  border-radius: var(--rmc-tcw-radius);
+  background: color-mix(in srgb, var(--surface-elevated, var(--bs-body-bg)) 94%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+@media (max-width: 1399.98px) {
+  [data-rmc-command-workspace="theme-experience"] .theme-experience-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-rmc-command-workspace="theme-experience"] .theme-experience-left,
+  [data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap {
+    position: static;
+    max-height: none;
   }
 }
