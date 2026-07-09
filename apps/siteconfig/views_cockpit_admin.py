@@ -43,19 +43,22 @@ def _resolve_site_settings_instance(request: HttpRequest) -> Any:
     """
     # Tenant-aware resolver — preferred path.
     try:
-        from .config_service import get_effective_site_settings
+        from .config_service import (
+            get_effective_site_settings,
+            get_platform_site_settings_record,
+        )
 
+        # config-resolver-allow: namespace returned as the form instance CockpitPayloadForm edits and saves
         site = get_effective_site_settings(request=request)
         if site is not None and getattr(site, "pk", None) is not None:
             return site
+        return get_platform_site_settings_record(create=True)
     except Exception:
         # Defensive — never let resolver errors crash the operator UI;
         # fall through to the singleton path.
         pass
 
-    from .models import SiteSettings
-
-    return SiteSettings.get_solo()
+    return None
 
 
 class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
@@ -516,21 +519,20 @@ class CockpitShellConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormVie
         return ctx
 
     def form_valid(self, form: Any) -> HttpResponse:
-        from .models import SiteSettings
-
-        SiteSettings.update_cockpit_shell_settings(form.to_updates())
+        instance = _resolve_site_settings_instance(self.request)
+        type(instance).update_cockpit_shell_settings(form.to_updates())
         messages.success(self.request, _("Cockpit shell settings saved."))
         return HttpResponseRedirect(self.request.path)
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         if request.POST.get("action") == "reset_cockpit_shell":
             from .cockpit_config import all_cockpit_keys
-            from .models import SiteSettings
 
             # Reset by writing each knob back to its module default.
             from .cockpit_config import cockpit_setting_default
 
-            SiteSettings.update_cockpit_shell_settings(
+            instance = _resolve_site_settings_instance(request)
+            type(instance).update_cockpit_shell_settings(
                 {key: cockpit_setting_default(key) for key in all_cockpit_keys()}
             )
             messages.info(request, _("Cockpit shell settings reset to defaults."))

@@ -70,7 +70,7 @@
   {% if student_dynamic_fields %}
   <div class="box" style="margin-top:10px;">
     <b>{% trans "Student identity & records" %}</b>
-    <table class="table table-sm" aria-label="{% trans 'Custom student fields' %}">
+    <table class="table table-sm table-family" aria-label="{% trans 'Custom student fields' %}">
       <tbody>
         {% for row in student_dynamic_fields %}
         <tr>
@@ -94,7 +94,7 @@
       {% endfor %}
     </div>
     <!-- large-collection-allow: print-report-fixed-layout -->
-<table aria-label="Term subject marks and remarks">
+    <table class="table-family" aria-label="Term subject marks and remarks">
       <thead>
         <tr>
           <th scope="col">Subject</th>

@@ -148,8 +148,8 @@ def record_heartbeat(
 def config_version_for(school) -> str:
     """A cheap token the tenant/hub compares to decide whether to re-pull config.
 
-    Combines the School row's ``updated_at`` with the global config singletons
-    (``RuntimeDefaults`` id=1 and ``SiteSettings``) whose changes drive offline config
+    Combines the School row's ``updated_at`` with the global config records
+    (``RuntimeDefaults`` id=1 and tenant-aware site settings) whose changes drive offline config
     but do NOT touch ``School.updated_at`` — so a platform config change (feature
     defaults, SMS provider, maintenance, etc.) now also moves the token and edge hubs
     re-pull instead of running stale config indefinitely. All reads are single-row and
@@ -175,11 +175,12 @@ def config_version_for(school) -> str:
         parts.append("")
 
     try:
-        from apps.siteconfig.models import SiteSettings
-
-        ss_updated = (
-            SiteSettings.objects.values_list("updated_at", flat=True).first()
+        from apps.platform_runtime.site_settings_read_access import (
+            get_platform_site_settings_record,
         )
+
+        site_settings = get_platform_site_settings_record(create=False)
+        ss_updated = getattr(site_settings, "updated_at", None) if site_settings else None
         parts.append(ss_updated.isoformat() if ss_updated else "")
     except Exception:  # noqa: BLE001
         parts.append("")

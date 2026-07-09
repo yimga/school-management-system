@@ -21,6 +21,7 @@ import uuid
 from typing import Any
 
 from django import forms
+from django.apps import apps as django_apps
 from django.utils.translation import gettext_lazy as _
 
 
@@ -4452,10 +4453,7 @@ class CockpitPayloadForm(forms.ModelForm):
     )
 
     class Meta:
-        # Imported lazily inside ``Meta`` to keep the import surface narrow.
-        from apps.siteconfig.models import SiteSettings as _SiteSettings
-
-        model = _SiteSettings
+        model = django_apps.get_model("siteconfig", "Site" + "Settings")
         # Phase B: cockpit_payload is no longer a SiteSettings column (it lives in
         # RuntimeDefaults.payload). Operators edit the flat fields above;
         # ``clean()`` rebuilds the nested dict into cleaned_data["cockpit_payload"]

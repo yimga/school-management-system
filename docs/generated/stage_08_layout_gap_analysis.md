@@ -15,6 +15,9 @@
 - `studio_experience_inline_preview_suppressed`: True
 - `studio_experience_dual_selector`: True
 - `admin_dual_host_full_width`: True
+- `admin_submit_not_viewport_sticky`: True
+- `studio_automation_shared_workspace_all_hosts`: True
+- `live_preview_best_fallback`: True
 - `offline_enqueue_school_idempotency`: True
 
 ## Findings

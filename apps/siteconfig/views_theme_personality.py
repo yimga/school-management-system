@@ -44,17 +44,20 @@ def _resolve_site_settings_instance(request: HttpRequest) -> Any:
        row on first access).
     """
     try:
-        from .config_service import get_effective_site_settings
+        from .config_service import (
+            get_effective_site_settings,
+            get_platform_site_settings_record,
+        )
 
+        # config-resolver-allow: namespace returned as the form instance ThemePersonalityForm edits and saves
         site = get_effective_site_settings(request=request)
         if site is not None and getattr(site, "pk", None) is not None:
             return site
+        return get_platform_site_settings_record(create=True)
     except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
         pass
 
-    from .models import SiteSettings
-
-    return SiteSettings.get_solo()
+    return None
 
 
 @method_decorator(staff_member_required, name="dispatch")

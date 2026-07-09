@@ -446,6 +446,18 @@
   max-width: 100%;
 }
 
+.studio-os--mode-experience .rmc-live-preview-contract[data-rmc-preview-space="cramped"] .rmc-live-preview-contract__frame,
+[data-rmc-studio-mode="experience"] .rmc-live-preview-contract[data-rmc-preview-space="cramped"] .rmc-live-preview-contract__frame,
+[data-studio-workspace-mode="experience"] .rmc-live-preview-contract[data-rmc-preview-space="cramped"] .rmc-live-preview-contract__frame {
+  display: none;
+}
+
+.studio-os--mode-experience .rmc-live-preview-contract[data-rmc-preview-space="cramped"] .rmc-live-preview-contract__fallbacks,
+[data-rmc-studio-mode="experience"] .rmc-live-preview-contract[data-rmc-preview-space="cramped"] .rmc-live-preview-contract__fallbacks,
+[data-studio-workspace-mode="experience"] .rmc-live-preview-contract[data-rmc-preview-space="cramped"] .rmc-live-preview-contract__fallbacks {
+  display: flex;
+}
+
 @media (max-width: 1399.98px) {
   .studio-os--mode-experience .theme-experience-grid,
   [data-rmc-studio-mode="experience"] .theme-experience-grid,

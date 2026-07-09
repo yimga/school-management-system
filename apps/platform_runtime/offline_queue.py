@@ -11,6 +11,7 @@ tenant boundary with queued/syncing/synced/failed/conflict lifecycle.
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any, Optional
 
 from django.db import IntegrityError, transaction
@@ -243,12 +244,14 @@ def enqueue_offline_action(
             )
     except IntegrityError:
         if key:
-            existing = OfflineAction.objects.filter(
-                school_id=school_id,
-                idempotency_key=key,
-            ).first()
-            if existing:
-                return existing
+            for attempt in range(5):
+                existing = OfflineAction.objects.filter(
+                    school_id=school_id,
+                    idempotency_key=key,
+                ).first()
+                if existing:
+                    return existing
+                time.sleep(0.025 * (attempt + 1))
         raise
     _emit_offline_lifecycle_event(
         "offline_action_queued",

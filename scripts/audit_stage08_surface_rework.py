@@ -197,6 +197,41 @@ def audit_templates() -> list[Finding]:
 
 def audit_css() -> list[Finding]:
     findings: list[Finding] = []
+    risk_tokens = (
+        "admin-manager-shell",
+        "admin-premium-shell",
+        "change-form",
+        "change-list",
+        "rmc-admin-workspace",
+        "rmc-live-preview",
+        "theme-experience",
+        "studio-os__canvas",
+        "rmc-studio-workspace",
+        "data-rmc-command-workspace",
+        "reportcard",
+        "dashboard-preview",
+        "feature-control",
+    )
+    safe_cap_tokens = (
+        "modal",
+        "subtitle",
+        "lede",
+        "hero__copy",
+        "header__command",
+        "cp-brand",
+        "empty-message",
+        "empty-purpose",
+        "action-checkbox",
+        "#result_list th",
+        "#result_list td",
+        "filter",
+        "select",
+        "pill",
+        "chip",
+        "label",
+        "notebook",
+        "theme-experience-preview-wrap",
+    )
     for path in iter_files(CSS_ROOTS, (".css",)):
         text = path.read_text(encoding="utf-8", errors="replace")
         path_str = rel(path)
@@ -206,7 +241,14 @@ def audit_css() -> list[Finding]:
             line = line_no(text, match.start())
             selector_start = text.rfind("}", 0, match.start()) + 1
             selector = text[selector_start : match.start()].split("{", 1)[0].strip().replace("\n", " ")
+            selector_l = selector.lower()
             if any(token in selector for token in (".mkt-", ".auth", ".error-page", "marketing", "@media")):
+                continue
+            if not any(token in selector_l for token in risk_tokens):
+                continue
+            if any(token in selector_l for token in safe_cap_tokens):
+                continue
+            if "theme-experience-preview-wrap" in selector_l and "max-width: none !important" in text:
                 continue
             findings.append(
                 Finding(

@@ -286,19 +286,19 @@ def _resolve_site_settings(request):
     swallowed — a context processor MUST NEVER raise.
     """
     try:
-        from .config_service import get_effective_site_settings
+        from .config_service import (
+            get_effective_site_settings,
+            get_platform_site_settings_record,
+        )
 
+        # config-resolver-allow: namespace object returned to caller with pk-guarded singleton fallback chain
         site = get_effective_site_settings(request=request)
         if site is not None and getattr(site, "pk", None) is not None:
             return site
+        return get_platform_site_settings_record(create=False)
     except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
         pass
-    try:
-        from .models import SiteSettings
-
-        return SiteSettings.get_solo()
-    except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
-        return None
+    return None
 
 
 def _build_override_css(payload: dict) -> str:

@@ -130,6 +130,19 @@
       setCramped(root, cramped);
     }
 
+    root.addEventListener('click', function (event) {
+      var action = event.target && event.target.closest ? event.target.closest('[data-rmc-preview-open-best]') : null;
+      if (!action) return;
+      event.preventDefault();
+      var url = currentUrl();
+      if (!url) return;
+      if (root.getAttribute('data-rmc-preview-space') === 'spacious' && modalBtn) {
+        openModal(root);
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    });
+
     if (frameShell) {
       if ('ResizeObserver' in window) {
         var ro = new ResizeObserver(measureInlineSpace);

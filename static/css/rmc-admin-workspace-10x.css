@@ -537,6 +537,109 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[da
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)) !important;
 }
 
+/* Stage 08 aggressive body hardening: catch the actual Unfold admin wrappers
+   used by operator and tenant backends. The screenshots showed content using
+   the left half of the shell and sticky actions crossing active fields; these
+   rules make the body full-canvas and keep submit actions in normal flow. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) :is(
+  .cp-page-body,
+  .cp-admin-page-body,
+  .rmc-shell-canvas-container,
+  #content,
+  #content-main,
+  .rmc-admin-workspace,
+  .cp-form-frame,
+  form,
+  .flex.flex-col.gap-6
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) .cp-admin-page-body {
+  padding-inline: clamp(0.75rem, 1.1vw, 1.25rem) !important;
+  padding-bottom: clamp(7rem, 11vh, 10rem) !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, clamp(16rem, 18vw, 22rem)) !important;
+  align-items: start;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace > #content-main {
+  overflow: visible;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  fieldset,
+  .module,
+  .form-row,
+  .aligned,
+  .form-row > div,
+  .form-row .flex,
+  .fieldBox
+) {
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea,
+  .vTextField,
+  .vLargeTextField,
+  .related-widget-wrapper
+) {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  code,
+  pre,
+  textarea,
+  .readonly,
+  .help,
+  .form-row,
+  label
+) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-top: clamp(1rem, 2vw, 1.5rem) !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] > .rmc-admin-submit-row__inner {
+  position: relative !important;
+  width: 100% !important;
+  max-width: none !important;
+  background: color-mix(in srgb, var(--surface-elevated) 96%, transparent) !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #content {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+@media (max-width: 1279.98px) {
+  body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-context-rail {
+    position: static !important;
+    max-height: none !important;
+  }
+}
+
 @media (max-width: 1079.98px) {
   body:is(.admin-manager-shell, .admin-premium-shell).change-list .result-list-wrapper,
   body:is(.admin-manager-shell, .admin-premium-shell).change-list .changelist-form-container {

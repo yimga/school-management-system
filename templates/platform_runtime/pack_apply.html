@@ -12,23 +12,25 @@
     <h1>{{ preview.pack_name }}</h1>
     <p>Risk: {{ change_set.risk_level }}. Approval required: {{ change_set.requires_approval }}. Can apply: {{ change_set.can_apply }}.</p>
   </header>
-  {% if result %}<article class="cp-card rmc-reveal"><h2>Result</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p></article>{% endif %}
-  <article class="cp-card rmc-reveal">
-    <h2>Change Set</h2>
-    <p>Affected roles: {{ change_set.impact_summary.affected_roles|join:", " }}</p>
-    <p>External blockers: {{ change_set.external_blockers|join:", " }}</p>
-    <p>Dependency blockers: {{ change_set.dependency_blockers|length }}</p>
-  </article>
-  <form method="post" class="cp-card">
-    {% csrf_token %}
-    <input type="hidden" name="school" value="{{ selected_school.slug }}">
-    {% if change_set.requires_approval %}
-      <label>Reason <textarea name="reason" rows="3">Governed rollout request</textarea></label>
-      <button class="cp-button cp-button-primary" type="submit" name="action" value="request_approval">Request approval</button>
-    {% else %}
-      <label><input type="checkbox" name="confirm" value="yes"> Confirm governed pack apply</label>
-      <button class="cp-button cp-button-primary" type="submit"{% if not change_set.can_apply %} disabled{% endif %}>Apply pack</button>
-    {% endif %}
-  </form>
+  <div data-rmc-scroll-policy="paginate" class="cp-grid cp-grid-2">
+    {% if result %}<article class="cp-card rmc-reveal"><h2>Result</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p></article>{% endif %}
+    <article class="cp-card rmc-reveal">
+      <h2>Change Set</h2>
+      <p>Affected roles: {{ change_set.impact_summary.affected_roles|join:", " }}</p>
+      <p>External blockers: {{ change_set.external_blockers|join:", " }}</p>
+      <p>Dependency blockers: {{ change_set.dependency_blockers|length }}</p>
+    </article>
+    <form method="post" class="cp-card">
+      {% csrf_token %}
+      <input type="hidden" name="school" value="{{ selected_school.slug }}">
+      {% if change_set.requires_approval %}
+        <label>Reason <textarea name="reason" rows="3">Governed rollout request</textarea></label>
+        <button class="cp-button cp-button-primary" type="submit" name="action" value="request_approval">Request approval</button>
+      {% else %}
+        <label><input type="checkbox" name="confirm" value="yes"> Confirm governed pack apply</label>
+        <button class="cp-button cp-button-primary" type="submit"{% if not change_set.can_apply %} disabled{% endif %}>Apply pack</button>
+      {% endif %}
+    </form>
+  </div>
 </section>
 {% endblock %}

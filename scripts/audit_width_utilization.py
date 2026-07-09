@@ -152,8 +152,12 @@ def shell_family(rel: str, chain: list[str]) -> str:
     return "unknown"
 
 
-def gather_signal_text(rel: str) -> str:
-    """Page body text + one level of resolved {% include %} partials (deduped)."""
+def gather_signal_text(rel: str, seen: set[str] | None = None, depth: int = 0) -> str:
+    """Page body text + resolved static {% include %} partials (deduped)."""
+    seen = seen or set()
+    if rel in seen or depth > 3:
+        return ""
+    seen.add(rel)
     path = TEMPLATES / rel
     text = strip_noise(path.read_text(encoding="utf-8", errors="replace"))
     parts = [text]
@@ -163,7 +167,7 @@ def gather_signal_text(rel: str) -> str:
             continue
         ip = TEMPLATES / inc
         if ip.exists():
-            parts.append(strip_noise(ip.read_text(encoding="utf-8", errors="replace")))
+            parts.append(gather_signal_text(inc, seen, depth + 1))
     return "\n".join(parts)
 
 
@@ -251,7 +255,13 @@ def main() -> int:
         if family != "in-app":
             continue  # only in-app full-width canvases are in scope
         sig = signals(gather_signal_text(rel))
-        if MICRO_STATE.search(path.stem):
+        if "studio_native_canvas_partial" in text:
+            bucket, conf, reason = (
+                "LEAVE",
+                "high",
+                "dynamic Studio native canvas wrapper; covered by verify_studio_workspace_layout.py",
+            )
+        elif MICRO_STATE.search(path.stem):
             bucket, conf, reason = ("LEAVE", "high", "intentional minimal micro-state (guard/error/empty/done)")
         else:
             bucket, conf, reason = classify(sig)

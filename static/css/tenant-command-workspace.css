@@ -469,12 +469,15 @@
   position: sticky;
   top: 0.75rem;
   width: 100%;
+  max-width: none !important;
+  max-inline-size: none !important;
 }
 
 [data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap .card,
 [data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap iframe,
 [data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap [class*="preview"] {
   max-width: 100%;
+  max-inline-size: 100%;
 }
 
 [data-rmc-command-workspace="theme-experience"] .theme-experience-preview-wrap iframe,

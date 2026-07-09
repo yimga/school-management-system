@@ -90,6 +90,9 @@ def shared_contracts() -> dict[str, bool]:
     admin_css = read(ROOT / "static" / "css" / "rmc-admin-workspace-10x.css")
     workspace_template = read(ROOT / "templates" / "studio_os" / "components" / "workspace_layout.html")
     experience_canvas = read(ROOT / "templates" / "studio_os" / "partials" / "workspace" / "experience_inpage_canvas.html")
+    experience_preview = read(ROOT / "templates" / "studio_os" / "partials" / "experience_live_preview_pane.html")
+    automation_canvas = read(ROOT / "templates" / "studio_os" / "partials" / "automation_mode_canvas.html")
+    live_preview_js = read(ROOT / "static" / "js" / "rmc-live-preview-contract.js")
     theme_content = read(ROOT / "templates" / "siteconfig" / "partials" / "theme_colors_content.html")
     offline_queue = read(ROOT / "apps" / "platform_runtime" / "offline_queue.py")
     return {
@@ -119,9 +122,25 @@ def shared_contracts() -> dict[str, bool]:
             and "width: max-content !important" in admin_css
             and "min-width: 100% !important" in admin_css
         ),
+        "admin_submit_not_viewport_sticky": (
+            'position: static !important' in admin_css
+            and 'data-rmc-admin-submit-contract="sticky-safe-actions"' in admin_css
+        ),
+        "studio_automation_shared_workspace_all_hosts": (
+            "if automation_left_rail" in automation_canvas
+            and "request.public_host_kind != 'manager'" not in automation_canvas
+            and 'data-rmc-studio-mode="automation"' in automation_canvas
+        ),
+        "live_preview_best_fallback": (
+            "data-rmc-preview-open-best" in experience_preview
+            and "data-rmc-preview-open-best" in live_preview_js
+            and "data-rmc-preview-space" in live_preview_js
+        ),
         "offline_enqueue_school_idempotency": (
             "except IntegrityError" in offline_queue
-            and "OfflineAction.objects.filter(\n                school_id=school_id,\n                idempotency_key=key," in offline_queue
+            and "school_id=school_id" in offline_queue
+            and "idempotency_key=key" in offline_queue
+            and "return existing" in offline_queue
         ),
     }
 

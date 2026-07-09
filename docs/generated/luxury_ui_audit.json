@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-06-28T04:18:51.636055+00:00",
+  "generated_at": "2026-07-09T19:00:39.806292+00:00",
   "high_impact_templates_total": 266,
   "inline_styles": {
-    "count": 54,
-    "needs_review_count": 54,
+    "count": 48,
+    "needs_review_count": 48,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -74,16 +74,14 @@
       "templates/siteconfig/feature_control_panel_content.html",
       "templates/siteconfig/installed_packages_rollback.html",
       "templates/siteconfig/partials/academic_years_setup_evidence_body.html",
-      "templates/siteconfig/partials/ai_center_body.html",
       "templates/siteconfig/partials/ai_governance_body.html",
       "templates/siteconfig/partials/billing_plan_readonly_body.html",
       "templates/siteconfig/partials/ccc_guided_activation_strip.html",
+      "templates/siteconfig/partials/dashboard_configuration_hub_body.html",
       "templates/siteconfig/partials/departments_setup_evidence_body.html",
       "templates/siteconfig/partials/feature_control_ledger_body.html",
-      "templates/siteconfig/partials/guided_configuration_workflows_body.html",
       "templates/siteconfig/partials/mock_reportcard_preview.html",
       "templates/siteconfig/partials/onboarding_body.html",
-      "templates/siteconfig/partials/onboarding_step_body.html",
       "templates/siteconfig/partials/report_output_history_evidence_body.html",
       "templates/siteconfig/partials/report_templates_catalog_evidence_body.html",
       "templates/siteconfig/partials/scheduled_reports_delivery_hub_body.html",
@@ -96,13 +94,9 @@
       "templates/siteconfig/public_status_history.html",
       "templates/siteconfig/report_table_pdf.html",
       "templates/siteconfig/reportcard_style_preview.html",
-      "templates/siteconfig/school_group_hierarchy.html",
       "templates/siteconfig/super/cockpit_previews.html",
       "templates/siteconfig/sync_center.html",
       "templates/siteconfig/template_gallery.html",
-      "templates/siteconfig/tenant_launch_fast_path.html",
-      "templates/siteconfig/tenant_lifecycle_command_center.html",
-      "templates/siteconfig/tenant_provisioning_status.html",
       "templates/siteconfig/tenant_studio_hub.html",
       "templates/studio_os/components/card.html",
       "templates/studio_os/components/loading_empty_states.html",
@@ -117,8 +111,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 133,
-    "needs_review_count": 133,
+    "count": 135,
+    "needs_review_count": 135,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -228,6 +222,7 @@
       "templates/studio_os/partials/automation_simulation_preview_pane.html",
       "templates/studio_os/partials/control_governance_preview_pane.html",
       "templates/studio_os/partials/control_mode_canvas.html",
+      "templates/studio_os/partials/experience_live_preview_pane.html",
       "templates/studio_os/partials/experience_workbench_context.html",
       "templates/studio_os/partials/launch_mode_canvas.html",
       "templates/studio_os/partials/launch_readiness_preview_pane.html",
@@ -250,6 +245,7 @@
       "templates/studio_os/partials/workspace/automation_canvas.html",
       "templates/studio_os/partials/workspace/control_canvas.html",
       "templates/studio_os/partials/workspace/control_rail.html",
+      "templates/studio_os/partials/workspace/experience_iframe_canvas.html",
       "templates/studio_os/partials/workspace/launch_canvas.html",
       "templates/studio_os/partials/workspace/output_canvas.html",
       "templates/studio_os/shell.html"
@@ -258,7 +254,7 @@
     "violation_paths": []
   },
   "missing_table_family": {
-    "count": 8,
+    "count": 7,
     "needs_review_count": 7,
     "needs_review_paths": [
       "templates/reports/annual_report_cameroon.html",
@@ -269,10 +265,8 @@
       "templates/siteconfig/permission_matrix_simulator.html",
       "templates/siteconfig/super/cockpit_health.html"
     ],
-    "violation_count": 1,
-    "violation_paths": [
-      "templates/reports/term_report.html"
-    ]
+    "violation_count": 0,
+    "violation_paths": []
   },
   "mobile_viewport_contract": {
     "missing_viewport_paths": [],
@@ -842,8 +836,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 54,
-      "needs_review_count": 54,
+      "count": 48,
+      "needs_review_count": 48,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -863,16 +857,14 @@
         "templates/siteconfig/feature_control_panel_content.html",
         "templates/siteconfig/installed_packages_rollback.html",
         "templates/siteconfig/partials/academic_years_setup_evidence_body.html",
-        "templates/siteconfig/partials/ai_center_body.html",
         "templates/siteconfig/partials/ai_governance_body.html",
         "templates/siteconfig/partials/billing_plan_readonly_body.html",
         "templates/siteconfig/partials/ccc_guided_activation_strip.html",
+        "templates/siteconfig/partials/dashboard_configuration_hub_body.html",
         "templates/siteconfig/partials/departments_setup_evidence_body.html",
         "templates/siteconfig/partials/feature_control_ledger_body.html",
-        "templates/siteconfig/partials/guided_configuration_workflows_body.html",
         "templates/siteconfig/partials/mock_reportcard_preview.html",
         "templates/siteconfig/partials/onboarding_body.html",
-        "templates/siteconfig/partials/onboarding_step_body.html",
         "templates/siteconfig/partials/report_output_history_evidence_body.html",
         "templates/siteconfig/partials/report_templates_catalog_evidence_body.html",
         "templates/siteconfig/partials/scheduled_reports_delivery_hub_body.html",
@@ -885,13 +877,9 @@
         "templates/siteconfig/public_status_history.html",
         "templates/siteconfig/report_table_pdf.html",
         "templates/siteconfig/reportcard_style_preview.html",
-        "templates/siteconfig/school_group_hierarchy.html",
         "templates/siteconfig/super/cockpit_previews.html",
         "templates/siteconfig/sync_center.html",
         "templates/siteconfig/template_gallery.html",
-        "templates/siteconfig/tenant_launch_fast_path.html",
-        "templates/siteconfig/tenant_lifecycle_command_center.html",
-        "templates/siteconfig/tenant_provisioning_status.html",
         "templates/siteconfig/tenant_studio_hub.html",
         "templates/studio_os/components/card.html",
         "templates/studio_os/components/loading_empty_states.html",

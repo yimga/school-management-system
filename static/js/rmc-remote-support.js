@@ -15,18 +15,44 @@
 
   var PLACEHOLDER = "00000000-0000-0000-0000-000000000000";
 
-  function csrf() {
-    var m = document.cookie.match(/csrftoken=([^;]+)/);
+  function validCsrf(value) {
+    return /^[A-Za-z0-9]{32,64}$/.test(value || "");
+  }
+
+  function cookie(name) {
+    var m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]+)"));
     return m ? decodeURIComponent(m[1]) : "";
   }
 
+  function csrf() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    var candidates = [
+      meta ? meta.getAttribute("content") : "",
+      input ? input.value : "",
+      cookie("csrftoken"),
+      cookie("rmc_manager_csrftoken"),
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      if (validCsrf(candidates[i])) return candidates[i];
+    }
+    return "";
+  }
+
   function post(url, body) {
+    var token = csrf();
+    var headers = {
+      "Content-Type": "application/x-www-form-urlencoded",
+    };
+    if (token) {
+      headers["X-CSRFToken"] = token;
+      if (typeof body === "string" && body.indexOf("csrfmiddlewaretoken=") === -1) {
+        body += (body ? "&" : "") + "csrfmiddlewaretoken=" + encodeURIComponent(token);
+      }
+    }
     return fetch(url, {
       method: "POST",
-      headers: {
-        "X-CSRFToken": csrf(),
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+      headers: headers,
       body: body || "",
       credentials: "same-origin",
     });

@@ -1,16 +1,16 @@
 # Luxury UI Surface Audit
 
-**Generated:** 2026-06-28T04:18:51.636055+00:00
+**Generated:** 2026-07-09T19:00:39.806292+00:00
 **Score:** 15/15
 **Verdict:** ULTRA-LUXURY
 
 ## Summary
 
 - High-impact templates scanned: 266
-- Inline style hits: 54 (violations: 0)
+- Inline style hits: 48 (violations: 0)
 - Unwrapped tables: 9 (violations: 0)
-- Missing table-family: 8 (violations: 1)
-- Missing ds-btn usage: 133 (violations: 0)
+- Missing table-family: 7 (violations: 0)
+- Missing ds-btn usage: 135 (violations: 0)
 - Shell consistency failures: 0
 - Overflow-prone CSS files: 5
 - Non-token literals (spacing/radius/shadow): {'spacing': 3, 'radius': 0, 'shadow': 26}

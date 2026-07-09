@@ -50,7 +50,12 @@ def main() -> int:
         text = path.read_text(encoding="utf-8", errors="replace")
         if "workspace_layout.html" not in text and "data-rmc-studio-workspace" not in text:
             findings.append(f"{name} must use workspace_layout or data-rmc-studio-workspace")
-        if "public_host_kind != 'manager'" not in text:
+        if name == "automation_mode_canvas.html":
+            if "{% if automation_left_rail %}" not in text:
+                findings.append(
+                    "automation_mode_canvas.html must use shared workspace rails on every host"
+                )
+        elif "public_host_kind != 'manager'" not in text:
             findings.append(
                 f"{name} must gate tenant workspace rails with public_host_kind != 'manager'"
             )
