@@ -53,6 +53,17 @@ def _iso(value) -> str:
     return value.isoformat() if value else ""
 
 
+def _bool_str(value: Any) -> str:
+    """Encode a boolean as an explicit ``'true'``/``'false'`` string.
+
+    A source ``False`` MUST reach the target as ``'false'`` (not an empty
+    string) so :func:`_drop_empty` keeps the column and the lander sets the
+    real value — an absent column would silently reset the flag to the
+    model default at the destination.
+    """
+    return "true" if value else "false"
+
+
 def extract_student_domain_rows(
     profile,
     *,
@@ -110,6 +121,29 @@ def extract_student_domain_rows(
                         # provisioning a duplicate from contact fields.
                         "guardian_user_ref": getattr(guardian_user, "username", "")
                         or "",
+                        # Consent / visibility / contact-preference fidelity:
+                        # without these the target resets every flag to the
+                        # model default on apply — silently RE-SUBSCRIBING an
+                        # opted-out parent (receives_*), REGRANTING results
+                        # access to a restricted guardian (can_view_results),
+                        # or DROPPING finance visibility the parent had
+                        # (can_view_finance). Booleans are emitted explicitly
+                        # (see _bool_str) so a source False is carried, not
+                        # dropped as an empty string.
+                        "receives_email": _bool_str(getattr(g, "receives_email", True)),
+                        "receives_sms": _bool_str(getattr(g, "receives_sms", False)),
+                        "receives_whatsapp": _bool_str(
+                            getattr(g, "receives_whatsapp", False)
+                        ),
+                        "can_view_results": _bool_str(
+                            getattr(g, "can_view_results", True)
+                        ),
+                        "can_view_finance": _bool_str(
+                            getattr(g, "can_view_finance", False)
+                        ),
+                        "preferred_contact": getattr(g, "preferred_contact", "") or "",
+                        "whatsapp_number": getattr(g, "whatsapp_number", "") or "",
+                        "address": getattr(g, "address", "") or "",
                     },
                     keep=("guardian_external_id", "student_external_id"),
                 )

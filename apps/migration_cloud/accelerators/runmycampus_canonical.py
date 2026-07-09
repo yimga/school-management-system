@@ -101,6 +101,14 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
         # Internal transfers: the guardian's platform username, so the
         # target re-links the SAME account instead of provisioning anew.
         "guardian_user_ref",
+        # Consent / visibility / contact-preference carry: identity-mapped
+        # so the guardian lander RECEIVES them (a header outside this set is
+        # shunted to custom_fields and never reaches the lander) and the
+        # target does not reset a transferred parent's channel opt-outs,
+        # results-access restriction, or finance visibility to defaults.
+        "receives_email", "receives_sms", "receives_whatsapp",
+        "can_view_results", "can_view_finance",
+        "preferred_contact", "whatsapp_number", "address",
     },
     "enrollment": {
         "student_external_id", "grade_level", "enrollment_status",

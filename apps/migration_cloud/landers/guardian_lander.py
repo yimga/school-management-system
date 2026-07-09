@@ -26,6 +26,14 @@ Canonical row shape::
         "relationship": "MOTHER" | "Mother",
         "is_primary": "true",
         "guardian_user_ref": "ama.mensah",   # internal transfers only
+        # Consent / visibility / contact-preference (carried on transfer so
+        # the target never resets them to model defaults). Booleans arrive as
+        # "true"/"false"; an ABSENT column leaves the target value untouched.
+        "receives_email": "false", "receives_sms": "true",
+        "receives_whatsapp": "false",
+        "can_view_results": "false", "can_view_finance": "true",
+        "preferred_contact": "SMS", "whatsapp_number": "+233...",
+        "address": "12 Independence Ave",
     }
 """
 
@@ -125,6 +133,34 @@ class GuardianLander(Lander):
                 if k in guardian_model_fields and v not in (None, "")
             }
 
+            # Consent / visibility / contact-preference fidelity: carry the
+            # source values so a transfer/import never resets an opted-out
+            # parent's channels, a restricted guardian's results access, or a
+            # granted finance view to the model default. A present column with
+            # an explicit false MUST persist False — distinct from an ABSENT
+            # column, which leaves the target value untouched. Applied AFTER
+            # the drop-empty filter above so a legitimate False is not dropped.
+            for bool_field in (
+                "receives_email",
+                "receives_sms",
+                "receives_whatsapp",
+                "can_view_results",
+                "can_view_finance",
+            ):
+                raw = row.get(bool_field)
+                if bool_field in guardian_model_fields and raw not in (None, ""):
+                    defaults[bool_field] = _truthy(raw)
+            preferred = (row.get("preferred_contact") or "").strip().upper()
+            if (
+                "preferred_contact" in guardian_model_fields
+                and preferred in _preferred_contact_values(StudentGuardian)
+            ):
+                defaults["preferred_contact"] = preferred
+            for text_field in ("whatsapp_number", "address"):
+                text_val = (row.get(text_field) or "").strip()
+                if text_field in guardian_model_fields and text_val:
+                    defaults[text_field] = text_val
+
             if ctx.dry_run:
                 result.created += 1
                 continue
@@ -219,6 +255,16 @@ def _free_username(User, email: str) -> str:
 def _relationship_values(StudentGuardian) -> set[str]:
     try:
         field = StudentGuardian._meta.get_field("relationship")
+        return {choice[0] for choice in (field.choices or ())}
+    except Exception:  # noqa: BLE001 — alternate model shapes
+        return set()
+
+
+def _preferred_contact_values(StudentGuardian) -> set[str]:
+    """Valid ``preferred_contact`` choice values, so a transfer/import never
+    lands an out-of-vocabulary channel (mirrors :func:`_relationship_values`)."""
+    try:
+        field = StudentGuardian._meta.get_field("preferred_contact")
         return {choice[0] for choice in (field.choices or ())}
     except Exception:  # noqa: BLE001 — alternate model shapes
         return set()

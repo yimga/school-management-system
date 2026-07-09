@@ -108,6 +108,19 @@ class TransferRealApplyTests(TestCase):
             guardian_user=self.guardian_user,
             student=self.profile,
             phone="+237600000003",
+            # Non-default consent/visibility so the apply proves FIDELITY, not
+            # merely that a link exists: opted OUT of email (must not be
+            # re-subscribed), results access RESTRICTED (must not be
+            # regranted), finance view GRANTED (must not be dropped), plus a
+            # non-default contact preference + whatsapp number. Every value
+            # here differs from the StudentGuardian field default.
+            receives_email=False,
+            receives_sms=True,
+            receives_whatsapp=True,
+            can_view_results=False,
+            can_view_finance=True,
+            preferred_contact=StudentGuardian.PreferredContact.SMS,
+            whatsapp_number="+237600000009",
         )
         Attendance.objects.create(
             school=self.source,
@@ -269,6 +282,24 @@ class TransferRealApplyTests(TestCase):
         # access — scoped via StudentGuardian — survives the move.
         target_link = StudentGuardian.objects.get(student=target_profile)
         self.assertEqual(target_link.guardian_user_id, self.guardian_user.pk)
+
+        # Consent / visibility / contact-preference fidelity: the target link
+        # carries the SOURCE values, not the model defaults. Without the carry
+        # each of these would land at its default (receives_email True,
+        # receives_sms/whatsapp False, can_view_results True, can_view_finance
+        # False, preferred_contact EMAIL) — silently re-subscribing an
+        # opted-out parent, regranting a restricted guardian results access,
+        # and dropping granted finance visibility.
+        self.assertFalse(target_link.receives_email)
+        self.assertTrue(target_link.receives_sms)
+        self.assertTrue(target_link.receives_whatsapp)
+        self.assertFalse(target_link.can_view_results)
+        self.assertTrue(target_link.can_view_finance)
+        self.assertEqual(
+            target_link.preferred_contact,
+            StudentGuardian.PreferredContact.SMS,
+        )
+        self.assertEqual(target_link.whatsapp_number, "+237600000009")
 
         # Grades: the FK graph resolved at the TARGET — a live Evaluation
         # bound to the target's own term/assignment/teacher, with faithful
