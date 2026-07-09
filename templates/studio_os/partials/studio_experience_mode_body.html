@@ -14,6 +14,9 @@
 <script src="{% static 'js/_pages/studio_os__modes__experience.js' %}" defer></script>
 {% elif embed_url %}
 <iframe src="{{ embed_url }}" class="studio-os-iframe" title="{% trans 'Theme & Experience' %}"></iframe>
+<div class="d-flex flex-wrap gap-2 mt-2" data-rmc-studio-mode-recovery="1">
+  <a class="btn btn-outline-primary btn-sm" href="{{ embed_url }}" target="_blank" rel="noopener">{% trans "Open in full window" %}</a>
+</div>
 {% else %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="studio-os__card">

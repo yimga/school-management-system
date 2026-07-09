@@ -17,6 +17,12 @@
   min-height: 0;
 }
 
+.studio-os--mode-owned .rmc-studio-workspace,
+[data-rmc-studio-os-embed="true"] .rmc-studio-workspace {
+  --studio-workspace-rail-width: clamp(12rem, 13vw, 15rem);
+  --studio-workspace-context-width: clamp(15rem, 16vw, 18rem);
+}
+
 .rmc-studio-workspace__rail {
   width: var(--studio-workspace-rail-width);
   min-width: 0;
@@ -86,6 +92,22 @@
 
 .rmc-studio-workspace--experience.rmc-studio-workspace--three-col {
   grid-template-columns: var(--studio-workspace-rail-width) minmax(30rem, 1fr) var(--studio-workspace-context-width);
+}
+
+/* Canvas-first approval: Experience carries the heaviest preview/form surface.
+   Keep the useful section rail, but move the context rail into the drawer so
+   the live preview and settings never compete for a narrow center column. */
+.rmc-studio-workspace--experience.rmc-studio-workspace--three-col {
+  grid-template-columns: minmax(11rem, var(--studio-workspace-rail-width)) minmax(0, 1fr);
+}
+
+.rmc-studio-workspace--experience.rmc-studio-workspace--three-col .rmc-studio-workspace__context {
+  display: none;
+}
+
+.rmc-studio-workspace--experience.rmc-studio-workspace--three-col .rmc-studio-workspace__context-drawer {
+  display: block;
+  grid-column: 2;
 }
 
 @media (max-width: 1599.98px) and (min-width: 992px) {
@@ -198,4 +220,13 @@
 
 .rmc-studio-workspace .rmc-live-preview-contract {
   min-width: 0;
+}
+
+.rmc-studio-workspace--experience .rmc-live-preview-contract {
+  margin-top: 0;
+  margin-bottom: var(--studio-workspace-gap);
+}
+
+.rmc-studio-workspace--experience .rmc-live-preview-contract__frame {
+  min-height: clamp(34rem, 68vh, 62rem);
 }
