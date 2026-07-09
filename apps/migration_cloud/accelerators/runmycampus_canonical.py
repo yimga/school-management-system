@@ -98,10 +98,16 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     "guardians": {
         "guardian_external_id", "first_name", "last_name", "email",
         "phone", "relationship", "is_primary", "student_external_id",
+        # Internal transfers: the guardian's platform username, so the
+        # target re-links the SAME account instead of provisioning anew.
+        "guardian_user_ref",
     },
     "enrollment": {
         "student_external_id", "grade_level", "enrollment_status",
         "enrollment_date", "exit_date", "section",
+        # Curriculum track — required for grade placement parity
+        # (Evaluation.clean: student specialty must match the assignment's).
+        "specialty",
     },
     "sections": {
         "section_external_id", "subject_code", "subject_name",
@@ -113,6 +119,14 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     "grades": {
         "student_external_id", "subject_code", "term", "score",
         "letter_grade", "comments",
+        # FK-graph placement + faithful component copy (2026-07-09): the
+        # grades lander resolves academic_year/term/subject/assignment at
+        # the target and lands per-component scores, never a re-derived
+        # aggregate. "grade_letter" is the envelope-side alias the transfer
+        # exporter and older bundles already emit.
+        "academic_year", "grade_letter", "max_score",
+        "seq1_score", "seq2_score", "exam_score", "mock_score",
+        "practical_score", "internship_score", "test1", "test2",
     },
     "behavior": {
         "student_external_id", "date", "category", "description",
@@ -125,6 +139,9 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     "transcripts": {
         "student_external_id", "academic_year", "term", "subject_code",
         "final_grade", "credits_earned",
+        # Vault-item fields the transcripts lander has always consumed
+        # (its documented row shape) + transfer provenance (2026-07-09).
+        "artifact_type", "artifact_ref", "issued_at", "issuing_school_id",
     },
     "health": {
         "student_external_id", "record_date", "category", "description",

@@ -118,10 +118,11 @@ def transfer_case_create(request):
         source_school=profile.school,
         target_school=target,
         source_profile_pk=str(profile.pk),
-        # Grades stay OUT of console-created cases until the grades lander
-        # resolves term/subject FKs at the target (Wave C) — otherwise every
-        # run quarantines the grade rows and reconcile never goes clean.
-        domains=[d for d in TRANSFER_DEFAULT_DOMAINS if d != "grades"],
+        # Full default set (2026-07-09): the grades lander resolves the
+        # term/subject/assignment/teacher FK graph at the target, and the
+        # archival `transcripts` domain carries the record regardless — so
+        # grades are back in console-created cases.
+        domains=list(TRANSFER_DEFAULT_DOMAINS),
         created_by=request.user if request.user.is_authenticated else None,
     )
     _audit_transfer_action(request, "CREATE", case, "case opened")

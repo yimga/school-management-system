@@ -26,6 +26,7 @@ TRANSFER_DEFAULT_DOMAINS = (
     "enrollment",
     "attendance",
     "grades",
+    "transcripts",
 )
 
 
@@ -103,6 +104,12 @@ def extract_student_domain_rows(
                         "relationship": g.relationship,
                         "is_primary": "true" if getattr(g, "is_primary", False) else "",
                         "student_external_id": ref,
+                        # Internal transfers carry the guardian's PLATFORM
+                        # identity so the target re-links the SAME account
+                        # (portal access survives the move) instead of
+                        # provisioning a duplicate from contact fields.
+                        "guardian_user_ref": getattr(guardian_user, "username", "")
+                        or "",
                     },
                     keep=("guardian_external_id", "student_external_id"),
                 )
@@ -121,6 +128,13 @@ def extract_student_domain_rows(
                     "enrollment_date": _iso(getattr(profile, "joined_date", None)),
                     "section": getattr(profile, "section", "")
                     or (getattr(classroom, "name", "") or ""),
+                    # Curriculum track: grades can only bind to a target
+                    # SubjectAssignment whose class/specialty matches the
+                    # student's placement (Evaluation.clean parity rule).
+                    "specialty": getattr(
+                        getattr(profile, "specialty", None), "name", ""
+                    )
+                    or "",
                 },
                 keep=("student_external_id",),
             )
@@ -148,33 +162,91 @@ def extract_student_domain_rows(
         if rows:
             out["attendance"] = rows
 
-    if "grades" in wanted:
+    if "grades" in wanted or "transcripts" in wanted:
         from apps.evals.models import Evaluation
 
-        rows = []
+        grade_rows = []
+        transcript_rows = []
         evaluations = Evaluation.objects.filter(student=profile).select_related(  # tenant-isolation-allow: scoped-via-student-profile-school-fk-transfer-export
-            "subject_assignment__subject", "term"
+            "subject_assignment__subject", "term", "academic_year"
         )
         for ev in evaluations.iterator():
             subject = getattr(
                 getattr(ev, "subject_assignment", None), "subject", None
             )
-            score = getattr(ev, "final_score", None)
-            rows.append(
-                _drop_empty(
-                    {
-                        "student_external_id": ref,
-                        "subject_code": getattr(subject, "code", "")
-                        or getattr(subject, "name", "")
-                        or "",
-                        "term": getattr(getattr(ev, "term", None), "name", "") or "",
-                        "score": "" if score is None else str(score),
-                    },
-                    keep=("student_external_id", "subject_code"),
-                )
+            subject_label = (
+                getattr(subject, "code", "") or getattr(subject, "name", "") or ""
             )
-        if rows:
-            out["grades"] = rows
+            term_label = getattr(getattr(ev, "term", None), "name", "") or ""
+            year_label = (
+                getattr(getattr(ev, "academic_year", None), "name", "") or ""
+            )
+            letter = getattr(ev, "letter_grade", "") or ""
+            score = getattr(ev, "final_score", None)
+            if "grades" in wanted:
+                row = {
+                    "student_external_id": ref,
+                    "subject_code": subject_label,
+                    "term": term_label,
+                    "academic_year": year_label,
+                    "score": "" if score is None else str(score),
+                    "grade_letter": letter,
+                }
+                # Full component fidelity for the target's FK-graph lander —
+                # the copy is faithful, never a re-derived aggregate.
+                for component in (
+                    "seq1_score",
+                    "seq2_score",
+                    "exam_score",
+                    "mock_score",
+                    "practical_score",
+                    "internship_score",
+                    "test1",
+                    "test2",
+                ):
+                    value = getattr(ev, component, None)
+                    if value is not None:
+                        row[component] = str(value)
+                grade_rows.append(
+                    _drop_empty(row, keep=("student_external_id", "subject_code"))
+                )
+            if "transcripts" in wanted:
+                # Archival record: ALWAYS lands at the target (vault items
+                # need no calendar/subject/staff structure), so the student's
+                # academic history survives even when the live-gradebook
+                # resolution above cannot place a row.
+                final_text = "" if score is None else str(score)
+                grade_text = " ".join(
+                    part for part in (f"final {final_text}" if final_text else "", f"({letter})" if letter else "") if part
+                ).strip()
+                transcript_rows.append(
+                    _drop_empty(
+                        {
+                            "student_external_id": ref,
+                            "academic_year": year_label,
+                            "term": term_label,
+                            "subject_code": subject_label,
+                            "final_grade": final_text or letter,
+                            "artifact_type": "transfer_grade_record",
+                            "artifact_ref": " | ".join(
+                                part
+                                for part in (
+                                    year_label,
+                                    term_label,
+                                    subject_label,
+                                    grade_text,
+                                )
+                                if part
+                            )[:512],
+                            "issuing_school_id": str(school.pk),
+                        },
+                        keep=("student_external_id", "subject_code"),
+                    )
+                )
+        if grade_rows:
+            out["grades"] = grade_rows
+        if transcript_rows:
+            out["transcripts"] = transcript_rows
 
     return out
 

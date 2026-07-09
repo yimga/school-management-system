@@ -109,6 +109,16 @@ class EnrollmentLander(Lander):
                     updates["academic_year"] = year
                 else:
                     unresolved.append(f"academic year {year_ref!r}")
+            specialty_ref = (row.get("specialty") or "").strip()
+            if specialty_ref and "specialty" in student_fields:
+                # Curriculum track placement — Evaluation.clean requires the
+                # student's specialty to match the assignment's, so grades
+                # can only land live once this resolves.
+                specialty = _resolve_specialty(school, specialty_ref)
+                if specialty is not None:
+                    updates["specialty"] = specialty
+                else:
+                    unresolved.append(f"specialty {specialty_ref!r}")
             if unresolved:
                 result.quarantined += 1
                 result.errors.append(
@@ -150,6 +160,22 @@ def _resolve_classroom(school, ref: str):
         qs = Classroom.objects.filter(school=school)
     else:
         qs = Classroom.objects.all()  # tenant-isolation-allow: schema-per-tenant-context-isolates-when-no-school-fk
+    return (
+        qs.filter(code=ref).order_by("-pk").first()  # tenant-isolation-allow: scoped-above-via-school-filter-or-schema-context
+        or qs.filter(name=ref).order_by("-pk").first()  # tenant-isolation-allow: scoped-above-via-school-filter-or-schema-context
+    )
+
+
+def _resolve_specialty(school, ref: str):
+    """Specialty at the given school whose code (exact) or name matches ``ref``."""
+    try:
+        from apps.academics.models import Specialty
+    except ImportError:
+        return None
+    if school is not None:
+        qs = Specialty.objects.filter(school=school)
+    else:
+        qs = Specialty.objects.all()  # tenant-isolation-allow: schema-per-tenant-context-isolates-when-no-school-fk
     return (
         qs.filter(code=ref).order_by("-pk").first()  # tenant-isolation-allow: scoped-above-via-school-filter-or-schema-context
         or qs.filter(name=ref).order_by("-pk").first()  # tenant-isolation-allow: scoped-above-via-school-filter-or-schema-context

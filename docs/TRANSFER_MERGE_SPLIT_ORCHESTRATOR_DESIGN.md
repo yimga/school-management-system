@@ -344,3 +344,44 @@ is idempotent. Teacher/staff employment moves stay manual
 (`apply_teacher_transfer_envelope`) — stated, not silent. Grades stay out of
 batch domains until the grades lander resolves term/subject FKs (same rule as
 the single-case console).
+
+## 11. Completeness wave — grades FK resolution + guardian re-link (2026-07-09)
+
+Closes the two OUT-OF-SCOPE items that pinned merge/split at ≤6.9 (materially
+incomplete): grades and guardians now ARRIVE at the target.
+
+- **CR1 — grades land live where the graph resolves.** `GradesLander` is
+  deployment-aware: on the FK-graph `Evaluation` (academic_year/term/
+  subject_assignment/teacher all required PROTECT FKs) it resolves the target
+  graph strictly against the STUDENT's own placement (year = enrolled year,
+  assignment = subject × term × student's classroom × student's specialty —
+  the `Evaluation.clean` parity rule), takes the teacher from the assignment's
+  M2M (TeacherProfile required), copies COMPONENT scores faithfully (seq/exam/
+  mock/practical/test — a lone aggregate lands in exam_score with an honest
+  provenance remark), and NEVER fabricates calendar/subject/staff structure —
+  unresolvable edges quarantine with a precise per-edge reason.
+- **CR2 — every evaluation ALSO rides the archival `transcripts` domain.**
+  `TranscriptVaultItem` needs no target structure, so academic history always
+  arrives: readable `artifact_ref` line, `issuing_school` = SOURCE school
+  provenance, passport CONVERGED on the source-minted GUID (the lander reuses
+  the source profile's passport via the same get-or-create + link the transfer
+  service later performs — one GUID, never a fork).
+- **CR3 — guardian re-link.** Envelope guardians rows carry
+  `guardian_user_ref` (platform username): the SAME account is re-linked at
+  the target (`StudentGuardian.guardian_user` — portal access survives the
+  move), falling back to email match, then provisioning a PARENT-role user
+  with an UNUSABLE password (activation via the existing guardian-invite
+  flow), else a precise quarantine.
+- **CR4 — enrollment placement carries the curriculum track.** The export
+  emits `specialty`; the enrollment lander resolves it (with classroom-derived
+  academic_year) so grade parity can hold at the target.
+- **CR5 — deterministic domain routing.** The canonical accelerator's
+  pre-classification now OVERRIDES the fuzzy U3 ontology scoring in the
+  pipeline (it was decorative before): a transfer bundle's `grades.csv` no
+  longer mis-routes to the `sections` lander on header overlap. Canonical
+  headers extended (SOT + both companion mirrors, drift gate green).
+- **CR6 — defaults restored.** `grades` + `transcripts` are back in
+  `TRANSFER_DEFAULT_DOMAINS`, the batch console (`_batch_domains`) and the
+  single-case console. The Wave-B e2e now proves a transfer lands student +
+  attendance + guardian-relink + live Evaluation + vault record with ZERO
+  quarantines and one shared passport GUID.

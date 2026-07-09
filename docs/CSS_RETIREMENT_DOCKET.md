@@ -1,6 +1,32 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-07-05
+**Last updated:** 2026-07-09
+
+## 2026-07-09 — Merge/split completeness: grades FK resolution + guardian re-link + transcript carry (9.8-regime A-wave)
+
+**Strategic trace (PROMPT S §S7):** closes the platform's lowest B-scored domain (merge/split ~6.9, pinned by the ≤6.9 materially-incomplete ceiling: "grades excluded, guardian re-link unwired" since Wave D). Design record: `docs/TRANSFER_MERGE_SPLIT_ORCHESTRATOR_DESIGN.md` §11 (CR1–CR6).
+
+**Root causes (all four found by audit, all fixed):** on this deployment THREE landers quarantined 100% of their rows against required FKs — `GradesLander` treated FK `Evaluation.term`/`subject_assignment`/`teacher` as string columns; `GuardianLander` never set REQUIRED `StudentGuardian.guardian_user` (and keyed on a `last_name` field the model doesn't have); `TranscriptsLander` never set REQUIRED `passport`/`issuing_school` (and used an UNSCOPED student lookup that grabbed the SOURCE profile on single-schema deployments). Fourth: the canonical accelerator's domain pre-classification was DECORATIVE — `_build_jobs` read only the fuzzy U3 ontology scoring, so a transfer bundle's `grades.csv` mis-routed to the `sections` lander once it carried `academic_year` (sections 0.6 vs grades 0.5 overlap).
+
+**What landed (16 files, no migration):**
+
+| Change | Files |
+|---|---|
+| GradesLander deployment-aware FK resolution: year→term→subject→assignment strictly on the STUDENT's placement (`Evaluation.clean` parity: enrolled year + classroom + specialty), teacher from assignment M2M→TeacherProfile (ctx-school-scoped), faithful component-score copy (lone aggregate → exam_score + "imported aggregate score" remark), per-edge precise quarantines, NEVER fabricates structure; flat-column legacy path preserved | `apps/migration_cloud/landers/grades_lander.py` |
+| GuardianLander identity ladder: `guardian_user_ref` (platform username, internal transfers — SAME account re-linked, portal access survives) → email iexact → provision PARENT user with UNUSABLE password (guardian-invite flow activates) → precise quarantine; lookup fixed to (student, guardian_user); existing users never mutated | `apps/migration_cloud/landers/guardian_lander.py` |
+| TranscriptsLander: passport CONVERGENCE (reuses the source profile's passport by external ref — one GUID with the transfer service's later link, no fork), `issuing_school` provenance from row (fallback bundle school), school-scoped `resolve_student` (was unscoped → landed on SOURCE profile in single-schema) | `apps/migration_cloud/landers/transcripts_lander.py` |
+| Enrollment placement carries the curriculum track: export emits `specialty`, lander resolves it (+ classroom-derived academic_year) | `apps/migration_cloud/landers/enrollment_lander.py`, `apps/interop/student_transfer_export.py` |
+| Transfer export: grades rows enriched (academic_year, letter, ALL component scores), guardians rows carry `guardian_user_ref`, NEW `transcripts` domain (readable artifact_ref line + `issuing_school_id` + artifact_type `transfer_grade_record`) — archival record ALWAYS arrives even where live placement can't resolve | `apps/interop/student_transfer_export.py` |
+| **Pipeline fix: accelerator domain override.** The deterministic canonical accelerator's `pre_classified_artifacts` now OVERRIDES `per_artifact_domain` (U9→U4) — was decorative, so canonical bundles could mis-route on raw header overlap | `apps/migration_cloud/pipeline.py` |
+| Canonical headers extended (guardians+`guardian_user_ref`, enrollment+`specialty`, grades+11 component/year fields, transcripts+artifact/provenance fields) in the Django SOT AND both companion mirrors — drift gate 0 | `apps/migration_cloud/accelerators/runmycampus_canonical.py`, `companion-tauri/src-tauri/src/canonical_headers.json`, `companion-docker/app/canonical_headers.json` |
+| Defaults restored: `grades` + `transcripts` in `TRANSFER_DEFAULT_DOMAINS`, batch `_batch_domains()`, single-case console | `apps/people/school_batch_service.py`, `apps/portal/views_transfers.py` |
+| Tests: 14 NEW lander FK-resolution tests (happy paths, rerun-idempotency, per-edge quarantines, guardian ladder incl. unusable-password provisioning, passport convergence, foreign-import fallback) + Wave-B e2e now proves student+attendance+guardian-relink+live-Evaluation+vault-record land with ZERO quarantines and ONE passport GUID; console contract test flipped to full-default-domains | `apps/migration_cloud/tests/test_landers_fk_resolution.py`, `apps/people/tests/test_transfer_real_apply.py`, `apps/people/tests/test_transfer_console.py` |
+
+**Evidence:** 14/14 lander tests + 5/5 e2e + full transfer battery **88/88** (school_transfer_batch, console, wave_a, consent, real_apply, transfer_intake, landers) on the fastdb lane; `makemigrations --check` clean; tenant-scan findings **0** (fixed my own `_assignment_teacher` unscoped read); magic-numbers/role-strings compare: no NEW from this wave (2 honest username-cap markers); canonical-headers drift gate 0 across both mirrors; baselines restored after measurement.
+
+**Beyond transfers:** the three lander fixes + the accelerator-override fix apply to EVERY Migration Cloud import — foreign-SIS bundles (PowerSchool/Blackbaud/…) previously quarantined 100% of grades/guardian rows on this deployment's models and could mis-route canonical CSVs; both classes are now closed platform-wide.
+
+**Deploy:** no migrations, no CSS/JS (no SW bump). Remaining honest scope (register): teacher/staff moves stay manual; split targets pre-provisioned; collision-resolution operator action; historical-year grades stay archival-only (live rows land only for the student's enrolled year — deliberate).
 
 ## 2026-07-05 — Config-SOT adoption ratchet + access-resolver job restoration (9.8-regime A-wave)
 

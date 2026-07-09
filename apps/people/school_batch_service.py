@@ -71,11 +71,14 @@ class BatchBlockedError(RuntimeError):
 
 
 def _batch_domains() -> list[str]:
-    # Same rule as the single-case console: grades stay out until the grades
-    # lander resolves term/subject FKs at the target.
+    # Full default set (2026-07-09): the grades lander now resolves the
+    # term/subject/assignment/teacher FK graph at the target, and every
+    # evaluation ALSO rides the archival `transcripts` domain (vault items
+    # need no target structure) — live rows where the graph resolves,
+    # provenance-stamped vault records always.
     from apps.interop.student_transfer_export import TRANSFER_DEFAULT_DOMAINS
 
-    return [d for d in TRANSFER_DEFAULT_DOMAINS if d != "grades"]
+    return list(TRANSFER_DEFAULT_DOMAINS)
 
 
 def eligible_student_qs(batch):
