@@ -30,7 +30,7 @@ from django.utils.http import urlencode
 # Session key holding the unix timestamp of the last successful step-up.
 STEP_UP_SESSION_KEY = "step_up_at"
 
-_DEFAULT_MAX_AGE_SECONDS = 600  # 10 minutes
+_DEFAULT_MAX_AGE_SECONDS = 600  # magic-number-allow: step-up-reauth-window-ten-minutes
 
 
 def step_up_max_age() -> int:

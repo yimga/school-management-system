@@ -1908,11 +1908,11 @@ def _rbac_redirect(request):
     )
 
 
-@rbac_dashboard_pdp
 @login_required
 @require_school
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
+@rbac_dashboard_pdp
 def rbac_dashboard(request):
     from apps.accounts.tenant_identity import user_has_school_membership
     from services.post_delete_navigation import mutation_return_url

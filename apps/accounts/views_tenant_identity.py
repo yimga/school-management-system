@@ -136,10 +136,10 @@ def _revoke_user_sessions(user_id) -> int:
     return revoked
 
 
-@tenant_identity_hub_pdp
 @login_required
 @require_school
 @require_GET
+@tenant_identity_hub_pdp
 def tenant_identity_roster(request):
     school = request.school
     if not _can_manage_tenant_identity(request.user, school):
@@ -273,10 +273,10 @@ def tenant_identity_detail(request, user_id: int):
     )
 
 
-@tenant_regulator_grant_pdp
 @login_required
 @require_school
 @require_http_methods(["GET", "POST"])
+@tenant_regulator_grant_pdp
 def tenant_identity_regulator_grant(request):
     """Time-boxed read-only access for external regulators (TemporaryRoleGrant)."""
     from datetime import datetime, time

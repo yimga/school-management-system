@@ -2,6 +2,30 @@
 
 **Last updated:** 2026-07-09
 
+## 2026-07-09 — PDP enforcement promotion: advisory → enforce on the IAM surfaces (9.8-regime A-wave)
+
+**Strategic trace (PROMPT S §S7):** lifts the effective-access floor (~7.0 after the facade consolidation — "PDP enforces on 0 surfaces, advisory on 3"). The PDP now BINDS: `POLICY_PDP_ENFORCEMENT_MODE` defaults to `enforce`, the three IAM surfaces (tenant RBAC dashboard, tenant identity hub, regulator time-boxed grant) run `pdp_enforce` guards, and tenant/operator deny rules actually block requests.
+
+**Design — parity probes make the flip access-preserving:** each enforced surface passes its OWN canonical RBAC gate as a `parity_probe` (`permission_access("settings.manage")` union for the RBAC dashboard; `_can_manage_tenant_identity` for the identity surfaces — its manage-tier membership roles LEADERSHIP/IT_ADMIN/VICE_PRINCIPAL are wider than the generic union, which is why a per-surface probe, not a shared resolver, is the parity signal). The verdict lands in the PDP subject as `subject.rbac_allowed`; platform-baseline allow-rules seeded by `policies.0010` (priority **500**, deliberately BEHIND the tenant-authored default 100) condition on it. Consequences: enforcement starts at exact access parity; a tenant deny rule outranks the baseline and BINDS; deactivating a baseline rule fail-closes its surface (superuser god-mode survives, audited); a probe error computes `rbac_allowed=False` — fail closed; a `decide()` crash raises `PermissionDenied` in enforce mode (pre-existing contract, now surface-proven). Guards moved INNERMOST on the view stack (below `@login_required`/`@require_school`/coarse gates) so anonymous users still get the login redirect and the PDP only adjudicates requests the coarse gates admitted.
+
+**What landed (13 files, migration `policies.0010`, no SW bump):**
+
+| Change | Files |
+|---|---|
+| Enforcement layer: parity-probe subject augmentation (`subject.rbac_allowed`, fail-closed), `is_superuser` threaded to the god-mode fast path, shared `_decide_for_request`, promoted-default docs | `apps/policies/enforcement.py` |
+| Guards flipped `pdp_advisory` → `pdp_enforce` with per-surface parity probes (lazy-imported to avoid module cycles) | `apps/accounts/iam_pdp_guards.py` |
+| Guard placement: PDP innermost on all 3 surfaces | `apps/accounts/views.py`, `apps/accounts/views_tenant_identity.py` |
+| Default flip `advisory` → `enforce` + rollback note (`POLICY_PDP_ENFORCEMENT_MODE=advisory`) | `config/settings.py` |
+| Seeded platform-baseline parity allow-rules (3 rules, school=NULL, get_or_create idempotent, reversible) | `apps/policies/migrations/0010_seed_iam_baseline_pdp_rules.py` |
+| Facade docstring: promotion recorded (no more "future enforcement layers" for the PDP) | `apps/accounts/effective_access.py` |
+| Surface-level proof battery: parity-not-god-mode allow (decision log matched-rule asserted), outsider deny, tenant deny-rule binds, kill-switch fail-close, god-mode survives, probe-crash + decide-crash fail closed, anonymous login redirect, advisory/off rollback | `apps/policies/tests/test_pdp_promotion_iam_surfaces.py` (15 tests) |
+| Teacher-roster contract flip: enforce guard denies BEFORE the view body (PermissionDenied → branded 403) | `apps/accounts/tests/test_tenant_identity.py` |
+| Origin-red repair: magic-number compare was red on main from prior sibling pushes — 5 intentional constants marked (impersonation TTL, break-glass throttle, step-up window, logo-cap display divisors) | `apps/accounts/middleware.py`, `apps/accounts/step_up.py`, `apps/siteconfig/views_tenant_studio_hub.py` |
+
+**Evidence:** 15/15 new battery + 27/27 PDP suites (enforcement decorators, fail-closed, god-mode, ABAC/DLP) + 52/52 owner-console/trust-surface/policies + identity/RBAC suites green; `makemigrations --check` clean; tenant-scan/access-resolver(0)/config-resolver(182)/granular-rbac(0)/role-strings/magic-numbers/import-ref all green on the pushed state. PRE-EXISTING origin red REGISTERED (not this wave; pristine-proven by stashing the wave and reproducing): 3 accounts tests fail on POST to `accounts:rbac` re-rendering 200 instead of redirecting 302 (`test_bulk_user_roles` ×2, `test_tenant_rbac_scope.test_rbac_post_rejects_cross_school_user`).
+
+**Deploy:** migration `policies.0010` (data-only, reversible). Rollback: `POLICY_PDP_ENFORCEMENT_MODE=advisory` (log-only) — no code revert needed. Remaining honest scope (register): only the 3 IAM surfaces carry PDP guards — extending enforcement to student-data/finance export paths rides the facade (`effective_access`) in later waves; ReBAC stays dual-run log-only; `PolicyRule` authoring UI is operator-API/admin only.
+
 ## 2026-07-09 — Merge/split completeness: grades FK resolution + guardian re-link + transcript carry (9.8-regime A-wave)
 
 **Strategic trace (PROMPT S §S7):** closes the platform's lowest B-scored domain (merge/split ~6.9, pinned by the ≤6.9 materially-incomplete ceiling: "grades excluded, guardian re-link unwired" since Wave D). Design record: `docs/TRANSFER_MERGE_SPLIT_ORCHESTRATOR_DESIGN.md` §11 (CR1–CR6).

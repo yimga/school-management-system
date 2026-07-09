@@ -362,7 +362,7 @@ class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
                 {
                     "ok": False,
                     "error_code": "oversize",
-                    "error_message": f"logo is too large — keep it under {max_bytes // (1024 * 1024)} MB",
+                    "error_message": f"logo is too large — keep it under {max_bytes // (1024 * 1024)} MB"  # magic-number-allow: bytes-to-megabytes-display-divisor,
                 },
                 status=400,
             )
@@ -373,7 +373,7 @@ class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
                 {
                     "ok": False,
                     "error_code": "oversize",
-                    "error_message": f"logo is too large — keep it under {max_bytes // (1024 * 1024)} MB",
+                    "error_message": f"logo is too large — keep it under {max_bytes // (1024 * 1024)} MB"  # magic-number-allow: bytes-to-megabytes-display-divisor,
                 },
                 status=400,
             )
@@ -438,7 +438,7 @@ def _resolve_logo_absolute_max_bytes() -> int:
     """
     from django.conf import settings as django_settings
 
-    default = 15 * 1024 * 1024
+    default = 15 * 1024 * 1024  # magic-number-allow: settings-driven-logo-cap-fifteen-megabyte-fallback
     return int(
         getattr(django_settings, "MAX_LOGO_UPLOAD_ABSOLUTE_BYTES", default) or default
     )

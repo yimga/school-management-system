@@ -427,7 +427,7 @@ def _impersonation_expired(imp) -> bool:
     if not granted:
         return False
     try:
-        max_age = int(getattr(settings, "IMPERSONATION_SESSION_MAX_AGE_SECONDS", 3600))
+        max_age = int(getattr(settings, "IMPERSONATION_SESSION_MAX_AGE_SECONDS", 3600))  # magic-number-allow: settings-driven-impersonation-ttl-one-hour-fallback
         return (timezone.now().timestamp() - float(granted)) > max_age
     except (TypeError, ValueError):
         return False
@@ -500,7 +500,7 @@ class TenantHostControlPlaneIsolationMiddleware:
         # — a SUPERADMIN-role operator must (re-)enter through the signed flow.
         return redirect(build_manager_absolute_url(request, "/super/"))
 
-    _BREAK_GLASS_AUDIT_THROTTLE_SECONDS = 3600
+    _BREAK_GLASS_AUDIT_THROTTLE_SECONDS = 3600  # magic-number-allow: break-glass-audit-dedupe-window-one-hour
 
     def _audit_break_glass(self, request, user):
         """Record superuser direct (un-impersonated) tenant-host access.

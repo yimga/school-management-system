@@ -1710,11 +1710,16 @@ POLICY_USE_BUNDLES = os.getenv("POLICY_USE_BUNDLES", "1") in ("1", "true", "yes"
 # Move 3 follow-up: PDP runtime enforcement mode.
 #   "off"      — PDP decorators short-circuit; no log, no block.
 #   "advisory" — every PDP-decorated view calls decide() and writes a
-#                PolicyDecisionLog row but never raises. Safe default; use
-#                this to collect would-be denies before flipping to enforce.
+#                PolicyDecisionLog row but never raises (log-only rollback
+#                posture; was the default while the rule library was built).
 #   "enforce"  — pdp_enforce decorators block on deny / implicit_deny;
 #                pdp_advisory still logs.
-POLICY_PDP_ENFORCEMENT_MODE = os.getenv("POLICY_PDP_ENFORCEMENT_MODE", "advisory")
+# Default flipped advisory → enforce 2026-07-09 (PDP promotion): every enforced
+# surface ships a platform-baseline PARITY allow-rule (policies migration 0010,
+# conditioned on the surface's own canonical RBAC gate via subject.rbac_allowed),
+# so enforcement preserves access exactly while tenant/operator deny rules now
+# actually bind and PDP errors fail CLOSED. Rollback: POLICY_PDP_ENFORCEMENT_MODE=advisory.
+POLICY_PDP_ENFORCEMENT_MODE = os.getenv("POLICY_PDP_ENFORCEMENT_MODE", "enforce")
 # Per-tenant policy cache TTL in seconds. Required for scale; default 300 (5 min). Set POLICY_CACHE_TTL=0 to disable for debugging.
 _raw_ttl = os.getenv("POLICY_CACHE_TTL", "300").strip()
 POLICY_CACHE_TTL = int(_raw_ttl) if _raw_ttl.isdigit() else 300

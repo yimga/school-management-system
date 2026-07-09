@@ -1,12 +1,16 @@
 """Canonical effective-access facade (sovereign consolidation, 2026-07-02).
 
 THE single consumer entry point for object/module access decisions. The
-platform's authorization intent converges here: today each function
-delegates verbatim to the battle-tested helper that owns the rule (so
-behavior is bit-identical to the pre-facade call-sites), and future
-enforcement layers — PDP ``decide()`` promotion past advisory, ReBAC
-sensitive-mode, decision logging — get wired INSIDE this module once
-instead of across every view that asks the question.
+platform's authorization intent converges here: each function delegates
+verbatim to the battle-tested helper that owns the rule (so behavior is
+bit-identical to the pre-facade call-sites). The PDP was promoted past
+advisory on 2026-07-09: ``POLICY_PDP_ENFORCEMENT_MODE`` defaults to
+``enforce`` and the IAM surfaces enforce via parity probes built on this
+module's ``permission_access`` (see ``apps/policies/enforcement.py`` +
+``apps/accounts/iam_pdp_guards.py``). Remaining enforcement layers —
+ReBAC sensitive-mode, richer decision logging — continue to wire in
+INSIDE this module once instead of across every view that asks the
+question.
 
 Consumers must call these functions, never the underlying helpers
 directly — ``scripts/scan_access_resolver_fragmentation.py`` (CI ratchet)
