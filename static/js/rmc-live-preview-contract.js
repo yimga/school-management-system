@@ -59,7 +59,15 @@
 
     function syncLinks() {
       var url = currentUrl();
-      if (newTab) newTab.href = url || '#';
+      if (newTab) {
+        if (url) {
+          newTab.href = url;
+          newTab.removeAttribute('aria-disabled');
+        } else {
+          newTab.removeAttribute('href');
+          newTab.setAttribute('aria-disabled', 'true');
+        }
+      }
       if (popoutBtn) popoutBtn.disabled = !url;
       if (modalBtn) modalBtn.disabled = !url;
     }
