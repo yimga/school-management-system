@@ -38,6 +38,33 @@
   scrollbar-width: thin;
 }
 
+.rmc-studio-workspace__context-drawer {
+  display: none;
+  min-width: 0;
+  border: 1px solid var(--hairline, var(--color-base-200));
+  border-radius: var(--studio-radius, var(--token-radius-md, 0.75rem));
+  background: var(--surface-elevated, var(--color-base-0));
+  box-shadow: var(--studio-shadow, none);
+  overflow: clip;
+}
+
+.rmc-studio-workspace__context-drawer > summary {
+  min-height: 2.5rem;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  font-weight: 750;
+  color: var(--text-primary, var(--color-base-800));
+  border-bottom: 1px solid var(--hairline, var(--color-base-200));
+  list-style-position: inside;
+}
+
+.rmc-studio-workspace__context-drawer-body {
+  padding: 0.75rem;
+  max-height: min(68vh, 46rem);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
 .rmc-studio-workspace--two-col {
   grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr);
 }
@@ -59,6 +86,25 @@
 
 .rmc-studio-workspace--experience.rmc-studio-workspace--three-col {
   grid-template-columns: var(--studio-workspace-rail-width) minmax(30rem, 1fr) var(--studio-workspace-context-width);
+}
+
+@media (max-width: 1599.98px) and (min-width: 992px) {
+  .rmc-studio-workspace--three-col {
+    grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr);
+  }
+
+  .rmc-studio-workspace--experience.rmc-studio-workspace--three-col {
+    grid-template-columns: var(--studio-workspace-rail-width) minmax(0, 1fr);
+  }
+
+  .rmc-studio-workspace--three-col .rmc-studio-workspace__context {
+    display: none;
+  }
+
+  .rmc-studio-workspace--three-col .rmc-studio-workspace__context-drawer {
+    display: block;
+    grid-column: 2;
+  }
 }
 
 .rmc-studio-workspace .studio-os__card {
@@ -108,7 +154,7 @@
   }
 
   .rmc-studio-workspace--three-col .rmc-studio-workspace__context {
-    order: 3;
+    display: none;
   }
 
   .rmc-studio-workspace--three-col .rmc-studio-workspace__rail {
@@ -117,6 +163,11 @@
 
   .rmc-studio-workspace--three-col .rmc-studio-workspace__main {
     order: 2;
+  }
+
+  .rmc-studio-workspace--three-col .rmc-studio-workspace__context-drawer {
+    display: block;
+    order: 3;
   }
 }
 

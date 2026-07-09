@@ -207,7 +207,11 @@
           </a>
           {% empty %}
           <a href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Site settings" %}</a>
+          {% if is_manager_host %}
           <a href="{% url 'super:dashboard' %}">{% trans "Control plane" %}</a>
+          {% else %}
+          <a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend Console" %}</a>
+          {% endif %}
           {% endfor %}
         </div>
       </div>

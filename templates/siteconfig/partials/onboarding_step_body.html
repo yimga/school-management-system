@@ -1,6 +1,6 @@
 {% load i18n %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container py-3" style="max-width: 42rem;" data-shell-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-step="1">
+<div class="container-fluid py-3 cp-evidence-page rmc-command-workspace" data-rmc-command-workspace="school-activation-onboarding-step" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="school-activation-onboarding" data-cp-evidence-surface="school-activation-onboarding-step" data-rmc-onboarding="school-activation" data-rmc-onboarding-step="1">
   <p class="small mb-2"><a href="{% url 'siteconfig:onboarding' %}">{% trans "Back to full checklist" %}</a></p>
   <h1 class="h4 mb-2">{{ step.label }}</h1>
   <p class="text-muted small mb-3">{% trans "Use the action link to work in the real tool. Mark done only when the work is complete (including when completion is not yet detected automatically)." %}</p>

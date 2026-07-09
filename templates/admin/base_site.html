@@ -78,11 +78,12 @@
   <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-operator-theme-coherence.css' %}">
   {% endif %}
-  {% if is_manager_host %}
   {% comment %} v3.59.x: grid + single canvas scroll contract (pairs with data-rmc-cp-scroll=canvas).
-     Without this sheet, .rmc-app-shell in admin/base.html has no layout rules — clicks/scroll break. {% endcomment %}
+     Without this sheet, .rmc-app-shell in admin/base.html has no layout rules — clicks/scroll break.
+     v4.10.1: tenant backend also uses the same app-shell grid; tenant/operator
+     separation comes from host-scoped classes and template guards, not a missing
+     layout contract. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-app-shell.css' %}">
-  {% endif %}
   {% comment %} v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer.
      Loads AFTER design-tokens.css so personality overrides the defaults, but
      BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
@@ -165,6 +166,11 @@
   {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
   <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
   {% include "partials/rmc_security_posture_layout_styles.html" %}
+  {% endif %}
+  {% if not is_manager_host %}
+  {% comment %} v4.10.1: tenant backend gets the same spacious change-form body
+     contract as operator admin, but without operator-only rails or links. {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}">
   {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
@@ -387,8 +393,8 @@
   <script src="{% static 'js/rmc-surface-overlay-guard.js' %}"></script>
   {% if is_manager_host %}
   <script src="{% static 'js/rmc-admin-v1-200x.js' %}" defer></script>
-  <script src="{% static 'js/rmc-admin-workspace.js' %}" defer></script>
   {% endif %}
+  <script src="{% static 'js/rmc-admin-workspace.js' %}" defer></script>
   {% comment %} Phase G: ⌘K command palette on the admin shell too. {% endcomment %}
   {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}

@@ -8,7 +8,7 @@
 
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Package rollback" %} — {{ school.name }}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+<div class="container-fluid py-2 cp-evidence-page rmc-command-workspace" data-rmc-command-workspace="installed-packages-rollback" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="installed-packages-rollback" data-cp-evidence-surface="installed-packages-rollback" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <div class="rmc-banner border mb-3" data-phase9-pack-staged-rollout>
     <div class="small fw-semibold mb-1">{% trans "Staged rollout & rollback rules" %}</div>
     <ul class="small mb-2 ps-3">
@@ -67,7 +67,7 @@
                   <input type="text" name="confirm_rollback" class="form-control form-control-sm d-inline-block" style="width:7rem;" placeholder="ROLLBACK" autocomplete="off">
                   <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Rollback" %}</button>
                 </form>
-                  </motion>
+                  </div>
                 </details></td>
             </tr>
             {% empty %}

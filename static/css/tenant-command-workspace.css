@@ -36,6 +36,7 @@
 [data-rmc-decision-surface] {
   width: 100%;
   max-width: none !important;
+  max-inline-size: none !important;
   min-width: 0;
   margin-inline: 0;
 }

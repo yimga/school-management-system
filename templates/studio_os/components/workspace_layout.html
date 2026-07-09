@@ -42,5 +42,11 @@ Output (mobile tabs):
          aria-label="{% trans 'Related tools' %}">
     {% include workspace_context_template %}
   </aside>
+  <details class="rmc-studio-workspace__context-drawer studio-os__{{ workspace_mode }}-context-drawer">
+    <summary>{% trans "Context, preview, and audit" %}</summary>
+    <div class="rmc-studio-workspace__context-drawer-body">
+      {% include workspace_context_template %}
+    </div>
+  </details>
   {% endif %}
 </div>
