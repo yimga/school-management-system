@@ -45,7 +45,9 @@ class ModuleAccessMiddlewareTests(TestCase):
         user.save(update_fields=["role"])
         request = self.factory.get("/api/some-endpoint", HTTP_ACCEPT="application/json")
         request.user = user
-        with patch("apps.accounts.middleware.can_access_module", return_value=False):
+        # ModuleAccessMiddleware calls the effective-access facade `module_access`
+        # (the access-resolver consolidation), so patch the symbol it actually binds.
+        with patch("apps.accounts.middleware.module_access", return_value=False):
             response = self.middleware(request)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response["Content-Type"], "application/json")

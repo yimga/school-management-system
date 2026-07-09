@@ -136,6 +136,12 @@ def use_operator_login_template(request) -> bool:
         return True
     if getattr(request, "is_tenant_host", False):
         return False
+    # Defense in depth: never one boolean deep. A resolved tenant ``school`` is an independent
+    # positive tenant signal, so even if ``is_tenant_host`` were ever unset (e.g. a login-render
+    # path that ran before UrlConfSwitcherMiddleware set the marker), the operator skin still
+    # cannot leak onto a tenant subdomain "by chance".
+    if getattr(request, "school", None) is not None:
+        return False
     return should_show_manager_login_surface(request)
 
 

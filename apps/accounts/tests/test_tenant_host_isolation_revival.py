@@ -49,7 +49,32 @@ class TenantHostControlPlaneIsolationRevivalTest(TestCase):
         self.assertEqual(resp.content, b"OK")
 
     def test_normal_tenant_role_passes(self):
-        resp = self.mw(self._req(role="ADMIN"))
+        # A normal tenant user is one WITH a SchoolMembership, so it is not a control-plane
+        # operator and the guard passes it straight through. (The mock has no DB-backed
+        # membership, and some envs list ADMIN in CONTROL_PLANE_OPERATOR_ROLES, so model the
+        # real operator predicate directly rather than depend on env config.)
+        with mock.patch(
+            "apps.schools.control_plane.user_has_control_plane_access", return_value=False
+        ):
+            resp = self.mw(self._req(role="ADMIN"))
+        self.assertEqual(resp.content, b"OK")
+
+    def test_lower_tier_operator_without_impersonation_redirected(self):
+        # A non-SUPERADMIN operator (support/observer PlatformOperatorProfile holder) must ALSO
+        # be confined to the signed impersonation flow — it can no longer browse a tenant host
+        # directly. user_has_control_plane_access is the operator predicate; True means operator.
+        with mock.patch(
+            "apps.schools.control_plane.user_has_control_plane_access", return_value=True
+        ):
+            resp = self.mw(self._req(role="SUPPORT"))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_lower_tier_operator_with_matching_impersonation_passes(self):
+        # ...but the SAME operator, inside a matching signed impersonation session, is allowed.
+        with mock.patch(
+            "apps.schools.control_plane.user_has_control_plane_access", return_value=True
+        ):
+            resp = self.mw(self._req(role="SUPPORT", imp={"school_id": "1"}))
         self.assertEqual(resp.content, b"OK")
 
     def test_superuser_break_glass_exempt(self):
