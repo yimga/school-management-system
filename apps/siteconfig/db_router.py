@@ -1,9 +1,15 @@
+import logging
+import os
+import threading
 from typing import Optional
 
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError
 
 from .preview_state import is_preview_mode
+
+logger = logging.getLogger(__name__)
 
 
 OPTIONAL_DB_ROUTER_ERRORS = (
@@ -14,6 +20,28 @@ OPTIONAL_DB_ROUTER_ERRORS = (
     TypeError,
     ValueError,
 )
+
+# Reentrancy guard for the residency check: the check itself performs ORM ops
+# (region resolution reads RuntimeDefaults; a violation writes an AuditLog
+# row), and each of those re-enters db_for_read/db_for_write. Without the
+# guard that recursion is unbounded (audit → router → audit → …).
+_residency_guard = threading.local()
+
+
+def _residency_enforce_flag() -> bool:
+    """Deliberately import-free duplicate of ``residency_enforced``.
+
+    The fail-closed arm below must be able to answer "is enforcement on?"
+    even when the compliance module whose failure it is handling cannot be
+    imported — so it reads the env/setting directly instead of delegating.
+    """
+    if os.environ.get("DATA_RESIDENCY_ENFORCE", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        return True
+    return bool(getattr(settings, "DATA_RESIDENCY_ENFORCE", False))
 
 
 def _get_tenant_db_alias() -> Optional[str]:
@@ -67,13 +95,27 @@ def _enforce_residency_for_alias(alias: Optional[str]) -> None:
     it is where a region-A tenant resolving to a region-B store is actually
     *blocked* (raising the typed ``ResidencyViolation`` → HTTP 403, audited)
     rather than merely preferring an alias. The active tenant is read from
-    ``connection.tenant`` (the only context the router has); ``alias`` is the
-    region the op would be served from. No-op when ``DATA_RESIDENCY_ENFORCE``
-    is off (the backward-compatible default) or when there is no tenant/alias
-    to compare. Application-layer control — physical per-region replicas remain
-    an ops/deploy item; this fails the op closed until they exist.
+    ``connection.tenant`` (the only context the router has). No-op when
+    ``DATA_RESIDENCY_ENFORCE`` is off (the backward-compatible default) or when
+    there is no tenant to compare.
+
+    Unresolvable-region closeout (2026-07-09): a missing ``alias`` no longer
+    skips the check — it means the op is served by the DEFAULT store, so it is
+    adjudicated against the declared default-store region
+    (``region_for_alias`` → ``default_store_region``). In-region/global
+    tenants keep working with zero replicas provisioned; a tenant with a
+    foreign residency promise fails closed instead of silently landing
+    out-of-region. Likewise a plumbing failure while enforcement is on now
+    DENIES (mirrors ``pdp_enforce``) instead of silently skipping the check.
+    Application-layer control — physical per-region replicas remain an
+    ops/deploy item; this fails the op closed until they exist.
     """
-    if not alias:
+    if not _residency_enforce_flag():
+        return
+    if getattr(_residency_guard, "active", False):
+        # Reentrant ORM op issued BY the in-flight residency check itself
+        # (region resolution read / violation audit write) — adjudicating it
+        # would recurse; the outer check's verdict governs the request.
         return
     try:
         from django.db import connection
@@ -83,12 +125,27 @@ def _enforce_residency_for_alias(alias: Optional[str]) -> None:
         if school is None:
             return
         from apps.compliance.cross_border_export import enforce_region_match
+        from apps.schools.data_residency import region_for_alias
 
-        enforce_region_match(school, alias, kind="db_route")
+        _residency_guard.active = True
+        try:
+            enforce_region_match(school, region_for_alias(alias), kind="db_route")
+        finally:
+            _residency_guard.active = False
     except OPTIONAL_DB_ROUTER_ERRORS:
-        # Resolution plumbing failed — never convert that into a spurious block;
-        # the ResidencyViolation raised by enforce_region_match is NOT in this
-        # tuple, so a genuine cross-region violation still propagates.
+        # The ResidencyViolation raised by enforce_region_match is NOT in this
+        # tuple, so a genuine cross-region block always propagates. Anything
+        # here is broken plumbing — under enforcement that must fail CLOSED
+        # (a residency decision we cannot compute is not permission), while
+        # the flag-off posture stays no-op. The flag is re-read import-free
+        # because the failure being handled may BE the compliance import.
+        if _residency_enforce_flag():
+            logger.error(
+                "residency: enforcement plumbing failed for alias=%r — denying (fail closed)",
+                alias,
+                exc_info=True,
+            )
+            raise PermissionDenied("Data residency decision unavailable")
         return
 
 

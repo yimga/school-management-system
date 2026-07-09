@@ -482,6 +482,18 @@ _STRICT_UNKNOWN_RAW = os.getenv("DATA_RESIDENCY_STRICT_UNKNOWN", "").strip()
 DATA_RESIDENCY_STRICT_UNKNOWN = (
     (_STRICT_UNKNOWN_RAW == "1") if _STRICT_UNKNOWN_RAW in ("0", "1") else None
 )
+# Declared region of the DEFAULT database — the store every op lands on when
+# no per-region alias resolves. Since the unresolvable-region closeout
+# (2026-07-09) the router/middlewares no longer skip that landing: it is
+# adjudicated against this region, so under enforcement an in-region/global
+# tenant keeps working with zero replicas while a tenant with a foreign
+# residency promise fails closed. "global" matches the platform model (the
+# readiness preflight defines global as served-by-default-DB); deployments
+# whose primary physically sits in a specific region declare it here.
+# Resolved via apps.schools.data_residency.default_store_region() (env wins).
+DATA_RESIDENCY_DEFAULT_STORE_REGION = (
+    os.getenv("DATA_RESIDENCY_DEFAULT_STORE_REGION", "").strip() or "global"
+)
 
 # Wave K3 — at-risk ML artifact: where the predictor loads its joblib bundle.
 # Resolution order in `apps.analytics.ml.at_risk_model`:

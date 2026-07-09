@@ -17,6 +17,14 @@ pinned a foreign region before this middleware runs — that is what we refuse.
 The router (``apps.siteconfig.db_router``) is the defence-in-depth choke point
 for every ORM op; this is the early request-time block.
 
+Unresolvable-region closeout (2026-07-09): when NO alias resolves for the
+tenant, the request is about to be served from the DEFAULT store. That is no
+longer a silent early-return — the tenant's region is adjudicated against the
+declared default-store region
+(``apps.schools.data_residency.default_store_region``), so a tenant with a
+foreign residency promise is refused up front instead of only per-op at the
+router. No-op when enforcement is off.
+
 HONEST SCOPE: this is an *application-layer* control — it fails the request
 closed rather than serving a tenant's PII from out-of-region. True physical
 per-region storage replicas (the ``DATABASES`` aliases) remain an ops / deploy
@@ -52,6 +60,12 @@ class RegionalDatabaseMiddleware:
         alias = resolve_school_db_alias(school) if school is not None else None
         if alias:
             set_request_db_alias(alias)
+        elif school is not None:
+            # No region store resolved — the request will be served from the
+            # DEFAULT store. Adjudicate that landing instead of silently
+            # allowing it (fail-closed for foreign residency promises; no-op
+            # when enforcement is off).
+            self._enforce_unresolved_region(school)
         try:
             return self.get_response(request)
         finally:
@@ -69,5 +83,20 @@ class RegionalDatabaseMiddleware:
         if not inbound:
             return
         from apps.compliance.cross_border_export import enforce_region_match
+        from apps.schools.data_residency import region_for_alias
 
-        enforce_region_match(school, inbound, kind="db_route")
+        enforce_region_match(school, region_for_alias(inbound), kind="db_route")
+
+    @staticmethod
+    def _enforce_unresolved_region(school) -> None:
+        """Raise ResidencyViolation when the default-store landing is foreign.
+
+        The request-time twin of the router's per-op unresolvable-region
+        check: compares the tenant's effective region against the DECLARED
+        default-store region. ``enforce_region_match`` no-ops when enforcement
+        is off, so the flag-off posture is unchanged.
+        """
+        from apps.compliance.cross_border_export import enforce_region_match
+        from apps.schools.data_residency import default_store_region
+
+        enforce_region_match(school, default_store_region(), kind="db_route")
