@@ -67,7 +67,8 @@
   border-radius: var(--radius-lg, 14px);
   background: var(--surface-canvas, var(--bs-tertiary-bg));
   overflow: hidden;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
+  min-height: clamp(28rem, 62vh, 56rem);
 }
 
 .rmc-live-preview-contract__frame iframe {
@@ -83,13 +84,24 @@
 .rmc-live-preview-contract__frame[data-preview-device="tablet"] {
   aspect-ratio: 4 / 3;
   max-width: min(100%, 58rem);
+  min-height: clamp(28rem, 58vh, 48rem);
   margin-inline: auto;
 }
 
 .rmc-live-preview-contract__frame[data-preview-device="mobile"] {
   aspect-ratio: 9 / 16;
   max-width: min(100%, 25rem);
+  min-height: clamp(34rem, 70vh, 58rem);
   margin-inline: auto;
+}
+
+.rmc-live-preview-contract[data-rmc-preview-space="cramped"] .rmc-live-preview-contract__frame {
+  border-color: var(--warning, var(--bs-warning));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warning, var(--bs-warning)) 18%, transparent);
+}
+
+.rmc-live-preview-contract[data-rmc-preview-space="cramped"] .rmc-live-preview-contract__fallbacks {
+  display: flex;
 }
 
 .rmc-live-preview-contract__empty {
@@ -103,7 +115,7 @@
 
 .rmc-live-preview-modal-frame {
   width: 100%;
-  height: min(78vh, 52rem);
+  height: min(84vh, 64rem);
   border: 0;
   background: var(--surface-elevated, var(--bs-body-bg));
 }

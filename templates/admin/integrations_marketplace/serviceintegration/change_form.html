@@ -10,9 +10,11 @@
       <li><a href="{% url 'siteconfig:feature_control_panel' %}" class="text-primary-600 hover:underline font-medium">{% trans "Feature control" %}</a></li>
       <li><a href="{% url 'apicenter:dashboard' %}" class="text-primary-600 hover:underline">{% trans "API Center" %}</a></li>
       <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a></li>
+      {% if is_manager_host %}
       <li><a href="{% url 'super:dashboard' %}" class="text-primary-600 hover:underline font-medium">{% trans "Schools dashboard" %}</a></li>
       <li><a href="{% url 'super:schools_list' %}" class="text-primary-600 hover:underline">{% trans "Schools list" %}</a></li>
       <li><a href="{% url 'super:usage' %}" class="text-primary-600 hover:underline">{% trans "API usage & quotas" %}</a></li>
+      {% endif %}
     </ul>
   </section>
 {% endblock %}

@@ -8,9 +8,11 @@
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Platform defaults span many domains. Use operator hubs when you need guided workflows instead of raw JSON columns." %}</p>
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
       <li><a href="{% url 'siteconfig:tenant_runtime_configuration_hub' %}" class="text-primary-600 hover:underline font-medium">{% trans "Effective runtime summary" %}</a></li>
+      {% if is_manager_host %}
       <li><a href="{% url 'super:dashboard' %}" class="text-primary-600 hover:underline font-medium">{% trans "Schools dashboard" %}</a></li>
       <li><a href="{% url 'super:schools_list' %}" class="text-primary-600 hover:underline">{% trans "Schools list" %}</a></li>
       <li><a href="{% url 'super:usage' %}" class="text-primary-600 hover:underline">{% trans "API usage & quotas" %}</a></li>
+      {% endif %}
     </ul>
   </section>
 {% endblock %}

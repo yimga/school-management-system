@@ -11,6 +11,13 @@
     root.setAttribute('data-rmc-preview-state', visible ? 'fallback' : 'live');
   }
 
+  function setCramped(root, cramped) {
+    root.setAttribute('data-rmc-preview-space', cramped ? 'cramped' : 'spacious');
+    if (cramped) {
+      setFallback(root, true, root.getAttribute('data-preview-cramped-label') || 'Inline preview is too narrow. Use modal, popout, or new tab.');
+    }
+  }
+
   function setFrameUrl(root, url) {
     var frame = qs(root, 'iframe[data-rmc-preview-frame]');
     if (!frame || !url) return;
@@ -43,6 +50,7 @@
     var newTab = qs(root, '[data-rmc-preview-new-tab]');
     var frameShell = qs(root, '[data-rmc-preview-frame-shell]');
     var timeoutMs = parseInt(root.getAttribute('data-preview-timeout-ms') || '8000', 10);
+    var minInlineWidth = parseInt(root.getAttribute('data-preview-min-inline-width') || '720', 10);
     var timer = null;
 
     function currentUrl() {
@@ -72,6 +80,7 @@
         window.clearTimeout(timer);
         setFallback(root, false, root.getAttribute('data-preview-live-label') || 'Live preview rendered');
         syncLinks();
+        measureInlineSpace();
       });
       frame.addEventListener('error', function () {
         setFallback(root, true, root.getAttribute('data-preview-error-label') || 'Inline preview was blocked. Use a fallback view.');
@@ -90,6 +99,7 @@
     if (deviceSelect && frameShell) {
       deviceSelect.addEventListener('change', function () {
         frameShell.setAttribute('data-preview-device', deviceSelect.value || 'desktop');
+        window.setTimeout(measureInlineSpace, 0);
       });
     }
 
@@ -110,6 +120,24 @@
         var url = currentUrl();
         if (url) window.open(url, 'rmc-live-preview', 'popup,width=1280,height=900');
       });
+    }
+
+    function measureInlineSpace() {
+      var box = frameShell || qs(root, '[data-rmc-preview-frame-shell]');
+      if (!box) return;
+      var device = box.getAttribute('data-preview-device') || 'desktop';
+      var cramped = device === 'desktop' && box.getBoundingClientRect().width < minInlineWidth;
+      setCramped(root, cramped);
+    }
+
+    if (frameShell) {
+      if ('ResizeObserver' in window) {
+        var ro = new ResizeObserver(measureInlineSpace);
+        ro.observe(frameShell);
+      } else {
+        window.addEventListener('resize', measureInlineSpace);
+      }
+      measureInlineSpace();
     }
 
     syncLinks();

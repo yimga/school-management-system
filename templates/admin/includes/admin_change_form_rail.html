@@ -1,8 +1,22 @@
 {% load i18n admin_urls %}
 {% comment %} v4.02.12 manager change-form context rail: on-this-page nav (filled by
    rmc-admin-workspace.js from the rendered fieldsets) + generic quick actions. {% endcomment %}
-<aside class="rmc-admin-context-rail" data-rmc-rail="1">
+<aside class="rmc-admin-context-rail" data-rmc-rail="1" data-rmc-admin-context-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+  <div class="rmc-rail-card">
+    <div class="rmc-rail-h">{% if is_manager_host %}{% trans "Operator boundary" %}{% else %}{% trans "Tenant boundary" %}{% endif %}</div>
+    <div class="rmc-rail-b">
+      <div class="rmc-rail-scope">
+        {% if is_manager_host %}
+          <strong>{% trans "Platform backoffice" %}</strong>
+          <span>{% trans "Global/operator records only. Tenant actions must use tenant-scoped surfaces." %}</span>
+        {% else %}
+          <strong>{% firstof SITE.site_name _("Tenant backend") %}</strong>
+          <span>{% trans "School configuration stays tenant-scoped. Operator-only routes must not appear here." %}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 <div class="rmc-rail-card">
     <div class="rmc-rail-h">{% trans "On this page" %}</div>
     <div class="rmc-rail-b">

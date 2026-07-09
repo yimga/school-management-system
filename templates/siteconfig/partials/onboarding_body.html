@@ -1,6 +1,6 @@
 {% load i18n static %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container py-3" style="max-width: 56rem;" data-page-archetype="operator-report" data-shell-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-page="1" data-apple-class-migration-ux="1">
+<div class="container-fluid py-3 cp-evidence-page rmc-command-workspace" data-rmc-command-workspace="school-activation-onboarding" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="school-activation-onboarding" data-cp-evidence-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-page="1" data-apple-class-migration-ux="1">
   <h1 class="h3 mb-2">{% trans "School activation checklist" %}</h1>
   <p class="text-muted small mb-3">{% trans "Items below come from this tenant’s data. Links open real setup or evidence pages—no automated completion without underlying records." %}</p>
   <p class="small mb-3"><a href="{% url 'school_studio' %}" class="fw-medium" data-rmc-tenant-studio-launch-path="1">{% trans "Open School Studio launch hub" %}</a></p>

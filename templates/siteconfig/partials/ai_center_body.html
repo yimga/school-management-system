@@ -1,13 +1,14 @@
 {% load i18n static %}
-{% url 'manager_support_request' as ai_escalate_url %}
+{% url 'manager_support_request' as ai_escalate_url %}{# operator-link-allow: escalation-url captured to a var, rendered only in the control-plane branch of this shared AI-center partial #}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div
-  class="{% if ai_center_shell == 'control-plane' %}container-fluid py-2{% else %}container py-3{% endif %}"
+  class="container-fluid {% if ai_center_shell == 'control-plane' %}py-2{% else %}py-3{% endif %} cp-evidence-page rmc-command-workspace"
+  data-rmc-command-workspace="ai-center"
   data-page-archetype="ai-center"
   data-shell-surface="ai-center"
+  data-cp-evidence-surface="ai-center"
   data-rmc-page-fold-nav="required"
   data-rmc-section-nav="off"
-  {% if ai_center_shell != 'control-plane' %}style="max-width: 64rem;"{% endif %}
 >
   <header class="mb-3">
     <h1 class="{% if ai_center_shell == 'control-plane' %}h4{% else %}h3{% endif %} mb-1">{% trans "AI Center" %}</h1>

@@ -1,0 +1,224 @@
+{
+  "category_counts": {},
+  "closed_items": [
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/accounts/email/legacy_setup_link.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/accounts/notification_preferences.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/accounts/partials/workflow_center_main.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/accounts/profile.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/admin/index.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/bulk_letters.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/feature_control_panel_content.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/installed_packages_rollback.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/installed_packages_rollback.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/academic_years_setup_evidence_body.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/partials/ai_center_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/ai_governance_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/billing_plan_readonly_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/departments_setup_evidence_body.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/partials/guided_configuration_workflows_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/siteconfig/partials/mock_reportcard_preview.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/partials/onboarding_body.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/partials/onboarding_step_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/report_output_history_evidence_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/report_templates_catalog_evidence_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/scheduled_reports_delivery_hub_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/tenant_report_schedules_evidence_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/tenant_runtime_configuration_hub_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/partials/term_publish_status_evidence_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/siteconfig/partials/theme_colors_page_body.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/siteconfig/public_status.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/siteconfig/public_status_history.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "ACCEPTED_READABILITY_MEASURE",
+      "evidence": "not a Studio/configuration workbench surface",
+      "path": "templates/siteconfig/school_group_hierarchy.html"
+    },
+    {
+      "category": "narrow_surface",
+      "decision": "CLOSED_BY_EVIDENCE_SURFACE_CSS",
+      "evidence": "tenant-command-workspace.css forces evidence surfaces full width",
+      "path": "templates/siteconfig/sync_center.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/tenant_launch_fast_path.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/tenant_lifecycle_command_center.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/tenant_provisioning_status.html"
+    },
+    {
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
+      "path": "templates/siteconfig/tenant_studio_hub.html"
+    },
+    {
+      "category": "space_intelligence",
+      "decision": "CLOSED_BY_SHARED_STUDIO_WORKSPACE",
+      "evidence": "workspace_layout.html includes context drawer fallback",
+      "path": "templates/studio_os/partials/studio_experience_mode_body.html"
+    }
+  ],
+  "contracts": {
+    "command_workspace_full_width": true,
+    "evidence_surface_full_width": true,
+    "studio_context_drawer": true
+  },
+  "finding_count": 0,
+  "findings": [],
+  "scanned_files": 936,
+  "severity_counts": {}
+}

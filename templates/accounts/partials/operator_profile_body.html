@@ -16,9 +16,11 @@
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}">
         <i class="bi bi-sliders me-1" aria-hidden="true"></i>{% trans "Preferences" %}
       </a>
+      {% if request.public_host_kind == 'manager' %}
       <a class="btn btn-sm btn-primary" href="{% url 'super:dashboard' %}">
         <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i>{% trans "Control plane" %}
       </a>
+      {% endif %}
     </div>
   </div>
 
