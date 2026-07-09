@@ -343,13 +343,15 @@
    inspector. The legacy inline preview/form stack is suppressed inside Studio
    so the page cannot recreate the narrow, overlapping layout. */
 .studio-os--mode-experience .rmc-studio-experience-canvas-clamp,
-[data-rmc-studio-mode="experience"] .rmc-studio-experience-canvas-clamp {
+[data-rmc-studio-mode="experience"] .rmc-studio-experience-canvas-clamp,
+[data-studio-workspace-mode="experience"] .rmc-studio-experience-canvas-clamp {
   width: 100%;
   max-width: none;
 }
 
 .studio-os--mode-experience .theme-experience-grid,
-[data-rmc-studio-mode="experience"] .theme-experience-grid {
+[data-rmc-studio-mode="experience"] .theme-experience-grid,
+[data-studio-workspace-mode="experience"] .theme-experience-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(24rem, 0.85fr);
   gap: var(--studio-gap, 1rem);
@@ -357,7 +359,9 @@
 }
 
 .studio-os--mode-experience .theme-experience-preview-wrap,
-[data-rmc-studio-mode="experience"] .theme-experience-preview-wrap {
+[data-rmc-studio-mode="experience"] .theme-experience-preview-wrap,
+[data-studio-workspace-mode="experience"] .theme-experience-preview-wrap,
+[data-studio-workspace-mode="experience"] [data-rmc-theme-content-surface="studio_experience"] .theme-preview-section {
   display: none !important;
 }
 
@@ -366,13 +370,17 @@
 .studio-os--mode-experience .theme-experience-main,
 [data-rmc-studio-mode="experience"] .theme-experience-left,
 [data-rmc-studio-mode="experience"] .theme-experience-right,
-[data-rmc-studio-mode="experience"] .theme-experience-main {
+[data-rmc-studio-mode="experience"] .theme-experience-main,
+[data-studio-workspace-mode="experience"] .theme-experience-left,
+[data-studio-workspace-mode="experience"] .theme-experience-right,
+[data-studio-workspace-mode="experience"] .theme-experience-main {
   min-width: 0;
   max-width: none;
 }
 
 .studio-os--mode-experience .theme-experience-left,
-[data-rmc-studio-mode="experience"] .theme-experience-left {
+[data-rmc-studio-mode="experience"] .theme-experience-left,
+[data-studio-workspace-mode="experience"] .theme-experience-left {
   position: sticky;
   top: 0.75rem;
   align-self: start;
@@ -382,14 +390,16 @@
 }
 
 .studio-os--mode-experience .theme-experience-form-body,
-[data-rmc-studio-mode="experience"] .theme-experience-form-body {
+[data-rmc-studio-mode="experience"] .theme-experience-form-body,
+[data-studio-workspace-mode="experience"] .theme-experience-form-body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
   gap: 0.75rem;
 }
 
 .studio-os--mode-experience .rmc-studio-experience-preview,
-[data-rmc-studio-mode="experience"] .rmc-studio-experience-preview {
+[data-rmc-studio-mode="experience"] .rmc-studio-experience-preview,
+[data-studio-workspace-mode="experience"] .rmc-studio-experience-preview {
   display: flex;
   flex-direction: column;
   min-height: clamp(38rem, 74vh, 66rem);
@@ -398,19 +408,55 @@
 .studio-os--mode-experience .rmc-studio-experience-preview__frame,
 .studio-os--mode-experience .rmc-live-preview-contract__frame,
 [data-rmc-studio-mode="experience"] .rmc-studio-experience-preview__frame,
-[data-rmc-studio-mode="experience"] .rmc-live-preview-contract__frame {
+[data-rmc-studio-mode="experience"] .rmc-live-preview-contract__frame,
+[data-studio-workspace-mode="experience"] .rmc-studio-experience-preview__frame,
+[data-studio-workspace-mode="experience"] .rmc-live-preview-contract__frame {
   flex: 1 1 auto;
   min-height: clamp(36rem, 72vh, 64rem);
 }
 
+[data-studio-workspace-mode="experience"] [data-rmc-theme-content-surface="studio_experience"] {
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+[data-studio-workspace-mode="experience"] [data-rmc-theme-content-surface="studio_experience"] > .row {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.62fr) minmax(0, 1.38fr);
+  gap: clamp(0.75rem, 1.2vw, 1.1rem);
+  margin-inline: 0;
+  align-items: start;
+}
+
+[data-studio-workspace-mode="experience"] [data-rmc-theme-content-surface="studio_experience"] > .row > [class*="col-"] {
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  padding-inline: 0;
+}
+
+[data-studio-workspace-mode="experience"] [data-rmc-theme-content-surface="studio_experience"] .card {
+  min-width: 0;
+  overflow: clip;
+}
+
+[data-studio-workspace-mode="experience"] [data-rmc-theme-content-surface="studio_experience"] :is(input, select, textarea, button, .btn) {
+  max-width: 100%;
+}
+
 @media (max-width: 1399.98px) {
   .studio-os--mode-experience .theme-experience-grid,
-  [data-rmc-studio-mode="experience"] .theme-experience-grid {
+  [data-rmc-studio-mode="experience"] .theme-experience-grid,
+  [data-studio-workspace-mode="experience"] .theme-experience-grid,
+  [data-studio-workspace-mode="experience"] [data-rmc-theme-content-surface="studio_experience"] > .row {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .studio-os--mode-experience .theme-experience-left,
-  [data-rmc-studio-mode="experience"] .theme-experience-left {
+  [data-rmc-studio-mode="experience"] .theme-experience-left,
+  [data-studio-workspace-mode="experience"] .theme-experience-left {
     position: static;
     max-height: none;
   }

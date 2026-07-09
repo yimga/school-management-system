@@ -14,12 +14,6 @@
       "path": "templates/accounts/email/legacy_setup_link.html"
     },
     {
-      "category": "narrow_surface",
-      "decision": "ACCEPTED_READABILITY_MEASURE",
-      "evidence": "not a Studio/configuration workbench surface",
-      "path": "templates/accounts/notification_preferences.html"
-    },
-    {
       "category": "full_width",
       "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
       "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
@@ -152,9 +146,9 @@
       "path": "templates/siteconfig/partials/term_publish_status_evidence_body.html"
     },
     {
-      "category": "narrow_surface",
-      "decision": "ACCEPTED_READABILITY_MEASURE",
-      "evidence": "not a Studio/configuration workbench surface",
+      "category": "full_width",
+      "decision": "CLOSED_BY_COMMAND_WORKSPACE_CSS",
+      "evidence": "tenant-command-workspace.css removes container max-width and max-inline-size",
       "path": "templates/siteconfig/partials/theme_colors_page_body.html"
     },
     {
@@ -168,12 +162,6 @@
       "decision": "ACCEPTED_READABILITY_MEASURE",
       "evidence": "not a Studio/configuration workbench surface",
       "path": "templates/siteconfig/public_status_history.html"
-    },
-    {
-      "category": "narrow_surface",
-      "decision": "ACCEPTED_READABILITY_MEASURE",
-      "evidence": "not a Studio/configuration workbench surface",
-      "path": "templates/siteconfig/school_group_hierarchy.html"
     },
     {
       "category": "narrow_surface",
@@ -213,9 +201,14 @@
     }
   ],
   "contracts": {
+    "admin_dual_host_full_width": true,
     "command_workspace_full_width": true,
     "evidence_surface_full_width": true,
-    "studio_context_drawer": true
+    "offline_enqueue_school_idempotency": true,
+    "studio_context_drawer": true,
+    "studio_experience_dual_selector": true,
+    "studio_experience_inline_preview_suppressed": true,
+    "studio_workspace_mode_marker": true
   },
   "finding_count": 0,
   "findings": [],

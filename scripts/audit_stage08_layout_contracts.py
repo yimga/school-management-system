@@ -86,6 +86,12 @@ def has_host_guard(text: str, index: int) -> bool:
 def shared_contracts() -> dict[str, bool]:
     workspace_css = read(ROOT / "static" / "css" / "tenant-command-workspace.css")
     studio_css = read(ROOT / "static" / "css" / "studio-workspace.css")
+    studio_experience_css = read(ROOT / "static" / "css" / "studio-experience-mode.css")
+    admin_css = read(ROOT / "static" / "css" / "rmc-admin-workspace-10x.css")
+    workspace_template = read(ROOT / "templates" / "studio_os" / "components" / "workspace_layout.html")
+    experience_canvas = read(ROOT / "templates" / "studio_os" / "partials" / "workspace" / "experience_inpage_canvas.html")
+    theme_content = read(ROOT / "templates" / "siteconfig" / "partials" / "theme_colors_content.html")
+    offline_queue = read(ROOT / "apps" / "platform_runtime" / "offline_queue.py")
     return {
         "command_workspace_full_width": (
             "[data-rmc-command-workspace].container" in workspace_css
@@ -98,6 +104,25 @@ def shared_contracts() -> dict[str, bool]:
             and "max-inline-size: none !important" in workspace_css
         ),
         "studio_context_drawer": "rmc-studio-workspace__context-drawer" in studio_css,
+        "studio_workspace_mode_marker": 'data-rmc-studio-mode="{{ workspace_mode }}"' in workspace_template,
+        "studio_experience_inline_preview_suppressed": (
+            "suppress_theme_inline_preview=1" in experience_canvas
+            and "not suppress_theme_inline_preview" in theme_content
+            and 'data-rmc-theme-content-surface="{{ theme_content_surface' in theme_content
+        ),
+        "studio_experience_dual_selector": (
+            '[data-rmc-studio-mode="experience"]' in studio_experience_css
+            and '[data-studio-workspace-mode="experience"]' in studio_experience_css
+        ),
+        "admin_dual_host_full_width": (
+            "body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list" in admin_css
+            and "width: max-content !important" in admin_css
+            and "min-width: 100% !important" in admin_css
+        ),
+        "offline_enqueue_school_idempotency": (
+            "except IntegrityError" in offline_queue
+            and "OfflineAction.objects.filter(\n                school_id=school_id,\n                idempotency_key=key," in offline_queue
+        ),
     }
 
 
@@ -299,6 +324,17 @@ def main() -> int:
     contracts = shared_contracts()
     findings: list[Finding] = []
     closed_items: list[ClosedItem] = []
+    for name, ok in contracts.items():
+        if not ok:
+            findings.append(
+                Finding(
+                    "shared_contracts",
+                    "deployment_contract",
+                    "blocking",
+                    "Required Stage 08 deployment contract is not satisfied.",
+                    name,
+                )
+            )
     for path in files:
         file_findings, file_closed = scan_file(path, contracts)
         findings.extend(file_findings)

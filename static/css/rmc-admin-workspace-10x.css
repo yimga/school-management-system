@@ -430,3 +430,122 @@ body:is(.admin-manager-shell, .admin-premium-shell) .rmc-preview-iframe {
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(2, 6, 23, 0.4);
 }
+
+/* Stage 08 hardening: Django admin pages must use the available shell canvas on
+   both operator and tenant hosts. This block intentionally sits last so older
+   Unfold/Admin table and form constraints cannot recreate a narrow left column. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) :is(
+  .rmc-app-shell__canvas,
+  .rmc-app-shell__canvas-body,
+  .cp-admin-page-body,
+  #cp-main-content,
+  #content,
+  #content-main
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) :is(
+  #cp-main-content > .container,
+  #cp-main-content > .container-fluid,
+  #content > .container,
+  #content > .container-fluid
+) {
+  width: 100% !important;
+  max-width: none !important;
+  padding-inline: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list :is(
+  #changelist,
+  .result-list-wrapper,
+  .changelist-form-container,
+  .rmc-admin-changelist-main,
+  .results
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .result-list-wrapper,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .changelist-form-container {
+  display: flex !important;
+  flex: 1 1 100% !important;
+  gap: clamp(0.75rem, 1vw, 1.25rem) !important;
+  align-items: flex-start;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .rmc-admin-changelist-main {
+  flex: 1 1 auto !important;
+  overflow: hidden;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list :is(#changelist-filter, [data-change-list-filter]) {
+  flex: 0 0 clamp(14rem, 18vw, 21rem);
+  max-width: clamp(14rem, 18vw, 21rem);
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results {
+  display: block !important;
+  overflow-x: auto !important;
+  overflow-y: visible;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list {
+  display: table !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  table-layout: auto !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list :is(th, td) {
+  max-width: clamp(10rem, 18vw, 24rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list :is(.paginator, .actions, .toolbar) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  fieldset,
+  .module,
+  .form-row,
+  .aligned,
+  .inline-group
+) {
+  width: 100% !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea,
+  .related-widget-wrapper
+) {
+  width: 100%;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)) !important;
+}
+
+@media (max-width: 1079.98px) {
+  body:is(.admin-manager-shell, .admin-premium-shell).change-list .result-list-wrapper,
+  body:is(.admin-manager-shell, .admin-premium-shell).change-list .changelist-form-container {
+    flex-direction: column;
+  }
+
+  body:is(.admin-manager-shell, .admin-premium-shell).change-list :is(#changelist-filter, [data-change-list-filter]) {
+    flex-basis: auto;
+    max-width: none;
+    width: 100%;
+  }
+}

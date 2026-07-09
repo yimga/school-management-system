@@ -218,7 +218,7 @@ def enqueue_offline_action(
     idempotency_key: str = "",
 ):
     """
-    Persist one offline unit of work. Idempotent when ``idempotency_key`` is non-empty (per school+user+key).
+    Persist one offline unit of work. Idempotent when ``idempotency_key`` is non-empty (per school+key).
     """
     from apps.platform_runtime.models import OfflineAction
 
@@ -226,20 +226,30 @@ def enqueue_offline_action(
     if key:
         existing = OfflineAction.objects.filter(
             school_id=school_id,
-            user_id=user_id,
             idempotency_key=key,
         ).first()
         if existing:
             return existing
 
-    row = OfflineAction.objects.create(
-        user_id=user_id,
-        school_id=school_id,
-        action_type=action_type,
-        payload=payload or {},
-        idempotency_key=key,
-        status=OfflineAction.Status.QUEUED,
-    )
+    try:
+        with transaction.atomic():
+            row = OfflineAction.objects.create(
+                user_id=user_id,
+                school_id=school_id,
+                action_type=action_type,
+                payload=payload or {},
+                idempotency_key=key,
+                status=OfflineAction.Status.QUEUED,
+            )
+    except IntegrityError:
+        if key:
+            existing = OfflineAction.objects.filter(
+                school_id=school_id,
+                idempotency_key=key,
+            ).first()
+            if existing:
+                return existing
+        raise
     _emit_offline_lifecycle_event(
         "offline_action_queued",
         row,

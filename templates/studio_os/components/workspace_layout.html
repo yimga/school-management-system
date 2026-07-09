@@ -19,6 +19,7 @@ Output (mobile tabs):
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-studio-workspace rmc-studio-workspace--{{ workspace_mode }}{% if workspace_three_col %} rmc-studio-workspace--three-col{% elif workspace_two_col %} rmc-studio-workspace--two-col{% endif %}"
      data-studio-workspace-mode="{{ workspace_mode }}"
+     data-rmc-studio-mode="{{ workspace_mode }}"
      data-rmc-studio-workspace="1">
   {% if workspace_rail_template %}
   <nav class="rmc-studio-workspace__rail studio-os__{{ workspace_mode }}-rail flex-shrink-0 mb-2 mb-lg-0{% if workspace_rail_hide_mobile %} d-none d-lg-block{% endif %}"

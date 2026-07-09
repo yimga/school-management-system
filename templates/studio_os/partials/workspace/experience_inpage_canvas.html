@@ -8,5 +8,5 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-studio-experience-canvas-clamp" data-rmc-studio-experience-canvas="inpage">
   {% include "studio_os/partials/experience_live_preview_pane.html" %}
-  {% include "siteconfig/partials/theme_colors_content.html" %}
+  {% include "siteconfig/partials/theme_colors_content.html" with suppress_theme_inline_preview=1 theme_content_surface="studio_experience" %}
 </div>

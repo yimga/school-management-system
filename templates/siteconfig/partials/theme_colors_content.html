@@ -1,7 +1,7 @@
 {% load i18n static %}
 {% comment %} Theme & Experience content for Studio OS or standalone theme_colors page. Expects: form, site_settings, preview_mode_active, theme_contrast_report, theme_recent_change_meta, theme_publish_guarded_count, admin_theme_packs, admin_theme_packs_by_group, back_url, etc. {% endcomment %}
 {% include "admin/components/theme_preview_assets.html" %}
-<form method="post" action="{% url 'siteconfig:theme_colors' %}{% if back_url %}?next={{ back_url|urlencode }}{% endif %}" id="theme-colors-form">
+<form method="post" action="{% url 'siteconfig:theme_colors' %}{% if back_url %}?next={{ back_url|urlencode }}{% endif %}" id="theme-colors-form" data-rmc-theme-content-surface="{{ theme_content_surface|default:'standalone' }}">
   {% csrf_token %}
   <input type="hidden" name="preview_confirmed" id="theme-preview-confirmed" value="0">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -14,7 +14,9 @@
   </div>
   <div class="row g-2">
     <div class="col-md-5">
+      {% if not suppress_theme_inline_preview %}
       {% include "admin/components/theme_preview_section.html" %}
+      {% endif %}
       {% include "admin/components/color_palette_studio.html" %}
       {% include "admin/components/admin_dashboard_palette_selector.html" %}
     </div>

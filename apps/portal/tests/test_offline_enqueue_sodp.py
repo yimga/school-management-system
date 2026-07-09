@@ -36,6 +36,16 @@ class OfflineEnqueueSodpTests(TestCase):
             school=self.school,
             defaults={"role": self.teacher.role, "is_primary": True},
         )
+        self.second_teacher = User.objects.create_user(
+            username=f"sodp_t2_{uid}",
+            password="pass-test",
+            role=User.Role.TEACHER,
+        )
+        SchoolMembership.objects.get_or_create(
+            user=self.second_teacher,
+            school=self.school,
+            defaults={"role": self.second_teacher.role, "is_primary": False},
+        )
 
     def _post(self, payload: dict, *, user=None, school=None):
         request = self.factory.post(
@@ -102,3 +112,20 @@ class OfflineEnqueueSodpTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = json.loads(resp.content)
         self.assertTrue(body.get("ok"))
+
+    def test_duplicate_idempotency_returns_existing_school_row(self):
+        payload = {
+            "action_type": OfflineActionType.PROVISIONAL_SIGNUP,
+            "payload": {"device_id": "field-tablet-shared"},
+            "idempotency_key": "provision-field-tablet-shared",
+        }
+        first = self._post(payload, user=self.teacher)
+        second = self._post(payload, user=self.second_teacher)
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 200)
+        first_body = json.loads(first.content)
+        second_body = json.loads(second.content)
+        self.assertTrue(first_body.get("ok"))
+        self.assertTrue(second_body.get("ok"))
+        self.assertEqual(first_body.get("id"), second_body.get("id"))

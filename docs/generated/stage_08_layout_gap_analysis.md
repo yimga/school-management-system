@@ -4,13 +4,18 @@
 - Findings: 0
 - Severity counts: {}
 - Category counts: {}
-- Closed by contract/decision: 35
+- Closed by contract/decision: 33
 
 ## Contracts
 
 - `command_workspace_full_width`: True
 - `evidence_surface_full_width`: True
 - `studio_context_drawer`: True
+- `studio_workspace_mode_marker`: True
+- `studio_experience_inline_preview_suppressed`: True
+- `studio_experience_dual_selector`: True
+- `admin_dual_host_full_width`: True
+- `offline_enqueue_school_idempotency`: True
 
 ## Findings
 
@@ -20,7 +25,6 @@
 
 - **ACCEPTED_READABILITY_MEASURE** `narrow_surface` `templates/accounts/backend_dashboard.html` - not a Studio/configuration workbench surface
 - **ACCEPTED_READABILITY_MEASURE** `narrow_surface` `templates/accounts/email/legacy_setup_link.html` - not a Studio/configuration workbench surface
-- **ACCEPTED_READABILITY_MEASURE** `narrow_surface` `templates/accounts/notification_preferences.html` - not a Studio/configuration workbench surface
 - **CLOSED_BY_COMMAND_WORKSPACE_CSS** `full_width` `templates/accounts/partials/workflow_center_main.html` - tenant-command-workspace.css removes container max-width and max-inline-size
 - **ACCEPTED_READABILITY_MEASURE** `narrow_surface` `templates/accounts/profile.html` - not a Studio/configuration workbench surface
 - **ACCEPTED_READABILITY_MEASURE** `narrow_surface` `templates/admin/index.html` - not a Studio/configuration workbench surface
@@ -43,10 +47,9 @@
 - **CLOSED_BY_EVIDENCE_SURFACE_CSS** `narrow_surface` `templates/siteconfig/partials/tenant_report_schedules_evidence_body.html` - tenant-command-workspace.css forces evidence surfaces full width
 - **CLOSED_BY_EVIDENCE_SURFACE_CSS** `narrow_surface` `templates/siteconfig/partials/tenant_runtime_configuration_hub_body.html` - tenant-command-workspace.css forces evidence surfaces full width
 - **CLOSED_BY_EVIDENCE_SURFACE_CSS** `narrow_surface` `templates/siteconfig/partials/term_publish_status_evidence_body.html` - tenant-command-workspace.css forces evidence surfaces full width
-- **ACCEPTED_READABILITY_MEASURE** `narrow_surface` `templates/siteconfig/partials/theme_colors_page_body.html` - not a Studio/configuration workbench surface
+- **CLOSED_BY_COMMAND_WORKSPACE_CSS** `full_width` `templates/siteconfig/partials/theme_colors_page_body.html` - tenant-command-workspace.css removes container max-width and max-inline-size
 - **ACCEPTED_READABILITY_MEASURE** `narrow_surface` `templates/siteconfig/public_status.html` - not a Studio/configuration workbench surface
 - **ACCEPTED_READABILITY_MEASURE** `narrow_surface` `templates/siteconfig/public_status_history.html` - not a Studio/configuration workbench surface
-- **ACCEPTED_READABILITY_MEASURE** `narrow_surface` `templates/siteconfig/school_group_hierarchy.html` - not a Studio/configuration workbench surface
 - **CLOSED_BY_EVIDENCE_SURFACE_CSS** `narrow_surface` `templates/siteconfig/sync_center.html` - tenant-command-workspace.css forces evidence surfaces full width
 - **CLOSED_BY_COMMAND_WORKSPACE_CSS** `full_width` `templates/siteconfig/tenant_launch_fast_path.html` - tenant-command-workspace.css removes container max-width and max-inline-size
 - **CLOSED_BY_COMMAND_WORKSPACE_CSS** `full_width` `templates/siteconfig/tenant_lifecycle_command_center.html` - tenant-command-workspace.css removes container max-width and max-inline-size

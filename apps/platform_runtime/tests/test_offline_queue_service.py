@@ -36,6 +36,7 @@ class OfflineQueueCoreTests(TestCase):
             is_active=True,
         )
         cls.user = User.objects.create_user(username="off_u1", password="x" * 8)
+        cls.user_2 = User.objects.create_user(username="off_u2", password="x" * 8)
 
     def test_enqueue_creates_row(self):
         row = enqueue_offline_action(
@@ -65,6 +66,31 @@ class OfflineQueueCoreTests(TestCase):
             idempotency_key=key,
         )
         self.assertEqual(r1.pk, r2.pk)
+
+    def test_idempotency_same_school_different_user_matches_constraint(self):
+        key = "idem-school-" + str(uuid.uuid4())
+        r1 = enqueue_offline_action(
+            user_id=self.user.id,
+            school_id=self.school_a.id,
+            action_type=OfflineAction.ActionType.NOTES_REPORT,
+            payload={"body": "a"},
+            idempotency_key=key,
+        )
+        r2 = enqueue_offline_action(
+            user_id=self.user_2.id,
+            school_id=self.school_a.id,
+            action_type=OfflineAction.ActionType.NOTES_REPORT,
+            payload={"body": "b"},
+            idempotency_key=key,
+        )
+        self.assertEqual(r1.pk, r2.pk)
+        self.assertEqual(
+            OfflineAction.objects.filter(
+                school_id=self.school_a.id,
+                idempotency_key=key,
+            ).count(),
+            1,
+        )
 
     def test_process_notes_report_syncs(self):
         enqueue_offline_action(
