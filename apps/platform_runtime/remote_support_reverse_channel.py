@@ -179,7 +179,7 @@ def config_version_for(school) -> str:
             get_platform_site_settings_record,
         )
 
-        site_settings = get_platform_site_settings_record(create=False)
+        site_settings = get_platform_site_settings_record(create=False)  # config-resolver-allow: reads the platform singleton updated_at for the support-channel cache signature
         ss_updated = getattr(site_settings, "updated_at", None) if site_settings else None
         parts.append(ss_updated.isoformat() if ss_updated else "")
     except Exception:  # noqa: BLE001

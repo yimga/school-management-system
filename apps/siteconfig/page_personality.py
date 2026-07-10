@@ -295,7 +295,7 @@ def _resolve_site_settings(request):
         site = get_effective_site_settings(request=request)
         if site is not None and getattr(site, "pk", None) is not None:
             return site
-        return get_platform_site_settings_record(create=False)
+        return get_platform_site_settings_record(create=False)  # config-resolver-allow: singleton fallback returned as the SITE namespace object (matches the resolver-line marker above)
     except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
         pass
     return None

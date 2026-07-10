@@ -52,7 +52,7 @@ def _resolve_site_settings_instance(request: HttpRequest) -> Any:
         site = get_effective_site_settings(request=request)
         if site is not None and getattr(site, "pk", None) is not None:
             return site
-        return get_platform_site_settings_record(create=True)
+        return get_platform_site_settings_record(create=True)  # config-resolver-allow: singleton fallback returned as the CockpitPayloadForm instance the operator edits and saves
     except Exception:
         # Defensive — never let resolver errors crash the operator UI;
         # fall through to the singleton path.
