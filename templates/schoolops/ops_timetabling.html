@@ -9,18 +9,24 @@
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Timetabling" %} — {{ school.name }}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
-  <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
-  <p class="small text-muted">{% trans "Draft and published master schedules. Generate or validate via API (scheduler) from integrations." %}</p>
-  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+    <p class="mb-0"><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
+    <form method="post" action="{% url 'academics:timetable_generate' %}" class="mb-0">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary btn-sm">{% trans "Generate timetable" %}</button>
+    </form>
+  </div>
+  <p class="small text-muted">{% trans "Draft and published master schedules. Generate a conflict-free draft, review clashes, then publish — teachers only ever see the published schedule." %}</p>
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
     <caption class="visually-hidden">{% trans "Timetabling" %} — {{ school.name }}</caption>
-    <thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Year" %}</th><th scope="col">{% trans_term "Term" key="term" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Generated" %}</th></tr></thead>
+    <thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Year" %}</th><th scope="col">{% trans_term "Term" key="term" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Generated" %}</th><th scope="col">{% trans "Actions" %}</th></tr></thead>
     <tbody>
       {% for s in schedules %}
-      <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ s.name }}" data-rmc-row-subtitle="{{ s.status }}"><td>{{ s.name }}</td><td>{{ s.academic_year.name }}</td><td>{{ s.term.name }}</td><td>{{ s.status }}</td><td>{{ s.generated_at|date:"Y-m-d H:i" }}</td></tr>
-      {% empty %}<tr><td colspan="5" class="rmc-empty-state rmc-empty-state--row">
+      <tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ s.name }}" data-rmc-row-subtitle="{{ s.status }}"><td>{{ s.name }}</td><td>{{ s.academic_year.name }}</td><td>{{ s.term.name }}</td><td>{{ s.status }}</td><td>{{ s.generated_at|date:"Y-m-d H:i" }}</td><td><a href="{% url 'academics:timetable_review' s.id %}" class="small">{% trans "Review / publish" %}</a></td></tr>
+      {% empty %}<tr><td colspan="6" class="rmc-empty-state rmc-empty-state--row">
         <i class="bi bi-calendar3-week rmc-empty-state__icon" aria-hidden="true"></i>
         <p class="rmc-empty-state__title">{% trans "No master schedules yet" %}</p>
-        <p class="rmc-empty-state__body">{% trans "Generate or validate a schedule via the scheduler API in Integrations to populate this list." %}</p>
+        <p class="rmc-empty-state__body">{% trans "Use “Generate timetable” to build a conflict-free draft you can review and publish." %}</p>
       </td></tr>{% endfor %}
     </tbody>
   </table>

@@ -1219,7 +1219,13 @@ class SchedulerGenerateView(View):
 # GET /api/v1/scheduler/validate  -> conflict check
 # ---------------------------------------------------------------------------
 class SchedulerValidateView(View):
-    """GET /api/v1/scheduler/validate - Real-time conflict check (schedule_id or teacher_id/room_id/time_slot)."""
+    """GET /api/v1/scheduler/validate - Real-time conflict check for a persisted schedule.
+
+    Only the ``?schedule_id=`` path is implemented: it loads that schedule and
+    returns 409 with the detected teacher/room conflict list when clashes exist,
+    200 ``{"valid": true, "conflicts": []}`` when clean, 404 when the schedule is
+    unknown, and 400 when ``schedule_id`` is omitted.
+    """
 
     def get(self, request):
         if not getattr(request, "user", None) or not request.user.is_authenticated:

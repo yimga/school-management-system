@@ -210,7 +210,7 @@ def _persist_behavior_extras(
             entity_id=str(incident_pk)[:64],
             field_key="action_taken",
             defaults=filter_to_model_fields(
-                {"value_json": {"v": action_taken[:1024]}, "school": ctx.school},
+                {"value_json": {"v": action_taken[:1024]}, "school": ctx.school},  # magic-number-allow: defensive DFV value cap
                 DynamicFieldValue,
             ),
         )

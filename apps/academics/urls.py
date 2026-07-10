@@ -1,9 +1,6 @@
 from django.urls import path
 
-from django.views.generic import TemplateView
-
-from . import views_syllabus, views_workflow
-from .views_timetable_solver import TimetableBuildView
+from . import views_syllabus, views_timetable, views_workflow
 
 app_name = "academics"
 
@@ -13,16 +10,21 @@ urlpatterns = [
         views_workflow.WorkflowWizardView.as_view(),
         name="workflow_wizard",
     ),
-    # v4.00.13: timetable build (UI + POST endpoint).
+    # Real, persisting timetable flow: generate -> review clashes -> publish (Stack A).
     path(
-        "timetable/build/",
-        TimetableBuildView.as_view(),
-        name="timetable_build",
+        "timetable/generate/",
+        views_timetable.timetable_generate,
+        name="timetable_generate",
     ),
     path(
-        "timetable/build/ui/",
-        TemplateView.as_view(template_name="portal/timetable_build.html"),
-        name="timetable_build_ui",
+        "timetable/<int:schedule_id>/review/",
+        views_timetable.timetable_review,
+        name="timetable_review",
+    ),
+    path(
+        "timetable/<int:schedule_id>/publish/",
+        views_timetable.timetable_publish,
+        name="timetable_publish",
     ),
     # v4.00.13: CA-mark input UI for certification candidates.
     path(

@@ -855,7 +855,13 @@ def cahier_request_revisions(request: HttpRequest, entry_id: int):
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_timetable(request: HttpRequest):
-    """Show the logged-in teacher's timetable from published schedule (current term)."""
+    """Show the logged-in teacher's timetable from the PUBLISHED schedule (current term).
+
+    Teachers only ever see a PUBLISHED master schedule — never a DRAFT. A draft
+    can contain unresolved clashes and is still under review, so falling back to
+    "latest draft" would leak an unpublished, possibly-conflicting timetable to
+    teachers. When nothing is published, show the empty state.
+    """
     year, term = get_active_year_and_term()
     schedule = None
     entries = []
@@ -865,12 +871,6 @@ def teacher_timetable(request: HttpRequest):
             .order_by("-published_at")
             .first()
         )
-        if not schedule:
-            schedule = (
-                Schedule.objects.filter(academic_year=year, term=term)
-                .order_by("-generated_at")
-                .first()
-            )
         if schedule:
             entries = (
                 ScheduleEntry.objects.filter(

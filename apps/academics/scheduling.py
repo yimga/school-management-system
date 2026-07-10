@@ -395,11 +395,11 @@ class TimetableGenerator:
         4. Allocate rooms based on capacity and availability
         5. Validate no conflicts
         """
-        from apps.academics.models import Classroom, Subject
+        from apps.academics.models import SubjectAssignment
 
         self.load_constraints()
 
-        # Create schedule
+        # Create schedule (DRAFT — review + publish happen downstream).
         schedule = Schedule.objects.create(
             name=f"{self.term.name} Schedule",
             academic_year=self.academic_year,
@@ -408,57 +408,102 @@ class TimetableGenerator:
             created_by=created_by,
         )
 
-        # Get all active classrooms for this term
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        classrooms = Classroom.objects.filter(academic_year=self.academic_year)
-
-        # Get all active time slots
-        time_slots = TimeSlot.objects.filter(is_active=True).order_by(
-            "day_of_week", "start_time"
+        # Active time slots, ordered so placement is deterministic.
+        time_slots = list(
+            TimeSlot.objects.filter(is_active=True).order_by(
+                "day_of_week", "start_time"
+            )
         )
 
-        # For each classroom, assign subjects to time slots
-        for classroom in classrooms:
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            # Get subjects for this classroom
-            subjects = Subject.objects.filter(classroom=classroom)
+        # Demands come from the real academic structure: one (classroom, subject,
+        # teacher) per SubjectAssignment for this (year, term). The Subject model
+        # carries no classroom/teacher FK — those live on SubjectAssignment /
+        # TeacherAssignment — so the generator resolves them here, mirroring the
+        # CP-SAT sibling in ``scheduling_solver._solve_with_ortools``.
+        # tenant-isolation-allow: scoped via academic_year + term FKs (both tenant-bound)
+        subject_assignments = (
+            SubjectAssignment.objects.filter(
+                academic_year=self.academic_year, term=self.term
+            )
+            .select_related("classroom", "subject")
+            .prefetch_related("teachers")
+        )
 
-            for subject in subjects:
-                # Get assigned teacher
-                teacher = subject.teacher
+        for sa in subject_assignments:
+            classroom = sa.classroom
+            subject = sa.subject
+            teacher = self._resolve_assignment_teacher(sa)
+            if teacher is None:
+                # Nobody to teach it — cannot book a class with no teacher.
+                continue
 
-                # Find suitable time slot
-                for time_slot in time_slots:
-                    # Check teacher availability
-                    if not self.check_teacher_availability(teacher, time_slot):
-                        continue
+            for time_slot in time_slots:
+                # Respect stated teacher availability.
+                if not self.check_teacher_availability(teacher, time_slot):
+                    continue
 
-                    # Check if teacher already has class at this time
-                    teacher_conflict = ScheduleEntry.objects.filter(
-                        schedule=schedule, teacher=teacher, time_slot=time_slot
-                    ).exists()
+                # Teacher already booked this slot in this draft?
+                teacher_conflict = ScheduleEntry.objects.filter(
+                    schedule=schedule,
+                    teacher=teacher,
+                    time_slot=time_slot,
+                    is_cancelled=False,
+                ).exists()
+                if teacher_conflict:
+                    continue
 
-                    if teacher_conflict:
-                        continue
+                # Cohort (classroom) already in another subject this slot? The DB
+                # partial-unique constraints cover teacher+room but NOT the cohort,
+                # so guard it here or evaluate_schedule reports a hard violation.
+                cohort_conflict = ScheduleEntry.objects.filter(
+                    schedule=schedule,
+                    classroom=classroom,
+                    time_slot=time_slot,
+                    is_cancelled=False,
+                ).exists()
+                if cohort_conflict:
+                    continue
 
-                    # Find suitable room
-                    room = self.find_suitable_room(
-                        classroom, subject, time_slot, schedule
+                # Find suitable room (schedule-scoped availability check).
+                room = self.find_suitable_room(
+                    classroom, subject, time_slot, schedule
+                )
+                if room:
+                    ScheduleEntry.objects.create(
+                        schedule=schedule,
+                        classroom=classroom,
+                        subject=subject,
+                        teacher=teacher,
+                        room=room,
+                        time_slot=time_slot,
                     )
-
-                    if room:
-                        # Create schedule entry
-                        ScheduleEntry.objects.create(
-                            schedule=schedule,
-                            classroom=classroom,
-                            subject=subject,
-                            teacher=teacher,
-                            room=room,
-                            time_slot=time_slot,
-                        )
-                        break  # Move to next subject
+                    break  # Move to next demand.
 
         return schedule
+
+    def _resolve_assignment_teacher(self, subject_assignment):
+        """Resolve the teaching ``User`` for a SubjectAssignment.
+
+        Prefers the canonical ``TeacherAssignment`` (evals) link — the same source
+        the CP-SAT solver uses — then falls back to the assignment's ``teachers``
+        M2M. Returns a ``User`` or ``None`` when no teacher is linked.
+        """
+        try:
+            from apps.evals.models import TeacherAssignment
+
+            ta = (
+                # tenant-isolation-allow: scoped-via-subject-assignment-fk-which-is-school-scoped
+                TeacherAssignment.objects.filter(
+                    subject_assignment=subject_assignment, is_active=True
+                )
+                .select_related("teacher__user")
+                .first()
+            )
+            if ta and ta.teacher and getattr(ta.teacher, "user", None):
+                return ta.teacher.user
+        except ImportError:
+            pass
+        return subject_assignment.teachers.first()
 
     def detect_conflicts(self, schedule) -> List[Dict]:
         """Detect scheduling conflicts"""
