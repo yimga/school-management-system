@@ -56,3 +56,9 @@
 </section>
 {% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
+{% comment %} FormDraftSave.init is called by the page script after the library loads. {% endcomment %}
+<script src="{% static 'js/_pages/parent__claim_invite.js' %}"></script>
+{% endblock %}
