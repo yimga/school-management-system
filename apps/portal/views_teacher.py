@@ -14,11 +14,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.db.models import Prefetch, Sum
+from django.db.models import Count, Max, Prefetch, Q, Sum
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 
-from apps.accounts.decorators import role_required, teacher_portal_required
+from apps.accounts.decorators import (
+    require_permission,
+    role_required,
+    teacher_portal_required,
+)
 from apps.accounts.models import User
 from apps.accounts.utils import get_user_role
 from apps.observability.tracing import trace_view
@@ -45,6 +49,7 @@ from apps.people.models import (
     TeacherAttendance,
 )
 from apps.platform_runtime.helpers import get_effective_flags
+from apps.schools.mixins import require_school
 from apps.portal.models import (
     LessonPlan,
     TeacherTrainingEntry,
@@ -1166,7 +1171,136 @@ def discipline_incidents_list(request: HttpRequest):
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     )
 
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+
+# Caseload inclusion window: a student with any incident in the last N days is
+# surfaced even if their highest MTSS tier is universal (Tier 1). Tier 2/3 and any
+# open (non-resolved) incident always qualify regardless of recency.
+CASELOAD_RECENT_DAYS = 30
+# Hard cap on caseload rows rendered (dashboards paginate; keeps queries bounded).
+CASELOAD_MAX_STUDENTS = 200
+
+
+@login_required
+@require_school
+@require_permission("discipline.manage")
+@require_http_methods(["GET"])
+def counselor_caseload(request: HttpRequest):
+    """MTSS counselor caseload — students who need attention, school-scoped.
+
+    Surfaces (per student, over the existing discipline models) the highest active
+    MTSS tier, incident count/recency, open incidents, parent-notification backlog,
+    the behavior-point ledger total, and the open restorative-intervention count.
+
+    Inclusion criteria (a student appears if ANY holds): highest MTSS tier is
+    Tier 2/3, OR an incident within ``CASELOAD_RECENT_DAYS``, OR an open
+    (non-resolved) incident.
+
+    RBAC: ``discipline.manage`` (DISCIPLINE_MASTER / CENSOR / bursar-style grants)
+    plus the tenant-admin tier and platform superusers (``require_permission``).
+    """
+    school = request.school  # guaranteed by @require_school
+    today = timezone.localdate()
+    recent_cutoff = today - timedelta(days=CASELOAD_RECENT_DAYS)
+    tier2, tier3 = Incident.MtssTier.TIER_2, Incident.MtssTier.TIER_3
+
+    # Per-student incident aggregates for THIS school only.
+    incident_aggs = (
+        Incident.objects.filter(school=school, student__isnull=False)
+        .values("student_id")
+        .annotate(
+            incident_count=Count("id"),
+            last_incident=Max("date"),
+            highest_tier=Max("mtss_tier"),
+            open_count=Count("id", filter=~Q(status=Incident.Status.RESOLVED)),
+            high_severity_count=Count(
+                "id", filter=Q(severity=Incident.Severity.HIGH)
+            ),
+            pending_notify=Count(
+                "id",
+                filter=Q(notify_parent=True, parent_notified_at__isnull=True),
+            ),
+        )
+        .filter(
+            Q(highest_tier__in=[tier2, tier3])
+            | Q(last_incident__gte=recent_cutoff)
+            | Q(open_count__gt=0)
+        )
+        .order_by("-highest_tier", "-last_incident")
+    )
+    rows = list(incident_aggs[:CASELOAD_MAX_STUDENTS])
+    student_ids = [r["student_id"] for r in rows]
+
+    students_by_id = {
+        s.pk: s
+        for s in StudentProfile.objects.filter(school=school, pk__in=student_ids)
+    }
+    point_totals = {
+        r["student_id"]: int(r["total"] or 0)
+        for r in BehaviorPointLedger.objects.filter(
+            school=school, student_id__in=student_ids
+        )
+        .values("student_id")
+        .annotate(total=Sum("points"))
+    }
+    open_interventions = {
+        r["incident__student_id"]: r["cnt"]
+        for r in RestorativeAction.objects.filter(
+            school=school,
+            incident__student_id__in=student_ids,
+            status__in=[
+                RestorativeAction.Status.PLANNED,
+                RestorativeAction.Status.IN_PROGRESS,
+            ],
+        )
+        .values("incident__student_id")
+        .annotate(cnt=Count("id"))
+    }
+
+    tier_labels = dict(Incident.MtssTier.choices)
+    caseload = []
+    for r in rows:
+        sid = r["student_id"]
+        tier = r["highest_tier"] or Incident.MtssTier.TIER_1
+        caseload.append(
+            {
+                "student": students_by_id.get(sid),
+                "student_id": sid,
+                "tier": tier,
+                "tier_label": tier_labels.get(tier, tier),
+                "is_tier3": tier == tier3,
+                "is_tier2": tier == tier2,
+                "incident_count": r["incident_count"],
+                "open_count": r["open_count"],
+                "last_incident": r["last_incident"],
+                "high_severity_count": r["high_severity_count"],
+                "pending_notify": r["pending_notify"],
+                "behavior_points": point_totals.get(sid, 0),
+                "open_interventions": open_interventions.get(sid, 0),
+            }
+        )
+
+    summary = {
+        "total": len(caseload),
+        "tier3": sum(1 for c in caseload if c["is_tier3"]),
+        "tier2": sum(1 for c in caseload if c["is_tier2"]),
+        "open_interventions": sum(c["open_interventions"] for c in caseload),
+    }
+    hero = {
+        "title": "Counselor Caseload",
+        "subtitle": "MTSS tiers, incident recency, and open interventions for students who need attention.",
+        "actions": [],
+    }
+    return render(
+        request,
+        "staff/counselor_caseload.html",
+        {
+            "hero": hero,
+            "caseload": caseload,
+            "summary": summary,
+            "recent_days": CASELOAD_RECENT_DAYS,
+        },
+    )
+
 
 @teacher_portal_required
 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17

@@ -92,6 +92,7 @@ from .views_teacher import (
     teacher_disciplinary,  # noqa: F401
     teacher_training_log,  # noqa: F401
     discipline_incidents_list,  # noqa: F401
+    counselor_caseload,  # noqa: F401
 )
 
 logger = logging.getLogger(__name__)

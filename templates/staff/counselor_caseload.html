@@ -1,0 +1,102 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Counselor Caseload" %}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<div data-rmc-scroll-policy="paginate">
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Counselor Caseload" %}</h1>
+{% include "widgets/dashboard_hero.html" with hero=hero %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="rmc-stat-card h-100">
+      <div class="rmc-stat-card__eyebrow">{% trans "Caseload" %}</div>
+      <div class="rmc-stat-card__value">{{ summary.total }}</div>
+      <div class="rmc-stat-card__label">{% trans "Students needing attention" %}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="rmc-stat-card h-100">
+      <div class="rmc-stat-card__eyebrow">{% trans "Tier 3" %}</div>
+      <div class="rmc-stat-card__value">{{ summary.tier3 }}</div>
+      <div class="rmc-stat-card__label">{% trans "Intensive intervention" %}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="rmc-stat-card h-100">
+      <div class="rmc-stat-card__eyebrow">{% trans "Tier 2" %}</div>
+      <div class="rmc-stat-card__value">{{ summary.tier2 }}</div>
+      <div class="rmc-stat-card__label">{% trans "Targeted support" %}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="rmc-stat-card h-100">
+      <div class="rmc-stat-card__eyebrow">{% trans "Open" %}</div>
+      <div class="rmc-stat-card__value">{{ summary.open_interventions }}</div>
+      <div class="rmc-stat-card__label">{% trans "Open interventions" %}</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <p class="text-muted small mb-3">{% blocktrans %}Students on an active MTSS tier (2/3), with an open incident, or an incident in the last {{ recent_days }} days. Behavior points and restorative interventions are tracked automatically.{% endblocktrans %}</p>
+    {% if caseload %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table" data-rmc-table-7col="1">
+        <caption class="visually-hidden">{% trans "Counselor Caseload" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Student" %}</th>
+            <th scope="col">{% trans "MTSS Tier" %}</th>
+            <th scope="col">{% trans "Incidents" %}</th>
+            <th scope="col">{% trans "Last incident" %}</th>
+            <th scope="col">{% trans "Behavior points" %}</th>
+            <th scope="col">{% trans "Open interventions" %}</th>
+            <th scope="col">{% trans "Parent notice" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in caseload %}
+          <tr>
+            <td>
+              {% if c.student %}{{ c.student.get_full_name|default:c.student }}{% else %}&mdash;{% endif %}
+            </td>
+            <td>
+              <span class="rmc-badge{% if c.is_tier3 %} text-danger fw-bold{% elif c.is_tier2 %} text-warning fw-bold{% endif %}">{{ c.tier_label }}</span>
+            </td>
+            <td>
+              {{ c.incident_count }}
+              {% if c.open_count %}<br><span class="small text-secondary">{{ c.open_count }} {% trans "open" %}{% if c.high_severity_count %} &middot; {{ c.high_severity_count }} {% trans "high" %}{% endif %}</span>{% endif %}
+            </td>
+            <td>{% if c.last_incident %}{{ c.last_incident|date:"Y-m-d" }}{% else %}&mdash;{% endif %}</td>
+            <td>{{ c.behavior_points }}</td>
+            <td>
+              {% if c.open_interventions %}<span class="rmc-badge">{{ c.open_interventions }}</span>{% else %}<span class="small text-secondary">0</span>{% endif %}
+            </td>
+            <td>
+              {% if c.pending_notify %}<span class="rmc-badge text-warning">{{ c.pending_notify }} {% trans "pending" %}</span>{% else %}<span class="small text-secondary">{% trans "Up to date" %}</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="small text-muted mt-2 mb-0">{% blocktrans with total=summary.total %}Showing up to {{ total }} students, most acute first.{% endblocktrans %}</p>
+    {% else %}
+    <div class="rmc-empty-state">
+      <i class="bi bi-shield-check rmc-empty-state__icon" aria-hidden="true"></i>
+      <p class="rmc-empty-state__title">{% trans "No students on the caseload" %}</p>
+      <p class="rmc-empty-state__body">{% trans "No students currently have an active MTSS tier, an open incident, or a recent referral. New referrals will appear here automatically." %}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+</div>
+{% endblock %}

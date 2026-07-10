@@ -260,6 +260,9 @@ SiteSettings.cockpit_payload.
         {% endif %}
         <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "RBAC & Access Control" %}</a>
         <div class="sidebar-section-title">{% trans "Academic Management" %}</div>
+        {% if request.user|has_feature_permission:"discipline.manage" or request.user.is_superuser %}
+        <a class="nav-link nav-pill" href="{% url 'portal:counselor_caseload' %}"><i class="bi bi-clipboard2-pulse me-2"></i>{% trans "Counselor Caseload" %}</a>
+        {% endif %}
         <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-clipboard-data me-2"></i>{% trans "Evaluation Admin" %}</a>
         <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}"><i class="bi bi-trophy me-2"></i>{% term "class" capitalize=True %} {% trans "Ranking" %}</a>
         <a class="nav-link nav-pill" href="{% url 'evals:school_ranking' %}"><i class="bi bi-bar-chart-line me-2"></i>{% trans "School Ranking" %}</a>
