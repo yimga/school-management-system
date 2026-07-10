@@ -1,0 +1,283 @@
+/* ==========================================================================
+   rmc-admin-django-canvas-contract.css
+   Final shared Django admin surface contract for operator + tenant backends.
+   Implements the approved canvas-first direction: full-width surfaces, stable
+   lanes, no cramped previews, no overlapping submit bars, and native tables.
+   ========================================================================== */
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) {
+  --rmc-django-canvas-gutter: clamp(0.75rem, 1.05vw, 1.25rem);
+  --rmc-django-panel-gap: clamp(0.8rem, 1.15vw, 1.35rem);
+  --rmc-django-sidecar: clamp(16rem, 18vw, 22rem);
+  --rmc-django-field-min: 22rem;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) :is(
+  .rmc-app-shell__canvas,
+  .rmc-app-shell__canvas-body,
+  #cp-main-content,
+  .cp-page-body,
+  .cp-admin-page-body,
+  .rmc-shell-canvas-container,
+  #content,
+  #content-main
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) :is(
+  #content,
+  #content.container,
+  #content.max-w-none,
+  #content > .container,
+  #content > .container-fluid,
+  #cp-main-content > .container,
+  #cp-main-content > .container-fluid
+) {
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) .cp-admin-page-body,
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell .rmc-app-shell__canvas-body > .px-4,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-breadcrumb-nav {
+  padding-inline: var(--rmc-django-canvas-gutter) !important;
+}
+
+/* Change forms: stable workbench, wide form, rail only when space earns it. */
+body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: var(--rmc-django-panel-gap) !important;
+  align-items: start !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+@container (min-width: 1280px) {
+  body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace {
+    grid-template-columns: minmax(0, 1fr) var(--rmc-django-sidecar) !important;
+  }
+}
+
+@supports not (container-type: inline-size) {
+  @media (min-width: 1440px) {
+    body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace {
+      grid-template-columns: minmax(0, 1fr) var(--rmc-django-sidecar) !important;
+    }
+  }
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"],
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] > form,
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] form > .flex.flex-col.gap-6 {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  fieldset,
+  .module,
+  .inline-group,
+  .form-rows,
+  .form-row,
+  .aligned,
+  .form-group,
+  .field-box,
+  .fieldBox,
+  .related-widget-wrapper
+) {
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--rmc-django-field-min)), 1fr)) !important;
+  column-gap: clamp(0.9rem, 1.7vw, 1.8rem) !important;
+  row-gap: 0.45rem !important;
+  align-items: start !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(
+  .form-row.grid,
+  .form-row:has(textarea),
+  .form-row:has(.vLargeTextField),
+  .form-row:has(.selector),
+  .form-row:has(.related-widget-wrapper)
+) {
+  grid-column: 1 / -1 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea,
+  .vTextField,
+  .vLargeTextField
+) {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form :is(pre, code, .readonly, .help, .helptext, label, .form-row) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-context-rail {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  max-height: calc(100dvh - 8.5rem);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 1279.98px) {
+  body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-context-rail {
+    position: static !important;
+    max-height: none !important;
+  }
+}
+
+/* Save actions must never float across fields or cover the visible workbench. */
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"],
+body:is(.admin-manager-shell, .admin-premium-shell).change-form .submit-row {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  margin-top: var(--rmc-django-panel-gap) !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] > :is(div, .rmc-admin-submit-row__inner),
+body:is(.admin-manager-shell, .admin-premium-shell).change-form .submit-row > :is(div, .rmc-admin-submit-row__inner) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+/* Change lists: native tables use the full lane and scroll horizontally when needed. */
+body:is(.admin-manager-shell, .admin-premium-shell).change-list :is(
+  #changelist,
+  .result-list-wrapper,
+  .changelist-form-container,
+  .rmc-admin-changelist-main,
+  #changelist-form,
+  .results
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .changelist-form-container {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: var(--rmc-django-panel-gap) !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .rmc-admin-changelist-main,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #changelist-form {
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results {
+  display: block !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results table {
+  display: table !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  table-layout: auto !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list tr,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results tr {
+  display: table-row !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list :is(th, td),
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results :is(th, td) {
+  display: table-cell !important;
+  float: none !important;
+  width: auto !important;
+  max-width: clamp(10rem, 18vw, 24rem);
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  vertical-align: middle !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list :is(#changelist-filter, [data-change-list-filter]) {
+  flex: 0 0 var(--rmc-django-sidecar) !important;
+  width: var(--rmc-django-sidecar) !important;
+  max-width: var(--rmc-django-sidecar) !important;
+}
+
+@media (max-width: 1079.98px) {
+  body:is(.admin-manager-shell, .admin-premium-shell).change-list .changelist-form-container {
+    flex-direction: column !important;
+  }
+
+  body:is(.admin-manager-shell, .admin-premium-shell).change-list :is(#changelist-filter, [data-change-list-filter]) {
+    flex-basis: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+/* Preview-heavy admin pages: never squeeze the preview into a broken sliver. */
+body:is(.admin-manager-shell, .admin-premium-shell) :is(
+  .rmc-preview-iframe,
+  .document-preview,
+  .document-preview-grid,
+  .theme-preview-section,
+  .admin-dashboard-palette-selector-wrapper,
+  .site-settings-layout,
+  .site-settings-main,
+  .rmc-mv-form-with-preview,
+  .rmc-mv-form-with-preview__form,
+  .rmc-mv-form-with-preview__preview
+) {
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell) :is(.rmc-preview-iframe, iframe[data-rmc-preview-frame]) {
+  display: block;
+  width: 100% !important;
+  min-height: clamp(34rem, 70dvh, 58rem);
+  border-radius: var(--radius-lg, 14px);
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell) :is(.document-preview-grid, .site-settings-layout, .rmc-mv-form-with-preview) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: var(--rmc-django-panel-gap) !important;
+}
+
+@container (min-width: 1180px) {
+  body:is(.admin-manager-shell, .admin-premium-shell) :is(.site-settings-layout, .rmc-mv-form-with-preview) {
+    grid-template-columns: minmax(0, 1fr) var(--rmc-django-sidecar) !important;
+  }
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell) #admin-manager-sticky-slot:empty,
+body:is(.admin-manager-shell, .admin-premium-shell) .admin-manager-sticky-slot:empty {
+  display: none !important;
+}

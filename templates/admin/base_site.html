@@ -218,6 +218,10 @@
   <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
   {% endif %}
+  {% comment %} v4.10.2: last-loaded Django admin surface contract for both operator
+     and tenant backends. Keeps approved canvas-first/full-width rules from being
+     undone by older model-specific or Unfold defaults. {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}">
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
   {% comment %} Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). {% endcomment %}
   <style id="admin-brand-resolved-tokens">
@@ -605,5 +609,8 @@
   {% if request.user.is_authenticated %}{% include 'components/back_to_top.html' %}{% endif %}
   {% comment %} v4.01.46: terminal dual-plane pass after Unfold/admin late styles. {% endcomment %}
   {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+  {% comment %} v4.10.2: terminal repeat so Django canvas contract wins after
+     late preview/theme inline styles too. {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}">
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

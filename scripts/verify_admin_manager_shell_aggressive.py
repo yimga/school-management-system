@@ -50,6 +50,7 @@ def main() -> int:
         ("preview_shell_impl", [py, "scripts/verify_all_preview_shell_html_implementation.py"]),
         ("shell_preview_parity", [py, "scripts/verify_platform_shell_preview_parity.py"]),
         ("manager_admin_layout", [py, "scripts/verify_manager_admin_cp_layout.py"]),
+        ("django_admin_canvas_contract", [py, "scripts/audit_django_admin_canvas_contract.py"]),
     ]
     if not args.css_only:
         checks.extend(
@@ -124,6 +125,8 @@ def main() -> int:
         errors.append("admin/base_site.html: changelist live CSS must load for manager and tenant admin")
     if 'rmc-admin-changelist-live.css\' %}" media="print"' in admin_base_site:
         errors.append("admin/base_site.html: changelist live CSS must be a screen stylesheet, not lazy print/onload")
+    if "rmc-admin-django-canvas-contract.css" not in admin_base_site:
+        errors.append("admin/base_site.html: missing final Django canvas contract stylesheet")
 
     portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
     if "rmc-manager-portal-copilot-mount" not in portal:
@@ -184,6 +187,8 @@ def main() -> int:
         ):
             if token not in live_css:
                 errors.append(f"rmc-admin-changelist-live.css: missing {token}")
+    if not (ROOT / "static/css/rmc-admin-django-canvas-contract.css").is_file():
+        errors.append("rmc-admin-django-canvas-contract.css: missing final Django canvas contract")
     parity_css = (ROOT / "static/css/admin-cp-parity.css").read_text(encoding="utf-8")
     for token in (
         "--rmc-backoffice-gutter",
