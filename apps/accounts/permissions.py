@@ -41,6 +41,7 @@ ROLE_RANK = {
     "COMMS_STAFF": 60,
     "IT_ADMIN": 70,
     "BOARDING_MANAGER": 60,
+    "COACH": 55,
     "TEACHER": 50,
     "PARENT": 20,
     "STUDENT": 10,
@@ -87,6 +88,37 @@ ALL_AUTHENTICATED = {"*"}
 CONTROL_PLANE_ROLE_CODES = {"SUPERADMIN"}
 
 MODULE_ACCESS_DEFAULTS = {
+    # Athletics / sports management (teams, fixtures, eligibility, consent).
+    # Family roles get read so students/parents see their own team pages
+    # (view-scoped in-view); write is the coaching + academic-leadership tier.
+    "athletics": {
+        "read": {
+            "COACH",
+            "ADMIN",
+            "SUPERADMIN",
+            "LEADERSHIP",
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "DEAN",
+            "HOD",
+            "DEPT_LEAD",
+            "IT_ADMIN",
+            "TEACHER",
+            "PARENT",
+            "STUDENT",
+            "PROPRIETOR",
+        },
+        "write": {
+            "COACH",
+            "ADMIN",
+            "SUPERADMIN",
+            "LEADERSHIP",
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "DEAN",
+            "HOD",
+        },
+    },
     # Core portals
     "feedback": {
         "read": {
@@ -624,6 +656,7 @@ ROLE_CATEGORIES = {
     "Finance": ["BURSAR", "FINANCE_STAFF", "ACCOUNTANT"],
     "Support": ["SECRETARY", "EXECUTIVE_ASSISTANT", "VIRTUAL_ASSISTANT", "IT_ADMIN"],
     "Disciplinary": ["DISCIPLINE_MASTER"],
+    "Athletics": ["COACH"],
     "Other": ["TEACHER", "BOARDING_MANAGER", "PARENT", "STUDENT"],
 }
 

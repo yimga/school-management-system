@@ -1,0 +1,104 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{{ team.name }} — {% trans "Fixtures" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <a href="{% url 'athletics:coach_team_detail' team_id=team.id %}" class="btn btn-outline-secondary btn-sm mb-3">
+    <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ team.name }}
+  </a>
+
+  <h1 class="h3 mb-1"><i class="bi bi-calendar-event me-2" aria-hidden="true"></i>{% trans "Fixtures" %}</h1>
+  <p class="text-muted">{{ team.name }} · {{ team.season.name }}</p>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="rmc-data-table-wrap" style="overflow-x:auto;"><!-- inline-style-allow: wide-table-horizontal-scroll-container -->
+        <table class="table rmc-data-table align-middle">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "When" %}</th>
+              <th scope="col">{% trans "Opponent" %}</th>
+              <th scope="col">{% trans "Type" %}</th>
+              <th scope="col">{% trans "Venue" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+              <th scope="col">{% trans "Result" %}</th>
+              {% if can_manage %}<th scope="col" class="text-end">{% trans "Record result" %}</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for fixture in fixtures %}
+            <tr>
+              <td class="small">{{ fixture.scheduled_start|date:"Y-m-d H:i" }}</td>
+              <td>{{ fixture.opponent_name }}</td>
+              <td>{{ fixture.get_fixture_type_display }}</td>
+              <td>{% if fixture.venue %}{{ fixture.venue.name }}{% else %}—{% endif %}</td>
+              <td><span class="rmc-badge rmc-badge--muted">{{ fixture.get_status_display }}</span></td>
+              <td>
+                {% if fixture.result %}
+                <strong>{{ fixture.result.home_score }}–{{ fixture.result.away_score }}</strong>
+                <span class="rmc-badge rmc-badge--brand">{{ fixture.result.get_outcome_display }}</span>
+                {% else %}<span class="text-muted">—</span>{% endif %}
+              </td>
+              {% if can_manage %}
+              <td class="text-end">
+                {% if not fixture.result %}
+                <form method="post" action="{% url 'athletics:coach_record_result' fixture_id=fixture.id %}" class="d-inline-flex gap-2 justify-content-end">
+                  {% csrf_token %}
+                  <input type="number" name="home_score" min="0" value="0" class="form-control form-control-sm" style="width:4.5rem;" aria-label="{% trans 'Home score' %}"><!-- inline-style-allow: inline-score-field-width -->
+                  <input type="number" name="away_score" min="0" value="0" class="form-control form-control-sm" style="width:4.5rem;" aria-label="{% trans 'Away score' %}"><!-- inline-style-allow: inline-score-field-width -->
+                  <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                </form>
+                {% else %}<span class="text-muted small">{% trans "Recorded" %}</span>{% endif %}
+              </td>
+              {% endif %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="{% if can_manage %}7{% else %}6{% endif %}" class="text-muted">{% trans "No fixtures scheduled yet." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if can_manage %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Schedule a fixture" %}</h2>
+      <form method="post" action="{% url 'athletics:coach_schedule_fixture' team_id=team.id %}" class="row g-3">
+        {% csrf_token %}
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="{{ schedule_form.opponent_name.id_for_label }}">{% trans "Opponent" %}</label>
+          {{ schedule_form.opponent_name }}
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="{{ schedule_form.fixture_type.id_for_label }}">{% trans "Type" %}</label>
+          {{ schedule_form.fixture_type }}
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="{{ schedule_form.venue.id_for_label }}">{% trans "Venue" %}</label>
+          {{ schedule_form.venue }}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="{{ schedule_form.scheduled_start.id_for_label }}">{% trans "Start" %}</label>
+          {{ schedule_form.scheduled_start }}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="{{ schedule_form.scheduled_end.id_for_label }}">{% trans "End" %}</label>
+          {{ schedule_form.scheduled_end }}
+        </div>
+        <div class="col-12 col-md-4 d-flex align-items-end">
+          <div class="form-check me-3">
+            {{ schedule_form.book_venue }}
+            <label class="form-check-label" for="{{ schedule_form.book_venue.id_for_label }}">{% trans "Book venue" %}</label>
+          </div>
+          <button type="submit" class="btn btn-primary">{% trans "Schedule" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

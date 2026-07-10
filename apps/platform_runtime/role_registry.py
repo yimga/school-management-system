@@ -28,6 +28,7 @@ ROLE_TEACHER: str = "TEACHER"
 ROLE_PARENT: str = "PARENT"
 ROLE_STUDENT: str = "STUDENT"
 ROLE_PROPRIETOR: str = "PROPRIETOR"
+ROLE_COACH: str = "COACH"
 
 ALL_ROLES: frozenset[str] = frozenset(
     {
@@ -36,6 +37,7 @@ ALL_ROLES: frozenset[str] = frozenset(
         ROLE_PARENT,
         ROLE_STUDENT,
         ROLE_PROPRIETOR,
+        ROLE_COACH,
     }
 )
 
@@ -45,5 +47,6 @@ __all__ = [
     "ROLE_PARENT",
     "ROLE_STUDENT",
     "ROLE_PROPRIETOR",
+    "ROLE_COACH",
     "ALL_ROLES",
 ]

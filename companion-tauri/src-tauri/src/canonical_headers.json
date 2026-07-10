@@ -1,5 +1,5 @@
 {
-  "_comment": "Mirror of DOMAIN_CANONICAL_HEADERS in apps/migration_cloud/accelerators/runmycampus_canonical.py. Header-match only; cell values pass through verbatim. 23 canonical domains.",
+  "_comment": "Mirror of DOMAIN_CANONICAL_HEADERS in apps/migration_cloud/accelerators/runmycampus_canonical.py. Header-match only; cell values pass through verbatim. 27 canonical domains.",
   "students": [
     "external_id",
     "first_name",
@@ -32,7 +32,35 @@
     "relationship",
     "is_primary",
     "student_external_id",
-    "guardian_user_ref"
+    "guardian_user_ref",
+    "receives_email",
+    "receives_sms",
+    "receives_whatsapp",
+    "can_view_results",
+    "can_view_finance",
+    "preferred_contact",
+    "whatsapp_number",
+    "address"
+  ],
+  "structure": [
+    "academic_year",
+    "year_start",
+    "year_end",
+    "year_is_active",
+    "term",
+    "term_label",
+    "term_position",
+    "term_start",
+    "term_end",
+    "department",
+    "classroom",
+    "specialty",
+    "subject",
+    "coefficient",
+    "teacher_ref",
+    "teacher_first_name",
+    "teacher_last_name",
+    "teacher_email"
   ],
   "enrollment": [
     "student_external_id",
@@ -206,5 +234,34 @@
     "due_date",
     "completed_date",
     "notes"
+  ],
+  "athletics_teams": [
+    "sport",
+    "season",
+    "team_name",
+    "level",
+    "gender",
+    "roster_cap",
+    "home_venue",
+    "status"
+  ],
+  "athletics_memberships": [
+    "student_external_id",
+    "team_name",
+    "jersey_number",
+    "position",
+    "status",
+    "joined_date"
+  ],
+  "athletics_fixtures": [
+    "team_name",
+    "opponent_name",
+    "fixture_type",
+    "venue",
+    "scheduled_start",
+    "scheduled_end",
+    "home_score",
+    "away_score",
+    "status"
   ]
 }

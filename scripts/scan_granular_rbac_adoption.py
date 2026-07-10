@@ -45,6 +45,7 @@ _OPERATIONAL_APP_DIRS = (
     "apps/reports",
     "apps/analytics",
     "apps/compliance",
+    "apps/athletics",
 )
 
 _BASELINE = os.path.join(

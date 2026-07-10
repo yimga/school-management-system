@@ -105,6 +105,27 @@ def permission_access(
     )
 
 
+def athletics_team_manage_access(user, school, team_id) -> bool:
+    """May ``user`` manage this athletics team? (coach object-level authority)
+
+    True when ``user`` holds ``athletics.manage`` at ``school`` (via
+    ``permission_access``) AND is either the tenant-admin tier or carries an
+    active ``CoachAssignment`` for this specific team — so a coach only manages
+    teams they are actually assigned to. Superuser / admin bypass both gates."""
+    if not permission_access(user, school, ("athletics.manage",)):
+        return False
+    from apps.athletics.models import CoachAssignment, Team
+
+    # Self-contained-safe: confirm the team is in THIS school before the
+    # admin/manager tier is granted, so the helper cannot authorize a
+    # cross-tenant team_id even if a future caller forgets to pre-scope.
+    if tenant_admin_access(user, school):
+        return Team.objects.filter(school=school, pk=team_id).exists()
+    return CoachAssignment.objects.filter(
+        school=school, team_id=team_id, coach=user, is_active=True
+    ).exists()
+
+
 def role_access(user, role: str) -> bool:
     """Does ``user`` hold this role (hierarchy + temporary grants honoured)?"""
     from apps.accounts.permissions import has_role
@@ -129,6 +150,7 @@ def api_any_role_access(user, roles) -> bool:
 __all__ = [
     "any_role_access",
     "api_any_role_access",
+    "athletics_team_manage_access",
     "invoice_access",
     "invoice_edit_access",
     "module_access",

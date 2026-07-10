@@ -321,6 +321,7 @@ INSTALLED_APPS = [
     "apps.admissions.apps.AdmissionsConfig",  # Wave R-B (v3.96.0) — admission application kernel
     "apps.safeguarding.apps.SafeguardingConfig",  # Wave R-D (v3.96.0) — KCSIE 2026 concern kernel
     "apps.assist_dock.apps.AssistDockConfig",  # v4.00.91: assist dock registry SOT
+    "apps.athletics.apps.AthleticsConfig",  # Athletics/sports-management spine (teams/fixtures/eligibility)
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",
@@ -3908,6 +3909,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.payroll",
         "apps.school_events",
         "apps.student360",
+        "apps.athletics",
         "apps.studio_os.apps.StudioOsConfig",  # Tenant/manager Studio OS routes (no models; views + services)
     ]
     INSTALLED_APPS = list(SHARED_APPS) + [

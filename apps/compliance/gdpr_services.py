@@ -46,6 +46,21 @@ _GDPR_FILE_DELETE_ERRORS = (
 )
 _GDPR_STATUS_ASSIGN_ERRORS = (AttributeError, ValueError, TypeError)
 
+# Athletics GDPR integration: lazy import (may ImportError) plus ORM scrub/export
+# inside a savepoint — catch DB faults too so an athletics fault never blocks a
+# student's export or erasure.
+_GDPR_ATHLETICS_ERRORS = (
+    LookupError,
+    ImportError,
+    DatabaseError,
+    IntegrityError,
+    ValidationError,
+    ObjectDoesNotExist,
+    AttributeError,
+    TypeError,
+    ValueError,
+)
+
 
 def _get_model(app_label: str, model_name: str):
     try:
@@ -183,6 +198,7 @@ def gdpr_scrub_student(
     scrubbed_at = timezone.now()
     token = uuid4().hex[:12].upper()
     old_email = ""
+    athletics_scrub = {"medical_clearances": 0, "participation_consents": 0}
 
     with transaction.atomic():
         user = getattr(student, "user", None)
@@ -298,6 +314,24 @@ def gdpr_scrub_student(
                 lead_source="gdpr_redacted",
             )
 
+        # Athletics PII redaction (Art.17): notes/document on MedicalClearance and
+        # guardian_name/guardian_email on ParticipationConsent, rows preserved.
+        # A dedicated savepoint keeps the outer erasure transaction healthy even
+        # if athletics is unavailable — student erasure is never blocked by it.
+        try:
+            from apps.athletics.services.gdpr import athletics_scrub_student
+
+            with transaction.atomic():
+                athletics_scrub = athletics_scrub_student(
+                    school_id=school_id, student_id=student_id
+                )
+        except _GDPR_ATHLETICS_ERRORS:
+            log_exception_with_context(
+                "Athletics GDPR scrub failed during erasure",
+                school_id=school_id,
+                extra={"student_id": student_id},
+            )
+
     _log_compliance_event(
         school_id=school_id,
         student_id=student_id,
@@ -319,6 +353,7 @@ def gdpr_scrub_student(
             "attendance_notes": attendance_count,
             "incident_descriptions": incident_count,
             "evaluation_remarks": evaluation_count,
+            "athletics": athletics_scrub,
         },
     }
 
@@ -585,6 +620,42 @@ def export_student_data_portability(
     incidents_payload = _redact_export_rows(incidents_payload, entity="incident", **_rk)
     invoices_payload = _redact_export_rows(invoices_payload, entity="invoice", **_rk)
     payments_payload = _redact_export_rows(payments_payload, entity="payment", **_rk)
+
+    # Athletics (Art.20): the athlete's roster + fitness-to-play PII, assembled
+    # by the athletics app so compliance stays decoupled from its models. Lazy
+    # import mirrors ``fulfill_pending_erasure`` — no compile-time athletics dep.
+    athletics_sections: dict[str, list[dict[str, Any]]] = {
+        "team_memberships": [],
+        "medical_clearances": [],
+        "participation_consents": [],
+    }
+    try:
+        from apps.athletics.services.gdpr import athletics_export_sections
+
+        athletics_sections = athletics_export_sections(
+            school_id=school_id, student_id=student_id
+        )
+    except _GDPR_ATHLETICS_ERRORS:
+        log_exception_with_context(
+            "Athletics DSAR export section failed; emitting empty section",
+            school_id=school_id,
+            extra={"student_id": student_id},
+        )
+    athletics_sections["team_memberships"] = _redact_export_rows(
+        athletics_sections.get("team_memberships", []),
+        entity="athletics_membership",
+        **_rk,
+    )
+    athletics_sections["medical_clearances"] = _redact_export_rows(
+        athletics_sections.get("medical_clearances", []),
+        entity="athletics_medical_clearance",
+        **_rk,
+    )
+    athletics_sections["participation_consents"] = _redact_export_rows(
+        athletics_sections.get("participation_consents", []),
+        entity="athletics_participation_consent",
+        **_rk,
+    )
     _log_dsar_export(
         school_id=school_id,
         student_id=student_id,
@@ -597,6 +668,7 @@ def export_student_data_portability(
             "incidents",
             "invoices",
             "payments",
+            "athletics",
         ],
     )
 
@@ -617,6 +689,7 @@ def export_student_data_portability(
             "invoices": invoices_payload,
             "payments": payments_payload,
         },
+        "athletics": athletics_sections,
     }
 
     if fmt == "csv":
@@ -637,6 +710,12 @@ def export_student_data_portability(
             writer.writerow(["invoices", "record", row])
         for row in payments_payload:
             writer.writerow(["payments", "record", row])
+        for row in athletics_sections.get("team_memberships", []):
+            writer.writerow(["athletics_team_memberships", "record", row])
+        for row in athletics_sections.get("medical_clearances", []):
+            writer.writerow(["athletics_medical_clearances", "record", row])
+        for row in athletics_sections.get("participation_consents", []):
+            writer.writerow(["athletics_participation_consents", "record", row])
         return {
             "export_format": "csv",
             "filename": f"student_{student_id}_portability.csv",

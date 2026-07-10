@@ -14,6 +14,7 @@ domain set):
     finance.csv       transcripts.csv   health.csv         payroll.csv
     communications.csv events.csv       library.csv        transport.csv
     hostel.csv        cafeteria.csv     alumni.csv         compliance.csv
+    athletics_teams.csv  athletics_memberships.csv  athletics_fixtures.csv
 
 Headers in each file ARE the canonical field names — there is no source-
 column-to-canonical-field mapping needed because the column names already
@@ -81,6 +82,13 @@ CANONICAL_FILENAME_TO_DOMAIN: dict[str, str] = {
     "cafeteria_assignments.csv": "cafeteria_assignments",
     "alumni.csv": "alumni",
     "compliance.csv": "compliance",
+    "athletics_teams.csv": "athletics_teams",
+    "teams.csv": "athletics_teams",
+    "squads.csv": "athletics_teams",
+    "athletics_memberships.csv": "athletics_memberships",
+    "athletics_fixtures.csv": "athletics_fixtures",
+    "fixtures.csv": "athletics_fixtures",
+    "matches.csv": "athletics_fixtures",
 }
 
 
@@ -213,6 +221,22 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     "compliance": {
         "subject_external_id", "category", "status", "due_date",
         "completed_date", "notes",
+    },
+    # Athletics module round-trip (2026-07-09). Order is load-bearing:
+    # the companion JSON mirrors must match this source order exactly
+    # (scan_companion_canonical_headers_drift.py compares order-sensitive).
+    "athletics_teams": {
+        "sport", "season", "team_name", "level", "gender",
+        "roster_cap", "home_venue", "status",
+    },
+    "athletics_memberships": {
+        "student_external_id", "team_name", "jersey_number", "position",
+        "status", "joined_date",
+    },
+    "athletics_fixtures": {
+        "team_name", "opponent_name", "fixture_type", "venue",
+        "scheduled_start", "scheduled_end", "home_score", "away_score",
+        "status",
     },
 }
 

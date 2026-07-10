@@ -38,6 +38,9 @@ models, with DFV fallback retained for out-of-order bundles):
     * ``cafeteria_assignments``  → ``apps.schoolops.MealPlanBalance`` (v3.29 — upsert on student+meal_plan, meal_plan FK nullable for generic credit; last-wins balance with ``last_topup_amount/_at`` audit trail; Decimal end-to-end to satisfy scan_money_float)
     * ``alumni``                 → ``apps.people.StudentProfile`` w/ enrollment_status='graduated'
     * ``compliance``             → ``apps.compliance.ComplianceCheck`` (upsert on check_type+check_date)
+    * ``athletics_teams``        → ``apps.athletics.Team`` (2026-07-09 — upsert on season+name; provisions Sport+Season school-scoped on the fly; optional home_venue skip-when-unresolved)
+    * ``athletics_memberships``  → ``apps.athletics.TeamMembership`` (2026-07-09 — upsert on team+student; quarantines on unresolved student/team)
+    * ``athletics_fixtures``     → ``apps.athletics.Fixture`` (+ ``FixtureResult`` when a score is present; 2026-07-09 — upsert on team+opponent_name+scheduled_start; optional venue skip-when-unresolved)
     * ``custom_fields`` (fallback) → ``apps.metadata.DynamicFieldValue``
 
 Catch-all invariant: any canonical domain without a registered lander
@@ -91,6 +94,11 @@ from . import transport_lander  # noqa: F401
 from . import cafeteria_assignment_lander  # noqa: F401
 from . import hostel_assignment_lander  # noqa: F401
 from . import transport_assignment_lander  # noqa: F401
+# Athletics module round-trip (2026-07-09) — teams/roster/fixtures land
+# into apps.athletics (Sport/Season/Team/TeamMembership/Fixture/FixtureResult).
+from . import athletics_teams_lander  # noqa: F401
+from . import athletics_memberships_lander  # noqa: F401
+from . import athletics_fixtures_lander  # noqa: F401
 
 __all__ = [
     "Lander",

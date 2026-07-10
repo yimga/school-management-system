@@ -733,6 +733,16 @@ def build_portal_sidebar_items(request, site):
         )
         items.append(
             {
+                "id": "parent_athletics",
+                "label": "Sports",
+                "url": _safe_reverse("athletics:family_my_team"),
+                "icon": "bi-trophy",
+                "section": "Children & Learning",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
                 "id": "finance",
                 "label": "Finance & Fees",
                 "url": _safe_reverse("portal:parent_finance"),
@@ -821,6 +831,16 @@ def build_portal_sidebar_items(request, site):
                     "label": "Syllabus Coverage",
                     "url": _safe_reverse("portal:portal_syllabus"),
                     "icon": "bi-journal-bookmark",
+                    "section": "Learning",
+                    "badge": None,
+                }
+            )
+            items.append(
+                {
+                    "id": "student_athletics",
+                    "label": "My Team",
+                    "url": _safe_reverse("athletics:family_my_team"),
+                    "icon": "bi-trophy",
                     "section": "Learning",
                     "badge": None,
                 }
@@ -1137,6 +1157,23 @@ def build_portal_sidebar_items(request, site):
                 "badge": None,
             }
         )
+        # Athletics admin console (seasons + fixtures) — for academic leadership.
+        # Surfaced to the admin tier or anyone granted athletics.manage/athletics.view.
+        if (
+            can_manage_site
+            or _safe_has_feature_permission(user, "athletics.manage")
+            or _safe_has_feature_permission(user, "athletics.view")
+        ):
+            items.append(
+                {
+                    "id": "athletics_admin",
+                    "label": "Athletics",
+                    "url": _safe_reverse("athletics:admin_seasons"),
+                    "icon": "bi-trophy",
+                    "section": "Academic Management",
+                    "badge": None,
+                }
+            )
         # Executive dashboard: Principal, Vice Principal, and Secretary do not see Bursar/accounting
         if role not in ("PRINCIPAL", "VICE_PRINCIPAL", "SECRETARY"):
             items.append(
@@ -1600,6 +1637,21 @@ def build_portal_sidebar_items(request, site):
                     "url": _safe_reverse("analytics:dashboard"),
                     "icon": "bi-graph-up-arrow",
                     "section": "Analytics & Reports",
+                    "badge": None,
+                }
+            )
+        # A COACH (custom role, not in the staff floor) granted athletics.view still
+        # needs to discover their coach console — mirror the finance/payroll grant path.
+        if _safe_has_feature_permission(
+            user, "athletics.view"
+        ) or _safe_has_feature_permission(user, "athletics.manage"):
+            items.append(
+                {
+                    "id": "coach_console",
+                    "label": "Athletics",
+                    "url": _safe_reverse("athletics:coach_dashboard"),
+                    "icon": "bi-trophy",
+                    "section": "Academic Management",
                     "badge": None,
                 }
             )

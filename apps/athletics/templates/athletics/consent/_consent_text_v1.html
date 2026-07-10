@@ -1,0 +1,18 @@
+{% load i18n %}
+<section>
+  <h2>{% trans "Athletics participation consent" %}</h2>
+  <p>
+    {% blocktrans with athlete=student.first_name team_name=team.name sport=team.sport.name school_name=school.name %}
+    You are being asked, as a parent or guardian, to consent to {{ athlete }}'s participation
+    on the {{ team_name }} team ({{ sport }}) at {{ school_name }}.
+    {% endblocktrans %}
+  </p>
+  <p>{% trans "By consenting you confirm that:" %}</p>
+  <ul>
+    <li>{% trans "you permit the named athlete to train with and represent the team;" %}</li>
+    <li>{% trans "you understand that sport carries a risk of injury and that reasonable safeguards are in place;" %}</li>
+    <li>{% trans "you authorise the school to arrange supervised travel to and from away fixtures;" %}</li>
+    <li>{% trans "you agree the athlete must hold a valid medical clearance before competing." %}</li>
+  </ul>
+  <p>{% trans "You may decline, and you may withdraw this consent at any time by contacting the school office." %}</p>
+</section>

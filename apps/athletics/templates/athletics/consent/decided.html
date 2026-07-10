@@ -1,0 +1,11 @@
+{% load i18n %}
+<main style="max-width: 42rem; margin: 3rem auto; font-family: system-ui, sans-serif; line-height: 1.5;"><!-- inline-style-allow: anonymous-standalone-consent-page-no-shell-css -->
+  <h1>{% trans "Athletics participation consent" %}</h1>
+  {% if outcome == "consented" %}
+    <p>{% trans "Thank you — your consent has been recorded and the athlete has been added to the team roster. You do not need to do anything else." %}</p>
+  {% elif outcome == "declined" %}
+    <p>{% trans "Your decision has been recorded. The athlete has not been added to the team." %}</p>
+  {% else %}
+    <p>{% trans "This consent link is not available. It may have expired, already been answered, or the address may be incorrect. Please contact the school office for a new link." %}</p>
+  {% endif %}
+</main>

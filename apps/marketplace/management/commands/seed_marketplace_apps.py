@@ -568,8 +568,48 @@ FIRST_PARTY_APPS = [
     {"slug": "identity-okta-sso", "name": "Identity — Okta SSO", "description": "Okta OIDC / SAML SSO + SCIM provisioning.", "version": "1.0", "manifest": {"scopes": ["identity:read", "identity:provision"], "widgets": [], "wedge_ids": [2, 44, 45]}},
     # Specialty / niche tools
     {"slug": "specialty-music-program", "name": "Specialty — Music Program", "description": "Instrument inventory, lesson schedules, recital workflow.", "version": "1.0", "manifest": {"scopes": ["academics"], "widgets": [], "wedge_ids": [4, 26]}},
-    {"slug": "specialty-athletics-eligibility", "name": "Specialty — Athletics Eligibility", "description": "Student-athlete eligibility tracker (academics + attendance + clearance).", "version": "1.0", "manifest": {"scopes": ["academics", "compliance"], "widgets": [], "wedge_ids": [6, 20, 31]}},
-    {"slug": "specialty-extracurricular-clubs", "name": "Specialty — Extracurricular Clubs", "description": "Club roster + meetings + permission slips.", "version": "1.0", "manifest": {"scopes": ["academics", "communication"], "widgets": [], "wedge_ids": [4, 25]}},
+    {
+        "slug": "specialty-athletics-eligibility",
+        "name": "Specialty — Athletics Eligibility",
+        "description": "Student-athlete eligibility tracker (academics + attendance + clearance).",
+        "version": "1.0",
+        # Backed by the first-party apps.athletics module. Scopes broadened to
+        # include "athletics"; widgets deep-link to the coach surfaces (tenant
+        # URL names in apps/athletics/urls.py) using the platform widget schema
+        # (dict keyed by widget_id; consumed by activation_orchestrator +
+        # capability_contract + sandbox_embed_registry — url_name reverses at
+        # request time).
+        "manifest": {
+            "scopes": ["academics", "compliance", "athletics"],
+            "widgets": {
+                "athletics_coach_dashboard": {
+                    "widget_id": "athletics_coach_dashboard",
+                    "title": "Coach dashboard",
+                    "surface": "athletics",
+                    "url_name": "athletics:coach_dashboard",
+                    "sandbox_demo": True,
+                },
+                "athletics_coach_fixtures": {
+                    "widget_id": "athletics_coach_fixtures",
+                    "title": "Fixtures & results",
+                    "surface": "athletics",
+                    "url_name": "athletics:coach_fixtures",
+                    "sandbox_demo": True,
+                },
+            },
+            "wedge_ids": [6, 20, 31],
+        },
+    },
+    {
+        "slug": "specialty-extracurricular-clubs",
+        "name": "Specialty — Extracurricular Clubs",
+        "description": "Club roster + meetings + permission slips.",
+        "version": "1.0",
+        # No backing module yet — self-declares as unbacked so the catalog does
+        # not falsely imply an installable surface (and is NOT pointed at
+        # athletics). Flip to a real listing when a clubs module ships.
+        "manifest": {"scopes": ["academics", "communication"], "widgets": [], "status": "roadmap", "wedge_ids": [4, 25]},
+    },
     {"slug": "specialty-special-education-iep", "name": "Specialty — Special Education / IEP", "description": "IEP plan authoring, accommodation tracking, parent sign-off.", "version": "1.0", "manifest": {"scopes": ["academics", "compliance", "medical:read"], "widgets": [], "wedge_ids": [4, 20, 31, 43]}},
     {"slug": "specialty-pastoral-care", "name": "Specialty — Pastoral / Counseling Care", "description": "Counselor caseload + intervention notes + parent meeting log.", "version": "1.0", "manifest": {"scopes": ["academics", "communication"], "widgets": [], "wedge_ids": [4, 25, 31, 43]}},
     {"slug": "specialty-after-school-program", "name": "Specialty — After-school Program", "description": "After-school program enrollment + attendance + parent pickup.", "version": "1.0", "manifest": {"scopes": ["academics", "finance"], "widgets": [], "wedge_ids": [15, 25, 33]}},
