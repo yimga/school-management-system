@@ -11,6 +11,7 @@ are preserved), and a per-entry env disable flag.
 
 * ``RMC_PLATFORM_BILLING_BEAT_DISABLED=1`` — skip the daily lifecycle sweep.
 * ``RMC_RENEWAL_REMINDER_BEAT_DISABLED=1`` — skip the daily renewal-reminder sweep.
+* ``RMC_DUNNING_REMINDER_BEAT_DISABLED=1`` — skip the daily dunning-reminder sweep.
 """
 
 from __future__ import annotations
@@ -58,6 +59,15 @@ def get_billing_beat_schedule() -> dict[str, dict[str, Any]]:
             # Daily 06:00 UTC — after the lifecycle sweep, so reminders reflect the
             # freshest period boundaries.
             "schedule": crontab(hour=6, minute=0),
+            "options": {"expires": 3600},  # magic-number-allow: celery-task-expiry-seconds
+        }
+    if not _env_bool("RMC_DUNNING_REMINDER_BEAT_DISABLED"):
+        schedule["platform-dunning-reminders-daily"] = {
+            "task": "apps.billing.run_subscription_dunning_reminders",
+            # Daily 06:30 UTC — just after the renewal-reminder sweep and well
+            # after the 01:15 lifecycle sweep that sets/clears delinquency, so the
+            # ladder reads the freshest past-due/suspended state each day.
+            "schedule": crontab(hour=6, minute=30),
             "options": {"expires": 3600},  # magic-number-allow: celery-task-expiry-seconds
         }
     return schedule

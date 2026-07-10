@@ -1,0 +1,11 @@
+{% if is_suspended %}Your RunMyCampus access is suspended{% elif is_final %}Final notice — your RunMyCampus subscription is about to be suspended{% else %}Your RunMyCampus payment is past due{% endif %}
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+{% if is_suspended %}Access to {{ school_name|default:"your school" }} has been suspended because an outstanding balance of {{ amount_due }} {{ currency_code }} remains unpaid. Settle the balance to restore your school's data and integrations right away.{% elif is_final %}The account for {{ school_name|default:"your school" }} is {{ days_overdue }} day(s) past due with an outstanding balance of {{ amount_due }} {{ currency_code }}. This is your final notice: access will be suspended in {{ will_suspend_in_days }} day(s) if the balance is not settled.{% else %}The account for {{ school_name|default:"your school" }} is {{ days_overdue }} day(s) past due. An outstanding balance of {{ amount_due }} {{ currency_code }} is due. Please settle it to avoid any interruption to your school's access — access is suspended after continued non-payment.{% endif %}
+
+Settle your balance: {{ renewal_url|default:"(URL not captured)" }}
+
+If you have already paid, no action is needed — this notice clears automatically once the payment is recorded.
+
+— The RunMyCampus team

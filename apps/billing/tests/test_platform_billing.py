@@ -1087,6 +1087,197 @@ class RenewalReminderTests(TestCase):
         self.assertEqual(second["skipped_deduped"], 1)
 
 
+@patch(
+    "apps.platform_runtime.reactivation_engine._portal_url_for_reactivation",
+    return_value="https://dunning-school.runmycampus.com/authentication/login/",
+)
+@patch(
+    "apps.platform_runtime.reactivation_engine._resolve_admin_email",
+    return_value="owner@example.com",
+)
+class DunningReminderTests(TestCase):
+    """The delinquency dunning ladder — the in-repo Metric-6 gap this wave closed.
+
+    The lifecycle FSM already ages an unpaid subscription past_due → suspended;
+    these tests prove the *reminder cadence* over that ladder: one escalating
+    email per stage, idempotent on re-run, restored on payment, Decimal-exact.
+    """
+
+    def setUp(self):
+        self.plan = Plan.objects.create(
+            name="Dunning", slug="dunning", base_price=Decimal("199.00"), is_active=True
+        )
+        self.school = School.objects.create(
+            name="Dunning School",
+            slug="dunning-school",
+            subdomain="dunning-school",
+            is_active=True,
+            plan=self.plan,
+            billing_type=School.BillingType.REGULAR,
+        )
+
+    def _arm_delinquent(self, *, days_overdue, status, balance="199.00"):
+        """Create a delinquent subscription with an outstanding ledger balance.
+
+        Order matters: the outstanding charge is recorded FIRST, because
+        ``record_platform_charge`` re-runs ``ensure_subscription_for_school``,
+        which would reset a manually-set delinquent status back to ACTIVE. The
+        delinquency anchor lives on the ACCOUNT (``delinquent_since``), so
+        ``current_period_end`` is kept in the future — the lifecycle FSM then
+        won't raise a fresh renewal charge if a test drives it.
+        """
+        account, subscription, _ = ensure_subscription_for_school(self.school)
+        record_platform_charge(
+            school=self.school,
+            amount=balance,
+            reference="INV-DUNNING-001",
+            source="billing_lifecycle",
+        )
+        delinquent_since = timezone.now() - timedelta(days=days_overdue)
+        subscription.status = status
+        subscription.current_period_end = timezone.now() + timedelta(days=10)
+        subscription.save(
+            update_fields=["status", "current_period_end", "updated_at"]
+        )
+        account.delinquent_since = delinquent_since
+        account.status = (
+            BillingAccount.Status.SUSPENDED
+            if status == TenantSubscription.Status.SUSPENDED
+            else BillingAccount.Status.PAST_DUE
+        )
+        account.save(update_fields=["delinquent_since", "status", "updated_at"])
+        return account, subscription
+
+    def _stage_logs(self):
+        from apps.platform_runtime.models import PlatformEventLog
+
+        return list(
+            PlatformEventLog.objects.filter(
+                event_type="tenant.subscription.past_due"
+            ).values_list("idempotency_key", flat=True)
+        )
+
+    def test_ladder_advances_one_stage_per_run_and_is_idempotent(self, _email, _url):
+        from apps.billing.dunning_reminders import run_subscription_dunning_reminders
+
+        self._arm_delinquent(
+            days_overdue=0, status=TenantSubscription.Status.PAST_DUE
+        )
+        now = timezone.now()
+
+        # Day 0 — first rung fires; re-run same day must NOT duplicate.
+        first = run_subscription_dunning_reminders(as_of=now)
+        self.assertEqual(first["published"], 1)
+        self.assertEqual(first["by_stage"], {"dunning_1": 1})
+        again = run_subscription_dunning_reminders(as_of=now)
+        self.assertEqual(again["published"], 0)
+        self.assertEqual(again["skipped_deduped"], 1)
+
+        # Day 7 — second rung fires (offset ladder default (0, 7, 21)).
+        second = run_subscription_dunning_reminders(as_of=now + timedelta(days=7))
+        self.assertEqual(second["published"], 1)
+        self.assertEqual(second["by_stage"], {"dunning_2": 1})
+
+        # Day 21 — final notice fires.
+        final = run_subscription_dunning_reminders(as_of=now + timedelta(days=21))
+        self.assertEqual(final["published"], 1)
+        self.assertEqual(final["by_stage"], {"final_notice": 1})
+
+        # Three distinct rungs recorded, all keyed to the same episode.
+        keys = self._stage_logs()
+        self.assertEqual(len(keys), 3)
+        self.assertTrue(any(k.endswith(":dunning_1") for k in keys))
+        self.assertTrue(any(k.endswith(":dunning_2") for k in keys))
+        self.assertTrue(any(k.endswith(":final_notice") for k in keys))
+
+    def test_suspended_fires_terminal_notice_once(self, _email, _url):
+        from apps.billing.dunning_reminders import run_subscription_dunning_reminders
+
+        self._arm_delinquent(
+            days_overdue=30, status=TenantSubscription.Status.SUSPENDED
+        )
+        now = timezone.now()
+
+        first = run_subscription_dunning_reminders(as_of=now)
+        self.assertEqual(first["published"], 1)
+        self.assertEqual(first["by_stage"], {"suspended": 1})
+
+        # Re-run: the terminal notice is not re-sent, and lower rungs are NOT
+        # backfilled after access is already cut.
+        again = run_subscription_dunning_reminders(as_of=now)
+        self.assertEqual(again["published"], 0)
+        self.assertEqual(again["skipped_deduped"], 1)
+        keys = self._stage_logs()
+        self.assertEqual(len(keys), 1)
+        self.assertTrue(keys[0].endswith(":suspended"))
+
+    def test_payment_mid_dunning_stops_reminders(self, _email, _url):
+        from apps.billing.dunning_reminders import run_subscription_dunning_reminders
+
+        account, subscription = self._arm_delinquent(
+            days_overdue=7, status=TenantSubscription.Status.PAST_DUE
+        )
+        now = timezone.now()
+        run_subscription_dunning_reminders(as_of=now)  # send a rung
+
+        # Tenant pays: a CREDIT clears the balance and the lifecycle FSM restores
+        # the subscription + clears delinquent_since. Post the ledger row directly
+        # (not via record_platform_charge, which re-runs the subscription
+        # reconciler and would pre-empt the restore under test).
+        PlatformLedgerEntry.objects.create(
+            billing_account=account,
+            school=self.school,
+            entry_type=PlatformLedgerEntry.EntryType.CREDIT,
+            amount=Decimal("199.00"),
+            currency_code=account.currency_code,
+            reference="CR-DUNNING-001",
+            source="payments",
+            happened_at=timezone.now(),
+        )
+        summary = run_platform_billing_lifecycle(
+            as_of=now, grace_days=7, suspension_days=30
+        )
+        self.assertEqual(summary["restored"], 1)
+        subscription.refresh_from_db()
+        account.refresh_from_db()
+        self.assertEqual(subscription.status, TenantSubscription.Status.ACTIVE)
+        self.assertIsNone(account.delinquent_since)
+
+        # No further dunning — the tenant is paid up.
+        after_pay = run_subscription_dunning_reminders(as_of=now + timedelta(days=1))
+        self.assertEqual(after_pay["scanned"], 0)
+        self.assertEqual(after_pay["published"], 0)
+
+    def test_amount_due_is_decimal_exact(self, _email, _url):
+        from apps.billing.dunning_reminders import run_subscription_dunning_reminders
+        from apps.platform_runtime.models import PlatformEventLog
+
+        # A fractional balance that a float round-trip would corrupt.
+        self._arm_delinquent(
+            days_overdue=0,
+            status=TenantSubscription.Status.PAST_DUE,
+            balance="199.99",
+        )
+        run_subscription_dunning_reminders(as_of=timezone.now())
+        log = PlatformEventLog.objects.filter(
+            event_type="tenant.subscription.past_due"
+        ).first()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.payload.get("amount_due"), "199.99")
+        self.assertEqual(Decimal(log.payload["amount_due"]), Decimal("199.99"))
+
+    def test_skips_when_no_admin_email(self, _email, _url):
+        from apps.billing.dunning_reminders import run_subscription_dunning_reminders
+
+        _email.return_value = ""
+        self._arm_delinquent(
+            days_overdue=0, status=TenantSubscription.Status.PAST_DUE
+        )
+        summary = run_subscription_dunning_reminders(as_of=timezone.now())
+        self.assertEqual(summary["published"], 0)
+        self.assertEqual(summary["skipped_no_email"], 1)
+
+
 class PlatformInvoiceTests(TestCase):
     def setUp(self):
         self.plan = Plan.objects.create(

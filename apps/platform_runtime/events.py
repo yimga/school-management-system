@@ -460,6 +460,17 @@ EVENT_CATALOG = {
         "description": "Tenant trial ends within the warning window.",
         "payload": ["school_id", "admin_email", "days_until", "renewal_url"],
     },
+    "tenant.subscription.past_due": {
+        "description": "Delinquency dunning-ladder reminder as a past-due subscription ages toward suspension.",
+        "payload": [
+            "school_id",
+            "admin_email",
+            "dunning_stage",
+            "days_overdue",
+            "amount_due",
+            "renewal_url",
+        ],
+    },
     "tenant.reactivation.30d": {
         "description": "Reactivation cadence: 30 days inactive.",
         "payload": ["school_id", "admin_email", "school_name"],

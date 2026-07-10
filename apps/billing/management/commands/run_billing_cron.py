@@ -10,8 +10,10 @@ CI cron, or a manual run all work:
 
 It runs, in order: the billing lifecycle (trial conversion, renewal charges +
 invoices + tax, past-due aging, suspend/restore), then renewal reminders, then
-trial-ending reminders. Each step is independently safe and idempotent, so
-re-running the command never double-charges, double-issues, or double-emails.
+trial-ending reminders, then the delinquency dunning ladder (escalating past-due
+reminders for tenants the lifecycle already aged into past-due/suspended). Each
+step is independently safe and idempotent, so re-running the command never
+double-charges, double-issues, or double-emails.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from __future__ import annotations
 from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_datetime
 
+from apps.billing.dunning_reminders import run_subscription_dunning_reminders
 from apps.billing.renewal_reminders import (
     run_subscription_renewal_reminders,
     run_trial_ending_reminders,
@@ -57,5 +60,6 @@ class Command(BaseCommand):
             "trial_reminders": run_trial_ending_reminders(
                 as_of=as_of, warning_days=warning_days
             ),
+            "dunning_reminders": run_subscription_dunning_reminders(as_of=as_of),
         }
         self.stdout.write(self.style.SUCCESS(f"Billing cron summary: {summary}"))

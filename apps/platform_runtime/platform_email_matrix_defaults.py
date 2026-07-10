@@ -165,6 +165,24 @@ def _register_default_email_rows() -> int:
             user_unsubscribable=False,
         ),
         EmailMatrixRow(
+            event_type="tenant.subscription.past_due",
+            classification=CLASSIFICATION_TENANT_ADMIN,
+            subject_template=(
+                "{% if is_suspended %}Your RunMyCampus access is suspended — payment required"
+                "{% elif is_final %}Final notice: your RunMyCampus subscription will be suspended"
+                "{% else %}Payment past due — please settle your RunMyCampus balance{% endif %}"
+            ),
+            body_template="emails/tenant_admin_subscription_past_due.txt",
+            recipient_resolver=resolve_tenant_admin_from_payload,
+            priority=PRIORITY_TRANSACTIONAL,
+            # Per-stage dedup is enforced by the dunning sweep's idempotency key
+            # (one PlatformEventLog row per rung per episode), so no cooldown is
+            # needed here — a distinct rung must always be able to send.
+            cooldown_minutes=0,
+            user_unsubscribable=False,
+            description="Scheduled dunning-ladder reminder as a past-due subscription ages toward suspension.",
+        ),
+        EmailMatrixRow(
             event_type="tenant.offboarding.confirmed",
             classification=CLASSIFICATION_TENANT_ADMIN,
             subject_template="Your RunMyCampus tenant has been offboarded",

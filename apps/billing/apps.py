@@ -31,6 +31,7 @@ class BillingConfig(AppConfig):
             from . import tasks_holding_rollup  # noqa: F401
             from . import tasks_billing_lifecycle  # noqa: F401
             from . import tasks_renewal_reminders  # noqa: F401
+            from . import tasks_dunning_reminders  # noqa: F401
         except (ImportError, RuntimeError):
             pass
 
