@@ -104,6 +104,36 @@ class ClassroomSyncConsumer(_TenantScopedSyncConsumer):
         )
 
 
+class NotificationSyncConsumer(_TenantScopedSyncConsumer):
+    """Real-time delivery of a recipient's own notifications.
+
+    Joins the tenant-scoped room ``notifications_sync_{school_id}_{user_pk}`` (via
+    the base), so a socket only ever receives notifications for the exact
+    (school, user) it authenticated as. A notification persisted with ``school=A``
+    is fanned out only to ``notifications_sync_A_<recipient>`` and can never reach
+    a socket the same user opened on another tenant's host, nor another user.
+
+    The canonical Notification write path
+    (``finance.NotificationManager.notify_unread`` ->
+    ``apps.finance.notification_realtime.push_notification_realtime``) is the sole
+    producer, so the bell badge updates live instead of polling. The client only
+    listens — there is no inbound action — so ``receive`` is intentionally absent.
+    """
+
+    room_prefix = "notifications_sync"
+
+    async def notification_message(self, event):
+        # Handler for a ``{"type": "notification.message", ...}`` group_send.
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "notification",
+                    "notification": event.get("notification", {}),
+                }
+            )
+        )
+
+
 class AIChatConsumer(AsyncWebsocketConsumer):
     """
     World Engine B.3: Real-time AI chat over WebSocket.

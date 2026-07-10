@@ -1895,6 +1895,20 @@ class PaymentReminderLog(models.Model):
         return f"{self.reminder} @ {self.sent_at}"
 
 
+def _push_notification_realtime(notification) -> None:
+    """Best-effort live-push of a persisted notification (never raises).
+
+    Wraps the import so a missing Channels install can never break the DB write;
+    ``push_notification_realtime`` itself is already fail-soft.
+    """
+    try:
+        from apps.finance.notification_realtime import push_notification_realtime
+
+        push_notification_realtime(notification)
+    except Exception:  # noqa: BLE001 — real-time fan-out must never break the write
+        pass
+
+
 class NotificationManager(models.Manager):
     """Manager for :class:`Notification`.
 
@@ -1929,6 +1943,7 @@ class NotificationManager(models.Manager):
         else:
             lookup["recipient_id"] = recipient_id
         obj, _ = self.update_or_create(defaults=fields, **lookup)
+        _push_notification_realtime(obj)
         return obj
 
 
