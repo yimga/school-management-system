@@ -254,7 +254,13 @@ class TeacherProfile(models.Model):
             getattr(User.Role, "DEPT_LEAD", User.Role.TEACHER),
             getattr(User.Role, "LEADERSHIP", User.Role.TEACHER),
         }
-        if self.user and self.user.role not in allowed_roles:
+        # Guard on user_id (the raw FK column), NOT self.user: during a
+        # TeacherCreateForm ModelForm _post_clean the instance is validated
+        # BEFORE the view attaches the user, and accessing the OneToOne
+        # descriptor with an unset id raises RelatedObjectDoesNotExist (an
+        # uncaught 500, not a ValidationError). Matches the self.user_id guard
+        # used elsewhere in this module.
+        if self.user_id and self.user.role not in allowed_roles:
             raise ValidationError(
                 "TeacherProfile user must have a teacher or department-lead role"
             )

@@ -285,13 +285,16 @@ def backend_student_create(request):
 @permission_required("people.add_teacherprofile", raise_exception=True)
 def backend_teacher_create(request):
     """Create teacher via user-friendly backend UI"""
+    from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+    school = resolve_request_school(request)
     if request.method == "POST":
         from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
 
         blocked = block_if_wind_down_commerce(request)
         if blocked is not None:
             return blocked
-        form = TeacherCreateForm(request.POST, request.FILES)
+        form = TeacherCreateForm(request.POST, request.FILES, school=school)
         if form.is_valid():
             try:
                 with transaction.atomic():
@@ -314,6 +317,21 @@ def backend_teacher_create(request):
                     teacher.is_active = True
                     teacher.save()
 
+                    # Persist tenant EAV custom fields (e.g. Gulf residency
+                    # permit). Mirrors backend_student_create — the form renders
+                    # them via attach_dynamic_fields, and this is the save leg
+                    # that was missing (values were silently dropped).
+                    from apps.metadata.dynamic_forms import (
+                        save_dynamic_fields_for_model,
+                    )
+
+                    save_dynamic_fields_for_model(
+                        form,
+                        instance=teacher,
+                        school=school or getattr(teacher, "school", None),
+                        model=teacher.__class__,
+                    )
+
                     messages.success(
                         request,
                         f"Teacher '{teacher.user.get_full_name()}' created successfully!",
@@ -331,7 +349,7 @@ def backend_teacher_create(request):
                 )
                 messages.error(request, f"Error creating teacher: {str(e)}")
     else:
-        form = TeacherCreateForm()
+        form = TeacherCreateForm(school=school)
 
     list_url = reverse("accounts:backend_teacher_list")
     return render(
@@ -727,6 +745,11 @@ def backend_student_detail(request, student_id):
         "IT_ADMIN",
         "LEADERSHIP",
     )
+    from apps.metadata.dynamic_forms import dynamic_field_display_rows
+
+    custom_fields = dynamic_field_display_rows(
+        st, school=school, entity_type="people.studentprofile"
+    )
     return render(
         request,
         "people/backend_student_detail.html",
@@ -736,6 +759,7 @@ def backend_student_detail(request, student_id):
             "record": record,
             "detail_urls": detail_urls,
             "can_see_private_tags": can_see_private_tags,
+            "custom_fields": custom_fields,
         },
     )
 
@@ -763,12 +787,18 @@ def backend_teacher_detail(request, teacher_id):
         or tp.user.username
         or (tp.staff_id or str(tp.pk))
     )
+    from apps.metadata.dynamic_forms import dynamic_field_display_rows
+
+    custom_fields = dynamic_field_display_rows(
+        tp, school=school, entity_type="people.teacherprofile"
+    )
     return render(
         request,
         "people/backend_teacher_detail.html",
         {
             "teacher": tp,
             "teacher_display_name": display,
+            "custom_fields": custom_fields,
         },
     )
 

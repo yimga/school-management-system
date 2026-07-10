@@ -44,6 +44,17 @@ class DynamicFieldDefinition(models.Model):
         default=False,
         help_text="When True, runtime may treat the field as mandatory (aligned with siteconfig EAV).",
     )
+    validation_json = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Optional validation / handling rules carried from the country EAV "
+            'catalog, e.g. {"pattern": "^\\\\d{4}-\\\\d{4}-\\\\d{4}$", '
+            '"store_masked": true}. "pattern" attaches a RegexValidator at form '
+            'clean; "store_masked" persists a masked form only so raw PII (e.g. '
+            "an Aadhaar number) is never stored in plaintext."
+        ),
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

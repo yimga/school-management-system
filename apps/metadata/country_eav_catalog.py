@@ -97,6 +97,9 @@ def seed_country_eav_definitions(
             "label": row["label"],
             "data_type": row.get("data_type", "string"),
             "required": bool(row.get("required")),
+            # Carry the catalog's validation/masking contract so pattern +
+            # store_masked actually reach the form (regex) + save (masking) path.
+            "validation_json": dict(row.get("validation") or {}),
             "is_active": True,
         }
         if dry_run:

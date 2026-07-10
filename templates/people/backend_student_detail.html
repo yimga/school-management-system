@@ -130,6 +130,22 @@
         </div>
       </div>
     </div>
+
+    {% if custom_fields %}
+    <div class="col-lg-6 rmc-reveal">
+      <div class="card border-0 shadow-sm bento-panel h-100" data-bento-tier="drill-down">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Custom fields" %}</p>
+          <dl class="row mb-0 small">
+            {% for row in custom_fields %}
+            <dt class="col-5 text-muted fw-normal">{{ row.label }}</dt>
+            <dd class="col-7 mb-1">{{ row.value }}</dd>
+            {% endfor %}
+          </dl>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     {% endwith %}
   </div>
 

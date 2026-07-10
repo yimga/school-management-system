@@ -49,6 +49,30 @@ def wrap_value(value: Any) -> dict[str, Any]:
     return {"v": value}
 
 
+_PII_MASK_CHAR = "•"  # bullet — redacts a sensitive character
+
+
+def mask_pii_value(raw: Any, *, visible: int = 4) -> str:
+    """Redact all but the last ``visible`` alphanumeric characters of ``raw``.
+
+    Non-alphanumeric separators (e.g. the hyphens in an Aadhaar number) are
+    preserved so the identifier stays shape-recognisable while the sensitive
+    characters are masked, e.g. ``1234-5678-9012`` -> ``••••-••••-9012``.
+
+    Used when a ``DynamicFieldDefinition`` carries
+    ``validation_json['store_masked']`` so the raw PII is never persisted. It is
+    idempotent — masking an already-masked value returns it unchanged (the mask
+    character is non-alphanumeric, so it is always preserved).
+    """
+    text = str(raw)
+    alnum_positions = [i for i, ch in enumerate(text) if ch.isalnum()]
+    reveal = set(alnum_positions[-visible:]) if visible > 0 else set()
+    return "".join(
+        ch if (not ch.isalnum() or i in reveal) else _PII_MASK_CHAR
+        for i, ch in enumerate(text)
+    )
+
+
 def legacy_custom_attributes(instance: Any) -> dict[str, Any]:
     custom = getattr(instance, "custom_attributes", None)
     return dict(custom or {}) if isinstance(custom, dict) else {}

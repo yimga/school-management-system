@@ -39,10 +39,27 @@ def definitions_for_entity(
     return list(qs.order_by("field_key"))
 
 
+def _validation_rules(defn: DynamicFieldDefinition) -> dict[str, Any]:
+    rules = getattr(defn, "validation_json", None)
+    return rules if isinstance(rules, dict) else {}
+
+
 def form_field_for_definition(defn: DynamicFieldDefinition) -> forms.Field:
     label = defn.label or defn.field_key.replace("_", " ").title()
     required = bool(defn.required)
     widget_attrs = {"class": "form-control", "data-rmc-dynamic-field": defn.field_key}
+    rules = _validation_rules(defn)
+    pattern = rules.get("pattern")
+    text_validators = []
+    if pattern:
+        from django.core.validators import RegexValidator
+
+        text_validators.append(
+            RegexValidator(
+                regex=pattern,
+                message=_("Enter a valid %(label)s.") % {"label": label},
+            )
+        )
     if defn.data_type == "boolean":
         return forms.BooleanField(
             label=label,
@@ -74,6 +91,7 @@ def form_field_for_definition(defn: DynamicFieldDefinition) -> forms.Field:
         label=label,
         required=required,
         widget=forms.TextInput(attrs=widget_attrs),
+        validators=text_validators,
     )
 
 
@@ -106,6 +124,8 @@ def save_dynamic_fields_from_form(
     entity_type: str,
 ) -> None:
     """Persist submitted dynamic fields via set_dynamic_field_value."""
+    from apps.metadata.services import mask_pii_value
+
     for defn in definitions_for_entity(school=school, entity_type=entity_type):
         field_name = f"{_DYNAMIC_FIELD_PREFIX}{defn.field_key}"
         if field_name not in form.cleaned_data:
@@ -125,6 +145,17 @@ def save_dynamic_fields_from_form(
             value = raw
         if value in (None, "") and not defn.required:
             continue
+        # store_masked (e.g. Aadhaar): the raw value is validated at form clean
+        # (RegexValidator) but MUST NOT be persisted in plaintext — store only a
+        # masked form, so detail pages + the student search index never expose
+        # the raw PII. mask_pii_value is idempotent, so an unchanged re-submit is
+        # safe.
+        if (
+            _validation_rules(defn).get("store_masked")
+            and isinstance(value, str)
+            and value.strip()
+        ):
+            value = mask_pii_value(value)
         set_dynamic_field_value(
             instance,
             defn.field_key,
@@ -132,6 +163,37 @@ def save_dynamic_fields_from_form(
             school=school or getattr(instance, "school", None),
             data_type=defn.data_type,
         )
+
+
+def dynamic_field_display_rows(
+    instance: Any,
+    *,
+    school: Any | None,
+    entity_type: str,
+) -> list[dict[str, str]]:
+    """Label/value rows for a DETAIL page's "Custom fields" section.
+
+    Honors store_masked implicitly: the stored value is already masked (masking
+    happens at save time), so no raw PII is surfaced here. Mirrors the shape of
+    ``apps.reports.services.student_dynamic_fields_for_report``.
+    """
+    from apps.metadata.services import get_dynamic_field_value
+
+    resolved_school = school or getattr(instance, "school", None)
+    rows: list[dict[str, str]] = []
+    for defn in definitions_for_entity(school=resolved_school, entity_type=entity_type):
+        value = get_dynamic_field_value(
+            instance, defn.field_key, school=resolved_school
+        )
+        if value is None or not str(value).strip():
+            continue
+        rows.append(
+            {
+                "label": (defn.label or defn.field_key).strip(),
+                "value": str(value).strip(),
+            }
+        )
+    return rows
 
 
 def attach_dynamic_fields_for_model(
