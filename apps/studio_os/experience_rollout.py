@@ -4,14 +4,15 @@ Design SOT: ``django-studio-canvas-first-builder-approval.html`` ("Proof before
 publish. Role, device, draft/live, tenant/operator, accessibility, and
 no-overlap checks must pass before commit.").
 
-Model of record for approvals (this build): a per-session, per-region store keyed
-by a fingerprint of the region's live theme values. An approval is invalidated
-automatically when the live theme changes (fingerprint drift), so a stale
-approval can never satisfy the gate. The Experience shell (studio_os) has no
-model/migration/RLS scaffolding; standing up a tenant model here would require
-the full RLS enable+default-deny surface every tenant model in this codebase
-carries (PG-only, external-proof). Promoting this store to a first-class
-auditable ``ExperienceRegionApproval`` model is the documented follow-up.
+Model of record for approvals: a first-class, auditable ``ExperienceRegionApproval``
+tenant model (school-scoped; PostgreSQL RLS default-deny, mirroring the athletics
+pattern) keyed by a fingerprint of the region's live theme values, capturing who
+approved each region and against which draft. When no tenant school is in context
+(operator preview without a selected school, or a stand-in request) approvals fall
+back to a per-session store; a DB error on any durable path also falls back to the
+session so an approval is never silently lost. An approval is invalidated
+automatically when the live theme changes (fingerprint drift), so a stale approval
+can never satisfy the gate.
 
 Enforcement is governed by ``settings.STUDIO_EXPERIENCE_ROLLOUT_ENFORCEMENT``:
 - ``advisory`` (default): surface the checklist; never block publish.
