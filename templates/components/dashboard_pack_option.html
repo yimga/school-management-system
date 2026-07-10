@@ -1,0 +1,41 @@
+{% load i18n %}
+{% comment %}
+Dashboard Packs revival (Phase 4b): one selectable "Choose your dashboard" option card.
+Context: `pack` (an enriched dict from dashboard_pack_resolver.available_packs_for_role)
+and `selected` (the currently-chosen pack code). The mini-layout schematic is drawn from
+the pack's REAL config — kpi_count + header_variant + theme — so it shows what selecting
+the pack actually changes, with no fabricated screenshots. See
+docs/DASHBOARD_PACKS_REVIVAL_PLAN.md.
+{% endcomment %}
+<label class="rmc-dpk-card" data-rmc-dpk-theme="{{ pack.theme }}" data-rmc-dpk-variant="{{ pack.header_variant }}">
+  <input class="rmc-dpk-card__radio" type="radio" name="dashboard_pack" value="{{ pack.code }}"{% if pack.code == selected %} checked{% endif %}>
+  <span class="rmc-dpk-preview" aria-hidden="true">
+    <span class="rmc-dpk-preview__bar">
+      <span class="rmc-dpk-preview__dot"></span>
+      <span class="rmc-dpk-preview__dot"></span>
+    </span>
+    <span class="rmc-dpk-preview__kpis">
+      {% for kpi in pack.kpis %}<span class="rmc-dpk-preview__tile"></span>{% endfor %}
+    </span>
+    <span class="rmc-dpk-preview__body">
+      <span class="rmc-dpk-preview__panel"></span>
+      <span class="rmc-dpk-preview__panel"></span>
+    </span>
+  </span>
+  <span class="rmc-dpk-card__meta">
+    <span class="rmc-dpk-card__head">
+      <strong class="rmc-dpk-card__name">{{ pack.name }}</strong>
+    </span>
+    {% if pack.description %}<span class="rmc-dpk-card__desc">{{ pack.description }}</span>{% endif %}
+    {% if pack.kpis %}
+    <span class="rmc-dpk-card__chips" role="list" aria-label="{% trans 'Leads with these metrics' %}">
+      {% for kpi in pack.kpis %}<span class="rmc-dpk-chip rmc-dpk-chip--kpi" role="listitem">{{ kpi.label }}</span>{% endfor %}
+    </span>
+    {% endif %}
+    {% if pack.focus_areas %}
+    <span class="rmc-dpk-card__focus">
+      <span class="rmc-dpk-card__focus-label">{% trans "Focus" %}</span>{{ pack.focus_areas|join:" · " }}
+    </span>
+    {% endif %}
+  </span>
+</label>

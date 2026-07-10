@@ -119,11 +119,16 @@ def _school_sector(school: Any) -> str:
     return (getattr(school, "primary_sector", "") or "").strip().upper()
 
 
-def available_packs_for_role(assignment_role: str) -> list[dict[str, str]]:
+def available_packs_for_role(assignment_role: str) -> list[dict[str, Any]]:
     """
     Active packs a user in this coarse role may switch between (all the role's switchable
-    families). Returns a list of {"code", "name", "description"} dicts, name-ordered.
+    families). Each dict carries ``code`` / ``name`` / ``description`` / ``family`` /
+    ``family_label`` plus the honest, config-derived preview fields from
+    ``dashboard_pack_catalog.pack_preview`` (``kpis`` / ``kpi_count`` / ``focus_areas`` /
+    ``theme`` / ``theme_label`` / ``header_variant``) so a preview card renders what
+    selecting the pack actually changes. Family, then name ordered.
     """
+    from apps.siteconfig.dashboard_pack_catalog import family_label, pack_preview
     from apps.siteconfig.models_dashboard import DashboardPack
 
     role = (assignment_role or "").strip().upper()
@@ -139,7 +144,14 @@ def available_packs_for_role(assignment_role: str) -> list[dict[str, str]]:
             is_active=True, family__in=families
         ).order_by("family", "name")
         return [
-            {"code": p.code, "name": p.name, "description": p.description or ""}
+            {
+                "code": p.code,
+                "name": p.name,
+                "description": p.description or "",
+                "family": p.family,
+                "family_label": family_label(p.family),
+                **pack_preview(p.code, p.family),
+            }
             for p in rows
         ]
     except _RESOLVER_ERRORS:
@@ -151,9 +163,64 @@ def available_pack_codes_for_role(assignment_role: str) -> set[str]:
     return {p["code"] for p in available_packs_for_role(assignment_role)}
 
 
-def available_packs_for_user(user: Any) -> list[dict[str, str]]:
+def available_packs_for_user(user: Any) -> list[dict[str, Any]]:
     """Packs the given user may switch between, by their coarse-role bucket."""
     return available_packs_for_role(assignment_role_for_user_role(getattr(user, "role", "")))
+
+
+def grouped_available_packs_for_user(
+    user: Any, *, selected_code: str = ""
+) -> dict[str, Any]:
+    """Enriched packs grouped by family for the switcher, primary family first.
+
+    The primary family is the family of the user's currently-selected pack (so the
+    dashboard they picked floats to the top next visit), else the role's default family
+    (``_DEFAULT_PACK_FAMILY_BY_ROLE``). Returns
+    ``{"groups": [{"family", "family_label", "is_primary", "packs": [...]}], "primary_family"}``.
+    Every switchable pack lands in exactly one group — nothing is dropped, so no pack a
+    coarse role legitimately reaches becomes unreachable.
+    """
+    from apps.siteconfig.dashboard_pack_catalog import family_label
+
+    assignment_role = assignment_role_for_user_role(getattr(user, "role", ""))
+    packs = available_packs_for_role(assignment_role)
+
+    selected = (selected_code or "").strip()
+    primary_family = _DEFAULT_PACK_FAMILY_BY_ROLE.get(assignment_role, "")
+    if selected:
+        for pack in packs:
+            if pack.get("code") == selected:
+                primary_family = pack.get("family", primary_family)
+                break
+
+    order: list[str] = []
+    by_family: dict[str, list[dict[str, Any]]] = {}
+    for pack in packs:
+        fam = pack.get("family", "")
+        if fam not in by_family:
+            by_family[fam] = []
+            order.append(fam)
+        by_family[fam].append(pack)
+
+    groups = [
+        {
+            "family": fam,
+            "family_label": family_label(fam),
+            "is_primary": fam == primary_family,
+            "packs": by_family[fam],
+        }
+        for fam in order
+    ]
+    # Primary family first; the rest alphabetically by their human label.
+    groups.sort(key=lambda g: (not g["is_primary"], str(g["family_label"]).lower()))
+    other_pack_count = sum(
+        len(g["packs"]) for g in groups if not g["is_primary"]
+    )
+    return {
+        "groups": groups,
+        "primary_family": primary_family,
+        "other_pack_count": other_pack_count,
+    }
 
 
 # ---------------------------------------------------------------------------

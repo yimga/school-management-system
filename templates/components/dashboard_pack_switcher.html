@@ -1,43 +1,91 @@
 {% load i18n %}
 {% comment %}
-Dashboard Packs revival (Phase 4): per-user "Choose your dashboard" switcher.
-Rendered only when the user's role family has more than one pack. Posts the choice
-to api:dashboard-pack-preference (PATCH) via static/js/dashboard-pack-switcher.js;
-preview-before-apply (select a radio, then Apply). See docs/DASHBOARD_PACKS_REVIVAL_PLAN.md.
+Dashboard Packs revival (Phase 4b): per-user "Choose your dashboard" switcher.
+Full-width section. Header bar shows the current selection + a chevron; the body opens to
+the user's own family as prominent preview cards, then ONE collapsible "Other role
+dashboards" holding every other reachable family in a full-width auto-fit grid (nothing
+lost). Each option renders a config-derived mini-layout (no fabricated screenshots). Posts
+the choice to api:dashboard-pack-preference (PATCH) via static/js/dashboard-pack-switcher.js;
+preview-before-apply (select a card, then Apply). See docs/DASHBOARD_PACKS_REVIVAL_PLAN.md.
 {% endcomment %}
 {% if dashboard_pack_switcher.enabled %}
-<details class="rmc-dashboard-pack-switcher mt-2"
+<details class="rmc-dashboard-pack-switcher" open
          data-rmc-dashboard-pack-switcher
          data-endpoint="{{ dashboard_pack_switcher.endpoint }}"
          data-selected="{{ dashboard_pack_switcher.selected }}">
-  <summary class="small fw-semibold user-select-none">
-    <i class="bi bi-grid-3x3-gap"></i> {% trans "Choose your dashboard" %}
+  <summary class="rmc-dpk__summary user-select-none">
+    <span class="rmc-dpk__summary-icon" aria-hidden="true"><i class="bi bi-grid-3x3-gap"></i></span>
+    <span class="rmc-dpk__summary-text">
+      <span class="rmc-dpk__summary-title">{% trans "Choose your dashboard" %}</span>
+      <span class="rmc-dpk__summary-sub">
+        {% if dashboard_pack_switcher.selected_pack %}{% blocktrans with name=dashboard_pack_switcher.selected_pack.name %}Currently showing {{ name }}{% endblocktrans %}{% else %}{% trans "Currently showing your school default" %}{% endif %}
+      </span>
+    </span>
+    <i class="bi bi-chevron-down rmc-dpk__summary-chevron" aria-hidden="true"></i>
   </summary>
-  <form class="d-grid gap-2 pt-2" data-rmc-dashboard-pack-form>
-    {% for pack in dashboard_pack_switcher.available %}
-    <label class="form-check d-flex align-items-start gap-2 mb-0">
-      <input class="form-check-input mt-1" type="radio" name="dashboard_pack"
-             value="{{ pack.code }}"
-             {% if pack.code == dashboard_pack_switcher.selected %}checked{% endif %}>
-      <span class="form-check-label">
-        <strong class="d-block">{{ pack.name }}</strong>
-        <span class="small text-secondary">{{ pack.description }}</span>
-      </span>
-    </label>
+  <form class="rmc-dpk__form" data-rmc-dashboard-pack-form>
+
+    {% comment %} The user's own family — prominent preview cards. {% endcomment %}
+    {% for group in dashboard_pack_switcher.groups %}
+      {% if group.is_primary %}
+      <div class="rmc-dpk-group rmc-dpk-group--primary">
+        <p class="rmc-dpk-group__label">
+          {% blocktrans with fam=group.family_label %}Your dashboards · {{ fam }}{% endblocktrans %}
+        </p>
+        <div class="rmc-dpk-cards">
+          {% for pack in group.packs %}
+            {% include "components/dashboard_pack_option.html" with pack=pack selected=dashboard_pack_switcher.selected %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
     {% endfor %}
-    <label class="form-check d-flex align-items-start gap-2 mb-0">
-      <input class="form-check-input mt-1" type="radio" name="dashboard_pack" value=""
-             {% if not dashboard_pack_switcher.selected %}checked{% endif %}>
-      <span class="form-check-label">
-        <strong class="d-block">{% trans "School default" %}</strong>
-        <span class="small text-secondary">{% trans "Use the dashboard your school assigned for your role." %}</span>
+
+    {% comment %} Every other reachable family — one collapsible full-width grid. {% endcomment %}
+    {% if dashboard_pack_switcher.other_pack_count %}
+    <details class="rmc-dpk-group rmc-dpk-group--more">
+      <summary class="rmc-dpk-group__more-summary">
+        <span class="rmc-dpk-group__more-label">{% trans "Other role dashboards" %}</span>
+        <span class="rmc-dpk-group__count">{{ dashboard_pack_switcher.other_pack_count }}</span>
+        <span class="rmc-dpk-group__more-hint">{% trans "for every role you manage" %}</span>
+        <i class="bi bi-chevron-down rmc-dpk-group__more-chevron" aria-hidden="true"></i>
+      </summary>
+      <div class="rmc-dpk-more-body">
+        {% for group in dashboard_pack_switcher.groups %}
+          {% if not group.is_primary %}
+          <div class="rmc-dpk-subgroup">
+            <p class="rmc-dpk-subgroup__label">
+              <span>{{ group.family_label }}</span>
+              <span class="rmc-dpk-subgroup__count">{{ group.packs|length }}</span>
+            </p>
+            <div class="rmc-dpk-cards">
+              {% for pack in group.packs %}
+                {% include "components/dashboard_pack_option.html" with pack=pack selected=dashboard_pack_switcher.selected %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </details>
+    {% endif %}
+
+    {% comment %} Quiet reset — hand the dashboard back to the school's role default. {% endcomment %}
+    <label class="rmc-dpk-card rmc-dpk-card--default">
+      <input class="rmc-dpk-card__radio" type="radio" name="dashboard_pack" value=""{% if not dashboard_pack_switcher.selected %} checked{% endif %}>
+      <span class="rmc-dpk-card__meta">
+        <span class="rmc-dpk-card__head">
+          <strong class="rmc-dpk-card__name">{% trans "School default" %}</strong>
+        </span>
+        <span class="rmc-dpk-card__desc">{% trans "Use the dashboard your school assigned for your role." %}</span>
       </span>
     </label>
-    <div class="d-flex align-items-center gap-2 pt-1">
+
+    <div class="rmc-dpk__actions">
       <button type="submit" class="ds-btn" data-rmc-dashboard-pack-apply>
         {% trans "Apply" %}
       </button>
-      <span class="small text-secondary" data-rmc-dashboard-pack-status aria-live="polite"></span>
+      <span class="rmc-dpk__status small text-secondary" data-rmc-dashboard-pack-status aria-live="polite"></span>
     </div>
   </form>
 </details>

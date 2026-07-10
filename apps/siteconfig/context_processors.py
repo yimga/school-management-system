@@ -1827,6 +1827,10 @@ def dashboard_pack_switcher_context(request):
         "dashboard_pack_switcher": {
             "enabled": False,
             "available": [],
+            "groups": [],
+            "primary_family": "",
+            "other_pack_count": 0,
+            "selected_pack": None,
             "selected": "",
             "endpoint": "",
             "role": "",
@@ -1845,6 +1849,7 @@ def dashboard_pack_switcher_context(request):
         from apps.siteconfig.dashboard_pack_resolver import (
             assignment_role_for_user_role,
             available_packs_for_user,
+            grouped_available_packs_for_user,
             resolve_effective_template_cached,
         )
 
@@ -1871,9 +1876,24 @@ def dashboard_pack_switcher_context(request):
             except NoReverseMatch:
                 endpoint = ""
             if endpoint:
+                grouped = grouped_available_packs_for_user(
+                    user, selected_code=selected
+                )
+                selected_pack = (
+                    next(
+                        (p for p in available if p.get("code") == selected),
+                        None,
+                    )
+                    if selected
+                    else None
+                )
                 out["dashboard_pack_switcher"] = {
                     "enabled": True,
                     "available": available,
+                    "groups": grouped["groups"],
+                    "primary_family": grouped["primary_family"],
+                    "other_pack_count": grouped["other_pack_count"],
+                    "selected_pack": selected_pack,
                     "selected": selected,
                     "endpoint": endpoint,
                     "role": coarse_role,

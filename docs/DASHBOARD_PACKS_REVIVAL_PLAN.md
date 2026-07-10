@@ -28,6 +28,18 @@
 > Precedence: per-user choice → TenantLayoutAssignment → DashboardPackAssignment → role-home default
 > (default always wins → never blank).
 
+> ## ✅ PHASE 4b — switcher UX elevation (2026-07-09, SW v4.05.112)
+>
+> Owner feedback: the "Choose your dashboard" surface (`hero_greeting.html:35` → this
+> switcher) rendered a **flat ~30-item wall of text** for an ADMIN (the ADMIN coarse
+> bucket switches across 13 families) with no sense of what each pack looks like. Not
+> broken — thin. Fixed WITHOUT amputating the breadth (a bursar/librarian/nurse are all
+> `role=ADMIN`; narrowing would orphan their packs — the reachability test enforces this):
+> 1. **Grouped by family, primary first.** New `dashboard_pack_resolver.grouped_available_packs_for_user(user, selected_code=)` returns family groups with the user's own family (or the family of their *current* selection) first as prominent cards; every other reachable family sits under a collapsed "other role" `<details>`. `dashboard_pack_switcher_context` now emits `groups` + `primary_family` alongside the (preserved) flat `available`.
+> 2. **Honest, config-derived preview per pack.** `available_packs_for_role` items are enriched via new pure-catalog `dashboard_pack_catalog.pack_preview(code, family)` (+ `family_label`/`kpi_label`/`theme_label` SOT maps): real `kpis` / `focus_areas` / `theme` / `header_variant` drawn from the SAME `_merge_profile` that seeds `config_schema` — so a card shows what selecting the pack ACTUALLY changes, with **no fabricated screenshots**.
+> 3. **Card UI + mini-layout schematic.** `components/dashboard_pack_switcher.html` rewritten to grouped cards + new `components/dashboard_pack_option.html` partial; a CSS-drawn schematic (`rmc-dpk-*` grammar in `rmc-class-grammar.css`, token-only) reflects kpi_count + header_variant + theme. Native radio stays visible + brand-accented (accessible, zero-JS selection); the selected pack's family is always the expanded primary group, so the current choice is never hidden in a collapsed section. `dashboard-pack-switcher.js` unchanged (same `name="dashboard_pack"` + Apply hooks).
+> **Tests:** `test_dashboard_packs_revival.py` +8 (catalog labels + `pack_preview`, resolver enrichment + grouping primary-first + coverage, context `groups`, template render) — 39/39 green. Gates clean for the touched files (render-safety 0, undefined-css 0 new, off-token 0, theme-locked 0). No migration, no model change.
+
 **Authored:** 2026-06-15 · **Status:** EXECUTED 2026-06-15 · **Owner question that triggered it:**
 *"Our tenants were supposed to have world-class dashboards, and a dashboard pack where each
 profile (admin / teacher / parent / …) gets a tailored look, and users within a group can switch
