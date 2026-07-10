@@ -285,3 +285,113 @@ body.admin-manager-shell.change-list .changelist-form-container {
     flex-direction: column;
   }
 }
+
+/* v3.86.0: this stylesheet is critical screen layout, not enhancement.
+   Apply the changelist table/canvas repair to both operator and tenant admin. */
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #content,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #content-main,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .cp-admin-page-body,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .rmc-app-shell__canvas-body,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list [data-rmc-admin-changelist-live="1"] {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .changelist-form-container {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .rmc-admin-changelist-main,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #changelist-form,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .result-list-wrapper {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results table,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list {
+  display: table !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  table-layout: auto !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list thead,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list tbody,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list tfoot,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results thead,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results tbody,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results tfoot {
+  display: table-row-group !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list thead,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results thead {
+  display: table-header-group !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list tr,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results tr {
+  display: table-row !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list th,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list td,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results th,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .results td {
+  display: table-cell !important;
+  float: none !important;
+  width: auto !important;
+  max-width: 24rem;
+  min-width: 3rem;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  vertical-align: middle !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list [data-change-list-filter] {
+  flex: 0 0 auto !important;
+  width: min(20rem, 100%) !important;
+  max-width: 100% !important;
+  align-self: flex-start !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-list #admin-manager-sticky-slot:empty,
+body:is(.admin-manager-shell, .admin-premium-shell).change-list .admin-manager-sticky-slot:empty {
+  display: none !important;
+}
+
+@media (max-width: 1080px) {
+  body:is(.admin-manager-shell, .admin-premium-shell).change-list .changelist-form-container {
+    flex-direction: column !important;
+  }
+
+  body:is(.admin-manager-shell, .admin-premium-shell).change-list [data-change-list-filter] {
+    width: 100% !important;
+  }
+}

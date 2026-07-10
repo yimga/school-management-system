@@ -119,6 +119,12 @@ def main() -> int:
     if "_ai_copilot_rail.html" not in admin_base:
         errors.append("admin/base.html: manager copilot rail include missing")
 
+    admin_base_site = (ROOT / "templates/admin/base_site.html").read_text(encoding="utf-8")
+    if admin_base_site.count("rmc-admin-changelist-live.css") < 2:
+        errors.append("admin/base_site.html: changelist live CSS must load for manager and tenant admin")
+    if 'rmc-admin-changelist-live.css\' %}" media="print"' in admin_base_site:
+        errors.append("admin/base_site.html: changelist live CSS must be a screen stylesheet, not lazy print/onload")
+
     portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
     if "rmc-manager-portal-copilot-mount" not in portal:
         errors.append("portal_base.html: manager copilot bridge mount missing")
@@ -174,6 +180,7 @@ def main() -> int:
             "display: table-row !important",
             "display: table-cell !important",
             "white-space: nowrap",
+            "admin-premium-shell",
         ):
             if token not in live_css:
                 errors.append(f"rmc-admin-changelist-live.css: missing {token}")

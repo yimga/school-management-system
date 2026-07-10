@@ -159,7 +159,7 @@
      docs/generated/preview_app_shell_admin_v1_200x.html for the design target. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/admin-200x-shell-overlay.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-v1-200x.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-sidebar-luxury-10x.css' %}">
@@ -170,6 +170,7 @@
   {% if not is_manager_host %}
   {% comment %} v4.10.1: tenant backend gets the same spacious change-form body
      contract as operator admin, but without operator-only rails or links. {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}">
   {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
