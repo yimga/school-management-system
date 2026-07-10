@@ -25,7 +25,7 @@
 {% url 'finance:payment_readiness_dashboard' as wcx_payment_readiness_url %}
 {% include "partials/finance_glocal_strip.html" %}
 <p class="mb-3"><a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:workforce_command_center' %}">{% trans "Workforce & money hub" %}</a></p>
-{% include "components/rmc_operational_center_frame.html" with os_center_key="money_center" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_money_primary_url primary_label=_("Open invoices") secondary_url=wcx_payment_readiness_url secondary_label=_("Payment readiness") %}
+{% include "components/rmc_operational_center_frame.html" with tenant_surface="1" os_center_key="money_center" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_money_primary_url primary_label=_("Open invoices") secondary_url=wcx_payment_readiness_url secondary_label=_("Payment readiness") %}
 {% include "components/world_class_summary_strip.html" with readiness="Manual + PSP" readiness_label=_("Payment posture") risk=_("External") risk_label=_("Gateway readiness") next_step=_("Invoices") next_step_label=_("Primary action") blockers=_("Settlement") blockers_label=_("No fake live payments") %}
 {% include "components/platform_readiness_strip.html" with inline_field_prefix='money-center' tenant_label=request.tenant.display_name|default:'' %}
 {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}

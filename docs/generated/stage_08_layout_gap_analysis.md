@@ -1,6 +1,6 @@
 # Stage 08 Layout Gap Analysis
 
-- Scanned files: 936
+- Scanned files: 937
 - Findings: 0
 - Severity counts: {}
 - Category counts: {}

@@ -1,0 +1,205 @@
+/* Tenant administration sign-in — standalone dark login canvas.
+   Extracted verbatim from the inline <style> block in templates/auth/tenant_admin_login.html
+   so the `.tenant-admin-login*` grammar is defined in a CSS file (scan_undefined_css_classes).
+   This is a deliberately always-dark login surface with its own local palette; the raw color
+   decls below sit outside :root and carry off-token-allow markers accordingly. */
+:root {
+  --tenant-login-bg: #101724;
+  --tenant-login-panel: #151f32;
+  --tenant-login-panel-strong: #0d1422;
+  --tenant-login-line: rgba(148, 163, 184, 0.22);
+  --tenant-login-text: #eef4ff;
+  --tenant-login-muted: #a8b4c7;
+  --tenant-login-accent: #31d0aa;
+  --tenant-login-accent-2: #4f8cff;
+  --tenant-login-danger: #ff6b7a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--tenant-login-text);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(79, 140, 255, 0.22), transparent 30%),
+    radial-gradient(circle at 82% 8%, rgba(49, 208, 170, 0.18), transparent 30%),
+    linear-gradient(135deg, #0c1220 0%, var(--tenant-login-bg) 52%, #0e1820 100%); /* off-token-allow: always-dark-tenant-login-canvas */
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.tenant-admin-login {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  padding: clamp(24px, 5vw, 72px);
+}
+
+.tenant-admin-login__shell {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 440px);
+  gap: clamp(24px, 5vw, 64px);
+  align-items: center;
+}
+
+.tenant-admin-login__eyebrow {
+  color: var(--tenant-login-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.tenant-admin-login h1 {
+  margin: 0;
+  max-width: 780px;
+  font-size: clamp(2.35rem, 6vw, 5.5rem);
+  line-height: 0.96;
+  letter-spacing: 0;
+}
+
+.tenant-admin-login__copy {
+  max-width: 620px;
+  margin: 22px 0 0;
+  color: var(--tenant-login-muted);
+  font-size: clamp(1rem, 1.8vw, 1.18rem);
+  line-height: 1.65;
+}
+
+.tenant-admin-login__proof {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 620px;
+  margin-top: 28px;
+}
+
+.tenant-admin-login__proof span {
+  min-height: 72px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--tenant-login-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045); /* off-token-allow: always-dark-tenant-login-canvas */
+  color: var(--tenant-login-muted);
+  font-size: 0.82rem;
+}
+
+.tenant-admin-login__proof strong {
+  display: block;
+  color: var(--tenant-login-text);
+  font-size: 0.95rem;
+}
+
+.tenant-admin-login__card {
+  border: 1px solid var(--tenant-login-line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--tenant-login-panel) 92%, transparent);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+  padding: clamp(22px, 4vw, 34px);
+}
+
+.tenant-admin-login__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.tenant-admin-login__mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--tenant-login-accent-2), var(--tenant-login-accent));
+  color: #07111f; /* off-token-allow: always-dark-tenant-login-canvas */
+  font-weight: 900;
+}
+
+.tenant-admin-login__brand strong,
+.tenant-admin-login__brand small {
+  display: block;
+}
+
+.tenant-admin-login__brand small {
+  color: var(--tenant-login-muted);
+  margin-top: 2px;
+}
+
+.tenant-admin-login__alert {
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid color-mix(in srgb, var(--tenant-login-danger) 42%, transparent);
+  background: color-mix(in srgb, var(--tenant-login-danger) 13%, transparent);
+  color: #ffd7dd; /* off-token-allow: always-dark-tenant-login-canvas */
+  font-size: 0.92rem;
+}
+
+.tenant-admin-login label {
+  display: block;
+  margin: 0 0 7px;
+  color: var(--tenant-login-muted);
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+
+.tenant-admin-login input {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 11px;
+  border: 1px solid var(--tenant-login-line);
+  background: var(--tenant-login-panel-strong);
+  color: var(--tenant-login-text);
+  padding: 0 13px;
+  outline: none;
+}
+
+.tenant-admin-login input:focus {
+  border-color: color-mix(in srgb, var(--tenant-login-accent) 70%, white);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tenant-login-accent) 22%, transparent);
+}
+
+.tenant-admin-login__field {
+  margin-bottom: 16px;
+}
+
+.tenant-admin-login__submit {
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--tenant-login-accent-2), var(--tenant-login-accent));
+  color: #06111d; /* off-token-allow: always-dark-tenant-login-canvas */
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.tenant-admin-login__reset {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.tenant-admin-login a {
+  color: #b9d7ff; /* off-token-allow: always-dark-tenant-login-canvas */
+}
+
+@media (max-width: 860px) {
+  .tenant-admin-login {
+    align-items: start;
+    padding: 22px;
+  }
+
+  .tenant-admin-login__shell,
+  .tenant-admin-login__proof {
+    grid-template-columns: 1fr;
+  }
+}

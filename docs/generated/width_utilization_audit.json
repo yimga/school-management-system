@@ -184,6 +184,28 @@
       }
     },
     {
+      "file": "templates/academics/timetable_review.html",
+      "base": "portal_base.html",
+      "bucket": "LEAVE",
+      "confidence": "high",
+      "reason": "already fills (grid/table) and has a width strategy",
+      "signals": {
+        "container_fluid": true,
+        "container_fixed": false,
+        "content_max": true,
+        "known_centered_shell": false,
+        "balanced_rail": false,
+        "grid": true,
+        "table": true,
+        "mx_auto": true,
+        "cp_list": false,
+        "n_form": 1,
+        "n_panel": 0,
+        "n_table": 1,
+        "narrow_by_design": false
+      }
+    },
+    {
       "file": "templates/academics/workflow_done.html",
       "base": "backend_base.html",
       "bucket": "LEAVE",
@@ -9446,28 +9468,6 @@
       }
     },
     {
-      "file": "templates/portal/timetable_build.html",
-      "base": "portal_base.html",
-      "bucket": "LEAVE",
-      "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
-      "signals": {
-        "container_fluid": true,
-        "container_fixed": false,
-        "content_max": true,
-        "known_centered_shell": false,
-        "balanced_rail": false,
-        "grid": false,
-        "table": false,
-        "mx_auto": true,
-        "cp_list": false,
-        "n_form": 0,
-        "n_panel": 0,
-        "n_table": 0,
-        "narrow_by_design": false
-      }
-    },
-    {
       "file": "templates/portal/unified_calendar.html",
       "base": "portal_base.html",
       "bucket": "LEAVE",
@@ -10077,7 +10077,7 @@
         "table": true,
         "mx_auto": false,
         "cp_list": false,
-        "n_form": 0,
+        "n_form": 1,
         "n_panel": 0,
         "n_table": 1,
         "narrow_by_design": false
@@ -12992,12 +12992,12 @@
       "base": "portal_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already fills (grid/table) and has a width strategy",
+      "reason": "already fills the canvas with a responsive grid/table",
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
         "content_max": false,
-        "known_centered_shell": true,
+        "known_centered_shell": false,
         "balanced_rail": false,
         "grid": true,
         "table": true,
@@ -14917,7 +14917,7 @@
         "table": true,
         "mx_auto": false,
         "cp_list": false,
-        "n_form": 2,
+        "n_form": 0,
         "n_panel": 0,
         "n_table": 1,
         "narrow_by_design": false

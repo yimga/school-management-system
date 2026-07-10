@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-07-10T00:33:12.979123+00:00",
+  "generated_at": "2026-07-10T11:55:19.613159+00:00",
   "high_impact_templates_total": 266,
   "inline_styles": {
-    "count": 48,
-    "needs_review_count": 48,
+    "count": 47,
+    "needs_review_count": 47,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -77,7 +77,6 @@
       "templates/siteconfig/partials/ai_governance_body.html",
       "templates/siteconfig/partials/billing_plan_readonly_body.html",
       "templates/siteconfig/partials/ccc_guided_activation_strip.html",
-      "templates/siteconfig/partials/dashboard_configuration_hub_body.html",
       "templates/siteconfig/partials/departments_setup_evidence_body.html",
       "templates/siteconfig/partials/feature_control_ledger_body.html",
       "templates/siteconfig/partials/mock_reportcard_preview.html",
@@ -836,8 +835,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 48,
-      "needs_review_count": 48,
+      "count": 47,
+      "needs_review_count": 47,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -860,7 +859,6 @@
         "templates/siteconfig/partials/ai_governance_body.html",
         "templates/siteconfig/partials/billing_plan_readonly_body.html",
         "templates/siteconfig/partials/ccc_guided_activation_strip.html",
-        "templates/siteconfig/partials/dashboard_configuration_hub_body.html",
         "templates/siteconfig/partials/departments_setup_evidence_body.html",
         "templates/siteconfig/partials/feature_control_ledger_body.html",
         "templates/siteconfig/partials/mock_reportcard_preview.html",

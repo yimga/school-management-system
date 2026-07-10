@@ -362,6 +362,7 @@ def site_settings(request):
     if connection.needs_rollback:
         _reset_db_state()
     try:
+        # config-resolver-allow: namespace object IS the template-context product (SITE) — sanctioned fan-out surface
         site = get_effective_site_settings(request=request)
         if site is None:
             site = build_platform_default_site_settings()
