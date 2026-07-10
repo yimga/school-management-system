@@ -10,14 +10,21 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
+from apps.api.deprecation import DeprecationHeaderViewMixin
+
 
 @method_decorator(login_required, name="dispatch")
-class RosettaStoneConvertAPI(View):
+class RosettaStoneConvertAPI(DeprecationHeaderViewMixin, View):
     """
     GET ?score=<number>&from_scale=<id>&to_scale=<id>
     If from_scale is omitted, uses request.school's tenant scale.
     Returns: converted_score, normalized_value, letter_grade (when applicable).
+
+    DEPRECATED (RFC 8594) — superseded by ``/api/v1/rosetta/convert``. Emits
+    ``Deprecation`` / ``Sunset`` / ``Link`` headers; see ``apps/api/deprecation.py``.
     """
+
+    deprecation_endpoint_id = "api.rosetta.convert"
 
     def get(self, request):
         school = getattr(request, "school", None)
@@ -48,8 +55,14 @@ class RosettaStoneConvertAPI(View):
 
 
 @method_decorator(login_required, name="dispatch")
-class RosettaStoneScalesAPI(View):
-    """GET: list of supported scale ids for conversion (0-20, 0-100, gpa, a-f, 0-10)."""
+class RosettaStoneScalesAPI(DeprecationHeaderViewMixin, View):
+    """GET: list of supported scale ids for conversion (0-20, 0-100, gpa, a-f, 0-10).
+
+    DEPRECATED (RFC 8594) — superseded by ``/api/v1/rosetta/scales``. Emits
+    ``Deprecation`` / ``Sunset`` / ``Link`` headers; see ``apps/api/deprecation.py``.
+    """
+
+    deprecation_endpoint_id = "api.rosetta.scales"
 
     def get(self, request):
         from apps.evals.rosetta_stone import get_supported_scales

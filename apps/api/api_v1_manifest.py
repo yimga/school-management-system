@@ -18,6 +18,7 @@ import uuid
 from django.http import JsonResponse
 from django.urls import reverse
 
+from apps.api.deprecation import build_deprecation_manifest_block
 from apps.siteconfig.billing_sku_registry import manifest_plan_entitlements_block
 
 # Placeholder tenant id for curated routes that include ``<uuid:id>`` (discovery template only).
@@ -126,6 +127,11 @@ def build_api_v1_manifest_data(request) -> dict:
         "api": "RunMyCampus",
         "version": "1.0",
         "policy": "Non-breaking additive changes without version bump; breaking changes announced 90d via changelog.",
+        # RFC 8594: machine-readable list of deprecated endpoints + their
+        # sunset dates + successor URLs, so the policy above has runtime teeth.
+        # The live routes also emit Deprecation/Sunset/Link headers — see
+        # apps/api/deprecation.py.
+        "deprecations": build_deprecation_manifest_block(request),
         "plan_entitlements": manifest_plan_entitlements_block(),
         "endpoints": endpoints,
         "webhooks": {
