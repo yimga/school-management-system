@@ -223,6 +223,30 @@ _SIGNUP_VENDOR_SLUGS = {
     "oneroster", "csv", "spreadsheet", "other",
 }
 
+# Which record families a school can declare it's bringing over, captured at
+# signup alongside the vendor so the auto-drafted MigrationBundle knows scope
+# from day one. Kept in sync with the checkbox group in signup_school.html.
+_SIGNUP_DOMAIN_SLUGS = {
+    "students", "guardians", "staff", "enrollments", "grades",
+    "attendance", "timetable", "fees", "discipline", "health",
+}
+
+
+def _clean_migration_domains(raw) -> list[str]:
+    """Validate the optional 'which records to import' multi-select from signup.
+
+    Preserves declared order, de-dupes, drops anything not in the allowlist.
+    Never raises — an absent/garbage field just yields an empty list.
+    """
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in raw or []:
+        slug = (item or "").strip().lower()
+        if slug in _SIGNUP_DOMAIN_SLUGS and slug not in seen:
+            seen.add(slug)
+            out.append(slug)
+    return out
+
 
 def _country_from_accept_language(request) -> str:
     """Best-effort country code from Accept-Language header.
@@ -468,6 +492,8 @@ def signup_school(request: HttpRequest):
     migration_vendor = (request.POST.get("migration_vendor") or "").strip().lower()
     if migration_vendor and migration_vendor not in _SIGNUP_VENDOR_SLUGS:
         migration_vendor = ""
+    # Optional "which records to import" multi-select captured next to the vendor.
+    migration_domains = _clean_migration_domains(request.POST.getlist("migration_domains"))
     # v3.62.2 — school_type validated against the COUNTRY's pack first; if
     # not present there, fall back to the legacy hardcoded map so existing
     # bookmarked-form clients keep working.
@@ -699,6 +725,7 @@ def signup_school(request: HttpRequest):
             "vendor": migration_vendor,
             "intake_method": "file_upload",
             "expected_students": 0,
+            "data_domains": migration_domains,
             "label": f"{name} initial migration from {migration_vendor}"[:200],
             "locale_context": locale_ctx,
         }
@@ -885,6 +912,7 @@ def signup_school(request: HttpRequest):
             "workspace_url": workspace_url,
             "school_slug": slug,
             "migration_vendor": migration_vendor,
+            "migration_domains": migration_domains,
             "school_type": school_type,
             "country_code": country_code,
         },
