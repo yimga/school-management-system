@@ -90,11 +90,16 @@ class WebhookDeadLetterTests(TestCase):
 
     def test_dead_letter_after_five_failures_same_reference(self):
         ref = "txn-deadletter-xyz"
+        # FAILED audit rows never own the idempotency bucket (only the claim row
+        # does — the finance_webhooklog_uniq_provider_bucket unique constraint
+        # forbids >1 row per (provider, non-empty bucket)). The dead-letter
+        # counter keys on reference_id, so repeated failures accumulate with
+        # bucket="" — mirror that real shape here.
         for _ in range(5):
             WebhookLog.objects.create(
                 provider="dl_provider",
                 reference_id=ref,
-                idempotency_bucket=ref,
+                idempotency_bucket="",
                 client_ip="127.0.0.1",
                 status=WebhookLog.Status.FAILED,
             )

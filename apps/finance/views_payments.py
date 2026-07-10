@@ -727,12 +727,18 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         invoice: Invoice | None = None,
         payment: Payment | None = None,
         error_message: str = "",
-        idempotency_bucket: str = "",
     ) -> WebhookLog:
+        # Audit / reject / duplicate rows never claim the idempotency bucket —
+        # only the authoritative processing row minted by claim_webhook_processing
+        # owns it (bucket stays "" here, exempt from the unique constraint). If an
+        # audit row persisted the bucket it would collide with
+        # finance_webhooklog_uniq_provider_bucket on any duplicate or rejected
+        # redelivery (IntegrityError -> 500 retry storm), and a rejected first
+        # delivery owning the bucket would make the real payment's later claim
+        # resolve as a false "duplicate" and never post.
         payload_dict: dict = {
             "provider": provider_code,
             "reference_id": reference_id,
-            "idempotency_bucket": idempotency_bucket or "",
             "client_ip": client_ip,
             "signature_valid": signature_valid,
             "status": status,
@@ -807,7 +813,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             status=WebhookLog.Status.INVALID,
             response_status=403,
             error_message=f"IP not whitelisted: {client_ip}",
-            idempotency_bucket=dedup_reference,
         )
         logger.warning(
             "Rejected webhook from unauthorized IP %s for %s", client_ip, provider_slug
@@ -820,7 +825,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             status=WebhookLog.Status.INVALID,
             response_status=403,
             error_message=f"Rate limit exceeded for IP {client_ip}",
-            idempotency_bucket=dedup_reference,
         )
         logger.warning("Rate limit exceeded for IP %s", client_ip)
         return HttpResponseForbidden("Rate limit exceeded.")
@@ -841,7 +845,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             status=WebhookLog.Status.INVALID,
             response_status=403,
             error_message="Invalid HMAC signature",
-            idempotency_bucket=dedup_reference,
         )
         logger.warning("Invalid signature from %s (%s)", provider_slug, client_ip)
         return HttpResponseForbidden("Invalid signature.")
@@ -861,7 +864,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             status=WebhookLog.Status.INVALID,
             response_status=403,
             error_message="Invalid or stale webhook timestamp",
-            idempotency_bucket=dedup_reference,
         )
         logger.warning("Invalid timestamp from %s (%s)", provider_slug, client_ip)
         return HttpResponseForbidden("Invalid timestamp.")
@@ -885,7 +887,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             status=WebhookLog.Status.DEAD_LETTER,
             response_status=200,
             error_message=f"Exceeded {_dl_thresh} FAILED in {_dl_window_h}h; ack 200 to stop retries",
-            idempotency_bucket=dedup_reference,
         )
         logger.warning(
             "Webhook dead-letter for %s ref=%s (failures=%s)",
@@ -914,7 +915,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             status=WebhookLog.Status.INVALID,
             response_status=400,
             error_message=f"Invalid amount: {error_msg}",
-            idempotency_bucket=dedup_reference,
         )
         logger.warning("Invalid payment amount from %s: %s", provider_slug, amount)
         return HttpResponseBadRequest(error_msg)
@@ -926,7 +926,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             status=WebhookLog.Status.INVALID,
             response_status=400,
             error_message="Missing invoice_id in payload",
-            idempotency_bucket=dedup_reference,
         )
         return HttpResponseBadRequest("Missing invoice_id.")
 
@@ -940,7 +939,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             status=WebhookLog.Status.INVALID,
             response_status=400,
             error_message=f"Invoice {invoice_id} not found",
-            idempotency_bucket=dedup_reference,
         )
         logger.warning(
             "Invoice %s not found from webhook %s", invoice_id, provider_slug
@@ -963,7 +961,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             response_status=400,
             invoice=invoice,
             error_message=f"Amount validation failed: {error_msg}",
-            idempotency_bucket=dedup_reference,
         )
         logger.warning(
             "Payment amount validation failed for invoice %s: %s",
@@ -990,7 +987,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
                     signature_valid=True,
                     status=WebhookLog.Status.DUPLICATE,
                     response_status=200,
-                    idempotency_bucket=dedup_reference,
                 )
                 logger.info(
                     "Duplicate webhook from %s: %s", provider_slug, dedup_reference
@@ -1032,7 +1028,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
                     invoice=invoice,
                     payment=payment,
                     response_status=200,
-                    idempotency_bucket=dedup_reference,
                 )
             logger.info(
                 "Successfully processed webhook from %s: Invoice %s, Payment %s, Amount %s",
@@ -1067,7 +1062,6 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
                 status=WebhookLog.Status.FAILED,
                 response_status=500,
                 error_message=f"Transaction error: {str(e)[:200]}",
-                idempotency_bucket=dedup_reference,
             )
         return JsonResponse(
             {"status": "error", "reason": "processing_failed"}, status=500
