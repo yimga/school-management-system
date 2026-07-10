@@ -141,6 +141,7 @@ def gdpr_scrub_student(
     Incident = _get_model("academics", "Incident")
     Evaluation = _get_model("evals", "Evaluation")
     Applicant = _get_model("people", "Applicant")
+    BadgeScanEvent = _get_model("people", "BadgeScanEvent")
 
     if not StudentProfile:
         return {"ok": False, "error": "StudentProfile model unavailable"}
@@ -303,6 +304,15 @@ def gdpr_scrub_student(
         if Evaluation:
             # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
             Evaluation.objects.filter(student_id=student_id).update(remarks="")
+
+        if BadgeScanEvent:
+            # Strip the identifier telemetry (IP / device / free-text notes) on
+            # this student's badge/ID scan events. Rows are preserved (they carry
+            # non-PII attendance signal) but the direct identifiers are erased.
+            # tenant-isolation-allow: service-layer-scoped-via-caller-student-fk (student_id is school-scoped upstream)
+            BadgeScanEvent.objects.filter(student_id=student_id).update(
+                ip_address=None, user_agent="", notes=""
+            )
 
         if Applicant and old_email:
             Applicant.objects.filter(

@@ -350,6 +350,13 @@ def gdpr_scrub_staff(
             ]
         )
         _redact_counterparty_pii(school_id, user_id)
+        BadgeScanEvent = _get_model("people", "BadgeScanEvent")
+        if BadgeScanEvent:
+            # Strip identifier telemetry on this staff member's badge/ID scans.
+            # tenant-isolation-allow: user_id is globally unique + resolved within this school above
+            BadgeScanEvent.objects.filter(user_id=user_id).update(
+                ip_address=None, user_agent="", notes=""
+            )
 
     _log_compliance_event(
         school_id=school_id,
