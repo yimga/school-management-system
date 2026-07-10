@@ -430,10 +430,16 @@ class TenantSettingsAdmin(ModelAdmin):
 
     def _is_site_admin(self, user) -> bool:
         role = (getattr(user, "role", "") or "").upper()
-        # Require staff + Admin role, or superuser
+        # Superuser, or a tenant ADMIN / SUPERADMIN. is_staff is intentionally NOT
+        # required: this admin is registered only on the tenant_admin_site, whose
+        # TenantAdminSite.has_permission already scopes entry to a school-bound
+        # admin/owner before any per-model check runs. Self-service tenant owners
+        # are role-based SchoolMembership users and are NOT Django is_staff, so an
+        # is_staff conjunct here locked them out of their own site settings — the
+        # same class of bug as the tenant_admin_required / FINANCE-LOCKOUT fix.
         return bool(
-            user.is_superuser
-            or (user.is_staff and role in {User.Role.ADMIN, User.Role.SUPERADMIN})
+            getattr(user, "is_superuser", False)
+            or role in {User.Role.ADMIN, User.Role.SUPERADMIN}
         )
 
     def has_view_permission(self, request, obj=None):
