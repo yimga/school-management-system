@@ -17,25 +17,6 @@
       {% else %}
         {{ role_preview_profiles|json_script:"rmc-dashboard-role-preview-data" }}
         {{ template_preview_profiles|json_script:"rmc-dashboard-template-preview-data" }}
-        <style>
-          .rmc-dashboard-preview-shell{border:1px solid rgba(148,163,184,.24);border-radius:16px;background:linear-gradient(135deg,rgba(15,23,42,.96),rgba(30,41,59,.88));color:#e5ecff;min-height:100%}
-          .rmc-dashboard-preview-shell .text-muted{color:#9aa9c2!important}
-          .rmc-dashboard-preview-card{border:1px solid rgba(148,163,184,.24);border-radius:14px;background:rgba(15,23,42,.7)}
-          .rmc-dashboard-preview-card--after{border-color:rgba(59,130,246,.42);box-shadow:0 0 0 1px rgba(59,130,246,.16) inset}
-          .rmc-dashboard-preview-device .btn{border-radius:999px}
-          .rmc-dashboard-preview-device .btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
-          .rmc-dashboard-preview-chip{display:inline-flex;align-items:center;border:1px solid rgba(148,163,184,.28);border-radius:999px;padding:.18rem .55rem;font-size:.75rem;background:rgba(15,23,42,.78);color:#e5ecff}
-          .rmc-dashboard-preview-screen{border:1px solid rgba(148,163,184,.18);border-radius:13px;background:#07111f;overflow:hidden}
-          .rmc-dashboard-preview-screen__top{display:flex;gap:.35rem;align-items:center;border-bottom:1px solid rgba(148,163,184,.16);padding:.55rem .7rem;background:rgba(15,23,42,.9)}
-          .rmc-dashboard-preview-dot{width:.48rem;height:.48rem;border-radius:999px;background:#38bdf8}
-          .rmc-dashboard-preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;padding:.7rem}
-          .rmc-dashboard-preview-tile{min-height:58px;border-radius:10px;background:linear-gradient(135deg,rgba(37,99,235,.38),rgba(20,184,166,.2));border:1px solid rgba(148,163,184,.18);padding:.45rem;font-size:.72rem}
-          .rmc-dashboard-preview-tile:nth-child(2){background:linear-gradient(135deg,rgba(16,185,129,.34),rgba(59,130,246,.18))}
-          .rmc-dashboard-preview-tile:nth-child(3){background:linear-gradient(135deg,rgba(245,158,11,.34),rgba(59,130,246,.16))}
-          .rmc-dashboard-preview-list{margin:0;padding-left:1rem}
-          .rmc-dashboard-preview-list li+li{margin-top:.2rem}
-          @media (max-width: 991.98px){.rmc-dashboard-preview-grid{grid-template-columns:1fr}.rmc-dashboard-preview-shell{margin-top:1rem}}
-        </style>
         <div class="row g-4" data-rmc-dashboard-role-preview>
           <div class="col-xl-5">
             <form method="post" action="{% url 'siteconfig:dashboard_configuration_hub' %}" data-rmc-dashboard-assignment-form>
