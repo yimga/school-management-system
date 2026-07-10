@@ -281,3 +281,126 @@ body:is(.admin-manager-shell, .admin-premium-shell) #admin-manager-sticky-slot:e
 body:is(.admin-manager-shell, .admin-premium-shell) .admin-manager-sticky-slot:empty {
   display: none !important;
 }
+
+/* Deployment hardening:
+   Some production captures showed the contract stylesheet present but not winning.
+   Anchor the critical rules to Django admin DOM markers, not only body class timing. */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] :is(
+  #content,
+  #content-main,
+  .rmc-app-shell__canvas,
+  .rmc-app-shell__canvas-body,
+  .cp-admin-page-body
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"],
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] :is(
+  #changelist,
+  .result-list-wrapper,
+  .changelist-form-container,
+  .rmc-admin-changelist-main,
+  #changelist-form,
+  .results
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] .changelist-form-container {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: var(--rmc-django-panel-gap, 1rem) !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] .rmc-admin-changelist-main,
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #changelist-form {
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] .results {
+  display: block !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] :is(#result_list, .results table) {
+  display: table !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  table-layout: auto !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #result_list :is(caption) {
+  display: table-caption !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #result_list :is(colgroup) {
+  display: table-column-group !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #result_list :is(col) {
+  display: table-column !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #result_list :is(thead) {
+  display: table-header-group !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #result_list :is(tbody) {
+  display: table-row-group !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #result_list :is(tfoot) {
+  display: table-footer-group !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #result_list tr,
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] .results tr {
+  display: table-row !important;
+  height: auto !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #result_list :is(th, td),
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] .results :is(th, td) {
+  display: table-cell !important;
+  float: none !important;
+  clear: none !important;
+  width: auto !important;
+  max-width: clamp(10rem, 18vw, 24rem);
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  vertical-align: middle !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"],
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] > form,
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] form > .flex.flex-col.gap-6 {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-submit-contract="sticky-safe-actions"],
+html[data-rmc-admin-html="unfold"] .submit-row {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+@media (max-width: 1079.98px) {
+  html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] .changelist-form-container {
+    flex-direction: column !important;
+  }
+}

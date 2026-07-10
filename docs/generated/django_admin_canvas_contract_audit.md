@@ -39,6 +39,10 @@ Audited the deploy-state admin shell on `origin/main` for the approved canvas-fi
   - table, form, submit, and preview sizing rules exist.
 - Wired the new audit into `scripts/verify_admin_manager_shell_aggressive.py`.
 - Bumped the service worker cache version to force deployed browsers off stale admin CSS.
+- Added deploy hardening on 2026-07-10 after production still showed stale/narrow surfaces:
+  - cache-busted the final contract stylesheet URL;
+  - added contract-marker selectors that do not depend solely on body class timing;
+  - kept the same operator/tenant scope through Django admin shell markers.
 
 ## Validation
 
