@@ -421,6 +421,7 @@ class TenantSettingsAdmin(ModelAdmin):
         from apps.platform_runtime.helpers import get_platform_site_settings_record
 
         return self._is_site_admin(request.user) and (
+            # config-resolver-allow: singleton row EXISTENCE check gates admin add permission (not a keyed value read)
             get_platform_site_settings_record(create=False) is None
         )
 
@@ -586,10 +587,9 @@ class TenantSettingsAdmin(ModelAdmin):
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def logo_preview(self, obj):
-        from apps.siteconfig.config_service import get_effective_site_settings
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        eff = get_effective_site_settings(request=None, school=None)
-        logo = getattr(eff, "logo", None) if eff else None
+        logo = get_effective_config(key="logo", request=None, school=None)
         if logo and getattr(logo, "url", None):
             return format_html(
                 '<img src="{}" style="height:60px;border-radius:12px;background:#fff;padding:6px;" />',
@@ -622,6 +622,7 @@ class TenantSettingsAdmin(ModelAdmin):
             return mark_safe("<p>Save once to see the summary.</p>")
         from apps.siteconfig.config_service import get_effective_site_settings
 
+        # config-resolver-allow: namespace with `or obj` fallback fanned into 8+ attribute reads for the summary panel
         eff = get_effective_site_settings(request=None, school=None) or obj
         theme_settings = (
             eff.get_theme_experience_settings()

@@ -316,6 +316,93 @@ def dashboard_template_for_pack(row: dict) -> tuple[str, dict]:
     return (f"{row['name']} — Default", config_schema)
 
 
+# ---------------------------------------------------------------------------
+# Display metadata for the per-user "Choose your dashboard" switcher (Phase 4b).
+# Human labels for families / KPI ids / theme presets are the SOT the switcher +
+# its preview cards read, so nothing is hardcoded in the template. pack_preview()
+# is the honest, config-derived summary each preview card renders.
+# ---------------------------------------------------------------------------
+FAMILY_LABELS: dict[str, str] = {
+    "admin": "Admin",
+    "principal": "Leadership",
+    "teacher": "Teaching",
+    "parent": "Family",
+    "student": "Student",
+    "finance": "Finance",
+    "it_admin": "IT",
+    "compact": "Low-bandwidth",
+    "counselor": "Counseling",
+    "registrar": "Registrar",
+    "nurse": "Health",
+    "admissions": "Admissions",
+    "hr": "HR",
+    "transport": "Transport",
+    "library": "Library",
+    "boarding": "Boarding",
+    "cafeteria": "Cafeteria",
+    "alumni": "Alumni",
+    "compliance": "Compliance",
+}
+
+# KPI ids used across FAMILY_DASHBOARD_PROFILE / PACK_PROFILE_OVERRIDES.
+KPI_LABELS: dict[str, str] = {
+    "recent_admissions": "Admissions",
+    "attendance_today": "Attendance today",
+    "top_performing": "Top performing",
+    "weekly_presence": "Weekly presence",
+}
+
+# Visual preset slugs used in FAMILY_DASHBOARD_PROFILE[...]["theme"].
+THEME_LABELS: dict[str, str] = {
+    "crisp-professional": "Crisp",
+    "soft-glass": "Soft glass",
+    "high-contrast": "High contrast",
+}
+
+
+def family_label(family: str) -> str:
+    """Human name for a pack family (falls back to a title-cased slug)."""
+    key = (family or "").strip()
+    if key in FAMILY_LABELS:
+        return FAMILY_LABELS[key]
+    return key.replace("_", " ").replace("-", " ").title() or "Other"
+
+
+def kpi_label(kpi_id: str) -> str:
+    """Human name for a KPI id (falls back to a title-cased slug)."""
+    key = (kpi_id or "").strip()
+    return KPI_LABELS.get(key, key.replace("_", " ").title())
+
+
+def theme_label(theme_slug: str) -> str:
+    """Human name for a visual-preset slug (falls back to a title-cased slug)."""
+    key = (theme_slug or "").strip()
+    return THEME_LABELS.get(key, key.replace("-", " ").replace("_", " ").title())
+
+
+def pack_preview(code: str, family: str) -> dict:
+    """Honest, config-derived summary for a pack's preview card.
+
+    Every field is derived from the SAME profile that seeds the pack's
+    ``DashboardTemplate.config_schema`` (via ``_merge_profile`` / ``FAMILY_HEADER_VARIANT``),
+    so a preview card shows what selecting the pack actually changes — the KPIs it
+    leads with, its focus areas, its theme, and its header layout variant — with no
+    fabricated imagery. The mini-layout schematic is drawn by the template from
+    ``kpi_count`` + ``header_variant`` + ``theme``.
+    """
+    profile = _merge_profile(family, code)
+    kpi_ids = [k for k in (profile.get("kpis") or []) if k]
+    theme_slug = profile.get("theme") or ""
+    return {
+        "kpis": [{"id": k, "label": kpi_label(k)} for k in kpi_ids],
+        "kpi_count": len(kpi_ids),
+        "focus_areas": list(profile.get("focus_areas") or []),
+        "theme": theme_slug,
+        "theme_label": theme_label(theme_slug),
+        "header_variant": FAMILY_HEADER_VARIANT.get(family, "standard"),
+    }
+
+
 def apply_seed(dashboard_pack_model, dashboard_template_model) -> int:
     """Idempotent upsert of every pack + its one default template.
 

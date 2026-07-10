@@ -43,6 +43,7 @@ class OfflineSyncService:
             )
 
             # CONFLICT EXISTS
+            # config-resolver-allow: get_offline_runtime_settings() method invoked on the settings namespace, not a plain key read
             site = get_effective_site_settings(
                 school=getattr(getattr(offline_entry, "student", None), "school", None)
             )

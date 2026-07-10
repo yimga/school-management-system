@@ -1110,6 +1110,7 @@ def get_studio_compare_context(request: Any, mode: str) -> dict[str, Any]:
 
         # After: current saved theme, or session preview if set
         preview = request.session.get("site_preview_settings") or {}
+        # config-resolver-allow: theme keys read dynamically (variable-key getattr over _EXPERIENCE_COMPARE_THEME_KEYS)
         site = get_effective_site_settings(request=request)
         after_snapshot: dict[str, Any] = {}
         for name, _ in _EXPERIENCE_COMPARE_THEME_KEYS:
@@ -1391,22 +1392,28 @@ def get_overview_signals(request: Any) -> dict[str, Any]:
         logger.warning("get_overview_signals.output_readiness_pct: %s", e)
     # Draft experiences: tenants with preview mode still enabled (unpublished theme work).
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings  # type: ignore[import-not-found]
+        from apps.platform_runtime.config_resolver import get_effective_config  # type: ignore[import-not-found]
         from apps.schools.models import School  # type: ignore[import-not-found]
 
         school = getattr(request, "school", None) if request is not None else None
         if school is not None:
-            settings_obj = get_effective_site_settings(school=school)
             signals["draft_experiences"] = int(
-                bool(getattr(settings_obj, "preview_mode_enabled", False))
+                bool(
+                    get_effective_config(
+                        key="preview_mode_enabled", school=school, default=False
+                    )
+                )
             )
         else:
             draft_count = 0
             # tenant-isolation-allow: overview-aggregate-readonly-preview-count
             for sch in School.objects.all()[:50]:
                 try:
-                    settings_obj = get_effective_site_settings(school=sch)
-                    if bool(getattr(settings_obj, "preview_mode_enabled", False)):
+                    if bool(
+                        get_effective_config(
+                            key="preview_mode_enabled", school=sch, default=False
+                        )
+                    ):
                         draft_count += 1
                 except _STUDIO_SOFT_FAILURES:
                     continue

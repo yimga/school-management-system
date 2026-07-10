@@ -37,13 +37,9 @@ logger = logging.getLogger(__name__)
 def _load_existing_payload() -> dict:
     """Return the current ``SiteSettings.email_delivery`` dict (or {})."""
     try:
-        from apps.platform_runtime.helpers import get_platform_site_settings_record
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
-        row = get_platform_site_settings_record(create=False)
-        if row is None:
-            return {}
-        return getattr(row, "email_delivery", None) or {}
+        return get_effective_config(key="email_delivery") or {}
     except Exception as exc:  # noqa: BLE001  — defensive read
         logger.warning(
             "schoolops.email_admin.load_existing_payload_failed err_type=%s",
@@ -58,6 +54,7 @@ def _persist_payload(new_payload: dict) -> bool:
         from apps.platform_runtime.helpers import get_platform_site_settings_record
 
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        # config-resolver-allow: write-path singleton (create=True then set_email_delivery persists the payload)
         row = get_platform_site_settings_record(create=True)
         if row is None:
             return False

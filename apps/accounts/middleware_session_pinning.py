@@ -121,10 +121,14 @@ class SessionPinningMiddleware:
         # yet a real field; if it ever lands, honor it here. Until then, the
         # global gate above is authoritative.
         try:
-            from apps.siteconfig.config_service import get_effective_site_settings
+            from apps.platform_runtime.config_resolver import get_effective_config
 
-            site = get_effective_site_settings(request=request)
-            if site is not None and getattr(site, "session_pinning_enabled", True) is False:
+            if (
+                get_effective_config(
+                    key="session_pinning_enabled", request=request, default=True
+                )
+                is False
+            ):
                 return False
         except Exception:  # noqa: BLE001 — never fail-open on config errors
             pass

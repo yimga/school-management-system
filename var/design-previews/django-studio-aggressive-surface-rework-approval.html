@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RunMyCampus aggressive Django and Studio surface rework approval</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07101f;
+      --panel: #0d172b;
+      --panel-2: #121f36;
+      --panel-3: #192842;
+      --line: rgba(160, 183, 220, .18);
+      --line-strong: rgba(160, 183, 220, .32);
+      --text: #edf4ff;
+      --muted: #a8b7cc;
+      --soft: #71819a;
+      --blue: #43b7ff;
+      --green: #38d784;
+      --yellow: #ffd166;
+      --red: #ff5c6c;
+      --purple: #8f79ff;
+      --shadow: 0 22px 70px rgba(0, 0, 0, .36);
+      --radius: 18px;
+      --radius-sm: 10px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 18% -10%, rgba(67, 183, 255, .18), transparent 34%),
+        radial-gradient(circle at 78% 0%, rgba(56, 215, 132, .11), transparent 30%),
+        linear-gradient(180deg, #081222 0%, #07101f 46%, #060b16 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr) 54px;
+      grid-template-rows: 68px 36px minmax(0, 1fr);
+    }
+
+    .topbar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr) 460px;
+      gap: 18px;
+      align-items: center;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 16, 31, .88);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand, .nav, .actions, .rail-tool, .pill, .btn, .field, .select {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand { gap: 12px; min-width: 0; }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #43b7ff, #8f79ff 50%, #ff5c6c);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: white;
+      box-shadow: 0 10px 24px rgba(67, 183, 255, .18);
+    }
+
+    .brand strong { display: block; font-size: 15px; letter-spacing: .02em; }
+    .brand span { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+    .nav {
+      justify-content: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .btn, .pill {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.045);
+      color: var(--text);
+      border-radius: 999px;
+      min-height: 34px;
+      padding: 0 14px;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .btn.primary { background: linear-gradient(135deg, #4d74ff, #7957ff); border-color: rgba(146, 172, 255, .5); }
+    .btn.green { background: rgba(56, 215, 132, .15); border-color: rgba(56, 215, 132, .34); color: #91ffc4; }
+    .btn.red { background: rgba(255, 92, 108, .14); border-color: rgba(255, 92, 108, .34); color: #ffc1c7; }
+    .btn.blue { background: rgba(67, 183, 255, .14); border-color: rgba(67, 183, 255, .34); color: #bdeaff; }
+    .btn.ghost { background: #080f1d; }
+
+    .search {
+      width: min(360px, 42vw);
+      justify-self: end;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 209, 102, .28);
+      border-radius: 999px;
+      background: rgba(60, 42, 24, .64);
+      padding: 8px 10px 8px 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 46px;
+      height: 18px;
+      border-radius: 5px;
+      background: rgba(255,255,255,.11);
+      color: #d6e2f3;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .ticker {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      overflow: hidden;
+      padding: 0 18px;
+      color: var(--muted);
+      background: rgba(15, 19, 49, .82);
+      border-bottom: 1px solid rgba(124, 106, 255, .35);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .left {
+      grid-row: 3;
+      background: rgba(9, 16, 31, .84);
+      border-right: 1px solid var(--line);
+      padding: 12px;
+      overflow: auto;
+    }
+
+    .left-head {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) 34px auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .mini {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.045);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .filter {
+      min-width: 0;
+      height: 34px;
+      border: 1px solid rgba(255, 209, 102, .26);
+      border-radius: 10px;
+      background: rgba(55, 39, 23, .58);
+      color: var(--muted);
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .nav-card {
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(18, 31, 54, .64);
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .nav-title {
+      color: var(--soft);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 11px;
+      font-weight: 900;
+      margin: 4px 8px 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 8px;
+      border-radius: 10px;
+      color: #d8e4f5;
+      font-size: 13px;
+    }
+
+    .nav-item.active { background: rgba(67, 183, 255, .12); color: #cceeff; }
+
+    .right-tools {
+      grid-column: 3;
+      grid-row: 3;
+      border-left: 1px solid var(--line);
+      background: rgba(9, 16, 31, .9);
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .rail-tool {
+      width: 34px;
+      height: 34px;
+      justify-content: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,.055);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    main {
+      grid-column: 2;
+      grid-row: 3;
+      min-width: 0;
+      overflow: auto;
+      padding: 18px 18px 96px;
+    }
+
+    .approval-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr);
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+
+    .hero-main, .hero-side, .surface, .problem, .after-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(18, 31, 54, .92), rgba(13, 23, 43, .92));
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 22px; }
+    .hero-side { padding: 16px; }
+
+    .eyebrow {
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: .11em;
+      font-weight: 900;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(26px, 3.8vw, 44px); line-height: 1.02; letter-spacing: -.02em; margin-bottom: 12px; }
+    h2 { font-size: 22px; margin-bottom: 10px; }
+    h3 { font-size: 16px; margin-bottom: 8px; }
+    p { color: var(--muted); line-height: 1.55; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.045);
+      border-radius: 14px;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .metric strong { display: block; font-size: 22px; margin-bottom: 3px; }
+    .metric span { color: var(--muted); font-size: 12px; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 14px 0;
+    }
+
+    .tab-btn[aria-selected="true"] {
+      background: linear-gradient(135deg, rgba(67, 183, 255, .25), rgba(143, 121, 255, .24));
+      border-color: rgba(67, 183, 255, .48);
+      color: white;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .compare {
+      display: grid;
+      grid-template-columns: minmax(280px, .78fr) minmax(0, 1.5fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .problem, .after-card { padding: 16px; }
+
+    .problem-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .problem-list li {
+      border: 1px solid rgba(255, 92, 108, .25);
+      border-left: 4px solid var(--red);
+      border-radius: 12px;
+      background: rgba(255, 92, 108, .07);
+      padding: 10px 12px;
+      color: #ffd9dd;
+      line-height: 1.35;
+      font-size: 13px;
+    }
+
+    .surface {
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .surface-command {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(8, 15, 29, .76);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      min-height: 24px;
+      align-items: center;
+      border-radius: 999px;
+      padding: 0 9px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--line);
+      color: #d9e7f8;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .badge.green { color: #9fffc9; background: rgba(56, 215, 132, .14); border-color: rgba(56, 215, 132, .3); }
+    .badge.red { color: #ffc1c7; background: rgba(255, 92, 108, .14); border-color: rgba(255, 92, 108, .3); }
+    .badge.blue { color: #bdeaff; background: rgba(67, 183, 255, .14); border-color: rgba(67, 183, 255, .3); }
+    .badge.yellow { color: #ffe5a3; background: rgba(255, 209, 102, .13); border-color: rgba(255, 209, 102, .3); }
+
+    .studio-contract {
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr) 320px;
+      gap: 12px;
+      align-items: start;
+      min-height: 660px;
+    }
+
+    .mode-rail, .context-rail, .workbench {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(10, 18, 34, .82);
+      min-width: 0;
+    }
+
+    .mode-rail { padding: 10px; position: sticky; top: 12px; }
+    .mode-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 10px;
+      color: #d9e5f4;
+      font-weight: 800;
+      font-size: 13px;
+      text-decoration: none;
+      margin-bottom: 4px;
+    }
+    .mode-link.active { background: #eaf4ff; color: #0b1728; }
+
+    .workbench {
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .callout {
+      border: 1px solid rgba(67, 183, 255, .22);
+      background: linear-gradient(135deg, rgba(67, 183, 255, .12), rgba(143, 121, 255, .08));
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: minmax(240px, .78fr) minmax(0, 1.22fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .field-group {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.035);
+      border-radius: 14px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .field {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,.045);
+      padding: 10px 12px;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      min-height: 42px;
+    }
+
+    .field strong { color: var(--text); font-size: 13px; }
+    .field span { overflow-wrap: anywhere; text-align: right; font-size: 12px; }
+
+    .live-preview-tile {
+      border: 1px solid rgba(67, 183, 255, .25);
+      background: rgba(67, 183, 255, .075);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 300px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .device {
+      border-radius: 22px;
+      background: linear-gradient(135deg, #f2f5f9, #cbd5e1);
+      color: #172033;
+      padding: 14px;
+      min-height: 220px;
+      display: grid;
+      grid-template-columns: 130px minmax(0, 1fr);
+      gap: 12px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+    }
+
+    .device-sidebar {
+      border-radius: 16px;
+      background: rgba(255,255,255,.5);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .device-line {
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, .08);
+    }
+
+    .device-main {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      align-content: start;
+    }
+
+    .device-card {
+      min-height: 70px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.74);
+      padding: 10px;
+    }
+
+    .context-rail { padding: 12px; display: grid; gap: 10px; align-content: start; }
+
+    .rail-section {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,.035);
+      min-width: 0;
+    }
+
+    .rail-section p { font-size: 12px; margin-bottom: 0; overflow-wrap: anywhere; }
+
+    .admin-contract {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 12px;
+      align-items: start;
+      min-height: 620px;
+    }
+
+    .admin-form {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(10, 18, 34, .82);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .form-section {
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255,255,255,.035);
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .input {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #07101f;
+      padding: 11px 12px;
+      min-height: 44px;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    .input label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 5px;
+    }
+
+    .input code {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      color: #d7e6ff;
+      font-size: 12px;
+    }
+
+    .save-dock {
+      position: sticky;
+      bottom: 12px;
+      z-index: 4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      background: rgba(7, 16, 31, .92);
+      backdrop-filter: blur(14px);
+      padding: 10px;
+    }
+
+    .automation-contract {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .auto-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .flow-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.04);
+      padding: 14px;
+      min-height: 150px;
+      min-width: 0;
+    }
+
+    .health-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .error-recovery {
+      border: 1px solid rgba(255, 209, 102, .34);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(255, 209, 102, .13), rgba(67, 183, 255, .06));
+      padding: 14px;
+    }
+
+    .checklist {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .check {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      padding: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .drawer {
+      position: fixed;
+      inset: 68px 54px 0 auto;
+      width: min(780px, 50vw);
+      background: #101c31;
+      border-left: 1px solid var(--line-strong);
+      box-shadow: -30px 0 80px rgba(0,0,0,.38);
+      z-index: 20;
+      transform: translateX(102%);
+      transition: transform .22s ease;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-head {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .drawer-body {
+      overflow: auto;
+      padding: 14px;
+    }
+
+    .drawer-device {
+      min-height: 620px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #f8fafc, #dbe4ef);
+      color: #111827;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .popout {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.58);
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    .popout.open { display: flex; }
+
+    .popout-panel {
+      width: min(1100px, 94vw);
+      max-height: 86vh;
+      overflow: auto;
+      border-radius: 22px;
+      background: #101c31;
+      border: 1px solid var(--line-strong);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .footnote {
+      color: var(--soft);
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 1180px) {
+      .shell { grid-template-columns: 74px minmax(0, 1fr) 46px; }
+      .left { padding: 8px; }
+      .nav-card, .filter, .brand span, .brand strong, .nav-item span, .nav-title, .hero-side { display: none; }
+      .topbar { grid-template-columns: 210px minmax(0, 1fr) 280px; }
+      .approval-hero, .compare, .studio-contract, .admin-contract, .automation-contract { grid-template-columns: 1fr; }
+      .context-rail, .mode-rail { position: static; }
+      .drawer { width: calc(100vw - 120px); }
+    }
+
+    @media (max-width: 760px) {
+      .shell { display: block; }
+      .left, .right-tools { display: none; }
+      .topbar { grid-template-columns: 1fr; position: static; }
+      .nav, .search { justify-content: flex-start; width: 100%; justify-self: stretch; }
+      main { padding: 12px 12px 96px; }
+      .metrics, .form-grid, .editor-grid, .auto-grid, .health-row, .checklist { grid-template-columns: 1fr; }
+      .surface-command { grid-template-columns: 1fr; }
+      .drawer { inset: 0; width: 100vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">R</div>
+        <div>
+          <strong>RUNMYCAMPUS</strong>
+          <span>Approval preview - body surfaces only</span>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Primary preview navigation">
+        <a class="btn primary" href="#studio">Studio</a>
+        <a class="btn" href="#django">Django Admin</a>
+        <a class="btn" href="#automation">Automation</a>
+        <a class="btn" href="#checklist">Audit Loop</a>
+      </nav>
+      <div class="search"><span>Search models, fields, records...</span><span class="kbd">Ctrl K</span></div>
+    </header>
+
+    <div class="ticker">
+      <span class="badge red">Live defect pattern</span>
+      <span>Django change forms waste width and sticky actions cover fields</span>
+      <span>Studio Experience squeezes preview into the form</span>
+      <span>Automation can fail behind an embedded surface</span>
+      <span>Fix requires a shared body contract</span>
+    </div>
+
+    <aside class="left" aria-label="Sidebar preview">
+      <div class="left-head">
+        <div class="mini">S</div>
+        <div class="filter"><span>Filter...</span><span>/</span></div>
+        <div class="mini">G</div>
+        <span style="color:var(--muted);font-size:12px">Navigation</span>
+      </div>
+      <div class="nav-card">
+        <div class="nav-title"><span>Quick access</span><span>^</span></div>
+        <div class="nav-item active"><span>Feature Control</span><small>often</small></div>
+        <div class="nav-item"><span>Workflow Center</span><small>often</small></div>
+      </div>
+      <div class="nav-card">
+        <div class="nav-title"><span>Studio OS</span><span>^</span></div>
+        <div class="nav-item active"><span>Experience</span><small>now</small></div>
+        <div class="nav-item"><span>Automation</span><small>fix</small></div>
+        <div class="nav-item"><span>Outputs</span><small>preview</small></div>
+        <div class="nav-item"><span>Launch</span><small>publish</small></div>
+      </div>
+      <div class="nav-card">
+        <div class="nav-title"><span>Django Backend</span><span>^</span></div>
+        <div class="nav-item"><span>Users</span><small>form</small></div>
+        <div class="nav-item"><span>Theme packs</span><small>form</small></div>
+        <div class="nav-item"><span>Report cards</span><small>preview</small></div>
+      </div>
+    </aside>
+
+    <aside class="right-tools" aria-label="Tool rail preview">
+      <div class="rail-tool">AI</div>
+      <div class="rail-tool">?</div>
+      <div class="rail-tool">P</div>
+      <div class="rail-tool">A</div>
+      <div class="rail-tool">L</div>
+    </aside>
+
+    <main>
+      <section class="approval-hero">
+        <div class="hero-main">
+          <div class="eyebrow">Approval artifact</div>
+          <h1>Aggressive Django and Studio surface rework</h1>
+          <p>
+            This is the proposed body-level contract before production implementation. It addresses the screenshots directly:
+            no narrow centered forms, no squeezed live preview, no sticky bars covering fields, no wasted Studio void, and no
+            iframe-only Automation failure path.
+          </p>
+          <div class="metrics">
+            <div class="metric"><strong>3</strong><span>Root surface contracts</span></div>
+            <div class="metric"><strong>6</strong><span>Studio work modes covered</span></div>
+            <div class="metric"><strong>4</strong><span>Preview modes required</span></div>
+            <div class="metric"><strong>0</strong><span>Allowed operator/tenant bleed</span></div>
+          </div>
+        </div>
+        <div class="hero-side">
+          <h3>What changed in this proposal</h3>
+          <p>Live preview is promoted to a controlled system: inline when small, drawer when wide, popout when comparing, and new tab when embedding is blocked.</p>
+          <p>Django forms use a full-width field matrix with a compact action rail. Automation gets a native recovery cockpit instead of showing a dead frame.</p>
+        </div>
+      </section>
+
+      <div class="tabs" role="tablist" aria-label="Approval preview sections">
+        <button class="btn tab-btn" id="tab-studio" role="tab" aria-selected="true" aria-controls="studio">Studio Experience</button>
+        <button class="btn tab-btn" id="tab-django" role="tab" aria-selected="false" aria-controls="django">Django Admin</button>
+        <button class="btn tab-btn" id="tab-automation" role="tab" aria-selected="false" aria-controls="automation">Automation 502</button>
+        <button class="btn tab-btn" id="tab-checklist" role="tab" aria-selected="false" aria-controls="checklist">Audit Loop</button>
+      </div>
+
+      <section id="studio" class="tab-panel active" role="tabpanel" aria-labelledby="tab-studio">
+        <div class="compare">
+          <aside class="problem">
+            <div class="eyebrow">Current problem pattern</div>
+            <h2>Experience and Theme mode</h2>
+            <ul class="problem-list">
+              <li>Large blank area appears above actual work, then the useful editor is pushed below the fold.</li>
+              <li>Live preview and settings are squeezed into narrow columns, causing vertical text and overlap.</li>
+              <li>Right context rail competes with the canvas instead of behaving like a collapsible assistant.</li>
+              <li>Preview is treated as a small widget even when it needs the full screen.</li>
+            </ul>
+          </aside>
+          <div class="surface">
+            <div class="surface-command">
+              <div>
+                <div class="eyebrow">After contract</div>
+                <h2 style="margin-bottom:4px">Studio Experience - full-width workbench</h2>
+                <p style="margin-bottom:0">Editor, state, audit, and preview are separated into stable zones. The preview drawer can open without squeezing the form.</p>
+              </div>
+              <div class="badges">
+                <span class="badge green">Tenant scoped</span>
+                <span class="badge blue">Live preview ready</span>
+                <span class="badge yellow">Drawer optional</span>
+              </div>
+            </div>
+
+            <div class="studio-contract">
+              <nav class="mode-rail" aria-label="Studio work modes">
+                <a class="mode-link" href="#">Overview</a>
+                <a class="mode-link active" href="#">Experience</a>
+                <a class="mode-link" href="#">Automation</a>
+                <a class="mode-link" href="#">Outputs</a>
+                <a class="mode-link" href="#">Launch</a>
+                <a class="mode-link" href="#">Control</a>
+              </nav>
+              <section class="workbench">
+                <div class="callout">
+                  <h3>Experience workspace</h3>
+                  <p style="margin-bottom:10px">Brand identity, theme packs, portal layout, role preview, publish guardrails, and rollback live in one clean body surface.</p>
+                  <div class="badges">
+                    <span class="badge green">Saved state</span>
+                    <span class="badge red">Contrast pass</span>
+                    <span class="badge blue">Sandbox draft</span>
+                  </div>
+                </div>
+                <div class="badges">
+                  <button class="btn blue" type="button" data-open-drawer>Open preview drawer</button>
+                  <button class="btn" type="button" data-open-popout>Popout comparison</button>
+                  <a class="btn ghost" href="about:blank" target="_blank" rel="noopener noreferrer">Open in new tab</a>
+                  <button class="btn green" type="button">Publish previewed change</button>
+                </div>
+                <div class="editor-grid">
+                  <div class="field-group">
+                    <h3>Configuration groups</h3>
+                    <div class="field"><strong>Brand identity</strong><span>Site name, logo, tagline</span></div>
+                    <div class="field"><strong>Theme packs</strong><span>Portal and backend packs</span></div>
+                    <div class="field"><strong>Color system</strong><span>Tokens and contrast</span></div>
+                    <div class="field"><strong>Portal shells</strong><span>Parent, teacher, student</span></div>
+                    <div class="field"><strong>Rollback</strong><span>Last published snapshot</span></div>
+                  </div>
+                  <div class="live-preview-tile">
+                    <div class="badges">
+                      <span class="badge blue">Inline preview</span>
+                      <span class="badge">Admin role</span>
+                      <span class="badge">Desktop</span>
+                    </div>
+                    <div class="device" aria-label="Inline role preview mock">
+                      <div class="device-sidebar">
+                        <div class="device-line" style="width:70%"></div>
+                        <div class="device-line"></div>
+                        <div class="device-line" style="width:82%"></div>
+                        <div class="device-line" style="width:74%"></div>
+                      </div>
+                      <div class="device-main">
+                        <div class="device-card"><strong>Dashboard</strong><p style="color:#475569;font-size:12px">Role home after draft theme.</p></div>
+                        <div class="device-card"><strong>Messages</strong><p style="color:#475569;font-size:12px">Accent and spacing preview.</p></div>
+                        <div class="device-card"><strong>Reports</strong><p style="color:#475569;font-size:12px">Contrast check visible.</p></div>
+                        <div class="device-card"><strong>Finance</strong><p style="color:#475569;font-size:12px">No clipped labels.</p></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <aside class="context-rail" aria-label="Studio context">
+                <div class="rail-section">
+                  <h3>State</h3>
+                  <p>12 fields guarded on publish. Draft is tenant scoped. Rollback snapshot exists.</p>
+                </div>
+                <div class="rail-section">
+                  <h3>Tokens</h3>
+                  <p>primary_color #ababab, accent_color #ababab, footer_bg #0f172a. All token values wrap safely.</p>
+                </div>
+                <div class="rail-section">
+                  <h3>Preview as</h3>
+                  <p>Admin shell, teacher dashboard, parent portal, finance console, student portal.</p>
+                </div>
+                <div class="rail-section">
+                  <h3>Recommendation</h3>
+                  <p>Use drawer or popout for wide preview; keep inline preview as a quick confidence check only.</p>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="django" class="tab-panel" role="tabpanel" aria-labelledby="tab-django">
+        <div class="compare">
+          <aside class="problem">
+            <div class="eyebrow">Current problem pattern</div>
+            <h2>Django change forms</h2>
+            <ul class="problem-list">
+              <li>Fields are centered in a narrow column while the right side of the page is empty.</li>
+              <li>Sticky save bars cross active fields and visually split the form.</li>
+              <li>Long password hashes and metadata values create cramped text blocks.</li>
+              <li>Tenant and operator Django surfaces need the same layout quality but separate scope identity.</li>
+            </ul>
+          </aside>
+          <div class="surface">
+            <div class="surface-command">
+              <div>
+                <div class="eyebrow">After contract</div>
+                <h2 style="margin-bottom:4px">Django admin - full-width operational form</h2>
+                <p style="margin-bottom:0">The form becomes a page body system: grouped field matrix, smart rail, and a save dock that never covers fields.</p>
+              </div>
+              <div class="badges">
+                <span class="badge green">Operator scoped</span>
+                <span class="badge blue">Tenant variant required</span>
+              </div>
+            </div>
+
+            <div class="admin-contract">
+              <section class="admin-form">
+                <div class="form-section">
+                  <div class="badges" style="justify-content:space-between">
+                    <h3 style="margin:0">Change user</h3>
+                    <span class="badge yellow">Raw record access</span>
+                  </div>
+                  <p style="margin:8px 0 0">Admin record forms should feel like structured workspaces, not unstyled database pages.</p>
+                </div>
+                <div class="form-section">
+                  <h3>Identity and access</h3>
+                  <div class="form-grid">
+                    <div class="input"><label>Username</label><strong>admin</strong></div>
+                    <div class="input"><label>Email address</label><strong>admin@example.test</strong></div>
+                    <div class="input"><label>Role</label><strong>Platform operator</strong></div>
+                    <div class="input"><label>Scope</label><strong>All tenants - global</strong></div>
+                    <div class="input" style="grid-column:1 / -1"><label>Password hash</label><code>algorithm: argon2 variety: argon2id version: 19 memory cost: 102400 time cost: 2 parallelism: 8 salt: chc8zV**************** hash: Pin9QF**************************************</code></div>
+                  </div>
+                </div>
+                <div class="form-section">
+                  <h3>Personal info</h3>
+                  <div class="form-grid">
+                    <div class="input"><label>First name</label><span>Not set</span></div>
+                    <div class="input"><label>Last name</label><span>Not set</span></div>
+                    <div class="input"><label>Important dates</label><span>Last login, joined, reviewed</span></div>
+                    <div class="input"><label>Security review</label><span>Quarterly review due</span></div>
+                  </div>
+                </div>
+                <div class="save-dock">
+                  <span class="footnote" style="margin:0">Actions stay below the field group and do not obscure content.</span>
+                  <div class="badges">
+                    <button class="btn green" type="button">Save</button>
+                    <button class="btn blue" type="button">Save and continue</button>
+                    <button class="btn ghost" type="button">History</button>
+                  </div>
+                </div>
+              </section>
+              <aside class="context-rail">
+                <div class="rail-section">
+                  <h3>Scope guard</h3>
+                  <p>This page is operator-only. Tenant backend pages must show tenant identity and tenant-only actions.</p>
+                </div>
+                <div class="rail-section">
+                  <h3>On this page</h3>
+                  <p>Identity, permissions, role, profile, security review, audit trail.</p>
+                </div>
+                <div class="rail-section">
+                  <h3>Fix pattern</h3>
+                  <p>Apply to all Django change forms and changelists where body width, sticky actions, or long values currently break layout.</p>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="automation" class="tab-panel" role="tabpanel" aria-labelledby="tab-automation">
+        <div class="compare">
+          <aside class="problem">
+            <div class="eyebrow">Current problem pattern</div>
+            <h2>Automation work mode</h2>
+            <ul class="problem-list">
+              <li>The page can show a service error inside the body, leaving users without useful diagnostics.</li>
+              <li>Legacy embedded automation surfaces are still capable of becoming the critical path.</li>
+              <li>The workflow rail and setup guidance appear above the failure but do not resolve it.</li>
+              <li>Users need simulation, dependencies, health, and recovery natively in the Studio work mode.</li>
+            </ul>
+          </aside>
+          <div class="surface">
+            <div class="surface-command">
+              <div>
+                <div class="eyebrow">After contract</div>
+                <h2 style="margin-bottom:4px">Automation - native cockpit with recovery</h2>
+                <p style="margin-bottom:0">The work mode renders a native cockpit first. Any embedded legacy tool becomes optional and recoverable.</p>
+              </div>
+              <div class="badges">
+                <span class="badge green">Tenant scoped</span>
+                <span class="badge red">502 path audited</span>
+              </div>
+            </div>
+
+            <div class="automation-contract">
+              <nav class="mode-rail">
+                <a class="mode-link active" href="#">Overview</a>
+                <a class="mode-link" href="#">Conflict detection</a>
+                <a class="mode-link" href="#">Staged activation</a>
+                <a class="mode-link" href="#">Replay rollback</a>
+                <a class="mode-link" href="#">Visual builder</a>
+                <a class="mode-link" href="#">Simulation</a>
+              </nav>
+              <section class="workbench">
+                <div class="callout">
+                  <h3>School automation cockpit</h3>
+                  <p style="margin-bottom:10px">Native panels stay usable even when an external or legacy embedded builder fails.</p>
+                  <div class="health-row">
+                    <div class="metric"><strong>12</strong><span>Active flows</span></div>
+                    <div class="metric"><strong>3</strong><span>Need approval</span></div>
+                    <div class="metric"><strong>0</strong><span>Critical failures</span></div>
+                    <div class="metric"><strong>7</strong><span>Simulations</span></div>
+                  </div>
+                </div>
+                <div class="auto-grid">
+                  <div class="flow-card"><h3>Simulation preview</h3><p>Projected actions, affected records, and risk warnings before activation.</p><button class="btn blue" type="button">Run simulation</button></div>
+                  <div class="flow-card"><h3>Dependency graph</h3><p>Trigger, approval, notification, and rollback dependencies in one native map.</p><button class="btn" type="button">Inspect graph</button></div>
+                  <div class="flow-card"><h3>Workflow health</h3><p>Paused, failing, delayed, and tenant-scoped runs without opening raw admin first.</p><button class="btn" type="button">Open health</button></div>
+                </div>
+                <div class="error-recovery">
+                  <h3>Embedded builder recovery</h3>
+                  <p>If a legacy embed returns 500/502, this panel replaces the blank/error frame. It shows the route, status, tenant scope, retry, full-window open, and report action without losing user context.</p>
+                  <div class="badges">
+                    <button class="btn green" type="button">Retry embed</button>
+                    <a class="btn blue" href="about:blank" target="_blank" rel="noopener noreferrer">Open full window</a>
+                    <button class="btn red" type="button">Report route error</button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="checklist" class="tab-panel" role="tabpanel" aria-labelledby="tab-checklist">
+        <div class="surface" id="checklist-surface">
+          <div class="surface-command">
+            <div>
+              <div class="eyebrow">Implementation loop after approval</div>
+              <h2 style="margin-bottom:4px">Audit, fix, re-audit, then commit</h2>
+              <p style="margin-bottom:0">This is the exact loop the implementation must follow. It is page-by-page and route-by-route.</p>
+            </div>
+            <div class="badges">
+              <span class="badge red">No assumptions</span>
+              <span class="badge green">Proof required</span>
+            </div>
+          </div>
+          <div class="checklist">
+            <div class="check"><strong>1. Inventory</strong><br>List every Django admin, tenant backend, operator config, Studio, Workflow, Feature Control, Report Card, Dashboard Preview, Forms, Communications, and Launch route.</div>
+            <div class="check"><strong>2. Classify</strong><br>Mark each route as tenant, tenant backend, operator, manager, or shared. Wrong-plane links are critical security defects.</div>
+            <div class="check"><strong>3. Scan layout</strong><br>Find narrow max-width caps, sticky overlays, critical iframes, overflowing text, clipped rails, and duplicated preview controls.</div>
+            <div class="check"><strong>4. Apply contract</strong><br>Use shared command, grid, main, rail, preview system, save dock, and error recovery zones.</div>
+            <div class="check"><strong>5. Fix Studio modes</strong><br>Overview, Experience, Automation, Outputs, Launch, and Control must share the workbench contract.</div>
+            <div class="check"><strong>6. Fix Django pages</strong><br>Change forms and changelists must use full width intelligently and keep actions from covering fields.</div>
+            <div class="check"><strong>7. Live preview proof</strong><br>Inline, drawer, popout, and new-tab preview modes must exist where user-visible changes are made.</div>
+            <div class="check"><strong>8. Automation proof</strong><br>Reproduce the 502/500 route, fix root cause, and keep native recovery for future embed failures.</div>
+            <div class="check"><strong>9. Validate</strong><br>Browser screenshots at 1366, 1536, 1920, and mobile, plus Django checks, focused tests, and gap report.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <aside class="drawer" aria-label="Live preview drawer">
+    <div class="drawer-head">
+      <div>
+        <strong>Live preview drawer</strong>
+        <div class="footnote" style="margin-top:2px">Wide preview without squeezing the editor</div>
+      </div>
+      <button class="btn" type="button" data-close-drawer>Close</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-device">
+        <div class="device-sidebar">
+          <div class="device-line" style="width:70%"></div>
+          <div class="device-line"></div>
+          <div class="device-line" style="width:88%"></div>
+          <div class="device-line" style="width:76%"></div>
+          <div class="device-line" style="width:66%"></div>
+        </div>
+        <div class="device-main">
+          <div class="device-card"><strong>Teacher dashboard</strong><p style="color:#475569;font-size:12px">Draft theme, role menu, and accessibility state.</p></div>
+          <div class="device-card"><strong>Parent portal</strong><p style="color:#475569;font-size:12px">Brand and contrast preview.</p></div>
+          <div class="device-card"><strong>Finance console</strong><p style="color:#475569;font-size:12px">Table and action density.</p></div>
+          <div class="device-card"><strong>Student portal</strong><p style="color:#475569;font-size:12px">Mobile-safe navigation.</p></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="popout" aria-label="Preview popout">
+    <div class="popout-panel">
+      <div class="surface-command">
+        <div>
+          <div class="eyebrow">Popout comparison</div>
+          <h2 style="margin-bottom:4px">Published versus draft</h2>
+          <p style="margin-bottom:0">Use this when the editor needs the full page and the preview needs a large comparison surface.</p>
+        </div>
+        <button class="btn" type="button" data-close-popout>Close</button>
+      </div>
+      <div class="editor-grid">
+        <div class="live-preview-tile"><span class="badge">Published</span><div class="device"></div></div>
+        <div class="live-preview-tile"><span class="badge blue">Draft</span><div class="device"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+    const panels = Array.from(document.querySelectorAll('.tab-panel'));
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        tabs.forEach((item) => item.setAttribute('aria-selected', 'false'));
+        panels.forEach((panel) => panel.classList.remove('active'));
+        tab.setAttribute('aria-selected', 'true');
+        document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
+      });
+    });
+
+    const drawer = document.querySelector('.drawer');
+    document.querySelectorAll('[data-open-drawer]').forEach((button) => {
+      button.addEventListener('click', () => drawer.classList.add('open'));
+    });
+    document.querySelectorAll('[data-close-drawer]').forEach((button) => {
+      button.addEventListener('click', () => drawer.classList.remove('open'));
+    });
+
+    const popout = document.querySelector('.popout');
+    document.querySelectorAll('[data-open-popout]').forEach((button) => {
+      button.addEventListener('click', () => popout.classList.add('open'));
+    });
+    document.querySelectorAll('[data-close-popout]').forEach((button) => {
+      button.addEventListener('click', () => popout.classList.remove('open'));
+    });
+  </script>
+</body>
+</html>

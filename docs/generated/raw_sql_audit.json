@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-06-28T04:06:11.785741+00:00",
+  "generated_at": "2026-07-09T11:16:20.681902+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -892,6 +892,12 @@
     },
     {
       "classification": "test_safe",
+      "file": "apps/migration_cloud/tests/test_artifact_blob_store.py",
+      "line": "48",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
       "file": "apps/migration_cloud/tests/test_audit_chain_verifier_and_purge_v3_39.py",
       "line": "85",
       "pattern": "connection_cursor"
@@ -900,6 +906,12 @@
       "classification": "test_safe",
       "file": "apps/migration_cloud/tests/test_audit_event_v3_38.py",
       "line": "455",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/migration_cloud/tests/test_connector_secret_ingest.py",
+      "line": "47",
       "pattern": "connection_cursor"
     },
     {
@@ -2009,6 +2021,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 334
+    "hits": 336
   }
 }

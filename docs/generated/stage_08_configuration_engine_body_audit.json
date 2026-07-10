@@ -1,0 +1,235 @@
+{
+  "generated_at": "2026-07-09",
+  "source_prompt": "docs/prompts/stage-08-configuration-engine-body.md",
+  "implementation_status": "approval_required_before_production_template_changes",
+  "scope": {
+    "primary": "Core Configuration & Metadata Settings Engine body",
+    "secondary": "Day-to-Day Operations Workspace body audit only",
+    "latest_revision_additions": [
+      "tenant_studio_all_work_modes",
+      "django_configuration_full_width_body",
+      "theme_experience_live_preview_contract",
+      "tenant_header_more_button_alignment_and_search_width",
+      "world_class_command_fabric_standard",
+      "platform_wide_visual_failure_audit_page",
+      "configuration_intelligence_strips",
+      "studio_mode_journey_maps",
+      "live_preview_fallback_matrix",
+      "django_conversion_rules",
+      "audit_scoreboard_and_heatmap",
+      "space_intelligence_contract"
+    ],
+    "excluded": ["production_template_changes_before_mockup_approval"]
+  },
+  "surfaces": [
+    {
+      "name": "Tenant runtime configuration snapshot",
+      "route": "/siteconfig/configuration/runtime/",
+      "template": "templates/siteconfig/partials/tenant_runtime_configuration_hub_body.html",
+      "status": "PARTIAL",
+      "gap": "Read-only snapshot rather than programmable settings engine body."
+    },
+    {
+      "name": "Metadata and lineage hub",
+      "route": "/siteconfig/metadata/",
+      "template": "templates/siteconfig/metadata_operator_hub.html",
+      "status": "PARTIAL",
+      "gap": "Links to metadata tools but does not provide an integrated runtime field builder."
+    },
+    {
+      "name": "Dynamic fields/EAV",
+      "route": "/siteconfig/metadata/dynamic-fields/",
+      "template": "templates/siteconfig/metadata_dynamic_fields_operator.html",
+      "status": "PARTIAL",
+      "gap": "Needs entity field builder, validation controls, preview, and publish impact."
+    },
+    {
+      "name": "Grading settings",
+      "route": "/siteconfig/grading-settings/",
+      "template": "templates/siteconfig/grading_settings.html",
+      "status": "PARTIAL",
+      "gap": "Simple form. Needs formula matrix and live calculation/report-card preview."
+    },
+    {
+      "name": "Grading scale bands",
+      "route": "/siteconfig/grading-scale-bands/",
+      "template": "templates/siteconfig/grading_scale_bands.html",
+      "status": "FUNCTIONAL_BUT_FRAGMENTED",
+      "gap": "Reference table is separate from grading formula editing."
+    },
+    {
+      "name": "Academic years evidence",
+      "route": "/siteconfig/reports/academic-years/",
+      "template": "templates/siteconfig/partials/academic_years_setup_evidence_body.html",
+      "status": "FUNCTIONAL_BUT_UNPROVEN",
+      "gap": "Evidence-only table. Needs lifecycle branch, close, lock, and dry-run body."
+    },
+    {
+      "name": "Billing and plan surfaces",
+      "route": "/siteconfig/billing/plan/",
+      "template": "templates/siteconfig/partials/billing_plan_readonly_body.html",
+      "status": "PARTIAL",
+      "gap": "PPP and localized fee matrix is not part of the configuration engine body."
+    },
+    {
+      "name": "Report card builder",
+      "route": "/siteconfig/reports/builder/",
+      "template": "templates/siteconfig/partials/reportcard_builder_inner.html",
+      "status": "FUNCTIONAL_BUT_FRAGMENTED",
+      "gap": "Has preview and command layout, but should reuse shared engine preview/publish contract."
+    },
+    {
+      "name": "Dashboard role configuration",
+      "route": "/siteconfig/dashboard-configuration/",
+      "template": "templates/siteconfig/partials/dashboard_configuration_hub_body.html",
+      "status": "FUNCTIONAL",
+      "gap": "Good live preview reference for the shared engine contract."
+    },
+    {
+      "name": "Feature control",
+      "route": "/siteconfig/feature-control/",
+      "template": "templates/siteconfig/feature_control_panel_content.html",
+      "status": "FUNCTIONAL_BUT_FRAGMENTED",
+      "gap": "Has diff preview, but should align with universal preview rail."
+    },
+    {
+      "name": "Theme and experience",
+      "route": "/siteconfig/theme-colors/",
+      "template": "templates/siteconfig/partials/theme_colors_page_body.html",
+      "status": "PARTIAL",
+      "gap": "Live preview exists, but form density and grid behavior need shared body standards."
+    },
+    {
+      "name": "Platform configuration center",
+      "route": "/configuration/",
+      "template": "templates/platform_runtime/configuration_center.html",
+      "status": "FUNCTIONAL_BUT_FRAGMENTED",
+      "gap": "Strong module hub, but not the Core Configuration Engine body."
+    },
+    {
+      "name": "Tenant school configuration center",
+      "route": "/configuration/ and /school/configuration/ on tenant host",
+      "template": "templates/platform_runtime/school_configuration_center.html",
+      "status": "FUNCTIONAL_BUT_FRAGMENTED",
+      "gap": "Tenant-safe hub exists, but lacks integrated engine lanes."
+    }
+  ],
+  "required_engine_lanes": [
+    "runtime_metadata_eav_builder",
+    "grading_formula_matrix",
+    "ppp_local_pricing_matrix",
+    "school_year_lifecycle_control"
+  ],
+  "live_preview_requirement": {
+    "status": "needs_standardization",
+    "required_options": ["inline", "popout", "open_new_tab", "last_good_preview", "screenshot_evidence"],
+    "must_have": ["role_selector", "device_selector", "preview_evidence", "publish_guard", "fallback_when_iframe_blocked"],
+    "publish_rule": "Publishing changes that affect visible tenant or operator surfaces requires at least one successful preview path or explicit blocked-preview evidence.",
+    "space_rule": "Inline preview is allowed only when it remains readable and does not cramp the primary workbench. Otherwise it must open as a large modal, popout inspector, or signed tenant-route new tab."
+  },
+  "space_intelligence_contract": {
+    "status": "approval_preview_only",
+    "principle": "Primary pages stay spacious. Secondary context becomes drawer, modal, popover, popout, or new-tab proof when always-visible placement would cramp the workbench.",
+    "surface_rules": {
+      "inline": "Use only for short controls, summaries, and previews that remain readable at the current viewport.",
+      "drawer": "Use for audit trails, field history, recommendations, logs, JSON, long values, and contextual help.",
+      "modal_or_popout": "Use for live preview, side-by-side comparison, report/PDF proof, device and role inspection, and long-form configuration review.",
+      "new_tab": "Use for exact tenant-route proof when iframe embedding is blocked, unsafe, or too small."
+    },
+    "blocking_defects": [
+      "main_workbench_below_target_width",
+      "live_preview_cramped_inline",
+      "support_panel_steals_permanent_width_without_active_use",
+      "long_value_or_help_text_leaks_outside_container",
+      "modal_drawer_or_popout_fallback_missing_for_previewable_changes"
+    ]
+  },
+  "tenant_studio_work_modes": {
+    "routes": ["/studio/", "/studio/experience/", "/studio/automation/", "/studio/output/", "/studio/launch/", "/studio/control/"],
+    "status": "requires_shared_canvas_after_approval",
+    "requirements": [
+      "full_width_balanced_body",
+      "no_blank_center_chasms",
+      "no_overlapping_right_rail",
+      "no_body_rendering_under_footer",
+      "no_leaking_text_or_vertical_word_breaks",
+      "mode_specific_workbench",
+      "preview_and_audit_rail",
+      "role_device_preview_controls",
+      "independent_scroll_lanes",
+      "first_viewport_next_action",
+      "mode_journey_map",
+      "impact_audience_recovery_panels",
+      "supporting_context_moves_to_drawers_or_popups_when_it_would_cramp_the_workbench"
+    ]
+  },
+  "django_configuration_body_requirement": {
+    "status": "requires_shared_canvas_after_approval",
+    "requirements": [
+      "full_width_form_groups",
+      "sticky_action_strip",
+      "right_side_audit_and_boundary_rail",
+      "tenant_backend_pages_stay_tenant_scoped",
+      "operator_admin_pages_stay_operator_scoped",
+      "no_narrow_inherited_admin_body_where_configuration_canvas_is_required",
+      "long_values_wrap_or_collapse_inside_fields",
+      "configuration_forms_use_available_width_intelligently",
+      "inspectors_or_drawers_for_secondary_content_instead_of_permanent_cramped_columns"
+    ]
+  },
+  "header_revision_requirement": {
+    "status": "approval_preview_only",
+    "requirements": [
+      "tenant_more_button_same_line_as_home_finance_messages_analytics",
+      "tenant_global_search_reduced_about_25_percent",
+      "tenant_primary_nav_centered_more_intelligently",
+      "operator_more_button_matches_tenant_more_button_pattern_where_applicable"
+    ]
+  },
+  "operations_workspace_audit": {
+    "sampled_templates": [
+      "templates/accounts/backend_dashboard.html",
+      "templates/accounts/workflow_center.html",
+      "templates/accounts/partials/workflow_center_main.html"
+    ],
+    "findings": [
+      "Workflow Center already uses a main lane plus side rail body pattern.",
+      "Backend dashboard has improved bento structure but still carries long legacy fallback sections.",
+      "Operations workspace should receive a separate audit after configuration engine approval."
+    ]
+  },
+  "visual_failure_detectors": [
+    "large_blank_vertical_zones",
+    "overlapping_elements",
+    "text_leaking_outside_cards",
+    "cramped_or_unusable_live_preview",
+    "narrow_inherited_django_forms",
+    "body_content_hidden_under_footer",
+    "right_rail_overlaying_workbench",
+    "tenant_operator_mingling"
+  ],
+  "next_level_design_requirements": [
+    "show_configuration_impact_before_publish",
+    "show_affected_roles_and_surfaces_before_publish",
+    "show_recovery_or_rollback_path_before_publish",
+    "convert_generic_repeated_cards_into_mode_specific_workbenches",
+    "include_audit_scoreboard_with_visual_boundary_and_preview_pass_rates",
+    "include_failure_heatmap_for_route_groups",
+    "show_itemized_space_improvements_and_popup_drawer_new_tab_rules"
+  ],
+  "post_approval_audit_loop": [
+    "inventory_routes_and_templates",
+    "classify_each_surface_against_visual_failure_detectors",
+    "apply_shared_command_fabric_where_appropriate",
+    "validate_browser_rendering_for_each_route",
+    "prove_tenant_operator_separation_for_backend_links",
+    "repeat_until_no_blocking_visual_or_boundary_gaps_remain"
+  ],
+  "approval_artifact": "var/design-previews/stage-08-configuration-engine-before-after.html",
+  "recommended_files_after_approval": [
+    "templates/siteconfig/configuration_engine.html",
+    "templates/siteconfig/partials/configuration_engine_canvas_body.html",
+    "static/css/configuration-engine-canvas.css",
+    "static/js/configuration-engine-preview.js"
+  ]
+}

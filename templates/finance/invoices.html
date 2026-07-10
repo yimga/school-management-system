@@ -89,7 +89,7 @@
         </select>
       </div>
       <div class="col-md-2 d-grid">
-        <button type="submit" class="btn btn-outline-primary">{% trans "Filter" %}</button>
+        <button type="submit" class="btn btn-primary">{% trans "Filter" %}</button>
       </div>
     </div>
   </div>
@@ -108,8 +108,11 @@
         {% if user.is_staff or user.is_superuser %}
         <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:finance_access_bulk' %}">{% trans "Bulk finance access" %}</a>
         {% endif %}
+        {% comment %} Hide exports when finance access isn't enabled — they'd stream a 0-row file. {% endcomment %}
+        {% if finance_access_granted or not finance_access_required %}
         <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=csv">{% trans "Export CSV" %}</a>
         <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">{% trans "Export PDF" %}</a>
+        {% endif %}
       </div>
     </div>
     <!-- table-column-budget-allow: finance-invoice-ledger-eleven-column-set -->
@@ -227,32 +230,9 @@
          on confirm, so each row sends its own student_id. {% endcomment %}
       {% include "components/confirm_modal.html" with modal_id="grantAccessConfirm" icon="bi-people" title=_("Grant finance access to this student's guardians?") body=_("All guardians linked to the student will be granted access to invoices and payment history. They will be notified by email when finance notifications are enabled.") confirm_label=_("Grant access") confirm_class="btn-primary" %}
       {% elif finance_access_required and not finance_access_granted %}
-      <table class="table table-sm align-middle table-family rmc-data-table" aria-label="{% trans 'Invoices list (no results)' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
-        <thead class="table-light">
-          <tr>
-            <th scope="col">{% trans "Reference" %}</th>
-            <th scope="col">{% trans "Type" %}</th>
-            <th scope="col">{% trans "Status" %}</th>
-            <th scope="col">{% trans "Due" %}</th>
-            <th scope="col">{% trans_term "Student" key="student" %}</th>
-            {% if user.is_staff or user.is_superuser %}
-            <th scope="col">{% blocktrans with t=inv_parent_sg %}{{ t }} access{% endblocktrans %}</th>
-            {% endif %}
-            <th scope="col">{% trans "Split billing" %}</th>
-            <th scope="col" class="text-end">{% trans "Total" %}</th>
-            <th scope="col" class="text-end">{% trans "Balance" %}</th>
-            <th scope="col" class="text-end">{% trans "Attachment" %}</th>
-            <th scope="col">{% trans "Actions" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="{% if user.is_staff or user.is_superuser %}11{% else %}10{% endif %}" class="text-muted py-4">
-              {% trans "Finance access is not enabled yet. Request access to see invoices for your linked students." %}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      {% comment %} Clean access-request empty state — the request action lives in the banner
+      above, so this stays a single informational surface (no duplicate 11-column table). {% endcomment %}
+      {% include "components/rmc_empty_state.html" with icon="bi-shield-lock" title=_("Finance access not enabled") message=_("Once an admin grants finance access, invoices and payments for your linked students appear here. You can request access from the banner above.") %}
       {% else %}
       {% url 'finance:generate_fees' as empty_action_url %}
       {% include "components/rmc_empty_state.html" with icon="bi-receipt" title=_("No invoices found") message=_("Generate fee invoices to get started.") primary_url=empty_action_url primary_label=_("Generate fees") %}

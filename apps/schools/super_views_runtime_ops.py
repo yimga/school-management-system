@@ -218,6 +218,7 @@ def super_runtime_truth_hub(request):
             extra = s if len(s) <= 64 else s[:61] + "…"
         preview.append({"key": key, "kind": kind, "extra": extra})
 
+    # config-resolver-allow: 7 distinct attribute reads incl. row metadata (pk/updated_at) not resolvable as config keys
     ss = get_platform_site_settings_record(create=False)
     site_settings_summary = None
     if ss is not None:

@@ -139,10 +139,9 @@ def resolve_effective_ai_mode(school: Any = None) -> str:
     on any resolution error so AI never hard-breaks on a config read.
     """
     try:
-        from apps.siteconfig.config_service import get_effective_site_settings
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        site = get_effective_site_settings(school=school)
-        return normalize_ai_mode(getattr(site, "ai_mode", None))
+        return normalize_ai_mode(get_effective_config(school=school, key="ai_mode"))
     except Exception:  # noqa: BLE001 — config read is best-effort; default to auto
         return "auto"
 

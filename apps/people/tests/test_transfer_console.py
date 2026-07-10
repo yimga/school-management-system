@@ -102,10 +102,11 @@ class TransferConsoleTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Student transfers")
 
-    def test_create_excludes_grades_until_wave_c(self):
-        """Console-created cases must not include the grades domain — the
-        grades lander cannot resolve term/subject FKs at the target yet, so
-        every run would quarantine the grade rows."""
+    def test_create_includes_full_default_domains(self):
+        """Console-created cases carry the FULL default set (2026-07-09):
+        the grades lander resolves the term/subject/assignment/teacher FK
+        graph at the target, and the archival `transcripts` domain carries
+        the record regardless — grades are back in, transcripts ride along."""
         response = self.client.post(
             reverse("portal:transfer_case_create"),
             {
@@ -116,7 +117,8 @@ class TransferConsoleTests(TestCase):
         )
         self.assertEqual(response.status_code, 201)
         domains = response.json()["case"]["domains"]
-        self.assertNotIn("grades", domains)
+        self.assertIn("grades", domains)
+        self.assertIn("transcripts", domains)
         self.assertIn("students", domains)
 
     def test_consent_request_sends_best_effort_email(self):

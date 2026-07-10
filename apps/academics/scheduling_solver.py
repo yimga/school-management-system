@@ -17,8 +17,10 @@ ONLY if an operator deliberately installs ``ortools`` into their own
 environment. It is dormant-by-default, not dead theater: when ortools is
 absent ``generate_timetable_with_solver`` transparently and intentionally uses
 ``TimetableGenerator``. (Note: ``apps.academics.timetable_solver`` is a
-SEPARATE in-memory backtracking solver serving the ``TimetableBuildView``
-surface; it is NOT the fallback for this module.)
+SEPARATE, standalone in-memory backtracking solver kept for its unit tests;
+its JSON-console view was retired when the in-product timetable surface
+converged onto the persisting Stack-A generate/review/publish flow. It is NOT
+the fallback for this module.)
 
 Constraint set the CP-SAT model enforces WHEN ortools is installed (hard,
 fail-if-violated):

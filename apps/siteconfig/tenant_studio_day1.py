@@ -89,6 +89,10 @@ class PaletteVariation(NamedTuple):
 # ``school_brand_assets.DAY1_LOGO_MAX_BYTES`` so client + server agree on the
 # threshold rejected at the boundary.
 DAY1_DEFAULT_LOGO_MAX_BYTES = 1_500_000
+# Longest edge (px) an uploaded logo is shrunk to. Oversized logos are
+# accepted-and-resized (not rejected) and stored inline as a data URI so they
+# render without any media-serving backend.
+DAY1_LOGO_MAX_DIMENSION = 512
 
 # Extension table used to materialize the persisted storage filename. We
 # always trust the sniffed MIME — never the original filename — so a renamed
@@ -120,6 +124,9 @@ class LogoUploadResult:
     seed_hex: str | None = None
     dominant_colors: list[str] = field(default_factory=list)
     source: Literal["logo"] = "logo"
+    # True when the uploaded logo was larger than DAY1_LOGO_MAX_DIMENSION and
+    # was automatically shrunk to fit, so the UI can tell the operator.
+    resized: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -456,7 +463,32 @@ class Day1MagicService:
                 error_message="logo validator is unavailable",
             )
 
-        ok, payload = LogoUploadValidator(image_bytes)
+        # 1a. Resize/optimize FIRST so an oversized logo is accepted-and-shrunk
+        #     rather than rejected, and produce an inline data URI that renders
+        #     WITHOUT any media-serving backend (works on hosts with ephemeral
+        #     disk / no object storage — the root cause of "logo not shown").
+        #     SVG / non-raster returns None here and falls through to the
+        #     validator below, which forbids it.
+        working_bytes = bytes(image_bytes)
+        logo_data_uri = ""
+        was_resized = False
+        try:
+            from apps.siteconfig.image_utils import resize_logo_to_data_uri
+
+            _resized = resize_logo_to_data_uri(
+                working_bytes, max_dim=DAY1_LOGO_MAX_DIMENSION
+            )
+        except Exception:
+            logger.warning(
+                "day1: logo resize raised tenant=%s — using original bytes",
+                _school_log_label(school),
+                exc_info=False,
+            )
+            _resized = None
+        if _resized is not None:
+            logo_data_uri, _resized_mime, working_bytes, was_resized = _resized
+
+        ok, payload = LogoUploadValidator(working_bytes)
         if not ok:
             error_code = _classify_logo_validation_failure(payload)
             logger.info(
@@ -473,25 +505,33 @@ class Day1MagicService:
         sniffed_mime = payload
         ext = _LOGO_EXT_BY_MIME.get(sniffed_mime, "png")
 
-        # 2. Persist to default storage. We deliberately avoid logging the
-        #    raw filename — operators occasionally embed PII (their own
-        #    name) in filenames.
+        # Guarantee an inline data URI even if resize returned None (e.g. a
+        # valid raster Pillow could not re-encode) — the display path relies
+        # on it, so never leave it empty on the success branch.
+        if not logo_data_uri:
+            import base64
+
+            logo_data_uri = "data:%s;base64,%s" % (
+                sniffed_mime,
+                base64.b64encode(working_bytes).decode("ascii"),
+            )
+
+        # 2. Persist to default storage — BEST EFFORT. Display uses the inline
+        #    data URI, so a storage failure (or an unserved /media/ path on
+        #    hosts without object storage) must NOT fail the upload. We keep the
+        #    storage copy for deployments that DO serve media / use S3.
+        storage_path, public_url = "", ""
         try:
             storage_path, public_url = _persist_day1_logo_bytes(
                 school=school,
-                image_bytes=bytes(image_bytes),
+                image_bytes=working_bytes,
                 ext=ext,
             )
         except Exception:
             logger.warning(
-                "day1: storage persist failed tenant=%s",
+                "day1: storage persist failed tenant=%s — continuing with inline logo",
                 _school_log_label(school),
                 exc_info=True,
-            )
-            return LogoUploadResult(
-                ok=False,
-                error_code="storage_failed",
-                error_message="failed to persist logo to storage",
             )
 
         # 3. Dominant-colour extraction — lazy import w/ deterministic
@@ -537,12 +577,20 @@ class Day1MagicService:
             branding["logo_uploaded_at"] = now_iso
             branding["primary_color"] = seed_hex
             branding["logo_storage_path"] = storage_path
+            # Inline data URI is the canonical display source — it renders on
+            # any host without media serving and is preferred by
+            # ``resolve_brand_profile``. Stored in branding_metadata (JSONField)
+            # so no schema migration is required.
+            branding["logo_data_uri"] = logo_data_uri
             # ``primary`` is the canonical key downstream theming reads;
             # keep it in step with ``primary_color`` so existing consumers
             # find the new value without an explicit migration.
             branding["primary"] = seed_hex
             school.branding_metadata = branding
-            school.logo_url = public_url
+            # Keep the storage URL when we have one (S3/served-media deploys);
+            # never clobber an existing URL with an empty best-effort result.
+            if public_url:
+                school.logo_url = public_url
             school.save(update_fields=["branding_metadata", "logo_url"])
 
         # 5. Audit row — no PII (slug hashed; filename absent; bytes absent).
@@ -556,10 +604,11 @@ class Day1MagicService:
 
         return LogoUploadResult(
             ok=True,
-            logo_url=public_url,
+            logo_url=logo_data_uri,
             seed_hex=seed_hex,
             dominant_colors=dominant_hexes,
             source="logo",
+            resized=was_resized,
         )
 
     # -- Act 2 ------------------------------------------------------------

@@ -53,6 +53,7 @@ from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )
+from apps.platform_runtime.config_resolver import get_effective_config
 
 from .forms import (
     ClaimInviteAccountForm,
@@ -288,11 +289,8 @@ def _admin_context(user, request=None):
         try:
             from apps.siteconfig.staff_navigation import site_settings_change_url
 
-            site = (
-                get_effective_site_settings(request=request)
-                if request is not None
-                else get_effective_site_settings()
-            )
+            # config-resolver-allow: bare site.pk identity read feeds site_settings_change_url; AttributeError fallback not foldable into default=
+            site = get_effective_site_settings(request=request)
             site_settings_url = site_settings_change_url(request, site.pk)
         except (AttributeError, NoReverseMatch, TypeError, ValueError):
             try:
@@ -1570,7 +1568,6 @@ def user_documentation(request):
 )
 def backend_entity_import(request):
     """Admin-only page to stage CSV imports (students/guardians) against new APIs."""
-    _site = get_effective_site_settings(request=request)
     flags = get_effective_flags(request)
     allowed_roles = [r.upper() for r in flags.get("allowed_roles_entity_import", [])]
     if not flags.get("enable_entity_import", True):
@@ -1605,7 +1602,6 @@ def backend_entity_import(request):
 )
 def backend_entity_console(request):
     """Admin-only page for EntityForm/Table beta UI."""
-    _site = get_effective_site_settings(request=request)
     flags = get_effective_flags(request)
     allowed_roles = [r.upper() for r in flags.get("allowed_roles_entity_console", [])]
     if not flags.get("enable_entity_console", True):
@@ -1908,11 +1904,11 @@ def _rbac_redirect(request):
     )
 
 
-@rbac_dashboard_pdp
 @login_required
 @require_school
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
+@rbac_dashboard_pdp
 def rbac_dashboard(request):
     from apps.accounts.tenant_identity import user_has_school_membership
     from services.post_delete_navigation import mutation_return_url
@@ -2260,6 +2256,7 @@ def backend_dashboard(request):
 
     from .activity_helper import get_recent_activity
 
+    # config-resolver-allow: namespace passed to template context ('site') plus method/attr fan-out (compliance_profile, feature-control methods, social links)
     site = get_effective_site_settings(request=request)
     year, term = get_active_year_and_term()
 
@@ -3720,6 +3717,7 @@ def backend_dashboard_status_fragment(request):
     enable_offline_mode = False
     offline_queue_metrics = None
     try:
+        # config-resolver-allow: method call get_offline_runtime_settings() on the namespace object
         site = get_effective_site_settings(request=request)
         offline_settings = (
             site.get_offline_runtime_settings()
@@ -3755,7 +3753,6 @@ def backend_dashboard_status_fragment(request):
 @user_passes_test(_is_admin_user)
 def backend_ops_watch_data(request):
     """Lightweight JSON payload for live Ops Watch refresh."""
-    _site = get_effective_site_settings(request=request)
     backend_flags = get_effective_flags(request)
 
     if not bool(backend_flags.get("backend_module_ops_watch", True)):
@@ -4222,9 +4219,13 @@ def login_view(request):
                 from django_otp import user_has_device
                 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-                site = get_effective_site_settings(request=request)
-                require_all_staff = getattr(site, "require_mfa_all_staff", False)
-                required_roles = getattr(site, "require_mfa_roles", None) or []
+                require_all_staff = get_effective_config(
+                    key="require_mfa_all_staff", request=request, default=False
+                )
+                required_roles = (
+                    get_effective_config(key="require_mfa_roles", request=request)
+                    or []
+                )
 
                 role = (getattr(user, "role", "") or "").upper()
                 must_have_mfa = False

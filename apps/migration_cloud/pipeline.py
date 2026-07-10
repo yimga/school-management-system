@@ -252,6 +252,39 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
                     ),
                     "notes": accelerator_contract.notes,
                 }
+                if accelerator_contract.pre_classified_artifacts:
+                    # The deterministic accelerator's DOMAIN classification
+                    # overrides the fuzzy U3 ontology scoring for the
+                    # artifacts it recognises. Before this override the
+                    # contract's domain was decorative — _build_jobs reads
+                    # only per_artifact_domain — so a canonical-template
+                    # artifact could mis-route on raw header overlap (a
+                    # transfer bundle's grades.csv scored as "sections" once
+                    # it carried academic_year) and every row quarantined in
+                    # the wrong lander.
+                    discovery = bundle.discovery_summary or {}
+                    per_artifact_domain = dict(
+                        discovery.get("per_artifact_domain") or {}
+                    )
+                    for path, entry in (
+                        accelerator_contract.pre_classified_artifacts.items()
+                    ):
+                        domain = (entry or {}).get("domain")
+                        if not domain:
+                            continue
+                        existing = dict(per_artifact_domain.get(path) or {})
+                        existing.update(
+                            {
+                                "domain": domain,
+                                "method": (entry or {}).get("method", "accelerator"),
+                            }
+                        )
+                        per_artifact_domain[path] = existing
+                    bundle.discovery_summary = {
+                        **discovery,
+                        "per_artifact_domain": per_artifact_domain,
+                    }
+                    bundle.save(update_fields=["discovery_summary", "updated_at"])
             except Exception:  # noqa: BLE001 — accelerator failure falls back to universal path
                 logger.warning(
                     "migration_cloud.pipeline: accelerator %s failed; falling back to universal map",

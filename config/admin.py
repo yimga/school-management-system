@@ -52,9 +52,18 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
 
     @classmethod
     def _is_platform_host(cls, request) -> bool:
+        host_kind = cls._host_kind(request)
+        # The manager (operator / control-plane) host is ALWAYS a platform host — even if a
+        # school somehow got resolved onto the request. This is a hard operator<->tenant
+        # isolation boundary: the tenant admin site must never open on the manager host, so a
+        # resolved school can never downgrade a manager request to "tenant" here.
+        if host_kind == "manager":
+            return True
+        # Otherwise a resolved school marks this as a tenant request (host_kind ambiguous/empty),
+        # so the tenant admin site is allowed and the platform admin site refuses.
         if getattr(request, "school", None) is not None:
             return False
-        return cls._host_kind(request) in {"manager", "local", ""}
+        return host_kind in {"local", ""}
 
     def is_platform_site(self) -> bool:
         return False

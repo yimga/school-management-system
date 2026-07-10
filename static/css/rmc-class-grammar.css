@@ -2053,6 +2053,27 @@
   border-color: var(--color-warning, #b26a00);
 }
 
+/* Per-file remove control — lets an operator drop a file from the accumulated
+   multi-file selection. Theme-aware so it reads in light and dark. */
+.rmc-intake-file-remove {
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  line-height: 1;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface-elevated, var(--surface-canvas));
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.rmc-intake-file-remove:hover,
+.rmc-intake-file-remove:focus-visible {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
 .rmc-intake-live-source {
   display: flex;
   gap: 0.75rem;
@@ -5421,22 +5442,283 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   /* surface via Bootstrap .alert utilities on the element */
 }
 
-/* Dashboard Packs revival: per-user "Choose your dashboard" switcher (all shells). */
+/* Dashboard Packs revival: per-user "Choose your dashboard" switcher (all shells).
+   Phase 4b: grouped preview-card grammar. Token-only so tenant brand + dark/light
+   resolve via the cascade; the mini-layout schematic is drawn from each pack's real
+   config (kpi_count + header_variant + theme), never a fabricated screenshot. */
 .rmc-dashboard-pack-switcher {
-  margin-top: var(--space-2, 0.5rem);
+  margin-top: var(--space-4, 1rem);
+  width: 100%;
   border: 1px solid var(--hairline);
-  border-radius: var(--radius-md, 0.5rem);
-  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  border-radius: var(--radius-lg, 0.75rem);
   background: var(--surface-elevated);
+  overflow: hidden;
 }
-.rmc-dashboard-pack-switcher > summary {
+.rmc-dpk__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
   cursor: pointer;
+  color: var(--text-primary);
+  list-style: none;
+}
+.rmc-dpk__summary::-webkit-details-marker { display: none; }
+.rmc-dpk__summary:hover { background: var(--surface-canvas, var(--surface-bg)); }
+.rmc-dpk__summary-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas, var(--surface-bg));
+  color: var(--brand-primary);
+}
+.rmc-dpk__summary-text { display: grid; gap: 0.05rem; min-width: 0; }
+.rmc-dpk__summary-title { font-weight: 600; color: var(--text-primary); }
+.rmc-dpk__summary-sub {
+  font-size: var(--type-size-0, 0.75rem);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rmc-dpk__summary-chevron {
+  margin-left: auto;
+  flex: none;
+  color: var(--text-secondary);
+  transition: transform var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+.rmc-dashboard-pack-switcher[open] > .rmc-dpk__summary .rmc-dpk__summary-chevron { transform: rotate(180deg); }
+.rmc-dpk__form {
+  display: grid;
+  gap: var(--space-4, 1rem);
+  padding: var(--space-4, 1rem);
+  border-top: 1px solid var(--hairline);
+}
+
+/* Groups: the user's own family (primary, always shown) + one collapsible
+   "Other role dashboards" section holding every other family in a full grid. */
+.rmc-dpk-group { display: grid; gap: var(--space-2, 0.5rem); }
+.rmc-dpk-group--primary { gap: var(--space-3, 0.75rem); }
+.rmc-dpk-group__label {
+  margin: 0;
+  font-size: var(--type-size-0, 0.75rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--text-secondary);
 }
-.rmc-dashboard-pack-switcher[open] > summary {
-  margin-bottom: var(--space-2, 0.5rem);
-  color: var(--text-primary);
+.rmc-dpk-group--more { display: block; }
+.rmc-dpk-group__more-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  border: 1px dashed var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+  cursor: pointer;
+  list-style: none;
+  color: var(--text-secondary);
 }
+.rmc-dpk-group__more-summary::-webkit-details-marker { display: none; }
+.rmc-dpk-group__more-summary:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+.rmc-dpk-group__more-label { font-weight: 600; color: var(--text-primary); }
+.rmc-dpk-group__more-hint { font-size: var(--type-size-0, 0.75rem); color: var(--text-secondary); }
+.rmc-dpk-group__more-chevron {
+  margin-left: auto;
+  transition: transform var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+.rmc-dpk-group--more[open] > .rmc-dpk-group__more-summary { margin-bottom: var(--space-3, 0.75rem); }
+.rmc-dpk-group--more[open] > .rmc-dpk-group__more-summary .rmc-dpk-group__more-chevron { transform: rotate(180deg); }
+.rmc-dpk-more-body { display: grid; gap: var(--space-4, 1rem); }
+.rmc-dpk-subgroup { display: grid; gap: var(--space-2, 0.5rem); }
+.rmc-dpk-subgroup__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  margin: 0;
+  font-size: var(--type-size-0, 0.75rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.rmc-dpk-group__count,
+.rmc-dpk-subgroup__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 var(--space-1, 0.25rem);
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas, var(--surface-bg));
+  font-size: var(--type-size-0, 0.75rem);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Card grid — auto-fit so a full-width surface flows several across and the
+   cards stretch to use the space; collapses to one column on narrow shells. */
+.rmc-dpk-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-3, 0.75rem);
+}
+
+/* A selectable option card. Native radio stays visible (top-right, brand-accented)
+   so selection is fully accessible with zero JS. */
+.rmc-dpk-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3, 0.75rem);
+  align-items: start;
+  margin: 0;
+  padding: var(--space-3, 0.75rem);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--surface-bg, var(--surface-canvas));
+  cursor: pointer;
+  transition: border-color var(--motion-fast, 150ms) var(--ease-standard, ease),
+              background var(--motion-fast, 150ms) var(--ease-standard, ease),
+              box-shadow var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+.rmc-dpk-card--default { grid-template-columns: 1fr; }
+.rmc-dpk-card:hover { border-color: var(--text-secondary); }
+.rmc-dpk-card:has(.rmc-dpk-card__radio:checked) {
+  border-color: var(--brand-primary);
+  background: var(--surface-elevated);
+}
+.rmc-dpk-card:focus-within {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px var(--brand-primary);
+}
+.rmc-dpk-card__radio {
+  position: absolute;
+  top: var(--space-3, 0.75rem);
+  right: var(--space-3, 0.75rem);
+  margin: 0;
+  accent-color: var(--brand-primary);
+}
+.rmc-dpk-card__meta {
+  display: grid;
+  gap: var(--space-1, 0.25rem);
+  min-width: 0;
+}
+.rmc-dpk-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2, 0.5rem);
+  padding-right: 1.5rem;
+}
+.rmc-dpk-card__name {
+  color: var(--text-primary);
+  font-size: var(--type-size-1, 0.8125rem);
+  line-height: 1.3;
+}
+.rmc-dpk-card__desc {
+  font-size: var(--type-size-0, 0.75rem);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rmc-dpk-card__focus {
+  font-size: var(--type-size-0, 0.75rem);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-top: 0.1rem;
+}
+.rmc-dpk-card__focus-label {
+  margin-right: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.rmc-dpk-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 0.25rem);
+  margin-top: 0.15rem;
+}
+.rmc-dpk-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem var(--space-2, 0.5rem);
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas, var(--surface-bg));
+  font-size: var(--type-size-0, 0.75rem);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.rmc-dpk-chip--kpi {
+  color: var(--text-primary);
+  border-color: var(--brand-primary);
+}
+
+/* Config-derived mini-layout schematic (honest abstraction, no screenshot). */
+.rmc-dpk-preview {
+  display: grid;
+  gap: 3px;
+  width: 68px;
+  padding: 5px;
+  border-radius: var(--radius-sm, 0.375rem);
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas, var(--surface-bg));
+}
+.rmc-dpk-preview__bar { display: flex; gap: 3px; }
+.rmc-dpk-preview__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--hairline);
+}
+.rmc-dpk-preview__kpis { display: flex; gap: 3px; }
+.rmc-dpk-preview__tile {
+  flex: 1 1 0;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--brand-primary);
+  opacity: 0.55;
+}
+.rmc-dpk-preview__body { display: grid; gap: 3px; }
+.rmc-dpk-preview__panel {
+  height: 8px;
+  border-radius: 2px;
+  background: var(--hairline);
+}
+/* Theme preset nudges the schematic (soft-glass / crisp / high-contrast). */
+.rmc-dpk-card[data-rmc-dpk-theme="soft-glass"] .rmc-dpk-preview { border-radius: var(--radius-md, 0.5rem); }
+.rmc-dpk-card[data-rmc-dpk-theme="soft-glass"] .rmc-dpk-preview__tile { opacity: 0.42; }
+.rmc-dpk-card[data-rmc-dpk-theme="crisp-professional"] .rmc-dpk-preview { border-radius: 3px; }
+.rmc-dpk-card[data-rmc-dpk-theme="high-contrast"] .rmc-dpk-preview__tile { opacity: 0.9; }
+.rmc-dpk-card[data-rmc-dpk-theme="high-contrast"] .rmc-dpk-preview__panel { background: var(--text-secondary); }
+/* Header variant shapes the body panels (wide / card / minimal / standard). */
+.rmc-dpk-card[data-rmc-dpk-variant="card"] .rmc-dpk-preview__body { grid-template-columns: 1fr 1fr; }
+.rmc-dpk-card[data-rmc-dpk-variant="wide"] .rmc-dpk-preview__body { grid-template-columns: 1fr; }
+.rmc-dpk-card[data-rmc-dpk-variant="wide"] .rmc-dpk-preview__panel:first-child { height: 16px; }
+.rmc-dpk-card[data-rmc-dpk-variant="standard"] .rmc-dpk-preview__panel:last-child { width: 70%; }
+.rmc-dpk-card[data-rmc-dpk-variant="minimal"] .rmc-dpk-preview__panel:last-child { display: none; }
+
+/* Apply row. */
+.rmc-dpk__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding-top: var(--space-1, 0.25rem);
+}
+.rmc-dpk__status { min-height: 1em; }
 
 /* IM-7: @mention highlight inside a thread message body. Token-only so tenant
    brand wins; falls back to the inherited text colour where no brand is set. */

@@ -30,6 +30,7 @@ def infrastructure_email_page(request):
     payload = get_email_delivery_payload(school)
     from apps.platform_runtime.helpers import get_platform_site_settings_record
 
+    # config-resolver-allow: settings row object passed whole to tenant_email_override_allowed()
     site_row = get_platform_site_settings_record(create=False)
     allow_override = tenant_email_override_allowed(site_row) if site_row else True
     return render(
@@ -51,6 +52,7 @@ def infrastructure_email_save(request):
     school = request.school
     from apps.platform_runtime.helpers import get_platform_site_settings_record
 
+    # config-resolver-allow: settings row object passed whole to tenant_email_override_allowed()
     site_row = get_platform_site_settings_record(create=False)
     if site_row is not None and not tenant_email_override_allowed(site_row):
         return JsonResponse({"error": "tenant_override_disabled"}, status=403)

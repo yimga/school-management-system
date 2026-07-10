@@ -539,7 +539,7 @@
     },
     {
       "file": "apps/assist_dock/power_views.py",
-      "line": "270",
+      "line": "271",
       "signal": "csrf_exempt"
     },
     {
@@ -824,7 +824,7 @@
     },
     {
       "file": "apps/siteconfig/views_tenant_studio_hub.py",
-      "line": "312",
+      "line": "321",
       "signal": "csrf_exempt"
     }
   ],
@@ -897,12 +897,12 @@
     },
     {
       "file": "apps/api/views_v1.py",
-      "line": "958",
+      "line": "957",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/api/views_v1.py",
-      "line": "2716",
+      "line": "2715",
       "signal": "export_delivery_hint"
     },
     {
@@ -952,42 +952,42 @@
     },
     {
       "file": "apps/compliance/views_reporting.py",
-      "line": "470",
+      "line": "491",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/compliance/views_reporting.py",
-      "line": "530",
+      "line": "551",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/compliance/views_reporting.py",
-      "line": "605",
+      "line": "626",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/evals/views.py",
-      "line": "2224",
+      "line": "2223",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/evals/views.py",
-      "line": "2229",
+      "line": "2228",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/evals/views.py",
-      "line": "2793",
+      "line": "2792",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/evals/views.py",
-      "line": "2799",
+      "line": "2798",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/evals/views.py",
-      "line": "2950",
+      "line": "2948",
       "signal": "export_delivery_hint"
     },
     {
@@ -1052,17 +1052,17 @@
     },
     {
       "file": "apps/migration_cloud/views.py",
-      "line": "2358",
+      "line": "2467",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/migration_cloud/views.py",
-      "line": "2457",
+      "line": "2566",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/migration_cloud/views.py",
-      "line": "2470",
+      "line": "2579",
       "signal": "export_delivery_hint"
     },
     {
@@ -1232,27 +1232,27 @@
     },
     {
       "file": "apps/reports/views.py",
-      "line": "290",
+      "line": "324",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/reports/views.py",
-      "line": "296",
+      "line": "330",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/reports/views.py",
-      "line": "451",
+      "line": "486",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/reports/views.py",
-      "line": "1141",
+      "line": "1176",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/reports/views.py",
-      "line": "1286",
+      "line": "1321",
       "signal": "export_delivery_hint"
     },
     {
@@ -1342,22 +1342,22 @@
     },
     {
       "file": "apps/siteconfig/views.py",
-      "line": "2416",
+      "line": "2442",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/siteconfig/views.py",
-      "line": "2450",
+      "line": "2476",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/siteconfig/views.py",
-      "line": "2493",
+      "line": "2519",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/siteconfig/views.py",
-      "line": "2506",
+      "line": "2532",
       "signal": "export_delivery_hint"
     },
     {
@@ -1391,20 +1391,20 @@
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-06-28T04:06:03.038226+00:00",
+  "generated_at": "2026-07-09T11:16:06.950918+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-06-28T04:05:55.215245+00:00",
+    "generated_at": "2026-07-09T11:15:57.851495+00:00",
     "summary_by_bucket": {
-      "product": 505,
+      "product": 527,
       "scripts": 5
     },
     "summary_by_classification": {
-      "needs_review": 192,
-      "protected_candidate": 313,
+      "needs_review": 200,
+      "protected_candidate": 327,
       "scripts_cli": 5
     },
     "totals": {
-      "hits": 510
+      "hits": 532
     }
   },
   "post_handler_product_needs_review": [
@@ -1699,56 +1699,56 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "469",
+      "line": "468",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "634",
+      "line": "633",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "688",
+      "line": "687",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "815",
+      "line": "814",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "828",
+      "line": "827",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "989",
+      "line": "988",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "1171",
+      "line": "1170",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "1685",
+      "line": "1684",
       "protective_decorator_nearby": false
     },
     {
@@ -1824,6 +1824,34 @@
     {
       "bucket": "product",
       "classification": "needs_review",
+      "file": "apps/finance/views_invoicing.py",
+      "line": "327",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/finance/views_marketplace_integration_credentials.py",
+      "line": "27",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/finance/views_offline_bursar_queue.py",
+      "line": "61",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/finance/views_offline_bursar_queue.py",
+      "line": "95",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
       "file": "apps/finance/views_payments.py",
       "line": "534",
       "protective_decorator_nearby": false
@@ -1853,21 +1881,28 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "528",
+      "line": "530",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "839",
+      "line": "841",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "1285",
+      "line": "1306",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/observability/views.py",
+      "line": "1427",
       "protective_decorator_nearby": false
     },
     {
@@ -1903,6 +1938,20 @@
       "classification": "needs_review",
       "file": "apps/people/views_backend_bulk.py",
       "line": "24",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/people/views_transfer_consent.py",
+      "line": "75",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/platform_runtime/views_health_autopilot.py",
+      "line": "261",
       "protective_decorator_nearby": false
     },
     {
@@ -2658,21 +2707,28 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/siteconfig/views_console_ai_rag.py",
-      "line": "81",
+      "line": "82",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/siteconfig/views_dashboard_config.py",
-      "line": "182",
+      "line": "256",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/siteconfig/views_dashboard_config.py",
-      "line": "276",
+      "line": "385",
+      "protective_decorator_nearby": false
+    },
+    {
+      "bucket": "product",
+      "classification": "needs_review",
+      "file": "apps/siteconfig/views_feature_control.py",
+      "line": "1345",
       "protective_decorator_nearby": false
     },
     {
@@ -2686,14 +2742,14 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/studio_os/views.py",
-      "line": "2166",
+      "line": "2180",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/studio_os/views.py",
-      "line": "2352",
+      "line": "2366",
       "protective_decorator_nearby": false
     },
     {
@@ -2754,29 +2810,29 @@
     }
   ],
   "post_risk": {
-    "product_needs_review_post_handlers": 192,
-    "product_protected_candidate_post_handlers": 313
+    "product_needs_review_post_handlers": 200,
+    "product_protected_candidate_post_handlers": 327
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-06-28T04:05:52.011285+00:00",
+    "generated_at": "2026-07-09T11:15:53.791013+00:00",
     "summary": {
       "allow_any": 40,
       "csrf_exempt": 98,
       "cursor_execute": 2,
-      "login_required": 754,
+      "login_required": 777,
       "permission_classes": 72,
-      "require_http_methods": 731,
-      "staff_member_required": 129,
+      "require_http_methods": 759,
+      "staff_member_required": 102,
       "subprocess": 615
     },
     "summary_by_classification": {
-      "allowed": 1949,
+      "allowed": 1973,
       "needs_review": 478,
       "unsafe": 14
     },
     "totals": {
-      "hits": 2441
+      "hits": 2465
     }
   },
   "subprocess_hits": [
@@ -2941,9 +2997,9 @@
     "csrf_exempt_hits_apps": 155,
     "cursor_execute_hits_apps": 0,
     "export_delivery_hint_hits_apps": 112,
-    "product_needs_review": 192,
-    "product_post_handlers": 505,
-    "product_protected_candidate": 313,
+    "product_needs_review": 200,
+    "product_post_handlers": 527,
+    "product_protected_candidate": 327,
     "subprocess_hits_apps": 31
   }
 }

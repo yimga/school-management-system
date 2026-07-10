@@ -15,6 +15,7 @@ def get_cached_site_settings(*, school=None):
     cache_key = f"site_settings_automation:{school_id or 'platform'}"
     site = cache.get(cache_key)
     if site is None:
+        # config-resolver-allow: namespace object is cached in Django cache and returned to callers
         site = get_effective_site_settings(school=school)
         cache.set(cache_key, site, timeout=300)  # 5 min cache
     return site

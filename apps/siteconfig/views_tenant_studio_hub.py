@@ -192,6 +192,14 @@ class TenantStudioDay1Act1View(LoginRequiredMixin, View):
         cockpit_url = _tenant_reverse("school_studio")
         logo_upload_url = _siteconfig_reverse("tenant_studio_day1_act1_logo_upload")
 
+        # Prefer the inline data URI (renders without media serving) so a
+        # previously uploaded logo shows on reload even on hosts without object
+        # storage. Falls back to the stored URL for served-media deployments.
+        _branding_meta = getattr(school, "branding_metadata", None) or {}
+        logo_display_url = _branding_meta.get("logo_data_uri") or getattr(
+            school, "logo_url", ""
+        )
+
         return render(
             request,
             "siteconfig/partials/tenant_studio_day1_act1_brand.html",
@@ -203,6 +211,7 @@ class TenantStudioDay1Act1View(LoginRequiredMixin, View):
                 "cockpit_url": cockpit_url,
                 "skip_url": f"{cockpit_url}?skip_day1=1",
                 "logo_upload_url": logo_upload_url,
+                "logo_display_url": logo_display_url,
                 "active_act": 1,
             },
         )
@@ -342,14 +351,18 @@ class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
                 status=400,
             )
 
-        max_bytes = _resolve_logo_max_bytes()
+        # Accept large logos up to an absolute ceiling and let the service
+        # shrink them (see Day1MagicService.accept_logo_upload). Only a file
+        # bigger than the absolute ceiling is rejected outright — everything
+        # else is auto-resized rather than refused.
+        max_bytes = _resolve_logo_absolute_max_bytes()
         declared_size = int(getattr(uploaded, "size", 0) or 0)
         if declared_size > max_bytes:
             return JsonResponse(
                 {
                     "ok": False,
                     "error_code": "oversize",
-                    "error_message": f"logo exceeds {max_bytes // 1024} KB cap",
+                    "error_message": f"logo is too large — keep it under {max_bytes // (1024 * 1024)} MB"  # magic-number-allow: bytes-to-megabytes-display-divisor,
                 },
                 status=400,
             )
@@ -360,7 +373,7 @@ class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
                 {
                     "ok": False,
                     "error_code": "oversize",
-                    "error_message": f"logo exceeds {max_bytes // 1024} KB cap",
+                    "error_message": f"logo is too large — keep it under {max_bytes // (1024 * 1024)} MB"  # magic-number-allow: bytes-to-megabytes-display-divisor,
                 },
                 status=400,
             )
@@ -391,6 +404,13 @@ class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
                 "seed_hex": result.seed_hex,
                 "source": result.source,
                 "dominant_colors": list(result.dominant_colors),
+                "resized": bool(result.resized),
+                "notice": (
+                    "Your logo was large, so we resized it to fit. "
+                    "It's saved and shown above."
+                    if result.resized
+                    else ""
+                ),
             },
             status=200,
         )
@@ -405,6 +425,22 @@ def _resolve_logo_max_bytes() -> int:
     return int(
         getattr(django_settings, "MAX_LOGO_UPLOAD_BYTES", DAY1_DEFAULT_LOGO_MAX_BYTES)
         or DAY1_DEFAULT_LOGO_MAX_BYTES
+    )
+
+
+def _resolve_logo_absolute_max_bytes() -> int:
+    """Absolute ceiling for the raw upload before auto-resize kicks in.
+
+    Oversized-but-under-ceiling logos are accepted and shrunk to
+    ``DAY1_LOGO_MAX_DIMENSION`` rather than rejected; only a file bigger than
+    this ceiling is refused (memory / DoS bound). Settings-overridable via
+    ``MAX_LOGO_UPLOAD_ABSOLUTE_BYTES``; defaults to 15 MB.
+    """
+    from django.conf import settings as django_settings
+
+    default = 15 * 1024 * 1024  # magic-number-allow: settings-driven-logo-cap-fifteen-megabyte-fallback
+    return int(
+        getattr(django_settings, "MAX_LOGO_UPLOAD_ABSOLUTE_BYTES", default) or default
     )
 
 

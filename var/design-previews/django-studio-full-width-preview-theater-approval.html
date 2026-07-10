@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RunMyCampus full-width preview theater approval</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070d19;
+      --canvas: #0a1221;
+      --panel: #101b30;
+      --panel2: #16243d;
+      --line: rgba(164, 184, 220, .18);
+      --line2: rgba(164, 184, 220, .34);
+      --text: #f3f7ff;
+      --muted: #a9b8ce;
+      --dim: #74859e;
+      --blue: #31b8ff;
+      --green: #39d98a;
+      --red: #ff596a;
+      --amber: #ffd166;
+      --violet: #8f7aff;
+      --shadow: 0 24px 70px rgba(0,0,0,.38);
+      --radius: 18px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    a { color: inherit; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 286px minmax(0, 1fr) 54px;
+      grid-template-rows: 54px 34px minmax(0, 1fr) 40px;
+      background:
+        radial-gradient(circle at 55% -10%, rgba(49, 184, 255, .16), transparent 28%),
+        linear-gradient(180deg, #0a1324, #070d19 58%);
+    }
+
+    .top {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr) 520px;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(13, 22, 40, .92);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand, .nav, .top-actions, .btn, .chip, .search, .side-row { display: flex; align-items: center; }
+    .brand { gap: 10px; min-width: 0; }
+    .mark {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: linear-gradient(135deg, #31b8ff, #8f7aff 55%, #ff596a);
+      display: grid; place-items: center; font-weight: 900;
+    }
+    .brand strong { display: block; font-size: 14px; }
+    .brand span { display: block; color: var(--muted); font-size: 10px; }
+    .nav { justify-content: center; gap: 4px; }
+    .top-actions { justify-content: flex-end; gap: 10px; min-width: 0; }
+
+    .btn {
+      min-height: 32px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.055);
+      color: var(--text);
+      padding: 0 13px;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 750;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .btn.primary { background: linear-gradient(135deg, #4d75ff, #7957ff); border-color: rgba(160,180,255,.45); }
+    .btn.blue { background: rgba(49,184,255,.14); border-color: rgba(49,184,255,.35); color: #bdeaff; }
+    .btn.green { background: rgba(57,217,138,.14); border-color: rgba(57,217,138,.35); color: #adffd2; }
+    .btn.red { background: rgba(255,89,106,.14); border-color: rgba(255,89,106,.35); color: #ffc5cb; }
+    .btn.ghost { background: #080f1c; }
+
+    .search {
+      width: min(340px, 38vw);
+      min-height: 32px;
+      border: 1px solid rgba(255,209,102,.28);
+      background: rgba(61,43,24,.58);
+      border-radius: 999px;
+      padding: 0 10px 0 14px;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      min-width: 0;
+    }
+    .kbd { font-size: 10px; font-weight: 900; color: #dce7f6; background: rgba(255,255,255,.12); padding: 2px 7px; border-radius: 5px; }
+
+    .ticker {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 0 16px;
+      overflow: hidden;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(17, 18, 50, .82);
+      border-bottom: 1px solid rgba(143,122,255,.38);
+    }
+
+    .side {
+      grid-row: 3 / 5;
+      border-right: 1px solid var(--line);
+      background: rgba(9,15,29,.86);
+      padding: 10px;
+      overflow: auto;
+    }
+    .side-head { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px auto; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .mini { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; background: rgba(255,255,255,.055); color: var(--muted); font-weight: 900; }
+    .filter { min-width: 0; height: 34px; border-radius: 10px; border: 1px solid rgba(255,209,102,.25); background: rgba(55,39,23,.56); padding: 0 9px; display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; }
+    .side-card { border: 1px solid var(--line); border-radius: 15px; background: rgba(17,28,49,.68); padding: 10px; margin-bottom: 10px; }
+    .side-title { text-transform: uppercase; letter-spacing: .08em; color: var(--dim); font-size: 10px; font-weight: 900; margin: 3px 7px 8px; display: flex; justify-content: space-between; }
+    .side-row { justify-content: space-between; gap: 8px; min-height: 38px; padding: 0 8px; border-radius: 10px; color: #dbe7f7; font-size: 13px; }
+    .side-row.active { background: rgba(49,184,255,.13); color: #dff5ff; }
+
+    .tools {
+      grid-column: 3;
+      grid-row: 3 / 5;
+      border-left: 1px solid var(--line);
+      background: rgba(8,14,27,.92);
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      padding: 10px 8px;
+      align-items: center;
+    }
+
+    .tool { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.055); color: var(--muted); display: grid; place-items: center; font-weight: 900; }
+
+    main {
+      grid-column: 2;
+      grid-row: 3;
+      min-width: 0;
+      overflow: auto;
+      padding: 14px 14px 92px;
+    }
+
+    .footer {
+      grid-column: 2;
+      grid-row: 4;
+      border-top: 1px solid var(--line);
+      background: rgba(13,22,40,.92);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hero, .surface, .problem, .approval {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(16,27,48,.94), rgba(10,18,33,.94));
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow { color: var(--blue); text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 950; margin-bottom: 7px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 10px; font-size: clamp(28px, 3.2vw, 44px); line-height: 1.02; letter-spacing: -.03em; }
+    h2 { margin-bottom: 10px; font-size: 22px; }
+    h3 { margin-bottom: 8px; font-size: 16px; }
+    p { color: var(--muted); line-height: 1.5; }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip {
+      min-height: 24px;
+      padding: 0 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.065);
+      color: #dce8f8;
+      font-size: 11px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+    .chip.green { color: #aaffd3; background: rgba(57,217,138,.13); border-color: rgba(57,217,138,.34); }
+    .chip.red { color: #ffc6cc; background: rgba(255,89,106,.13); border-color: rgba(255,89,106,.34); }
+    .chip.blue { color: #bdeaff; background: rgba(49,184,255,.13); border-color: rgba(49,184,255,.34); }
+    .chip.amber { color: #ffe6a6; background: rgba(255,209,102,.12); border-color: rgba(255,209,102,.34); }
+
+    .before-after {
+      display: grid;
+      grid-template-columns: minmax(260px, .46fr) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+
+    .problem { padding: 14px; }
+    .problem ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+    .problem li { border-left: 4px solid var(--red); border-radius: 12px; background: rgba(255,89,106,.075); padding: 10px 11px; color: #ffd8dd; font-size: 13px; line-height: 1.38; }
+
+    .surface { padding: 14px; min-width: 0; overflow: hidden; }
+    .command {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(8,14,27,.78);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .preview-theater {
+      display: grid;
+      grid-template-columns: minmax(320px, .36fr) minmax(0, 1fr);
+      gap: 12px;
+      align-items: stretch;
+      min-height: 700px;
+    }
+
+    .control-panel, .theater-stage, .proof-rail, .section-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(10,18,33,.82);
+      min-width: 0;
+    }
+
+    .control-panel {
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden;
+      background: #08101e;
+      padding: 3px;
+      gap: 3px;
+    }
+    .segmented button {
+      min-width: 0;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      min-height: 30px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .segmented button.active { background: rgba(49,184,255,.18); color: #dff5ff; }
+
+    .config-list { display: grid; gap: 8px; overflow: auto; padding-right: 2px; }
+    .config-item {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(255,255,255,.045);
+      padding: 10px;
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 9px;
+      align-items: start;
+    }
+    .dot { width: 34px; height: 34px; border-radius: 10px; background: rgba(49,184,255,.13); display: grid; place-items: center; color: var(--blue); font-weight: 950; }
+    .config-item strong { display: block; font-size: 13px; }
+    .config-item span { color: var(--muted); font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
+
+    .theater-stage {
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 12px;
+      background:
+        radial-gradient(circle at 75% 5%, rgba(57,217,138,.10), transparent 30%),
+        rgba(10,18,33,.82);
+    }
+
+    .stage-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      padding: 10px;
+    }
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .screen {
+      min-width: 0;
+      border: 1px solid rgba(49,184,255,.22);
+      border-radius: 18px;
+      background: #eaf0f7;
+      color: #142034;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 14px;
+      align-content: start;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.65);
+    }
+
+    .screen-sidebar {
+      border-radius: 16px;
+      background: #ffffff;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      box-shadow: 0 12px 28px rgba(15,23,42,.12);
+    }
+    .screen-logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #31b8ff, #39d98a); }
+    .screen-line { height: 30px; border-radius: 9px; background: #eef3f8; }
+    .screen-line.active { background: #dbeafe; border-left: 4px solid #31b8ff; }
+
+    .screen-main { display: grid; gap: 12px; align-content: start; min-width: 0; }
+    .screen-hero {
+      min-height: 138px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #0f172a, #274466 58%, #31b8ff);
+      color: white;
+      padding: 18px;
+      display: grid;
+      align-content: end;
+    }
+    .screen-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .screen-card {
+      min-height: 120px;
+      border-radius: 16px;
+      background: #fff;
+      padding: 12px;
+      box-shadow: 0 12px 28px rgba(15,23,42,.10);
+      min-width: 0;
+    }
+    .screen-card span { display: block; height: 9px; border-radius: 999px; background: #e2e8f0; margin-top: 10px; }
+
+    .proof-rail { padding: 12px; display: grid; gap: 10px; align-content: start; overflow: auto; }
+    .proof { border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.045); padding: 10px; }
+    .proof p { font-size: 12px; margin-bottom: 0; overflow-wrap: anywhere; }
+
+    .snapshot-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .snapshot {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      min-height: 82px;
+      padding: 11px;
+    }
+    .snapshot strong { display: block; font-size: 13px; }
+    .snapshot span { display: block; color: var(--muted); font-size: 12px; margin-top: 5px; }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .section-card { padding: 13px; }
+    .section-card p { font-size: 13px; margin-bottom: 0; }
+
+    .drawer {
+      position: fixed;
+      inset: 54px 54px 40px auto;
+      width: min(920px, 56vw);
+      background: #101b30;
+      border-left: 1px solid var(--line2);
+      box-shadow: -30px 0 90px rgba(0,0,0,.42);
+      transform: translateX(103%);
+      transition: transform .22s ease;
+      z-index: 40;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px; border-bottom: 1px solid var(--line); }
+    .drawer-body { padding: 13px; overflow: auto; }
+
+    .popout {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      background: rgba(0,0,0,.62);
+      padding: 28px;
+    }
+    .popout.open { display: flex; }
+    .popout-panel { width: min(1220px, 94vw); max-height: 88vh; overflow: auto; border: 1px solid var(--line2); border-radius: 22px; background: #101b30; box-shadow: var(--shadow); padding: 14px; }
+
+    @media (max-width: 1300px) {
+      .preview-theater, .before-after, .hero { grid-template-columns: 1fr; }
+      .stage-grid { grid-template-columns: 1fr; }
+      .proof-rail { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .screen { grid-template-columns: 150px minmax(0, 1fr); }
+    }
+
+    @media (max-width: 880px) {
+      .app { display: block; }
+      .side, .tools, .footer { display: none; }
+      .top { grid-template-columns: 1fr; position: static; }
+      .nav, .top-actions { justify-content: flex-start; flex-wrap: wrap; }
+      main { padding: 10px; }
+      .command, .stage-toolbar, .screen, .snapshot-row, .platform-grid, .screen-cards, .proof-rail { grid-template-columns: 1fr; }
+      .drawer { inset: 0; width: 100vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <div class="mark">R</div>
+        <div><strong>New Test High School</strong><span>Admin workspace - approval preview</span></div>
+      </div>
+      <nav class="nav" aria-label="Primary">
+        <a class="btn primary" href="#theater">Experience</a>
+        <a class="btn" href="#platform">Platform-wide</a>
+        <a class="btn" href="#audit">Audit proof</a>
+        <a class="btn" href="#">More</a>
+      </nav>
+      <div class="top-actions">
+        <div class="search"><span>Search students, teachers...</span><span class="kbd">Ctrl K</span></div>
+        <a class="btn" href="#">Console</a>
+        <a class="btn" href="#">Configure</a>
+      </div>
+    </header>
+
+    <div class="ticker">
+      <span class="chip red">Current defect</span>
+      <span>Inline preview is cramped and visually broken</span>
+      <span>Pages are not using full available width</span>
+      <span>Studio must become a full-width workbench</span>
+    </div>
+
+    <aside class="side">
+      <div class="side-head">
+        <div class="mini">S</div>
+        <div class="filter"><span>Filter...</span><span>/</span></div>
+        <div class="mini">G</div>
+        <span style="color:var(--muted);font-size:12px">Navigation</span>
+      </div>
+      <div class="side-card">
+        <div class="side-title"><span>Quick access</span><span>^</span></div>
+        <div class="side-row active"><span>Workflow Center</span><small>1</small></div>
+        <div class="side-row"><span>Preferences</span><small>*</small></div>
+      </div>
+      <div class="side-card">
+        <div class="side-title"><span>Studio work modes</span><span>^</span></div>
+        <div class="side-row"><span>Overview</span><small></small></div>
+        <div class="side-row active"><span>Experience</span><small>now</small></div>
+        <div class="side-row"><span>Automation</span><small>fix</small></div>
+        <div class="side-row"><span>Outputs</span><small></small></div>
+        <div class="side-row"><span>Launch</span><small></small></div>
+        <div class="side-row"><span>Control</span><small></small></div>
+      </div>
+      <div class="side-card">
+        <div class="side-title"><span>Configuration</span><span>^</span></div>
+        <div class="side-row"><span>Templates & branding</span><small></small></div>
+        <div class="side-row"><span>Access & roles</span><small></small></div>
+        <div class="side-row"><span>Financial management</span><small></small></div>
+      </div>
+    </aside>
+
+    <aside class="tools">
+      <div class="tool">AI</div>
+      <div class="tool">?</div>
+      <div class="tool">P</div>
+      <div class="tool">A</div>
+      <div class="tool">L</div>
+    </aside>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Revised approval direction</div>
+          <h1>Replace cramped inline preview with a full-width preview theater</h1>
+          <p>
+            The inline preview in the screenshot is not fixable by making it a little wider. It is the wrong interaction pattern.
+            The exceptional version uses the whole available canvas: configuration is compact, preview is large, proof is visible,
+            and drawer/popout/new-tab options handle every case where inline rendering would be cramped.
+          </p>
+          <div class="chip-row">
+            <span class="chip green">Full-width first</span>
+            <span class="chip blue">Studio-safe</span>
+            <span class="chip amber">Preview theater</span>
+            <span class="chip red">No cramped iframe</span>
+          </div>
+        </div>
+        <div class="approval">
+          <div style="padding:14px">
+            <h3>What this changes</h3>
+            <p>Inline preview becomes a small confidence snapshot only. The real preview opens in a full-width theater by default, with drawer and popout as power tools.</p>
+            <p>All applicable tenant and platform pages should use this rule: the most important work surface gets the width, rails collapse when they would squeeze the work.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="before-after" id="theater">
+        <aside class="problem">
+          <div class="eyebrow">Why the current pattern fails</div>
+          <h2>Inline preview is trying to be too many things</h2>
+          <ul>
+            <li>The preview is a tall, narrow phone-like strip even when the user needs to verify a desktop dashboard.</li>
+            <li>Controls and preview share the same cramped vertical lane, creating leaking labels and unreadable text.</li>
+            <li>The page leaves large empty space unused while the important work is squeezed in the center.</li>
+            <li>There is no clear escalation from quick preview to real preview, popout comparison, or new-tab verification.</li>
+          </ul>
+        </aside>
+
+        <div class="surface">
+          <div class="command">
+            <div>
+              <div class="eyebrow">After - exceptional workbench</div>
+              <h2 style="margin-bottom:4px">Experience Preview Theater</h2>
+              <p style="margin-bottom:0">A full-width body surface where preview is the primary artifact and configuration is a compact, inspectable control panel.</p>
+            </div>
+            <div class="chip-row">
+              <button class="btn blue" type="button" data-open-drawer>Drawer</button>
+              <button class="btn" type="button" data-open-popout>Popout compare</button>
+              <a class="btn ghost" href="about:blank" target="_blank" rel="noopener noreferrer">New tab</a>
+              <button class="btn green" type="button">Publish after preview</button>
+            </div>
+          </div>
+
+          <div class="preview-theater">
+            <section class="control-panel" aria-label="Configuration panel">
+              <div>
+                <h3>Theme & Experience</h3>
+                <p style="font-size:13px;margin-bottom:0">Compact controls. The preview gets the width; settings stay scannable.</p>
+              </div>
+              <div class="segmented" aria-label="Preview mode">
+                <button class="active" type="button">Draft</button>
+                <button type="button">Published</button>
+                <button type="button">Compare</button>
+              </div>
+              <div class="config-list">
+                <div class="config-item"><div class="dot">1</div><div><strong>Brand identity</strong><span>School name, logo, tagline, header density.</span></div></div>
+                <div class="config-item"><div class="dot">2</div><div><strong>Theme pack</strong><span>Portal and backend theme pack pairing.</span></div></div>
+                <div class="config-item"><div class="dot">3</div><div><strong>Color tokens</strong><span>Primary, accent, canvas, footer, warning, success, danger.</span></div></div>
+                <div class="config-item"><div class="dot">4</div><div><strong>Role surface</strong><span>Admin shell, teacher dashboard, parent portal, student portal, finance console.</span></div></div>
+                <div class="config-item"><div class="dot">5</div><div><strong>Accessibility</strong><span>Contrast, text overflow, mobile, keyboard, reduced motion.</span></div></div>
+                <div class="config-item"><div class="dot">6</div><div><strong>Rollback</strong><span>Last published snapshot and preview-safe publish plan.</span></div></div>
+              </div>
+              <div class="chip-row">
+                <span class="chip green">Saved</span>
+                <span class="chip red">Contrast pass</span>
+                <span class="chip blue">Tenant scoped</span>
+              </div>
+            </section>
+
+            <section class="theater-stage" aria-label="Preview theater stage">
+              <div class="stage-toolbar">
+                <div class="chip-row">
+                  <span class="chip blue">Preview theater</span>
+                  <span class="chip">Role: Teacher dashboard</span>
+                  <span class="chip">Device: Desktop</span>
+                  <span class="chip green">Live draft</span>
+                </div>
+                <div class="segmented" style="max-width:260px">
+                  <button class="active" type="button">Desktop</button>
+                  <button type="button">Tablet</button>
+                  <button type="button">Mobile</button>
+                </div>
+              </div>
+
+              <div class="stage-grid">
+                <div class="screen" aria-label="Large live preview mock">
+                  <aside class="screen-sidebar">
+                    <div class="screen-logo"></div>
+                    <div class="screen-line active"></div>
+                    <div class="screen-line"></div>
+                    <div class="screen-line" style="width:84%"></div>
+                    <div class="screen-line" style="width:78%"></div>
+                    <div class="screen-line" style="width:90%"></div>
+                  </aside>
+                  <section class="screen-main">
+                    <div class="screen-hero">
+                      <h3 style="font-size:24px;margin:0 0 6px">Teacher command surface</h3>
+                      <p style="color:#dceafe;margin:0">Draft colors, spacing, cards, and role navigation are visible at usable size.</p>
+                    </div>
+                    <div class="screen-cards">
+                      <div class="screen-card"><strong>Today</strong><span></span><span style="width:72%"></span></div>
+                      <div class="screen-card"><strong>Classes</strong><span></span><span style="width:62%"></span></div>
+                      <div class="screen-card"><strong>Messages</strong><span></span><span style="width:80%"></span></div>
+                    </div>
+                    <div class="screen-cards">
+                      <div class="screen-card"><strong>Reports</strong><span></span><span style="width:58%"></span></div>
+                      <div class="screen-card"><strong>Attendance</strong><span></span><span style="width:76%"></span></div>
+                      <div class="screen-card"><strong>Tasks</strong><span></span><span style="width:68%"></span></div>
+                    </div>
+                  </section>
+                </div>
+
+                <aside class="proof-rail" aria-label="Preview proof rail">
+                  <div class="proof"><h3>Preview health</h3><p>Frame loaded, sandbox draft active, role permissions inherited, no clipping found.</p></div>
+                  <div class="proof"><h3>Contrast</h3><p>Primary text 8.1:1, muted text 5.2:1, action labels 7.4:1.</p></div>
+                  <div class="proof"><h3>Layout proof</h3><p>Desktop, tablet, mobile, 1366, 1536, 1920, and ultrawide screenshots required before commit.</p></div>
+                  <div class="proof"><h3>Escalation</h3><p>If inline cannot prove the change, use drawer. If drawer is constrained, use popout. If embedding is blocked, open in new tab.</p></div>
+                </aside>
+              </div>
+
+              <div class="snapshot-row" aria-label="Small confidence snapshots">
+                <div class="snapshot"><strong>Admin shell</strong><span>Header, sidebar, form density.</span></div>
+                <div class="snapshot"><strong>Teacher</strong><span>Cards and daily workflows.</span></div>
+                <div class="snapshot"><strong>Parent</strong><span>Readable family portal.</span></div>
+                <div class="snapshot"><strong>Student</strong><span>Mobile-safe role home.</span></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="surface" id="platform">
+        <div class="command">
+          <div>
+            <div class="eyebrow">Platform-wide and tenant-wide rule</div>
+            <h2 style="margin-bottom:4px">Every applicable page gets an intelligent full-width surface</h2>
+            <p style="margin-bottom:0">The implementation must audit all pages and choose the right surface pattern instead of forcing every page into the same narrow card stack.</p>
+          </div>
+          <span class="chip green">Applies after approval</span>
+        </div>
+        <div class="platform-grid">
+          <article class="section-card"><h3>Studio work modes</h3><p>Overview, Experience, Automation, Outputs, Launch, and Control use the same workbench contract. Preview-heavy modes use theater/drawer/popout.</p></article>
+          <article class="section-card"><h3>Django admin</h3><p>Change forms and changelists use full-width field matrices, safe wrapping, clean rails, and save docks that never obscure active fields.</p></article>
+          <article class="section-card"><h3>Configuration pages</h3><p>Feature Controls, Theme, Report Card Builder, dashboards by role, forms, admissions, communications, and launch previews use dedicated builder surfaces.</p></article>
+          <article class="section-card"><h3>Preview surfaces</h3><p>Inline previews become confidence snapshots only. Real previews use theater, drawer, popout, or new-tab paths.</p></article>
+          <article class="section-card"><h3>Tenant/operator separation</h3><p>Tenant pages remain tenant scoped. Operator pages remain operator scoped. Wrong-plane links are critical defects.</p></article>
+          <article class="section-card"><h3>Automation failure path</h3><p>Automation gets native panels first. Legacy iframe failures show recovery, diagnostics, retry, and full-window open.</p></article>
+        </div>
+      </section>
+
+      <section class="surface" id="audit" style="margin-top:14px">
+        <div class="command">
+          <div>
+            <div class="eyebrow">Audit proof loop</div>
+            <h2 style="margin-bottom:4px">No implementation without page-by-page proof</h2>
+            <p style="margin-bottom:0">After approval, the implementation must scan routes/templates, render representative pages, capture screenshots, fix gaps, and rerun until clean.</p>
+          </div>
+          <span class="chip red">No assumptions</span>
+        </div>
+        <div class="snapshot-row">
+          <div class="snapshot"><strong>1. Inventory</strong><span>All tenant, tenant backend, operator, manager, Studio, Django, and config routes.</span></div>
+          <div class="snapshot"><strong>2. Render</strong><span>Browser proof at 1366, 1536, 1920, ultrawide, tablet, and mobile.</span></div>
+          <div class="snapshot"><strong>3. Fix</strong><span>Full-width usage, no overlap, no cramped preview, no wrong-plane route.</span></div>
+          <div class="snapshot"><strong>4. Validate</strong><span>Django checks, focused tests, scanners, screenshots, and gap report.</span></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <strong>New Test High School</strong>
+      <span>Approval preview - no production templates changed</span>
+    </footer>
+  </div>
+
+  <aside class="drawer" aria-label="Preview drawer">
+    <div class="drawer-head">
+      <div><strong>Preview drawer</strong><div style="color:var(--muted);font-size:12px">Large preview without leaving the editor</div></div>
+      <button class="btn" type="button" data-close-drawer>Close</button>
+    </div>
+    <div class="drawer-body">
+      <div class="screen" style="min-height:720px">
+        <aside class="screen-sidebar">
+          <div class="screen-logo"></div>
+          <div class="screen-line active"></div>
+          <div class="screen-line"></div>
+          <div class="screen-line"></div>
+        </aside>
+        <section class="screen-main">
+          <div class="screen-hero"><h3 style="font-size:26px;margin:0">Drawer preview</h3><p style="color:#dceafe;margin:0">Use this when the user wants to keep editing while inspecting the real surface.</p></div>
+          <div class="screen-cards"><div class="screen-card"></div><div class="screen-card"></div><div class="screen-card"></div></div>
+        </section>
+      </div>
+    </div>
+  </aside>
+
+  <div class="popout" aria-label="Popout comparison">
+    <div class="popout-panel">
+      <div class="command">
+        <div><div class="eyebrow">Popout comparison</div><h2 style="margin-bottom:4px">Published vs draft</h2><p style="margin-bottom:0">Two real previews side-by-side when visual confidence matters.</p></div>
+        <button class="btn" type="button" data-close-popout>Close</button>
+      </div>
+      <div class="preview-theater" style="grid-template-columns:1fr 1fr;min-height:auto">
+        <div class="screen"><aside class="screen-sidebar"><div class="screen-logo"></div><div class="screen-line"></div><div class="screen-line"></div></aside><section class="screen-main"><div class="screen-hero"><h3>Published</h3></div><div class="screen-cards"><div class="screen-card"></div><div class="screen-card"></div></div></section></div>
+        <div class="screen"><aside class="screen-sidebar"><div class="screen-logo"></div><div class="screen-line active"></div><div class="screen-line"></div></aside><section class="screen-main"><div class="screen-hero"><h3>Draft</h3></div><div class="screen-cards"><div class="screen-card"></div><div class="screen-card"></div></div></section></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const drawer = document.querySelector('.drawer');
+    document.querySelectorAll('[data-open-drawer]').forEach((button) => button.addEventListener('click', () => drawer.classList.add('open')));
+    document.querySelectorAll('[data-close-drawer]').forEach((button) => button.addEventListener('click', () => drawer.classList.remove('open')));
+
+    const popout = document.querySelector('.popout');
+    document.querySelectorAll('[data-open-popout]').forEach((button) => button.addEventListener('click', () => popout.classList.add('open')));
+    document.querySelectorAll('[data-close-popout]').forEach((button) => button.addEventListener('click', () => popout.classList.remove('open')));
+  </script>
+</body>
+</html>

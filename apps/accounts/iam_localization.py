@@ -12,6 +12,7 @@ def _school_settings(school) -> Any | None:
     try:
         from apps.siteconfig.config_service import get_effective_site_settings
 
+        # config-resolver-allow: namespace object returned to callers (helper contract)
         return get_effective_site_settings(school)
     except Exception:
         return None

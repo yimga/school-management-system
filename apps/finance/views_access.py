@@ -100,6 +100,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
         )
 
         notifier = NotificationService()
+        # config-resolver-allow: namespace object passed to _notification_delivery_settings
         site = get_effective_site_settings(request=request)
         channels, from_email = _notification_delivery_settings(request, site=site)
 
@@ -268,6 +269,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             details=request_details,
         )
 
+    # config-resolver-allow: namespace object passed to _notification_delivery_settings
     site = get_effective_site_settings(request=request)
     channels, from_email = _notification_delivery_settings(request, site=site)
     if "email" in channels and from_email:
@@ -350,6 +352,7 @@ def finance_access_bulk(request: HttpRequest):
     granted = 0
 
     flags = _backend_flags(request)
+    # config-resolver-allow: namespace object passed to _notification_delivery_settings
     site = get_effective_site_settings(request=request)
     channels, from_email = _notification_delivery_settings(request, site=site)
     notifier = NotificationService()

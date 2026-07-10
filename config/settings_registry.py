@@ -592,6 +592,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("CORS_ALLOWED_ORIGINS", "list[str]", "[]", "security", "Extra CORS origins beyond defaults."),
     SettingSpec("DATA_RESIDENCY_ENFORCE", "bool", "False", "compliance", "Enforce data residency routing rules."),
     SettingSpec("DATA_RESIDENCY_STRICT_UNKNOWN", "bool", "None (unset follows DATA_RESIDENCY_ENFORCE)", "compliance", "Unknown source/target region under enforcement: unset fails CLOSED whenever DATA_RESIDENCY_ENFORCE is on; 0 is an explicit opt-out; 1 forces strict even in audit-only posture."),
+    SettingSpec("DATA_RESIDENCY_DEFAULT_STORE_REGION", "str", '"global"', "compliance", "Declared region of the default DB; unresolvable-alias ops are adjudicated against it under enforcement."),
     SettingSpec("DATA_RESIDENCY_REPLICA_ALIASES", "dict", "{}", "compliance", "DB alias map for residency replicas."),
     SettingSpec("DEFAULT_ADMIN_PAGE_SIZE", "int", "25", "ui", "Default admin changelist page size."),
     SettingSpec("DEFAULT_AUDIT_PAGE_SIZE", "int", "50", "ui", "Default audit log page size."),

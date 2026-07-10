@@ -1,0 +1,61 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Athletics — My teams" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1"><i class="bi bi-trophy me-2" aria-hidden="true"></i>{% trans "My teams" %}</h1>
+      <p class="text-muted mb-0">{% blocktrans %}Coach console for {{ school }} — rosters, eligibility, and fixtures.{% endblocktrans %}</p>
+    </div>
+    <a href="{% url 'athletics:admin_fixtures' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-calendar-event me-1" aria-hidden="true"></i>{% trans "All fixtures" %}
+    </a>
+  </div>
+
+  <div class="row g-4 rmc-reveal-stagger">
+    {% for card in cards %}
+    <div class="col-12 col-xl-6 rmc-reveal">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="text-uppercase small text-muted">{{ card.team.sport.name }} · {{ card.team.get_gender_display }}</div>
+              <h2 class="h5 mb-1"><a href="{% url 'athletics:coach_team_detail' team_id=card.team.id %}">{{ card.team.name }}</a></h2>
+              <div class="text-muted small">{{ card.team.season.name }}{% if card.team.level %} · {{ card.team.level }}{% endif %}</div>
+            </div>
+            <span class="rmc-badge rmc-badge--muted">{{ card.team.get_status_display }}</span>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mt-3" aria-label="{% trans 'Eligibility board' %}">
+            <span class="rmc-badge rmc-badge--brand">{% trans "Roster" %} {{ card.board.total }}</span>
+            <span class="rmc-badge rmc-badge--success">{% trans "Eligible" %} {{ card.board.eligible }}</span>
+            {% if card.board.provisional %}<span class="rmc-badge rmc-badge--warning">{% trans "Provisional" %} {{ card.board.provisional }}</span>{% endif %}
+            {% if card.board.ineligible %}<span class="rmc-badge rmc-badge--danger">{% trans "Ineligible" %} {{ card.board.ineligible }}</span>{% endif %}
+            {% if card.board.pending %}<span class="rmc-badge rmc-badge--muted">{% trans "Pending" %} {{ card.board.pending }}</span>{% endif %}
+          </div>
+
+          <div class="d-flex gap-2 mt-3">
+            <a href="{% url 'athletics:coach_team_detail' team_id=card.team.id %}" class="btn btn-outline-primary btn-sm">{% trans "Roster" %}</a>
+            <a href="{% url 'athletics:coach_eligibility' team_id=card.team.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Eligibility" %}</a>
+            <a href="{% url 'athletics:coach_fixtures' team_id=card.team.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Fixtures" %}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 rmc-reveal">
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="py-4 px-3">
+            {% include "components/dashboard_empty_state.html" with icon="bi-trophy" title=_("No teams yet.") message=_("You are not assigned to any teams yet. Academic leadership creates seasons and teams; ask them to add you as a coach.") %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

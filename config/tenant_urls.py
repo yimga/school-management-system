@@ -664,6 +664,10 @@ urlpatterns = [
             ("apps.school_events.urls", "school_events"), namespace="school_events"
         ),
     ),
+    path(
+        "athletics/",
+        include(("apps.athletics.urls", "athletics"), namespace="athletics"),
+    ),
     path("kb/", include(("apps.portal.urls_kb", "kb"), namespace="kb")),
     path("reports/", include(("apps.reports.urls", "reports"), namespace="reports")),
     path(

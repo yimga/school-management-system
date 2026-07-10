@@ -204,7 +204,10 @@
 
   var ALLOWED_LOGO_MIME = ["image/png", "image/jpeg", "image/webp"];
   var FORBIDDEN_LOGO_MIME = ["image/svg+xml", "image/svg"];
-  var CLIENT_LOGO_MAX_BYTES = 1500000; // mirrors DAY1_DEFAULT_LOGO_MAX_BYTES
+  // Absolute ceiling (mirrors the server's MAX_LOGO_UPLOAD_ABSOLUTE_BYTES).
+  // Anything under this is accepted; the server auto-resizes oversized logos
+  // rather than rejecting them, so we no longer block at 1.5 MB.
+  var CLIENT_LOGO_MAX_BYTES = 15 * 1024 * 1024;
 
   function findUploadRoot() {
     return document.querySelector("[data-rmc-day1-logo-upload]");
@@ -239,7 +242,7 @@
       return {
         ok: false,
         code: "oversize",
-        message: "Logo exceeds the 1.5 MB cap.",
+        message: "That image is very large — keep it under 15 MB.",
       };
     }
     var type = (file.type || "").toLowerCase();
@@ -317,6 +320,18 @@
       img.alt = "";
       img.src = payload.logo_url;
       frame.appendChild(img);
+    }
+    // Tell the operator when we auto-resized an oversized logo. The notice
+    // lives in the always-visible brand-meta block (the upload widget itself
+    // is hidden on success), so it stays on screen.
+    if (payload && (payload.resized || payload.notice)) {
+      var notice = document.querySelector("[data-rmc-day1-logo-notice]");
+      if (notice) {
+        notice.textContent =
+          payload.notice ||
+          "Your logo was large, so we resized it to fit. It's saved and shown above.";
+        showElement(notice);
+      }
     }
     // Repaint the seed chip if a hex came back.
     if (payload && payload.seed_hex) {

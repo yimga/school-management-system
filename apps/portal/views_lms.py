@@ -41,7 +41,7 @@ from apps.academics.lms_services import (
 from apps.academics.models import Classroom, Subject
 from apps.academics.models_lms import LMSAssignment, LMSSubmission
 from apps.people.models import StudentProfile
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 
 
 _STUDENT_LOOKUP_ERRORS = (AttributeError, DatabaseError, TypeError, ValueError)
@@ -65,8 +65,9 @@ def _student_guard(request: HttpRequest):
     else an HttpResponse to return immediately."""
     if get_user_role(request.user) != User.Role.STUDENT:
         return redirect("portal:parent_dashboard")
-    site = get_effective_site_settings(request=request)
-    if not getattr(site, "enable_student_portal", True):
+    if not get_effective_config(
+        key="enable_student_portal", request=request, default=True
+    ):
         return HttpResponseForbidden("Student portal is disabled.")
     school = getattr(request, "school", None)
     if school is None:

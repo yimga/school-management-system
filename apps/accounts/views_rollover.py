@@ -401,6 +401,7 @@ def rollover_year(request):
                 .annotate(count=Count("id"))
                 .values_list("student_id", "count")
             )
+            # config-resolver-allow: method call get_backend_feature_flags() on the namespace object
             site = get_effective_site_settings(request=request)
             context["block_promotion_if_outstanding_returns"] = get_effective_flags(
                 request

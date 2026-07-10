@@ -48,7 +48,7 @@
     {
       "key": "review_mapping",
       "input_type": "csv_mapping",
-      "validation": {"required": true},
+      "validation": {"required": false},
       "persistence": {
         "target": "custom",
         "writer": "apps.setup_studio.wizard_resolvers_operator::write_account_migration_step"

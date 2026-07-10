@@ -15,10 +15,13 @@ The historical unknown-region fail-open is now policy-controlled:
 (2026-07-03) its UNSET default FOLLOWS ``DATA_RESIDENCY_ENFORCE``: enforcing
 deployments fail closed on unknown source/target unless they explicitly opt
 out with ``DATA_RESIDENCY_STRICT_UNKNOWN=0``.
-Residual: the db-router / regional-middleware call sites still early-return
-when no region concept applies at all (single-region deployments must not
-brick); a strict multi-region deployment should pair the flag with pinned
-replicas so those paths always produce a comparable region.
+CLOSED 2026-07-09 (unresolvable-region closeout): the db-router /
+regional-middleware call sites no longer early-return when no alias resolves —
+the default-store landing is adjudicated against the declared
+``DATA_RESIDENCY_DEFAULT_STORE_REGION`` (default ``"global"``, so
+single-region deployments do not brick), and plumbing failures under
+enforcement fail CLOSED. See
+``apps.compliance.tests.test_residency_unresolvable_region``.
 """
 
 from __future__ import annotations

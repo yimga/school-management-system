@@ -34,6 +34,7 @@ _FIXTURE_REL = Path("var") / "e2e_report_card_fixture.json"
 
 
 def _ensure_site_flags() -> None:
+    # config-resolver-allow: write-path singleton (create=True provisioning then apply_feature_control_state mutation)
     site = get_platform_site_settings_record(create=True)
     site.apply_feature_control_state(
         field_updates={

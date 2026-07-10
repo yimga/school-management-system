@@ -1370,15 +1370,11 @@ def api_tenant_maturity(request):
         # §3.2: Use runtime helper instead of direct tenant site settings read (tenant-facing).
         score = 0
         try:
-            from apps.siteconfig.config_service import get_effective_site_settings
+            from apps.platform_runtime.config_resolver import get_effective_config
 
-            settings_obj = get_effective_site_settings(request=request)
-            if settings_obj and getattr(settings_obj, "features", None):
-                features = (
-                    settings_obj.features
-                    if isinstance(settings_obj.features, dict)
-                    else {}
-                )
+            features_raw = get_effective_config(key="features", request=request)
+            if features_raw:
+                features = features_raw if isinstance(features_raw, dict) else {}
                 score = min(100, 20 + len(features) * 5)
         except (AttributeError, TypeError, ValueError):
             pass

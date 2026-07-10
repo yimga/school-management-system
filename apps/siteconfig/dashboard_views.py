@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 
 from apps.accounts.utils import get_user_role
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.platform_runtime.structured_logging import (
     log_exception_with_context,
     request_context_for_log,
@@ -62,8 +62,14 @@ def _default_sidebar_collapsed(*, request=None, user=None) -> bool:
         if request is not None
         else _school_for_user(user)
     )
-    site = get_effective_site_settings(request=request, school=school)
-    return bool(getattr(site, "default_sidebar_collapsed", False))
+    return bool(
+        get_effective_config(
+            key="default_sidebar_collapsed",
+            request=request,
+            school=school,
+            default=False,
+        )
+    )
 
 
 def _can_customize(user) -> bool:

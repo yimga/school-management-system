@@ -25,12 +25,12 @@ from .views_common import finance_save_redirect
 
 def _active_profile(request: HttpRequest | None = None):
     """Resolve active compliance profile for reports (shared helper)."""
-    from apps.siteconfig.config_service import get_effective_site_settings
+    from apps.platform_runtime.config_resolver import get_effective_config
     from .models import ComplianceProfile
 
-    site = get_effective_site_settings(request=request)
-    if getattr(site, "compliance_profile", None):
-        return site.compliance_profile
+    profile = get_effective_config(key="compliance_profile", request=request)
+    if profile:
+        return profile
     return ComplianceProfile.objects.filter(is_active=True).first()
 
 

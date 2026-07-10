@@ -1,0 +1,69 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{{ team.name }} — {% trans "Eligibility" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <a href="{% url 'athletics:coach_team_detail' team_id=team.id %}" class="btn btn-outline-secondary btn-sm mb-3">
+    <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{{ team.name }}
+  </a>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Eligibility board" %}</h1>
+      <div class="text-muted">{{ team.name }} · {{ team.sport.name }}</div>
+    </div>
+    {% if can_manage %}
+    <form method="post" action="{% url 'athletics:coach_eligibility' team_id=team.id %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary btn-sm">
+        <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>{% trans "Recompute" %}
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="rmc-data-table-wrap" style="overflow-x:auto;"><!-- inline-style-allow: wide-table-horizontal-scroll-container -->
+        <table class="table rmc-data-table align-middle">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Athlete" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+              <th scope="col">{% trans "Academic" %}</th>
+              <th scope="col">{% trans "Attendance" %}</th>
+              <th scope="col">{% trans "Medical" %}</th>
+              <th scope="col">{% trans "Consent" %}</th>
+              <th scope="col">{% trans "Reason" %}</th>
+              <th scope="col">{% trans "Checked" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            <tr>
+              <td>{{ row.membership.student.first_name }} {{ row.membership.student.last_name }}</td>
+              {% if row.record %}
+              <td><span class="rmc-badge {% if row.record.status == 'eligible' %}rmc-badge--success{% elif row.record.status == 'ineligible' %}rmc-badge--danger{% elif row.record.status == 'provisional' %}rmc-badge--warning{% else %}rmc-badge--muted{% endif %}">{{ row.record.get_status_display }}</span></td>
+              <td>{% if row.record.academic_ok %}<i class="bi bi-check-circle text-success" aria-label="{% trans 'OK' %}"></i>{% else %}<i class="bi bi-x-circle text-danger" aria-label="{% trans 'Not met' %}"></i>{% endif %}</td>
+              <td>{% if row.record.attendance_ok %}<i class="bi bi-check-circle text-success" aria-label="{% trans 'OK' %}"></i>{% else %}<i class="bi bi-x-circle text-danger" aria-label="{% trans 'Not met' %}"></i>{% endif %}</td>
+              <td>{% if row.record.medical_ok %}<i class="bi bi-check-circle text-success" aria-label="{% trans 'OK' %}"></i>{% else %}<i class="bi bi-x-circle text-danger" aria-label="{% trans 'Not met' %}"></i>{% endif %}</td>
+              <td>{% if row.record.consent_ok %}<i class="bi bi-check-circle text-success" aria-label="{% trans 'OK' %}"></i>{% else %}<i class="bi bi-x-circle text-danger" aria-label="{% trans 'Not met' %}"></i>{% endif %}</td>
+              <td class="small text-muted">{{ row.record.reason|default:"—" }}</td>
+              <td class="small text-muted">{{ row.record.checked_at|date:"Y-m-d H:i" }}</td>
+              {% else %}
+              <td><span class="rmc-badge rmc-badge--muted">{% trans "Not checked" %}</span></td>
+              <td colspan="6" class="small text-muted">{% trans "No eligibility snapshot yet — recompute to evaluate this athlete." %}</td>
+              {% endif %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-muted">{% trans "No active athletes on this roster." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

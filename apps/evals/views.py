@@ -82,8 +82,8 @@ from apps.communication.models import MessageThread
 from apps.communication.views_announcements import _can_create_department_announcement
 from apps.siteconfig.config_service import (
     get_effective_flags,
-    get_effective_site_settings,
 )
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.models import default_backend_feature_flags
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from apps.siteconfig.workflow_resolver import (
@@ -1631,15 +1631,22 @@ def teacher_marks_entry(request: HttpRequest):
         grade_approval_enabled = (policy.get("grade_approval") or {}).get(
             "grade_approval_enabled", False
         )
-        site_settings = get_effective_site_settings(request=request)
     else:
-        site_settings = get_effective_site_settings(request=request)
         flags = {
             **default_backend_feature_flags(),
-            **(getattr(site_settings, "backend_feature_flags", None) or {}),
+            **(
+                get_effective_config(
+                    key="backend_feature_flags", request=request, default=None
+                )
+                or {}
+            ),
         }
-        grade_approval_enabled = getattr(site_settings, "grade_approval_enabled", False)
-    custom_cmd = (site_settings.marksheet_ocr_command or "").strip()
+        grade_approval_enabled = get_effective_config(
+            key="grade_approval_enabled", request=request, default=False
+        )
+    custom_cmd = (
+        get_effective_config(key="marksheet_ocr_command", request=request) or ""
+    ).strip()
     env_cmd = getattr(settings, "MARKSHEET_OCR_COMMAND", "") or ""
     resolved_cmd = (custom_cmd or env_cmd or "").strip()
     ocr_command = resolved_cmd or None

@@ -110,7 +110,11 @@ def resolve_brand_profile(*, school=None, site=None) -> dict[str, Any]:
         or ""
     )
     logo_url = (
-        getattr(profile, "logo_url", None)
+        # Inline data URI from the Day-1 logo upload wins — it renders on any
+        # host without media serving (survives ephemeral disk / no object
+        # storage), which is why a freshly uploaded logo now actually shows.
+        metadata.get("logo_data_uri")
+        or getattr(profile, "logo_url", None)
         or getattr(legacy, "logo_url", None)
         or getattr(school, "logo_url", None)
         or theme_tokens.get("logo_url")

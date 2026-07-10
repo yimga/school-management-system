@@ -74,10 +74,19 @@ class TranscriptsLander(Lander):
                     f"transcripts: missing student_external_id in {row!r}"
                 )
                 continue
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
-            student = StudentProfile.objects.filter(
-                **{student_lookup: external_id}
-            ).first()
+            # School-scoped via the shared helper: on single-schema
+            # deployments an unscoped external-id lookup resolves the
+            # SOURCE school's profile during an inter-school transfer
+            # (same ref at both schools by design) and the vault item
+            # lands on the wrong tenant's row.
+            from ._helpers import resolve_student
+
+            student = resolve_student(
+                ctx=ctx,
+                student_model=StudentProfile,
+                lookup_field=student_lookup,
+                external_id=external_id,
+            )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
@@ -92,6 +101,32 @@ class TranscriptsLander(Lander):
                 "issued_at": issued,
                 "artifact_ref": (row.get("artifact_ref") or "")[:512],
             }
+            # Completeness fix (2026-07-09): TranscriptVaultItem's passport +
+            # issuing_school FKs are REQUIRED — without them every vault row
+            # quarantined on IntegrityError and no transcript ever arrived.
+            # The passport rides the platform's own get-or-create service (the
+            # same GUID the transfer later links at both schools); the issuing
+            # school is the row's provenance (transfers carry the source
+            # school's id) falling back to the bundle's school.
+            if "issuing_school" in item_fields:
+                defaults["issuing_school"] = _resolve_issuing_school(
+                    row.get("issuing_school_id"), ctx
+                )
+            if "passport" in item_fields and not ctx.dry_run:
+                try:
+                    defaults["passport"] = _resolve_passport(
+                        student=student,
+                        external_id=external_id,
+                        issuing_school=defaults.get("issuing_school"),
+                        ctx=ctx,
+                    )
+                except Exception as exc:  # noqa: BLE001 — per-row quarantine
+                    result.quarantined += 1
+                    result.errors.append(
+                        f"transcripts: passport resolution failed for "
+                        f"{external_id}: {type(exc).__name__}: {exc}"
+                    )
+                    continue
             # Pack the academic-year/term/subject/grade/credits into the
             # verification_hash payload if the model carries one — keeps
             # idempotent upserts addressable without proliferating fields.
@@ -156,6 +191,57 @@ class TranscriptsLander(Lander):
                     f"{type(exc).__name__}: {exc}"
                 )
         return result
+
+
+def _resolve_passport(*, student, external_id: str, issuing_school, ctx: LanderContext):
+    """One passport GUID per student, converged across the transfer.
+
+    Internal transfers (issuing school ≠ bundle school): reuse the passport
+    already minted for the SAME student at the issuing school — matched by the
+    shared external ref — and link this profile to it, exactly mirroring the
+    transfer service's later ``link_student_to_passport`` call (both are
+    get-or-create, so the two paths converge on ONE GUID instead of forking a
+    second passport for the vault items). Foreign imports fall back to the
+    student's own get-or-create.
+    """
+    from apps.people.passport_services import (
+        get_or_create_passport_for_student,
+        link_student_to_passport,
+    )
+
+    if (
+        issuing_school is not None
+        and getattr(issuing_school, "pk", None) != getattr(ctx.school, "pk", None)
+    ):
+        source_profile = None
+        for field in ("admission_number", "student_code", "exam_candidate_number"):
+            source_profile = type(student).objects.filter(
+                school=issuing_school, **{field: external_id}
+            ).first()
+            if source_profile is not None:
+                break
+        if source_profile is not None:
+            passport, _created = get_or_create_passport_for_student(
+                source_profile, None
+            )
+            link_student_to_passport(passport, student, None)
+            return passport
+    passport, _created = get_or_create_passport_for_student(student, None)
+    return passport
+
+
+def _resolve_issuing_school(issuing_school_id, ctx: LanderContext):
+    """Provenance school for the vault item: row id (transfers) else bundle school."""
+    if issuing_school_id:
+        try:
+            from apps.schools.models import School
+
+            found = School.objects.filter(pk=str(issuing_school_id).strip()).first()
+            if found is not None:
+                return found
+        except Exception:  # noqa: BLE001 — malformed id falls back to bundle school
+            pass
+    return ctx.school
 
 
 register("transcripts", TranscriptsLander())

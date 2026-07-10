@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError
 from django.conf import settings
 from config.admin import register_tenant_admin
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 
 from unfold.admin import ModelAdmin
 
@@ -155,9 +155,10 @@ class FeePlanAdmin(ModelAdmin):
         from django.contrib import messages
 
         school = getattr(queryset.select_related("school").first(), "school", None)
-        site = get_effective_site_settings(school=school)
-        increase_pct = getattr(
-            site, "finance_fee_plan_copy_increase_percentage", Decimal("0.00")
+        increase_pct = get_effective_config(
+            school=school,
+            key="finance_fee_plan_copy_increase_percentage",
+            default=Decimal("0.00"),
         )
 
         # Find next academic year
@@ -708,9 +709,10 @@ class PaymentProofUploadAdmin(ModelAdmin):
         from apps.finance.receipt_verification import ReceiptVerificationService
 
         school = getattr(queryset.select_related("school").first(), "school", None)
-        site = get_effective_site_settings(school=school)
-        require_reason = getattr(
-            site, "finance_receipt_require_verification_reason", True
+        require_reason = get_effective_config(
+            school=school,
+            key="finance_receipt_require_verification_reason",
+            default=True,
         )
         approved_count = 0
         for proof_upload in queryset.filter(
@@ -763,9 +765,10 @@ class PaymentProofUploadAdmin(ModelAdmin):
         from apps.compliance.models_audit import AuditLog
 
         school = getattr(queryset.select_related("school").first(), "school", None)
-        site = get_effective_site_settings(school=school)
-        require_reason = getattr(
-            site, "finance_receipt_require_verification_reason", True
+        require_reason = get_effective_config(
+            school=school,
+            key="finance_receipt_require_verification_reason",
+            default=True,
         )
         to_reject = queryset.filter(
             status__in=[

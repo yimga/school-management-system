@@ -41,6 +41,7 @@ ROLE_RANK = {
     "COMMS_STAFF": 60,
     "IT_ADMIN": 70,
     "BOARDING_MANAGER": 60,
+    "COACH": 55,
     "TEACHER": 50,
     "PARENT": 20,
     "STUDENT": 10,
@@ -87,6 +88,37 @@ ALL_AUTHENTICATED = {"*"}
 CONTROL_PLANE_ROLE_CODES = {"SUPERADMIN"}
 
 MODULE_ACCESS_DEFAULTS = {
+    # Athletics / sports management (teams, fixtures, eligibility, consent).
+    # Family roles get read so students/parents see their own team pages
+    # (view-scoped in-view); write is the coaching + academic-leadership tier.
+    "athletics": {
+        "read": {
+            "COACH",
+            "ADMIN",
+            "SUPERADMIN",
+            "LEADERSHIP",
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "DEAN",
+            "HOD",
+            "DEPT_LEAD",
+            "IT_ADMIN",
+            "TEACHER",
+            "PARENT",
+            "STUDENT",
+            "PROPRIETOR",
+        },
+        "write": {
+            "COACH",
+            "ADMIN",
+            "SUPERADMIN",
+            "LEADERSHIP",
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "DEAN",
+            "HOD",
+        },
+    },
     # Core portals
     "feedback": {
         "read": {
@@ -402,6 +434,49 @@ MODULE_ACCESS_DEFAULTS = {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
+    # Migration Cloud connector is the TENANT-side SIS import / migration wizard
+    # (namespaced "migration_cloud_connector" in config/tenant_urls.py, school-FK-scoped).
+    # It was MISSING from this map, so can_access_module() default-denied it for EVERYONE
+    # (unknown module -> deny), and tenant ADMIN / IT_ADMIN / owner hit an "Access required"
+    # wall on their own import landing. Same class of bug as setup_studio above; mirror its
+    # policy. The OPERATOR mirror is a separate /super/migration/ mount gated by the
+    # control-plane middleware and is NOT keyed off this map, so this does not widen it.
+    "migration_cloud_connector": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    # Template Marketplace is the TENANT-side branding/report-card/dashboard template picker
+    # (namespace "template_marketplace", a studio_os sibling). It was MISSING from this map, so
+    # can_access_module() default-denied it for EVERYONE (unknown module -> deny) — a SUPERADMIN
+    # without the Django is_superuser flag, and even a normal tenant ADMIN, hit an "Access
+    # required" wall on their own Studio > Templates surface. Same class of bug as setup_studio /
+    # migration_cloud_connector above; mirror studio_os's config-surface policy.
+    "template_marketplace": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    # Automation / workflow console (namespace "automation"): outcomes console, visual
+    # workflow designer, publish/rollback APIs. Tenant admin/IT config surface. Was MISSING
+    # -> default-denied for everyone; same lockout class as the modules above.
+    "automation": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    # App Marketplace tenant flow (namespace "marketplace"): app purchase-intent / install.
+    # Tenant admin/IT config surface. Was MISSING -> default-denied for everyone.
+    "marketplace": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    # Community event hub (namespace "school_events", mounted at /events/): view events and
+    # SELF-REGISTER for them. This is community-facing chrome — students, parents, teachers and
+    # admins must all reach it — so it is ALL_AUTHENTICATED, NOT admin-only. Distinct from the
+    # "events" key above, which is the separate admin-only domain-events app at /domain-events/.
+    # Was MISSING -> every non-superuser role (incl. students/parents) hit "Access required".
+    "school_events": {
+        "read": ALL_AUTHENTICATED,
+        "write": ALL_AUTHENTICATED,
+    },
     "events": {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN", "LEADERSHIP", "PRINCIPAL"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
@@ -519,7 +594,11 @@ MODULE_ACCESS_DEFAULTS = {
         "read": ALL_AUTHENTICATED,
         "write": ALL_AUTHENTICATED,
     },
-    "api_center": {
+    # API Center (namespace "apicenter" — NOT "api_center"). ModuleAccessMiddleware resolves
+    # the module from the URL namespace, which is "apicenter", so the old "api_center" key was
+    # DEAD (never matched) and tenant ADMIN / IT_ADMIN were locked out of /api-center/. Keyed to
+    # the real namespace. Views additionally gate on the enable_api_center flag + api_center.manage.
+    "apicenter": {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
@@ -577,6 +656,7 @@ ROLE_CATEGORIES = {
     "Finance": ["BURSAR", "FINANCE_STAFF", "ACCOUNTANT"],
     "Support": ["SECRETARY", "EXECUTIVE_ASSISTANT", "VIRTUAL_ASSISTANT", "IT_ADMIN"],
     "Disciplinary": ["DISCIPLINE_MASTER"],
+    "Athletics": ["COACH"],
     "Other": ["TEACHER", "BOARDING_MANAGER", "PARENT", "STUDENT"],
 }
 
@@ -735,6 +815,14 @@ def can_access_module(user, module: str, action: str = "read") -> bool:
     if not user or not user.is_authenticated:
         return False
     if getattr(user, "is_superuser", False):
+        return True
+    # SUPERADMIN (CONTROL_PLANE_ROLE_CODES) is the platform's top role: god-mode over every
+    # TENANT module, so the top admin is never locked out of their own tenant — even a module
+    # not yet registered in MODULE_ACCESS_DEFAULTS. Tenant<->operator isolation is enforced at a
+    # different layer (TenantHostControlPlaneIsolationMiddleware redirects an un-impersonating
+    # SUPERADMIN off the tenant host), so this does not widen any operator surface. Pairs with
+    # the existing is_superuser fast-allow above and the _user_has_any_role SUPERADMIN checks.
+    if getattr(user, "role", "") in CONTROL_PLANE_ROLE_CODES:
         return True
 
     module = (module or "").strip().lower()

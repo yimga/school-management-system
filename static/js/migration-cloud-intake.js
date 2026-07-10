@@ -67,6 +67,50 @@
     updateReadiness(form);
   }
 
+  // A stable identity for a File so re-selecting the same file de-dupes
+  // instead of appearing twice.
+  function fileKey(file) {
+    return file.name + "|" + file.size + "|" + (file.lastModified || 0);
+  }
+
+  // Accumulate newly-chosen files onto the input's existing selection so
+  // operators can add files across MULTIPLE browse clicks / drops (a native
+  // <input multiple> otherwise REPLACES the whole list on every new pick —
+  // the "only one file at a time" complaint). Rebuilds input.files via a
+  // DataTransfer. No-ops gracefully where DataTransfer is unsupported.
+  function accumulateFiles(input, incoming) {
+    var arr = Array.prototype.slice.call(incoming || []);
+    if (!arr.length) return;
+    var current = Array.prototype.slice.call(input.files || []);
+    var seen = {};
+    current.forEach(function (f) { seen[fileKey(f)] = true; });
+    arr.forEach(function (f) {
+      var k = fileKey(f);
+      if (!seen[k]) { current.push(f); seen[k] = true; }
+    });
+    try {
+      var dt = new DataTransfer();
+      current.forEach(function (f) { dt.items.add(f); });
+      input.files = dt.files;
+    } catch (e) {
+      /* DataTransfer unsupported — keep the latest native selection. */
+    }
+  }
+
+  // Remove one file from the accumulated selection by its key.
+  function removeFile(input, key) {
+    var current = Array.prototype.slice.call(input.files || []);
+    try {
+      var dt = new DataTransfer();
+      current.forEach(function (f) {
+        if (fileKey(f) !== key) dt.items.add(f);
+      });
+      input.files = dt.files;
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   function updateFiles(form) {
     var input = form.querySelector("[data-mc-upload-input]");
     var summary = form.querySelector("[data-mc-upload-summary]");
@@ -84,35 +128,40 @@
     var oversized = files.filter(function (file) { return maxBytes && file.size > maxBytes; });
     summary.textContent =
       files.length + " file" + (files.length === 1 ? "" : "s") +
-      " selected, " + bytesLabel(total) + " total.";
+      " selected, " + bytesLabel(total) + " total. Add more anytime.";
     if (oversized.length) {
       summary.textContent +=
         " " + oversized.length + " file" +
         (oversized.length === 1 ? "" : "s") + " exceed the per-file cap.";
     }
-    files.slice(0, 8).forEach(function (file) {
+    files.forEach(function (file) {
       var item = document.createElement("li");
-      item.innerHTML = "<strong></strong><span></span>";
+      item.innerHTML =
+        "<strong></strong><span></span>" +
+        "<button type=\"button\" class=\"rmc-intake-file-remove\" aria-label=\"Remove file\">&times;</button>";
       item.querySelector("strong").textContent = file.name;
       item.querySelector("span").textContent = bytesLabel(file.size);
+      var rm = item.querySelector(".rmc-intake-file-remove");
+      rm.setAttribute("data-mc-file-key", fileKey(file));
       if (maxBytes && file.size > maxBytes) {
         item.setAttribute("data-mc-file-warning", "oversized");
       }
       list.appendChild(item);
     });
-    if (files.length > 8) {
-      var more = document.createElement("li");
-      more.textContent = "+" + (files.length - 8) + " more files";
-      list.appendChild(more);
-    }
     updateReadiness(form);
   }
 
   function bindDropzone(form) {
     var input = form.querySelector("[data-mc-upload-input]");
     var zone = form.querySelector("[data-mc-upload-dropzone]");
+    var list = form.querySelector("[data-mc-upload-list]");
     if (!input || !zone) return;
-    input.addEventListener("change", function () { updateFiles(form); });
+    // Accumulate each browse selection onto the running list rather than
+    // replacing it, so multiple picks add up instead of overwriting.
+    input.addEventListener("change", function () {
+      accumulateFiles(input, input.files);
+      updateFiles(form);
+    });
     ["dragenter", "dragover"].forEach(function (eventName) {
       zone.addEventListener(eventName, function (event) {
         event.preventDefault();
@@ -127,10 +176,22 @@
     zone.addEventListener("drop", function (event) {
       event.preventDefault();
       if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
-        input.files = event.dataTransfer.files;
+        accumulateFiles(input, event.dataTransfer.files);
         updateFiles(form);
       }
     });
+    // Per-file removal (delegated) so an accidental add can be undone.
+    if (list) {
+      list.addEventListener("click", function (event) {
+        var btn = event.target && event.target.closest
+          ? event.target.closest("[data-mc-file-key]")
+          : null;
+        if (!btn) return;
+        event.preventDefault();
+        removeFile(input, btn.getAttribute("data-mc-file-key"));
+        updateFiles(form);
+      });
+    }
   }
 
   function bindDiffMode(form) {

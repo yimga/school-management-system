@@ -559,14 +559,18 @@ def build_login_immersive_render_context(request: Any) -> dict[str, Any]:
     if not section.get("enabled", True):
         section = login_canvas_defaults(is_manager=is_manager)
 
-    site = None
+    site_tagline = ""
     wallpaper = ""
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        site = get_effective_site_settings(request=request, school=school)
+        site_tagline = str(
+            get_effective_config(key="login_hero_subtext", request=request, school=school)
+            or get_effective_config(key="tagline", request=request, school=school)
+            or ""
+        )
     except Exception:
-        site = None
+        site_tagline = ""
     try:
         from apps.siteconfig.context_processors import site_settings
 
@@ -693,11 +697,7 @@ def build_login_immersive_render_context(request: Any) -> dict[str, Any]:
         "compact_on_short_viewport": bool(zones.get("compact_on_short_viewport", True)),
         "clock_label": now.strftime("%H:%M"),
         "date_label": now.strftime("%a, %b %d"),
-        "site_tagline": str(
-            getattr(site, "login_hero_subtext", None)
-            or getattr(site, "tagline", None)
-            or ""
-        ),
+        "site_tagline": site_tagline,
     }
 
 

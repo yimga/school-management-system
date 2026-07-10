@@ -1008,7 +1008,7 @@
         "classification": "unsafe",
         "file": "apps/siteconfig/views_tenant_studio_hub.py",
         "governance_tier": "violation",
-        "line": "312",
+        "line": "321",
         "pattern": "csrf_exempt"
       },
       {
@@ -1210,6 +1210,22 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "apps/accounts/iam_pdp_guards.py",
+        "governance_tier": "safe",
+        "line": "10",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/urls.py",
+        "governance_tier": "safe",
+        "line": "249",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "apps/accounts/views.py",
         "governance_tier": "safe",
         "line": "334",
@@ -1356,7 +1372,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views.py",
         "governance_tier": "safe",
-        "line": "1912",
+        "line": "1911",
         "pattern": "login_required"
       },
       {
@@ -1556,7 +1572,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_impersonation.py",
         "governance_tier": "safe",
-        "line": "57",
+        "line": "58",
         "pattern": "login_required"
       },
       {
@@ -1564,7 +1580,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_impersonation.py",
         "governance_tier": "safe",
-        "line": "84",
+        "line": "89",
         "pattern": "login_required"
       },
       {
@@ -1596,7 +1612,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_onboarding.py",
         "governance_tier": "safe",
-        "line": "18",
+        "line": "20",
         "pattern": "login_required"
       },
       {
@@ -1604,7 +1620,103 @@
         "classification": "allowed",
         "file": "apps/accounts/views_onboarding.py",
         "governance_tier": "safe",
-        "line": "43",
+        "line": "45",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_onboarding.py",
+        "governance_tier": "safe",
+        "line": "104",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console.py",
+        "governance_tier": "safe",
+        "line": "145",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console.py",
+        "governance_tier": "safe",
+        "line": "229",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console.py",
+        "governance_tier": "safe",
+        "line": "241",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console.py",
+        "governance_tier": "safe",
+        "line": "254",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console.py",
+        "governance_tier": "safe",
+        "line": "267",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console.py",
+        "governance_tier": "safe",
+        "line": "279",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console_context_profile.py",
+        "governance_tier": "safe",
+        "line": "102",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console_people.py",
+        "governance_tier": "safe",
+        "line": "89",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console_roles.py",
+        "governance_tier": "safe",
+        "line": "93",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console_support.py",
+        "governance_tier": "safe",
+        "line": "72",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_owner_console_workflows.py",
+        "governance_tier": "safe",
+        "line": "146",
         "pattern": "login_required"
       },
       {
@@ -1786,9 +1898,9 @@
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/accounts/views_tenant_identity.py",
+        "file": "apps/accounts/views_step_up.py",
         "governance_tier": "safe",
-        "line": "116",
+        "line": "53",
         "pattern": "login_required"
       },
       {
@@ -1796,7 +1908,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "168",
+        "line": "139",
         "pattern": "login_required"
       },
       {
@@ -1804,7 +1916,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "246",
+        "line": "192",
         "pattern": "login_required"
       },
       {
@@ -1812,7 +1924,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "319",
+        "line": "276",
         "pattern": "login_required"
       },
       {
@@ -1820,7 +1932,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "396",
+        "line": "350",
         "pattern": "login_required"
       },
       {
@@ -1828,7 +1940,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "439",
+        "line": "427",
         "pattern": "login_required"
       },
       {
@@ -1836,7 +1948,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "463",
+        "line": "470",
         "pattern": "login_required"
       },
       {
@@ -1844,7 +1956,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "497",
+        "line": "494",
         "pattern": "login_required"
       },
       {
@@ -1852,7 +1964,31 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "545",
+        "line": "528",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_tenant_identity.py",
+        "governance_tier": "safe",
+        "line": "576",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_tenant_identity.py",
+        "governance_tier": "safe",
+        "line": "641",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_tenant_identity.py",
+        "governance_tier": "safe",
+        "line": "696",
         "pattern": "login_required"
       },
       {
@@ -1948,7 +2084,7 @@
         "classification": "allowed",
         "file": "apps/analytics/views.py",
         "governance_tier": "safe",
-        "line": "703",
+        "line": "716",
         "pattern": "login_required"
       },
       {
@@ -1956,7 +2092,7 @@
         "classification": "allowed",
         "file": "apps/analytics/views.py",
         "governance_tier": "safe",
-        "line": "732",
+        "line": "745",
         "pattern": "login_required"
       },
       {
@@ -1964,7 +2100,7 @@
         "classification": "allowed",
         "file": "apps/analytics/views.py",
         "governance_tier": "safe",
-        "line": "759",
+        "line": "772",
         "pattern": "login_required"
       },
       {
@@ -1972,7 +2108,7 @@
         "classification": "allowed",
         "file": "apps/analytics/views.py",
         "governance_tier": "safe",
-        "line": "832",
+        "line": "847",
         "pattern": "login_required"
       },
       {
@@ -1980,7 +2116,7 @@
         "classification": "allowed",
         "file": "apps/analytics/views.py",
         "governance_tier": "safe",
-        "line": "945",
+        "line": "960",
         "pattern": "login_required"
       },
       {
@@ -2348,7 +2484,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/power_views.py",
         "governance_tier": "safe",
-        "line": "42",
+        "line": "43",
         "pattern": "login_required"
       },
       {
@@ -2356,7 +2492,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/power_views.py",
         "governance_tier": "safe",
-        "line": "75",
+        "line": "76",
         "pattern": "login_required"
       },
       {
@@ -2364,7 +2500,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/power_views.py",
         "governance_tier": "safe",
-        "line": "95",
+        "line": "96",
         "pattern": "login_required"
       },
       {
@@ -2372,7 +2508,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/power_views.py",
         "governance_tier": "safe",
-        "line": "160",
+        "line": "161",
         "pattern": "login_required"
       },
       {
@@ -2380,7 +2516,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/power_views.py",
         "governance_tier": "safe",
-        "line": "185",
+        "line": "186",
         "pattern": "login_required"
       },
       {
@@ -2388,7 +2524,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/power_views.py",
         "governance_tier": "safe",
-        "line": "215",
+        "line": "216",
         "pattern": "login_required"
       },
       {
@@ -2396,7 +2532,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/power_views.py",
         "governance_tier": "safe",
-        "line": "330",
+        "line": "331",
         "pattern": "login_required"
       },
       {
@@ -2420,7 +2556,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/views.py",
         "governance_tier": "safe",
-        "line": "160",
+        "line": "161",
         "pattern": "login_required"
       },
       {
@@ -2932,7 +3068,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_data_quality.py",
         "governance_tier": "safe",
-        "line": "12",
+        "line": "13",
         "pattern": "login_required"
       },
       {
@@ -2940,7 +3076,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_ferpa.py",
         "governance_tier": "safe",
-        "line": "35",
+        "line": "43",
         "pattern": "login_required"
       },
       {
@@ -2964,7 +3100,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_queue.py",
         "governance_tier": "safe",
-        "line": "51",
+        "line": "61",
         "pattern": "login_required"
       },
       {
@@ -2972,7 +3108,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_queue.py",
         "governance_tier": "safe",
-        "line": "91",
+        "line": "101",
         "pattern": "login_required"
       },
       {
@@ -2980,7 +3116,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_queue.py",
         "governance_tier": "safe",
-        "line": "105",
+        "line": "115",
         "pattern": "login_required"
       },
       {
@@ -2988,7 +3124,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_queue.py",
         "governance_tier": "safe",
-        "line": "120",
+        "line": "130",
         "pattern": "login_required"
       },
       {
@@ -2996,7 +3132,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_queue.py",
         "governance_tier": "safe",
-        "line": "142",
+        "line": "152",
         "pattern": "login_required"
       },
       {
@@ -3060,7 +3196,7 @@
         "classification": "allowed",
         "file": "apps/evals/views_drilldown.py",
         "governance_tier": "safe",
-        "line": "44",
+        "line": "54",
         "pattern": "login_required"
       },
       {
@@ -3828,7 +3964,7 @@
         "classification": "allowed",
         "file": "apps/observability/views.py",
         "governance_tier": "safe",
-        "line": "840",
+        "line": "842",
         "pattern": "login_required"
       },
       {
@@ -3836,7 +3972,7 @@
         "classification": "allowed",
         "file": "apps/observability/views.py",
         "governance_tier": "safe",
-        "line": "869",
+        "line": "871",
         "pattern": "login_required"
       },
       {
@@ -3844,7 +3980,7 @@
         "classification": "allowed",
         "file": "apps/observability/views.py",
         "governance_tier": "safe",
-        "line": "1618",
+        "line": "1738",
         "pattern": "login_required"
       },
       {
@@ -3852,7 +3988,7 @@
         "classification": "allowed",
         "file": "apps/observability/views.py",
         "governance_tier": "safe",
-        "line": "1628",
+        "line": "1748",
         "pattern": "login_required"
       },
       {
@@ -4060,7 +4196,7 @@
         "classification": "allowed",
         "file": "apps/platform_runtime/views_administration.py",
         "governance_tier": "safe",
-        "line": "441",
+        "line": "443",
         "pattern": "login_required"
       },
       {
@@ -4068,7 +4204,7 @@
         "classification": "allowed",
         "file": "apps/platform_runtime/views_administration.py",
         "governance_tier": "safe",
-        "line": "458",
+        "line": "460",
         "pattern": "login_required"
       },
       {
@@ -4076,7 +4212,7 @@
         "classification": "allowed",
         "file": "apps/platform_runtime/views_administration.py",
         "governance_tier": "safe",
-        "line": "510",
+        "line": "531",
         "pattern": "login_required"
       },
       {
@@ -4084,7 +4220,7 @@
         "classification": "allowed",
         "file": "apps/platform_runtime/views_administration.py",
         "governance_tier": "safe",
-        "line": "563",
+        "line": "584",
         "pattern": "login_required"
       },
       {
@@ -4221,6 +4357,22 @@
         "file": "apps/platform_runtime/views_tenant_lifecycle.py",
         "governance_tier": "safe",
         "line": "17",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/policies/enforcement.py",
+        "governance_tier": "safe",
+        "line": "40",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/policies/tests/test_pdp_promotion_iam_surfaces.py",
+        "governance_tier": "safe",
+        "line": "211",
         "pattern": "login_required"
       },
       {
@@ -5340,7 +5492,7 @@
         "classification": "allowed",
         "file": "apps/reports/views.py",
         "governance_tier": "safe",
-        "line": "1348",
+        "line": "1383",
         "pattern": "login_required"
       },
       {
@@ -5868,7 +6020,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "412",
+        "line": "411",
         "pattern": "login_required"
       },
       {
@@ -5876,7 +6028,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "534",
+        "line": "530",
         "pattern": "login_required"
       },
       {
@@ -5884,7 +6036,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "1351",
+        "line": "1377",
         "pattern": "login_required"
       },
       {
@@ -5892,7 +6044,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "1370",
+        "line": "1396",
         "pattern": "login_required"
       },
       {
@@ -5900,7 +6052,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "1392",
+        "line": "1418",
         "pattern": "login_required"
       },
       {
@@ -5908,7 +6060,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "2738",
+        "line": "2764",
         "pattern": "login_required"
       },
       {
@@ -5916,7 +6068,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "2767",
+        "line": "2793",
         "pattern": "login_required"
       },
       {
@@ -5924,7 +6076,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "2812",
+        "line": "2838",
         "pattern": "login_required"
       },
       {
@@ -5932,7 +6084,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "2861",
+        "line": "2887",
         "pattern": "login_required"
       },
       {
@@ -6068,7 +6220,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_dashboard_config.py",
         "governance_tier": "safe",
-        "line": "43",
+        "line": "117",
         "pattern": "login_required"
       },
       {
@@ -6076,7 +6228,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_dashboard_config.py",
         "governance_tier": "safe",
-        "line": "90",
+        "line": "164",
         "pattern": "login_required"
       },
       {
@@ -6084,7 +6236,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_dashboard_config.py",
         "governance_tier": "safe",
-        "line": "183",
+        "line": "257",
         "pattern": "login_required"
       },
       {
@@ -6092,7 +6244,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_dashboard_config.py",
         "governance_tier": "safe",
-        "line": "277",
+        "line": "386",
         "pattern": "login_required"
       },
       {
@@ -6236,7 +6388,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_package_rollback.py",
         "governance_tier": "safe",
-        "line": "33",
+        "line": "32",
         "pattern": "login_required"
       },
       {
@@ -6676,7 +6828,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "217",
+        "line": "222",
         "pattern": "login_required"
       },
       {
@@ -6684,7 +6836,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "229",
+        "line": "234",
         "pattern": "login_required"
       },
       {
@@ -6692,7 +6844,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "330",
+        "line": "336",
         "pattern": "login_required"
       },
       {
@@ -6700,7 +6852,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "357",
+        "line": "363",
         "pattern": "login_required"
       },
       {
@@ -6708,7 +6860,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "383",
+        "line": "389",
         "pattern": "login_required"
       },
       {
@@ -6716,7 +6868,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "407",
+        "line": "413",
         "pattern": "login_required"
       },
       {
@@ -6724,7 +6876,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "435",
+        "line": "441",
         "pattern": "login_required"
       },
       {
@@ -6732,7 +6884,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "465",
+        "line": "471",
         "pattern": "login_required"
       },
       {
@@ -6740,7 +6892,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "495",
+        "line": "501",
         "pattern": "login_required"
       },
       {
@@ -6748,7 +6900,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "531",
+        "line": "537",
         "pattern": "login_required"
       },
       {
@@ -6756,7 +6908,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "567",
+        "line": "573",
         "pattern": "login_required"
       },
       {
@@ -6764,7 +6916,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "597",
+        "line": "603",
         "pattern": "login_required"
       },
       {
@@ -6772,7 +6924,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "702",
+        "line": "708",
         "pattern": "login_required"
       },
       {
@@ -6780,7 +6932,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "733",
+        "line": "739",
         "pattern": "login_required"
       },
       {
@@ -6788,7 +6940,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "763",
+        "line": "769",
         "pattern": "login_required"
       },
       {
@@ -6796,7 +6948,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "805",
+        "line": "811",
         "pattern": "login_required"
       },
       {
@@ -6804,7 +6956,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "829",
+        "line": "835",
         "pattern": "login_required"
       },
       {
@@ -6812,7 +6964,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "859",
+        "line": "865",
         "pattern": "login_required"
       },
       {
@@ -6820,7 +6972,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "889",
+        "line": "895",
         "pattern": "login_required"
       },
       {
@@ -6828,7 +6980,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "952",
+        "line": "958",
         "pattern": "login_required"
       },
       {
@@ -6836,7 +6988,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "988",
+        "line": "994",
         "pattern": "login_required"
       },
       {
@@ -6844,7 +6996,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "1003",
+        "line": "1009",
         "pattern": "login_required"
       },
       {
@@ -6852,7 +7004,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "1100",
+        "line": "1106",
         "pattern": "login_required"
       },
       {
@@ -6860,7 +7012,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "1130",
+        "line": "1136",
         "pattern": "login_required"
       },
       {
@@ -6868,7 +7020,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "1311",
+        "line": "1317",
         "pattern": "login_required"
       },
       {
@@ -6876,7 +7028,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2167",
+        "line": "2181",
         "pattern": "login_required"
       },
       {
@@ -6884,7 +7036,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2227",
+        "line": "2241",
         "pattern": "login_required"
       },
       {
@@ -6892,7 +7044,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2353",
+        "line": "2367",
         "pattern": "login_required"
       },
       {
@@ -6900,15 +7052,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2390",
-        "pattern": "login_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/studio_os/views.py",
-        "governance_tier": "safe",
-        "line": "2413",
+        "line": "2404",
         "pattern": "login_required"
       },
       {
@@ -6924,7 +7068,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2443",
+        "line": "2441",
         "pattern": "login_required"
       },
       {
@@ -6932,7 +7076,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2472",
+        "line": "2457",
         "pattern": "login_required"
       },
       {
@@ -6940,7 +7084,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2509",
+        "line": "2486",
         "pattern": "login_required"
       },
       {
@@ -6948,7 +7092,15 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2545",
+        "line": "2523",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/studio_os/views.py",
+        "governance_tier": "safe",
+        "line": "2559",
         "pattern": "login_required"
       },
       {
@@ -6964,7 +7116,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "125",
+        "line": "124",
         "pattern": "login_required"
       },
       {
@@ -6972,7 +7124,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "154",
+        "line": "153",
         "pattern": "login_required"
       },
       {
@@ -6980,7 +7132,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "578",
+        "line": "585",
         "pattern": "login_required"
       },
       {
@@ -6988,7 +7140,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "583",
+        "line": "590",
         "pattern": "login_required"
       },
       {
@@ -6996,7 +7148,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "588",
+        "line": "595",
         "pattern": "login_required"
       },
       {
@@ -7004,7 +7156,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "593",
+        "line": "600",
         "pattern": "login_required"
       },
       {
@@ -7012,7 +7164,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "598",
+        "line": "605",
         "pattern": "login_required"
       },
       {
@@ -7020,7 +7172,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "603",
+        "line": "610",
         "pattern": "login_required"
       },
       {
@@ -7028,7 +7180,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "608",
+        "line": "615",
         "pattern": "login_required"
       },
       {
@@ -7036,7 +7188,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "613",
+        "line": "620",
         "pattern": "login_required"
       },
       {
@@ -7044,7 +7196,7 @@
         "classification": "allowed",
         "file": "config/tenant_urls.py",
         "governance_tier": "safe",
-        "line": "618",
+        "line": "625",
         "pattern": "login_required"
       },
       {
@@ -7052,7 +7204,7 @@
         "classification": "allowed",
         "file": "config/urls.py",
         "governance_tier": "safe",
-        "line": "227",
+        "line": "267",
         "pattern": "login_required"
       },
       {
@@ -7060,7 +7212,7 @@
         "classification": "allowed",
         "file": "config/urls.py",
         "governance_tier": "safe",
-        "line": "255",
+        "line": "295",
         "pattern": "login_required"
       },
       {
@@ -7141,6 +7293,38 @@
         "file": "scripts/audit_security_surface.py",
         "governance_tier": "safe",
         "line": "41",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "allowed",
+        "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "31",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "allowed",
+        "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "170",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "scripts/tests/test_scan_granular_rbac_adoption.py",
+        "governance_tier": "safe",
+        "line": "69",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "142",
         "pattern": "login_required"
       },
       {
@@ -7318,7 +7502,7 @@
         "classification": "allowed",
         "file": "apps/api/offline_device_api.py",
         "governance_tier": "safe",
-        "line": "44",
+        "line": "48",
         "pattern": "permission_classes"
       },
       {
@@ -7694,7 +7878,7 @@
         "classification": "allowed",
         "file": "config/urls.py",
         "governance_tier": "safe",
-        "line": "251",
+        "line": "291",
         "pattern": "permission_classes"
       },
       {
@@ -7702,7 +7886,7 @@
         "classification": "allowed",
         "file": "config/urls.py",
         "governance_tier": "safe",
-        "line": "419",
+        "line": "460",
         "pattern": "permission_classes"
       },
       {
@@ -7710,7 +7894,7 @@
         "classification": "allowed",
         "file": "config/urls.py",
         "governance_tier": "safe",
-        "line": "426",
+        "line": "467",
         "pattern": "permission_classes"
       },
       {
@@ -7718,7 +7902,7 @@
         "classification": "allowed",
         "file": "config/urls.py",
         "governance_tier": "safe",
-        "line": "438",
+        "line": "479",
         "pattern": "permission_classes"
       },
       {
@@ -7726,7 +7910,7 @@
         "classification": "allowed",
         "file": "config/urls.py",
         "governance_tier": "safe",
-        "line": "447",
+        "line": "488",
         "pattern": "permission_classes"
       },
       {
@@ -7888,7 +8072,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_impersonation.py",
         "governance_tier": "safe",
-        "line": "83",
+        "line": "88",
         "pattern": "require_http_methods"
       },
       {
@@ -7936,7 +8120,15 @@
         "classification": "allowed",
         "file": "apps/accounts/views_onboarding.py",
         "governance_tier": "safe",
-        "line": "44",
+        "line": "46",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_onboarding.py",
+        "governance_tier": "safe",
+        "line": "105",
         "pattern": "require_http_methods"
       },
       {
@@ -8054,9 +8246,9 @@
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/accounts/views_tenant_identity.py",
+        "file": "apps/accounts/views_step_up.py",
         "governance_tier": "safe",
-        "line": "248",
+        "line": "54",
         "pattern": "require_http_methods"
       },
       {
@@ -8064,7 +8256,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "321",
+        "line": "278",
         "pattern": "require_http_methods"
       },
       {
@@ -8072,7 +8264,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "398",
+        "line": "352",
         "pattern": "require_http_methods"
       },
       {
@@ -8080,7 +8272,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "441",
+        "line": "429",
         "pattern": "require_http_methods"
       },
       {
@@ -8088,7 +8280,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "465",
+        "line": "472",
         "pattern": "require_http_methods"
       },
       {
@@ -8096,7 +8288,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "499",
+        "line": "496",
         "pattern": "require_http_methods"
       },
       {
@@ -8104,7 +8296,7 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "547",
+        "line": "530",
         "pattern": "require_http_methods"
       },
       {
@@ -8112,7 +8304,31 @@
         "classification": "allowed",
         "file": "apps/accounts/views_tenant_identity.py",
         "governance_tier": "safe",
-        "line": "610",
+        "line": "578",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_tenant_identity.py",
+        "governance_tier": "safe",
+        "line": "643",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_tenant_identity.py",
+        "governance_tier": "safe",
+        "line": "698",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/views_tenant_identity.py",
+        "governance_tier": "safe",
+        "line": "720",
         "pattern": "require_http_methods"
       },
       {
@@ -8152,7 +8368,7 @@
         "classification": "allowed",
         "file": "apps/analytics/views.py",
         "governance_tier": "safe",
-        "line": "833",
+        "line": "848",
         "pattern": "require_http_methods"
       },
       {
@@ -8232,7 +8448,7 @@
         "classification": "allowed",
         "file": "apps/api/oidc_rp.py",
         "governance_tier": "safe",
-        "line": "490",
+        "line": "532",
         "pattern": "require_http_methods"
       },
       {
@@ -8240,7 +8456,7 @@
         "classification": "allowed",
         "file": "apps/api/oidc_rp.py",
         "governance_tier": "safe",
-        "line": "552",
+        "line": "594",
         "pattern": "require_http_methods"
       },
       {
@@ -8248,7 +8464,7 @@
         "classification": "allowed",
         "file": "apps/api/oidc_rp.py",
         "governance_tier": "safe",
-        "line": "583",
+        "line": "625",
         "pattern": "require_http_methods"
       },
       {
@@ -9208,7 +9424,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/power_views.py",
         "governance_tier": "safe",
-        "line": "216",
+        "line": "217",
         "pattern": "require_http_methods"
       },
       {
@@ -9576,7 +9792,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_queue.py",
         "governance_tier": "safe",
-        "line": "93",
+        "line": "103",
         "pattern": "require_http_methods"
       },
       {
@@ -9584,7 +9800,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_queue.py",
         "governance_tier": "safe",
-        "line": "107",
+        "line": "117",
         "pattern": "require_http_methods"
       },
       {
@@ -9592,7 +9808,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_queue.py",
         "governance_tier": "safe",
-        "line": "122",
+        "line": "132",
         "pattern": "require_http_methods"
       },
       {
@@ -9600,7 +9816,7 @@
         "classification": "allowed",
         "file": "apps/compliance/views_queue.py",
         "governance_tier": "safe",
-        "line": "144",
+        "line": "154",
         "pattern": "require_http_methods"
       },
       {
@@ -9784,7 +10000,7 @@
         "classification": "allowed",
         "file": "apps/finance/views_marketplace_integration_credentials.py",
         "governance_tier": "safe",
-        "line": "25",
+        "line": "27",
         "pattern": "require_http_methods"
       },
       {
@@ -10144,7 +10360,7 @@
         "classification": "allowed",
         "file": "apps/observability/views.py",
         "governance_tier": "safe",
-        "line": "528",
+        "line": "530",
         "pattern": "require_http_methods"
       },
       {
@@ -10152,7 +10368,7 @@
         "classification": "allowed",
         "file": "apps/observability/views.py",
         "governance_tier": "safe",
-        "line": "757",
+        "line": "759",
         "pattern": "require_http_methods"
       },
       {
@@ -10160,7 +10376,7 @@
         "classification": "allowed",
         "file": "apps/observability/views.py",
         "governance_tier": "safe",
-        "line": "839",
+        "line": "841",
         "pattern": "require_http_methods"
       },
       {
@@ -10168,7 +10384,15 @@
         "classification": "allowed",
         "file": "apps/observability/views.py",
         "governance_tier": "safe",
-        "line": "1285",
+        "line": "1306",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/observability/views.py",
+        "governance_tier": "safe",
+        "line": "1427",
         "pattern": "require_http_methods"
       },
       {
@@ -10206,6 +10430,14 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "apps/orchestration/views.py",
+        "governance_tier": "safe",
+        "line": "78",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "apps/people/employer_views.py",
         "governance_tier": "safe",
         "line": "40",
@@ -10238,6 +10470,22 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "apps/people/views_transfer_consent.py",
+        "governance_tier": "safe",
+        "line": "55",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/people/views_transfer_consent.py",
+        "governance_tier": "safe",
+        "line": "75",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "apps/platform_runtime/views_click_tracking.py",
         "governance_tier": "safe",
         "line": "33",
@@ -10248,7 +10496,7 @@
         "classification": "allowed",
         "file": "apps/platform_runtime/views_health_autopilot.py",
         "governance_tier": "safe",
-        "line": "260",
+        "line": "261",
         "pattern": "require_http_methods"
       },
       {
@@ -10304,7 +10552,7 @@
         "classification": "allowed",
         "file": "apps/platform_runtime/views_platform_health.py",
         "governance_tier": "safe",
-        "line": "119",
+        "line": "120",
         "pattern": "require_http_methods"
       },
       {
@@ -10392,7 +10640,7 @@
         "classification": "allowed",
         "file": "apps/platform_runtime/views_workflow_flight_deck.py",
         "governance_tier": "safe",
-        "line": "236",
+        "line": "237",
         "pattern": "require_http_methods"
       },
       {
@@ -10854,6 +11102,30 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "apps/portal/views_device_governance.py",
+        "governance_tier": "safe",
+        "line": "54",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_device_governance.py",
+        "governance_tier": "safe",
+        "line": "120",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_device_governance.py",
+        "governance_tier": "safe",
+        "line": "157",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "apps/portal/views_documents.py",
         "governance_tier": "safe",
         "line": "194",
@@ -11150,6 +11422,38 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "apps/portal/views_merge.py",
+        "governance_tier": "safe",
+        "line": "104",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_merge.py",
+        "governance_tier": "safe",
+        "line": "133",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_merge.py",
+        "governance_tier": "safe",
+        "line": "182",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_merge.py",
+        "governance_tier": "safe",
+        "line": "200",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "apps/portal/views_mfa_policy.py",
         "governance_tier": "safe",
         "line": "143",
@@ -11286,6 +11590,62 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "110",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "152",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "226",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "249",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "267",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "302",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "321",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "apps/portal/views_student.py",
         "governance_tier": "safe",
         "line": "364",
@@ -11313,6 +11673,14 @@
         "file": "apps/portal/views_support_quick.py",
         "governance_tier": "safe",
         "line": "70",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_sync_health.py",
+        "governance_tier": "safe",
+        "line": "24",
         "pattern": "require_http_methods"
       },
       {
@@ -11352,7 +11720,47 @@
         "classification": "allowed",
         "file": "apps/portal/views_tenant_binding.py",
         "governance_tier": "safe",
-        "line": "71",
+        "line": "72",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "78",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "99",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "134",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "213",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "257",
         "pattern": "require_http_methods"
       },
       {
@@ -11440,7 +11848,7 @@
         "classification": "allowed",
         "file": "apps/reports/views.py",
         "governance_tier": "safe",
-        "line": "455",
+        "line": "490",
         "pattern": "require_http_methods"
       },
       {
@@ -12664,7 +13072,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views.py",
         "governance_tier": "safe",
-        "line": "1371",
+        "line": "1397",
         "pattern": "require_http_methods"
       },
       {
@@ -12720,7 +13128,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_console_ai_rag.py",
         "governance_tier": "safe",
-        "line": "81",
+        "line": "82",
         "pattern": "require_http_methods"
       },
       {
@@ -12736,7 +13144,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_dashboard_config.py",
         "governance_tier": "safe",
-        "line": "42",
+        "line": "116",
         "pattern": "require_http_methods"
       },
       {
@@ -12744,7 +13152,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_dashboard_config.py",
         "governance_tier": "safe",
-        "line": "89",
+        "line": "163",
         "pattern": "require_http_methods"
       },
       {
@@ -12752,7 +13160,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_dashboard_config.py",
         "governance_tier": "safe",
-        "line": "182",
+        "line": "256",
         "pattern": "require_http_methods"
       },
       {
@@ -12760,7 +13168,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_dashboard_config.py",
         "governance_tier": "safe",
-        "line": "276",
+        "line": "385",
         "pattern": "require_http_methods"
       },
       {
@@ -12808,7 +13216,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_feature_control.py",
         "governance_tier": "safe",
-        "line": "1297",
+        "line": "1345",
         "pattern": "require_http_methods"
       },
       {
@@ -12816,7 +13224,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_feature_control.py",
         "governance_tier": "safe",
-        "line": "1624",
+        "line": "1705",
         "pattern": "require_http_methods"
       },
       {
@@ -12824,7 +13232,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_feature_control.py",
         "governance_tier": "safe",
-        "line": "1657",
+        "line": "1738",
         "pattern": "require_http_methods"
       },
       {
@@ -12832,7 +13240,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_feature_control.py",
         "governance_tier": "safe",
-        "line": "1688",
+        "line": "1769",
         "pattern": "require_http_methods"
       },
       {
@@ -12840,7 +13248,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_feature_control.py",
         "governance_tier": "safe",
-        "line": "1729",
+        "line": "1810",
         "pattern": "require_http_methods"
       },
       {
@@ -12928,7 +13336,7 @@
         "classification": "allowed",
         "file": "apps/siteconfig/views_package_rollback.py",
         "governance_tier": "safe",
-        "line": "34",
+        "line": "33",
         "pattern": "require_http_methods"
       },
       {
@@ -13176,7 +13584,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "216",
+        "line": "221",
         "pattern": "require_http_methods"
       },
       {
@@ -13184,7 +13592,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "228",
+        "line": "233",
         "pattern": "require_http_methods"
       },
       {
@@ -13192,7 +13600,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "329",
+        "line": "335",
         "pattern": "require_http_methods"
       },
       {
@@ -13200,7 +13608,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "356",
+        "line": "362",
         "pattern": "require_http_methods"
       },
       {
@@ -13208,7 +13616,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "382",
+        "line": "388",
         "pattern": "require_http_methods"
       },
       {
@@ -13216,7 +13624,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "406",
+        "line": "412",
         "pattern": "require_http_methods"
       },
       {
@@ -13224,7 +13632,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "434",
+        "line": "440",
         "pattern": "require_http_methods"
       },
       {
@@ -13232,7 +13640,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "464",
+        "line": "470",
         "pattern": "require_http_methods"
       },
       {
@@ -13240,7 +13648,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "494",
+        "line": "500",
         "pattern": "require_http_methods"
       },
       {
@@ -13248,7 +13656,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "530",
+        "line": "536",
         "pattern": "require_http_methods"
       },
       {
@@ -13256,7 +13664,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "566",
+        "line": "572",
         "pattern": "require_http_methods"
       },
       {
@@ -13264,7 +13672,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "596",
+        "line": "602",
         "pattern": "require_http_methods"
       },
       {
@@ -13272,7 +13680,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "701",
+        "line": "707",
         "pattern": "require_http_methods"
       },
       {
@@ -13280,7 +13688,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "732",
+        "line": "738",
         "pattern": "require_http_methods"
       },
       {
@@ -13288,7 +13696,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "762",
+        "line": "768",
         "pattern": "require_http_methods"
       },
       {
@@ -13296,7 +13704,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "804",
+        "line": "810",
         "pattern": "require_http_methods"
       },
       {
@@ -13304,7 +13712,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "828",
+        "line": "834",
         "pattern": "require_http_methods"
       },
       {
@@ -13312,7 +13720,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "858",
+        "line": "864",
         "pattern": "require_http_methods"
       },
       {
@@ -13320,7 +13728,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "888",
+        "line": "894",
         "pattern": "require_http_methods"
       },
       {
@@ -13328,7 +13736,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "951",
+        "line": "957",
         "pattern": "require_http_methods"
       },
       {
@@ -13336,7 +13744,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "987",
+        "line": "993",
         "pattern": "require_http_methods"
       },
       {
@@ -13344,7 +13752,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "1002",
+        "line": "1008",
         "pattern": "require_http_methods"
       },
       {
@@ -13352,7 +13760,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "1099",
+        "line": "1105",
         "pattern": "require_http_methods"
       },
       {
@@ -13360,7 +13768,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "1129",
+        "line": "1135",
         "pattern": "require_http_methods"
       },
       {
@@ -13368,7 +13776,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "1310",
+        "line": "1316",
         "pattern": "require_http_methods"
       },
       {
@@ -13376,7 +13784,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2166",
+        "line": "2180",
         "pattern": "require_http_methods"
       },
       {
@@ -13384,7 +13792,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2226",
+        "line": "2240",
         "pattern": "require_http_methods"
       },
       {
@@ -13392,7 +13800,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2352",
+        "line": "2366",
         "pattern": "require_http_methods"
       },
       {
@@ -13400,15 +13808,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2389",
-        "pattern": "require_http_methods"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/studio_os/views.py",
-        "governance_tier": "safe",
-        "line": "2412",
+        "line": "2403",
         "pattern": "require_http_methods"
       },
       {
@@ -13424,7 +13824,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2442",
+        "line": "2440",
         "pattern": "require_http_methods"
       },
       {
@@ -13432,7 +13832,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2471",
+        "line": "2456",
         "pattern": "require_http_methods"
       },
       {
@@ -13440,7 +13840,7 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2508",
+        "line": "2485",
         "pattern": "require_http_methods"
       },
       {
@@ -13448,7 +13848,15 @@
         "classification": "allowed",
         "file": "apps/studio_os/views.py",
         "governance_tier": "safe",
-        "line": "2544",
+        "line": "2522",
+        "pattern": "require_http_methods"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/studio_os/views.py",
+        "governance_tier": "safe",
+        "line": "2558",
         "pattern": "require_http_methods"
       },
       {
@@ -13592,25 +14000,41 @@
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/analytics/views.py",
+        "file": "apps/accounts/decorators.py",
         "governance_tier": "safe",
-        "line": "97",
+        "line": "135",
         "pattern": "staff_member_required"
       },
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/analytics/views.py",
+        "file": "apps/accounts/decorators.py",
         "governance_tier": "safe",
-        "line": "492",
+        "line": "189",
         "pattern": "staff_member_required"
       },
       {
-        "bucket": "product",
+        "bucket": "tests",
         "classification": "allowed",
-        "file": "apps/analytics/views.py",
+        "file": "apps/accounts/tests/test_tenant_admin_gate.py",
         "governance_tier": "safe",
-        "line": "633",
+        "line": "1",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/accounts/tests/test_tenant_admin_gate.py",
+        "governance_tier": "safe",
+        "line": "5",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/accounts/tests/test_tenant_admin_gate.py",
+        "governance_tier": "safe",
+        "line": "47",
         "pattern": "staff_member_required"
       },
       {
@@ -13618,23 +14042,7 @@
         "classification": "allowed",
         "file": "apps/assist_dock/power_views.py",
         "governance_tier": "safe",
-        "line": "113",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/assist_dock/power_views.py",
-        "governance_tier": "safe",
-        "line": "138",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/assist_dock/power_views.py",
-        "governance_tier": "safe",
-        "line": "331",
+        "line": "332",
         "pattern": "staff_member_required"
       },
       {
@@ -13643,334 +14051,6 @@
         "file": "apps/assist_dock/tests/test_views.py",
         "governance_tier": "safe",
         "line": "46",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/assist_dock/views.py",
-        "governance_tier": "safe",
-        "line": "57",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "2371",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "2481",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "2564",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "2870",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "2911",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "2930",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "2957",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "2986",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "3119",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "3167",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "3218",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "3293",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "3400",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "3427",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/evals/views.py",
-        "governance_tier": "safe",
-        "line": "3488",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_access.py",
-        "governance_tier": "safe",
-        "line": "327",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_accounting.py",
-        "governance_tier": "safe",
-        "line": "35",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_accounting.py",
-        "governance_tier": "safe",
-        "line": "132",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_accounting.py",
-        "governance_tier": "safe",
-        "line": "161",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_dashboard.py",
-        "governance_tier": "safe",
-        "line": "21",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_global_payment_command_center.py",
-        "governance_tier": "safe",
-        "line": "18",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_invoicing.py",
-        "governance_tier": "safe",
-        "line": "276",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_invoicing.py",
-        "governance_tier": "safe",
-        "line": "326",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_invoicing.py",
-        "governance_tier": "safe",
-        "line": "826",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_marketplace_integration_credentials.py",
-        "governance_tier": "safe",
-        "line": "24",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_offline_bursar_queue.py",
-        "governance_tier": "safe",
-        "line": "40",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_offline_bursar_queue.py",
-        "governance_tier": "safe",
-        "line": "60",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_offline_bursar_queue.py",
-        "governance_tier": "safe",
-        "line": "94",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_offline_bursar_queue.py",
-        "governance_tier": "safe",
-        "line": "153",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_payment_readiness_dashboard.py",
-        "governance_tier": "safe",
-        "line": "81",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_payment_setup.py",
-        "governance_tier": "safe",
-        "line": "17",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_payments.py",
-        "governance_tier": "safe",
-        "line": "78",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_payments.py",
-        "governance_tier": "safe",
-        "line": "199",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_payments.py",
-        "governance_tier": "safe",
-        "line": "291",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_payments.py",
-        "governance_tier": "safe",
-        "line": "416",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_reports.py",
-        "governance_tier": "safe",
-        "line": "37",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_reports.py",
-        "governance_tier": "safe",
-        "line": "106",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_requests.py",
-        "governance_tier": "safe",
-        "line": "30",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_requests.py",
-        "governance_tier": "safe",
-        "line": "63",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/finance/views_workforce_hub.py",
-        "governance_tier": "safe",
-        "line": "22",
         "pattern": "staff_member_required"
       },
       {
@@ -14042,7 +14122,7 @@
         "classification": "allowed",
         "file": "apps/orchestration/views.py",
         "governance_tier": "safe",
-        "line": "17",
+        "line": "32",
         "pattern": "staff_member_required"
       },
       {
@@ -14050,47 +14130,23 @@
         "classification": "allowed",
         "file": "apps/orchestration/views.py",
         "governance_tier": "safe",
-        "line": "45",
+        "line": "77",
         "pattern": "staff_member_required"
       },
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/payroll/views.py",
+        "file": "apps/orchestration/views.py",
         "governance_tier": "safe",
-        "line": "30",
+        "line": "121",
         "pattern": "staff_member_required"
       },
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/payroll/views.py",
+        "file": "apps/orchestration/views.py",
         "governance_tier": "safe",
-        "line": "231",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/payroll/views.py",
-        "governance_tier": "safe",
-        "line": "258",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/payroll/views.py",
-        "governance_tier": "safe",
-        "line": "280",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/payroll/views.py",
-        "governance_tier": "safe",
-        "line": "343",
+        "line": "142",
         "pattern": "staff_member_required"
       },
       {
@@ -14136,38 +14192,6 @@
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/platform_runtime/views_health_autopilot.py",
-        "governance_tier": "safe",
-        "line": "94",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/platform_runtime/views_health_autopilot.py",
-        "governance_tier": "safe",
-        "line": "259",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/platform_runtime/views_platform_health.py",
-        "governance_tier": "safe",
-        "line": "54",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/platform_runtime/views_workflow_flight_deck.py",
-        "governance_tier": "safe",
-        "line": "79",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
         "file": "apps/portal/views_ai_line_admin.py",
         "governance_tier": "safe",
         "line": "183",
@@ -14176,17 +14200,25 @@
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/portal/views_contact_requests.py",
+        "file": "apps/portal/views_device_governance.py",
         "governance_tier": "safe",
-        "line": "108",
+        "line": "53",
         "pattern": "staff_member_required"
       },
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/portal/views_contact_requests.py",
+        "file": "apps/portal/views_device_governance.py",
         "governance_tier": "safe",
-        "line": "141",
+        "line": "118",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_device_governance.py",
+        "governance_tier": "safe",
+        "line": "155",
         "pattern": "staff_member_required"
       },
       {
@@ -14288,6 +14320,38 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "apps/portal/views_merge.py",
+        "governance_tier": "safe",
+        "line": "103",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_merge.py",
+        "governance_tier": "safe",
+        "line": "131",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_merge.py",
+        "governance_tier": "safe",
+        "line": "180",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_merge.py",
+        "governance_tier": "safe",
+        "line": "198",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "apps/portal/views_multicampus_academics.py",
         "governance_tier": "safe",
         "line": "118",
@@ -14312,6 +14376,70 @@
       {
         "bucket": "product",
         "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "109",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "150",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "224",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "247",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "265",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "300",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_school_batches.py",
+        "governance_tier": "safe",
+        "line": "319",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_sync_health.py",
+        "governance_tier": "safe",
+        "line": "23",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
         "file": "apps/portal/views_tenant_binding.py",
         "governance_tier": "safe",
         "line": "25",
@@ -14322,7 +14450,47 @@
         "classification": "allowed",
         "file": "apps/portal/views_tenant_binding.py",
         "governance_tier": "safe",
-        "line": "69",
+        "line": "70",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "77",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "97",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "132",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "211",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/portal/views_transfers.py",
+        "governance_tier": "safe",
+        "line": "255",
         "pattern": "staff_member_required"
       },
       {
@@ -14392,30 +14560,6 @@
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/reports/views.py",
-        "governance_tier": "safe",
-        "line": "780",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/reports/views.py",
-        "governance_tier": "safe",
-        "line": "1051",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/reports/views.py",
-        "governance_tier": "safe",
-        "line": "1194",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
         "file": "apps/schools/marketing_views.py",
         "governance_tier": "safe",
         "line": "3155",
@@ -14426,7 +14570,23 @@
         "classification": "allowed",
         "file": "apps/schools/middleware.py",
         "governance_tier": "safe",
-        "line": "1578",
+        "line": "1649",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_super_segment_tenant_guard.py",
+        "governance_tier": "safe",
+        "line": "4",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "apps/schools/tests/test_super_segment_tenant_guard.py",
+        "governance_tier": "safe",
+        "line": "68",
         "pattern": "staff_member_required"
       },
       {
@@ -14472,65 +14632,9 @@
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/siteconfig/views.py",
-        "governance_tier": "safe",
-        "line": "277",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/siteconfig/views.py",
-        "governance_tier": "safe",
-        "line": "351",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/siteconfig/views.py",
-        "governance_tier": "safe",
-        "line": "2313",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/siteconfig/views.py",
-        "governance_tier": "safe",
-        "line": "2325",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/siteconfig/views.py",
-        "governance_tier": "safe",
-        "line": "2862",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
         "file": "apps/siteconfig/views_cockpit_live.py",
         "governance_tier": "safe",
         "line": "18",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/siteconfig/views_console_ai_rag.py",
-        "governance_tier": "safe",
-        "line": "83",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/siteconfig/views_console_domains.py",
-        "governance_tier": "safe",
-        "line": "355",
         "pattern": "staff_member_required"
       },
       {
@@ -14547,14 +14651,6 @@
         "file": "apps/siteconfig/views_globe_api.py",
         "governance_tier": "safe",
         "line": "132",
-        "pattern": "staff_member_required"
-      },
-      {
-        "bucket": "product",
-        "classification": "allowed",
-        "file": "apps/siteconfig/views_mascot_storybook.py",
-        "governance_tier": "safe",
-        "line": "12",
         "pattern": "staff_member_required"
       },
       {
@@ -14611,6 +14707,102 @@
         "file": "scripts/audit_security_surface.py",
         "governance_tier": "safe",
         "line": "42",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "allowed",
+        "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "11",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "allowed",
+        "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "14",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "allowed",
+        "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "389",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "allowed",
+        "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "417",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "51",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "73",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "117",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "126",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "135",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "149",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "tests",
+        "classification": "allowed",
+        "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+        "governance_tier": "safe",
+        "line": "150",
+        "pattern": "staff_member_required"
+      },
+      {
+        "bucket": "scripts",
+        "classification": "allowed",
+        "file": "scripts/verify_ci_gate_wiring.py",
+        "governance_tier": "safe",
+        "line": "98",
         "pattern": "staff_member_required"
       },
       {
@@ -16452,7 +16644,7 @@
         "classification": "needs_review",
         "file": "scripts/check_documented_baselines.py",
         "governance_tier": "controlled",
-        "line": "214",
+        "line": "217",
         "pattern": "subprocess"
       },
       {
@@ -16460,7 +16652,7 @@
         "classification": "needs_review",
         "file": "scripts/check_documented_baselines.py",
         "governance_tier": "controlled",
-        "line": "222",
+        "line": "225",
         "pattern": "subprocess"
       },
       {
@@ -16852,7 +17044,7 @@
         "classification": "needs_review",
         "file": "scripts/generate_tenant_isolation_penetration_report.py",
         "governance_tier": "controlled",
-        "line": "83",
+        "line": "114",
         "pattern": "subprocess"
       },
       {
@@ -19545,7 +19737,7 @@
       }
     ]
   },
-  "generated_at": "2026-06-28T04:49:12.424920+00:00",
+  "generated_at": "2026-07-09T12:22:46.384257+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/br_northstar_views.py",
@@ -19590,25 +19782,25 @@
     "allow_any": 40,
     "csrf_exempt": 98,
     "cursor_execute": 2,
-    "login_required": 754,
+    "login_required": 777,
     "permission_classes": 72,
-    "require_http_methods": 731,
-    "staff_member_required": 129,
+    "require_http_methods": 759,
+    "staff_member_required": 102,
     "subprocess": 615
   },
   "summary_by_classification": {
-    "allowed": 1949,
+    "allowed": 1973,
     "needs_review": 478,
     "unsafe": 14
   },
   "summary_by_governance_tier": {
     "controlled": 422,
     "needs_review": 57,
-    "safe": 1949,
+    "safe": 1973,
     "violation": 13
   },
   "totals": {
-    "hits": 2441
+    "hits": 2465
   },
   "unified": [
     {
@@ -20616,7 +20808,7 @@
       "classification": "unsafe",
       "file": "apps/siteconfig/views_tenant_studio_hub.py",
       "governance_tier": "violation",
-      "line": "312",
+      "line": "321",
       "pattern": "csrf_exempt"
     },
     {
@@ -20814,6 +21006,22 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "apps/accounts/iam_pdp_guards.py",
+      "governance_tier": "safe",
+      "line": "10",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/urls.py",
+      "governance_tier": "safe",
+      "line": "249",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "apps/accounts/views.py",
       "governance_tier": "safe",
       "line": "334",
@@ -20960,7 +21168,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views.py",
       "governance_tier": "safe",
-      "line": "1912",
+      "line": "1911",
       "pattern": "login_required"
     },
     {
@@ -21160,7 +21368,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_impersonation.py",
       "governance_tier": "safe",
-      "line": "57",
+      "line": "58",
       "pattern": "login_required"
     },
     {
@@ -21168,7 +21376,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_impersonation.py",
       "governance_tier": "safe",
-      "line": "84",
+      "line": "89",
       "pattern": "login_required"
     },
     {
@@ -21200,7 +21408,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_onboarding.py",
       "governance_tier": "safe",
-      "line": "18",
+      "line": "20",
       "pattern": "login_required"
     },
     {
@@ -21208,7 +21416,103 @@
       "classification": "allowed",
       "file": "apps/accounts/views_onboarding.py",
       "governance_tier": "safe",
-      "line": "43",
+      "line": "45",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_onboarding.py",
+      "governance_tier": "safe",
+      "line": "104",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console.py",
+      "governance_tier": "safe",
+      "line": "145",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console.py",
+      "governance_tier": "safe",
+      "line": "229",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console.py",
+      "governance_tier": "safe",
+      "line": "241",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console.py",
+      "governance_tier": "safe",
+      "line": "254",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console.py",
+      "governance_tier": "safe",
+      "line": "267",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console.py",
+      "governance_tier": "safe",
+      "line": "279",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console_context_profile.py",
+      "governance_tier": "safe",
+      "line": "102",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console_people.py",
+      "governance_tier": "safe",
+      "line": "89",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console_roles.py",
+      "governance_tier": "safe",
+      "line": "93",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console_support.py",
+      "governance_tier": "safe",
+      "line": "72",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_owner_console_workflows.py",
+      "governance_tier": "safe",
+      "line": "146",
       "pattern": "login_required"
     },
     {
@@ -21390,9 +21694,9 @@
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/accounts/views_tenant_identity.py",
+      "file": "apps/accounts/views_step_up.py",
       "governance_tier": "safe",
-      "line": "116",
+      "line": "53",
       "pattern": "login_required"
     },
     {
@@ -21400,7 +21704,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "168",
+      "line": "139",
       "pattern": "login_required"
     },
     {
@@ -21408,7 +21712,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "246",
+      "line": "192",
       "pattern": "login_required"
     },
     {
@@ -21416,7 +21720,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "319",
+      "line": "276",
       "pattern": "login_required"
     },
     {
@@ -21424,7 +21728,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "396",
+      "line": "350",
       "pattern": "login_required"
     },
     {
@@ -21432,7 +21736,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "439",
+      "line": "427",
       "pattern": "login_required"
     },
     {
@@ -21440,7 +21744,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "463",
+      "line": "470",
       "pattern": "login_required"
     },
     {
@@ -21448,7 +21752,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "497",
+      "line": "494",
       "pattern": "login_required"
     },
     {
@@ -21456,7 +21760,31 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "545",
+      "line": "528",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_tenant_identity.py",
+      "governance_tier": "safe",
+      "line": "576",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_tenant_identity.py",
+      "governance_tier": "safe",
+      "line": "641",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_tenant_identity.py",
+      "governance_tier": "safe",
+      "line": "696",
       "pattern": "login_required"
     },
     {
@@ -21552,7 +21880,7 @@
       "classification": "allowed",
       "file": "apps/analytics/views.py",
       "governance_tier": "safe",
-      "line": "703",
+      "line": "716",
       "pattern": "login_required"
     },
     {
@@ -21560,7 +21888,7 @@
       "classification": "allowed",
       "file": "apps/analytics/views.py",
       "governance_tier": "safe",
-      "line": "732",
+      "line": "745",
       "pattern": "login_required"
     },
     {
@@ -21568,7 +21896,7 @@
       "classification": "allowed",
       "file": "apps/analytics/views.py",
       "governance_tier": "safe",
-      "line": "759",
+      "line": "772",
       "pattern": "login_required"
     },
     {
@@ -21576,7 +21904,7 @@
       "classification": "allowed",
       "file": "apps/analytics/views.py",
       "governance_tier": "safe",
-      "line": "832",
+      "line": "847",
       "pattern": "login_required"
     },
     {
@@ -21584,7 +21912,7 @@
       "classification": "allowed",
       "file": "apps/analytics/views.py",
       "governance_tier": "safe",
-      "line": "945",
+      "line": "960",
       "pattern": "login_required"
     },
     {
@@ -21952,7 +22280,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/power_views.py",
       "governance_tier": "safe",
-      "line": "42",
+      "line": "43",
       "pattern": "login_required"
     },
     {
@@ -21960,7 +22288,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/power_views.py",
       "governance_tier": "safe",
-      "line": "75",
+      "line": "76",
       "pattern": "login_required"
     },
     {
@@ -21968,7 +22296,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/power_views.py",
       "governance_tier": "safe",
-      "line": "95",
+      "line": "96",
       "pattern": "login_required"
     },
     {
@@ -21976,7 +22304,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/power_views.py",
       "governance_tier": "safe",
-      "line": "160",
+      "line": "161",
       "pattern": "login_required"
     },
     {
@@ -21984,7 +22312,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/power_views.py",
       "governance_tier": "safe",
-      "line": "185",
+      "line": "186",
       "pattern": "login_required"
     },
     {
@@ -21992,7 +22320,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/power_views.py",
       "governance_tier": "safe",
-      "line": "215",
+      "line": "216",
       "pattern": "login_required"
     },
     {
@@ -22000,7 +22328,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/power_views.py",
       "governance_tier": "safe",
-      "line": "330",
+      "line": "331",
       "pattern": "login_required"
     },
     {
@@ -22024,7 +22352,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/views.py",
       "governance_tier": "safe",
-      "line": "160",
+      "line": "161",
       "pattern": "login_required"
     },
     {
@@ -22536,7 +22864,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_data_quality.py",
       "governance_tier": "safe",
-      "line": "12",
+      "line": "13",
       "pattern": "login_required"
     },
     {
@@ -22544,7 +22872,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_ferpa.py",
       "governance_tier": "safe",
-      "line": "35",
+      "line": "43",
       "pattern": "login_required"
     },
     {
@@ -22568,7 +22896,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_queue.py",
       "governance_tier": "safe",
-      "line": "51",
+      "line": "61",
       "pattern": "login_required"
     },
     {
@@ -22576,7 +22904,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_queue.py",
       "governance_tier": "safe",
-      "line": "91",
+      "line": "101",
       "pattern": "login_required"
     },
     {
@@ -22584,7 +22912,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_queue.py",
       "governance_tier": "safe",
-      "line": "105",
+      "line": "115",
       "pattern": "login_required"
     },
     {
@@ -22592,7 +22920,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_queue.py",
       "governance_tier": "safe",
-      "line": "120",
+      "line": "130",
       "pattern": "login_required"
     },
     {
@@ -22600,7 +22928,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_queue.py",
       "governance_tier": "safe",
-      "line": "142",
+      "line": "152",
       "pattern": "login_required"
     },
     {
@@ -22664,7 +22992,7 @@
       "classification": "allowed",
       "file": "apps/evals/views_drilldown.py",
       "governance_tier": "safe",
-      "line": "44",
+      "line": "54",
       "pattern": "login_required"
     },
     {
@@ -23432,7 +23760,7 @@
       "classification": "allowed",
       "file": "apps/observability/views.py",
       "governance_tier": "safe",
-      "line": "840",
+      "line": "842",
       "pattern": "login_required"
     },
     {
@@ -23440,7 +23768,7 @@
       "classification": "allowed",
       "file": "apps/observability/views.py",
       "governance_tier": "safe",
-      "line": "869",
+      "line": "871",
       "pattern": "login_required"
     },
     {
@@ -23448,7 +23776,7 @@
       "classification": "allowed",
       "file": "apps/observability/views.py",
       "governance_tier": "safe",
-      "line": "1618",
+      "line": "1738",
       "pattern": "login_required"
     },
     {
@@ -23456,7 +23784,7 @@
       "classification": "allowed",
       "file": "apps/observability/views.py",
       "governance_tier": "safe",
-      "line": "1628",
+      "line": "1748",
       "pattern": "login_required"
     },
     {
@@ -23664,7 +23992,7 @@
       "classification": "allowed",
       "file": "apps/platform_runtime/views_administration.py",
       "governance_tier": "safe",
-      "line": "441",
+      "line": "443",
       "pattern": "login_required"
     },
     {
@@ -23672,7 +24000,7 @@
       "classification": "allowed",
       "file": "apps/platform_runtime/views_administration.py",
       "governance_tier": "safe",
-      "line": "458",
+      "line": "460",
       "pattern": "login_required"
     },
     {
@@ -23680,7 +24008,7 @@
       "classification": "allowed",
       "file": "apps/platform_runtime/views_administration.py",
       "governance_tier": "safe",
-      "line": "510",
+      "line": "531",
       "pattern": "login_required"
     },
     {
@@ -23688,7 +24016,7 @@
       "classification": "allowed",
       "file": "apps/platform_runtime/views_administration.py",
       "governance_tier": "safe",
-      "line": "563",
+      "line": "584",
       "pattern": "login_required"
     },
     {
@@ -23825,6 +24153,22 @@
       "file": "apps/platform_runtime/views_tenant_lifecycle.py",
       "governance_tier": "safe",
       "line": "17",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/policies/enforcement.py",
+      "governance_tier": "safe",
+      "line": "40",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/policies/tests/test_pdp_promotion_iam_surfaces.py",
+      "governance_tier": "safe",
+      "line": "211",
       "pattern": "login_required"
     },
     {
@@ -24944,7 +25288,7 @@
       "classification": "allowed",
       "file": "apps/reports/views.py",
       "governance_tier": "safe",
-      "line": "1348",
+      "line": "1383",
       "pattern": "login_required"
     },
     {
@@ -25472,7 +25816,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "412",
+      "line": "411",
       "pattern": "login_required"
     },
     {
@@ -25480,7 +25824,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "534",
+      "line": "530",
       "pattern": "login_required"
     },
     {
@@ -25488,7 +25832,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "1351",
+      "line": "1377",
       "pattern": "login_required"
     },
     {
@@ -25496,7 +25840,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "1370",
+      "line": "1396",
       "pattern": "login_required"
     },
     {
@@ -25504,7 +25848,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "1392",
+      "line": "1418",
       "pattern": "login_required"
     },
     {
@@ -25512,7 +25856,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "2738",
+      "line": "2764",
       "pattern": "login_required"
     },
     {
@@ -25520,7 +25864,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "2767",
+      "line": "2793",
       "pattern": "login_required"
     },
     {
@@ -25528,7 +25872,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "2812",
+      "line": "2838",
       "pattern": "login_required"
     },
     {
@@ -25536,7 +25880,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "2861",
+      "line": "2887",
       "pattern": "login_required"
     },
     {
@@ -25672,7 +26016,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_dashboard_config.py",
       "governance_tier": "safe",
-      "line": "43",
+      "line": "117",
       "pattern": "login_required"
     },
     {
@@ -25680,7 +26024,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_dashboard_config.py",
       "governance_tier": "safe",
-      "line": "90",
+      "line": "164",
       "pattern": "login_required"
     },
     {
@@ -25688,7 +26032,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_dashboard_config.py",
       "governance_tier": "safe",
-      "line": "183",
+      "line": "257",
       "pattern": "login_required"
     },
     {
@@ -25696,7 +26040,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_dashboard_config.py",
       "governance_tier": "safe",
-      "line": "277",
+      "line": "386",
       "pattern": "login_required"
     },
     {
@@ -25840,7 +26184,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_package_rollback.py",
       "governance_tier": "safe",
-      "line": "33",
+      "line": "32",
       "pattern": "login_required"
     },
     {
@@ -26280,7 +26624,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "217",
+      "line": "222",
       "pattern": "login_required"
     },
     {
@@ -26288,7 +26632,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "229",
+      "line": "234",
       "pattern": "login_required"
     },
     {
@@ -26296,7 +26640,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "330",
+      "line": "336",
       "pattern": "login_required"
     },
     {
@@ -26304,7 +26648,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "357",
+      "line": "363",
       "pattern": "login_required"
     },
     {
@@ -26312,7 +26656,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "383",
+      "line": "389",
       "pattern": "login_required"
     },
     {
@@ -26320,7 +26664,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "407",
+      "line": "413",
       "pattern": "login_required"
     },
     {
@@ -26328,7 +26672,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "435",
+      "line": "441",
       "pattern": "login_required"
     },
     {
@@ -26336,7 +26680,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "465",
+      "line": "471",
       "pattern": "login_required"
     },
     {
@@ -26344,7 +26688,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "495",
+      "line": "501",
       "pattern": "login_required"
     },
     {
@@ -26352,7 +26696,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "531",
+      "line": "537",
       "pattern": "login_required"
     },
     {
@@ -26360,7 +26704,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "567",
+      "line": "573",
       "pattern": "login_required"
     },
     {
@@ -26368,7 +26712,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "597",
+      "line": "603",
       "pattern": "login_required"
     },
     {
@@ -26376,7 +26720,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "702",
+      "line": "708",
       "pattern": "login_required"
     },
     {
@@ -26384,7 +26728,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "733",
+      "line": "739",
       "pattern": "login_required"
     },
     {
@@ -26392,7 +26736,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "763",
+      "line": "769",
       "pattern": "login_required"
     },
     {
@@ -26400,7 +26744,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "805",
+      "line": "811",
       "pattern": "login_required"
     },
     {
@@ -26408,7 +26752,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "829",
+      "line": "835",
       "pattern": "login_required"
     },
     {
@@ -26416,7 +26760,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "859",
+      "line": "865",
       "pattern": "login_required"
     },
     {
@@ -26424,7 +26768,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "889",
+      "line": "895",
       "pattern": "login_required"
     },
     {
@@ -26432,7 +26776,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "952",
+      "line": "958",
       "pattern": "login_required"
     },
     {
@@ -26440,7 +26784,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "988",
+      "line": "994",
       "pattern": "login_required"
     },
     {
@@ -26448,7 +26792,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "1003",
+      "line": "1009",
       "pattern": "login_required"
     },
     {
@@ -26456,7 +26800,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "1100",
+      "line": "1106",
       "pattern": "login_required"
     },
     {
@@ -26464,7 +26808,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "1130",
+      "line": "1136",
       "pattern": "login_required"
     },
     {
@@ -26472,7 +26816,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "1311",
+      "line": "1317",
       "pattern": "login_required"
     },
     {
@@ -26480,7 +26824,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2167",
+      "line": "2181",
       "pattern": "login_required"
     },
     {
@@ -26488,7 +26832,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2227",
+      "line": "2241",
       "pattern": "login_required"
     },
     {
@@ -26496,7 +26840,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2353",
+      "line": "2367",
       "pattern": "login_required"
     },
     {
@@ -26504,15 +26848,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2390",
-      "pattern": "login_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/studio_os/views.py",
-      "governance_tier": "safe",
-      "line": "2413",
+      "line": "2404",
       "pattern": "login_required"
     },
     {
@@ -26528,7 +26864,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2443",
+      "line": "2441",
       "pattern": "login_required"
     },
     {
@@ -26536,7 +26872,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2472",
+      "line": "2457",
       "pattern": "login_required"
     },
     {
@@ -26544,7 +26880,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2509",
+      "line": "2486",
       "pattern": "login_required"
     },
     {
@@ -26552,7 +26888,15 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2545",
+      "line": "2523",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/studio_os/views.py",
+      "governance_tier": "safe",
+      "line": "2559",
       "pattern": "login_required"
     },
     {
@@ -26568,7 +26912,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "125",
+      "line": "124",
       "pattern": "login_required"
     },
     {
@@ -26576,7 +26920,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "154",
+      "line": "153",
       "pattern": "login_required"
     },
     {
@@ -26584,7 +26928,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "578",
+      "line": "585",
       "pattern": "login_required"
     },
     {
@@ -26592,7 +26936,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "583",
+      "line": "590",
       "pattern": "login_required"
     },
     {
@@ -26600,7 +26944,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "588",
+      "line": "595",
       "pattern": "login_required"
     },
     {
@@ -26608,7 +26952,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "593",
+      "line": "600",
       "pattern": "login_required"
     },
     {
@@ -26616,7 +26960,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "598",
+      "line": "605",
       "pattern": "login_required"
     },
     {
@@ -26624,7 +26968,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "603",
+      "line": "610",
       "pattern": "login_required"
     },
     {
@@ -26632,7 +26976,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "608",
+      "line": "615",
       "pattern": "login_required"
     },
     {
@@ -26640,7 +26984,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "613",
+      "line": "620",
       "pattern": "login_required"
     },
     {
@@ -26648,7 +26992,7 @@
       "classification": "allowed",
       "file": "config/tenant_urls.py",
       "governance_tier": "safe",
-      "line": "618",
+      "line": "625",
       "pattern": "login_required"
     },
     {
@@ -26656,7 +27000,7 @@
       "classification": "allowed",
       "file": "config/urls.py",
       "governance_tier": "safe",
-      "line": "227",
+      "line": "267",
       "pattern": "login_required"
     },
     {
@@ -26664,7 +27008,7 @@
       "classification": "allowed",
       "file": "config/urls.py",
       "governance_tier": "safe",
-      "line": "255",
+      "line": "295",
       "pattern": "login_required"
     },
     {
@@ -26745,6 +27089,38 @@
       "file": "scripts/audit_security_surface.py",
       "governance_tier": "safe",
       "line": "41",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "allowed",
+      "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "31",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "allowed",
+      "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "170",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "scripts/tests/test_scan_granular_rbac_adoption.py",
+      "governance_tier": "safe",
+      "line": "69",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "142",
       "pattern": "login_required"
     },
     {
@@ -26920,7 +27296,7 @@
       "classification": "allowed",
       "file": "apps/api/offline_device_api.py",
       "governance_tier": "safe",
-      "line": "44",
+      "line": "48",
       "pattern": "permission_classes"
     },
     {
@@ -27296,7 +27672,7 @@
       "classification": "allowed",
       "file": "config/urls.py",
       "governance_tier": "safe",
-      "line": "251",
+      "line": "291",
       "pattern": "permission_classes"
     },
     {
@@ -27304,7 +27680,7 @@
       "classification": "allowed",
       "file": "config/urls.py",
       "governance_tier": "safe",
-      "line": "419",
+      "line": "460",
       "pattern": "permission_classes"
     },
     {
@@ -27312,7 +27688,7 @@
       "classification": "allowed",
       "file": "config/urls.py",
       "governance_tier": "safe",
-      "line": "426",
+      "line": "467",
       "pattern": "permission_classes"
     },
     {
@@ -27320,7 +27696,7 @@
       "classification": "allowed",
       "file": "config/urls.py",
       "governance_tier": "safe",
-      "line": "438",
+      "line": "479",
       "pattern": "permission_classes"
     },
     {
@@ -27328,7 +27704,7 @@
       "classification": "allowed",
       "file": "config/urls.py",
       "governance_tier": "safe",
-      "line": "447",
+      "line": "488",
       "pattern": "permission_classes"
     },
     {
@@ -27488,7 +27864,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_impersonation.py",
       "governance_tier": "safe",
-      "line": "83",
+      "line": "88",
       "pattern": "require_http_methods"
     },
     {
@@ -27536,7 +27912,15 @@
       "classification": "allowed",
       "file": "apps/accounts/views_onboarding.py",
       "governance_tier": "safe",
-      "line": "44",
+      "line": "46",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_onboarding.py",
+      "governance_tier": "safe",
+      "line": "105",
       "pattern": "require_http_methods"
     },
     {
@@ -27654,9 +28038,9 @@
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/accounts/views_tenant_identity.py",
+      "file": "apps/accounts/views_step_up.py",
       "governance_tier": "safe",
-      "line": "248",
+      "line": "54",
       "pattern": "require_http_methods"
     },
     {
@@ -27664,7 +28048,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "321",
+      "line": "278",
       "pattern": "require_http_methods"
     },
     {
@@ -27672,7 +28056,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "398",
+      "line": "352",
       "pattern": "require_http_methods"
     },
     {
@@ -27680,7 +28064,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "441",
+      "line": "429",
       "pattern": "require_http_methods"
     },
     {
@@ -27688,7 +28072,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "465",
+      "line": "472",
       "pattern": "require_http_methods"
     },
     {
@@ -27696,7 +28080,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "499",
+      "line": "496",
       "pattern": "require_http_methods"
     },
     {
@@ -27704,7 +28088,7 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "547",
+      "line": "530",
       "pattern": "require_http_methods"
     },
     {
@@ -27712,7 +28096,31 @@
       "classification": "allowed",
       "file": "apps/accounts/views_tenant_identity.py",
       "governance_tier": "safe",
-      "line": "610",
+      "line": "578",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_tenant_identity.py",
+      "governance_tier": "safe",
+      "line": "643",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_tenant_identity.py",
+      "governance_tier": "safe",
+      "line": "698",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/views_tenant_identity.py",
+      "governance_tier": "safe",
+      "line": "720",
       "pattern": "require_http_methods"
     },
     {
@@ -27752,7 +28160,7 @@
       "classification": "allowed",
       "file": "apps/analytics/views.py",
       "governance_tier": "safe",
-      "line": "833",
+      "line": "848",
       "pattern": "require_http_methods"
     },
     {
@@ -27832,7 +28240,7 @@
       "classification": "allowed",
       "file": "apps/api/oidc_rp.py",
       "governance_tier": "safe",
-      "line": "490",
+      "line": "532",
       "pattern": "require_http_methods"
     },
     {
@@ -27840,7 +28248,7 @@
       "classification": "allowed",
       "file": "apps/api/oidc_rp.py",
       "governance_tier": "safe",
-      "line": "552",
+      "line": "594",
       "pattern": "require_http_methods"
     },
     {
@@ -27848,7 +28256,7 @@
       "classification": "allowed",
       "file": "apps/api/oidc_rp.py",
       "governance_tier": "safe",
-      "line": "583",
+      "line": "625",
       "pattern": "require_http_methods"
     },
     {
@@ -28808,7 +29216,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/power_views.py",
       "governance_tier": "safe",
-      "line": "216",
+      "line": "217",
       "pattern": "require_http_methods"
     },
     {
@@ -29176,7 +29584,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_queue.py",
       "governance_tier": "safe",
-      "line": "93",
+      "line": "103",
       "pattern": "require_http_methods"
     },
     {
@@ -29184,7 +29592,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_queue.py",
       "governance_tier": "safe",
-      "line": "107",
+      "line": "117",
       "pattern": "require_http_methods"
     },
     {
@@ -29192,7 +29600,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_queue.py",
       "governance_tier": "safe",
-      "line": "122",
+      "line": "132",
       "pattern": "require_http_methods"
     },
     {
@@ -29200,7 +29608,7 @@
       "classification": "allowed",
       "file": "apps/compliance/views_queue.py",
       "governance_tier": "safe",
-      "line": "144",
+      "line": "154",
       "pattern": "require_http_methods"
     },
     {
@@ -29384,7 +29792,7 @@
       "classification": "allowed",
       "file": "apps/finance/views_marketplace_integration_credentials.py",
       "governance_tier": "safe",
-      "line": "25",
+      "line": "27",
       "pattern": "require_http_methods"
     },
     {
@@ -29744,7 +30152,7 @@
       "classification": "allowed",
       "file": "apps/observability/views.py",
       "governance_tier": "safe",
-      "line": "528",
+      "line": "530",
       "pattern": "require_http_methods"
     },
     {
@@ -29752,7 +30160,7 @@
       "classification": "allowed",
       "file": "apps/observability/views.py",
       "governance_tier": "safe",
-      "line": "757",
+      "line": "759",
       "pattern": "require_http_methods"
     },
     {
@@ -29760,7 +30168,7 @@
       "classification": "allowed",
       "file": "apps/observability/views.py",
       "governance_tier": "safe",
-      "line": "839",
+      "line": "841",
       "pattern": "require_http_methods"
     },
     {
@@ -29768,7 +30176,15 @@
       "classification": "allowed",
       "file": "apps/observability/views.py",
       "governance_tier": "safe",
-      "line": "1285",
+      "line": "1306",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/observability/views.py",
+      "governance_tier": "safe",
+      "line": "1427",
       "pattern": "require_http_methods"
     },
     {
@@ -29806,6 +30222,14 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "apps/orchestration/views.py",
+      "governance_tier": "safe",
+      "line": "78",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "apps/people/employer_views.py",
       "governance_tier": "safe",
       "line": "40",
@@ -29838,6 +30262,22 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "apps/people/views_transfer_consent.py",
+      "governance_tier": "safe",
+      "line": "55",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/people/views_transfer_consent.py",
+      "governance_tier": "safe",
+      "line": "75",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "apps/platform_runtime/views_click_tracking.py",
       "governance_tier": "safe",
       "line": "33",
@@ -29848,7 +30288,7 @@
       "classification": "allowed",
       "file": "apps/platform_runtime/views_health_autopilot.py",
       "governance_tier": "safe",
-      "line": "260",
+      "line": "261",
       "pattern": "require_http_methods"
     },
     {
@@ -29904,7 +30344,7 @@
       "classification": "allowed",
       "file": "apps/platform_runtime/views_platform_health.py",
       "governance_tier": "safe",
-      "line": "119",
+      "line": "120",
       "pattern": "require_http_methods"
     },
     {
@@ -29992,7 +30432,7 @@
       "classification": "allowed",
       "file": "apps/platform_runtime/views_workflow_flight_deck.py",
       "governance_tier": "safe",
-      "line": "236",
+      "line": "237",
       "pattern": "require_http_methods"
     },
     {
@@ -30454,6 +30894,30 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "apps/portal/views_device_governance.py",
+      "governance_tier": "safe",
+      "line": "54",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_device_governance.py",
+      "governance_tier": "safe",
+      "line": "120",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_device_governance.py",
+      "governance_tier": "safe",
+      "line": "157",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "apps/portal/views_documents.py",
       "governance_tier": "safe",
       "line": "194",
@@ -30750,6 +31214,38 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "apps/portal/views_merge.py",
+      "governance_tier": "safe",
+      "line": "104",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_merge.py",
+      "governance_tier": "safe",
+      "line": "133",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_merge.py",
+      "governance_tier": "safe",
+      "line": "182",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_merge.py",
+      "governance_tier": "safe",
+      "line": "200",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "apps/portal/views_mfa_policy.py",
       "governance_tier": "safe",
       "line": "143",
@@ -30886,6 +31382,62 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "110",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "152",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "226",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "249",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "267",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "302",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "321",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "apps/portal/views_student.py",
       "governance_tier": "safe",
       "line": "364",
@@ -30913,6 +31465,14 @@
       "file": "apps/portal/views_support_quick.py",
       "governance_tier": "safe",
       "line": "70",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_sync_health.py",
+      "governance_tier": "safe",
+      "line": "24",
       "pattern": "require_http_methods"
     },
     {
@@ -30952,7 +31512,47 @@
       "classification": "allowed",
       "file": "apps/portal/views_tenant_binding.py",
       "governance_tier": "safe",
-      "line": "71",
+      "line": "72",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "78",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "99",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "134",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "213",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "257",
       "pattern": "require_http_methods"
     },
     {
@@ -31040,7 +31640,7 @@
       "classification": "allowed",
       "file": "apps/reports/views.py",
       "governance_tier": "safe",
-      "line": "455",
+      "line": "490",
       "pattern": "require_http_methods"
     },
     {
@@ -32264,7 +32864,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views.py",
       "governance_tier": "safe",
-      "line": "1371",
+      "line": "1397",
       "pattern": "require_http_methods"
     },
     {
@@ -32320,7 +32920,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_console_ai_rag.py",
       "governance_tier": "safe",
-      "line": "81",
+      "line": "82",
       "pattern": "require_http_methods"
     },
     {
@@ -32336,7 +32936,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_dashboard_config.py",
       "governance_tier": "safe",
-      "line": "42",
+      "line": "116",
       "pattern": "require_http_methods"
     },
     {
@@ -32344,7 +32944,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_dashboard_config.py",
       "governance_tier": "safe",
-      "line": "89",
+      "line": "163",
       "pattern": "require_http_methods"
     },
     {
@@ -32352,7 +32952,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_dashboard_config.py",
       "governance_tier": "safe",
-      "line": "182",
+      "line": "256",
       "pattern": "require_http_methods"
     },
     {
@@ -32360,7 +32960,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_dashboard_config.py",
       "governance_tier": "safe",
-      "line": "276",
+      "line": "385",
       "pattern": "require_http_methods"
     },
     {
@@ -32408,7 +33008,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_feature_control.py",
       "governance_tier": "safe",
-      "line": "1297",
+      "line": "1345",
       "pattern": "require_http_methods"
     },
     {
@@ -32416,7 +33016,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_feature_control.py",
       "governance_tier": "safe",
-      "line": "1624",
+      "line": "1705",
       "pattern": "require_http_methods"
     },
     {
@@ -32424,7 +33024,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_feature_control.py",
       "governance_tier": "safe",
-      "line": "1657",
+      "line": "1738",
       "pattern": "require_http_methods"
     },
     {
@@ -32432,7 +33032,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_feature_control.py",
       "governance_tier": "safe",
-      "line": "1688",
+      "line": "1769",
       "pattern": "require_http_methods"
     },
     {
@@ -32440,7 +33040,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_feature_control.py",
       "governance_tier": "safe",
-      "line": "1729",
+      "line": "1810",
       "pattern": "require_http_methods"
     },
     {
@@ -32528,7 +33128,7 @@
       "classification": "allowed",
       "file": "apps/siteconfig/views_package_rollback.py",
       "governance_tier": "safe",
-      "line": "34",
+      "line": "33",
       "pattern": "require_http_methods"
     },
     {
@@ -32776,7 +33376,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "216",
+      "line": "221",
       "pattern": "require_http_methods"
     },
     {
@@ -32784,7 +33384,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "228",
+      "line": "233",
       "pattern": "require_http_methods"
     },
     {
@@ -32792,7 +33392,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "329",
+      "line": "335",
       "pattern": "require_http_methods"
     },
     {
@@ -32800,7 +33400,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "356",
+      "line": "362",
       "pattern": "require_http_methods"
     },
     {
@@ -32808,7 +33408,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "382",
+      "line": "388",
       "pattern": "require_http_methods"
     },
     {
@@ -32816,7 +33416,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "406",
+      "line": "412",
       "pattern": "require_http_methods"
     },
     {
@@ -32824,7 +33424,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "434",
+      "line": "440",
       "pattern": "require_http_methods"
     },
     {
@@ -32832,7 +33432,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "464",
+      "line": "470",
       "pattern": "require_http_methods"
     },
     {
@@ -32840,7 +33440,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "494",
+      "line": "500",
       "pattern": "require_http_methods"
     },
     {
@@ -32848,7 +33448,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "530",
+      "line": "536",
       "pattern": "require_http_methods"
     },
     {
@@ -32856,7 +33456,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "566",
+      "line": "572",
       "pattern": "require_http_methods"
     },
     {
@@ -32864,7 +33464,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "596",
+      "line": "602",
       "pattern": "require_http_methods"
     },
     {
@@ -32872,7 +33472,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "701",
+      "line": "707",
       "pattern": "require_http_methods"
     },
     {
@@ -32880,7 +33480,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "732",
+      "line": "738",
       "pattern": "require_http_methods"
     },
     {
@@ -32888,7 +33488,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "762",
+      "line": "768",
       "pattern": "require_http_methods"
     },
     {
@@ -32896,7 +33496,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "804",
+      "line": "810",
       "pattern": "require_http_methods"
     },
     {
@@ -32904,7 +33504,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "828",
+      "line": "834",
       "pattern": "require_http_methods"
     },
     {
@@ -32912,7 +33512,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "858",
+      "line": "864",
       "pattern": "require_http_methods"
     },
     {
@@ -32920,7 +33520,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "888",
+      "line": "894",
       "pattern": "require_http_methods"
     },
     {
@@ -32928,7 +33528,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "951",
+      "line": "957",
       "pattern": "require_http_methods"
     },
     {
@@ -32936,7 +33536,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "987",
+      "line": "993",
       "pattern": "require_http_methods"
     },
     {
@@ -32944,7 +33544,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "1002",
+      "line": "1008",
       "pattern": "require_http_methods"
     },
     {
@@ -32952,7 +33552,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "1099",
+      "line": "1105",
       "pattern": "require_http_methods"
     },
     {
@@ -32960,7 +33560,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "1129",
+      "line": "1135",
       "pattern": "require_http_methods"
     },
     {
@@ -32968,7 +33568,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "1310",
+      "line": "1316",
       "pattern": "require_http_methods"
     },
     {
@@ -32976,7 +33576,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2166",
+      "line": "2180",
       "pattern": "require_http_methods"
     },
     {
@@ -32984,7 +33584,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2226",
+      "line": "2240",
       "pattern": "require_http_methods"
     },
     {
@@ -32992,7 +33592,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2352",
+      "line": "2366",
       "pattern": "require_http_methods"
     },
     {
@@ -33000,15 +33600,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2389",
-      "pattern": "require_http_methods"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/studio_os/views.py",
-      "governance_tier": "safe",
-      "line": "2412",
+      "line": "2403",
       "pattern": "require_http_methods"
     },
     {
@@ -33024,7 +33616,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2442",
+      "line": "2440",
       "pattern": "require_http_methods"
     },
     {
@@ -33032,7 +33624,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2471",
+      "line": "2456",
       "pattern": "require_http_methods"
     },
     {
@@ -33040,7 +33632,7 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2508",
+      "line": "2485",
       "pattern": "require_http_methods"
     },
     {
@@ -33048,7 +33640,15 @@
       "classification": "allowed",
       "file": "apps/studio_os/views.py",
       "governance_tier": "safe",
-      "line": "2544",
+      "line": "2522",
+      "pattern": "require_http_methods"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/studio_os/views.py",
+      "governance_tier": "safe",
+      "line": "2558",
       "pattern": "require_http_methods"
     },
     {
@@ -33190,25 +33790,41 @@
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/analytics/views.py",
+      "file": "apps/accounts/decorators.py",
       "governance_tier": "safe",
-      "line": "97",
+      "line": "135",
       "pattern": "staff_member_required"
     },
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/analytics/views.py",
+      "file": "apps/accounts/decorators.py",
       "governance_tier": "safe",
-      "line": "492",
+      "line": "189",
       "pattern": "staff_member_required"
     },
     {
-      "bucket": "product",
+      "bucket": "tests",
       "classification": "allowed",
-      "file": "apps/analytics/views.py",
+      "file": "apps/accounts/tests/test_tenant_admin_gate.py",
       "governance_tier": "safe",
-      "line": "633",
+      "line": "1",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/accounts/tests/test_tenant_admin_gate.py",
+      "governance_tier": "safe",
+      "line": "5",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/accounts/tests/test_tenant_admin_gate.py",
+      "governance_tier": "safe",
+      "line": "47",
       "pattern": "staff_member_required"
     },
     {
@@ -33216,23 +33832,7 @@
       "classification": "allowed",
       "file": "apps/assist_dock/power_views.py",
       "governance_tier": "safe",
-      "line": "113",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/assist_dock/power_views.py",
-      "governance_tier": "safe",
-      "line": "138",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/assist_dock/power_views.py",
-      "governance_tier": "safe",
-      "line": "331",
+      "line": "332",
       "pattern": "staff_member_required"
     },
     {
@@ -33241,334 +33841,6 @@
       "file": "apps/assist_dock/tests/test_views.py",
       "governance_tier": "safe",
       "line": "46",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/assist_dock/views.py",
-      "governance_tier": "safe",
-      "line": "57",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "2371",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "2481",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "2564",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "2870",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "2911",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "2930",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "2957",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "2986",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "3119",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "3167",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "3218",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "3293",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "3400",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "3427",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/evals/views.py",
-      "governance_tier": "safe",
-      "line": "3488",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_access.py",
-      "governance_tier": "safe",
-      "line": "327",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_accounting.py",
-      "governance_tier": "safe",
-      "line": "35",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_accounting.py",
-      "governance_tier": "safe",
-      "line": "132",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_accounting.py",
-      "governance_tier": "safe",
-      "line": "161",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_dashboard.py",
-      "governance_tier": "safe",
-      "line": "21",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_global_payment_command_center.py",
-      "governance_tier": "safe",
-      "line": "18",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_invoicing.py",
-      "governance_tier": "safe",
-      "line": "276",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_invoicing.py",
-      "governance_tier": "safe",
-      "line": "326",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_invoicing.py",
-      "governance_tier": "safe",
-      "line": "826",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_marketplace_integration_credentials.py",
-      "governance_tier": "safe",
-      "line": "24",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_offline_bursar_queue.py",
-      "governance_tier": "safe",
-      "line": "40",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_offline_bursar_queue.py",
-      "governance_tier": "safe",
-      "line": "60",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_offline_bursar_queue.py",
-      "governance_tier": "safe",
-      "line": "94",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_offline_bursar_queue.py",
-      "governance_tier": "safe",
-      "line": "153",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_payment_readiness_dashboard.py",
-      "governance_tier": "safe",
-      "line": "81",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_payment_setup.py",
-      "governance_tier": "safe",
-      "line": "17",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_payments.py",
-      "governance_tier": "safe",
-      "line": "78",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_payments.py",
-      "governance_tier": "safe",
-      "line": "199",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_payments.py",
-      "governance_tier": "safe",
-      "line": "291",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_payments.py",
-      "governance_tier": "safe",
-      "line": "416",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_reports.py",
-      "governance_tier": "safe",
-      "line": "37",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_reports.py",
-      "governance_tier": "safe",
-      "line": "106",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_requests.py",
-      "governance_tier": "safe",
-      "line": "30",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_requests.py",
-      "governance_tier": "safe",
-      "line": "63",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/finance/views_workforce_hub.py",
-      "governance_tier": "safe",
-      "line": "22",
       "pattern": "staff_member_required"
     },
     {
@@ -33640,7 +33912,7 @@
       "classification": "allowed",
       "file": "apps/orchestration/views.py",
       "governance_tier": "safe",
-      "line": "17",
+      "line": "32",
       "pattern": "staff_member_required"
     },
     {
@@ -33648,47 +33920,23 @@
       "classification": "allowed",
       "file": "apps/orchestration/views.py",
       "governance_tier": "safe",
-      "line": "45",
+      "line": "77",
       "pattern": "staff_member_required"
     },
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/payroll/views.py",
+      "file": "apps/orchestration/views.py",
       "governance_tier": "safe",
-      "line": "30",
+      "line": "121",
       "pattern": "staff_member_required"
     },
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/payroll/views.py",
+      "file": "apps/orchestration/views.py",
       "governance_tier": "safe",
-      "line": "231",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/payroll/views.py",
-      "governance_tier": "safe",
-      "line": "258",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/payroll/views.py",
-      "governance_tier": "safe",
-      "line": "280",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/payroll/views.py",
-      "governance_tier": "safe",
-      "line": "343",
+      "line": "142",
       "pattern": "staff_member_required"
     },
     {
@@ -33734,38 +33982,6 @@
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/platform_runtime/views_health_autopilot.py",
-      "governance_tier": "safe",
-      "line": "94",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/platform_runtime/views_health_autopilot.py",
-      "governance_tier": "safe",
-      "line": "259",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/platform_runtime/views_platform_health.py",
-      "governance_tier": "safe",
-      "line": "54",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/platform_runtime/views_workflow_flight_deck.py",
-      "governance_tier": "safe",
-      "line": "79",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
       "file": "apps/portal/views_ai_line_admin.py",
       "governance_tier": "safe",
       "line": "183",
@@ -33774,17 +33990,25 @@
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/portal/views_contact_requests.py",
+      "file": "apps/portal/views_device_governance.py",
       "governance_tier": "safe",
-      "line": "108",
+      "line": "53",
       "pattern": "staff_member_required"
     },
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/portal/views_contact_requests.py",
+      "file": "apps/portal/views_device_governance.py",
       "governance_tier": "safe",
-      "line": "141",
+      "line": "118",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_device_governance.py",
+      "governance_tier": "safe",
+      "line": "155",
       "pattern": "staff_member_required"
     },
     {
@@ -33886,6 +34110,38 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "apps/portal/views_merge.py",
+      "governance_tier": "safe",
+      "line": "103",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_merge.py",
+      "governance_tier": "safe",
+      "line": "131",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_merge.py",
+      "governance_tier": "safe",
+      "line": "180",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_merge.py",
+      "governance_tier": "safe",
+      "line": "198",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "apps/portal/views_multicampus_academics.py",
       "governance_tier": "safe",
       "line": "118",
@@ -33910,6 +34166,70 @@
     {
       "bucket": "product",
       "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "109",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "150",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "224",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "247",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "265",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "300",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_school_batches.py",
+      "governance_tier": "safe",
+      "line": "319",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_sync_health.py",
+      "governance_tier": "safe",
+      "line": "23",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
       "file": "apps/portal/views_tenant_binding.py",
       "governance_tier": "safe",
       "line": "25",
@@ -33920,7 +34240,47 @@
       "classification": "allowed",
       "file": "apps/portal/views_tenant_binding.py",
       "governance_tier": "safe",
-      "line": "69",
+      "line": "70",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "77",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "97",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "132",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "211",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/portal/views_transfers.py",
+      "governance_tier": "safe",
+      "line": "255",
       "pattern": "staff_member_required"
     },
     {
@@ -33990,30 +34350,6 @@
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/reports/views.py",
-      "governance_tier": "safe",
-      "line": "780",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/reports/views.py",
-      "governance_tier": "safe",
-      "line": "1051",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/reports/views.py",
-      "governance_tier": "safe",
-      "line": "1194",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
       "file": "apps/schools/marketing_views.py",
       "governance_tier": "safe",
       "line": "3155",
@@ -34024,7 +34360,23 @@
       "classification": "allowed",
       "file": "apps/schools/middleware.py",
       "governance_tier": "safe",
-      "line": "1578",
+      "line": "1649",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_super_segment_tenant_guard.py",
+      "governance_tier": "safe",
+      "line": "4",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "apps/schools/tests/test_super_segment_tenant_guard.py",
+      "governance_tier": "safe",
+      "line": "68",
       "pattern": "staff_member_required"
     },
     {
@@ -34070,65 +34422,9 @@
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/siteconfig/views.py",
-      "governance_tier": "safe",
-      "line": "277",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/siteconfig/views.py",
-      "governance_tier": "safe",
-      "line": "351",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/siteconfig/views.py",
-      "governance_tier": "safe",
-      "line": "2313",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/siteconfig/views.py",
-      "governance_tier": "safe",
-      "line": "2325",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/siteconfig/views.py",
-      "governance_tier": "safe",
-      "line": "2862",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
       "file": "apps/siteconfig/views_cockpit_live.py",
       "governance_tier": "safe",
       "line": "18",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/siteconfig/views_console_ai_rag.py",
-      "governance_tier": "safe",
-      "line": "83",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/siteconfig/views_console_domains.py",
-      "governance_tier": "safe",
-      "line": "355",
       "pattern": "staff_member_required"
     },
     {
@@ -34145,14 +34441,6 @@
       "file": "apps/siteconfig/views_globe_api.py",
       "governance_tier": "safe",
       "line": "132",
-      "pattern": "staff_member_required"
-    },
-    {
-      "bucket": "product",
-      "classification": "allowed",
-      "file": "apps/siteconfig/views_mascot_storybook.py",
-      "governance_tier": "safe",
-      "line": "12",
       "pattern": "staff_member_required"
     },
     {
@@ -34209,6 +34497,102 @@
       "file": "scripts/audit_security_surface.py",
       "governance_tier": "safe",
       "line": "42",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "allowed",
+      "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "11",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "allowed",
+      "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "14",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "allowed",
+      "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "389",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "allowed",
+      "file": "scripts/scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "417",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "51",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "73",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "117",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "126",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "135",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "149",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "tests",
+      "classification": "allowed",
+      "file": "scripts/tests/test_scan_staff_gate_on_tenant_surface.py",
+      "governance_tier": "safe",
+      "line": "150",
+      "pattern": "staff_member_required"
+    },
+    {
+      "bucket": "scripts",
+      "classification": "allowed",
+      "file": "scripts/verify_ci_gate_wiring.py",
+      "governance_tier": "safe",
+      "line": "98",
       "pattern": "staff_member_required"
     },
     {
@@ -36048,7 +36432,7 @@
       "classification": "needs_review",
       "file": "scripts/check_documented_baselines.py",
       "governance_tier": "controlled",
-      "line": "214",
+      "line": "217",
       "pattern": "subprocess"
     },
     {
@@ -36056,7 +36440,7 @@
       "classification": "needs_review",
       "file": "scripts/check_documented_baselines.py",
       "governance_tier": "controlled",
-      "line": "222",
+      "line": "225",
       "pattern": "subprocess"
     },
     {
@@ -36448,7 +36832,7 @@
       "classification": "needs_review",
       "file": "scripts/generate_tenant_isolation_penetration_report.py",
       "governance_tier": "controlled",
-      "line": "83",
+      "line": "114",
       "pattern": "subprocess"
     },
     {

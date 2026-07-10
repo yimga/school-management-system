@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.accounts.models import User
 from apps.accounts.portal_roles import get_nav_portal_role
 from apps.siteconfig.models_support import filter_portal_items
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 
 # Authenticated tenant role-home landings (preview: tenant-portal-v3-100x).
 TP_V3_ROLE_HOME_URL_NAMES = frozenset(
@@ -115,12 +115,9 @@ def tp_v3_role_home_shell_context(request: HttpRequest) -> dict[str, object]:
         role = get_nav_portal_role(request) or str(getattr(user, "role", "") or "")
     year_label = ""
     try:
-        from apps.siteconfig.config_service import get_effective_site_settings
-
-        site = get_effective_site_settings(request=request)
-        year_name = getattr(site, "active_academic_year_name", None) or getattr(
-            site, "current_academic_year_label", None
-        )
+        year_name = get_effective_config(
+            key="active_academic_year_name", request=request
+        ) or get_effective_config(key="current_academic_year_label", request=request)
         if year_name:
             year_label = str(year_name)
     except (AttributeError, ImportError, TypeError, ValueError):
@@ -239,9 +236,8 @@ def build_tp_hero_context(
     pending_access_requests: int = 0,
     completion_pct: int | None = None,
 ) -> dict[str, object]:
-    site = get_effective_site_settings(request=request)
     portal_quick_actions = filter_portal_items(
-        getattr(site, "portal_quick_actions", None) or [], role
+        get_effective_config(key="portal_quick_actions", request=request) or [], role
     )
     if unread_messages is None:
         unread_messages = _unread_messages_count(request)

@@ -41,11 +41,13 @@ def _backfill_admissions_from_platform_site_settings(
     ):
         return
     try:
+        # config-resolver-allow: namespace passed whole to _safe_effective_site_attr() (Phase B virtual-key try/getattr)
         site = get_effective_site_settings(school=school)
         if site is None:
             try:
                 from apps.platform_runtime.helpers import get_platform_site_settings_record
 
+                # config-resolver-allow: raw-row fallback stored into the same site variable passed to _safe_effective_site_attr()
                 site = get_platform_site_settings_record(create=False)
             except (
                 AttributeError,
@@ -674,6 +676,7 @@ def get_effective_policy(
                 default_grade_post_roles,
             )
 
+            # config-resolver-allow: 6 distinct grade_approval attrs read off one resolve + None-guard raises into fallback
             site = get_effective_site_settings(school=school)
             if site is None:
                 raise LookupError("effective site settings unavailable")

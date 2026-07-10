@@ -12,7 +12,7 @@ from django import forms
 from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import AcademicYear
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.models import FormDraft
 from .runtime_helpers import get_policy_for_request
 from .forms import TeacherOnboardingForm, StudentOnboardingForm
@@ -49,7 +49,6 @@ def teacher_onboarding_wizard(request: HttpRequest):
         )
         return redirect("portal:teacher_dashboard_alias")
 
-    site = get_effective_site_settings(request=request)
     school = getattr(request, "school", None)
     session_key = "teacher_onboarding_wizard_data"
     wizard_data = request.session.get(session_key, {})
@@ -165,9 +164,9 @@ def teacher_onboarding_wizard(request: HttpRequest):
             "step": step,
             "total_steps": total_steps,
             "progress_pct": progress_pct,
-            "school_code": site.school_code,
-            "support_email": site.company_email,
-            "support_phone": site.company_phone,
+            "school_code": get_effective_config(key="school_code", request=request),
+            "support_email": get_effective_config(key="company_email", request=request),
+            "support_phone": get_effective_config(key="company_phone", request=request),
         },
     )
 
@@ -194,7 +193,6 @@ def student_onboarding_wizard(request: HttpRequest):
     if engine_resp is not None:
         return engine_resp
 
-    site = get_effective_site_settings(request=request)
     session_key = "student_onboarding_wizard_data"
     wizard_data = request.session.get(session_key, {})
     step = int(request.GET.get("step", "1"))
@@ -416,12 +414,12 @@ def student_onboarding_wizard(request: HttpRequest):
             "step": step,
             "total_steps": total_steps,
             "progress_pct": progress_pct,
-            "school_code": site.school_code,
-            "admission_number_mode": getattr(
-                site, "admission_number_mode", "AUTO_OR_MANUAL"
+            "school_code": get_effective_config(key="school_code", request=request),
+            "admission_number_mode": get_effective_config(
+                key="admission_number_mode", request=request, default="AUTO_OR_MANUAL"
             ),
-            "support_email": site.company_email,
-            "support_phone": site.company_phone,
+            "support_email": get_effective_config(key="company_email", request=request),
+            "support_phone": get_effective_config(key="company_phone", request=request),
             "has_draft_restored": has_draft_restored,
             "form_draft_url": form_draft_url,
         },

@@ -321,6 +321,7 @@ INSTALLED_APPS = [
     "apps.admissions.apps.AdmissionsConfig",  # Wave R-B (v3.96.0) — admission application kernel
     "apps.safeguarding.apps.SafeguardingConfig",  # Wave R-D (v3.96.0) — KCSIE 2026 concern kernel
     "apps.assist_dock.apps.AssistDockConfig",  # v4.00.91: assist dock registry SOT
+    "apps.athletics.apps.AthleticsConfig",  # Athletics/sports-management spine (teams/fixtures/eligibility)
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",
@@ -481,6 +482,18 @@ DATA_RESIDENCY_ENFORCE = os.getenv("DATA_RESIDENCY_ENFORCE", "0") == "1"
 _STRICT_UNKNOWN_RAW = os.getenv("DATA_RESIDENCY_STRICT_UNKNOWN", "").strip()
 DATA_RESIDENCY_STRICT_UNKNOWN = (
     (_STRICT_UNKNOWN_RAW == "1") if _STRICT_UNKNOWN_RAW in ("0", "1") else None
+)
+# Declared region of the DEFAULT database — the store every op lands on when
+# no per-region alias resolves. Since the unresolvable-region closeout
+# (2026-07-09) the router/middlewares no longer skip that landing: it is
+# adjudicated against this region, so under enforcement an in-region/global
+# tenant keeps working with zero replicas while a tenant with a foreign
+# residency promise fails closed. "global" matches the platform model (the
+# readiness preflight defines global as served-by-default-DB); deployments
+# whose primary physically sits in a specific region declare it here.
+# Resolved via apps.schools.data_residency.default_store_region() (env wins).
+DATA_RESIDENCY_DEFAULT_STORE_REGION = (
+    os.getenv("DATA_RESIDENCY_DEFAULT_STORE_REGION", "").strip() or "global"
 )
 
 # Wave K3 — at-risk ML artifact: where the predictor loads its joblib bundle.
@@ -1710,11 +1723,16 @@ POLICY_USE_BUNDLES = os.getenv("POLICY_USE_BUNDLES", "1") in ("1", "true", "yes"
 # Move 3 follow-up: PDP runtime enforcement mode.
 #   "off"      — PDP decorators short-circuit; no log, no block.
 #   "advisory" — every PDP-decorated view calls decide() and writes a
-#                PolicyDecisionLog row but never raises. Safe default; use
-#                this to collect would-be denies before flipping to enforce.
+#                PolicyDecisionLog row but never raises (log-only rollback
+#                posture; was the default while the rule library was built).
 #   "enforce"  — pdp_enforce decorators block on deny / implicit_deny;
 #                pdp_advisory still logs.
-POLICY_PDP_ENFORCEMENT_MODE = os.getenv("POLICY_PDP_ENFORCEMENT_MODE", "advisory")
+# Default flipped advisory → enforce 2026-07-09 (PDP promotion): every enforced
+# surface ships a platform-baseline PARITY allow-rule (policies migration 0010,
+# conditioned on the surface's own canonical RBAC gate via subject.rbac_allowed),
+# so enforcement preserves access exactly while tenant/operator deny rules now
+# actually bind and PDP errors fail CLOSED. Rollback: POLICY_PDP_ENFORCEMENT_MODE=advisory.
+POLICY_PDP_ENFORCEMENT_MODE = os.getenv("POLICY_PDP_ENFORCEMENT_MODE", "enforce")
 # Per-tenant policy cache TTL in seconds. Required for scale; default 300 (5 min). Set POLICY_CACHE_TTL=0 to disable for debugging.
 _raw_ttl = os.getenv("POLICY_CACHE_TTL", "300").strip()
 POLICY_CACHE_TTL = int(_raw_ttl) if _raw_ttl.isdigit() else 300
@@ -3891,6 +3909,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.payroll",
         "apps.school_events",
         "apps.student360",
+        "apps.athletics",
         "apps.studio_os.apps.StudioOsConfig",  # Tenant/manager Studio OS routes (no models; views + services)
     ]
     INSTALLED_APPS = list(SHARED_APPS) + [

@@ -297,6 +297,7 @@ def site_settings_snapshot(request: HttpRequest) -> JsonResponse:
     except ImportError:
         return _runtime_response(request, "site_settings_snapshot", payload)
     school = getattr(request, "school", None)
+    # config-resolver-allow: dynamic getattr projection over public_keys tuple
     row = get_effective_site_settings(request=request, school=school)
     if row is not None:
         # Public-safe projection: brand + locale + theme; never secrets.

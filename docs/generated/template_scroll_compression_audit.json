@@ -1,10 +1,173 @@
 {
-  "generated_at": "2026-05-29T21:03:41.253154+00:00",
-  "files_scanned": 1540,
-  "unpaginated_for_loop_files": 739,
-  "overflow_hidden_files": 44,
-  "rigid_width_files": 117,
+  "generated_at": "2026-07-09T18:57:12.154802+00:00",
+  "files_scanned": 1810,
+  "unpaginated_for_loop_files": 798,
+  "overflow_hidden_files": 49,
+  "rigid_width_files": 137,
   "priority_unpaginated": [
+    {
+      "path": "templates/siteconfig/super/cockpit_configure.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 91,
+          "iterable": "tenant_experience_policy_fields"
+        },
+        {
+          "line": 114,
+          "iterable": "footer_fields"
+        },
+        {
+          "line": 136,
+          "iterable": "community_fields"
+        },
+        {
+          "line": 158,
+          "iterable": "newsletter_fields"
+        },
+        {
+          "line": 181,
+          "iterable": "front_office_fields"
+        },
+        {
+          "line": 204,
+          "iterable": "tenant_v3_extended_fields"
+        },
+        {
+          "line": 230,
+          "iterable": "lesson_of_day_fields"
+        },
+        {
+          "line": 254,
+          "iterable": "ai_study_buddy_fields"
+        },
+        {
+          "line": 278,
+          "iterable": "teacher_spotlight_fields"
+        },
+        {
+          "line": 302,
+          "iterable": "upcoming_events_fields"
+        },
+        {
+          "line": 333,
+          "iterable": "today_snapshot_fields"
+        },
+        {
+          "line": 357,
+          "iterable": "quick_actions_grid_fields"
+        },
+        {
+          "line": 381,
+          "iterable": "activity_timeline_fields"
+        },
+        {
+          "line": 405,
+          "iterable": "achievements_card_fields"
+        },
+        {
+          "line": 429,
+          "iterable": "live_world_map_fields"
+        },
+        {
+          "line": 453,
+          "iterable": "audit_feed_fields"
+        },
+        {
+          "line": 484,
+          "iterable": "forecast_lane_fields"
+        },
+        {
+          "line": 508,
+          "iterable": "slo_clocks_fields"
+        },
+        {
+          "line": 532,
+          "iterable": "trust_nutrition_fields"
+        },
+        {
+          "line": 556,
+          "iterable": "parent_teacher_thread_fields"
+        },
+        {
+          "line": 580,
+          "iterable": "financial_timeline_fields"
+        },
+        {
+          "line": 614,
+          "iterable": "operator_presence_fields"
+        },
+        {
+          "line": 638,
+          "iterable": "operator_notebook_fields"
+        },
+        {
+          "line": 672,
+          "iterable": "tenant_heatmap_fields"
+        },
+        {
+          "line": 696,
+          "iterable": "revenue_waterfall_fields"
+        },
+        {
+          "line": 720,
+          "iterable": "realtime_presence_fields"
+        },
+        {
+          "line": 744,
+          "iterable": "calendar_weather_fields"
+        },
+        {
+          "line": 778,
+          "iterable": "workspace_context_tenant_fields"
+        },
+        {
+          "line": 802,
+          "iterable": "live_banner_studio_fields"
+        },
+        {
+          "line": 809,
+          "iterable": "field"
+        },
+        {
+          "line": 851,
+          "iterable": "activity_ticker_fields"
+        },
+        {
+          "line": 875,
+          "iterable": "gradebook_trend_fields"
+        },
+        {
+          "line": 899,
+          "iterable": "attendance_heatmap_fields"
+        },
+        {
+          "line": 923,
+          "iterable": "life_event_timeline_fields"
+        },
+        {
+          "line": 956,
+          "iterable": "ai_copilot_rail_fields"
+        },
+        {
+          "line": 995,
+          "iterable": "sibling_compare_fields"
+        },
+        {
+          "line": 1037,
+          "iterable": "trust_pillars_alerts_fields"
+        },
+        {
+          "line": 1081,
+          "iterable": "signup_form_fields"
+        },
+        {
+          "line": 1118,
+          "iterable": "login_canvas_fields"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
     {
       "path": "templates/schools/marketing_landing.html",
       "unpaginated_for_loops": [
@@ -13,151 +176,151 @@
           "iterable": "hreflang_entries"
         },
         {
-          "line": 68,
+          "line": 74,
           "iterable": "global_features"
         },
         {
-          "line": 74,
+          "line": 80,
           "iterable": "hero_ctas"
         },
         {
-          "line": 124,
+          "line": 142,
           "iterable": "trust_badges"
         },
         {
-          "line": 149,
+          "line": 167,
           "iterable": "solve_by_challenge"
         },
         {
-          "line": 168,
+          "line": 186,
           "iterable": "platform_pillar_grid"
         },
         {
-          "line": 180,
+          "line": 198,
           "iterable": "differentiation_block"
         },
         {
-          "line": 186,
+          "line": 204,
           "iterable": "why_switch_bullets"
         },
         {
-          "line": 219,
+          "line": 237,
           "iterable": "marketing_story_journey"
         },
         {
-          "line": 235,
+          "line": 253,
           "iterable": "marketing_data_flow_chain"
         },
         {
-          "line": 255,
+          "line": 273,
           "iterable": "admissions_flow"
         },
         {
-          "line": 294,
+          "line": 312,
           "iterable": "from_single_to_enterprise"
         },
         {
-          "line": 308,
+          "line": 326,
           "iterable": "by_the_numbers"
         },
         {
-          "line": 325,
+          "line": 343,
           "iterable": "outcome_metrics"
         },
         {
-          "line": 353,
+          "line": 371,
           "iterable": "product_visualization_slides"
         },
         {
-          "line": 374,
+          "line": 392,
           "iterable": "institution_types"
         },
         {
-          "line": 386,
+          "line": 404,
           "iterable": "product_pillars_home"
         },
         {
-          "line": 408,
+          "line": 426,
           "iterable": "core_modules"
         },
         {
-          "line": 428,
+          "line": 446,
           "iterable": "role_preview_images"
         },
         {
-          "line": 441,
+          "line": 459,
           "iterable": "for_your_role"
         },
         {
-          "line": 456,
+          "line": 474,
           "iterable": "get_started_three_steps"
         },
         {
-          "line": 550,
+          "line": 568,
           "iterable": "ai_intelligence_features"
         },
         {
-          "line": 578,
+          "line": 596,
           "iterable": "global_stats"
         },
         {
-          "line": 594,
+          "line": 612,
           "iterable": "migration_bullets"
         },
         {
-          "line": 626,
+          "line": 644,
           "iterable": "partners_list"
         },
         {
-          "line": 634,
+          "line": 652,
           "iterable": "ecosystem_apps"
         },
         {
-          "line": 664,
+          "line": 682,
           "iterable": "customer_logos"
         },
         {
-          "line": 683,
+          "line": 701,
           "iterable": "testimonials"
         },
         {
-          "line": 691,
+          "line": 709,
           "iterable": "video_testimonials"
         },
         {
-          "line": 705,
+          "line": 723,
           "iterable": "review_badges"
         },
         {
-          "line": 730,
+          "line": 748,
           "iterable": "pricing_snapshot"
         },
         {
-          "line": 735,
+          "line": 753,
           "iterable": "plan"
         },
         {
-          "line": 773,
+          "line": 791,
           "iterable": "post_enrollment_revenue"
         },
         {
-          "line": 788,
+          "line": 806,
           "iterable": "awards_recognition"
         },
         {
-          "line": 810,
+          "line": 828,
           "iterable": "events_list"
         },
         {
-          "line": 852,
+          "line": 870,
           "iterable": "what_you_get"
         },
         {
-          "line": 886,
+          "line": 904,
           "iterable": "trust_controls"
         },
         {
-          "line": 890,
+          "line": 908,
           "iterable": "security_badges"
         }
       ],
@@ -168,254 +331,107 @@
           "match": "max-width: 768px"
         },
         {
-          "line": 132,
+          "line": 150,
           "match": "max-width:44rem"
         },
         {
-          "line": 244,
+          "line": 262,
           "match": "max-width:40rem"
         },
         {
-          "line": 459,
+          "line": 477,
           "match": "width:2rem"
         },
         {
-          "line": 903,
+          "line": 921,
           "match": "max-width:36rem"
         }
       ]
     },
     {
-      "path": "templates/siteconfig/super/cockpit_configure.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 71,
-          "iterable": "footer_fields"
-        },
-        {
-          "line": 93,
-          "iterable": "community_fields"
-        },
-        {
-          "line": 115,
-          "iterable": "newsletter_fields"
-        },
-        {
-          "line": 138,
-          "iterable": "front_office_fields"
-        },
-        {
-          "line": 161,
-          "iterable": "tenant_v3_extended_fields"
-        },
-        {
-          "line": 184,
-          "iterable": "lesson_of_day_fields"
-        },
-        {
-          "line": 208,
-          "iterable": "ai_study_buddy_fields"
-        },
-        {
-          "line": 232,
-          "iterable": "teacher_spotlight_fields"
-        },
-        {
-          "line": 256,
-          "iterable": "upcoming_events_fields"
-        },
-        {
-          "line": 287,
-          "iterable": "today_snapshot_fields"
-        },
-        {
-          "line": 311,
-          "iterable": "quick_actions_grid_fields"
-        },
-        {
-          "line": 335,
-          "iterable": "activity_timeline_fields"
-        },
-        {
-          "line": 359,
-          "iterable": "achievements_card_fields"
-        },
-        {
-          "line": 383,
-          "iterable": "live_world_map_fields"
-        },
-        {
-          "line": 407,
-          "iterable": "audit_feed_fields"
-        },
-        {
-          "line": 438,
-          "iterable": "forecast_lane_fields"
-        },
-        {
-          "line": 462,
-          "iterable": "slo_clocks_fields"
-        },
-        {
-          "line": 486,
-          "iterable": "trust_nutrition_fields"
-        },
-        {
-          "line": 510,
-          "iterable": "parent_teacher_thread_fields"
-        },
-        {
-          "line": 534,
-          "iterable": "financial_timeline_fields"
-        },
-        {
-          "line": 568,
-          "iterable": "operator_presence_fields"
-        },
-        {
-          "line": 592,
-          "iterable": "operator_notebook_fields"
-        },
-        {
-          "line": 626,
-          "iterable": "tenant_heatmap_fields"
-        },
-        {
-          "line": 650,
-          "iterable": "revenue_waterfall_fields"
-        },
-        {
-          "line": 674,
-          "iterable": "realtime_presence_fields"
-        },
-        {
-          "line": 698,
-          "iterable": "calendar_weather_fields"
-        },
-        {
-          "line": 732,
-          "iterable": "workspace_context_tenant_fields"
-        },
-        {
-          "line": 756,
-          "iterable": "activity_ticker_fields"
-        },
-        {
-          "line": 780,
-          "iterable": "gradebook_trend_fields"
-        },
-        {
-          "line": 804,
-          "iterable": "attendance_heatmap_fields"
-        },
-        {
-          "line": 828,
-          "iterable": "life_event_timeline_fields"
-        },
-        {
-          "line": 861,
-          "iterable": "ai_copilot_rail_fields"
-        },
-        {
-          "line": 900,
-          "iterable": "sibling_compare_fields"
-        },
-        {
-          "line": 942,
-          "iterable": "trust_pillars_alerts_fields"
-        },
-        {
-          "line": 986,
-          "iterable": "signup_form_fields"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
       "path": "templates/accounts/backend_dashboard.html",
       "unpaginated_for_loops": [
         {
-          "line": 227,
+          "line": 304,
           "iterable": "primary_ctas"
         },
         {
-          "line": 245,
+          "line": 322,
           "iterable": "primary_ctas"
         },
         {
-          "line": 267,
+          "line": 344,
           "iterable": "insight_anomaly_cards"
         },
         {
-          "line": 293,
+          "line": 370,
           "iterable": "insight_anomaly_cards"
         },
         {
-          "line": 325,
+          "line": 402,
           "iterable": "overview_cards"
         },
         {
-          "line": 351,
+          "line": 428,
           "iterable": "overview_cards"
         },
         {
-          "line": 368,
+          "line": 445,
           "iterable": "kpi_strip_cards"
         },
         {
-          "line": 371,
+          "line": 448,
           "iterable": "overview_cards"
         },
         {
-          "line": 392,
+          "line": 469,
           "iterable": "kpi_strip_cards"
         },
         {
-          "line": 409,
+          "line": 486,
           "iterable": "kpi_strip_cards"
-        },
-        {
-          "line": 423,
-          "iterable": "kpi_strip_cards"
-        },
-        {
-          "line": 470,
-          "iterable": "role_home_focus_areas"
         },
         {
           "line": 500,
+          "iterable": "kpi_strip_cards"
+        },
+        {
+          "line": 548,
+          "iterable": "role_home_focus_areas"
+        },
+        {
+          "line": 578,
           "iterable": "role_home_supporting_actions"
         },
         {
-          "line": 537,
+          "line": 615,
           "iterable": "role_home_supporting_actions"
-        },
-        {
-          "line": 554,
-          "iterable": "role_home_supporting_actions"
-        },
-        {
-          "line": 580,
-          "iterable": "role_home_destinations"
-        },
-        {
-          "line": 620,
-          "iterable": "admin_portal"
-        },
-        {
-          "line": 626,
-          "iterable": "admin_portal"
         },
         {
           "line": 632,
+          "iterable": "role_home_supporting_actions"
+        },
+        {
+          "line": 692,
+          "iterable": "role_home_destinations"
+        },
+        {
+          "line": 732,
+          "iterable": "admin_portal"
+        },
+        {
+          "line": 738,
+          "iterable": "admin_portal"
+        },
+        {
+          "line": 744,
           "iterable": "admin_portal"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 354,
+          "line": 431,
           "match": "max-width:6rem"
         }
       ]
@@ -424,91 +440,87 @@
       "path": "templates/marketing/partials/marketing_inner_core.html",
       "unpaginated_for_loops": [
         {
-          "line": 8,
+          "line": 23,
           "iterable": "page_extras"
         },
         {
-          "line": 22,
+          "line": 38,
           "iterable": "page_extras"
         },
         {
-          "line": 37,
+          "line": 110,
           "iterable": "page_extras"
         },
         {
-          "line": 109,
+          "line": 135,
           "iterable": "page_extras"
         },
         {
-          "line": 134,
-          "iterable": "page_extras"
-        },
-        {
-          "line": 253,
+          "line": 254,
           "iterable": "demo_what_you_see"
         },
         {
-          "line": 274,
+          "line": 275,
           "iterable": "blog_posts"
         },
         {
-          "line": 306,
+          "line": 307,
           "iterable": "page_extras"
         },
         {
-          "line": 322,
+          "line": 323,
           "iterable": "page"
         },
         {
-          "line": 337,
+          "line": 338,
           "iterable": "page_extras"
         },
         {
-          "line": 351,
+          "line": 352,
           "iterable": "page_extras"
         },
         {
-          "line": 356,
+          "line": 357,
           "iterable": "phase"
         },
         {
-          "line": 381,
+          "line": 382,
           "iterable": "page_extras"
         },
         {
-          "line": 421,
+          "line": 422,
           "iterable": "page_extras"
         },
         {
-          "line": 434,
+          "line": 435,
           "iterable": "page_extras"
         },
         {
-          "line": 450,
+          "line": 451,
           "iterable": "page_extras"
         },
         {
-          "line": 457,
+          "line": 458,
           "iterable": "case"
         },
         {
-          "line": 473,
+          "line": 474,
           "iterable": "page_extras"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 62,
+          "line": 63,
           "match": "overflow:hidden"
         },
         {
-          "line": 204,
+          "line": 205,
           "match": "overflow:hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 160,
+          "line": 161,
           "match": "max-width: 520px"
         }
       ]
@@ -517,67 +529,67 @@
       "path": "templates/analytics/dashboard.html",
       "unpaginated_for_loops": [
         {
-          "line": 53,
+          "line": 58,
           "iterable": "finance_request_notifications"
         },
         {
-          "line": 192,
+          "line": 197,
           "iterable": "years"
         },
         {
-          "line": 200,
+          "line": 205,
           "iterable": "terms"
         },
         {
-          "line": 209,
+          "line": 214,
           "iterable": "classrooms"
         },
         {
-          "line": 218,
+          "line": 223,
           "iterable": "specialties"
         },
         {
-          "line": 257,
+          "line": 262,
           "iterable": "terms"
         },
         {
-          "line": 265,
+          "line": 270,
           "iterable": "terms"
         },
         {
-          "line": 387,
+          "line": 392,
           "iterable": "class_rankings"
         },
         {
-          "line": 420,
+          "line": 425,
           "iterable": "top_class_students"
         },
         {
-          "line": 453,
+          "line": 458,
           "iterable": "top_school_students"
         },
         {
-          "line": 487,
+          "line": 492,
           "iterable": "top_annual_class"
         },
         {
-          "line": 520,
+          "line": 525,
           "iterable": "top_annual_school"
         },
         {
-          "line": 554,
+          "line": 559,
           "iterable": "weak_subjects"
         },
         {
-          "line": 587,
+          "line": 592,
           "iterable": "improvements"
         },
         {
-          "line": 625,
+          "line": 630,
           "iterable": "teacher_stats"
         },
         {
-          "line": 660,
+          "line": 665,
           "iterable": "specialty_rates"
         }
       ],
@@ -588,59 +600,59 @@
       "path": "templates/customersuccess/guided_onboarding.html",
       "unpaginated_for_loops": [
         {
-          "line": 96,
+          "line": 111,
           "iterable": "steps"
         },
         {
-          "line": 175,
+          "line": 192,
           "iterable": "onboarding_steps"
         },
         {
-          "line": 228,
+          "line": 245,
           "iterable": "launch_blockers"
         },
         {
-          "line": 247,
+          "line": 264,
           "iterable": "launch_checklist"
         },
         {
-          "line": 273,
+          "line": 290,
           "iterable": "launch_orchestration"
         },
         {
-          "line": 320,
+          "line": 337,
           "iterable": "preview_cards"
         },
         {
-          "line": 344,
+          "line": 361,
           "iterable": "preview_workspace"
         },
         {
-          "line": 355,
+          "line": 372,
           "iterable": "preview_workspace"
         },
         {
-          "line": 393,
+          "line": 410,
           "iterable": "blueprint_rankings"
         },
         {
-          "line": 416,
+          "line": 433,
           "iterable": "recommended_starter_stack"
         },
         {
-          "line": 431,
+          "line": 448,
           "iterable": "data_path_choices"
         },
         {
-          "line": 456,
+          "line": 473,
           "iterable": "role_previews"
         },
         {
-          "line": 464,
+          "line": 481,
           "iterable": "preview"
         },
         {
-          "line": 490,
+          "line": 507,
           "iterable": "recommendations"
         }
       ],
@@ -651,59 +663,59 @@
       "path": "templates/schools/super_dashboard.html",
       "unpaginated_for_loops": [
         {
-          "line": 142,
+          "line": 193,
           "iterable": "operator_super_dashboard_links"
         },
         {
-          "line": 203,
+          "line": 254,
           "iterable": "next_best_actions"
         },
         {
-          "line": 344,
+          "line": 406,
           "iterable": "platform_health_cards"
         },
         {
-          "line": 405,
+          "line": 467,
           "iterable": "health_schema_stats"
         },
         {
-          "line": 429,
+          "line": 491,
           "iterable": "health_top_tables"
         },
         {
-          "line": 498,
+          "line": 560,
           "iterable": "country_rollup"
         },
         {
-          "line": 518,
+          "line": 580,
           "iterable": "billing_model_breakdown"
         },
         {
-          "line": 584,
+          "line": 650,
           "iterable": "schools"
         },
         {
-          "line": 639,
+          "line": 706,
           "iterable": "school"
         },
         {
-          "line": 666,
+          "line": 736,
           "iterable": "peer_operators"
         },
         {
-          "line": 711,
+          "line": 782,
           "iterable": "workstream_cards"
         },
         {
-          "line": 732,
+          "line": 803,
           "iterable": "readiness_cards"
         },
         {
-          "line": 750,
+          "line": 821,
           "iterable": "tenant_risk_rows"
         },
         {
-          "line": 772,
+          "line": 844,
           "iterable": "recent_schools"
         }
       ],
@@ -714,55 +726,55 @@
       "path": "templates/accounts/migration_wizard.html",
       "unpaginated_for_loops": [
         {
-          "line": 83,
+          "line": 86,
           "iterable": "wizard_data"
         },
         {
-          "line": 88,
+          "line": 91,
           "iterable": "wizard_data"
         },
         {
-          "line": 89,
+          "line": 92,
           "iterable": "c"
         },
         {
-          "line": 101,
+          "line": 104,
           "iterable": "profile_suggestions"
         },
         {
-          "line": 116,
+          "line": 119,
           "iterable": "wizard_data"
         },
         {
-          "line": 122,
+          "line": 125,
           "iterable": "target_fields"
         },
         {
-          "line": 150,
+          "line": 153,
           "iterable": "wizard_data"
         },
         {
-          "line": 156,
+          "line": 159,
           "iterable": "preview_matrix"
         },
         {
-          "line": 158,
+          "line": 161,
           "iterable": "row"
         },
         {
-          "line": 204,
+          "line": 207,
           "iterable": "scorecard"
         },
         {
-          "line": 213,
+          "line": 216,
           "iterable": "scorecard"
-        },
-        {
-          "line": 223,
-          "iterable": "group"
         },
         {
           "line": 226,
+          "iterable": "group"
+        },
+        {
+          "line": 229,
           "iterable": "item"
         }
       ],
@@ -773,55 +785,55 @@
       "path": "templates/admin/index_superadmin.html",
       "unpaginated_for_loops": [
         {
-          "line": 51,
+          "line": 56,
           "iterable": "admin_catalog_section_nav_items"
         },
         {
-          "line": 79,
+          "line": 84,
           "iterable": "admin_index_kpis"
         },
         {
-          "line": 98,
+          "line": 103,
           "iterable": "admin_catalog"
         },
         {
-          "line": 108,
+          "line": 113,
           "iterable": "admin_catalog"
         },
         {
-          "line": 109,
+          "line": 114,
           "iterable": "section"
         },
         {
-          "line": 109,
+          "line": 114,
           "iterable": "app"
         },
         {
-          "line": 116,
+          "line": 121,
           "iterable": "section"
         },
         {
-          "line": 132,
+          "line": 137,
           "iterable": "admin_catalog"
         },
         {
-          "line": 133,
+          "line": 138,
           "iterable": "section"
         },
         {
-          "line": 133,
+          "line": 138,
           "iterable": "app"
         },
         {
-          "line": 139,
+          "line": 144,
           "iterable": "section"
         },
         {
-          "line": 140,
+          "line": 145,
           "iterable": "app"
         },
         {
-          "line": 153,
+          "line": 158,
           "iterable": "app_list"
         }
       ],
@@ -832,78 +844,78 @@
       "path": "templates/schools/super_security_hub.html",
       "unpaginated_for_loops": [
         {
-          "line": 34,
+          "line": 39,
           "iterable": "governance_risk_groups"
         },
         {
-          "line": 51,
+          "line": 56,
           "iterable": "verifier_cards"
         },
         {
-          "line": 75,
+          "line": 80,
           "iterable": "impersonation_rows"
         },
         {
-          "line": 147,
+          "line": 152,
           "iterable": "security_events"
         },
         {
-          "line": 170,
+          "line": 175,
           "iterable": "suspicious_security_events"
         },
         {
-          "line": 192,
+          "line": 197,
           "iterable": "perm_events"
         },
         {
-          "line": 214,
+          "line": 219,
           "iterable": "access_denied_events"
         },
         {
-          "line": 236,
+          "line": 241,
           "iterable": "approval_events"
         },
         {
-          "line": 259,
+          "line": 264,
           "iterable": "export_timeline_rows"
         },
         {
-          "line": 287,
+          "line": 292,
           "iterable": "session_rows"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 80,
+          "line": 85,
           "match": "max-width: 8rem"
         },
         {
-          "line": 82,
+          "line": 87,
           "match": "max-width: 10rem"
         },
         {
-          "line": 196,
+          "line": 201,
           "match": "max-width: 8rem"
         },
         {
-          "line": 217,
+          "line": 222,
           "match": "max-width: 8rem"
         },
         {
-          "line": 239,
+          "line": 244,
           "match": "max-width: 8rem"
         },
         {
-          "line": 262,
+          "line": 267,
           "match": "max-width: 6rem"
         },
         {
-          "line": 263,
+          "line": 268,
           "match": "max-width: 6rem"
         },
         {
-          "line": 264,
+          "line": 269,
           "match": "max-width: 8rem"
         }
       ]
@@ -912,39 +924,39 @@
       "path": "templates/accounts/rbac_dashboard.html",
       "unpaginated_for_loops": [
         {
-          "line": 47,
+          "line": 57,
           "iterable": "role_list"
         },
         {
-          "line": 53,
+          "line": 63,
           "iterable": "role"
         },
         {
-          "line": 53,
+          "line": 63,
           "iterable": "role"
         },
         {
-          "line": 60,
+          "line": 70,
           "iterable": "roles"
         },
         {
-          "line": 66,
+          "line": 76,
           "iterable": "role"
         },
         {
-          "line": 218,
+          "line": 264,
           "iterable": "active_temporary_grants"
         },
         {
-          "line": 252,
+          "line": 298,
           "iterable": "roles"
         },
         {
-          "line": 260,
+          "line": 306,
           "iterable": "role"
         },
         {
-          "line": 332,
+          "line": 379,
           "iterable": "permissions"
         }
       ],
@@ -955,83 +967,40 @@
       "path": "templates/schools/super_create_school_wizard.html",
       "unpaginated_for_loops": [
         {
-          "line": 52,
+          "line": 55,
           "iterable": "wizard_steps_meta"
         },
         {
-          "line": 132,
+          "line": 136,
           "iterable": "countries"
         },
         {
-          "line": 141,
+          "line": 145,
           "iterable": "cities"
         },
         {
-          "line": 176,
+          "line": 180,
           "iterable": "education_levels"
         },
         {
-          "line": 185,
+          "line": 189,
           "iterable": "sector_types_14_22"
         },
         {
-          "line": 193,
+          "line": 197,
           "iterable": "education_system_types"
         },
         {
-          "line": 203,
+          "line": 207,
           "iterable": "education_templates_standard"
         },
         {
-          "line": 208,
+          "line": 212,
           "iterable": "education_profiles"
         },
         {
-          "line": 217,
+          "line": 221,
           "iterable": "education_profiles"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/teacher/dashboard.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 77,
-          "iterable": "teacher_fast_workflows"
-        },
-        {
-          "line": 88,
-          "iterable": "teacher_fast_workflows"
-        },
-        {
-          "line": 152,
-          "iterable": "staff_badges"
-        },
-        {
-          "line": 414,
-          "iterable": "teacher_followup_items"
-        },
-        {
-          "line": 454,
-          "iterable": "teacher_deadline_items"
-        },
-        {
-          "line": 535,
-          "iterable": "teacher_org_tree"
-        },
-        {
-          "line": 537,
-          "iterable": "level"
-        },
-        {
-          "line": 562,
-          "iterable": "org_chain"
-        },
-        {
-          "line": 595,
-          "iterable": "workflow_summary"
         }
       ],
       "overflow_hidden": [],
@@ -1041,47 +1010,47 @@
       "path": "templates/accounts/profile.html",
       "unpaginated_for_loops": [
         {
-          "line": 137,
+          "line": 140,
           "iterable": "staff_badges"
         },
         {
-          "line": 156,
+          "line": 159,
           "iterable": "teacher_org_tree"
         },
         {
-          "line": 158,
+          "line": 161,
           "iterable": "level"
         },
         {
-          "line": 184,
+          "line": 187,
           "iterable": "org_chain"
         },
         {
-          "line": 204,
+          "line": 207,
           "iterable": "teacher_org_tree"
         },
         {
-          "line": 221,
+          "line": 224,
           "iterable": "approved_syllabi"
         },
         {
-          "line": 257,
+          "line": 260,
           "iterable": "parent_children_tree"
         },
         {
-          "line": 317,
+          "line": 320,
           "iterable": "admin_context"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 78,
+          "line": 81,
           "match": "overflow:hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 20,
+          "line": 24,
           "match": "max-width:380px"
         }
       ]
@@ -1090,35 +1059,35 @@
       "path": "templates/marketing/marketing_header.html",
       "unpaginated_for_loops": [
         {
-          "line": 14,
+          "line": 15,
           "iterable": "marketing_navbar_primary"
         },
         {
-          "line": 24,
+          "line": 25,
           "iterable": "item"
         },
         {
-          "line": 27,
+          "line": 28,
           "iterable": "col"
         },
         {
-          "line": 41,
+          "line": 42,
           "iterable": "item"
         },
         {
-          "line": 64,
+          "line": 65,
           "iterable": "marketing_navbar_more_mega_columns"
         },
         {
-          "line": 67,
+          "line": 68,
           "iterable": "col"
         },
         {
-          "line": 81,
+          "line": 82,
           "iterable": "marketing_navbar_primary"
         },
         {
-          "line": 85,
+          "line": 86,
           "iterable": "item"
         }
       ],
@@ -1129,35 +1098,35 @@
       "path": "templates/schools/super_command_center.html",
       "unpaginated_for_loops": [
         {
-          "line": 31,
+          "line": 34,
           "iterable": "operator_command_center_links"
         },
         {
-          "line": 99,
+          "line": 102,
           "iterable": "pending_schools"
         },
         {
-          "line": 123,
+          "line": 126,
           "iterable": "trial_schools"
         },
         {
-          "line": 147,
+          "line": 150,
           "iterable": "provisioning_breach_rows"
         },
         {
-          "line": 171,
+          "line": 174,
           "iterable": "stale_support"
         },
         {
-          "line": 195,
+          "line": 198,
           "iterable": "platform_incidents"
         },
         {
-          "line": 219,
+          "line": 222,
           "iterable": "billing_watchlist"
         },
         {
-          "line": 243,
+          "line": 246,
           "iterable": "risk_rows"
         }
       ],
@@ -1168,36 +1137,110 @@
       "path": "templates/siteconfig/partials/reportcard_builder_inner.html",
       "unpaginated_for_loops": [
         {
-          "line": 89,
+          "line": 90,
           "iterable": "styles"
         },
         {
-          "line": 147,
+          "line": 148,
           "iterable": "assignments"
         },
         {
-          "line": 191,
+          "line": 192,
           "iterable": "style_form"
         },
         {
-          "line": 195,
+          "line": 196,
           "iterable": "field"
         },
         {
-          "line": 216,
+          "line": 217,
           "iterable": "assignment_form"
         },
         {
-          "line": 220,
+          "line": 221,
           "iterable": "field"
         },
         {
-          "line": 241,
+          "line": 242,
           "iterable": "selection_form"
         },
         {
-          "line": 245,
+          "line": 246,
           "iterable": "field"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/studio_os/shell.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 7,
+          "iterable": "studio_modes"
+        },
+        {
+          "line": 54,
+          "iterable": "studio_modes"
+        },
+        {
+          "line": 72,
+          "iterable": "studio_modes"
+        },
+        {
+          "line": 82,
+          "iterable": "studio_modes"
+        },
+        {
+          "line": 163,
+          "iterable": "studio_role_preview_entries"
+        },
+        {
+          "line": 173,
+          "iterable": "studio_recommendations"
+        },
+        {
+          "line": 206,
+          "iterable": "studio_version_history"
+        },
+        {
+          "line": 314,
+          "iterable": "studio_bottom_bar_actions"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/auth/partials/login_immersive_canvas.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 60,
+          "iterable": "lic"
+        },
+        {
+          "line": 67,
+          "iterable": "lic"
+        },
+        {
+          "line": 83,
+          "iterable": "lic"
+        },
+        {
+          "line": 98,
+          "iterable": "lic"
+        },
+        {
+          "line": 109,
+          "iterable": "lic"
+        },
+        {
+          "line": 134,
+          "iterable": "lic"
+        },
+        {
+          "line": 151,
+          "iterable": "lic"
         }
       ],
       "overflow_hidden": [],
@@ -1207,67 +1250,32 @@
       "path": "templates/migration_cloud/intake_new.html",
       "unpaginated_for_loops": [
         {
-          "line": 43,
+          "line": 48,
           "iterable": "pipeline_steps"
         },
         {
-          "line": 56,
+          "line": 61,
           "iterable": "errors"
         },
         {
-          "line": 155,
+          "line": 160,
           "iterable": "intake_method_groups"
         },
         {
-          "line": 172,
+          "line": 177,
           "iterable": "intake_methods"
         },
         {
-          "line": 405,
+          "line": 410,
           "iterable": "source_playbooks"
         },
         {
-          "line": 414,
+          "line": 419,
           "iterable": "pipeline_steps"
         },
         {
-          "line": 428,
+          "line": 433,
           "iterable": "upload_guardrails"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/parent/dashboard.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 100,
-          "iterable": "portal_quick_actions"
-        },
-        {
-          "line": 229,
-          "iterable": "links"
-        },
-        {
-          "line": 379,
-          "iterable": "workflow_summary"
-        },
-        {
-          "line": 395,
-          "iterable": "parent_upcoming_events"
-        },
-        {
-          "line": 424,
-          "iterable": "guardian_students_for_switcher"
-        },
-        {
-          "line": 436,
-          "iterable": "child_cards"
-        },
-        {
-          "line": 451,
-          "iterable": "card"
         }
       ],
       "overflow_hidden": [],
@@ -1277,31 +1285,31 @@
       "path": "templates/portal/offline_sync_queue.html",
       "unpaginated_for_loops": [
         {
-          "line": 42,
+          "line": 49,
           "iterable": "submitters"
         },
         {
-          "line": 135,
+          "line": 142,
           "iterable": "queued_actions"
         },
         {
-          "line": 176,
+          "line": 183,
           "iterable": "syncing_actions"
         },
         {
-          "line": 213,
+          "line": 220,
           "iterable": "failed_actions"
         },
         {
-          "line": 251,
+          "line": 258,
           "iterable": "conflict_actions"
         },
         {
-          "line": 291,
+          "line": 298,
           "iterable": "synced_actions"
         },
         {
-          "line": 327,
+          "line": 334,
           "iterable": "offline_actions"
         }
       ],
@@ -1312,31 +1320,31 @@
       "path": "templates/schools/billing_dashboard.html",
       "unpaginated_for_loops": [
         {
-          "line": 55,
+          "line": 60,
           "iterable": "account_summary"
         },
         {
-          "line": 70,
+          "line": 75,
           "iterable": "subscription_summary"
         },
         {
-          "line": 138,
+          "line": 144,
           "iterable": "active_subscriptions"
         },
         {
-          "line": 173,
+          "line": 180,
           "iterable": "trial_schools"
         },
         {
-          "line": 209,
+          "line": 216,
           "iterable": "recent_processor_events"
         },
         {
-          "line": 249,
+          "line": 256,
           "iterable": "scheduled_payouts"
         },
         {
-          "line": 290,
+          "line": 297,
           "iterable": "recent_ledger"
         }
       ],
@@ -1347,31 +1355,31 @@
       "path": "templates/schools/partials/manager_help_center_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 24,
+          "line": 25,
           "iterable": "engage_actions"
         },
         {
-          "line": 121,
+          "line": 122,
           "iterable": "recent_features"
         },
         {
-          "line": 199,
+          "line": 200,
           "iterable": "signals"
         },
         {
-          "line": 226,
+          "line": 227,
           "iterable": "signals"
         },
         {
-          "line": 242,
+          "line": 243,
           "iterable": "signals"
         },
         {
-          "line": 256,
+          "line": 257,
           "iterable": "help_sections"
         },
         {
-          "line": 263,
+          "line": 264,
           "iterable": "section"
         }
       ],
@@ -1382,31 +1390,31 @@
       "path": "templates/schools/super_migration_cloud.html",
       "unpaginated_for_loops": [
         {
-          "line": 39,
+          "line": 45,
           "iterable": "operator_migration_cloud_links"
         },
         {
-          "line": 121,
+          "line": 127,
           "iterable": "exception_runs_open"
         },
         {
-          "line": 138,
+          "line": 144,
           "iterable": "quarantine_open"
         },
         {
-          "line": 162,
+          "line": 168,
           "iterable": "profiles"
         },
         {
-          "line": 179,
+          "line": 185,
           "iterable": "rollback_candidates"
         },
         {
-          "line": 219,
+          "line": 225,
           "iterable": "preview"
         },
         {
-          "line": 253,
+          "line": 259,
           "iterable": "recent_runs"
         }
       ],
@@ -1417,31 +1425,31 @@
       "path": "templates/schools/super_playbook_operator_hub.html",
       "unpaginated_for_loops": [
         {
-          "line": 63,
+          "line": 66,
           "iterable": "operator_links"
         },
         {
-          "line": 81,
+          "line": 84,
           "iterable": "playbook_log_status_choices"
         },
         {
-          "line": 88,
+          "line": 91,
           "iterable": "playbook_log_execution_type_choices"
         },
         {
-          "line": 98,
+          "line": 101,
           "iterable": "playbook_slug_filter_links"
         },
         {
-          "line": 112,
+          "line": 115,
           "iterable": "migration_playbooks"
         },
         {
-          "line": 141,
+          "line": 144,
           "iterable": "recent_logs"
         },
         {
-          "line": 150,
+          "line": 153,
           "iterable": "log"
         }
       ],
@@ -1452,31 +1460,31 @@
       "path": "templates/studio_os/partials/launch_studio_overview_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 38,
+          "line": 47,
           "iterable": "launch_payload"
         },
         {
-          "line": 52,
+          "line": 61,
           "iterable": "launch_payload"
         },
         {
-          "line": 60,
+          "line": 69,
           "iterable": "launch_payload"
         },
         {
-          "line": 76,
+          "line": 85,
           "iterable": "launch_payload"
         },
         {
-          "line": 93,
+          "line": 102,
           "iterable": "launch_role_previews"
         },
         {
-          "line": 122,
+          "line": 131,
           "iterable": "launch_payload"
         },
         {
-          "line": 135,
+          "line": 144,
           "iterable": "launch_payload"
         }
       ],
@@ -1484,74 +1492,34 @@
       "rigid_width": []
     },
     {
-      "path": "templates/studio_os/shell.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 6,
-          "iterable": "studio_modes"
-        },
-        {
-          "line": 53,
-          "iterable": "studio_modes"
-        },
-        {
-          "line": 131,
-          "iterable": "studio_role_preview_entries"
-        },
-        {
-          "line": 141,
-          "iterable": "studio_recommendations"
-        },
-        {
-          "line": 174,
-          "iterable": "studio_version_history"
-        },
-        {
-          "line": 278,
-          "iterable": "studio_bottom_bar_actions"
-        },
-        {
-          "line": 289,
-          "iterable": "studio_command_palette_entries"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 45,
-          "match": "max-width: 16rem"
-        }
-      ]
-    },
-    {
       "path": "templates/widgets/parent_dashboard_widgets.html",
       "unpaginated_for_loops": [
         {
-          "line": 92,
+          "line": 93,
           "iterable": "events"
         },
         {
-          "line": 163,
+          "line": 164,
           "iterable": "access"
         },
         {
-          "line": 178,
+          "line": 179,
           "iterable": "timetable"
         },
         {
-          "line": 199,
+          "line": 200,
           "iterable": "communication"
         },
         {
-          "line": 211,
+          "line": 212,
           "iterable": "communication"
         },
         {
-          "line": 241,
+          "line": 242,
           "iterable": "widget_data"
         },
         {
-          "line": 252,
+          "line": 253,
           "iterable": "widget_data"
         }
       ],
@@ -1562,27 +1530,27 @@
       "path": "templates/analytics/master_sheet.html",
       "unpaginated_for_loops": [
         {
-          "line": 21,
+          "line": 28,
           "iterable": "years"
         },
         {
-          "line": 30,
+          "line": 37,
           "iterable": "terms"
         },
         {
-          "line": 39,
+          "line": 46,
           "iterable": "classrooms"
         },
         {
-          "line": 48,
+          "line": 55,
           "iterable": "specialties"
         },
         {
-          "line": 57,
+          "line": 64,
           "iterable": "subjects"
         },
         {
-          "line": 66,
+          "line": 73,
           "iterable": "teachers"
         }
       ],
@@ -1593,27 +1561,27 @@
       "path": "templates/components/dashboard_footer.html",
       "unpaginated_for_loops": [
         {
-          "line": 44,
+          "line": 60,
           "iterable": "trust_pillars"
         },
         {
-          "line": 63,
+          "line": 79,
           "iterable": "app_badges"
         },
         {
-          "line": 76,
+          "line": 92,
           "iterable": "social"
         },
         {
-          "line": 88,
+          "line": 104,
           "iterable": "contacts"
         },
         {
-          "line": 117,
+          "line": 136,
           "iterable": "legal_links"
         },
         {
-          "line": 122,
+          "line": 141,
           "iterable": "SITE"
         }
       ],
@@ -1624,34 +1592,34 @@
       "path": "templates/finance/invoice_detail.html",
       "unpaginated_for_loops": [
         {
-          "line": 155,
+          "line": 161,
           "iterable": "simple_payment_flow"
         },
         {
-          "line": 160,
+          "line": 166,
           "iterable": "simple_payment_flow"
         },
         {
-          "line": 180,
+          "line": 186,
           "iterable": "offline_payment_intents"
         },
         {
-          "line": 232,
+          "line": 238,
           "iterable": "reminder_logs"
         },
         {
-          "line": 372,
+          "line": 378,
           "iterable": "payment_proof_uploads"
         },
         {
-          "line": 430,
+          "line": 436,
           "iterable": "invoice"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 161,
+          "line": 167,
           "match": "min-width: 140px"
         }
       ]
@@ -1660,15 +1628,11 @@
       "path": "templates/partials/cockpit/_activity_ticker.html",
       "unpaginated_for_loops": [
         {
-          "line": 66,
+          "line": 68,
           "iterable": "cockpit"
         },
         {
-          "line": 74,
-          "iterable": "cockpit"
-        },
-        {
-          "line": 95,
+          "line": 79,
           "iterable": "cockpit"
         },
         {
@@ -1676,12 +1640,78 @@
           "iterable": "cockpit"
         },
         {
-          "line": 127,
+          "line": 109,
           "iterable": "cockpit"
         },
         {
           "line": 134,
           "iterable": "cockpit"
+        },
+        {
+          "line": 142,
+          "iterable": "cockpit"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/partials/cockpit/_live_world_map.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 64,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 70,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 75,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 162,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 272,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 296,
+          "iterable": "lwm_fleet"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/partials/tenant/setup_command_surface.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 68,
+          "iterable": "rmc_setup_data_path_choices"
+        },
+        {
+          "line": 81,
+          "iterable": "rmc_setup_migration_flow"
+        },
+        {
+          "line": 96,
+          "iterable": "rmc_setup_wizard_stages"
+        },
+        {
+          "line": 105,
+          "iterable": "rmc_setup_wizard_stages"
+        },
+        {
+          "line": 116,
+          "iterable": "stage"
+        },
+        {
+          "line": 146,
+          "iterable": "rmc_school_onboarding"
         }
       ],
       "overflow_hidden": [],
@@ -1691,27 +1721,27 @@
       "path": "templates/people/backend_student_list.html",
       "unpaginated_for_loops": [
         {
-          "line": 23,
-          "iterable": "student_status_breakdown"
-        },
-        {
           "line": 26,
           "iterable": "student_status_breakdown"
         },
         {
-          "line": 48,
+          "line": 29,
+          "iterable": "student_status_breakdown"
+        },
+        {
+          "line": 51,
           "iterable": "years"
         },
         {
-          "line": 57,
+          "line": 60,
           "iterable": "classrooms"
         },
         {
-          "line": 103,
+          "line": 106,
           "iterable": "students"
         },
         {
-          "line": 130,
+          "line": 133,
           "iterable": "student"
         }
       ],
@@ -1719,31 +1749,31 @@
       "rigid_width": []
     },
     {
-      "path": "templates/schools/mat_group_hub/edit.html",
+      "path": "templates/platform_runtime/health_autopilot_console.html",
       "unpaginated_for_loops": [
         {
-          "line": 38,
-          "iterable": "form"
+          "line": 135,
+          "iterable": "generative_surfaces"
         },
         {
-          "line": 48,
-          "iterable": "form"
+          "line": 179,
+          "iterable": "proposals"
         },
         {
-          "line": 53,
-          "iterable": "form"
+          "line": 245,
+          "iterable": "anomaly_nudges"
         },
         {
-          "line": 58,
-          "iterable": "form"
+          "line": 290,
+          "iterable": "policies"
         },
         {
-          "line": 63,
-          "iterable": "form"
+          "line": 323,
+          "iterable": "catalog"
         },
         {
-          "line": 73,
-          "iterable": "form"
+          "line": 355,
+          "iterable": "recent_log"
         }
       ],
       "overflow_hidden": [],
@@ -1753,208 +1783,212 @@
       "path": "templates/schools/signup_school.html",
       "unpaginated_for_loops": [
         {
-          "line": 40,
+          "line": 47,
           "iterable": "cockpit"
         },
         {
-          "line": 132,
+          "line": 142,
           "iterable": "signup_countries"
         },
         {
-          "line": 168,
+          "line": 180,
           "iterable": "country_pack"
         },
         {
-          "line": 199,
+          "line": 211,
           "iterable": "india_state_options"
         },
         {
-          "line": 230,
+          "line": 253,
           "iterable": "country_pack"
         },
         {
-          "line": 277,
+          "line": 311,
           "iterable": "country_pack"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": []
+    },
+    {
+      "path": "templates/schools/super_tenant_360.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 136,
+          "iterable": "provisioning_progress"
+        },
+        {
+          "line": 174,
+          "iterable": "lifecycle_registration"
+        },
+        {
+          "line": 185,
+          "iterable": "lifecycle_enrollment"
+        },
+        {
+          "line": 205,
+          "iterable": "offboarding_checklist"
+        },
+        {
+          "line": 228,
+          "iterable": "offboarding"
+        },
+        {
+          "line": 357,
+          "iterable": "runtime_trace"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/siteconfig/partials/billing_plan_readonly_body.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 53,
+          "iterable": "pricing_options"
+        },
+        {
+          "line": 177,
+          "iterable": "plan"
+        },
+        {
+          "line": 233,
+          "iterable": "usage_meters"
+        },
+        {
+          "line": 256,
+          "iterable": "invoices"
+        },
+        {
+          "line": 282,
+          "iterable": "ledger_entries"
+        },
+        {
+          "line": 312,
+          "iterable": "addons"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 116,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 116,
+          "match": "max-width: 12rem"
+        },
+        {
+          "line": 120,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 120,
+          "match": "max-width: 12rem"
+        },
+        {
+          "line": 125,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 125,
+          "match": "max-width: 12rem"
+        },
+        {
+          "line": 131,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 131,
+          "match": "max-width: 12rem"
+        }
+      ]
     },
     {
       "path": "templates/siteconfig/tenant_studio_hub.html",
       "unpaginated_for_loops": [
         {
-          "line": 103,
+          "line": 109,
           "iterable": "launch_blockers"
         },
         {
-          "line": 112,
+          "line": 118,
           "iterable": "proactive_tenant_suggestions"
         },
         {
-          "line": 138,
+          "line": 144,
           "iterable": "coach_quick_actions"
         },
         {
-          "line": 163,
+          "line": 169,
           "iterable": "launch_rail"
         },
         {
-          "line": 178,
+          "line": 184,
           "iterable": "launch_lanes"
         },
         {
-          "line": 208,
+          "line": 214,
           "iterable": "health_recommendations"
         }
       ],
       "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 10,
-          "match": "max-width: 56rem"
-        }
-      ]
+      "rigid_width": []
     },
     {
-      "path": "templates/studio_os/partials/shell_main_content.html",
+      "path": "templates/student360/student_360_page.html",
       "unpaginated_for_loops": [
         {
-          "line": 11,
-          "iterable": "studio_modes"
+          "line": 70,
+          "iterable": "information_tags"
         },
         {
-          "line": 115,
-          "iterable": "studio_role_preview_entries"
+          "line": 88,
+          "iterable": "identity_matrix"
         },
         {
-          "line": 125,
-          "iterable": "studio_recommendations"
+          "line": 113,
+          "iterable": "academic"
         },
         {
-          "line": 158,
-          "iterable": "studio_version_history"
+          "line": 121,
+          "iterable": "academic"
         },
         {
-          "line": 228,
-          "iterable": "studio_bottom_bar_actions"
+          "line": 140,
+          "iterable": "finance"
         },
         {
-          "line": 239,
-          "iterable": "studio_command_palette_entries"
+          "line": 169,
+          "iterable": "timeline"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": []
     },
     {
-      "path": "templates/accounts/rollover_year.html",
+      "path": "templates/academics/backend_classroom_create.html",
       "unpaginated_for_loops": [
         {
-          "line": 45,
-          "iterable": "years"
+          "line": 24,
+          "iterable": "form"
         },
         {
-          "line": 54,
-          "iterable": "years"
+          "line": 27,
+          "iterable": "form"
         },
         {
-          "line": 82,
-          "iterable": "checklist"
+          "line": 27,
+          "iterable": "field"
         },
         {
-          "line": 143,
-          "iterable": "rows"
+          "line": 39,
+          "iterable": "form"
         },
         {
-          "line": 153,
-          "iterable": "target_classrooms"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 151,
-          "match": "min-width:160px"
-        }
-      ]
-    },
-    {
-      "path": "templates/events/event_analytics.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 100,
-          "iterable": "domain_by_type"
-        },
-        {
-          "line": 119,
-          "iterable": "domain_by_status"
-        },
-        {
-          "line": 138,
-          "iterable": "platform_by_type"
-        },
-        {
-          "line": 157,
-          "iterable": "recent_domain"
-        },
-        {
-          "line": 176,
-          "iterable": "recent_platform"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/feedback/school_center.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 40,
-          "iterable": "help_resources"
-        },
-        {
-          "line": 53,
-          "iterable": "help_resources"
-        },
-        {
-          "line": 112,
-          "iterable": "feedback_items"
-        },
-        {
-          "line": 128,
-          "iterable": "feature_requests"
-        },
-        {
-          "line": 149,
-          "iterable": "you_said_we_did"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/lifecycle/rapid_create.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 25,
-          "iterable": "errors"
-        },
-        {
-          "line": 65,
-          "iterable": "country_pack"
-        },
-        {
-          "line": 85,
-          "iterable": "country_pack"
-        },
-        {
-          "line": 105,
-          "iterable": "country_pack"
-        },
-        {
-          "line": 132,
-          "iterable": "india_state_options"
+          "line": 46,
+          "iterable": "field"
         }
       ],
       "overflow_hidden": [],
@@ -1994,21 +2028,21 @@
       "path": "templates/marketing/marketing_institution_page.html",
       "unpaginated_for_loops": [
         {
-          "line": 65,
+          "line": 68,
           "iterable": "page"
         },
         {
-          "line": 93,
+          "line": 96,
           "iterable": "page"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 29,
+          "line": 32,
           "match": "overflow-hidden"
         },
         {
-          "line": 34,
+          "line": 37,
           "match": "overflow-hidden"
         }
       ],
@@ -2018,91 +2052,87 @@
       "path": "templates/marketing/partials/marketing_inner_core.html",
       "unpaginated_for_loops": [
         {
-          "line": 8,
+          "line": 23,
           "iterable": "page_extras"
         },
         {
-          "line": 22,
+          "line": 38,
           "iterable": "page_extras"
         },
         {
-          "line": 37,
+          "line": 110,
           "iterable": "page_extras"
         },
         {
-          "line": 109,
+          "line": 135,
           "iterable": "page_extras"
         },
         {
-          "line": 134,
-          "iterable": "page_extras"
-        },
-        {
-          "line": 253,
+          "line": 254,
           "iterable": "demo_what_you_see"
         },
         {
-          "line": 274,
+          "line": 275,
           "iterable": "blog_posts"
         },
         {
-          "line": 306,
+          "line": 307,
           "iterable": "page_extras"
         },
         {
-          "line": 322,
+          "line": 323,
           "iterable": "page"
         },
         {
-          "line": 337,
+          "line": 338,
           "iterable": "page_extras"
         },
         {
-          "line": 351,
+          "line": 352,
           "iterable": "page_extras"
         },
         {
-          "line": 356,
+          "line": 357,
           "iterable": "phase"
         },
         {
-          "line": 381,
+          "line": 382,
           "iterable": "page_extras"
         },
         {
-          "line": 421,
+          "line": 422,
           "iterable": "page_extras"
         },
         {
-          "line": 434,
+          "line": 435,
           "iterable": "page_extras"
         },
         {
-          "line": 450,
+          "line": 451,
           "iterable": "page_extras"
         },
         {
-          "line": 457,
+          "line": 458,
           "iterable": "case"
         },
         {
-          "line": 473,
+          "line": 474,
           "iterable": "page_extras"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 62,
+          "line": 63,
           "match": "overflow:hidden"
         },
         {
-          "line": 204,
+          "line": 205,
           "match": "overflow:hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 160,
+          "line": 161,
           "match": "max-width: 520px"
         }
       ]
@@ -2111,21 +2141,21 @@
       "path": "templates/schools/super_plans_list.html",
       "unpaginated_for_loops": [
         {
-          "line": 67,
+          "line": 71,
           "iterable": "plans"
         },
         {
-          "line": 109,
+          "line": 113,
           "iterable": "addons"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 51,
+          "line": 55,
           "match": "overflow-hidden"
         },
         {
-          "line": 95,
+          "line": 99,
           "match": "overflow-hidden"
         }
       ],
@@ -2136,11 +2166,11 @@
       "unpaginated_for_loops": [],
       "overflow_hidden": [
         {
-          "line": 10,
+          "line": 11,
           "match": "overflow-hidden"
         },
         {
-          "line": 40,
+          "line": 41,
           "match": "overflow-hidden"
         }
       ],
@@ -2170,47 +2200,47 @@
       "path": "templates/accounts/profile.html",
       "unpaginated_for_loops": [
         {
-          "line": 137,
+          "line": 140,
           "iterable": "staff_badges"
         },
         {
-          "line": 156,
+          "line": 159,
           "iterable": "teacher_org_tree"
         },
         {
-          "line": 158,
+          "line": 161,
           "iterable": "level"
         },
         {
-          "line": 184,
+          "line": 187,
           "iterable": "org_chain"
         },
         {
-          "line": 204,
+          "line": 207,
           "iterable": "teacher_org_tree"
         },
         {
-          "line": 221,
+          "line": 224,
           "iterable": "approved_syllabi"
         },
         {
-          "line": 257,
+          "line": 260,
           "iterable": "parent_children_tree"
         },
         {
-          "line": 317,
+          "line": 320,
           "iterable": "admin_context"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 78,
+          "line": 81,
           "match": "overflow:hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 20,
+          "line": 24,
           "match": "max-width:380px"
         }
       ]
@@ -2220,11 +2250,31 @@
       "unpaginated_for_loops": [],
       "overflow_hidden": [
         {
-          "line": 10,
+          "line": 11,
           "match": "overflow-hidden"
         }
       ],
       "rigid_width": []
+    },
+    {
+      "path": "templates/emails/deadline_reminder.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 21,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 21,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 53,
+          "match": "max-width:600px"
+        }
+      ]
     },
     {
       "path": "templates/emails/fee_reminder.html",
@@ -2242,6 +2292,26 @@
         },
         {
           "line": 56,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/emails/grade_publication.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 20,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 20,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 51,
           "match": "max-width:600px"
         }
       ]
@@ -2410,23 +2480,23 @@
       "path": "templates/marketing/security_packet_request.html",
       "unpaginated_for_loops": [
         {
-          "line": 23,
+          "line": 26,
           "iterable": "jurisdiction_choices"
         },
         {
-          "line": 59,
+          "line": 62,
           "iterable": "jurisdiction_choices"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 34,
+          "line": 37,
           "match": "overflow:hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 5,
+          "line": 8,
           "match": "max-width: 40rem"
         }
       ]
@@ -2467,13 +2537,13 @@
       "unpaginated_for_loops": [],
       "overflow_hidden": [
         {
-          "line": 12,
+          "line": 17,
           "match": "overflow: hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 12,
+          "line": 17,
           "match": "max-width: 22rem"
         }
       ]
@@ -2483,13 +2553,13 @@
       "unpaginated_for_loops": [],
       "overflow_hidden": [
         {
-          "line": 13,
+          "line": 18,
           "match": "overflow: hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 13,
+          "line": 18,
           "match": "max-width: 22rem"
         }
       ]
@@ -2538,7 +2608,7 @@
       "path": "templates/reports/annual_report_cameroon_modern.html",
       "unpaginated_for_loops": [
         {
-          "line": 112,
+          "line": 116,
           "iterable": "term_rows"
         }
       ],
@@ -2559,17 +2629,17 @@
       "path": "templates/reports/term_report_cameroon_modern.html",
       "unpaginated_for_loops": [
         {
-          "line": 123,
+          "line": 124,
           "iterable": "rows"
         },
         {
-          "line": 164,
+          "line": 165,
           "iterable": "sequence_cues"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 41,
+          "line": 42,
           "match": "overflow:hidden"
         }
       ],
@@ -2614,50 +2684,6 @@
           "match": "max-width:600px"
         }
       ]
-    },
-    {
-      "path": "templates/schools/custom_domain_wizard.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 42,
-          "iterable": "domains"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 8,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_backlog_unlock_center.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 112,
-          "iterable": "evaluation_sections"
-        },
-        {
-          "line": 121,
-          "iterable": "sec"
-        },
-        {
-          "line": 149,
-          "iterable": "item"
-        },
-        {
-          "line": 183,
-          "iterable": "recent_unlock_events"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 120,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
     }
   ],
   "priority_rigid_width": [
@@ -2665,62 +2691,58 @@
       "path": "templates/siteconfig/partials/scheduled_reports_delivery_hub_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 98,
+          "line": 99,
           "iterable": "schedules"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 2,
-          "match": "max-width: 58rem"
-        },
-        {
-          "line": 13,
+          "line": 14,
           "match": "min-width: 7rem"
         },
         {
-          "line": 13,
+          "line": 14,
           "match": "max-width: 12rem"
         },
         {
-          "line": 17,
+          "line": 18,
           "match": "min-width: 7rem"
         },
         {
-          "line": 17,
+          "line": 18,
           "match": "max-width: 12rem"
         },
         {
-          "line": 21,
+          "line": 22,
           "match": "min-width: 7rem"
         },
         {
-          "line": 21,
+          "line": 22,
           "match": "max-width: 12rem"
         },
         {
-          "line": 25,
+          "line": 26,
           "match": "min-width: 7rem"
         },
         {
-          "line": 25,
+          "line": 26,
           "match": "max-width: 12rem"
         },
         {
-          "line": 29,
+          "line": 30,
           "match": "min-width: 7rem"
         },
         {
-          "line": 29,
+          "line": 30,
           "match": "max-width: 12rem"
         },
         {
-          "line": 33,
+          "line": 34,
           "match": "min-width: 7rem"
         },
         {
-          "line": 33,
+          "line": 34,
           "match": "max-width: 12rem"
         }
       ]
@@ -2729,70 +2751,66 @@
       "path": "templates/siteconfig/partials/tenant_runtime_configuration_hub_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 102,
+          "line": 103,
           "iterable": "guided_workflows"
         },
         {
-          "line": 114,
+          "line": 115,
           "iterable": "workflow"
         },
         {
-          "line": 171,
+          "line": 172,
           "iterable": "flags_on"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 2,
-          "match": "max-width: 52rem"
-        },
-        {
-          "line": 13,
+          "line": 14,
           "match": "min-width: 7rem"
         },
         {
-          "line": 13,
+          "line": 14,
           "match": "max-width: 12rem"
         },
         {
-          "line": 17,
+          "line": 18,
           "match": "min-width: 7rem"
         },
         {
-          "line": 17,
+          "line": 18,
           "match": "max-width: 12rem"
         },
         {
-          "line": 21,
+          "line": 22,
           "match": "min-width: 7rem"
         },
         {
-          "line": 21,
+          "line": 22,
           "match": "max-width: 12rem"
         },
         {
-          "line": 25,
+          "line": 26,
           "match": "min-width: 7rem"
         },
         {
-          "line": 25,
+          "line": 26,
           "match": "max-width: 12rem"
         },
         {
-          "line": 29,
+          "line": 30,
           "match": "min-width: 7rem"
         },
         {
-          "line": 29,
+          "line": 30,
           "match": "max-width: 12rem"
         },
         {
-          "line": 33,
+          "line": 34,
           "match": "min-width: 12rem"
         },
         {
-          "line": 33,
+          "line": 34,
           "match": "max-width: 18rem"
         }
       ]
@@ -2801,55 +2819,183 @@
       "path": "templates/siteconfig/partials/tenant_report_schedules_evidence_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 51,
+          "line": 53,
           "iterable": "schedules"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 3,
-          "match": "max-width: 56rem"
+          "line": 12,
+          "match": "min-width: 7rem"
         },
+        {
+          "line": 12,
+          "match": "max-width: 12rem"
+        },
+        {
+          "line": 16,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 16,
+          "match": "max-width: 12rem"
+        },
+        {
+          "line": 20,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 20,
+          "match": "max-width: 12rem"
+        },
+        {
+          "line": 24,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 24,
+          "match": "max-width: 12rem"
+        },
+        {
+          "line": 28,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 28,
+          "match": "max-width: 12rem"
+        }
+      ]
+    },
+    {
+      "path": "templates/super/school_batches/index.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 49,
+          "match": "overflow: hidden"
+        }
+      ],
+      "rigid_width": [
         {
           "line": 10,
-          "match": "min-width: 7rem"
+          "match": "max-width: 1280px"
         },
         {
-          "line": 10,
-          "match": "max-width: 12rem"
+          "line": 57,
+          "match": "width: 110px"
         },
         {
-          "line": 14,
-          "match": "min-width: 7rem"
+          "line": 76,
+          "match": "width: 110px"
         },
         {
-          "line": 14,
-          "match": "max-width: 12rem"
+          "line": 106,
+          "match": "min-width: 120px"
         },
         {
-          "line": 18,
-          "match": "min-width: 7rem"
+          "line": 112,
+          "match": "min-width: 220px"
         },
         {
-          "line": 18,
-          "match": "max-width: 12rem"
+          "line": 115,
+          "match": "min-width: 220px"
         },
         {
-          "line": 22,
-          "match": "min-width: 7rem"
+          "line": 118,
+          "match": "min-width: 160px"
         },
         {
-          "line": 22,
-          "match": "max-width: 12rem"
+          "line": 123,
+          "match": "min-width: 260px"
         },
         {
-          "line": 26,
-          "match": "min-width: 7rem"
+          "line": 127,
+          "match": "min-width: 160px"
         },
         {
-          "line": 26,
-          "match": "max-width: 12rem"
+          "line": 130,
+          "match": "min-width: 160px"
+        }
+      ]
+    },
+    {
+      "path": "templates/schools/super_security_hub.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 39,
+          "iterable": "governance_risk_groups"
+        },
+        {
+          "line": 56,
+          "iterable": "verifier_cards"
+        },
+        {
+          "line": 80,
+          "iterable": "impersonation_rows"
+        },
+        {
+          "line": 152,
+          "iterable": "security_events"
+        },
+        {
+          "line": 175,
+          "iterable": "suspicious_security_events"
+        },
+        {
+          "line": 197,
+          "iterable": "perm_events"
+        },
+        {
+          "line": 219,
+          "iterable": "access_denied_events"
+        },
+        {
+          "line": 241,
+          "iterable": "approval_events"
+        },
+        {
+          "line": 264,
+          "iterable": "export_timeline_rows"
+        },
+        {
+          "line": 292,
+          "iterable": "session_rows"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 85,
+          "match": "max-width: 8rem"
+        },
+        {
+          "line": 87,
+          "match": "max-width: 10rem"
+        },
+        {
+          "line": 201,
+          "match": "max-width: 8rem"
+        },
+        {
+          "line": 222,
+          "match": "max-width: 8rem"
+        },
+        {
+          "line": 244,
+          "match": "max-width: 8rem"
+        },
+        {
+          "line": 267,
+          "match": "max-width: 6rem"
+        },
+        {
+          "line": 268,
+          "match": "max-width: 6rem"
+        },
+        {
+          "line": 269,
+          "match": "max-width: 8rem"
         }
       ]
     },
@@ -2857,54 +3003,62 @@
       "path": "templates/siteconfig/partials/billing_plan_readonly_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 105,
+          "line": 53,
+          "iterable": "pricing_options"
+        },
+        {
+          "line": 177,
           "iterable": "plan"
         },
         {
-          "line": 161,
+          "line": 233,
           "iterable": "usage_meters"
         },
         {
-          "line": 180,
+          "line": 256,
+          "iterable": "invoices"
+        },
+        {
+          "line": 282,
+          "iterable": "ledger_entries"
+        },
+        {
+          "line": 312,
           "iterable": "addons"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 3,
-          "match": "max-width: 52rem"
-        },
-        {
-          "line": 44,
+          "line": 116,
           "match": "min-width: 7rem"
         },
         {
-          "line": 44,
+          "line": 116,
           "match": "max-width: 12rem"
         },
         {
-          "line": 48,
+          "line": 120,
           "match": "min-width: 7rem"
         },
         {
-          "line": 48,
+          "line": 120,
           "match": "max-width: 12rem"
         },
         {
-          "line": 53,
+          "line": 125,
           "match": "min-width: 7rem"
         },
         {
-          "line": 53,
+          "line": 125,
           "match": "max-width: 12rem"
         },
         {
-          "line": 59,
+          "line": 131,
           "match": "min-width: 7rem"
         },
         {
-          "line": 59,
+          "line": 131,
           "match": "max-width: 12rem"
         }
       ]
@@ -2913,127 +3067,43 @@
       "path": "templates/siteconfig/partials/report_output_history_evidence_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 62,
+          "line": 63,
           "iterable": "recent_reports"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 3,
-          "match": "max-width: 58rem"
-        },
-        {
-          "line": 10,
+          "line": 11,
           "match": "min-width: 7rem"
         },
         {
-          "line": 10,
+          "line": 11,
           "match": "max-width: 12rem"
         },
         {
-          "line": 14,
+          "line": 15,
           "match": "min-width: 7rem"
         },
         {
-          "line": 14,
+          "line": 15,
           "match": "max-width: 12rem"
         },
         {
-          "line": 18,
+          "line": 19,
           "match": "min-width: 7rem"
         },
         {
-          "line": 18,
+          "line": 19,
           "match": "max-width: 12rem"
         },
         {
-          "line": 22,
+          "line": 23,
           "match": "min-width: 7rem"
         },
         {
-          "line": 22,
+          "line": 23,
           "match": "max-width: 12rem"
-        }
-      ]
-    },
-    {
-      "path": "templates/schools/super_security_hub.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 34,
-          "iterable": "governance_risk_groups"
-        },
-        {
-          "line": 51,
-          "iterable": "verifier_cards"
-        },
-        {
-          "line": 75,
-          "iterable": "impersonation_rows"
-        },
-        {
-          "line": 147,
-          "iterable": "security_events"
-        },
-        {
-          "line": 170,
-          "iterable": "suspicious_security_events"
-        },
-        {
-          "line": 192,
-          "iterable": "perm_events"
-        },
-        {
-          "line": 214,
-          "iterable": "access_denied_events"
-        },
-        {
-          "line": 236,
-          "iterable": "approval_events"
-        },
-        {
-          "line": 259,
-          "iterable": "export_timeline_rows"
-        },
-        {
-          "line": 287,
-          "iterable": "session_rows"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 80,
-          "match": "max-width: 8rem"
-        },
-        {
-          "line": 82,
-          "match": "max-width: 10rem"
-        },
-        {
-          "line": 196,
-          "match": "max-width: 8rem"
-        },
-        {
-          "line": 217,
-          "match": "max-width: 8rem"
-        },
-        {
-          "line": 239,
-          "match": "max-width: 8rem"
-        },
-        {
-          "line": 262,
-          "match": "max-width: 6rem"
-        },
-        {
-          "line": 263,
-          "match": "max-width: 6rem"
-        },
-        {
-          "line": 264,
-          "match": "max-width: 8rem"
         }
       ]
     },
@@ -3041,42 +3111,38 @@
       "path": "templates/siteconfig/partials/report_templates_catalog_evidence_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 43,
+          "line": 44,
           "iterable": "template_rows"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 3,
-          "match": "max-width: 56rem"
-        },
-        {
-          "line": 10,
+          "line": 11,
           "match": "min-width: 7rem"
         },
         {
-          "line": 10,
+          "line": 11,
           "match": "max-width: 12rem"
         },
         {
-          "line": 14,
+          "line": 15,
           "match": "min-width: 7rem"
         },
         {
-          "line": 14,
+          "line": 15,
           "match": "max-width: 12rem"
         },
         {
-          "line": 19,
+          "line": 20,
           "match": "min-width: 7rem"
         },
         {
-          "line": 19,
+          "line": 20,
           "match": "max-width: 14rem"
         },
         {
-          "line": 21,
+          "line": 22,
           "match": "max-width: 12rem"
         }
       ]
@@ -3085,75 +3151,35 @@
       "path": "templates/siteconfig/partials/academic_years_setup_evidence_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 52,
+          "line": 53,
           "iterable": "rows"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 3,
-          "match": "max-width: 56rem"
-        },
-        {
-          "line": 10,
+          "line": 11,
           "match": "min-width: 7rem"
         },
         {
-          "line": 10,
+          "line": 11,
           "match": "max-width: 12rem"
         },
         {
-          "line": 14,
+          "line": 15,
           "match": "min-width: 7rem"
         },
         {
-          "line": 14,
+          "line": 15,
           "match": "max-width: 12rem"
         },
         {
-          "line": 18,
+          "line": 19,
           "match": "min-width: 7rem"
         },
         {
-          "line": 18,
+          "line": 19,
           "match": "max-width: 12rem"
-        }
-      ]
-    },
-    {
-      "path": "templates/siteconfig/bulk_letters.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 63,
-          "iterable": "classroom_list"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 16,
-          "match": "max-width: 58rem"
-        },
-        {
-          "line": 21,
-          "match": "min-width: 7rem"
-        },
-        {
-          "line": 21,
-          "match": "max-width: 12rem"
-        },
-        {
-          "line": 25,
-          "match": "min-width: 7rem"
-        },
-        {
-          "line": 25,
-          "match": "max-width: 12rem"
-        },
-        {
-          "line": 61,
-          "match": "max-width: 22rem"
         }
       ]
     },
@@ -3161,35 +3187,71 @@
       "path": "templates/super/integrations/lms_audit_index.html",
       "unpaginated_for_loops": [
         {
-          "line": 83,
+          "line": 89,
           "iterable": "rows"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 5,
+          "line": 10,
           "match": "max-width: 1280px"
         },
         {
-          "line": 41,
+          "line": 46,
           "match": "min-width: 160px"
         },
         {
-          "line": 44,
+          "line": 49,
           "match": "min-width: 110px"
         },
         {
-          "line": 51,
+          "line": 56,
           "match": "min-width: 200px"
         },
         {
-          "line": 54,
+          "line": 59,
           "match": "min-width: 160px"
         },
         {
-          "line": 57,
+          "line": 62,
           "match": "min-width: 130px"
+        }
+      ]
+    },
+    {
+      "path": "templates/super/transfers/cases_index.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 48,
+          "match": "overflow: hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 10,
+          "match": "max-width: 1200px"
+        },
+        {
+          "line": 20,
+          "match": "min-width: 160px"
+        },
+        {
+          "line": 56,
+          "match": "min-width: 120px"
+        },
+        {
+          "line": 57,
+          "match": "min-width: 160px"
+        },
+        {
+          "line": 90,
+          "match": "min-width: 260px"
+        },
+        {
+          "line": 93,
+          "match": "min-width: 260px"
         }
       ]
     },
@@ -3201,151 +3263,151 @@
           "iterable": "hreflang_entries"
         },
         {
-          "line": 68,
+          "line": 74,
           "iterable": "global_features"
         },
         {
-          "line": 74,
+          "line": 80,
           "iterable": "hero_ctas"
         },
         {
-          "line": 124,
+          "line": 142,
           "iterable": "trust_badges"
         },
         {
-          "line": 149,
+          "line": 167,
           "iterable": "solve_by_challenge"
         },
         {
-          "line": 168,
+          "line": 186,
           "iterable": "platform_pillar_grid"
         },
         {
-          "line": 180,
+          "line": 198,
           "iterable": "differentiation_block"
         },
         {
-          "line": 186,
+          "line": 204,
           "iterable": "why_switch_bullets"
         },
         {
-          "line": 219,
+          "line": 237,
           "iterable": "marketing_story_journey"
         },
         {
-          "line": 235,
+          "line": 253,
           "iterable": "marketing_data_flow_chain"
         },
         {
-          "line": 255,
+          "line": 273,
           "iterable": "admissions_flow"
         },
         {
-          "line": 294,
+          "line": 312,
           "iterable": "from_single_to_enterprise"
         },
         {
-          "line": 308,
+          "line": 326,
           "iterable": "by_the_numbers"
         },
         {
-          "line": 325,
+          "line": 343,
           "iterable": "outcome_metrics"
         },
         {
-          "line": 353,
+          "line": 371,
           "iterable": "product_visualization_slides"
         },
         {
-          "line": 374,
+          "line": 392,
           "iterable": "institution_types"
         },
         {
-          "line": 386,
+          "line": 404,
           "iterable": "product_pillars_home"
         },
         {
-          "line": 408,
+          "line": 426,
           "iterable": "core_modules"
         },
         {
-          "line": 428,
+          "line": 446,
           "iterable": "role_preview_images"
         },
         {
-          "line": 441,
+          "line": 459,
           "iterable": "for_your_role"
         },
         {
-          "line": 456,
+          "line": 474,
           "iterable": "get_started_three_steps"
         },
         {
-          "line": 550,
+          "line": 568,
           "iterable": "ai_intelligence_features"
         },
         {
-          "line": 578,
+          "line": 596,
           "iterable": "global_stats"
         },
         {
-          "line": 594,
+          "line": 612,
           "iterable": "migration_bullets"
         },
         {
-          "line": 626,
+          "line": 644,
           "iterable": "partners_list"
         },
         {
-          "line": 634,
+          "line": 652,
           "iterable": "ecosystem_apps"
         },
         {
-          "line": 664,
+          "line": 682,
           "iterable": "customer_logos"
         },
         {
-          "line": 683,
+          "line": 701,
           "iterable": "testimonials"
         },
         {
-          "line": 691,
+          "line": 709,
           "iterable": "video_testimonials"
         },
         {
-          "line": 705,
+          "line": 723,
           "iterable": "review_badges"
         },
         {
-          "line": 730,
+          "line": 748,
           "iterable": "pricing_snapshot"
         },
         {
-          "line": 735,
+          "line": 753,
           "iterable": "plan"
         },
         {
-          "line": 773,
+          "line": 791,
           "iterable": "post_enrollment_revenue"
         },
         {
-          "line": 788,
+          "line": 806,
           "iterable": "awards_recognition"
         },
         {
-          "line": 810,
+          "line": 828,
           "iterable": "events_list"
         },
         {
-          "line": 852,
+          "line": 870,
           "iterable": "what_you_get"
         },
         {
-          "line": 886,
+          "line": 904,
           "iterable": "trust_controls"
         },
         {
-          "line": 890,
+          "line": 908,
           "iterable": "security_badges"
         }
       ],
@@ -3356,96 +3418,52 @@
           "match": "max-width: 768px"
         },
         {
-          "line": 132,
+          "line": 150,
           "match": "max-width:44rem"
         },
         {
-          "line": 244,
+          "line": 262,
           "match": "max-width:40rem"
         },
         {
-          "line": 459,
+          "line": 477,
           "match": "width:2rem"
         },
         {
-          "line": 903,
+          "line": 921,
           "match": "max-width:36rem"
         }
       ]
     },
     {
-      "path": "templates/siteconfig/partials/term_publish_status_evidence_body.html",
+      "path": "templates/siteconfig/bulk_letters.html",
       "unpaginated_for_loops": [
         {
-          "line": 49,
-          "iterable": "rows"
+          "line": 66,
+          "iterable": "classroom_list"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 3,
-          "match": "max-width: 56rem"
-        },
-        {
-          "line": 10,
+          "line": 24,
           "match": "min-width: 7rem"
         },
         {
-          "line": 10,
+          "line": 24,
           "match": "max-width: 12rem"
         },
         {
-          "line": 14,
+          "line": 28,
           "match": "min-width: 7rem"
         },
         {
-          "line": 14,
+          "line": 28,
           "match": "max-width: 12rem"
-        }
-      ]
-    },
-    {
-      "path": "templates/teacher/marks_entry.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 41,
-          "iterable": "teacher_assignments"
         },
         {
-          "line": 148,
-          "iterable": "upload_preview"
-        },
-        {
-          "line": 219,
-          "iterable": "grade_approval_requests"
-        },
-        {
-          "line": 265,
-          "iterable": "students"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 256,
-          "match": "width:110px"
-        },
-        {
-          "line": 257,
-          "match": "width:110px"
-        },
-        {
-          "line": 258,
-          "match": "width:110px"
-        },
-        {
-          "line": 259,
-          "match": "width:110px"
-        },
-        {
-          "line": 260,
-          "match": "width:110px"
+          "line": 64,
+          "match": "max-width: 22rem"
         }
       ]
     },
@@ -3473,30 +3491,114 @@
       ]
     },
     {
+      "path": "templates/auth/tenant_admin_login.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 242,
+          "iterable": "form"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 65,
+          "match": "max-width: 780px"
+        },
+        {
+          "line": 72,
+          "match": "max-width: 620px"
+        },
+        {
+          "line": 83,
+          "match": "max-width: 620px"
+        },
+        {
+          "line": 201,
+          "match": "max-width: 860px"
+        }
+      ]
+    },
+    {
+      "path": "templates/siteconfig/partials/term_publish_status_evidence_body.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 50,
+          "iterable": "rows"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 11,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 11,
+          "match": "max-width: 12rem"
+        },
+        {
+          "line": 15,
+          "match": "min-width: 7rem"
+        },
+        {
+          "line": 15,
+          "match": "max-width: 12rem"
+        }
+      ]
+    },
+    {
       "path": "templates/siteconfig/sync_center.html",
       "unpaginated_for_loops": [
         {
-          "line": 55,
+          "line": 58,
           "iterable": "conflicts"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 15,
+          "line": 18,
           "match": "min-width: 7rem"
         },
         {
-          "line": 15,
+          "line": 18,
           "match": "max-width: 12rem"
         },
         {
-          "line": 19,
+          "line": 22,
           "match": "min-width: 7rem"
         },
         {
-          "line": 19,
+          "line": 22,
           "match": "max-width: 12rem"
+        }
+      ]
+    },
+    {
+      "path": "templates/super/devices/registrations_index.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 54,
+          "iterable": "rows"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 10,
+          "match": "max-width: 1200px"
+        },
+        {
+          "line": 25,
+          "match": "min-width: 120px"
+        },
+        {
+          "line": 32,
+          "match": "min-width: 200px"
+        },
+        {
+          "line": 35,
+          "match": "min-width: 120px"
         }
       ]
     },
@@ -3504,135 +3606,60 @@
       "path": "templates/super/integrations/idempotency_audit.html",
       "unpaginated_for_loops": [
         {
-          "line": 67,
+          "line": 73,
           "iterable": "events"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 5,
+          "line": 10,
           "match": "max-width: 1280px"
         },
         {
-          "line": 36,
+          "line": 41,
           "match": "min-width: 280px"
         },
         {
-          "line": 39,
+          "line": 44,
           "match": "min-width: 110px"
         },
         {
-          "line": 47,
+          "line": 52,
           "match": "min-width: 200px"
         }
       ]
     },
     {
-      "path": "templates/super/sso/bindings_index.html",
+      "path": "templates/super/merges/index.html",
       "unpaginated_for_loops": [
         {
-          "line": 63,
-          "iterable": "rows"
+          "line": 109,
+          "iterable": "dedup_inbox"
         }
       ],
-      "overflow_hidden": [],
+      "overflow_hidden": [
+        {
+          "line": 43,
+          "match": "overflow: hidden"
+        }
+      ],
       "rigid_width": [
         {
-          "line": 5,
+          "line": 10,
           "match": "max-width: 1200px"
         },
         {
-          "line": 20,
-          "match": "min-width: 120px"
+          "line": 76,
+          "match": "min-width: 140px"
         },
         {
-          "line": 28,
-          "match": "min-width: 160px"
+          "line": 83,
+          "match": "min-width: 240px"
         },
         {
-          "line": 31,
-          "match": "min-width: 200px"
-        }
-      ]
-    },
-    {
-      "path": "templates/emails/base_branded.html",
-      "unpaginated_for_loops": [],
-      "overflow_hidden": [
-        {
-          "line": 49,
-          "match": "overflow:hidden"
-        },
-        {
-          "line": 57,
-          "match": "overflow:hidden"
-        }
-      ],
-      "rigid_width": [
-        {
-          "line": 39,
-          "match": "max-width: 600px"
-        },
-        {
-          "line": 57,
-          "match": "max-width:560px"
-        },
-        {
-          "line": 93,
-          "match": "max-width:560px"
-        }
-      ]
-    },
-    {
-      "path": "templates/siteconfig/partials/departments_setup_evidence_body.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 41,
-          "iterable": "rows"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 3,
-          "match": "max-width: 56rem"
-        },
-        {
-          "line": 10,
-          "match": "min-width: 7rem"
-        },
-        {
-          "line": 10,
-          "match": "max-width: 12rem"
-        }
-      ]
-    },
-    {
-      "path": "templates/siteconfig/public_status.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 94,
-          "iterable": "active"
-        },
-        {
-          "line": 111,
-          "iterable": "recently_resolved"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 24,
-          "match": "max-width: 50rem"
-        },
-        {
-          "line": 31,
-          "match": "width: 0.55rem"
-        },
-        {
-          "line": 45,
-          "match": "min-width: 7.5rem"
+          "line": 86,
+          "match": "min-width: 240px"
         }
       ]
     }

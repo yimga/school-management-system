@@ -416,14 +416,11 @@ class StudentProfileAdmin(ModelAdmin):
     create_guardian_invites.short_description = _("Create guardian invites")
 
     def issue_referral_rewards(self, request, queryset):
-        from apps.siteconfig.config_service import get_effective_site_settings
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        site = get_effective_site_settings(request=request)
-        amount = (
-            (getattr(site, "referral_bonus_amount", None) or Decimal("0.00"))
-            if site
-            else Decimal("0.00")
-        )
+        amount = get_effective_config(
+            key="referral_bonus_amount", request=request
+        ) or Decimal("0.00")
         created = 0
         for student in queryset:
             guardian = student.guardian_links.first()

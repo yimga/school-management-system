@@ -309,6 +309,7 @@ def portal_toggle_required(flag_name: str, message: str):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped(request, *args, **kwargs):
+            # config-resolver-allow: dynamic attribute key (flag_name varies per decorator instance)
             site = get_effective_site_settings(request=request)
             # Only an explicit False should disable a portal; tolerate missing/None in test doubles.
             if getattr(site, flag_name, True) is False:

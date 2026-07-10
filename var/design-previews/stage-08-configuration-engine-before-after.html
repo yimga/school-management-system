@@ -1,0 +1,2248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RunMyCampus Stage 8 - World Class Configuration Preview</title>
+  <style>
+    :root {
+      --page: #07101d;
+      --chrome: #101832;
+      --side: #0c1528;
+      --canvas: #0e182b;
+      --panel: #121f35;
+      --panel-2: #182741;
+      --panel-3: #20324f;
+      --line: rgba(151, 170, 198, .24);
+      --line-strong: rgba(151, 170, 198, .42);
+      --text: #edf4ff;
+      --muted: #9fb0c8;
+      --dim: #73849e;
+      --cyan: #20b7f3;
+      --green: #35d08a;
+      --amber: #f3b54a;
+      --red: #ee5365;
+      --violet: #8f73ff;
+      --radius: 8px;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .28);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      min-width: 1280px;
+      background:
+        radial-gradient(circle at 14% -10%, rgba(32, 183, 243, .18), transparent 340px),
+        radial-gradient(circle at 92% 6%, rgba(53, 208, 138, .11), transparent 310px),
+        var(--page);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    button, input, select { font: inherit; }
+
+    h1, h2, h3, h4, p { margin-top: 0; }
+    h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 0; }
+    h2 { font-size: 20px; margin-bottom: 8px; letter-spacing: 0; }
+    h3 { font-size: 15px; margin-bottom: 7px; letter-spacing: 0; }
+    h4 {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    p { color: var(--muted); margin-bottom: 12px; }
+
+    .app-shell {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: 58px minmax(0, 1fr) 36px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: grid;
+      grid-template-columns: 310px minmax(520px, 1fr) 520px;
+      align-items: center;
+      gap: 18px;
+      padding: 0 16px;
+      background: rgba(16, 24, 50, .98);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(from 210deg, #35d08a, #20b7f3, #8f73ff, #ee5365, #35d08a);
+      color: white;
+      font-weight: 900;
+      box-shadow: 0 10px 25px rgba(32, 183, 243, .25);
+    }
+
+    .brand-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .brand strong { font-size: 14px; }
+    .brand small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .workspace-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(238, 83, 101, .16);
+      color: #ffabb5;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .primary-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .nav-btn, .pill-btn, .icon-btn, .tab-btn {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(12, 21, 40, .92);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, #4f68ff, #20b7f3);
+      border-color: rgba(255, 255, 255, .22);
+    }
+
+    .nav-more {
+      border-radius: 7px;
+      background: #0a1222;
+      padding-inline: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .global-search {
+      width: 260px;
+      max-width: 260px;
+      min-height: 34px;
+      border: 1px solid rgba(243, 181, 74, .38);
+      background: rgba(59, 39, 24, .62);
+      color: #d6c8b2;
+      border-radius: 999px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .global-search span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      height: 18px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, .1);
+      color: #d9e3f4;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .main-shell {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 286px minmax(0, 1fr) 44px;
+    }
+
+    .sidebar {
+      min-height: 0;
+      background: rgba(12, 21, 40, .98);
+      border-right: 1px solid var(--line);
+      padding: 10px 8px;
+      overflow: hidden;
+    }
+
+    .sidebar-head {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 10px;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 8px;
+    }
+
+    .side-filter {
+      min-width: 0;
+      height: 34px;
+      border: 1px solid rgba(243, 181, 74, .4);
+      background: rgba(59, 39, 24, .45);
+      border-radius: 7px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding: 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .side-filter span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .side-label {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .side-list {
+      height: calc(100vh - 114px);
+      overflow: hidden;
+      padding-right: 4px;
+    }
+
+    .side-card {
+      border: 1px solid var(--line);
+      background: #10192d;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+
+    .side-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 9px;
+    }
+
+    .side-item {
+      min-height: 34px;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      color: #dce8f8;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(151, 170, 198, .1);
+    }
+
+    .side-item:last-child { border-bottom: 0; }
+    .side-item span:nth-child(2) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .right-tools {
+      background: #0a1222;
+      border-left: 1px solid var(--line);
+      padding: 10px 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .content {
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+      padding: 18px 18px 70px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      padding: 16px;
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(32, 183, 243, .16), rgba(53, 208, 138, .08)),
+        rgba(14, 24, 43, .96);
+      box-shadow: var(--shadow);
+    }
+
+    .hero p { max-width: 980px; margin-bottom: 10px; }
+
+    .badge-row, .action-row, .metric-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 25px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(12, 21, 40, .82);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .badge.green { color: #c7ffe3; border-color: rgba(53, 208, 138, .45); }
+    .badge.blue { color: #bdeeff; border-color: rgba(32, 183, 243, .45); }
+    .badge.amber { color: #ffe4ad; border-color: rgba(243, 181, 74, .45); }
+    .badge.red { color: #ffc3cb; border-color: rgba(238, 83, 101, .45); }
+
+    .tabs {
+      position: sticky;
+      top: 58px;
+      z-index: 30;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(10, 18, 34, .95);
+      backdrop-filter: blur(16px);
+    }
+
+    .tab-btn {
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      color: var(--text);
+      background: #172640;
+      border-color: var(--line-strong);
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .surface {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(14, 24, 43, .96);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .surface-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(10, 18, 34, .72);
+    }
+
+    .surface-head p { margin-bottom: 0; }
+    .surface-body { padding: 14px; }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: minmax(380px, .82fr) minmax(720px, 1.18fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .problem-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .problem {
+      border: 1px solid rgba(238, 83, 101, .32);
+      background: rgba(238, 83, 101, .07);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .anti-pattern {
+      min-height: 440px;
+      border: 1px dashed rgba(243, 181, 74, .5);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, .02) 0 28%, transparent 28% 100%),
+        #0a1222;
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 16px;
+      color: var(--muted);
+    }
+
+    .cramped-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      max-width: 620px;
+    }
+
+    .broken-card {
+      border: 1px solid var(--line);
+      background: #10192d;
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 72px;
+    }
+
+    .broken-preview {
+      align-self: end;
+      width: 290px;
+      height: 260px;
+      background: #c8c8c8;
+      color: #18202e;
+      border-radius: 22px;
+      padding: 18px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .broken-preview::after {
+      content: "Vertical leaked text";
+      position: absolute;
+      right: 10px;
+      bottom: 8px;
+      width: 36px;
+      color: white;
+      background: #111827;
+      border-radius: 10px;
+      padding: 8px 4px;
+      word-break: break-all;
+      text-align: center;
+      line-height: 1;
+    }
+
+    .fabric {
+      display: grid;
+      gap: 12px;
+    }
+
+    .command-bar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: linear-gradient(135deg, rgba(32, 183, 243, .09), rgba(53, 208, 138, .04)), #0d172a;
+    }
+
+    .mode-canvas {
+      display: grid;
+      grid-template-columns: 260px minmax(620px, 1fr) 320px;
+      gap: 12px;
+      align-items: stretch;
+      min-height: 680px;
+    }
+
+    .rail, .workbench, .insight-rail {
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .workbench {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 12px;
+      background: #0f1a2f;
+    }
+
+    .mode-nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .mode-link {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      background: #0b1324;
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-weight: 850;
+    }
+
+    .mode-link span:nth-child(2) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mode-link.active {
+      border-color: rgba(32, 183, 243, .72);
+      background: rgba(32, 183, 243, .13);
+    }
+
+    .mode-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      color: #bdeeff;
+      background: #1a2a46;
+      font-size: 12px;
+    }
+
+    .mode-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      min-height: 118px;
+      border: 1px solid rgba(32, 183, 243, .25);
+      border-radius: 8px;
+      padding: 14px;
+      background:
+        linear-gradient(135deg, rgba(32, 183, 243, .13), rgba(143, 115, 255, .07)),
+        #132039;
+    }
+
+    .mode-hero p { margin-bottom: 0; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .intelligence-strip {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr .9fr .9fr;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .signal-card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(32, 183, 243, .08), rgba(53, 208, 138, .04)),
+        #101a2f;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .signal-card strong {
+      display: block;
+      margin-bottom: 5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .signal-card p {
+      margin-bottom: 0;
+      font-size: 12px;
+    }
+
+    .metric, .tile, .field, .audit-card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101a2f;
+      padding: 11px;
+    }
+
+    .metric span, .tile span, .field label {
+      display: block;
+      color: var(--dim);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .metric strong, .tile strong {
+      display: block;
+      font-size: 18px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .work-grid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(280px, .52fr) minmax(430px, 1fr);
+      gap: 12px;
+    }
+
+    .work-grid.three {
+      grid-template-columns: minmax(230px, .46fr) minmax(460px, 1fr) minmax(240px, .5fr);
+    }
+
+    .stack {
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+      align-content: start;
+    }
+
+    .section-card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #121f35;
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .section-card.highlight {
+      background: linear-gradient(135deg, rgba(53, 208, 138, .08), rgba(32, 183, 243, .06)), #121f35;
+      border-color: rgba(53, 208, 138, .3);
+    }
+
+    .journey-map {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(110px, 1fr));
+      gap: 8px;
+    }
+
+    .journey-step {
+      min-width: 0;
+      border: 1px solid rgba(151, 170, 198, .2);
+      border-radius: 8px;
+      background: #0b1324;
+      padding: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .journey-step::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: var(--cyan);
+    }
+
+    .journey-step.warn::before { background: var(--amber); }
+    .journey-step.good::before { background: var(--green); }
+
+    .journey-step span {
+      display: block;
+      color: var(--dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+
+    .journey-step strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .insight-stack {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .insight-tile {
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: #0b1324;
+      border-radius: 8px;
+      padding: 11px;
+      overflow: hidden;
+    }
+
+    .insight-tile p {
+      font-size: 12px;
+      margin-bottom: 0;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .input-like, .select-like {
+      min-height: 38px;
+      border: 1px solid rgba(243, 181, 74, .35);
+      border-radius: 7px;
+      background: rgba(59, 39, 24, .5);
+      color: #fff2d8;
+      padding: 9px 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      table-layout: fixed;
+    }
+
+    .matrix th, .matrix td {
+      border-bottom: 1px solid rgba(151, 170, 198, .14);
+      padding: 10px;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .matrix th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      background: #0b1324;
+    }
+
+    .preview-stage {
+      min-width: 0;
+      min-height: 520px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: #eaf0f8;
+      color: #172033;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 42px minmax(0, 1fr);
+    }
+
+    .preview-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 0 12px;
+      background: #f8fafc;
+      border-bottom: 1px solid #dbe3ef;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .preview-top span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .preview-body {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 16px;
+      padding: 16px;
+      background:
+        radial-gradient(circle at 85% 12%, rgba(32, 183, 243, .2), transparent 200px),
+        #eef4fb;
+    }
+
+    .preview-menu, .preview-main-card {
+      min-width: 0;
+      border: 1px solid #d7e0ec;
+      border-radius: 8px;
+      background: white;
+      padding: 14px;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+    }
+
+    .preview-line {
+      height: 12px;
+      border-radius: 999px;
+      background: #cbd6e4;
+      margin-bottom: 10px;
+    }
+
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .portal-tile {
+      min-height: 86px;
+      border-radius: 8px;
+      border: 1px solid #dbe3ef;
+      background: #f8fafc;
+      padding: 10px;
+      color: #1f2a3d;
+    }
+
+    .preview-controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .preview-controls .pill-btn {
+      border-radius: 7px;
+      min-width: 0;
+    }
+
+    .device-frame {
+      transition: width .18s ease;
+      margin: 0 auto;
+    }
+
+    .device-frame.desktop { width: 100%; }
+    .device-frame.tablet { width: 74%; }
+    .device-frame.mobile { width: 340px; }
+
+    .fallback-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .fallback-card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101a2f;
+      padding: 11px;
+    }
+
+    .fallback-card strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .fallback-card p {
+      font-size: 12px;
+      margin-bottom: 0;
+    }
+
+    .space-system {
+      display: grid;
+      gap: 14px;
+    }
+
+    .space-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .space-blueprint {
+      min-height: 420px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(32, 183, 243, .08), transparent 32%),
+        #0b1426;
+      padding: 14px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .blueprint-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(151, 170, 198, .16);
+    }
+
+    .blueprint-stage {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .blueprint-side,
+    .blueprint-main,
+    .blueprint-drawer,
+    .blueprint-modal {
+      border: 1px solid rgba(151, 170, 198, .2);
+      border-radius: 8px;
+      background: rgba(18, 31, 53, .9);
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .blueprint-side {
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .blueprint-main {
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .blueprint-work {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .blueprint-block {
+      min-height: 132px;
+      border: 1px solid rgba(151, 170, 198, .18);
+      border-radius: 8px;
+      background: rgba(32, 50, 79, .72);
+      padding: 10px;
+    }
+
+    .blueprint-drawer {
+      padding: 12px;
+      background: rgba(32, 50, 79, .88);
+      box-shadow: inset 3px 0 0 rgba(32, 183, 243, .7);
+    }
+
+    .blueprint-modal {
+      padding: 14px;
+      background: #eef4fb;
+      color: #172033;
+      min-height: 260px;
+      box-shadow: 0 26px 70px rgba(0, 0, 0, .28);
+    }
+
+    .blueprint-modal .preview-line { background: #c4d0df; }
+
+    .surface-options {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .surface-option {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #101a2f;
+      min-width: 0;
+    }
+
+    .surface-option strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .surface-option p {
+      font-size: 12px;
+      margin-bottom: 0;
+    }
+
+    .improvement-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 13px;
+    }
+
+    .improvement-table th,
+    .improvement-table td {
+      border-bottom: 1px solid rgba(151, 170, 198, .14);
+      padding: 11px 10px;
+      vertical-align: top;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    .improvement-table th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      background: #0b1324;
+    }
+
+    .space-score {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .space-score .metric {
+      min-height: 86px;
+      border-color: rgba(53, 208, 138, .28);
+    }
+
+    .audit-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .audit-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 36px;
+      border-bottom: 1px solid rgba(151, 170, 198, .13);
+      color: #dce8f8;
+    }
+
+    .audit-row:last-child { border-bottom: 0; }
+    .audit-row span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .audit-pass { color: #8ff4c1; font-weight: 900; }
+    .audit-watch { color: #ffd386; font-weight: 900; }
+    .audit-fail { color: #ff9ba7; font-weight: 900; }
+
+    .django-canvas {
+      display: grid;
+      grid-template-columns: minmax(720px, 1fr) 340px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .form-body {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .form-section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101a2f;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .form-field {
+      border: 1px solid rgba(151, 170, 198, .18);
+      background: #0b1324;
+      border-radius: 7px;
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .form-field.wide { grid-column: span 2; }
+    .form-field.full { grid-column: 1 / -1; }
+
+    .textarea-like {
+      min-height: 90px;
+      border-radius: 7px;
+      border: 1px solid var(--line);
+      background: #060d19;
+      margin-top: 6px;
+    }
+
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .scoreboard {
+      display: grid;
+      grid-template-columns: 1.1fr repeat(4, minmax(120px, .55fr));
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .score-main, .score-chip {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #101a2f;
+      padding: 12px;
+    }
+
+    .score-main strong {
+      display: block;
+      font-size: 24px;
+      margin-bottom: 3px;
+    }
+
+    .score-chip span {
+      display: block;
+      color: var(--dim);
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .score-chip strong {
+      display: block;
+      font-size: 18px;
+    }
+
+    .heat-row {
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr) 110px;
+      gap: 10px;
+      align-items: center;
+      min-height: 38px;
+      border-bottom: 1px solid rgba(151, 170, 198, .12);
+    }
+
+    .heat-row:last-child { border-bottom: 0; }
+
+    .heat-bar {
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(151, 170, 198, .18);
+      overflow: hidden;
+    }
+
+    .heat-bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(12, 21, 40, .98);
+      border-top: 1px solid var(--line);
+    }
+
+    .small { color: var(--muted); font-size: 12px; }
+
+    .no-leak-rule {
+      border: 1px solid rgba(53, 208, 138, .34);
+      background: rgba(53, 208, 138, .08);
+      color: #c9ffe4;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 1500px) {
+      .topbar { grid-template-columns: 300px minmax(480px, 1fr) 450px; }
+      .global-search { width: 220px; max-width: 220px; }
+      .main-shell { grid-template-columns: 270px minmax(0, 1fr) 42px; }
+      .mode-canvas { grid-template-columns: 235px minmax(560px, 1fr) 290px; }
+      .metrics { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+      .form-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+      .audit-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+      .intelligence-strip { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+      .fallback-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+      .scoreboard { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+      .space-hero { grid-template-columns: 1fr; }
+      .surface-options { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+      .space-score { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div>
+          <div class="brand-name"><strong>New Test High School</strong><span class="workspace-badge">Admin workspace</span></div>
+          <small>School command surface</small>
+        </div>
+      </div>
+      <nav class="primary-nav" aria-label="Tenant navigation">
+        <a class="nav-btn active" href="#">Home</a>
+        <a class="nav-btn" href="#">Finance</a>
+        <a class="nav-btn" href="#">Messages</a>
+        <a class="nav-btn" href="#">Analytics</a>
+        <a class="nav-btn nav-more" href="#">More</a>
+      </nav>
+      <div class="top-actions">
+        <div class="global-search"><span>Search students, teachers, invoices...</span><span class="kbd">Ctrl K</span></div>
+        <a class="nav-btn" href="#">Console</a>
+        <a class="nav-btn" href="#">Configure</a>
+        <button class="icon-btn">AD</button>
+      </div>
+    </header>
+
+    <main class="main-shell">
+      <aside class="sidebar">
+        <div class="sidebar-head">
+          <button class="icon-btn">[]</button>
+          <div class="side-filter"><span>Filter...</span><span class="kbd">/</span></div>
+          <span class="side-label">Navigation</span>
+        </div>
+        <div class="side-list">
+          <section class="side-card">
+            <div class="side-title"><span>Quick access</span><span>^</span></div>
+            <div class="side-item"><span>W</span><span>Workflow Center</span><strong>2</strong></div>
+            <div class="side-item"><span>P</span><span>Preferences</span><strong>pin</strong></div>
+          </section>
+          <section class="side-card">
+            <div class="side-title"><span>Home</span><span>^</span></div>
+            <div class="side-item"><span>D</span><span>Dashboard</span><strong>pin</strong></div>
+          </section>
+          <section class="side-card"><div class="side-title"><span>Configuration</span><span>&gt;</span></div></section>
+          <section class="side-card"><div class="side-title"><span>Academic management</span><span>&gt;</span></div></section>
+          <section class="side-card"><div class="side-title"><span>Templates and branding</span><span>&gt;</span></div></section>
+          <section class="side-card"><div class="side-title"><span>Workflows and approvals</span><span>&gt;</span></div></section>
+          <section class="side-card"><div class="side-title"><span>Access and roles</span><span>&gt;</span></div></section>
+          <section class="side-card"><div class="side-title"><span>Financial management</span><span>&gt;</span></div></section>
+          <section class="side-card"><div class="side-title"><span>Analytics and reports</span><span>&gt;</span></div></section>
+        </div>
+      </aside>
+
+      <section class="content">
+        <section class="hero">
+          <div>
+            <h1>World-class tenant and Django configuration rework</h1>
+            <p>This approval preview is intentionally stronger than the current implementation. It shows the target standard for tenant Studio, all work modes, Django admin/configuration pages, live preview surfaces, audit pages, and operator/tenant separation.</p>
+            <div class="badge-row">
+              <span class="badge green">No overlap</span>
+              <span class="badge green">No leaking text</span>
+              <span class="badge green">No cramped preview</span>
+              <span class="badge green">Popup when inline would cramp</span>
+              <span class="badge blue">Full-width intelligent bodies</span>
+              <span class="badge amber">Audit finds every similar page</span>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="pill-btn" data-jump="studio">Studio modes</button>
+            <button class="pill-btn" data-jump="preview">Live preview</button>
+            <button class="pill-btn" data-jump="space">Space use</button>
+            <button class="pill-btn" data-jump="django">Django pages</button>
+            <button class="pill-btn" data-jump="audit">Audit sweep</button>
+          </div>
+        </section>
+
+        <nav class="tabs" aria-label="Preview sections">
+          <button class="tab-btn active" data-page="compare">Before and After</button>
+          <button class="tab-btn" data-page="studio">Tenant Studio</button>
+          <button class="tab-btn" data-page="preview">Live Preview System</button>
+          <button class="tab-btn" data-page="space">Space Intelligence</button>
+          <button class="tab-btn" data-page="django">Django Configuration</button>
+          <button class="tab-btn" data-page="audit">Audit Page</button>
+        </nav>
+
+        <section id="compare" class="page active">
+          <div class="compare-grid">
+            <article class="surface">
+              <div class="surface-head">
+                <div>
+                  <h2>Current failure pattern</h2>
+                  <p>What the attached screenshots are showing across Studio and Django configuration surfaces.</p>
+                </div>
+                <span class="badge red">Reject</span>
+              </div>
+              <div class="surface-body problem-list">
+                <div class="problem">
+                  <h3>Dead space in the middle of the page</h3>
+                  <p>The real work starts far below the command header and leaves a large blank canvas with no user value.</p>
+                </div>
+                <div class="problem">
+                  <h3>Preview lane is too weak to trust</h3>
+                  <p>Theme/Experience preview becomes narrow and text leaks vertically, so the operator cannot judge what will actually publish.</p>
+                </div>
+                <div class="problem">
+                  <h3>Django configuration pages feel inherited, not designed</h3>
+                  <p>Forms use only part of the viewport, long values spill, and the empty side areas do not help with audit or safety.</p>
+                </div>
+                <div class="anti-pattern">
+                  <div class="cramped-strip">
+                    <div class="broken-card">Mode header</div>
+                    <div class="broken-card">Right rail overlaps later</div>
+                  </div>
+                  <div></div>
+                  <div class="broken-preview">
+                    <strong>Preview</strong>
+                    <p style="color:#334155;">Too narrow to inspect theme, role, or device behavior.</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="surface">
+              <div class="surface-head">
+                <div>
+                  <h2>Approved direction target</h2>
+                  <p>A platform-grade command fabric: compact top intent, full-width workbench, permanent preview fallback, and audit evidence.</p>
+                </div>
+                <span class="badge green">Target</span>
+              </div>
+              <div class="surface-body fabric">
+                <div class="command-bar">
+                  <div>
+                    <h3>Configuration command fabric</h3>
+                    <p>Every body uses predictable lanes. Nothing floats over anything else. No panel can grow into another panel. Empty states become actionable guidance.</p>
+                  </div>
+                  <div class="badge-row">
+                    <span class="badge blue">Tenant scoped</span>
+                    <span class="badge green">Preview ready</span>
+                    <span class="badge amber">Publish guarded</span>
+                  </div>
+                </div>
+                <div class="mode-canvas">
+                  <aside class="rail">
+                    <h4>Mode rail</h4>
+                    <nav class="mode-nav">
+                      <a class="mode-link active" href="#"><span class="mode-icon">O</span><span>Overview</span><span>ready</span></a>
+                      <a class="mode-link" href="#"><span class="mode-icon">E</span><span>Experience</span><span>live</span></a>
+                      <a class="mode-link" href="#"><span class="mode-icon">A</span><span>Automation</span><span>sim</span></a>
+                      <a class="mode-link" href="#"><span class="mode-icon">P</span><span>Outputs</span><span>pdf</span></a>
+                      <a class="mode-link" href="#"><span class="mode-icon">L</span><span>Launch</span><span>gate</span></a>
+                      <a class="mode-link" href="#"><span class="mode-icon">C</span><span>Control</span><span>audit</span></a>
+                    </nav>
+                    <div class="no-leak-rule" style="margin-top:12px;">The left rail scrolls alone and never pushes the center workbench down.</div>
+                  </aside>
+                  <section class="workbench">
+                    <div class="mode-hero">
+                      <div>
+                        <h2>Experience workspace</h2>
+                        <p>Brand, theme, layout, accessibility, publish readiness, and rollback are managed from one stable screen.</p>
+                      </div>
+                      <div class="action-row">
+                        <button class="pill-btn">Preview</button>
+                        <button class="pill-btn">Diff</button>
+                        <button class="pill-btn">Publish</button>
+                      </div>
+                    </div>
+                    <div class="metrics">
+                      <div class="metric"><span>Draft changes</span><strong>12</strong></div>
+                      <div class="metric"><span>Roles previewed</span><strong>5</strong></div>
+                      <div class="metric"><span>Contrast issues</span><strong>0</strong></div>
+                      <div class="metric"><span>Rollback</span><strong>Ready</strong></div>
+                    </div>
+                    <div class="work-grid">
+                      <div class="stack">
+                        <div class="section-card highlight">
+                          <h3>Brand controls</h3>
+                          <div class="field-grid">
+                            <div class="field"><label>Primary</label><div class="input-like">#1d4ed8</div></div>
+                            <div class="field"><label>Accent</label><div class="input-like">#f3b54a</div></div>
+                          </div>
+                        </div>
+                        <div class="section-card">
+                          <h3>Portal pack</h3>
+                          <p>Academic Slate - balanced for staff, students, and parent surfaces.</p>
+                        </div>
+                      </div>
+                      <div class="section-card">
+                        <h3>Live preview</h3>
+                        <div class="preview-stage" style="min-height:430px;">
+                          <div class="preview-top"><span>Teacher dashboard - draft</span><span>Desktop</span></div>
+                          <div class="preview-body">
+                            <div class="preview-menu">
+                              <strong>New Test High</strong>
+                              <div class="preview-line" style="margin-top:14px;"></div>
+                              <div class="preview-line" style="width:78%;"></div>
+                              <div class="preview-line" style="width:68%;"></div>
+                            </div>
+                            <div class="preview-main-card">
+                              <h3 style="color:#172033;">Live tenant surface</h3>
+                              <p style="color:#526173;">A real preview stage, not a cramped thumbnail. It proves navigation, cards, density, and contrast before publishing.</p>
+                              <div class="portal-grid">
+                                <div class="portal-tile"><strong>Attendance</strong><br>94%</div>
+                                <div class="portal-tile"><strong>Tasks</strong><br>12</div>
+                                <div class="portal-tile"><strong>Alerts</strong><br>2</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                  <aside class="insight-rail">
+                    <h4>Safety rail</h4>
+                    <div class="audit-list">
+                      <div class="audit-row"><span>Tenant boundary</span><strong class="audit-pass">pass</strong></div>
+                      <div class="audit-row"><span>Inline preview</span><strong class="audit-pass">pass</strong></div>
+                      <div class="audit-row"><span>Fallback preview</span><strong class="audit-pass">ready</strong></div>
+                      <div class="audit-row"><span>Publish guard</span><strong class="audit-watch">armed</strong></div>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="studio" class="page">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h2>Tenant Studio - redesigned for every work mode</h2>
+                <p>Overview, Experience, Automation, Outputs, Launch, and Control share one world-class layout contract, but each mode gets a purpose-built workbench.</p>
+              </div>
+              <span class="badge blue">Tenant-wide</span>
+            </div>
+            <div class="surface-body fabric">
+              <div class="command-bar">
+                <div>
+                  <h3>Studio mission control</h3>
+                  <p>No more giant blank area between header and work. The mode summary, critical metrics, workbench, live preview, audit history, and next action all fit the visible body logically.</p>
+                </div>
+                <div class="badge-row">
+                  <span class="badge green">Stable grid</span>
+                  <span class="badge green">Independent scroll lanes</span>
+                  <span class="badge green">No overlay rail</span>
+                </div>
+              </div>
+
+              <div class="intelligence-strip">
+                <div class="signal-card">
+                  <strong>Configuration intelligence</strong>
+                  <p>Studio should explain consequences before changes are published: who sees it, which portals change, and what rollback restores.</p>
+                </div>
+                <div class="signal-card">
+                  <strong>Surface health</strong>
+                  <p>Layout, contrast, preview, and tenant boundary checks are visible in the same place as the work.</p>
+                </div>
+                <div class="signal-card">
+                  <strong>Mode-specific depth</strong>
+                  <p>Experience, Automation, Outputs, Launch, and Control are not skins of the same generic page.</p>
+                </div>
+                <div class="signal-card">
+                  <strong>Operator-grade polish</strong>
+                  <p>Balanced density, stable lanes, obvious next actions, and no wasted viewport space.</p>
+                </div>
+              </div>
+
+              <div class="mode-canvas">
+                <aside class="rail">
+                  <h4>Work modes</h4>
+                  <nav class="mode-nav" id="modeNav">
+                    <a class="mode-link active" href="#" data-mode="overview"><span class="mode-icon">O</span><span>Overview</span><span>map</span></a>
+                    <a class="mode-link" href="#" data-mode="experience"><span class="mode-icon">E</span><span>Experience</span><span>live</span></a>
+                    <a class="mode-link" href="#" data-mode="automation"><span class="mode-icon">A</span><span>Automation</span><span>sim</span></a>
+                    <a class="mode-link" href="#" data-mode="outputs"><span class="mode-icon">P</span><span>Outputs</span><span>docs</span></a>
+                    <a class="mode-link" href="#" data-mode="launch"><span class="mode-icon">L</span><span>Launch</span><span>gate</span></a>
+                    <a class="mode-link" href="#" data-mode="control"><span class="mode-icon">C</span><span>Control</span><span>policy</span></a>
+                  </nav>
+                  <div class="section-card" style="margin-top:12px;">
+                    <h3>Design rule</h3>
+                    <p>Every mode gets a main action within the first viewport and no body section can render behind the footer.</p>
+                  </div>
+                </aside>
+
+                <section class="workbench">
+                  <div class="mode-hero">
+                    <div>
+                      <h2 id="modeTitle">Overview workspace</h2>
+                      <p id="modeText">A single view of readiness, configuration gaps, recently changed settings, and next best actions.</p>
+                    </div>
+                    <div class="action-row">
+                      <button class="pill-btn">Preview</button>
+                      <button class="pill-btn">Simulate</button>
+                      <button class="pill-btn">Open audit</button>
+                    </div>
+                  </div>
+                  <div class="metrics">
+                    <div class="metric"><span id="metricOneLabel">Readiness</span><strong id="metricOne">72%</strong></div>
+                    <div class="metric"><span id="metricTwoLabel">Open work</span><strong id="metricTwo">18</strong></div>
+                    <div class="metric"><span id="metricThreeLabel">Preview roles</span><strong id="metricThree">5</strong></div>
+                    <div class="metric"><span>Last audit</span><strong>Today</strong></div>
+                  </div>
+                  <div class="journey-map" id="journeyMap">
+                    <div class="journey-step good"><span>1. Scope</span><strong>Tenant only</strong></div>
+                    <div class="journey-step"><span>2. Configure</span><strong>Draft changes</strong></div>
+                    <div class="journey-step warn"><span>3. Preview</span><strong>All roles</strong></div>
+                    <div class="journey-step"><span>4. Approve</span><strong>Evidence</strong></div>
+                    <div class="journey-step good"><span>5. Publish</span><strong>Rollback ready</strong></div>
+                  </div>
+                  <div class="work-grid three">
+                    <div class="stack">
+                      <div class="section-card highlight">
+                        <h3 id="inputTitle">Inputs</h3>
+                        <div class="audit-list">
+                          <div class="audit-row"><span id="inputA">School profile</span><strong class="audit-pass">ready</strong></div>
+                          <div class="audit-row"><span id="inputB">Brand package</span><strong class="audit-watch">draft</strong></div>
+                          <div class="audit-row"><span id="inputC">Roster signal</span><strong class="audit-watch">partial</strong></div>
+                        </div>
+                      </div>
+                      <div class="section-card">
+                        <h3>Next best action</h3>
+                        <p id="nextAction">Finish preview validation before publishing the tenant workspace.</p>
+                        <button class="pill-btn">Continue</button>
+                      </div>
+                    </div>
+                    <div class="section-card">
+                      <h3 id="matrixTitle">Mode workbench</h3>
+                      <table class="matrix">
+                        <thead><tr><th>Work item</th><th>State</th><th>Preview</th><th>Action</th></tr></thead>
+                        <tbody id="modeRows">
+                          <tr><td>Launch checklist</td><td>Partial</td><td>Available</td><td>Continue</td></tr>
+                          <tr><td>Dashboard role map</td><td>Ready</td><td>Available</td><td>Review</td></tr>
+                          <tr><td>Theme package</td><td>Draft</td><td>Required</td><td>Preview</td></tr>
+                          <tr><td>Workflow activation</td><td>Safe</td><td>Simulation</td><td>Inspect</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="section-card">
+                      <h3>Recent decisions</h3>
+                      <div class="audit-list">
+                        <div class="audit-row"><span>Theme contrast</span><strong class="audit-pass">pass</strong></div>
+                        <div class="audit-row"><span>Dashboard preview</span><strong class="audit-pass">pass</strong></div>
+                        <div class="audit-row"><span>Parent portal</span><strong class="audit-watch">needs review</strong></div>
+                        <div class="audit-row"><span>Rollback point</span><strong class="audit-pass">saved</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="insight-stack">
+                    <div class="insight-tile">
+                      <h3>What changes?</h3>
+                      <p id="impactCopy">Tenant workspace navigation, role dashboards, and visible tenant experience surfaces.</p>
+                    </div>
+                    <div class="insight-tile">
+                      <h3>Who is affected?</h3>
+                      <p id="audienceCopy">Admins, teachers, parents, students, and finance users according to role preview.</p>
+                    </div>
+                    <div class="insight-tile">
+                      <h3>How do we recover?</h3>
+                      <p>Rollback returns to the last published snapshot and records a tenant-scoped audit event.</p>
+                    </div>
+                  </div>
+                </section>
+
+                <aside class="insight-rail">
+                  <h4>Preview and audit</h4>
+                  <div class="preview-stage" style="min-height:430px;">
+                    <div class="preview-top"><span id="sidePreviewTitle">Overview preview</span><span>Live</span></div>
+                    <div class="preview-body" style="grid-template-columns: 110px 1fr; gap:10px; padding:10px;">
+                      <div class="preview-menu">
+                        <div class="preview-line"></div>
+                        <div class="preview-line" style="width:72%;"></div>
+                        <div class="preview-line" style="width:62%;"></div>
+                      </div>
+                      <div class="preview-main-card">
+                        <h3 style="color:#172033;">Role view</h3>
+                        <p style="color:#526173;">Preview stays readable in the side rail.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="preview-controls">
+                    <button class="pill-btn">Inline</button>
+                    <button class="pill-btn">Popout</button>
+                    <button class="pill-btn">Tab</button>
+                  </div>
+                  <div class="no-leak-rule" style="margin-top:10px;">If inline preview cannot render, the same role opens in popout or new tab with evidence captured.</div>
+                </aside>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section id="preview" class="page">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h2>Live Preview System - 100 percent usable path</h2>
+                <p>Theme and Experience pages need a preview that can actually be used. This layout makes preview the center of the page, not a broken thumbnail.</p>
+              </div>
+              <span class="badge green">Always has fallback</span>
+            </div>
+            <div class="surface-body">
+              <div class="mode-canvas" style="grid-template-columns: 300px minmax(720px, 1fr) 320px;">
+                <aside class="rail">
+                  <h4>Theme controls</h4>
+                  <div class="stack">
+                    <div class="field"><label>Primary color</label><div class="input-like">#1d4ed8</div></div>
+                    <div class="field"><label>Accent color</label><div class="input-like">#f3b54a</div></div>
+                    <div class="field"><label>Portal theme</label><div class="select-like">Academic Slate</div></div>
+                    <div class="field"><label>Density</label><div class="select-like">Comfortable</div></div>
+                  </div>
+                  <div class="no-leak-rule" style="margin-top:12px;">Controls are isolated. They scroll inside this lane and cannot bleed into preview.</div>
+                </aside>
+
+                <section class="workbench">
+                  <div class="mode-hero">
+                    <div>
+                      <h2>Theme and Experience preview stage</h2>
+                      <p>Switch role, device, theme source, and density. The page proves what the tenant will see before publishing.</p>
+                    </div>
+                    <div class="action-row">
+                      <button class="pill-btn" data-device="desktop">Desktop</button>
+                      <button class="pill-btn" data-device="tablet">Tablet</button>
+                      <button class="pill-btn" data-device="mobile">Mobile</button>
+                    </div>
+                  </div>
+                  <div class="command-bar">
+                    <div class="badge-row">
+                      <span class="badge blue">Role: <span id="roleLabel">Teacher dashboard</span></span>
+                      <span class="badge green">Rendered</span>
+                      <span class="badge amber">Draft source</span>
+                    </div>
+                    <select class="select-like" id="roleSelect" style="width:230px;">
+                      <option>Teacher dashboard</option>
+                      <option>Admin shell</option>
+                      <option>Parent portal</option>
+                      <option>Student portal</option>
+                      <option>Finance console</option>
+                    </select>
+                  </div>
+                  <div class="device-frame desktop" id="deviceFrame">
+                    <div class="preview-stage">
+                      <div class="preview-top"><span id="previewTitle">Teacher dashboard - draft theme</span><span>Live preview</span></div>
+                      <div class="preview-body">
+                        <div class="preview-menu">
+                          <strong>New Test High School</strong>
+                          <div class="preview-line" style="margin-top:16px;"></div>
+                          <div class="preview-line" style="width:82%;"></div>
+                          <div class="preview-line" style="width:76%;"></div>
+                          <div class="preview-line" style="width:66%;"></div>
+                          <div class="preview-line" style="width:88%;"></div>
+                        </div>
+                        <div class="preview-main-card">
+                          <h3 style="color:#172033;">Live campus workspace</h3>
+                          <p style="color:#526173;">The preview is large enough to validate navigation, cards, typography, contrast, portal tone, density, and role-specific content.</p>
+                          <div class="portal-grid">
+                            <div class="portal-tile"><strong>Today</strong><br>6 classes</div>
+                            <div class="portal-tile"><strong>Attendance</strong><br>94%</div>
+                            <div class="portal-tile"><strong>Messages</strong><br>8 unread</div>
+                            <div class="portal-tile"><strong>Reports</strong><br>3 due</div>
+                            <div class="portal-tile"><strong>Tasks</strong><br>12 open</div>
+                            <div class="portal-tile"><strong>Alerts</strong><br>2 watch</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="fallback-grid">
+                    <div class="fallback-card">
+                      <strong>Inline preview</strong>
+                      <p>Primary path. Uses the current role, tenant, device, and draft configuration.</p>
+                    </div>
+                    <div class="fallback-card">
+                      <strong>Popout inspector</strong>
+                      <p>Opens a focused preview window when the embedded frame is blocked or too small.</p>
+                    </div>
+                    <div class="fallback-card">
+                      <strong>New-tab proof</strong>
+                      <p>Shows the exact tenant route with signed preview context and no operator leakage.</p>
+                    </div>
+                    <div class="fallback-card">
+                      <strong>Evidence capture</strong>
+                      <p>Stores last-good screenshot, blocked-frame reason, and publish gate status.</p>
+                    </div>
+                  </div>
+                </section>
+
+                <aside class="insight-rail">
+                  <h4>Preview guarantee</h4>
+                  <div class="audit-list">
+                    <div class="audit-row"><span>Inline preview</span><strong class="audit-pass">first</strong></div>
+                    <div class="audit-row"><span>Popout window</span><strong class="audit-pass">ready</strong></div>
+                    <div class="audit-row"><span>Open in new tab</span><strong class="audit-pass">ready</strong></div>
+                    <div class="audit-row"><span>Last good preview</span><strong class="audit-pass">cached</strong></div>
+                    <div class="audit-row"><span>Screenshot evidence</span><strong class="audit-watch">on fail</strong></div>
+                    <div class="audit-row"><span>Publish allowed</span><strong class="audit-watch">after proof</strong></div>
+                  </div>
+                  <div class="section-card" style="margin-top:12px;">
+                    <h3>Publish gate</h3>
+                    <p>Publish is disabled until one preview path succeeds or blocked-preview evidence is attached.</p>
+                    <div class="action-row">
+                      <button class="pill-btn">Capture</button>
+                      <button class="pill-btn">Publish</button>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section id="space" class="page">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h2>Space Intelligence - spacious by default, popup by design</h2>
+                <p>Anything that would cramp the main work surface moves to a drawer, modal, popout, or new tab. The primary page stays balanced, full-width, and focused on the task.</p>
+              </div>
+              <span class="badge green">No cramped surfaces</span>
+            </div>
+            <div class="surface-body space-system">
+              <div class="space-score">
+                <div class="metric"><span>Main task width</span><strong>65%+</strong></div>
+                <div class="metric"><span>Support panels</span><strong>On demand</strong></div>
+                <div class="metric"><span>Live preview</span><strong>Expandable</strong></div>
+                <div class="metric"><span>Inspector content</span><strong>Drawer</strong></div>
+                <div class="metric"><span>Overflow risk</span><strong>0 allowed</strong></div>
+              </div>
+
+              <div class="space-hero">
+                <section class="space-blueprint">
+                  <div class="blueprint-top">
+                    <div>
+                      <h3>Target page behavior</h3>
+                      <p>The body is no longer a pile of always-visible panels. It behaves like a workspace: one primary job, controlled context, and preview surfaces that expand when needed.</p>
+                    </div>
+                    <div class="badge-row">
+                      <span class="badge blue">Full-width</span>
+                      <span class="badge green">Balanced</span>
+                      <span class="badge amber">Measured</span>
+                    </div>
+                  </div>
+                  <div class="blueprint-stage">
+                    <aside class="blueprint-side">
+                      <h4>Local navigation</h4>
+                      <div class="preview-line"></div>
+                      <div class="preview-line" style="width:82%;"></div>
+                      <div class="preview-line" style="width:72%;"></div>
+                      <div class="no-leak-rule">Mode rails scroll alone and never compress the workbench.</div>
+                    </aside>
+                    <section class="blueprint-main">
+                      <div class="mode-hero">
+                        <div>
+                          <h2>Primary workbench</h2>
+                          <p>Configuration controls, tables, builders, and action paths get the majority of the viewport.</p>
+                        </div>
+                        <div class="action-row">
+                          <button class="pill-btn">Preview</button>
+                          <button class="pill-btn">Inspect</button>
+                          <button class="pill-btn">Publish</button>
+                        </div>
+                      </div>
+                      <div class="blueprint-work">
+                        <div class="blueprint-block"><h3>Configure</h3><p>Main editing controls stay visible and roomy.</p></div>
+                        <div class="blueprint-block"><h3>Impact</h3><p>Affected roles and surfaces are summarized, not crammed.</p></div>
+                        <div class="blueprint-block"><h3>Audit</h3><p>Proof status stays visible without overlaying content.</p></div>
+                      </div>
+                    </section>
+                  </div>
+                  <div class="surface-options">
+                    <div class="surface-option"><strong>Inline</strong><p>Use only when it remains readable and does not reduce the workbench below target width.</p></div>
+                    <div class="surface-option"><strong>Drawer</strong><p>Use for audit details, field help, logs, JSON, long values, and contextual recommendations.</p></div>
+                    <div class="surface-option"><strong>Modal or popout</strong><p>Use for live preview, side-by-side comparison, report proofs, and role/device inspection.</p></div>
+                    <div class="surface-option"><strong>New tab</strong><p>Use for exact tenant-route proof when iframe embedding is blocked or unsafe.</p></div>
+                  </div>
+                </section>
+
+                <div class="stack">
+                  <div class="blueprint-modal">
+                    <div class="preview-top" style="margin:-14px -14px 14px;"><span>Live preview modal</span><span>Teacher / desktop</span></div>
+                    <h3>Preview gets room when it needs room</h3>
+                    <p style="color:#526173;">The preview can open as a modal, popout, or tab so users can inspect the exact tenant experience without squeezing fields, audit, and preview into one cramped column.</p>
+                    <div class="portal-grid">
+                      <div class="portal-tile"><strong>Navigation</strong><br>Readable</div>
+                      <div class="portal-tile"><strong>Cards</strong><br>Balanced</div>
+                      <div class="portal-tile"><strong>Contrast</strong><br>Pass</div>
+                    </div>
+                  </div>
+                  <div class="blueprint-drawer">
+                    <h3>Context drawer</h3>
+                    <p>Audit trails, long metadata, field history, preview errors, and AI recommendations open here. They are available without permanently stealing screen real estate.</p>
+                    <div class="audit-list">
+                      <div class="audit-row"><span>Long hashes/JSON</span><strong class="audit-pass">drawer</strong></div>
+                      <div class="audit-row"><span>Live preview</span><strong class="audit-pass">modal</strong></div>
+                      <div class="audit-row"><span>Warnings/help</span><strong class="audit-pass">popover</strong></div>
+                      <div class="audit-row"><span>Exact route proof</span><strong class="audit-pass">new tab</strong></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="surface">
+                <div class="surface-head">
+                  <div>
+                    <h2>Improvement by item</h2>
+                    <p>This is the implementation contract for Studio, Django configuration, report builders, feature controls, workflow center, and every tenant/operator configuration page with the same problem.</p>
+                  </div>
+                  <span class="badge blue">Review checklist</span>
+                </div>
+                <div class="surface-body">
+                  <table class="improvement-table">
+                    <thead><tr><th>Item</th><th>Current problem</th><th>Improved behavior</th><th>Proof required</th></tr></thead>
+                    <tbody>
+                      <tr><td>Live preview</td><td>Cramped inline frame, hard to inspect, sometimes blocked.</td><td>Inline only when readable; otherwise modal, popout, or signed tenant-route new tab.</td><td>Every previewable page has at least one working preview path before publish.</td></tr>
+                      <tr><td>Theme/Experience</td><td>Controls, preview, and right rail compete for a narrow center lane.</td><td>Controls get a roomy workbench; preview opens large; tokens and audit live in drawers.</td><td>No vertical text leaks, no overlap, and all roles/devices preview cleanly.</td></tr>
+                      <tr><td>Studio work modes</td><td>Generic repeated layout with large blank zones and mode-specific content buried below.</td><td>Each mode gets its own workbench, journey map, action path, preview options, and audit status.</td><td>Overview, Experience, Automation, Outputs, Launch, and Control each pass visual audit.</td></tr>
+                      <tr><td>Django configuration pages</td><td>Narrow inherited forms float in empty space and long values spill.</td><td>Full-width grouped body, sticky actions, tenant/operator boundary rail, inspectors for long values.</td><td>Tenant backend and operator admin pages prove no overflow, no wrong-scope redirects.</td></tr>
+                      <tr><td>Feature controls</td><td>Dense toggles and explanatory panels can bury impact and preview state.</td><td>Toggle matrix stays primary; impact, affected roles, rollback, and warnings move to drawer/popover.</td><td>Feature change cannot publish without tenant-scope and preview/impact proof.</td></tr>
+                      <tr><td>Report card builder</td><td>Preview can dominate or fail while controls remain cramped.</td><td>Builder controls and template list stay readable; PDF/HTML preview opens in large modal/popout/tab.</td><td>HTML preview, PDF fallback, and evidence capture all work.</td></tr>
+                      <tr><td>Workflow/configuration helpers</td><td>Help, AI, recent activity, and logs steal permanent width.</td><td>Contextual helpers become command drawer/popup surfaces unless actively used.</td><td>Main workbench remains visually dominant on every audited route.</td></tr>
+                      <tr><td>Navigation/header</td><td>More button and search can force wrapping or lower the content start.</td><td>More stays on the primary nav line; search is reduced; content begins higher and wider.</td><td>Tenant, operator /super/, and operator /admin/ headers match their scope without wrapping.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section id="django" class="page">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h2>Django configuration pages - platform-grade full-width body</h2>
+                <p>Tenant backend pages and operator Django pages need a designed configuration experience, not narrow inherited forms floating in empty space.</p>
+              </div>
+              <span class="badge blue">Operator and tenant</span>
+            </div>
+            <div class="surface-body">
+              <div class="django-canvas">
+                <section class="form-body">
+                  <div class="command-bar">
+                    <div>
+                      <h3>Change user - redesigned Django body</h3>
+                      <p>Grouped fields, visible save actions, tenant boundary, audit rail, and permission preview use the full screen intelligently.</p>
+                    </div>
+                    <div class="action-row">
+                      <button class="pill-btn">Save</button>
+                      <button class="pill-btn">Save and continue</button>
+                      <button class="pill-btn">History</button>
+                    </div>
+                  </div>
+                  <div class="intelligence-strip">
+                    <div class="signal-card">
+                      <strong>Admin intent</strong>
+                      <p>Raw Django pages become clear configuration tasks: identity, role, scope, preview, audit, save.</p>
+                    </div>
+                    <div class="signal-card">
+                      <strong>Boundary proof</strong>
+                      <p>Every page shows whether it is tenant backend, operator backoffice, or global control plane.</p>
+                    </div>
+                    <div class="signal-card">
+                      <strong>Long value handling</strong>
+                      <p>Hashes, JSON, permissions, and logs wrap inside governed fields or open in inspectors.</p>
+                    </div>
+                    <div class="signal-card">
+                      <strong>Power-user speed</strong>
+                      <p>Sticky actions, grouped fields, audit rail, keyboard search, and no scrolling through dead space.</p>
+                    </div>
+                  </div>
+                  <div class="form-section">
+                    <h3>Identity and tenant scope</h3>
+                    <div class="form-grid">
+                      <div class="form-field"><h4>Username</h4><div class="input-like">admin</div></div>
+                      <div class="form-field"><h4>Email</h4><div class="input-like">admin@new-school.runmycampus.com</div></div>
+                      <div class="form-field"><h4>Console</h4><div class="input-like">Tenant backend</div></div>
+                      <div class="form-field"><h4>Tenant</h4><div class="input-like">New Test High School</div></div>
+                      <div class="form-field"><h4>Staff</h4><div class="input-like">Yes</div></div>
+                      <div class="form-field"><h4>Operator superuser</h4><div class="input-like">No</div></div>
+                    </div>
+                  </div>
+                  <div class="form-section">
+                    <h3>Access, roles, and effective permissions</h3>
+                    <div class="form-grid">
+                      <div class="form-field wide"><h4>Assigned groups</h4><div class="textarea-like"></div></div>
+                      <div class="form-field"><h4>Effective role</h4><div class="input-like">Configuration manager</div></div>
+                      <div class="form-field full"><h4>Permission preview</h4><div class="textarea-like"></div></div>
+                    </div>
+                  </div>
+                  <div class="form-section">
+                    <h3>Configuration engine areas</h3>
+                    <div class="metrics">
+                      <div class="metric"><span>Metadata/EAV</span><strong>Builder</strong></div>
+                      <div class="metric"><span>Grading</span><strong>Formula</strong></div>
+                      <div class="metric"><span>PPP pricing</span><strong>Matrix</strong></div>
+                      <div class="metric"><span>School year</span><strong>Lifecycle</strong></div>
+                    </div>
+                  </div>
+                  <div class="form-section">
+                    <h3>Django page conversion rules</h3>
+                    <table class="matrix">
+                      <thead><tr><th>Old pattern</th><th>New platform behavior</th><th>Why it matters</th></tr></thead>
+                      <tbody>
+                        <tr><td>Narrow centered form</td><td>Full-width grouped task body</td><td>Uses available screen intelligently</td></tr>
+                        <tr><td>Raw long text spill</td><td>Inspector, wrap, or reveal control</td><td>Prevents leaking and horizontal overflow</td></tr>
+                        <tr><td>Hidden object impact</td><td>Permission and tenant-scope preview</td><td>Prevents unsafe changes</td></tr>
+                        <tr><td>Generic admin chrome</td><td>Tenant/operator-specific command surface</td><td>Stops platform and school mingling</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+                <aside class="insight-rail">
+                  <h4>Boundary and audit</h4>
+                  <div class="audit-list">
+                    <div class="audit-row"><span>Host</span><strong>tenant</strong></div>
+                    <div class="audit-row"><span>Operator redirect</span><strong class="audit-pass">blocked</strong></div>
+                    <div class="audit-row"><span>Tenant data scope</span><strong class="audit-pass">single school</strong></div>
+                    <div class="audit-row"><span>Audit event</span><strong class="audit-watch">pending save</strong></div>
+                    <div class="audit-row"><span>Rollback</span><strong class="audit-pass">available</strong></div>
+                  </div>
+                  <div class="no-leak-rule" style="margin-top:12px;">No raw password hash or long field value may spill across the viewport. Long values wrap inside their field or collapse behind reveal controls.</div>
+                </aside>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section id="audit" class="page">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h2>Audit page - find every page with this rendering problem</h2>
+                <p>After approval, this becomes the implementation loop: inventory, classify, fix, visually validate, and repeat until no matching page remains.</p>
+              </div>
+              <span class="badge amber">Approval gate</span>
+            </div>
+            <div class="surface-body fabric">
+              <div class="scoreboard">
+                <div class="score-main">
+                  <strong>0 blocking visual defects</strong>
+                  <p>Final acceptance target after implementation: every audited route is free of overlap, leaking text, dead zones, cramped preview, footer collision, and tenant/operator mingling.</p>
+                </div>
+                <div class="score-chip"><span>Routes scanned</span><strong>100%</strong></div>
+                <div class="score-chip"><span>Visual pass</span><strong>100%</strong></div>
+                <div class="score-chip"><span>Boundary pass</span><strong>100%</strong></div>
+                <div class="score-chip"><span>Preview fallback</span><strong>100%</strong></div>
+              </div>
+              <div class="audit-grid">
+                <div class="audit-card">
+                  <h3>Studio and work modes</h3>
+                  <div class="audit-list">
+                    <div class="audit-row"><span>/studio/</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>/studio/experience/</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>/studio/automation/</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>/studio/output/</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>/studio/launch/</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>/studio/control/</span><strong class="audit-watch">scan</strong></div>
+                  </div>
+                </div>
+                <div class="audit-card">
+                  <h3>Configuration engines</h3>
+                  <div class="audit-list">
+                    <div class="audit-row"><span>Feature Controls</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Report Card Builder</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Dashboard by Role</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Theme Customizer</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Forms and Admissions</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Communications Preview</span><strong class="audit-watch">scan</strong></div>
+                  </div>
+                </div>
+                <div class="audit-card">
+                  <h3>Django pages</h3>
+                  <div class="audit-list">
+                    <div class="audit-row"><span>Tenant backend admin</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Operator /admin/</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Operator /super/</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Metadata pages</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Grading pages</span><strong class="audit-watch">scan</strong></div>
+                    <div class="audit-row"><span>Billing/PPP pages</span><strong class="audit-watch">scan</strong></div>
+                  </div>
+                </div>
+                <div class="audit-card">
+                  <h3>Failure detectors</h3>
+                  <div class="audit-list">
+                    <div class="audit-row"><span>Large blank vertical zones</span><strong class="audit-fail">reject</strong></div>
+                    <div class="audit-row"><span>Overlapping elements</span><strong class="audit-fail">reject</strong></div>
+                    <div class="audit-row"><span>Text leaking outside cards</span><strong class="audit-fail">reject</strong></div>
+                    <div class="audit-row"><span>Cramped live preview</span><strong class="audit-fail">reject</strong></div>
+                    <div class="audit-row"><span>Narrow inherited forms</span><strong class="audit-fail">reject</strong></div>
+                    <div class="audit-row"><span>Tenant/operator mingling</span><strong class="audit-fail">reject</strong></div>
+                  </div>
+                </div>
+              </div>
+              <div class="surface">
+                <div class="surface-head">
+                  <div>
+                    <h2>Failure heatmap</h2>
+                    <p>The audit should produce this kind of score so we know where the platform is still below standard.</p>
+                  </div>
+                  <span class="badge blue">Measured</span>
+                </div>
+                <div class="surface-body">
+                  <div class="heat-row"><strong>Tenant Studio work modes</strong><div class="heat-bar"><span style="width: 92%;"></span></div><span class="audit-watch">needs proof</span></div>
+                  <div class="heat-row"><strong>Theme and preview pages</strong><div class="heat-bar"><span style="width: 78%;"></span></div><span class="audit-watch">preview gaps</span></div>
+                  <div class="heat-row"><strong>Django tenant backend</strong><div class="heat-bar"><span style="width: 65%;"></span></div><span class="audit-fail">needs rework</span></div>
+                  <div class="heat-row"><strong>Operator admin/backoffice</strong><div class="heat-bar"><span style="width: 70%;"></span></div><span class="audit-watch">mixed legacy</span></div>
+                  <div class="heat-row"><strong>Tenant/operator separation</strong><div class="heat-bar"><span style="width: 100%;"></span></div><span class="audit-pass">must prove</span></div>
+                </div>
+              </div>
+              <div class="surface">
+                <div class="surface-head">
+                  <div>
+                    <h2>Implementation proof loop</h2>
+                    <p>Every approved item gets fixed across platform and tenant surfaces, then audited again. Nothing is accepted because it looks fixed on one route.</p>
+                  </div>
+                  <span class="badge green">Loop until clean</span>
+                </div>
+                <div class="surface-body">
+                  <table class="matrix">
+                    <thead><tr><th>Step</th><th>Action</th><th>Evidence</th><th>Stop condition</th></tr></thead>
+                    <tbody>
+                      <tr><td>1</td><td>Route and template inventory</td><td>Generated audit file</td><td>All candidate pages listed</td></tr>
+                      <tr><td>2</td><td>Classify rendering failures</td><td>Gap matrix</td><td>Each page has status</td></tr>
+                      <tr><td>3</td><td>Apply shared body contract</td><td>Template/CSS diff</td><td>No one-off fixes where shared fix applies</td></tr>
+                      <tr><td>4</td><td>Validate browser rendering</td><td>Smoke screenshots or DOM checks</td><td>No overlap/leak/cramp/dead-zone findings</td></tr>
+                      <tr><td>5</td><td>Tenant/operator separation audit</td><td>Host-aware route proof</td><td>Tenant never lands in operator admin</td></tr>
+                      <tr><td>6</td><td>Commit and push</td><td>Git commit and remote push</td><td>Only after proof gaps are documented or closed</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <aside class="right-tools">
+        <button class="icon-btn">AI</button>
+        <button class="icon-btn">?</button>
+        <button class="icon-btn">PV</button>
+        <button class="icon-btn">AU</button>
+        <button class="icon-btn">HP</button>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <strong>RunMyCampus preview</strong>
+      <span>Tenant scoped</span>
+      <span>Help lives in tools rail</span>
+      <span>No footer overlap</span>
+    </footer>
+  </div>
+
+  <script>
+    const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+    const pages = Array.from(document.querySelectorAll('.page'));
+    function openPage(id) {
+      tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.page === id));
+      pages.forEach(page => page.classList.toggle('active', page.id === id));
+      document.querySelector('.content').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    tabs.forEach(tab => tab.addEventListener('click', () => openPage(tab.dataset.page)));
+    document.querySelectorAll('[data-jump]').forEach(button => {
+      button.addEventListener('click', () => openPage(button.dataset.jump));
+    });
+
+    const modeData = {
+      overview: {
+        title: 'Overview workspace',
+        text: 'A single view of readiness, configuration gaps, recently changed settings, and next best actions.',
+        metrics: ['Readiness', '72%', 'Open work', '18', 'Preview roles', '5'],
+        inputs: ['School profile', 'Brand package', 'Roster signal'],
+        matrix: 'Mode workbench',
+        next: 'Finish preview validation before publishing the tenant workspace.',
+        preview: 'Overview preview',
+        rows: [
+          ['Launch checklist', 'Partial', 'Available', 'Continue'],
+          ['Dashboard role map', 'Ready', 'Available', 'Review'],
+          ['Theme package', 'Draft', 'Required', 'Preview'],
+          ['Workflow activation', 'Safe', 'Simulation', 'Inspect']
+        ]
+      },
+      experience: {
+        title: 'Experience workspace',
+        text: 'Brand identity, theme packs, portal layout, accessibility, and role previews in one stable page.',
+        metrics: ['Draft edits', '12', 'Roles previewed', '5', 'Contrast issues', '0'],
+        inputs: ['Brand identity', 'Theme tokens', 'Portal shell'],
+        matrix: 'Theme and portal workbench',
+        next: 'Preview all role and device combinations before publish.',
+        preview: 'Experience preview',
+        rows: [
+          ['Teacher dashboard', 'Draft', 'Live', 'Preview'],
+          ['Parent portal', 'Draft', 'Live', 'Preview'],
+          ['Student portal', 'Ready', 'Live', 'Open'],
+          ['Accessibility', 'Pass', 'Evidence', 'Review']
+        ]
+      },
+      automation: {
+        title: 'Automation workspace',
+        text: 'Workflow activation, triggers, approval paths, simulation, rollback, and exception handling.',
+        metrics: ['Flows', '9', 'Simulations', '6', 'Blocked', '1'],
+        inputs: ['Approval chain', 'Trigger events', 'Rollback policy'],
+        matrix: 'Automation simulation matrix',
+        next: 'Run a dry simulation before enabling new automation.',
+        preview: 'Automation preview',
+        rows: [
+          ['Student onboarding', 'Active', 'Simulated', 'Inspect'],
+          ['Invoice reminder', 'Draft', 'Available', 'Test'],
+          ['Approval escalation', 'Needs review', 'Blocked', 'Fix'],
+          ['Document routing', 'Ready', 'Preview', 'Activate']
+        ]
+      },
+      outputs: {
+        title: 'Outputs workspace',
+        text: 'Reports, documents, exports, templates, report cards, and communication outputs.',
+        metrics: ['Templates', '24', 'Preview types', '4', 'Blocked', '3'],
+        inputs: ['Report catalog', 'Document templates', 'Export handlers'],
+        matrix: 'Output publishing matrix',
+        next: 'Preview HTML and PDF outputs before assigning them to roles.',
+        preview: 'Outputs preview',
+        rows: [
+          ['Report cards', 'Draft', 'PDF/HTML', 'Preview'],
+          ['Bulk letters', 'Ready', 'HTML', 'Open'],
+          ['Transcript export', 'Needs mapping', 'Sample', 'Map'],
+          ['Message template', 'Ready', 'Role preview', 'Review']
+        ]
+      },
+      launch: {
+        title: 'Launch workspace',
+        text: 'Readiness gates, blockers, pilot checks, publish plan, support routes, and rollout confidence.',
+        metrics: ['Readiness', '81%', 'Open gates', '4', 'Blockers', '2'],
+        inputs: ['Checklist', 'Pilot users', 'Support path'],
+        matrix: 'Launch readiness gates',
+        next: 'Clear support contacts and parent portal preview before launch.',
+        preview: 'Launch preview',
+        rows: [
+          ['Roster complete', 'Pass', 'Evidence', 'View'],
+          ['Brand approved', 'Draft', 'Preview', 'Review'],
+          ['Support contacts', 'Missing', 'None', 'Add'],
+          ['Parent access', 'Ready', 'Preview', 'Open']
+        ]
+      },
+      control: {
+        title: 'Control workspace',
+        text: 'Feature flags, tenant policy, access rules, audit posture, and separation from operator controls.',
+        metrics: ['Features', '31', 'Policies', '14', 'Violations', '0'],
+        inputs: ['Feature flags', 'Access policies', 'Audit scope'],
+        matrix: 'Control and policy matrix',
+        next: 'Verify tenant controls do not link to operator-only routes.',
+        preview: 'Control preview',
+        rows: [
+          ['Finance module', 'Enabled', 'Role scoped', 'Review'],
+          ['AI assistant', 'Limited', 'Policy', 'Inspect'],
+          ['Operator-only tools', 'Hidden', 'Boundary', 'Verify'],
+          ['Command center', 'Tenant route', 'Proof', 'Audit']
+        ]
+      }
+    };
+
+    function renderMode(mode) {
+      const data = modeData[mode];
+      document.getElementById('modeTitle').textContent = data.title;
+      document.getElementById('modeText').textContent = data.text;
+      document.getElementById('metricOneLabel').textContent = data.metrics[0];
+      document.getElementById('metricOne').textContent = data.metrics[1];
+      document.getElementById('metricTwoLabel').textContent = data.metrics[2];
+      document.getElementById('metricTwo').textContent = data.metrics[3];
+      document.getElementById('metricThreeLabel').textContent = data.metrics[4];
+      document.getElementById('metricThree').textContent = data.metrics[5];
+      document.getElementById('inputA').textContent = data.inputs[0];
+      document.getElementById('inputB').textContent = data.inputs[1];
+      document.getElementById('inputC').textContent = data.inputs[2];
+      document.getElementById('matrixTitle').textContent = data.matrix;
+      document.getElementById('nextAction').textContent = data.next;
+      document.getElementById('sidePreviewTitle').textContent = data.preview;
+      document.getElementById('modeRows').innerHTML = data.rows.map(row => (
+        `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[3]}</td></tr>`
+      )).join('');
+    }
+
+    document.querySelectorAll('#modeNav .mode-link').forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+        document.querySelectorAll('#modeNav .mode-link').forEach(item => item.classList.remove('active'));
+        link.classList.add('active');
+        renderMode(link.dataset.mode);
+      });
+    });
+
+    const roleSelect = document.getElementById('roleSelect');
+    if (roleSelect) {
+      roleSelect.addEventListener('change', event => {
+        document.getElementById('roleLabel').textContent = event.target.value;
+        document.getElementById('previewTitle').textContent = `${event.target.value} - draft theme`;
+      });
+    }
+
+    document.querySelectorAll('[data-device]').forEach(button => {
+      button.addEventListener('click', () => {
+        const frame = document.getElementById('deviceFrame');
+        frame.classList.remove('desktop', 'tablet', 'mobile');
+        frame.classList.add(button.dataset.device);
+      });
+    });
+  </script>
+</body>
+</html>

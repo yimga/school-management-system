@@ -241,11 +241,14 @@ def build_hub_glance_context(request: Any) -> dict[str, Any]:
     layout = _load_tenant_layout(school) if school else default_layout()
     settings = dict(getattr(school, "settings", None) or {}) if school else {}
     log = settings.get(TENANT_PUBLISH_LOG_KEY) or []
-    from apps.siteconfig.config_service import get_effective_site_settings
+    from apps.platform_runtime.config_resolver import get_effective_config
 
-    site = get_effective_site_settings(request=request) if school else None
-    primary = getattr(site, "primary_color", None) if site else ""
-    accent = getattr(site, "accent_color", None) if site else ""
+    primary = (
+        get_effective_config(key="primary_color", request=request) if school else ""
+    )
+    accent = (
+        get_effective_config(key="accent_color", request=request) if school else ""
+    )
     last_at, last_label = _glance_publish_meta(log if isinstance(log, list) else [])
     return {
         "plane_label": "tenant",
@@ -298,6 +301,7 @@ def persist_tenant_brand_colors(
 
     guarded, adjusted = guard_brand_dict(colors, effective_surface=effective_surface)
     if colors:
+        # config-resolver-allow: object mutated via apply_theme_experience_state(save=True)
         site = get_effective_site_settings(request=request)
         if site is not None and hasattr(site, "apply_theme_experience_state"):
             updates = {k: guarded.get(k) for k in TOKEN_FIELD_NAMES if guarded.get(k)}
@@ -305,6 +309,7 @@ def persist_tenant_brand_colors(
                 site.apply_theme_experience_state(field_updates=updates, save=True)
 
     if publish and colors:
+        # config-resolver-allow: namespace used as ThemeColorsForm publish instance (mutated via form.save)
         site = get_effective_site_settings(request=request)
         if site is None:
             site = build_platform_default_site_settings()

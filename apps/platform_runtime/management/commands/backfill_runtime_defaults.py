@@ -40,6 +40,7 @@ class Command(BaseCommand):
             options.get("exclude_owners"),
         )
         # Platform backfill: use helper so get_solo() stays only in platform_runtime/helpers (allowlist shrink per SITESETTINGS_GET_SOLO_ALLOWLIST).
+        # config-resolver-allow: write-path singleton (create=True provisioning; row handed to RuntimeDefaults.sync_from_site_settings)
         site = get_platform_site_settings_record(create=True)
         obj, created = RuntimeDefaults.sync_from_site_settings(
             site,

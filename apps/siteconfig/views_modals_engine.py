@@ -66,6 +66,7 @@ def modal_settings_view(request):
         messages.success(request, _("Modal defaults saved for this school."))
         return redirect("siteconfig:modal_settings")
 
+    # config-resolver-allow: namespace passed to _bool_default_on helper for tri-state default-on toggle reads
     site = get_effective_site_settings(request=request)
     ctx = {
         "can_manage": can_manage,

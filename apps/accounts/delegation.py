@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
 
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.models import (
     default_grade_approval_roles,
     default_syllabus_approval_roles,
@@ -61,15 +61,14 @@ def _user_has_any_role(user: User, roles: list[str]) -> bool:
 
 def get_approval_roles_for_workflow(workflow_key: str, school=None) -> list[str]:
     """Return list of role codes that can approve for this workflow (from effective tenant site settings)."""
-    site = get_effective_site_settings(school=school)
     if workflow_key == WORKFLOW_SYLLABUS_APPROVAL:
         roles = (
-            getattr(site, "syllabus_approval_roles", None)
+            get_effective_config(school=school, key="syllabus_approval_roles")
             or default_syllabus_approval_roles()
         )
     elif workflow_key == WORKFLOW_GRADE_APPROVAL:
         roles = (
-            getattr(site, "grade_approval_roles", None)
+            get_effective_config(school=school, key="grade_approval_roles")
             or default_grade_approval_roles()
         )
     else:
@@ -206,8 +205,7 @@ def log_delegation_action(
 
 def get_delegation_role_mapping(school=None):
     """Return who can delegate to whom from effective site settings (dict: delegator_role -> [delegate_roles])."""
-    site = get_effective_site_settings(school=school)
-    mapping = getattr(site, "delegation_role_mapping", None) or {}
+    mapping = get_effective_config(school=school, key="delegation_role_mapping") or {}
     if isinstance(mapping, dict):
         return mapping
     return {}

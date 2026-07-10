@@ -66,7 +66,7 @@ Status legend: **SHIPPED** = a repository mechanism and resolving proof are pres
 | Dynamic intake wizards (offline IndexedDB cache) | `apps/setup_studio`, `offline-db.js`, `rmc-wizard-offline-intake.js` | SHIPPED — encrypted, fail-closed drafts with explicit restore/discard | `offline-intake-wizard` |
 | Sovereign data router (shard PII by signup country) | `School` + RLS (`apps/schools`), `apps/compliance` | SHIPPED — data region + regional cluster + RLS proof | `data-residency-routing` |
 | Cultural vocabulary injector (Student→Learner/Cadet) | `apps/locale`, `country_localization_service.py` | SHIPPED — six-layer terminology cascade | `vocabulary-injector` |
-| Resource allocation / timetable solver (offline, conflict-free) | `apps/academics/timetable_solver.py` + `views_timetable_solver.py` | SHIPPED — bounded CSP backtracking with deterministic fallback | `timetable-solver` |
+| Resource allocation / timetable solver (offline, conflict-free) | `apps/academics/timetable_solver.py` (pure solver) + `apps/academics/scheduling.py` + `views_timetable.py` (persisting generate→review→publish flow) | SHIPPED — bounded CSP backtracking + wired CSP generator with publish-refuse-on-conflict | `timetable-solver` |
 
 ### Phase 2 — Roster orchestration & human capital (week 1)
 | Manifesto tool | Real home | Status | Register slug |

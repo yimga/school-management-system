@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Body Surfaces Mockup</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #e9edf8;
+      background: #0f172a;
+      --surface: #111827;
+      --surface-strong: #0f172a;
+      --surface-muted: #1f2937;
+      --border: rgba(148, 163, 184, 0.2);
+      --accent: #38bdf8;
+      --accent-strong: #22c55e;
+      --warning: #f59e0b;
+      --danger: #f97316;
+      --success: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; min-height: 100vh; background: radial-gradient(circle at top, rgba(56, 189, 248, .12), transparent 28%), linear-gradient(180deg, #020617 0%, #091421 100%); }
+    .page-shell { width: 100%; min-height: 100vh; padding: 32px; display: flex; flex-direction: column; gap: 32px; }
+    .page-shell h1 { margin: 0 0 12px; font-size: 2rem; letter-spacing: -0.04em; }
+    .banner { padding: 18px 22px; border: 1px solid rgba(148,163,184,.12); border-radius: 24px; background: rgba(15,23,42,.88); display: grid; gap: 8px; }
+    .banner strong { color: #f8fafc; }
+    .workspace-panel { display: grid; gap: 18px; }
+    .surface { border: 1px solid rgba(148,163,184,.14); border-radius: 28px; background: rgba(15,23,42,.92); box-shadow: 0 18px 45px rgba(0,0,0,.2); overflow: hidden; }
+    .surface header { padding: 24px 28px 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .surface header h2 { margin: 0; font-size: 1.35rem; line-height: 1.1; }
+    .surface header p { margin: 6px 0 0; color: #94a3b8; max-width: 50rem; }
+    .surface-body { padding: 0 24px 24px; display: grid; gap: 18px; }
+    .dashboard-grid { display: grid; gap: 18px; grid-template-columns: minmax(280px, 1.5fr) minmax(280px, 1fr); }
+    .dashboard-grid.wide { grid-template-columns: minmax(420px, 2fr) minmax(320px, 1fr); }
+    .card { background: rgba(30,41,59,.95); border: 1px solid rgba(148,163,184,.1); border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .card h3 { margin: 0; font-size: 1rem; letter-spacing: .01em; color: #e2e8f0; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; background: rgba(148,163,184,.08); font-size: .87rem; color: #cbd5e1; }
+    .pill.accent { background: rgba(56,189,248,.14); color: #8be3ff; }
+    .pill.warning { background: rgba(245,158,11,.15); color: #fad677; }
+    .pill.success { background: rgba(34,197,94,.15); color: #a7f3d0; }
+    .row { display: grid; gap: 18px; }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .summary-strip { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .summary-tile { border-radius: 24px; padding: 18px; background: rgba(30,41,59,.98); border: 1px solid rgba(148,163,184,.08); display: grid; gap: 10px; }
+    .summary-tile strong { display: block; font-size: 1.4rem; color: #ffffff; }
+    .summary-tile span { color: #94a3b8; font-size: .88rem; }
+    .list-panel { display: grid; gap: 10px; }
+    .event-item { border-radius: 18px; background: rgba(15,23,42,.9); border: 1px solid rgba(148,163,184,.08); padding: 16px; display: grid; gap: 6px; }
+    .event-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: #94a3b8; font-size: .84rem; }
+    .event-meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .event-title { margin: 0; font-size: 1rem; line-height: 1.4; }
+    .chart-placeholder { min-height: 240px; border-radius: 24px; background: linear-gradient(135deg, rgba(56,189,248,.12), rgba(34,197,94,.08)); border: 1px dashed rgba(148,163,184,.18); display: grid; place-items: center; color: #cbd5e1; font-size: .95rem; }
+    .action-box { border-radius: 22px; background: rgba(30,41,59,.98); border: 1px solid rgba(148,163,184,.1); padding: 20px; display: grid; gap: 16px; }
+    .action-box strong { color: #ffffff; }
+    .action-box button { width: fit-content; margin-top: 12px; border: none; border-radius: 999px; padding: 11px 18px; background: #38bdf8; color: #0f172a; cursor: pointer; font-weight: 600; }
+    .control-matrix { display: grid; gap: 16px; }
+    .matrix-row { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+    .matrix-row > div { border-radius: 18px; background: rgba(15,23,42,.95); padding: 18px; border: 1px solid rgba(148,163,184,.08); }
+    .matrix-block { min-height: 220px; display: grid; gap: 12px; }
+    .code-block { background: rgba(8,16,29,.95); border: 1px solid rgba(56,189,248,.16); border-radius: 18px; padding: 16px; color: #cbd5e1; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; font-size: .92rem; overflow-x: auto; }
+    .status-pill { padding: 8px 12px; border-radius: 999px; background: rgba(34,197,94,.14); color: #a7f3d0; font-size: .82rem; }
+    .footer-note { color: #94a3b8; font-size: .9rem; }
+    @media (max-width: 1120px) { .dashboard-grid, .grid-3, .grid-2, .matrix-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="banner">
+      <strong>Body-First Dashboard Mockup</strong>
+      <p>These designs focus only on the inner page surfaces, not the header, footer, or sidebar. The goal is clean, full-width, engine-driven content panels with no wasted space.</p>
+    </div>
+
+    <section class="workspace-panel">
+      <div class="surface">
+        <header>
+          <div>
+            <h2>Day-to-Day Operations Workspace</h2>
+            <p>Body surface for fast tenant operations: visual queue, activity stream, resource map, and AI copilot. No rigid form pages, no hidden sections.</p>
+          </div>
+          <div class="status-pill">Body-only focus</div>
+        </header>
+        <div class="surface-body">
+          <div class="summary-strip">
+            <div class="summary-tile"><strong>14</strong><span>Pending offline syncs</span></div>
+            <div class="summary-tile"><strong>3</strong><span>High-priority alerts</span></div>
+            <div class="summary-tile"><strong>98%</strong><span>Local cache health</span></div>
+          </div>
+          <div class="dashboard-grid wide">
+            <div class="card">
+              <h3>In-Memory Pending Sync Queue</h3>
+              <p>Show exactly how many operations are buffered locally before network sync. This gives operators instant confidence that the command center is safe and reliable.</p>
+              <div class="pill-row">
+                <span class="pill warning">14 pending</span>
+                <span class="pill">Attendance</span>
+                <span class="pill">Cash fees</span>
+                <span class="pill">Schedule updates</span>
+              </div>
+              <div class="chart-placeholder">Sync queue visualization</div>
+            </div>
+            <div class="card">
+              <h3>Polymorphic Activity Stream</h3>
+              <div class="pill-row">
+                <span class="pill accent">Behavior</span>
+                <span class="pill success">Attendance</span>
+                <span class="pill warning">Incident</span>
+              </div>
+              <div class="list-panel">
+                <div class="event-item">
+                  <p class="event-title">Attendance mark submitted for Grade 7</p>
+                  <div class="event-meta"><span>2 min ago</span><span>45 students</span><span>Offline local write</span></div>
+                </div>
+                <div class="event-item">
+                  <p class="event-title">Gate check-in anomaly detected</p>
+                  <div class="event-meta"><span>7 min ago</span><span>High priority</span><span>AI suggested review</span></div>
+                </div>
+                <div class="event-item">
+                  <p class="event-title">Lab resource reserved for Physics</p>
+                  <div class="event-meta"><span>14 min ago</span><span>Conflict-free</span><span>Confirmed by GIST lock</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="card">
+              <h3>Fractional Resource Map</h3>
+              <p>Every physical asset is a live booking tile instead of a table row. This surface is built to prevent double bookings and make capacity visible instantly.</p>
+              <div class="chart-placeholder">Resource map + timeline</div>
+            </div>
+            <div class="action-box">
+              <strong>AI Copilot Panel</strong>
+              <p>Contextual prompts surface intelligent next actions based on live tenant state. This body panel feels like an assistant embedded inside the page.</p>
+              <p><strong>Suggested actions</strong></p>
+              <div class="pill-row">
+                <span class="pill accent">Review pending fees</span>
+                <span class="pill success">Approve attendance</span>
+                <span class="pill warning">Investigate incident</span>
+              </div>
+              <button>Open operator recommendation</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace-panel">
+      <div class="surface">
+        <header>
+          <div>
+            <h2>Configuration & Metadata Settings Engine</h2>
+            <p>Body surface for tenant configuration: runtime metadata fields, formula matrices, PPP pricing, and academic year branching.</p>
+          </div>
+          <div class="status-pill">Canvas-first design</div>
+        </header>
+        <div class="surface-body">
+          <div class="grid-2">
+            <div class="card">
+              <h3>Runtime Metadata Field Builder</h3>
+              <p>Enable schools to create and apply custom fields instantly. No migrations required; the body surface reflects changes immediately across the tenant.</p>
+              <div class="pill-row">
+                <span class="pill success">Student fields</span>
+                <span class="pill success">Staff fields</span>
+                <span class="pill success">Asset fields</span>
+              </div>
+              <div class="chart-placeholder">Dynamic field builder canvas</div>
+            </div>
+            <div class="card">
+              <h3>Polymorphic Formula Matrix</h3>
+              <p>Administrators edit grading rules as plain text expressions. This surface is designed for local-first metadata configuration rather than fixed form fields.</p>
+              <div class="code-block">
+                grade_scale = rawScore <= 20 ? 'E' : rawScore >= 18 ? 'A' : rawScore >= 15 ? 'B' : 'C'
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="card">
+              <h3>PPP Invoicing & Fee Matrix</h3>
+              <p>Local currency and payment provider mapping in a compact visual canvas. This body surface turns pricing rules into a living engine, not a static settings form.</p>
+              <div class="grid-3">
+                <div class="summary-tile"><strong>NGN</strong><span>Local base currency</span></div>
+                <div class="summary-tile"><strong>₹</strong><span>PPP-adjusted base fee</span></div>
+                <div class="summary-tile"><strong>82%</strong><span>Mobile wallet coverage</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>School-Year Branching Control</h3>
+              <p>Treat the academic year as a version-controlled branch. This body panel shows the current year, the cloned branch state, and the next planned transition.</p>
+              <div class="chart-placeholder">Branch timeline control</div>
+              <button>Clone and branch year</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="surface">
+      <header>
+        <div>
+          <h2>Before / After Body Comparison</h2>
+          <p>This mockup focuses on the new body surfaces while leaving existing shell chrome untouched.</p>
+        </div>
+      </header>
+      <div class="surface-body">
+        <div class="dashboard-grid">
+          <div class="card">
+            <h3>Before</h3>
+            <p>Dense settings page body with invisible sections and rigid field rows. This style wastes space and lowers clarity.</p>
+            <div class="code-block">School name<br>Slug<br>Subdomain<br>Sub-system<br>School location...</div>
+          </div>
+          <div class="card">
+            <h3>After</h3>
+            <p>World-class page body surfaces with grouped engine controls, visible intent, and full-width canvas presentation.</p>
+            <div class="code-block">Pending sync queue • Activity stream • Resource map • AI copilot</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

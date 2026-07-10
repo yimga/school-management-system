@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RunMyCampus canvas-first builder approval</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050b16;
+      --chrome: #0b1425;
+      --canvas: #0f1b30;
+      --panel: #14233c;
+      --panel2: #1a2b49;
+      --line: rgba(169, 190, 226, .18);
+      --line2: rgba(169, 190, 226, .34);
+      --text: #f3f8ff;
+      --muted: #a8b8cf;
+      --dim: #74869f;
+      --blue: #2fbcff;
+      --green: #3edb8f;
+      --red: #ff5b6c;
+      --amber: #ffd166;
+      --violet: #8c78ff;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .42);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 62% -12%, rgba(47,188,255,.17), transparent 28%),
+        radial-gradient(circle at 18% 5%, rgba(62,219,143,.08), transparent 26%),
+        var(--bg);
+      color: var(--text);
+    }
+    a { color: inherit; }
+    button { font: inherit; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 284px minmax(0, 1fr) 56px;
+      grid-template-rows: 54px 34px minmax(0, 1fr) 42px;
+    }
+
+    .top {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr) 520px;
+      gap: 14px;
+      align-items: center;
+      padding: 8px 16px;
+      background: rgba(11,20,37,.94);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .brand, .nav, .actions, .btn, .chip, .search, .side-row, .toolbar { display: flex; align-items: center; }
+    .brand { gap: 10px; min-width: 0; }
+    .logo {
+      width: 32px; height: 32px; border-radius: 9px;
+      display: grid; place-items: center; font-weight: 950;
+      background: linear-gradient(135deg, #2fbcff, #8c78ff 54%, #ff5b6c);
+    }
+    .brand strong { display: block; font-size: 14px; }
+    .brand span { display: block; color: var(--muted); font-size: 10px; }
+    .nav { justify-content: center; gap: 4px; min-width: 0; }
+    .actions { justify-content: flex-end; gap: 9px; min-width: 0; }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.055);
+      color: var(--text);
+      min-height: 32px;
+      padding: 0 13px;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 780;
+      white-space: nowrap;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .btn.primary { background: linear-gradient(135deg, #4e75ff, #7b58ff); border-color: rgba(153,178,255,.48); }
+    .btn.blue { background: rgba(47,188,255,.14); border-color: rgba(47,188,255,.36); color: #bdeeff; }
+    .btn.green { background: rgba(62,219,143,.14); border-color: rgba(62,219,143,.36); color: #aaffd5; }
+    .btn.red { background: rgba(255,91,108,.14); border-color: rgba(255,91,108,.36); color: #ffc8ce; }
+    .btn.ghost { background: #070e1b; }
+
+    .search {
+      width: min(330px, 38vw);
+      min-height: 32px;
+      justify-content: space-between;
+      padding: 0 10px 0 14px;
+      border: 1px solid rgba(255,209,102,.28);
+      background: rgba(61,43,24,.58);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      min-width: 0;
+    }
+    .kbd { font-size: 10px; font-weight: 950; color: #dce8f7; background: rgba(255,255,255,.12); padding: 2px 7px; border-radius: 5px; }
+
+    .ticker {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 0 16px;
+      overflow: hidden;
+      white-space: nowrap;
+      background: rgba(17,18,50,.84);
+      border-bottom: 1px solid rgba(140,120,255,.38);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .side {
+      grid-row: 3 / 5;
+      border-right: 1px solid var(--line);
+      background: rgba(8,14,27,.9);
+      padding: 10px;
+      overflow: auto;
+    }
+    .side-head { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px auto; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .mini { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; background: rgba(255,255,255,.055); color: var(--muted); font-weight: 950; }
+    .filter { min-width: 0; height: 34px; border-radius: 10px; border: 1px solid rgba(255,209,102,.25); background: rgba(55,39,23,.56); padding: 0 9px; display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12px; }
+    .side-card { border: 1px solid var(--line); border-radius: 15px; background: rgba(17,28,49,.70); padding: 10px; margin-bottom: 10px; }
+    .side-title { text-transform: uppercase; letter-spacing: .08em; color: var(--dim); font-size: 10px; font-weight: 950; margin: 3px 7px 8px; display: flex; justify-content: space-between; }
+    .side-row { justify-content: space-between; gap: 8px; min-height: 38px; padding: 0 8px; border-radius: 10px; color: #dbe7f7; font-size: 13px; }
+    .side-row.active { background: rgba(47,188,255,.13); color: #dff5ff; }
+
+    .tools {
+      grid-column: 3;
+      grid-row: 3 / 5;
+      border-left: 1px solid var(--line);
+      background: rgba(8,14,27,.94);
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      align-items: center;
+    }
+    .tool { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.055); display: grid; place-items: center; color: var(--muted); font-weight: 950; }
+
+    main {
+      grid-column: 2;
+      grid-row: 3;
+      min-width: 0;
+      overflow: auto;
+      padding: 12px 12px 96px;
+    }
+    .footer {
+      grid-column: 2;
+      grid-row: 4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      border-top: 1px solid var(--line);
+      background: rgba(11,20,37,.94);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hero, .surface, .panel, .canvas, .inspector, .filmstrip, .note-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(16,27,48,.95), rgba(10,18,33,.95));
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 14px;
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+    .eyebrow { color: var(--blue); text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 950; margin-bottom: 7px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(30px, 3.4vw, 48px); line-height: 1; letter-spacing: -.035em; margin-bottom: 10px; }
+    h2 { font-size: 22px; margin-bottom: 9px; }
+    h3 { font-size: 16px; margin-bottom: 8px; }
+    p { color: var(--muted); line-height: 1.52; }
+
+    .chip-row { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip { min-height: 24px; padding: 0 9px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.065); color: #dce8f8; font-size: 11px; font-weight: 850; white-space: nowrap; }
+    .chip.green { color: #aaffd3; background: rgba(62,219,143,.13); border-color: rgba(62,219,143,.34); }
+    .chip.red { color: #ffc8ce; background: rgba(255,91,108,.13); border-color: rgba(255,91,108,.34); }
+    .chip.blue { color: #bdeeff; background: rgba(47,188,255,.13); border-color: rgba(47,188,255,.34); }
+    .chip.amber { color: #ffe8a8; background: rgba(255,209,102,.12); border-color: rgba(255,209,102,.34); }
+
+    .principles {
+      display: grid;
+      gap: 8px;
+    }
+    .principles div {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(255,255,255,.045);
+      padding: 10px;
+    }
+    .principles strong { display: block; margin-bottom: 3px; }
+    .principles span { color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+    .surface { padding: 12px; overflow: hidden; }
+    .command {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(8,14,27,.78);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .builder {
+      display: grid;
+      grid-template-columns: minmax(220px, 260px) minmax(0, 1fr) minmax(300px, 360px);
+      grid-template-rows: minmax(680px, calc(100vh - 240px)) auto;
+      gap: 10px;
+      align-items: stretch;
+      min-width: 0;
+    }
+
+    .outline {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(10,18,33,.82);
+      padding: 10px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 9px;
+      min-width: 0;
+    }
+    .outline-list { display: grid; gap: 7px; overflow: auto; }
+    .outline-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,.045);
+      padding: 9px;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      cursor: pointer;
+    }
+    .outline-item.active { border-color: rgba(47,188,255,.45); background: rgba(47,188,255,.10); }
+    .num { width: 30px; height: 30px; border-radius: 9px; background: rgba(47,188,255,.14); color: var(--blue); display: grid; place-items: center; font-weight: 950; }
+    .outline-item strong { display: block; font-size: 13px; }
+    .outline-item span { color: var(--muted); font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
+
+    .canvas {
+      padding: 10px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 10px;
+      background:
+        radial-gradient(circle at 90% 0%, rgba(62,219,143,.10), transparent 32%),
+        rgba(10,18,33,.82);
+      min-width: 0;
+    }
+    .toolbar {
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      padding: 8px;
+      min-width: 0;
+    }
+    .segmented {
+      display: inline-grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(78px, auto);
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #070e1b;
+      min-width: 0;
+    }
+    .segmented button {
+      min-height: 30px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 850;
+      cursor: pointer;
+      min-width: 0;
+    }
+    .segmented button.active { background: rgba(47,188,255,.18); color: #e1f6ff; }
+
+    .viewport {
+      min-height: 0;
+      border: 1px solid rgba(47,188,255,.24);
+      border-radius: 18px;
+      background: #dfe8f3;
+      color: #132037;
+      padding: 16px;
+      overflow: auto;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.58);
+    }
+    .page {
+      width: min(1180px, 100%);
+      min-height: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .page-side {
+      border-radius: 18px;
+      background: #fff;
+      padding: 13px;
+      display: grid;
+      gap: 10px;
+      box-shadow: 0 14px 34px rgba(15,23,42,.12);
+      position: sticky;
+      top: 0;
+    }
+    .fake-logo { width: 42px; height: 42px; border-radius: 13px; background: linear-gradient(135deg, #2fbcff, #3edb8f); }
+    .fake-line { height: 30px; border-radius: 10px; background: #eef3f8; }
+    .fake-line.active { background: #dff3ff; border-left: 4px solid #2fbcff; }
+    .page-main { display: grid; gap: 14px; min-width: 0; }
+    .page-hero {
+      min-height: 172px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #0f172a, #203a5f 56%, #2fbcff);
+      color: #fff;
+      padding: 22px;
+      display: grid;
+      align-content: end;
+      position: relative;
+      overflow: hidden;
+    }
+    .inspect-tag {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.28);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .page-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .page-card {
+      min-height: 142px;
+      border-radius: 18px;
+      background: #fff;
+      padding: 14px;
+      box-shadow: 0 14px 34px rgba(15,23,42,.10);
+    }
+    .page-card span { display: block; height: 9px; border-radius: 999px; background: #e2e8f0; margin-top: 11px; }
+
+    .inspector {
+      padding: 10px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      gap: 9px;
+      background: rgba(10,18,33,.82);
+      min-width: 0;
+    }
+    .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .field, .select {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,.045);
+      padding: 9px;
+      display: grid;
+      gap: 5px;
+    }
+    .field label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 950; }
+    .value {
+      min-height: 34px;
+      border-radius: 9px;
+      background: rgba(49,188,255,.10);
+      border: 1px solid rgba(47,188,255,.18);
+      padding: 7px 9px;
+      color: var(--text);
+      overflow-wrap: anywhere;
+      font-size: 13px;
+    }
+    .inspector-scroll { overflow: auto; display: grid; gap: 9px; padding-right: 2px; }
+    .safe-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 9px; }
+
+    .filmstrip {
+      grid-column: 1 / -1;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      background: rgba(10,18,33,.82);
+    }
+    .thumb {
+      min-height: 88px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.045);
+      padding: 10px;
+      display: grid;
+      align-content: end;
+    }
+    .thumb strong { font-size: 13px; }
+    .thumb span { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+    .comparison {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .note-card { padding: 13px; }
+    .note-card p { font-size: 13px; margin-bottom: 0; }
+
+    .drawer {
+      position: fixed;
+      inset: 54px 56px 42px auto;
+      width: min(920px, 58vw);
+      background: #111e33;
+      border-left: 1px solid var(--line2);
+      transform: translateX(103%);
+      transition: transform .2s ease;
+      box-shadow: -32px 0 90px rgba(0,0,0,.46);
+      z-index: 50;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-head { padding: 12px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .drawer-body { padding: 12px; overflow: auto; }
+
+    .popout {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.62);
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+    }
+    .popout.open { display: flex; }
+    .popout-panel {
+      width: min(1240px, 94vw);
+      max-height: 88vh;
+      overflow: auto;
+      border: 1px solid var(--line2);
+      border-radius: 22px;
+      background: #111e33;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 1380px) {
+      .builder { grid-template-columns: 230px minmax(0, 1fr); }
+      .inspector { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr); }
+      .inspector-scroll { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .filmstrip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 1020px) {
+      .app { display: block; }
+      .side, .tools, .footer { display: none; }
+      .top { grid-template-columns: 1fr; position: static; }
+      .nav, .actions { justify-content: flex-start; flex-wrap: wrap; }
+      main { padding: 10px; }
+      .hero, .builder, .page, .page-cards, .comparison, .filmstrip, .inspector-scroll { grid-template-columns: 1fr; }
+      .builder { grid-template-rows: auto; }
+      .outline { min-height: auto; }
+      .drawer { inset: 0; width: 100vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">R</div>
+        <div><strong>New Test High School</strong><span>Canvas-first approval option</span></div>
+      </div>
+      <nav class="nav">
+        <a class="btn primary" href="#builder">Builder</a>
+        <a class="btn" href="#patterns">Patterns</a>
+        <a class="btn" href="#rollout">Rollout</a>
+        <a class="btn" href="#">More</a>
+      </nav>
+      <div class="actions">
+        <div class="search"><span>Search settings, roles...</span><span class="kbd">Ctrl K</span></div>
+        <a class="btn" href="#">Console</a>
+        <a class="btn" href="#">Configure</a>
+      </div>
+    </header>
+
+    <div class="ticker">
+      <span class="chip red">New option</span>
+      <span>No cramped inline preview</span>
+      <span>Canvas is the workspace</span>
+      <span>Click preview element -> settings inspector</span>
+      <span>Device and role switcher always visible</span>
+    </div>
+
+    <aside class="side">
+      <div class="side-head">
+        <div class="mini">S</div>
+        <div class="filter"><span>Filter...</span><span>/</span></div>
+        <div class="mini">G</div>
+        <span style="color:var(--muted);font-size:12px">Navigation</span>
+      </div>
+      <div class="side-card">
+        <div class="side-title"><span>Work modes</span><span>^</span></div>
+        <div class="side-row"><span>Overview</span><small></small></div>
+        <div class="side-row active"><span>Experience</span><small>now</small></div>
+        <div class="side-row"><span>Automation</span><small></small></div>
+        <div class="side-row"><span>Outputs</span><small></small></div>
+        <div class="side-row"><span>Launch</span><small></small></div>
+        <div class="side-row"><span>Control</span><small></small></div>
+      </div>
+      <div class="side-card">
+        <div class="side-title"><span>Configuration</span><span>^</span></div>
+        <div class="side-row"><span>Theme packs</span><small></small></div>
+        <div class="side-row"><span>Role previews</span><small></small></div>
+        <div class="side-row"><span>Publish guard</span><small></small></div>
+      </div>
+    </aside>
+
+    <aside class="tools">
+      <div class="tool">AI</div>
+      <div class="tool">?</div>
+      <div class="tool">P</div>
+      <div class="tool">A</div>
+      <div class="tool">L</div>
+    </aside>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Option C - Canvas-first live builder</div>
+          <h1>Stop making preview fit the form. Make the form serve the preview.</h1>
+          <p>
+            This option removes inline preview as the main work area. The live preview becomes the central canvas, settings move into an inspector, and the left outline lets users jump between editable regions. This is closer to how serious builders work: canvas, inspector, breakpoints, role/state switchers, and review/compare.
+          </p>
+          <div class="chip-row">
+            <span class="chip green">No cramped preview</span>
+            <span class="chip blue">Full-width canvas</span>
+            <span class="chip amber">Preview inspector</span>
+            <span class="chip red">Inline only as thumbnail</span>
+          </div>
+        </div>
+        <div class="principles" id="patterns">
+          <div><strong>Shopify-like inspector</strong><span>Click/select preview sections and map them directly to settings.</span></div>
+          <div><strong>Webflow-like canvas</strong><span>Preview in a real canvas with breakpoint controls always available.</span></div>
+          <div><strong>Salesforce-like form factors</strong><span>Verify configured pages by role/app/form factor before activation.</span></div>
+        </div>
+      </section>
+
+      <section class="surface" id="builder">
+        <div class="command">
+          <div>
+            <div class="eyebrow">Approval mockup</div>
+            <h2 style="margin-bottom:4px">Experience Builder - canvas-first layout</h2>
+            <p style="margin-bottom:0">The center canvas uses the width. The inspector edits the selected region. Filmstrip previews replace cramped inline widgets.</p>
+          </div>
+          <div class="chip-row">
+            <button class="btn blue" type="button" data-open-drawer>Open drawer</button>
+            <button class="btn" type="button" data-open-popout>Compare</button>
+            <a class="btn ghost" href="about:blank" target="_blank" rel="noopener noreferrer">New tab</a>
+            <button class="btn green" type="button">Publish</button>
+          </div>
+        </div>
+
+        <div class="builder">
+          <aside class="outline" aria-label="Preview outline">
+            <div>
+              <h3>Page outline</h3>
+              <p style="font-size:13px;margin-bottom:0">Click a region in the preview or outline to edit only that surface.</p>
+            </div>
+            <div class="segmented" style="grid-auto-columns:minmax(0, 1fr)">
+              <button class="active" type="button">Draft</button>
+              <button type="button">Live</button>
+            </div>
+            <div class="outline-list">
+              <div class="outline-item active"><div class="num">1</div><div><strong>Header and navigation</strong><span>Logo, top nav, More menu, search density.</span></div></div>
+              <div class="outline-item"><div class="num">2</div><div><strong>Hero surface</strong><span>Role greeting, action priority, school brand.</span></div></div>
+              <div class="outline-item"><div class="num">3</div><div><strong>Dashboard cards</strong><span>Card shape, contrast, spacing, labels.</span></div></div>
+              <div class="outline-item"><div class="num">4</div><div><strong>Sidebar palette</strong><span>Tenant admin backend and portal navigation.</span></div></div>
+              <div class="outline-item"><div class="num">5</div><div><strong>Footer and help</strong><span>Footer density, help placement, legal links.</span></div></div>
+              <div class="outline-item"><div class="num">6</div><div><strong>Mobile layout</strong><span>Collapsed nav and touch targets.</span></div></div>
+            </div>
+          </aside>
+
+          <section class="canvas" aria-label="Live canvas">
+            <div class="toolbar">
+              <div class="chip-row">
+                <span class="chip blue">Live canvas</span>
+                <span class="chip">Role: Teacher</span>
+                <span class="chip green">Tenant draft</span>
+                <span class="chip amber">Selected: Header</span>
+              </div>
+              <div class="segmented">
+                <button class="active" type="button">Desktop</button>
+                <button type="button">Tablet</button>
+                <button type="button">Mobile</button>
+              </div>
+            </div>
+
+            <div class="viewport">
+              <div class="page">
+                <aside class="page-side">
+                  <div class="fake-logo"></div>
+                  <div class="fake-line active"></div>
+                  <div class="fake-line"></div>
+                  <div class="fake-line" style="width:82%"></div>
+                  <div class="fake-line" style="width:74%"></div>
+                  <div class="fake-line" style="width:90%"></div>
+                </aside>
+                <section class="page-main">
+                  <div class="page-hero">
+                    <div class="inspect-tag">Preview inspector: Header selected</div>
+                    <h2 style="font-size:32px;margin:0 0 8px">Teacher command surface</h2>
+                    <p style="color:#dceafe;margin:0">The real role page is large enough to inspect. No vertical leaking labels. No squeezed preview.</p>
+                  </div>
+                  <div class="page-cards">
+                    <div class="page-card"><strong>Today</strong><span></span><span style="width:72%"></span><span style="width:58%"></span></div>
+                    <div class="page-card"><strong>Classes</strong><span></span><span style="width:62%"></span><span style="width:82%"></span></div>
+                    <div class="page-card"><strong>Messages</strong><span></span><span style="width:80%"></span><span style="width:66%"></span></div>
+                  </div>
+                  <div class="page-cards">
+                    <div class="page-card"><strong>Reports</strong><span></span><span style="width:58%"></span></div>
+                    <div class="page-card"><strong>Attendance</strong><span></span><span style="width:76%"></span></div>
+                    <div class="page-card"><strong>Tasks</strong><span></span><span style="width:68%"></span></div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </section>
+
+          <aside class="inspector" aria-label="Settings inspector">
+            <div>
+              <h3>Inspector</h3>
+              <p style="font-size:13px;margin-bottom:0">Settings for the selected preview region. This replaces a long cramped form.</p>
+            </div>
+            <div class="chip-row">
+              <span class="chip green">Saved</span>
+              <span class="chip red">Contrast pass</span>
+              <span class="chip blue">Preview required</span>
+            </div>
+            <div class="inspector-scroll">
+              <div class="field"><label>Selected region</label><div class="value">Header and navigation</div></div>
+              <div class="field"><label>Portal theme</label><div class="value">Academic Slate</div></div>
+              <div class="field"><label>Primary color</label><div class="value">#2fbcff</div></div>
+              <div class="field"><label>Accent color</label><div class="value">#3edb8f</div></div>
+              <div class="field"><label>Search density</label><div class="value">Compact, 25% narrower</div></div>
+              <div class="field"><label>More button</label><div class="value">Same row as Home, Finance, Messages, Analytics</div></div>
+              <div class="field"><label>Role coverage</label><div class="value">Admin, Teacher, Parent, Student, Finance</div></div>
+              <div class="field"><label>Publish guard</label><div class="value">Preview all role/device combinations before publish</div></div>
+            </div>
+            <div class="safe-actions">
+              <button class="btn red" type="button">Reset region</button>
+              <button class="btn blue" type="button">Save draft</button>
+              <button class="btn green" type="button">Approve region</button>
+            </div>
+          </aside>
+
+          <section class="filmstrip" aria-label="Role and device snapshots">
+            <div class="thumb"><strong>Admin shell</strong><span>Backend density</span></div>
+            <div class="thumb"><strong>Teacher dashboard</strong><span>Primary preview</span></div>
+            <div class="thumb"><strong>Parent portal</strong><span>Family surface</span></div>
+            <div class="thumb"><strong>Student portal</strong><span>Mobile first</span></div>
+            <div class="thumb"><strong>Finance console</strong><span>Table clarity</span></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="comparison" id="rollout">
+        <article class="note-card"><div class="eyebrow">Rule 1</div><h3>Preview is never squeezed</h3><p>Inline previews become thumbnails only. Full preview uses canvas, drawer, popout, or new tab.</p></article>
+        <article class="note-card"><div class="eyebrow">Rule 2</div><h3>Inspector edits selection</h3><p>Users select a page region and see only relevant settings, reducing massive forms.</p></article>
+        <article class="note-card"><div class="eyebrow">Rule 3</div><h3>Full width by default</h3><p>Studio, Django admin, report builders, dashboards, forms, communications, and launch pages use the available canvas.</p></article>
+        <article class="note-card"><div class="eyebrow">Rule 4</div><h3>Proof before publish</h3><p>Role, device, draft/live, tenant/operator, accessibility, and no-overlap checks must pass before commit.</p></article>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <strong>Canvas-first builder option</strong>
+      <span>No production templates changed</span>
+    </footer>
+  </div>
+
+  <aside class="drawer" aria-label="Drawer preview">
+    <div class="drawer-head">
+      <div><strong>Drawer preview</strong><div style="color:var(--muted);font-size:12px">Use when editing needs to stay visible beside a larger preview.</div></div>
+      <button class="btn" type="button" data-close-drawer>Close</button>
+    </div>
+    <div class="drawer-body">
+      <div class="viewport" style="min-height:720px">
+        <div class="page">
+          <aside class="page-side"><div class="fake-logo"></div><div class="fake-line active"></div><div class="fake-line"></div></aside>
+          <section class="page-main"><div class="page-hero"><h2>Drawer preview</h2><p style="color:#dceafe">Large enough to inspect without leaving the builder.</p></div><div class="page-cards"><div class="page-card"></div><div class="page-card"></div><div class="page-card"></div></div></section>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="popout" aria-label="Compare popout">
+    <div class="popout-panel">
+      <div class="command">
+        <div><div class="eyebrow">Compare mode</div><h2 style="margin-bottom:4px">Published vs draft</h2><p style="margin-bottom:0">This is the review surface before publish, not an inline widget.</p></div>
+        <button class="btn" type="button" data-close-popout>Close</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="viewport"><div class="page" style="grid-template-columns:150px 1fr"><aside class="page-side"><div class="fake-logo"></div><div class="fake-line"></div></aside><section class="page-main"><div class="page-hero"><h2>Published</h2></div></section></div></div>
+        <div class="viewport"><div class="page" style="grid-template-columns:150px 1fr"><aside class="page-side"><div class="fake-logo"></div><div class="fake-line active"></div></aside><section class="page-main"><div class="page-hero"><h2>Draft</h2></div></section></div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const drawer = document.querySelector('.drawer');
+    document.querySelectorAll('[data-open-drawer]').forEach((button) => button.addEventListener('click', () => drawer.classList.add('open')));
+    document.querySelectorAll('[data-close-drawer]').forEach((button) => button.addEventListener('click', () => drawer.classList.remove('open')));
+    const popout = document.querySelector('.popout');
+    document.querySelectorAll('[data-open-popout]').forEach((button) => button.addEventListener('click', () => popout.classList.add('open')));
+    document.querySelectorAll('[data-close-popout]').forEach((button) => button.addEventListener('click', () => popout.classList.remove('open')));
+  </script>
+</body>
+</html>

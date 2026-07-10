@@ -37,10 +37,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.academics.models import AcademicYear
-from apps.siteconfig.config_service import (
-    get_effective_flags,
-    get_effective_site_settings,
-)
+from apps.platform_runtime.config_resolver import get_effective_config
+from apps.siteconfig.config_service import get_effective_flags
 
 from .forms import CashOfficeClosureForm, SplitAllocationForm, TellerScanForm
 from .models import (
@@ -141,8 +139,7 @@ def payment_list(request: HttpRequest):
             f"<td>{pay.receipt_number or ''}</td></tr>"
             for pay in ordered_qs[:500]
         )
-        site = get_effective_site_settings(request=request)
-        title = getattr(site, "site_name", None) or "Payments"
+        title = get_effective_config(key="site_name", request=request) or "Payments"
         html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Payments</title>
 <style>body{{font-family:system-ui,sans-serif;font-size:10pt;margin:12mm;}}
 table{{width:100%;border-collapse:collapse;}} th,td{{border:1px solid #ddd;padding:6px;text-align:left;}}
@@ -427,13 +424,17 @@ def scan_teller_placeholder(request: HttpRequest):
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
-    site = get_effective_site_settings(request=request)
     verification_method = (
-        getattr(site, "finance_receipt_verification_method", "pattern") or "pattern"
+        get_effective_config(
+            key="finance_receipt_verification_method",
+            request=request,
+            default="pattern",
+        )
+        or "pattern"
     )
     ocr_runtime_status = get_ocr_runtime_status(
         verification_method,
-        getattr(site, "marksheet_ocr_command", ""),
+        get_effective_config(key="marksheet_ocr_command", request=request, default=""),
     )
     form = TellerScanForm(request.POST or None, request.FILES or None)
 
@@ -442,7 +443,13 @@ def scan_teller_placeholder(request: HttpRequest):
     suspense_matches = []
     invoice_matches = []
     suggested_tolerance = Decimal(
-        str(getattr(site, "finance_bank_verification_amount_tolerance", "1.00"))
+        str(
+            get_effective_config(
+                key="finance_bank_verification_amount_tolerance",
+                request=request,
+                default="1.00",
+            )
+        )
     )
 
     if request.method == "POST" and form.is_valid():
@@ -461,7 +468,9 @@ def scan_teller_placeholder(request: HttpRequest):
             )
         verifier = ReceiptVerificationService(
             verification_method=verification_method,
-            marksheet_ocr_command=getattr(site, "marksheet_ocr_command", ""),
+            marksheet_ocr_command=get_effective_config(
+                key="marksheet_ocr_command", request=request, default=""
+            ),
         )
         extraction = verifier.extract_receipt_data(form.cleaned_data["receipt_file"])
 

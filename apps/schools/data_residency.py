@@ -20,6 +20,7 @@ provision a new region, want to flip tenants gradually).
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -127,6 +128,53 @@ def effective_region(school: Any) -> str:
     return derive_default_region(getattr(school, "country_code", "") or "")
 
 
+def default_store_region() -> str:
+    """Declared region of the DEFAULT database (env-or-setting, default global).
+
+    The default store is where every op lands when no per-region alias
+    resolves. Historically that landing was invisible to the border lock (the
+    router early-returned on a missing alias); declaring the default store's
+    region makes the unresolvable-region case *comparable* — in-region tenants
+    keep working, tenants with a foreign residency promise fail closed under
+    enforcement. ``"global"`` matches the platform model the readiness
+    preflight already codifies (global is served by the default DB by
+    definition); a deployment whose primary physically sits in a specific
+    region declares it via ``DATA_RESIDENCY_DEFAULT_STORE_REGION`` (env wins
+    over the Django setting so an ops flip needs no redeploy).
+    """
+    raw = (os.environ.get("DATA_RESIDENCY_DEFAULT_STORE_REGION", "") or "").strip().lower()
+    if raw:
+        return raw
+    from django.conf import settings
+
+    explicit = (
+        str(getattr(settings, "DATA_RESIDENCY_DEFAULT_STORE_REGION", "") or "")
+        .strip()
+        .lower()
+    )
+    return explicit or GLOBAL_DATA_REGION
+
+
+def region_for_alias(alias: Any) -> str:
+    """Map a ``DATABASES`` alias to the region it serves.
+
+    The platform has exactly two alias-naming conventions the border lock
+    must understand: ``replica_<region>`` (the Wave-K4 env registration —
+    ``DATA_RESIDENCY_REPLICA_<REGION>``) and region-named aliases (the
+    ``regional_cluster`` convention). A missing/blank alias and the literal
+    ``default`` alias both mean the op is served by the default store, whose
+    region is :func:`default_store_region`. Everything else is passed through
+    as region-named, so an alias the platform cannot map to a region compares
+    unequal and fails closed under enforcement rather than passing unseen.
+    """
+    name = str(alias or "").strip().lower()
+    if not name or name == "default":
+        return default_store_region()
+    if name.startswith("replica_"):
+        return name[len("replica_"):] or default_store_region()
+    return name
+
+
 def is_canonical(region: str) -> bool:
     """Whether ``region`` is in the canonical set."""
     return region in CANONICAL_REGIONS
@@ -161,20 +209,39 @@ class CrossRegionWriteError(RuntimeError):
 def assert_aligned_or_log(school: Any) -> None:
     """Soft enforcement: log a warning when alignment is broken.
 
-    Called from request middleware once cross-region routing is live;
-    flips to raising ``CrossRegionWriteError`` when
-    ``settings.DATA_RESIDENCY_ENFORCE`` is True.
+    Called from request middleware once cross-region routing is live; raises
+    when enforcement is on (env-or-setting via the compliance
+    ``residency_enforced`` contract, so an ops env flip binds here too).
+
+    Two arms (2026-07-09 unresolvable-region closeout):
+
+    * **Blank operational binding** — the request is being SERVED from the
+      default store. Historically treated as aligned ("no promise broken
+      yet"), which under enforcement was fail-open for tenants with a foreign
+      residency promise. Now delegated to the hard gate, which compares the
+      school's effective region against the DECLARED default-store region
+      (:func:`default_store_region`) and raises the typed, audited
+      ``ResidencyViolation`` on mismatch. No-op when enforcement is off, so
+      the soft posture (and ``is_aligned``'s documented semantics, which the
+      verify command keeps) is unchanged.
+    * **Populated-but-mismatched binding** — unchanged contract:
+      ``CrossRegionWriteError`` under enforcement, warning otherwise.
     """
     if school is None:
         return
-    if is_aligned(school):
-        return
-    from django.conf import settings
+    operational = (getattr(school, "regional_cluster", "") or "").strip()
+    if not operational:
+        from apps.compliance.cross_border_export import enforce_region_match
 
-    op = (getattr(school, "regional_cluster", "") or "").strip()
+        enforce_region_match(school, default_store_region(), kind="db_route")
+        return
     reg = effective_region(school)
-    msg = f"data residency mismatch school={getattr(school, 'slug', '?')} operational={op} regulatory={reg}"
-    if getattr(settings, "DATA_RESIDENCY_ENFORCE", False):
+    if operational == reg:
+        return
+    from apps.compliance.cross_border_export import residency_enforced
+
+    msg = f"data residency mismatch school={getattr(school, 'slug', '?')} operational={operational} regulatory={reg}"
+    if residency_enforced():
         raise CrossRegionWriteError(msg)
     logger.warning(msg)
 
@@ -184,8 +251,10 @@ __all__ = [
     "CrossRegionWriteError",
     "DEFAULT_REGION_BY_COUNTRY",
     "assert_aligned_or_log",
+    "default_store_region",
     "derive_default_region",
     "effective_region",
     "is_aligned",
     "is_canonical",
+    "region_for_alias",
 ]

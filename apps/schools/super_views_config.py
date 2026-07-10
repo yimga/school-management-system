@@ -217,6 +217,7 @@ def super_site_settings_list(request):
     """List platform tenant settings singleton row; edit via super. Behavioral keys: RuntimeDefaults + CCC."""
     from apps.platform_runtime.helpers import get_platform_site_settings_record
 
+    # config-resolver-allow: row object stored in template context (list view renders pk/fields for edit links)
     site = get_platform_site_settings_record(create=False)
     sites = [site] if site is not None else []
     return render(

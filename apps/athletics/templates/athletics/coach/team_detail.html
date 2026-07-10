@@ -1,0 +1,95 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{{ team.name }} — {% trans "Roster" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <a href="{% url 'athletics:coach_dashboard' %}" class="btn btn-outline-secondary btn-sm mb-3">
+    <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "My teams" %}
+  </a>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">{{ team.name }}</h1>
+      <div class="text-muted">{{ team.sport.name }} · {{ team.get_gender_display }} · {{ team.season.name }}</div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'athletics:coach_eligibility' team_id=team.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Eligibility" %}</a>
+      <a href="{% url 'athletics:coach_fixtures' team_id=team.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Fixtures" %}</a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Roster" %}</h2>
+      <div class="rmc-data-table-wrap" style="overflow-x:auto;"><!-- inline-style-allow: wide-table-horizontal-scroll-container -->
+        <table class="table rmc-data-table align-middle">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">{% trans "Athlete" %}</th>
+              <th scope="col">{% trans "Position" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+              {% if can_manage %}<th scope="col" class="text-end">{% trans "Guardian consent" %}</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for membership in memberships %}
+            <tr>
+              <td>{{ membership.jersey_number|default:"—" }}</td>
+              <td>{{ membership.student.first_name }} {{ membership.student.last_name }}</td>
+              <td>{{ membership.position|default:"—" }}</td>
+              <td><span class="rmc-badge rmc-badge--muted">{{ membership.get_status_display }}</span></td>
+              {% if can_manage %}
+              <td class="text-end">
+                {% if membership.status == "pending" %}
+                <form method="post" action="{% url 'athletics:coach_request_consent' membership_id=membership.id %}" class="d-inline-flex flex-wrap gap-2 justify-content-end">
+                  {% csrf_token %}
+                  <input type="text" name="guardian_name" class="form-control form-control-sm" style="width:9rem;" placeholder="{% trans 'Guardian name' %}" required><!-- inline-style-allow: inline-roster-consent-field-width -->
+                  <input type="email" name="guardian_email" class="form-control form-control-sm" style="width:11rem;" placeholder="{% trans 'Guardian email' %}" required><!-- inline-style-allow: inline-roster-consent-field-width -->
+                  <button type="submit" class="btn btn-primary btn-sm">{% trans "Request consent" %}</button>
+                </form>
+                {% else %}
+                <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+              {% endif %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="{% if can_manage %}5{% else %}4{% endif %}" class="text-muted">{% trans "No athletes on this roster yet." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% if can_manage %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Add an athlete" %}</h2>
+      <form method="post" action="{% url 'athletics:coach_add_member' team_id=team.id %}" class="row g-3 align-items-end">
+        {% csrf_token %}
+        <div class="col-12 col-md-5">
+          <label class="form-label" for="{{ add_form.student.id_for_label }}">{% trans "Student" %}</label>
+          {{ add_form.student }}
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="{{ add_form.jersey_number.id_for_label }}">{% trans "Jersey #" %}</label>
+          {{ add_form.jersey_number }}
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="{{ add_form.position.id_for_label }}">{% trans "Position" %}</label>
+          {{ add_form.position }}
+        </div>
+        <div class="col-12 col-md-2">
+          <button type="submit" class="btn btn-primary w-100">{% trans "Add" %}</button>
+        </div>
+      </form>
+      <p class="text-muted small mt-2 mb-0">{% trans "New athletes join as Pending until a guardian signs the participation consent." %}</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

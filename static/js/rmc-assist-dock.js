@@ -1681,6 +1681,46 @@
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // "Need help" / "Ask the AI assistant" — real-time, no page reload.
+  //
+  // The workflow help panel (templates/components/workflow_help_panel.html)
+  // renders a button with [data-rmc-workflow-help-ai], but nothing bound it, so
+  // it was inert (and the "Need help?" link, when present, navigated away —
+  // a full page reload). Delegate here so clicking it OPENS the in-place AI
+  // copilot and focuses its input, giving live help without leaving the page.
+  // Delegated on document so it works for panels injected after load (Tools
+  // tray). Falls back to the tenant AI help page only when no copilot exists.
+  // ---------------------------------------------------------------------------
+  document.addEventListener("click", function (ev) {
+    var btn =
+      ev.target && ev.target.closest
+        ? ev.target.closest("[data-rmc-workflow-help-ai]")
+        : null;
+    if (!btn) return;
+    ev.preventDefault();
+    var trigger = document.getElementById("aiCopilotTrigger");
+    var panel = document.getElementById("aiCopilotPanel");
+    if (trigger) {
+      // The trigger toggles — only click when the panel is currently closed.
+      if (!panel || !panel.classList.contains("active")) {
+        trigger.click();
+      }
+      var input = document.getElementById("aiCopilotInput");
+      if (input) {
+        try {
+          input.focus();
+        } catch (_e) {
+          /* focus may throw in some embedded contexts — ignore */
+        }
+      }
+      return;
+    }
+    // No in-place copilot on this surface — fall back to the tenant AI help
+    // page (still an AI surface, just not inline).
+    window.location.href = "/school/help/ai/";
+  });
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {

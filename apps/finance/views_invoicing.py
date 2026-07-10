@@ -68,6 +68,12 @@ def invoice_list(request: HttpRequest):
     from apps.accounts.permissions import _guardian_finance_qs
 
     access_state = _finance_access_state(request.user, request)
+    # The "finance not enabled" banner is a guardian/parent affordance — never show it to the
+    # finance-privileged tier (admin / superuser / SUPERADMIN), who already see every invoice.
+    # Route through the canonical access facade so the tier is defined in one place.
+    from apps.accounts.effective_access import module_access
+
+    finance_privileged = module_access(request.user, "finance", "read")
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -242,7 +248,9 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
             "page_obj": page_obj,
             "paginator": paginator,
             "pagination_extra_query": pagination_extra_query,
-            "finance_access_required": access_state["require_opt_in"],
+            "finance_access_required": (
+                access_state["require_opt_in"] and not finance_privileged
+            ),
             "finance_access_granted": access_state["finance_count"] > 0,
             "finance_guardian_count": access_state["finance_count"],
             "guardian_link_count": access_state["guardian_count"],
@@ -368,6 +376,12 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
     from apps.people.models import StudentGuardian
 
     access_state = _finance_access_state(request.user, request)
+    # The "finance not enabled" banner is a guardian/parent affordance — never show it to the
+    # finance-privileged tier (admin / superuser / SUPERADMIN), who already see every invoice.
+    # Route through the canonical access facade so the tier is defined in one place.
+    from apps.accounts.effective_access import module_access
+
+    finance_privileged = module_access(request.user, "finance", "read")
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -406,7 +420,9 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
                         "reference": invoice.reference or invoice.id,
                         "student": invoice.student,
                     },
-                    "finance_access_required": access_state["require_opt_in"],
+                    "finance_access_required": (
+                        access_state["require_opt_in"] and not finance_privileged
+                    ),
                     "finance_access_granted": access_state["finance_count"] > 0,
                     "finance_access_summary": summary,
                     "can_request_finance_access": (
@@ -538,7 +554,9 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
             "simple_payment_flow": simple_payment_flow,
             "offline_payment_intents": offline_payment_intents,
             "payment_corridor": payment_corridor,
-            "finance_access_required": access_state["require_opt_in"],
+            "finance_access_required": (
+                access_state["require_opt_in"] and not finance_privileged
+            ),
             "finance_access_granted": access_state["finance_count"] > 0,
             "finance_access_summary": finance_summary,
             "can_request_finance_access": (

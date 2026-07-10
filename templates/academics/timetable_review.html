@@ -1,0 +1,115 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% load terminology_tags %}
+
+{% block title %}{% trans "Review timetable" %} — {{ schedule.name }}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<main class="container-fluid content-max-1200 mx-auto py-3" data-page-archetype="task-workbench">
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Review timetable" %} — {{ schedule.name }}</h1>
+
+  <header class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+    <div>
+      <h2 class="h4 mb-1">{{ schedule.name }}</h2>
+      <p class="text-muted mb-0">
+        {{ schedule.academic_year.name }} · {% trans_term "Term" key="term" %}: {{ schedule.term.name }}
+        {% if is_published %}
+          <span class="badge bg-success ms-1">{% trans "Published" %}</span>
+        {% else %}
+          <span class="badge bg-secondary ms-1">{% trans "Draft" %}</span>
+        {% endif %}
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      {% if is_published %}
+        <span class="rmc-banner rmc-banner--success mb-0 py-1 px-2">{% trans "Live — visible to teachers." %}</span>
+      {% else %}
+        <form method="post" action="{% url 'academics:timetable_publish' schedule.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary"
+            {% if not grid.has_entries %}disabled aria-disabled="true"{% endif %}>
+            {% trans "Publish timetable" %}
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </header>
+
+  <section class="mb-3" aria-label="{% trans 'Clash panel' %}">
+    {% if hard_violations_total > 0 %}
+      <div class="rmc-banner rmc-banner--error" role="alert">
+        <strong>{% blocktrans count counter=hard_violations_total %}{{ counter }} hard clash to resolve.{% plural %}{{ counter }} hard clashes to resolve.{% endblocktrans %}</strong>
+        {% trans "Publishing is blocked until every clash is cleared. Regenerate to rebuild a conflict-free draft." %}
+      </div>
+      <ul class="list-group mt-2">
+        {% for c in conflicts %}
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <span>
+              {% if c.type == "TEACHER_CONFLICT" %}
+                <span class="badge bg-danger me-1">{% trans "Teacher" %}</span>
+                {% blocktrans with who=c.teacher slot=c.time_slot %}{{ who }} is double-booked at {{ slot }}.{% endblocktrans %}
+              {% elif c.type == "ROOM_CONFLICT" %}
+                <span class="badge bg-danger me-1">{% trans "Room" %}</span>
+                {% blocktrans with where=c.room slot=c.time_slot %}{{ where }} is double-booked at {{ slot }}.{% endblocktrans %}
+              {% else %}
+                {{ c.type }} — {{ c.time_slot }}
+              {% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="rmc-banner rmc-banner--success" role="status">
+        <strong>{% trans "No clashes detected." %}</strong>
+        {% blocktrans count counter=evaluation.entry_count %}{{ counter }} class placed.{% plural %}{{ counter }} classes placed.{% endblocktrans %}
+        {% if not is_published %}{% trans "This timetable is ready to publish." %}{% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  {% if grid.has_entries %}
+    <section class="card card-body">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle rmc-data-table">
+          <caption class="visually-hidden">{% trans "Timetable grid: periods by day." %}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Period" %}</th>
+              {% for day in grid.day_headers %}<th scope="col">{{ day }}</th>{% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in grid.rows %}
+              <tr>
+                <th scope="row" class="text-nowrap">{{ row.label }}</th>
+                {% for cell in row.cells %}
+                  <td>
+                    {% for e in cell %}
+                      <div class="small mb-1">
+                        <strong>{{ e.classroom.name }}</strong> · {{ e.subject.name }}<br>
+                        <span class="text-muted">{{ e.teacher.get_full_name|default:e.teacher.username }} · {{ e.room.name }}</span>
+                      </div>
+                    {% empty %}
+                      <span class="text-muted">—</span>
+                    {% endfor %}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {% else %}
+    <section class="rmc-empty-state">
+      <i class="bi bi-calendar3-week rmc-empty-state__icon" aria-hidden="true"></i>
+      <p class="rmc-empty-state__title">{% trans "This draft has no placed classes" %}</p>
+      <p class="rmc-empty-state__body">{% trans "Add subject assignments (class + subject + teacher), rooms, and active time slots, then generate again." %}</p>
+    </section>
+  {% endif %}
+</main>
+{% endblock %}

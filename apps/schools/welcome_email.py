@@ -48,9 +48,9 @@ def render_welcome_email_html(
         from apps.siteconfig.branding import resolve_brand_profile
         from apps.siteconfig.config_service import get_effective_site_settings
 
-        brand = resolve_brand_profile(
-            school=school, site=get_effective_site_settings(school=school)
-        )
+        # config-resolver-allow: settings namespace passed whole to resolve_brand_profile()
+        site = get_effective_site_settings(school=school)
+        brand = resolve_brand_profile(school=school, site=site)
     except (ImportError, AttributeError, TypeError, ValueError, KeyError) as e:
         logger.debug(
             "Welcome email brand resolve fallback for school %s: %s",

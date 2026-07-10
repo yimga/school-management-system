@@ -80,14 +80,11 @@ def build_mat_groups_payload_from_organizations() -> dict[str, Any]:
 def load_legacy_mat_groups_payload() -> dict[str, Any]:
     """Operator SiteSettings ``cockpit_payload["mat_groups"]`` (legacy JSON path)."""
     try:
-        from apps.platform_runtime.helpers import get_platform_site_settings_record
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        ss = get_platform_site_settings_record(create=False)
+        payload = get_effective_config(key="cockpit_payload", default=None) or {}
     except Exception:  # noqa: BLE001
         return {}
-    if ss is None:
-        return {}
-    payload = getattr(ss, "cockpit_payload", None) or {}
     if not isinstance(payload, dict):
         return {}
     raw = payload.get("mat_groups")

@@ -18,6 +18,7 @@ from services.post_delete_navigation import (
     redirect_after_save,
 )
 
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
@@ -40,11 +41,10 @@ FINANCE_SOFT_FAILURES = (
 
 
 def _active_profile(request: HttpRequest | None = None) -> ComplianceProfile | None:
-    site = get_effective_site_settings(request=request)
-    profile = getattr(site, "compliance_profile", None)
+    profile = get_effective_config(key="compliance_profile", request=request)
     if profile is not None:
         return profile
-    profile_id = getattr(site, "compliance_profile_id", None)
+    profile_id = get_effective_config(key="compliance_profile_id", request=request)
     if profile_id is not None:
         try:
             resolved = ComplianceProfile.objects.filter(pk=int(profile_id)).first()
@@ -74,6 +74,7 @@ def _notification_delivery_settings(
     """
     Resolve notification channels and sender identity through owner-scoped settings.
     """
+    # config-resolver-allow: namespace method get_notification_delivery_settings() is invoked (not a plain key read)
     current_site = site or get_effective_site_settings(request=request)
     feature_settings = (
         current_site.get_notification_delivery_settings()

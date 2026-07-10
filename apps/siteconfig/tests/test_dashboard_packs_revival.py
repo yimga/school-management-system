@@ -581,3 +581,155 @@ class DashboardPackPreferenceApiTests(TestCase):
         self.assertEqual(response.json()["selected"], "")
         prefs = DashboardUserPreference.objects.get(user=self.user)
         self.assertEqual(prefs.get_dashboard_pack("TEACHER"), "")
+
+
+class DashboardPackPreviewCatalogTests(TestCase):
+    """Phase 4b: display-label SOT + honest, config-derived pack_preview."""
+
+    def test_family_label_known_and_fallback(self):
+        self.assertEqual(catalog.family_label("admin"), "Admin")
+        self.assertEqual(catalog.family_label("it_admin"), "IT")
+        # Unknown family → title-cased slug; empty → "Other".
+        self.assertEqual(catalog.family_label("some_new_family"), "Some New Family")
+        self.assertEqual(catalog.family_label(""), "Other")
+
+    def test_kpi_and_theme_labels(self):
+        self.assertEqual(catalog.kpi_label("recent_admissions"), "Admissions")
+        self.assertEqual(catalog.kpi_label("mystery_kpi"), "Mystery Kpi")
+        self.assertEqual(catalog.theme_label("soft-glass"), "Soft glass")
+        self.assertEqual(catalog.theme_label("crisp-professional"), "Crisp")
+
+    def test_pack_preview_is_config_derived(self):
+        preview = catalog.pack_preview("school-admin-executive", "admin")
+        self.assertEqual(
+            preview["header_variant"], catalog.FAMILY_HEADER_VARIANT["admin"]
+        )
+        self.assertTrue(preview["kpis"])
+        self.assertEqual(preview["kpi_count"], len(preview["kpis"]))
+        self.assertIn("id", preview["kpis"][0])
+        self.assertIn("label", preview["kpis"][0])
+        # The preview theme matches what the seeded template config carries.
+        _name, schema = catalog.dashboard_template_for_pack(
+            next(
+                r
+                for r in catalog.DASHBOARD_PACKS
+                if r["code"] == "school-admin-executive"
+            )
+        )
+        self.assertEqual(
+            preview["theme"], schema.get("theme", {}).get("visual_preset", "")
+        )
+
+
+class DashboardPackGroupingTests(TestCase):
+    """Phase 4b: enriched packs + family grouping (primary first, nothing dropped)."""
+
+    def setUp(self):
+        call_command("seed_workflow_dashboard_packs")
+
+    def test_available_packs_are_enriched(self):
+        packs = resolver.available_packs_for_role("ADMIN")
+        self.assertTrue(packs)
+        pack = packs[0]
+        for key in (
+            "code",
+            "name",
+            "description",
+            "family",
+            "family_label",
+            "kpis",
+            "kpi_count",
+            "focus_areas",
+            "theme",
+            "theme_label",
+            "header_variant",
+        ):
+            self.assertIn(key, pack)
+
+    def test_grouping_primary_first_and_covers_every_pack(self):
+        user = User.objects.create_user(
+            username="group_admin", password="testpass123", role=User.Role.ADMIN
+        )
+        grouped = resolver.grouped_available_packs_for_user(user)
+
+        self.assertEqual(grouped["primary_family"], "admin")
+        self.assertTrue(grouped["groups"])
+        self.assertTrue(grouped["groups"][0]["is_primary"])
+        # Exactly one primary group.
+        self.assertEqual(
+            sum(1 for g in grouped["groups"] if g["is_primary"]), 1
+        )
+        # Every switchable pack appears exactly once across the groups.
+        flat = [p["code"] for g in grouped["groups"] for p in g["packs"]]
+        avail = [p["code"] for p in resolver.available_packs_for_role("ADMIN")]
+        self.assertEqual(sorted(flat), sorted(avail))
+        self.assertEqual(len(flat), len(set(flat)))
+
+    def test_selected_pack_family_floats_to_primary(self):
+        user = User.objects.create_user(
+            username="group_bursar", password="testpass123", role=User.Role.ADMIN
+        )
+        grouped = resolver.grouped_available_packs_for_user(
+            user, selected_code="finance-office-ledger"
+        )
+        self.assertEqual(grouped["primary_family"], "finance")
+        self.assertTrue(grouped["groups"][0]["is_primary"])
+        self.assertEqual(grouped["groups"][0]["family"], "finance")
+
+
+class DashboardPackSwitcherRenderTests(TestCase):
+    """Phase 4b: the switcher context + template render end-to-end."""
+
+    def setUp(self):
+        call_command("seed_workflow_dashboard_packs")
+        self.school = _make_school("render-school", sector="PRIVATE")
+        self.user = User.objects.create_user(
+            username="render_admin", password="testpass123", role=User.Role.ADMIN
+        )
+
+    def _switcher_context(self):
+        from apps.siteconfig.context_processors import (
+            dashboard_pack_switcher_context,
+        )
+
+        fresh_user = User.objects.get(pk=self.user.pk)
+        return dashboard_pack_switcher_context(_fake_request(self.school, fresh_user))
+
+    def test_context_exposes_groups_and_primary_family(self):
+        ctx = self._switcher_context()["dashboard_pack_switcher"]
+        self.assertTrue(ctx["enabled"])
+        self.assertTrue(ctx["groups"])
+        self.assertEqual(ctx["primary_family"], "admin")
+        self.assertTrue(ctx["groups"][0]["is_primary"])
+        # A fresh admin has no explicit choice → header shows the school default.
+        self.assertIsNone(ctx["selected_pack"])
+        # The admin bucket switches across many families, so there are "other" packs.
+        self.assertGreater(ctx["other_pack_count"], 0)
+        # Flat "available" is preserved (length gate + API parity) and matches groups.
+        grouped_codes = sorted(
+            p["code"] for g in ctx["groups"] for p in g["packs"]
+        )
+        self.assertEqual(
+            grouped_codes, sorted(p["code"] for p in ctx["available"])
+        )
+        # other_pack_count == every non-primary pack.
+        primary_count = len(ctx["groups"][0]["packs"])
+        self.assertEqual(
+            ctx["other_pack_count"], len(ctx["available"]) - primary_count
+        )
+
+    def test_template_renders_grouped_cards_with_previews(self):
+        from django.template.loader import render_to_string
+
+        html = render_to_string(
+            "components/dashboard_pack_switcher.html", self._switcher_context()
+        )
+        self.assertIn("Choose your dashboard", html)
+        self.assertIn('name="dashboard_pack"', html)  # radios preserved
+        self.assertIn("rmc-dpk__summary-title", html)  # full-width header bar
+        self.assertIn("rmc-dpk-card", html)  # card grammar
+        self.assertIn("rmc-dpk-preview", html)  # mini-layout schematic
+        self.assertIn("rmc-dpk-chip--kpi", html)  # real KPI chips
+        self.assertIn("Your dashboards", html)  # primary group label
+        self.assertIn("Other role dashboards", html)  # collapsible other-families
+        self.assertIn("School default", html)  # reset option retained

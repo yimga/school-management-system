@@ -49,6 +49,7 @@ def _resolve_site_settings(school: Any = None, site_settings: Any = None):
         try:
             from apps.siteconfig.config_service import get_effective_site_settings
 
+            # config-resolver-allow: namespace object is returned to callers (explicit site_settings override contract)
             return get_effective_site_settings(school=school)
         except _NOTIFICATION_SETTINGS_RESOLVE_ERRORS:
             logger.debug(

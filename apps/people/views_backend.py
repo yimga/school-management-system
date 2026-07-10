@@ -170,9 +170,11 @@ def backend_student_create(request):
                                 from apps.platform_runtime.helpers import (
                                     get_site_display_name,
                                 )
+                                from apps.platform_runtime.config_resolver import (
+                                    get_effective_config,
+                                )
                                 from apps.siteconfig.config_service import (
                                     get_effective_flags,
-                                    get_effective_site_settings,
                                 )
 
                                 notify = get_effective_flags(request).get(
@@ -180,10 +182,10 @@ def backend_student_create(request):
                                 )
                                 if notify is None:
 
-                                    notify = getattr(
-                                        get_effective_site_settings(request=request),
-                                        "notify_parent_welcome_email",
-                                        False,
+                                    notify = get_effective_config(
+                                        key="notify_parent_welcome_email",
+                                        request=request,
+                                        default=False,
                                     )
                                 if notify:
                                     from apps.schoolops.email_compat import send_mail

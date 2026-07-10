@@ -58,6 +58,7 @@ def apply_offline_mode_bundle_for_tenant(
     """
     from apps.platform_runtime.helpers import get_platform_site_settings_record
 
+    # config-resolver-allow: write-path singleton (create=True; row mutated via apply_feature_control_state)
     site = get_platform_site_settings_record(create=True)
     bff = merged_backend_flags_for_offline_bundle(site.get_backend_feature_flags())
     hub = (hub_base_url or "").strip()

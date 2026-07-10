@@ -14,6 +14,7 @@ domain set):
     finance.csv       transcripts.csv   health.csv         payroll.csv
     communications.csv events.csv       library.csv        transport.csv
     hostel.csv        cafeteria.csv     alumni.csv         compliance.csv
+    athletics_teams.csv  athletics_memberships.csv  athletics_fixtures.csv
 
 Headers in each file ARE the canonical field names — there is no source-
 column-to-canonical-field mapping needed because the column names already
@@ -56,6 +57,7 @@ CANONICAL_FILENAME_TO_DOMAIN: dict[str, str] = {
     "teachers.csv": "staff",
     "guardians.csv": "guardians",
     "parents.csv": "guardians",
+    "structure.csv": "structure",
     "enrollment.csv": "enrollment",
     "enrollments.csv": "enrollment",
     "sections.csv": "sections",
@@ -80,6 +82,13 @@ CANONICAL_FILENAME_TO_DOMAIN: dict[str, str] = {
     "cafeteria_assignments.csv": "cafeteria_assignments",
     "alumni.csv": "alumni",
     "compliance.csv": "compliance",
+    "athletics_teams.csv": "athletics_teams",
+    "teams.csv": "athletics_teams",
+    "squads.csv": "athletics_teams",
+    "athletics_memberships.csv": "athletics_memberships",
+    "athletics_fixtures.csv": "athletics_fixtures",
+    "fixtures.csv": "athletics_fixtures",
+    "matches.csv": "athletics_fixtures",
 }
 
 
@@ -98,10 +107,34 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     "guardians": {
         "guardian_external_id", "first_name", "last_name", "email",
         "phone", "relationship", "is_primary", "student_external_id",
+        # Internal transfers: the guardian's platform username, so the
+        # target re-links the SAME account instead of provisioning anew.
+        "guardian_user_ref",
+        # Consent / visibility / contact-preference carry: identity-mapped
+        # so the guardian lander RECEIVES them (a header outside this set is
+        # shunted to custom_fields and never reaches the lander) and the
+        # target does not reset a transferred parent's channel opt-outs,
+        # results-access restriction, or finance visibility to defaults.
+        "receives_email", "receives_sms", "receives_whatsapp",
+        "can_view_results", "can_view_finance",
+        "preferred_contact", "whatsapp_number", "address",
     },
     "enrollment": {
         "student_external_id", "grade_level", "enrollment_status",
         "enrollment_date", "exit_date", "section",
+        # Curriculum track — required for grade placement parity
+        # (Evaluation.clean: student specialty must match the assignment's).
+        "specialty",
+    },
+    "structure": {
+        # SPLIT-only academic scaffold provisioned at the target BEFORE
+        # enrollment/grades (StructureLander). Identity-mapped so every column
+        # reaches the lander; a header outside this set is shunted to
+        # custom_fields and lost.
+        "academic_year", "year_start", "year_end", "year_is_active",
+        "term", "term_label", "term_position", "term_start", "term_end",
+        "department", "classroom", "specialty", "subject", "coefficient",
+        "teacher_ref", "teacher_first_name", "teacher_last_name", "teacher_email",
     },
     "sections": {
         "section_external_id", "subject_code", "subject_name",
@@ -113,6 +146,14 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     "grades": {
         "student_external_id", "subject_code", "term", "score",
         "letter_grade", "comments",
+        # FK-graph placement + faithful component copy (2026-07-09): the
+        # grades lander resolves academic_year/term/subject/assignment at
+        # the target and lands per-component scores, never a re-derived
+        # aggregate. "grade_letter" is the envelope-side alias the transfer
+        # exporter and older bundles already emit.
+        "academic_year", "grade_letter", "max_score",
+        "seq1_score", "seq2_score", "exam_score", "mock_score",
+        "practical_score", "internship_score", "test1", "test2",
     },
     "behavior": {
         "student_external_id", "date", "category", "description",
@@ -125,6 +166,9 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     "transcripts": {
         "student_external_id", "academic_year", "term", "subject_code",
         "final_grade", "credits_earned",
+        # Vault-item fields the transcripts lander has always consumed
+        # (its documented row shape) + transfer provenance (2026-07-09).
+        "artifact_type", "artifact_ref", "issued_at", "issuing_school_id",
     },
     "health": {
         "student_external_id", "record_date", "category", "description",
@@ -177,6 +221,22 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     "compliance": {
         "subject_external_id", "category", "status", "due_date",
         "completed_date", "notes",
+    },
+    # Athletics module round-trip (2026-07-09). Order is load-bearing:
+    # the companion JSON mirrors must match this source order exactly
+    # (scan_companion_canonical_headers_drift.py compares order-sensitive).
+    "athletics_teams": {
+        "sport", "season", "team_name", "level", "gender",
+        "roster_cap", "home_venue", "status",
+    },
+    "athletics_memberships": {
+        "student_external_id", "team_name", "jersey_number", "position",
+        "status", "joined_date",
+    },
+    "athletics_fixtures": {
+        "team_name", "opponent_name", "fixture_type", "venue",
+        "scheduled_start", "scheduled_end", "home_score", "away_score",
+        "status",
     },
 }
 

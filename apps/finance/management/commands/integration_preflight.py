@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 
 from apps.api.ministry_connectors import ministry_runtime_status
 from apps.finance.ocr_runtime import get_ocr_runtime_status
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.models import default_backend_feature_flags
 
 
@@ -21,18 +21,22 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        site = get_effective_site_settings()
         flags = {
             **default_backend_feature_flags(),
-            **(site.backend_feature_flags or {}),
+            **(get_effective_config(key="backend_feature_flags") or {}),
         }
 
         ocr_method = (
-            getattr(site, "finance_receipt_verification_method", "pattern") or "pattern"
+            get_effective_config(
+                key="finance_receipt_verification_method", default="pattern"
+            )
+            or "pattern"
         )
         ocr_status = get_ocr_runtime_status(
             verification_method=ocr_method,
-            marksheet_ocr_command=getattr(site, "marksheet_ocr_command", ""),
+            marksheet_ocr_command=get_effective_config(
+                key="marksheet_ocr_command", default=""
+            ),
         )
         ministry_status = ministry_runtime_status()
 

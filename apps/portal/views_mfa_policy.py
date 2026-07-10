@@ -32,7 +32,7 @@ from apps.accounts.mfa_defaults import (
     VALID_MFA_ENFORCEMENT_MODES,
     normalize_mfa_mode,
 )
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 
 _CLEAR_TOKENS = {"", "inherit", "default", "none"}
 _MAX_GRACE_DAYS = 365  # magic-number-allow: form upper bound for grace window
@@ -91,10 +91,11 @@ def _tenant_override(school: Any) -> dict[str, Any]:
 
 def mfa_policy_state(request: Any) -> dict[str, Any]:
     school = getattr(request, "school", None)
-    site = get_effective_site_settings(request=request)
-    eff_mode = normalize_mfa_mode(getattr(site, "mfa_enforcement_mode", None))
+    eff_mode = normalize_mfa_mode(
+        get_effective_config(key="mfa_enforcement_mode", request=request)
+    )
     try:
-        eff_days = int(getattr(site, "mfa_grace_period_days", None))
+        eff_days = int(get_effective_config(key="mfa_grace_period_days", request=request))
     except (TypeError, ValueError):
         eff_days = DEFAULT_MFA_GRACE_PERIOD_DAYS
     plat_mode, plat_days = _platform_default_mode_and_days()

@@ -67,6 +67,7 @@ def get_grade_approval_policy(school=None, policy=None):
                 school,
             )
     try:
+        # config-resolver-allow: six distinct grade-approval policy attributes read from one resolve
         site = get_effective_site_settings(school=school)
         return {
             "grade_post_roles": getattr(site, "grade_post_roles", None)

@@ -306,12 +306,13 @@ def _hydrate_upcoming_events(
 def _hydrate_quick_actions(
     request: HttpRequest, section: dict[str, Any]
 ) -> dict[str, Any]:
-    from apps.siteconfig.config_service import get_effective_site_settings
+    from apps.platform_runtime.config_resolver import get_effective_config
     from apps.siteconfig.models_support import filter_portal_items
 
-    site = get_effective_site_settings(request=request)
     role = str(getattr(request.user, "role", "") or "")
-    actions = filter_portal_items(getattr(site, "portal_quick_actions", None) or [], role)
+    actions = filter_portal_items(
+        get_effective_config(key="portal_quick_actions", request=request) or [], role
+    )
     tiles = []
     for action in actions[:6]:
         tiles.append(

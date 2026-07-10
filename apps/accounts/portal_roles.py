@@ -101,6 +101,7 @@ def get_effective_portal_role(request) -> str:
                 request.session[ACTIVE_PORTAL_ROLE_KEY] = saved
                 return saved
             # No valid user preference: fall back to site-level default
+            # config-resolver-allow: unit test patches this module symbol targeting this call path (resolver-failure fallback)
             site = get_effective_site_settings(request=request)
             default_role = (
                 (getattr(site, "default_portal_role_dual_role", "") or "")

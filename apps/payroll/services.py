@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from apps.finance.models import ComplianceProfile, ContributionRule, TaxBracket
 from apps.people.models import TeacherProfile
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 
 from .models import (
     EmploymentContract,
@@ -78,9 +78,9 @@ def _resolve_compensation(
 
 
 def get_active_payroll_profile(*, school=None) -> ComplianceProfile | None:
-    site = get_effective_site_settings(school=school)
-    if getattr(site, "compliance_profile", None):
-        return site.compliance_profile
+    profile = get_effective_config(school=school, key="compliance_profile")
+    if profile:
+        return profile
     return ComplianceProfile.objects.filter(is_active=True).first()
 
 

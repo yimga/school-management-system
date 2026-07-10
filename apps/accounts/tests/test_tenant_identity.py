@@ -201,10 +201,15 @@ class TenantIdentityHubViewTests(TestCase):
             role=User.Role.TEACHER,
             is_primary=True,
         )
-        response = tenant_identity_roster(
-            self._request(teacher, "GET", "/backend/identity/")
-        )
-        self.assertEqual(response.status_code, 403)
+        # Since the 2026-07-09 PDP promotion the enforce guard denies BEFORE the
+        # view body runs: PermissionDenied -> the branded 403 handler in a full
+        # request cycle (same HTTP outcome as the old HttpResponseForbidden).
+        from django.core.exceptions import PermissionDenied
+
+        with self.assertRaises(PermissionDenied):
+            tenant_identity_roster(
+                self._request(teacher, "GET", "/backend/identity/")
+            )
 
 
 class TenantIdentityUrlSmokeTests(SimpleTestCase):

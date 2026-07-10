@@ -843,12 +843,9 @@ ROLE_WIDGET_DEFAULTS = {
 def default_dashboard_widgets(role: str | None) -> list[str]:
     role_key = (role or "").upper()
     try:
-        from apps.siteconfig.config_service import get_effective_site_settings
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        site = get_effective_site_settings()
-        if site is None:
-            raise LookupError("effective site settings unavailable")
-        per_role = getattr(site, "default_widgets_per_role", None) or {}
+        per_role = get_effective_config(key="default_widgets_per_role") or {}
         if isinstance(per_role, dict) and role_key in per_role:
             role_list = per_role.get(role_key)
             if isinstance(role_list, list) and role_list:

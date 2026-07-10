@@ -88,9 +88,9 @@ def _scale_type_from_cascade(school) -> str:
     is the platform-wide default — used by ``resolve_local_scale_type`` only as a
     seed-time hint BELOW country derivation, never as a hard override. Else ""."""
     try:
-        from apps.platform_runtime.helpers import get_effective_site_settings
+        from apps.platform_runtime.config_resolver import get_effective_config
 
-        raw = getattr(get_effective_site_settings(school=school), "default_grading_scale", "")
+        raw = get_effective_config(key="default_grading_scale", school=school, default="")
     except Exception:  # noqa: BLE001 — cascade is best-effort
         return ""
     return _normalize_scale_type(raw)

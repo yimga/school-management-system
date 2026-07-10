@@ -42,6 +42,7 @@ class MaintenanceModeMiddleware:
         if isinstance(cached, dict) and "maintenance_mode" in cached:
             return bool(cached.get("maintenance_mode"))
 
+        # config-resolver-allow: get_feature_control_settings() method invoked on the namespace, not a plain key read
         site = get_effective_site_settings(request=request)
         if callable(getattr(site, "get_feature_control_settings", None)):
             enabled = bool(
@@ -80,6 +81,7 @@ class MaintenanceModeMiddleware:
             return self.get_response(request)
 
         if self._is_maintenance_enabled(request):
+            # config-resolver-allow: namespace stored in 503 template context as SITE
             site = get_effective_site_settings(request=request)
             template = (
                 "errors/503_control_plane.html"

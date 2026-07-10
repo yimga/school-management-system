@@ -31,8 +31,8 @@ class StudentPortalViewGateTests(TestCase):
         request.school = SimpleNamespace(pk=1)
 
         with patch(
-            "apps.portal.views_student.get_effective_site_settings",
-            return_value=SimpleNamespace(enable_student_portal=False),
+            "apps.portal.views_student.get_effective_config",
+            return_value=False,
         ):
             response = student_workflow_center(request)
 

@@ -161,6 +161,7 @@ class PlatformGlobalBranding(models.Model):
                 sync_phase_b_domain_snapshots_from_site,
             )
 
+            # config-resolver-allow: row object is passed whole to sync_phase_b_domain_snapshots_from_site()
             site = get_platform_site_settings_record(create=False)
             if site is not None:
                 sync_phase_b_domain_snapshots_from_site(site)

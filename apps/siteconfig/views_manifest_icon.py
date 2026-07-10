@@ -53,6 +53,7 @@ def _resolve_effective_settings(request):
     try:
         from apps.siteconfig.config_service import get_effective_site_settings
 
+        # config-resolver-allow: namespace returned and fanned into _logo_field/_theme_colors/_site_initial helpers
         return get_effective_site_settings(request=request)
     except (ImportError, RuntimeError, Exception):  # pragma: no cover - defensive
         return None

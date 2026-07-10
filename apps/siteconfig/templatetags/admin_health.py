@@ -8,7 +8,7 @@ from pathlib import Path
 
 from apps.reports.models import TermPublishStatus, ReportCard
 from apps.finance.models import Invoice, PaymentReminder
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.models import ReportTemplate, ThemePack
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import Classroom, Subject
@@ -83,10 +83,15 @@ def admin_health(context):
 
     # Portal toggles
     try:
-        site = get_effective_site_settings(request=request)
-        metrics["portal_parent_enabled"] = getattr(site, "enable_parent_portal", True)
-        metrics["portal_teacher_enabled"] = getattr(site, "enable_teacher_portal", True)
-        metrics["portal_student_enabled"] = getattr(site, "enable_student_portal", True)
+        metrics["portal_parent_enabled"] = get_effective_config(
+            key="enable_parent_portal", request=request, default=True
+        )
+        metrics["portal_teacher_enabled"] = get_effective_config(
+            key="enable_teacher_portal", request=request, default=True
+        )
+        metrics["portal_student_enabled"] = get_effective_config(
+            key="enable_student_portal", request=request, default=True
+        )
     except OPTIONAL_ADMIN_HEALTH_ERRORS:
         pass
 
@@ -122,7 +127,6 @@ def get_item(obj, key):
 def admin_section_stats(context):
     """Lightweight stats per major app section."""
     request = context.get("request")
-    site = get_effective_site_settings(request=request)
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     # Completion: percentage of evaluations that meet required components
     eval_total = Evaluation.objects.count()
@@ -170,15 +174,24 @@ def admin_section_stats(context):
         },
         "people": {},
         "portal": {
-            "Parent portal": "On" if site.enable_parent_portal else "Off",
-            "Teacher portal": "On" if site.enable_teacher_portal else "Off",
-            "Student portal": "On" if getattr(site, "enable_student_portal", True) else "Off",
+            "Parent portal": "On"
+            if get_effective_config(key="enable_parent_portal", request=request)
+            else "Off",
+            "Teacher portal": "On"
+            if get_effective_config(key="enable_teacher_portal", request=request)
+            else "Off",
+            "Student portal": "On"
+            if get_effective_config(
+                key="enable_student_portal", request=request, default=True
+            )
+            else "Off",
         },
         "reports": {
             "Templates": ReportTemplate.objects.filter(is_active=True).count(),
         },
         "siteconfig": {
             "Theme packs": ThemePack.objects.filter(is_active=True).count(),
-            "School code": site.school_code or "N/A",
+            "School code": get_effective_config(key="school_code", request=request)
+            or "N/A",
         },
     }

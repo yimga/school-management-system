@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 
 from celery import shared_task
 from apps.automation.models import AutomationExecutionLog
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.celery_tasks import _run_with_tenant_context, get_active_school_ids
 
@@ -39,8 +39,14 @@ def _remind_pending_assignees_body() -> dict:
 
         pending_enabled = []
         for req in pending:
-            site = get_effective_site_settings(school=getattr(req, "school", None))
-            interval_hours = getattr(site, "requests_reminder_interval_hours", 0) or 0
+            interval_hours = (
+                get_effective_config(
+                    school=getattr(req, "school", None),
+                    key="requests_reminder_interval_hours",
+                    default=0,
+                )
+                or 0
+            )
             if interval_hours > 0:
                 pending_enabled.append(req)
 

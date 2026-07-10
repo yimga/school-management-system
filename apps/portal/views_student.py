@@ -19,7 +19,7 @@ from apps.accounts.utils import get_user_role
 from apps.accounts.decorators import role_required
 from apps.communication.models import Message
 from apps.people.models import StudentProfile
-from apps.siteconfig.config_service import get_effective_site_settings
+from apps.platform_runtime.config_resolver import get_effective_config
 from apps.academics.services import get_active_year_and_term
 
 from .models import PortalFeatureItem
@@ -45,8 +45,9 @@ def student_learning_home(request: HttpRequest):
     if get_user_role(request.user) != User.Role.STUDENT:
         return redirect("portal:parent_dashboard")
 
-    _site = get_effective_site_settings(request=request)
-    if not getattr(_site, "enable_student_portal", True):
+    if not get_effective_config(
+        key="enable_student_portal", request=request, default=True
+    ):
         return HttpResponseForbidden("Student portal is disabled.")
 
     profile = None
@@ -157,8 +158,9 @@ def student_learning_home(request: HttpRequest):
 @role_required(User.Role.STUDENT)
 def student_workflow_center(request: HttpRequest):
     """Student workflow center: one simple path for daily learning tasks."""
-    site = get_effective_site_settings(request=request)
-    if not getattr(site, "enable_student_portal", True):
+    if not get_effective_config(
+        key="enable_student_portal", request=request, default=True
+    ):
         return HttpResponseForbidden("Student portal is disabled.")
 
     _school = getattr(request, "school", None)
@@ -296,13 +298,18 @@ def admissions_application_status(request: HttpRequest):
 @role_required(User.Role.PARENT, User.Role.TEACHER, User.Role.STUDENT)
 def portal_syllabus(request: HttpRequest):
     """Syllabus for parent, teacher, and student; gated by portal toggles."""
-    site = get_effective_site_settings(request=request)
     role = get_user_role(request.user)
-    if role == User.Role.PARENT and not site.enable_parent_portal:
+    if role == User.Role.PARENT and not get_effective_config(
+        key="enable_parent_portal", request=request
+    ):
         return HttpResponseForbidden("Parent portal is disabled.")
-    if role == User.Role.TEACHER and not site.enable_teacher_portal:
+    if role == User.Role.TEACHER and not get_effective_config(
+        key="enable_teacher_portal", request=request
+    ):
         return HttpResponseForbidden("Teacher portal is disabled.")
-    if role == User.Role.STUDENT and not getattr(site, "enable_student_portal", True):
+    if role == User.Role.STUDENT and not get_effective_config(
+        key="enable_student_portal", request=request, default=True
+    ):
         return HttpResponseForbidden("Student portal is disabled.")
 
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17

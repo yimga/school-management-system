@@ -263,6 +263,7 @@ class Command(BaseCommand):
         from django.contrib.sites.models import Site as DjangoSite
         from django.conf import settings as django_settings
 
+        # config-resolver-allow: namespace passed to resolve_email_palette plus get_theme_background() method access
         site = get_effective_site_settings()
         # Absolute logo URL for email (theme pack or site logo)
         logo_file = (

@@ -280,8 +280,8 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
         label="Offline conflict-free timetable / resource solver",
         capability_domain="studio_os",
         status="shipped",
-        proof_route_name="academics:timetable_build",
-        notes="SHIPPED and repaired 2026-06-09: bounded backtracking expands weekly occurrences and enforces locked slots, teacher/room availability, room kind, and class/teacher/room collisions, with tested greedy fallbacks.",
+        proof_route_name="academics:timetable_generate",
+        notes="SHIPPED and repaired 2026-06-09: bounded backtracking expands weekly occurrences and enforces locked slots, teacher/room availability, room kind, and class/teacher/room collisions, with tested greedy fallbacks. 2026-07-10: the in-product surface converged onto the persisting Stack-A flow (generate -> review clashes -> publish); the JSON-console dead-end was retired.",
     ),
     FeatureRow(
         feature_slug="dual-identity-profile",

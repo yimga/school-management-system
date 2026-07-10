@@ -18,6 +18,7 @@ models, with DFV fallback retained for out-of-order bundles):
     * ``guardians``              → ``apps.people.StudentGuardian``     (linked via student_external_id)
     * ``staff``                  → ``apps.people.TeacherProfile``      (upsert on external_id)
     * ``enrollment``             → updates StudentProfile grade_level / enrollment_status / section
+    * ``structure``              → provisions the academic scaffold (AcademicYear/Term/Department/Classroom/Specialty/Subject/SubjectAssignment + a target-scoped teacher) for a SPLIT into an empty target, in wave 0 so enrollment+grades resolve
     * ``sections``               → ``apps.academics.Classroom``        (upsert on code/slug)
     * ``attendance``             → ``apps.academics.Attendance``       (upsert on student+date)
     * ``grades``                 → ``apps.evals.Evaluation``           (upsert on student+term+subject)
@@ -37,6 +38,9 @@ models, with DFV fallback retained for out-of-order bundles):
     * ``cafeteria_assignments``  → ``apps.schoolops.MealPlanBalance`` (v3.29 — upsert on student+meal_plan, meal_plan FK nullable for generic credit; last-wins balance with ``last_topup_amount/_at`` audit trail; Decimal end-to-end to satisfy scan_money_float)
     * ``alumni``                 → ``apps.people.StudentProfile`` w/ enrollment_status='graduated'
     * ``compliance``             → ``apps.compliance.ComplianceCheck`` (upsert on check_type+check_date)
+    * ``athletics_teams``        → ``apps.athletics.Team`` (2026-07-09 — upsert on season+name; provisions Sport+Season school-scoped on the fly; optional home_venue skip-when-unresolved)
+    * ``athletics_memberships``  → ``apps.athletics.TeamMembership`` (2026-07-09 — upsert on team+student; quarantines on unresolved student/team)
+    * ``athletics_fixtures``     → ``apps.athletics.Fixture`` (+ ``FixtureResult`` when a score is present; 2026-07-09 — upsert on team+opponent_name+scheduled_start; optional venue skip-when-unresolved)
     * ``custom_fields`` (fallback) → ``apps.metadata.DynamicFieldValue``
 
 Catch-all invariant: any canonical domain without a registered lander
@@ -68,6 +72,7 @@ from . import enrollment_lander  # noqa: F401
 from . import finance_lander  # noqa: F401
 from . import grades_lander  # noqa: F401
 from . import sections_lander  # noqa: F401
+from . import structure_lander  # noqa: F401 — SPLIT academic scaffold (wave 0)
 # v3.26 — long-tail closure: the 11 remaining canonical domains
 # graduate from dynamic_field fallback to first-class landers.
 from . import alumni_lander  # noqa: F401
@@ -89,6 +94,11 @@ from . import transport_lander  # noqa: F401
 from . import cafeteria_assignment_lander  # noqa: F401
 from . import hostel_assignment_lander  # noqa: F401
 from . import transport_assignment_lander  # noqa: F401
+# Athletics module round-trip (2026-07-09) — teams/roster/fixtures land
+# into apps.athletics (Sport/Season/Team/TeamMembership/Fixture/FixtureResult).
+from . import athletics_teams_lander  # noqa: F401
+from . import athletics_memberships_lander  # noqa: F401
+from . import athletics_fixtures_lander  # noqa: F401
 
 __all__ = [
     "Lander",
