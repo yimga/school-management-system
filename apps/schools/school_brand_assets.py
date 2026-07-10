@@ -301,6 +301,11 @@ def extract_brand_seed_from_logo(school) -> str | None:
         return result
     if isinstance(result, (list, tuple)) and result:
         first = result[0]
+        # The service returns list[ExtractedColor] (a dataclass with a .hex str);
+        # tolerate a legacy list[str] too.
+        hex_val = getattr(first, "hex", None)
+        if isinstance(hex_val, str) and hex_val:
+            return hex_val
         if isinstance(first, str):
             return first
     if isinstance(result, dict):

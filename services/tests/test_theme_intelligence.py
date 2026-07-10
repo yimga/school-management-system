@@ -58,6 +58,29 @@ class ExtractDominantColorsTests(SimpleTestCase):
         self.assertEqual(results[0].source, "fallback")
         self.assertEqual(results[0].hex, "#4F46E5")
 
+    def test_url_string_returns_fallback_without_raising(self):
+        # Regression: School.logo_url is a URLField, and callers passed the URL
+        # string. It used to reach io.BytesIO(str) -> TypeError, logged as a
+        # traceback on every day-1 palette resolution. A non-data-URI string must
+        # now degrade to the fallback, never raise.
+        results = extract_dominant_colors_from_image(
+            "https://new-school.example.com/media/tenants/x/brand/logo.png"
+        )
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].source, "fallback")
+
+    def test_base64_data_uri_string_is_decoded(self):
+        import base64
+
+        png = _build_solid_png_16x16((200, 10, 10))
+        data_uri = "data:image/png;base64," + base64.b64encode(png).decode()
+        results = extract_dominant_colors_from_image(data_uri)
+        # Decoded successfully (no raise) and produced a real ExtractedColor.
+        self.assertGreaterEqual(len(results), 1)
+        self.assertIsInstance(results[0], ExtractedColor)
+        self.assertRegex(results[0].hex, r"^#[0-9A-F]{6}$")
+        self.assertIn(results[0].source, ("pillow_quantize", "fallback"))
+
     def test_fallback_when_pillow_unavailable(self):
         # Pillow import lives behind importlib.import_module("PIL.Image"), so
         # patching that surface simulates the no-Pillow path deterministically.

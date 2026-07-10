@@ -379,7 +379,12 @@ class Day1MagicService:
                 if isinstance(result, str):
                     seed = result
                 elif isinstance(result, (list, tuple)) and result:
-                    seed = str(result[0])
+                    # list[ExtractedColor] (dataclass with .hex); tolerate legacy str.
+                    first = result[0]
+                    hex_val = getattr(first, "hex", None)
+                    seed = hex_val if isinstance(hex_val, str) and hex_val else (
+                        first if isinstance(first, str) else None
+                    )
                 elif isinstance(result, dict):
                     val = result.get("dominant") or result.get("seed_hex")
                     if isinstance(val, str):

@@ -53,13 +53,34 @@ class ExtractedColor:
 _FALLBACK_HEX = "#4F46E5"  # RMC indigo
 
 
+def _decode_data_uri_to_bytes(value: str) -> bytes | None:
+    """Decode a base64 ``data:`` URI to raw bytes; return None if it is not one.
+
+    We never fetch the network, so a plain http(s) URL cannot be turned into
+    bytes here and yields None (the caller then degrades to the fallback).
+    """
+    if not value.startswith("data:"):
+        return None
+    marker = ";base64,"
+    idx = value.find(marker)
+    if idx == -1:
+        return None
+    import base64
+    import binascii
+
+    try:
+        return base64.b64decode(value[idx + len(marker) :], validate=False)
+    except (binascii.Error, ValueError):
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Logo / image dominant-colour extraction
 # ---------------------------------------------------------------------------
 
 
 def extract_dominant_colors_from_image(
-    image_bytes: bytes,
+    image_bytes: bytes | str,
     *,
     max_colors: int = 5,
 ) -> list[ExtractedColor]:
@@ -80,6 +101,22 @@ def extract_dominant_colors_from_image(
     if not image_bytes:
         logger.warning("theme_intelligence: empty image bytes; returning fallback")
         return [ExtractedColor(hex=_FALLBACK_HEX, weight=1.0, source="fallback")]
+
+    if isinstance(image_bytes, str):
+        # Some callers pass a string rather than raw bytes — e.g.
+        # ``School.logo_url`` is a URLField. We never touch the network (see the
+        # docstring), so a bare http(s) URL cannot be turned into bytes; only an
+        # in-memory base64 data-URI can. Anything else degrades to the fallback
+        # WITHOUT raising — previously the string reached ``io.BytesIO(str)`` and
+        # logged a TypeError traceback on every day-1 palette resolution.
+        decoded = _decode_data_uri_to_bytes(image_bytes)
+        if decoded is None:
+            logger.debug(
+                "theme_intelligence: received a non-data-URI string; cannot "
+                "extract colours without bytes, returning fallback"
+            )
+            return [ExtractedColor(hex=_FALLBACK_HEX, weight=1.0, source="fallback")]
+        image_bytes = decoded
 
     try:
         pil_image = importlib.import_module("PIL.Image")
