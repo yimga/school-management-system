@@ -78,11 +78,37 @@
     </div>
     <div class="card-body">
       {% if justifications %}
-        <ul class="list-group list-group-flush">
-          {% for j in justifications %}
-            <li class="list-group-item">{{ j.student }} – {{ j.attendance_date|date }}: {{ j.reason|truncatewords:15 }}</li>
-          {% endfor %}
-        </ul>
+        <div class="table-responsive">
+          <table class="table table-sm table-family align-middle rmc-data-table">
+            <caption class="visually-hidden">{% trans "Justifications you have submitted" %}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{% trans "Absence date" %}</th>
+                <th scope="col">{% trans_term "Student" key="student" %}</th>
+                <th scope="col">{% trans "Reason" %}</th>
+                <th scope="col">{% trans "Document" %}</th>
+                <th scope="col">{% trans "Submitted" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for j in justifications %}
+                <tr>
+                  <td>{{ j.attendance_date|date }}</td>
+                  <td>{{ j.student }}</td>
+                  <td dir="auto">{{ j.reason|truncatewords:20 }}</td>
+                  <td>
+                    {% if j.document %}
+                      <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ j.document.url }}" target="_blank" rel="noopener">{% trans "View" %}</a>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted small">{{ j.created_at|date }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       {% else %}
         <p class="text-muted mb-0">{% trans "No justifications submitted yet." %}</p>
       {% endif %}
