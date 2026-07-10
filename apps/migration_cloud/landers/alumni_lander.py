@@ -83,13 +83,23 @@ class AlumniLander(Lander):
                 "last_name": last_name[:64],
                 "email": (row.get("email") or "")[:255],
                 "phone": (row.get("phone") or "")[:32],
-                "enrollment_status": "graduated",
+                # Real field + real choice: alumni land as ALUMNI-status students.
+                # The model has no ``enrollment_status`` column — that phantom key
+                # was dropped by filter_to_model_fields, so status was NEVER set
+                # and alumni were indistinguishable from active students.
+                "status": StudentProfile.Status.ALUMNI,
             }
             if grad_year and "graduation_year" in student_fields:
                 defaults["graduation_year"] = grad_year
             defaults = filter_to_model_fields(defaults, StudentProfile)
 
-            lookup_kwargs = {student_lookup: external_id}
+            # School-scope the upsert: on single-schema / sqlite deployments an
+            # unscoped external-id (admission_number) can resolve a same-id
+            # student from ANOTHER school. Scope both the conflict probe and the
+            # create when the model carries a school column.
+            lookup_kwargs: dict[str, Any] = {student_lookup: external_id}
+            if "school" in student_fields and ctx.school is not None:
+                lookup_kwargs["school"] = ctx.school
 
             if ctx.dry_run:
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
@@ -125,7 +135,10 @@ class AlumniLander(Lander):
                 # Preserve alumni-specific extras (current_employer/role/grad_year
                 # if the model didn't have a column for it) via the metadata
                 # DynamicFieldValue path. Best-effort, never blocks the upsert.
-                _persist_alumni_extras(ctx=ctx, alumni_pk=obj.pk, row=row, student_fields=student_fields)
+                _persist_alumni_extras(
+                    ctx=ctx, alumni_pk=obj.pk, row=row,
+                    student_fields=student_fields, result=result,
+                )
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(
@@ -135,16 +148,33 @@ class AlumniLander(Lander):
 
 
 def _persist_alumni_extras(
-    *, ctx: LanderContext, alumni_pk: int, row: dict[str, Any], student_fields: set[str],
+    *,
+    ctx: LanderContext,
+    alumni_pk: int,
+    row: dict[str, Any],
+    student_fields: set[str],
+    result: LanderResult,
 ) -> None:
     """Write alumni-only fields not present on StudentProfile to DynamicFieldValue.
 
-    Tolerates a missing metadata app — alumni extras are nice-to-have,
-    not load-bearing.
+    Correct DFV shape (the old writer hand-built ``definition=/object_id=/value=``
+    kwargs + a ``slug=/entity_kind=`` definition — none of which are model
+    fields, so every write raised and was swallowed by a bare ``except``, and
+    current_employer / current_role / graduation_year NEVER persisted):
+
+      * definition keyed by real fields (entity_type / field_key / school);
+      * value keyed by (entity_type, entity_id, field_key) with the raw value
+        under ``value_json={"v": value}`` and ``school`` set (NOT NULL).
+
+    Tolerates a missing metadata app — alumni extras are nice-to-have, not
+    load-bearing — but a failure is now recorded on the result, never swallowed.
     """
     try:
         from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        result.errors.append(
+            f"alumni extras: metadata models unavailable: {type(exc).__name__}"
+        )
         return
     for key in _ALUMNI_EXTRA_KEYS:
         if key in student_fields:
@@ -153,16 +183,25 @@ def _persist_alumni_extras(
         if value in (None, ""):
             continue
         try:
-            definition, _ = DynamicFieldDefinition.objects.get_or_create(
-                slug=f"alumni_{key}",
-                defaults={"label": f"Alumni {key}", "entity_kind": "student"},
+            DynamicFieldDefinition.objects.get_or_create(
+                entity_type="student",
+                field_key=key[:120],
+                school=ctx.school,
+                defaults={"label": f"Alumni {key}"[:255], "data_type": "json"},
             )
-            DynamicFieldValue.objects.create(
-                definition=definition,
-                object_id=str(alumni_pk),
-                value={"raw": str(value)[:1024]},
+            DynamicFieldValue.objects.update_or_create(
+                entity_type="student",
+                entity_id=str(alumni_pk)[:64],
+                field_key=key[:120],
+                defaults=filter_to_model_fields(
+                    {"value_json": {"v": str(value)[:1024]}, "school": ctx.school},
+                    DynamicFieldValue,
+                ),
             )
-        except Exception:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001 — best-effort, recorded
+            result.errors.append(
+                f"alumni extras write failed for {key}: {type(exc).__name__}: {exc}"
+            )
             continue
 
 

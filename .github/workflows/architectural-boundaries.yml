@@ -312,6 +312,23 @@ jobs:
         run: |
           python scripts/scan_granular_rbac_adoption.py --compare
 
+  lander-phantom-fields:
+    name: Migration Cloud lander phantom-field seal
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_lander_phantom_fields.py --compare
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_scan_lander_phantom_fields -v
+
   tenant-template-operator-links:
     name: No tenant-facing template links to an operator route (H4.6)
     runs-on: ubuntu-latest

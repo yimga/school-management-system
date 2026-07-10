@@ -110,6 +110,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/verify_tenant_offboarding_operator_only.py", "ci.yml"),
     # H4.7 — the penetration scenario matrix stays fresh (regenerated + committed).
     ("scripts/generate_tenant_isolation_penetration_report.py", "architectural-boundaries.yml"),
+    # Migration Cloud lander phantom-field seal (2026-07-09) — a lander must never
+    # hand-build a .create/.get_or_create/.update_or_create with a keyword (or a
+    # defaults literal key) that is not a real model field; those raise + get
+    # swallowed = silent data loss. Zero-tolerance from day 1; must run every PR
+    # or the class silently re-opens.
+    ("scripts/scan_lander_phantom_fields.py", "architectural-boundaries.yml"),
 )
 
 
