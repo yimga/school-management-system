@@ -506,6 +506,207 @@ def dispatch_transactional_email(
         }
 
 
+# ──────────────────────────────────────────────────────────────────────
+# Metric 14 — inventory reorder (low-stock) alerts.
+#
+# Producer for :class:`apps.schoolops.models.InventoryItem`. When an item's
+# stock crosses to/below its ``reorder_threshold`` (see the False -> True
+# ``is_low`` transition detected by ``apps.schoolops.signals``), a WARNING
+# notification is delivered to the school's admins via the canonical
+# ``finance.Notification.objects.notify_unread`` write path. Idempotent per
+# low-stock episode: ``notify_low_inventory_stock`` no-ops while
+# ``last_low_stock_notified_at`` is set, and the signal clears that stamp when
+# stock is replenished above the reorder level (so the NEXT dip re-fires).
+# ──────────────────────────────────────────────────────────────────────
+
+_LOW_STOCK_ADMIN_RECIPIENT_CAP = 20
+# finance.Notification.title is a CharField(max_length=200); truncate to match.
+_NOTIF_TITLE_MAXLEN = 200  # magic-number-allow: notification-title-column-max-length
+
+
+def _school_admin_recipients(school) -> list:
+    """Active ADMIN users for ``school`` (canonical SchoolMembership lookup)."""
+    if school is None:
+        return []
+    try:
+        from apps.schools.models import SchoolMembership
+    except Exception:  # noqa: BLE001
+        return []
+    recipients: list = []
+    seen: set = set()
+    qs = (
+        SchoolMembership.objects.filter(
+            school=school, role="ADMIN",  # role-string-allow: notify-school-admins-of-low-inventory-stock
+        )
+        .select_related("user")
+        .order_by("-is_primary", "id")[:_LOW_STOCK_ADMIN_RECIPIENT_CAP]
+    )
+    for membership in qs:
+        user = getattr(membership, "user", None)
+        if user is None or not getattr(user, "is_active", True):
+            continue
+        if user.pk in seen:
+            continue
+        seen.add(user.pk)
+        recipients.append(user)
+    return recipients
+
+
+@shared_task(name="schoolops.notify_low_inventory_stock")
+def notify_low_inventory_stock(inventory_item_id: int) -> dict[str, Any]:
+    """Deliver a low-stock alert for one :class:`InventoryItem` row.
+
+    Idempotent per low-stock episode: skips when the row is no longer low or
+    when ``last_low_stock_notified_at`` is already set (the signal clears that
+    stamp on replenishment above the reorder level). Returns a structured
+    summary so tests can assert behaviour without parsing logs.
+    """
+    result: dict[str, Any] = {
+        "inventory_item_id": int(inventory_item_id),
+        "notified_recipients": 0,
+        "skipped_not_low": False,
+        "skipped_already_notified": False,
+        "skipped_no_recipients": False,
+        "errors": 0,
+    }
+    try:
+        from django.db.models import F
+        from django.urls import reverse
+
+        from apps.finance.models import Notification
+        from apps.schoolops.models import InventoryItem
+
+        # tenant-isolation-allow: celery-task-fetch-by-pk-row-already-tenant-bound-via-school-fk
+        row = (
+            InventoryItem.objects.filter(pk=inventory_item_id)
+            .select_related("school")
+            .first()
+        )
+        if row is None:
+            result["errors"] += 1
+            return result
+        if not row.is_low:
+            result["skipped_not_low"] = True
+            return result
+        if row.last_low_stock_notified_at is not None:
+            # Already alerted for the current low-stock episode.
+            result["skipped_already_notified"] = True
+            return result
+
+        recipients = _school_admin_recipients(row.school)
+        if not recipients:
+            result["skipped_no_recipients"] = True
+            # Still stamp so the sweep doesn't retry a structurally-unreachable
+            # row every run; a later membership change + restock re-opens it.
+            # tenant-isolation-allow: stamp-scoped-to-same-row-and-its-school-fk
+            InventoryItem.objects.filter(
+                pk=row.pk, school_id=row.school_id,
+            ).update(last_low_stock_notified_at=timezone.now())
+            return result
+
+        location = (row.location or "").strip() or "—"
+        title = (f"Low stock: {row.name}")[:_NOTIF_TITLE_MAXLEN]
+        message = (
+            f"{row.name} is at {row.quantity} "
+            f"(reorder level {row.reorder_threshold}) in {location}. "
+            f"Restock to clear this alert."
+        )
+        try:
+            link = reverse("accounts:ops_inventory")
+        except Exception:  # noqa: BLE001
+            link = ""
+
+        notified = 0
+        for user in recipients:
+            try:
+                Notification.objects.notify_unread(
+                    recipient=user,
+                    title=title,
+                    message=message,
+                    severity=Notification.Severity.WARNING,
+                    link=link,
+                    school=row.school,
+                )
+                notified += 1
+            except Exception:  # noqa: BLE001 — per-recipient isolation
+                result["errors"] += 1
+                logger.warning(
+                    "schoolops.low_inventory_notify_failed item_id=%s",
+                    row.pk,
+                )
+        result["notified_recipients"] = notified
+
+        # Stamp + bump count so the episode is closed (idempotent). Queryset
+        # update bypasses signals — no re-entrancy.
+        # tenant-isolation-allow: stamp-scoped-to-same-row-and-its-school-fk
+        InventoryItem.objects.filter(pk=row.pk, school_id=row.school_id).update(
+            last_low_stock_notified_at=timezone.now(),
+            low_stock_notification_count=F("low_stock_notification_count") + 1,
+        )
+        logger.info(
+            "schoolops.low_inventory_notification_dispatched "
+            "item_id=%s school_id=%s recipients=%s",
+            row.pk, row.school_id, notified,
+        )
+        return result
+    except Exception as exc:  # noqa: BLE001
+        result["errors"] += 1
+        logger.exception(
+            "schoolops.notify_low_inventory_stock crashed item_id=%s exc_type=%s",
+            inventory_item_id, type(exc).__name__,
+        )
+        return result
+
+
+@shared_task(name="schoolops.sweep_low_inventory_stock")
+def sweep_low_inventory_stock() -> dict[str, Any]:
+    """Daily sweep: alert on low-stock rows the signal missed.
+
+    Catches items that were already low before the feature shipped (or whose
+    transition signal did not fire). Only rows with a positive reorder level,
+    ``quantity <= reorder_threshold``, and no open alert
+    (``last_low_stock_notified_at IS NULL``) are enqueued — so it never
+    double-fires an episode already alerted.
+    """
+    summary: dict[str, Any] = {
+        "scanned": 0,
+        "enqueued": 0,
+        "errors": 0,
+    }
+    try:
+        from django.db.models import F
+
+        from apps.schoolops.models import InventoryItem
+
+        # tenant-isolation-allow: sweep-task-runs-across-all-tenants-by-design-platform-wide-beat-job
+        rows = (
+            InventoryItem.objects.filter(
+                reorder_threshold__gt=0,
+                quantity__lte=F("reorder_threshold"),
+                last_low_stock_notified_at__isnull=True,
+            )
+            .only("pk")
+            .order_by("pk")[:_SWEEP_BATCH_LIMIT]
+        )
+        eligible_ids = [int(r.pk) for r in rows]
+        summary["scanned"] = len(eligible_ids)
+        for item_id in eligible_ids:
+            try:
+                notify_low_inventory_stock.delay(inventory_item_id=item_id)
+            except Exception:  # noqa: BLE001 — free tier has no broker
+                notify_low_inventory_stock(inventory_item_id=item_id)
+            summary["enqueued"] += 1
+        logger.info("schoolops.sweep_low_inventory_stock summary=%s", summary)
+        return summary
+    except Exception as exc:  # noqa: BLE001
+        summary["errors"] += 1
+        logger.exception(
+            "schoolops.sweep_low_inventory_stock crashed exc_type=%s",
+            type(exc).__name__,
+        )
+        return summary
+
+
 @shared_task(name="schoolops.deliver_notification_intent")
 def deliver_notification_intent_task(
     *,

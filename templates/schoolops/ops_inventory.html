@@ -9,26 +9,90 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
+
+  {% if low_stock_count %}
+  <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
+    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+    <span>{% blocktrans count counter=low_stock_count %}{{ counter }} item is at or below its reorder level.{% plural %}{{ counter }} items are at or below their reorder level.{% endblocktrans %}</span>
+  </div>
+  {% endif %}
+
   <div class="card shadow-sm mb-4">
+    <div class="card-header">{% trans "Add item" %}</div>
     <div class="card-body">
       <form method="post" class="row g-2 align-items-end">{% csrf_token %}
         <div class="col-md-3"><label class="form-label small">{% trans "Name" %}</label><input class="form-control" name="name" required maxlength="255"></div>
         <div class="col-md-2"><label class="form-label small">{% trans "Quantity" %}</label><input class="form-control" type="number" name="quantity" value="0" min="0"></div>
         <div class="col-md-3"><label class="form-label small">{% trans "Location" %}</label><input class="form-control" name="location" maxlength="255"></div>
+        <div class="col-md-2"><label class="form-label small">{% trans "Reorder at" %}</label><input class="form-control" type="number" name="reorder_threshold" value="0" min="0"></div>
         <div class="col-md-2"><button type="submit" class="btn btn-primary">{% trans "Add" %}</button></div>
       </form>
     </div>
   </div>
-  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Qty" %}</th><th scope="col">{% trans "Location" %}</th><th scope="col">{% trans "Adjust" %}</th></tr></thead>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">{% trans "Check out to a person" %}</div>
+        <div class="card-body">
+          <form method="post" class="row g-2 align-items-end">{% csrf_token %}
+            <input type="hidden" name="intent" value="checkout">
+            <div class="col-md-5"><label class="form-label small">{% trans "Item" %}</label>
+              <select class="form-select" name="checkout_item_id" required>
+                <option value="">{% trans "Select item…" %}</option>
+                {% for it in items %}<option value="{{ it.pk }}">{{ it.name }} ({{ it.quantity }})</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3"><label class="form-label small">{% trans "Quantity" %}</label><input class="form-control" type="number" name="checkout_quantity" value="1" min="1"></div>
+            <div class="col-md-4"><label class="form-label small">{% trans "Checked out to" %}</label><input class="form-control" name="checked_out_to" maxlength="255" placeholder="{% trans 'Name or reference' %}"></div>
+            <div class="col-12"><button type="submit" class="btn btn-outline-primary">{% trans "Check out" %}</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">{% trans "Transfer between locations" %}</div>
+        <div class="card-body">
+          <form method="post" class="row g-2 align-items-end">{% csrf_token %}
+            <input type="hidden" name="intent" value="transfer">
+            <div class="col-md-5"><label class="form-label small">{% trans "From" %}</label>
+              <select class="form-select" name="transfer_source_id" required>
+                <option value="">{% trans "Source item…" %}</option>
+                {% for it in items %}<option value="{{ it.pk }}">{{ it.name }} ({{ it.quantity }}){% if it.location %} — {{ it.location }}{% endif %}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-5"><label class="form-label small">{% trans "To" %}</label>
+              <select class="form-select" name="transfer_dest_id" required>
+                <option value="">{% trans "Destination item…" %}</option>
+                {% for it in items %}<option value="{{ it.pk }}">{{ it.name }} ({{ it.quantity }}){% if it.location %} — {{ it.location }}{% endif %}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2"><label class="form-label small">{% trans "Quantity" %}</label><input class="form-control" type="number" name="transfer_quantity" value="1" min="1"></div>
+            <div class="col-12"><button type="submit" class="btn btn-outline-primary">{% trans "Transfer" %}</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Qty" %}</th><th scope="col">{% trans "Location" %}</th><th scope="col">{% trans "Reorder level" %}</th><th scope="col">{% trans "Adjust" %}</th></tr></thead>
     <caption class="visually-hidden">{% trans "Inventory" %} — {{ school.name }}</caption>
-    <tbody>{% for it in items %}<tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ it.name }}" data-rmc-row-subtitle="{{ it.location|default:'—' }}"><td>{{ it.name }}</td><td>{{ it.quantity }}</td><td>{{ it.location|default:"—" }}</td><td>
+    <tbody>{% for it in items %}<tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ it.name }}" data-rmc-row-subtitle="{{ it.location|default:'—' }}"><td>{{ it.name }}{% if it.is_low %} <span class="badge text-bg-warning">{% trans "Low" %}</span>{% endif %}</td><td>{{ it.quantity }}</td><td>{{ it.location|default:"—" }}</td><td>
+      <form method="post" class="d-flex gap-1 align-items-center">{% csrf_token %}
+        <input type="hidden" name="intent" value="set_reorder">
+        <input type="hidden" name="reorder_item_id" value="{{ it.pk }}">
+        <input class="form-control form-control-sm" type="number" name="reorder_threshold" min="0" value="{{ it.reorder_threshold }}" aria-label="{% trans 'Reorder level' %}">
+        <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Set" %}</button>
+      </form>
+    </td><td>
       <form method="post" class="d-flex gap-1 align-items-center">{% csrf_token %}
         <input type="hidden" name="intent" value="adjust">
         <input type="hidden" name="adjust_item_id" value="{{ it.pk }}">
         <input class="form-control form-control-sm" type="number" name="quantity_delta" placeholder="{% trans '+/- qty' %}" aria-label="{% trans 'Quantity change' %}">
         <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Apply" %}</button>
       </form>
-    </td></tr>{% empty %}<tr><td colspan="4" class="rmc-empty-state rmc-empty-state--row">
+    </td></tr>{% empty %}<tr><td colspan="5" class="rmc-empty-state rmc-empty-state--row">
       <i class="bi bi-box-seam rmc-empty-state__icon" aria-hidden="true"></i>
       <p class="rmc-empty-state__title">{% trans "No inventory items yet" %}</p>
       <p class="rmc-empty-state__body">{% trans "Add an item using the form above to start tracking stock and locations." %}</p>

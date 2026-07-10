@@ -2261,6 +2261,19 @@ CELERY_BEAT_SCHEDULE = {
         ),
         "options": {"expires": 3600},
     },
+    # Metric 14 — daily sweep for low InventoryItem rows the post_save signal
+    # missed (e.g. rows already at/below their reorder level at app-startup,
+    # or dropped via a bulk queryset update). The task only enqueues rows with
+    # no open alert (last_low_stock_notified_at IS NULL), so an extra
+    # invocation never double-fires an episode already alerted.
+    "schoolops-sweep-low-inventory-stock": {
+        "task": "schoolops.sweep_low_inventory_stock",
+        "schedule": (
+            _celery_crontab(hour=9, minute=15)
+            if _celery_crontab is not None else 86400.0
+        ),
+        "options": {"expires": 3600},
+    },
     # Pass 13.E: nightly per-tenant policy/handbook RAG ingestion. No-op for
     # tenants that haven't set `school.settings["policy_doc_root"]`.
     "siteconfig-ingest-policy-documents": {

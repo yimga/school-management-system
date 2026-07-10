@@ -272,6 +272,85 @@ def ops_inventory(request):
                         messages.error(request, str(exc))
                     except (DatabaseError, TypeError, ValueError):
                         messages.error(request, "Could not adjust stock.")
+        elif intent == "checkout":
+            pk_raw = (request.POST.get("checkout_item_id") or "").strip()
+            if not pk_raw.isdigit():
+                messages.error(request, "Select a valid inventory line to check out.")
+            else:
+                try:
+                    from apps.schoolops.inventory_services import (
+                        InventoryMovementError,
+                        checkout_inventory,
+                    )
+
+                    checkout_inventory(
+                        school=school,
+                        item=InventoryItem.objects.get(pk=int(pk_raw), school=school),
+                        quantity=(request.POST.get("checkout_quantity") or "0").strip(),
+                        recorded_by=request.user,
+                        checked_out_to=(request.POST.get("checked_out_to") or "").strip()[:255],
+                    )
+                    item = InventoryItem.objects.get(pk=int(pk_raw), school=school)
+                    messages.success(
+                        request,
+                        f"Checked out from “{item.name}” (now {item.quantity}).",
+                    )
+                    return _ops_save_redirect(request, "accounts:ops_inventory")
+                except InventoryItem.DoesNotExist:
+                    messages.error(request, "Inventory line not found.")
+                except InventoryMovementError as exc:
+                    messages.error(request, str(exc))
+                except (DatabaseError, TypeError, ValueError):
+                    messages.error(request, "Could not record checkout.")
+        elif intent == "transfer":
+            src_raw = (request.POST.get("transfer_source_id") or "").strip()
+            dst_raw = (request.POST.get("transfer_dest_id") or "").strip()
+            if not (src_raw.isdigit() and dst_raw.isdigit()):
+                messages.error(request, "Pick both a source and a destination item.")
+            else:
+                try:
+                    from apps.schoolops.inventory_services import (
+                        InventoryMovementError,
+                        transfer_inventory,
+                    )
+
+                    transfer_inventory(
+                        school=school,
+                        source_item=InventoryItem.objects.get(pk=int(src_raw), school=school),
+                        dest_item=InventoryItem.objects.get(pk=int(dst_raw), school=school),
+                        quantity=(request.POST.get("transfer_quantity") or "0").strip(),
+                        recorded_by=request.user,
+                    )
+                    messages.success(request, "Stock transferred between locations.")
+                    return _ops_save_redirect(request, "accounts:ops_inventory")
+                except InventoryItem.DoesNotExist:
+                    messages.error(request, "Inventory line not found.")
+                except InventoryMovementError as exc:
+                    messages.error(request, str(exc))
+                except (DatabaseError, TypeError, ValueError):
+                    messages.error(request, "Could not transfer stock.")
+        elif intent == "set_reorder":
+            pk_raw = (request.POST.get("reorder_item_id") or "").strip()
+            if not pk_raw.isdigit():
+                messages.error(request, "Select a valid inventory line.")
+            else:
+                try:
+                    threshold = max(0, int((request.POST.get("reorder_threshold") or "0").strip()))
+                except (TypeError, ValueError):
+                    threshold = 0
+                try:
+                    item = InventoryItem.objects.get(pk=int(pk_raw), school=school)
+                    item.reorder_threshold = threshold
+                    item.save(update_fields=["reorder_threshold", "updated_at"])
+                    messages.success(
+                        request,
+                        f"Reorder level for “{item.name}” set to {threshold}.",
+                    )
+                    return _ops_save_redirect(request, "accounts:ops_inventory")
+                except InventoryItem.DoesNotExist:
+                    messages.error(request, "Inventory line not found.")
+                except (DatabaseError, TypeError, ValueError):
+                    messages.error(request, "Could not set reorder level.")
         else:
             name = (request.POST.get("name") or "").strip()
             if not name:
@@ -282,11 +361,16 @@ def ops_inventory(request):
                 except (TypeError, ValueError):
                     qty = 0
                 try:
+                    threshold = max(0, int((request.POST.get("reorder_threshold") or "0").strip()))
+                except (TypeError, ValueError):
+                    threshold = 0
+                try:
                     InventoryItem.objects.create(
                         school=school,
                         name=name[:255],
                         quantity=qty,
                         location=(request.POST.get("location") or "").strip()[:255],
+                        reorder_threshold=threshold,
                     )
                     messages.success(request, "Inventory line added.")
                     return _ops_save_redirect(request, "accounts:ops_inventory")
@@ -300,6 +384,8 @@ def ops_inventory(request):
         .select_related("item", "recorded_by")
         .order_by("-created_at")[:100]
     )
+    items = list(items)
+    low_stock_count = sum(1 for it in items if it.is_low)
     return render(
         request,
         "schoolops/ops_inventory.html",
@@ -307,6 +393,7 @@ def ops_inventory(request):
             "school": school,
             "items": items,
             "movements": movements,
+            "low_stock_count": low_stock_count,
             "hub_url": reverse("accounts:ops_hub"),
         },
     )

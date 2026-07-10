@@ -11,6 +11,12 @@ class InventoryMovementError(Exception):
     pass
 
 
+# Sane per-movement quantity ceiling (mirrors the ops item-quantity cap in
+# views_tenant_ops.ops_inventory) so a fat-fingered checkout/transfer can't
+# create an absurd ledger row.
+_MAX_MOVEMENT_QTY = 10_000_000  # magic-number-allow: per-movement quantity ceiling
+
+
 @transaction.atomic
 def record_inventory_movement(
     *,
@@ -41,3 +47,93 @@ def record_inventory_movement(
         notes=(notes or "")[:500],
         recorded_by=recorded_by,
     )
+
+
+def _coerce_positive_qty(quantity: Any, *, label: str) -> int:
+    try:
+        qty = int(quantity)
+    except (TypeError, ValueError):
+        raise InventoryMovementError(f"{label} quantity must be a whole number")
+    if qty <= 0:
+        raise InventoryMovementError(f"{label} quantity must be positive")
+    if qty > _MAX_MOVEMENT_QTY:
+        raise InventoryMovementError(f"{label} quantity is too large")
+    return qty
+
+
+def checkout_inventory(
+    *,
+    school: Any,
+    item: Any,
+    quantity: Any,
+    recorded_by: Any | None = None,
+    checked_out_to: str = "",
+    notes: str = "",
+) -> Any:
+    """Check ``quantity`` units of ``item`` out to a person.
+
+    Records a single CHECKOUT movement with a negative delta. Insufficient
+    stock is rejected by :func:`record_inventory_movement` (quantity-below-zero
+    guard), which raises :class:`InventoryMovementError`.
+    """
+    from apps.schoolops.models_inventory_movement import InventoryMovement
+
+    qty = _coerce_positive_qty(quantity, label="Checkout")
+    who = (checked_out_to or "").strip()
+    note = (notes or "").strip() or (
+        f"Checked out to {who}" if who else "Checkout"
+    )
+    return record_inventory_movement(
+        school=school,
+        item=item,
+        movement_type=InventoryMovement.MovementType.CHECKOUT,
+        quantity_delta=-qty,
+        recorded_by=recorded_by,
+        notes=note,
+    )
+
+
+def transfer_inventory(
+    *,
+    school: Any,
+    source_item: Any,
+    dest_item: Any,
+    quantity: Any,
+    recorded_by: Any | None = None,
+    notes: str = "",
+) -> tuple:
+    """Move ``quantity`` units from ``source_item`` to ``dest_item`` atomically.
+
+    Writes two TRANSFER ledger rows (``-qty`` out of the source, ``+qty`` into
+    the destination) inside a single transaction, so total stock across the two
+    items is conserved and an insufficient-stock source rolls the whole transfer
+    back (nothing is committed). Returns ``(out_movement, in_movement)``.
+    """
+    from apps.schoolops.models_inventory_movement import InventoryMovement
+
+    qty = _coerce_positive_qty(quantity, label="Transfer")
+    if getattr(source_item, "pk", None) == getattr(dest_item, "pk", None):
+        raise InventoryMovementError("cannot transfer an item to itself")
+
+    src_loc = (getattr(source_item, "location", "") or "").strip() or "—"
+    dst_loc = (getattr(dest_item, "location", "") or "").strip() or "—"
+    base_note = (notes or "").strip() or f"Transfer {src_loc} → {dst_loc}"
+
+    with transaction.atomic():
+        out_movement = record_inventory_movement(
+            school=school,
+            item=source_item,
+            movement_type=InventoryMovement.MovementType.TRANSFER,
+            quantity_delta=-qty,
+            recorded_by=recorded_by,
+            notes=f"{base_note} (out)",
+        )
+        in_movement = record_inventory_movement(
+            school=school,
+            item=dest_item,
+            movement_type=InventoryMovement.MovementType.TRANSFER,
+            quantity_delta=qty,
+            recorded_by=recorded_by,
+            notes=f"{base_note} (in)",
+        )
+    return out_movement, in_movement

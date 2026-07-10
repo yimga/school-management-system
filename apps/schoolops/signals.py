@@ -188,3 +188,96 @@ def _dispatch_low_balance_notification(
             "row_pk=%s",
             getattr(instance, "pk", None),
         )
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Metric 14 — inventory reorder (low-stock) alerts.
+#
+# Mirrors the MealPlanBalance low-balance pattern above: a pre_save handler
+# caches the database-side ``is_low`` so the post_save handler can detect the
+# False -> True transition (crossing to/below the reorder level) and fire the
+# alert EXACTLY once per low-stock episode. On the reverse True -> False
+# transition (restock above the reorder level) we clear
+# ``last_low_stock_notified_at`` via a queryset ``.update()`` (which does NOT
+# fire signals — no re-entrancy) so the NEXT dip alerts again.
+# ──────────────────────────────────────────────────────────────────────
+
+_PRE_SAVE_INV_IS_LOW_ATTR = "_schoolops_inventory_pre_save_is_low"
+
+
+@receiver(pre_save, sender="schoolops.InventoryItem")
+def _cache_pre_save_inventory_is_low(
+    sender: Any, instance: Any, **kwargs: Any,
+) -> None:
+    """Capture the database-side :attr:`InventoryItem.is_low` BEFORE save."""
+    try:
+        if instance.pk is None:
+            setattr(instance, _PRE_SAVE_INV_IS_LOW_ATTR, False)
+            return
+        # tenant-isolation-allow: signal-handler-pk-lookup-on-existing-row-within-same-tenant
+        old = sender.objects.filter(pk=instance.pk).only(
+            "quantity", "reorder_threshold",
+        ).first()
+        setattr(
+            instance,
+            _PRE_SAVE_INV_IS_LOW_ATTR,
+            bool(old.is_low) if old is not None else False,
+        )
+    except Exception:  # noqa: BLE001 -- signal-handler safety
+        logger.exception(
+            "schoolops.signals._cache_pre_save_inventory_is_low failed; row_pk=%s",
+            getattr(instance, "pk", None),
+        )
+
+
+@receiver(post_save, sender="schoolops.InventoryItem")
+def _dispatch_low_inventory_notification(
+    sender: Any, instance: Any, created: bool, **kwargs: Any,
+) -> None:
+    """Dispatch a low-stock alert on the False -> True ``is_low`` transition."""
+    try:
+        prior_low = getattr(instance, _PRE_SAVE_INV_IS_LOW_ATTR, False)
+        try:
+            current_low = bool(instance.is_low)
+        except Exception:  # noqa: BLE001
+            current_low = False
+
+        # Restock above the reorder level: close the episode so the next dip
+        # can fire again. Queryset .update() bypasses signals (no re-entrancy).
+        if prior_low and not current_low:
+            if getattr(instance, "last_low_stock_notified_at", None) is not None:
+                # tenant-isolation-allow: reset-scoped-to-same-row-and-its-school-fk
+                sender.objects.filter(
+                    pk=instance.pk, school_id=instance.school_id,
+                ).update(last_low_stock_notified_at=None, low_stock_notification_count=0)
+            return
+
+        if not current_low:
+            return
+        # Only fire on the actual crossing (or a brand-new already-low row).
+        if prior_low and not created:
+            return
+        # An already-open episode (stamp set) is handled idempotently by the
+        # task; don't double-dispatch here.
+        if getattr(instance, "last_low_stock_notified_at", None) is not None:
+            return
+
+        from apps.schoolops.tasks import notify_low_inventory_stock
+        try:
+            notify_low_inventory_stock.delay(inventory_item_id=int(instance.pk))
+        except Exception:  # noqa: BLE001 — free tier often has no broker
+            logger.warning(
+                "schoolops.low_inventory: broker enqueue failed; sending inline "
+                "item_id=%s",
+                instance.pk,
+            )
+            notify_low_inventory_stock(inventory_item_id=int(instance.pk))
+        logger.info(
+            "schoolops.low_inventory_signal dispatched item_id=%s school_id=%s",
+            instance.pk, getattr(instance, "school_id", None),
+        )
+    except Exception:  # noqa: BLE001 -- signal-handler safety
+        logger.exception(
+            "schoolops.signals._dispatch_low_inventory_notification failed; row_pk=%s",
+            getattr(instance, "pk", None),
+        )

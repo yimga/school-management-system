@@ -43,6 +43,19 @@ class InventoryItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     location = models.CharField(max_length=255, blank=True)
     notes = models.TextField(blank=True)
+    reorder_threshold = models.PositiveIntegerField(
+        default=0,
+        help_text="Low-stock reorder level; an alert fires when quantity "
+        "falls to or below this. 0 disables the alert for this item.",
+    )
+    last_low_stock_notified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Set when a low-stock alert was sent for the current "
+        "low-stock episode; cleared when stock is replenished above the "
+        "reorder level. Guarantees the alert fires once per episode.",
+    )
+    low_stock_notification_count = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -54,6 +67,12 @@ class InventoryItem(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.quantity})"
+
+    @property
+    def is_low(self) -> bool:
+        """True when a positive reorder level is set and stock is at/below it."""
+        threshold = self.reorder_threshold or 0
+        return threshold > 0 and (self.quantity or 0) <= threshold
 
 
 class Route(models.Model):

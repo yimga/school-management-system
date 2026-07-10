@@ -1,0 +1,274 @@
+"""Metric 14 — inventory checkout/transfer flow + reorder-alert producer tests."""
+
+import uuid
+
+from django.contrib.auth import get_user_model
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory, TestCase
+
+from apps.finance.models import Notification
+from apps.schoolops.inventory_services import (
+    InventoryMovementError,
+    checkout_inventory,
+    record_inventory_movement,
+    transfer_inventory,
+)
+from apps.schoolops.models import InventoryItem
+from apps.schoolops.models_inventory_movement import InventoryMovement
+from apps.schoolops.tasks import notify_low_inventory_stock, sweep_low_inventory_stock
+from apps.schoolops.views_tenant_ops import ops_inventory
+from apps.schools.models import School, SchoolMembership
+
+User = get_user_model()
+
+
+def _make_school():
+    tag = uuid.uuid4().hex[:10]
+    return School.objects.create(
+        name=f"Inv {tag}",
+        slug=f"inv-{tag}",
+        subdomain=f"inv-{tag}",
+        is_active=True,
+        features={"inventory": True},
+    )
+
+
+def _make_admin(school):
+    user = User.objects.create_user(
+        username=f"adm-{uuid.uuid4().hex[:8]}",
+        email=f"{uuid.uuid4().hex[:8]}@t.test",
+        password="x",
+        role=User.Role.ADMIN,
+    )
+    SchoolMembership.objects.create(user=user, school=school, role="ADMIN")
+    return user
+
+
+class InventoryCheckoutTransferTests(TestCase):
+    def setUp(self):
+        self.school = _make_school()
+        self.user = _make_admin(self.school)
+        self.item = InventoryItem.objects.create(
+            school=self.school, name="Laptops", quantity=10, location="Store A",
+        )
+
+    def test_checkout_decrements_and_ledgers(self):
+        checkout_inventory(
+            school=self.school, item=self.item, quantity=3,
+            recorded_by=self.user, checked_out_to="Coach Lee",
+        )
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 7)
+        mv = InventoryMovement.objects.get(item=self.item)
+        self.assertEqual(mv.movement_type, InventoryMovement.MovementType.CHECKOUT)
+        self.assertEqual(mv.quantity_delta, -3)
+        self.assertEqual(mv.quantity_after, 7)
+        self.assertIn("Coach Lee", mv.notes)
+
+    def test_checkout_insufficient_rejected(self):
+        with self.assertRaises(InventoryMovementError):
+            checkout_inventory(school=self.school, item=self.item, quantity=50)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 10)
+        self.assertFalse(InventoryMovement.objects.filter(item=self.item).exists())
+
+    def test_checkout_non_positive_rejected(self):
+        with self.assertRaises(InventoryMovementError):
+            checkout_inventory(school=self.school, item=self.item, quantity=0)
+
+    def test_transfer_moves_between_items_total_conserved(self):
+        dest = InventoryItem.objects.create(
+            school=self.school, name="Laptops", quantity=2, location="Store B",
+        )
+        before_total = self.item.quantity + dest.quantity
+        out_mv, in_mv = transfer_inventory(
+            school=self.school, source_item=self.item, dest_item=dest,
+            quantity=4, recorded_by=self.user,
+        )
+        self.item.refresh_from_db()
+        dest.refresh_from_db()
+        self.assertEqual(self.item.quantity, 6)
+        self.assertEqual(dest.quantity, 6)
+        self.assertEqual(self.item.quantity + dest.quantity, before_total)
+        self.assertEqual(out_mv.movement_type, InventoryMovement.MovementType.TRANSFER)
+        self.assertEqual(out_mv.quantity_delta, -4)
+        self.assertEqual(in_mv.quantity_delta, 4)
+
+    def test_transfer_insufficient_source_rolls_back(self):
+        dest = InventoryItem.objects.create(
+            school=self.school, name="Laptops", quantity=2, location="Store B",
+        )
+        with self.assertRaises(InventoryMovementError):
+            transfer_inventory(
+                school=self.school, source_item=self.item, dest_item=dest,
+                quantity=99, recorded_by=self.user,
+            )
+        self.item.refresh_from_db()
+        dest.refresh_from_db()
+        # Nothing committed on either side.
+        self.assertEqual(self.item.quantity, 10)
+        self.assertEqual(dest.quantity, 2)
+        self.assertEqual(InventoryMovement.objects.count(), 0)
+
+    def test_transfer_to_self_rejected(self):
+        with self.assertRaises(InventoryMovementError):
+            transfer_inventory(
+                school=self.school, source_item=self.item, dest_item=self.item,
+                quantity=1,
+            )
+
+    # ---- view wiring (intent routing) -----------------------------------
+
+    def _req(self, data):
+        r = RequestFactory().post("/backend/ops/inventory/", data)
+        r.user = self.user
+        r.school = self.school
+        SessionMiddleware(lambda x: None).process_request(r)
+        r.session.save()
+        setattr(r, "_messages", FallbackStorage(r))
+        return r
+
+    def test_checkout_intent_via_view(self):
+        resp = ops_inventory(self._req({
+            "intent": "checkout",
+            "checkout_item_id": str(self.item.pk),
+            "checkout_quantity": "2",
+            "checked_out_to": "Lab 3",
+        }))
+        self.assertEqual(resp.status_code, 302)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 8)
+        self.assertTrue(
+            InventoryMovement.objects.filter(
+                item=self.item,
+                movement_type=InventoryMovement.MovementType.CHECKOUT,
+            ).exists()
+        )
+
+    def test_transfer_intent_via_view(self):
+        dest = InventoryItem.objects.create(
+            school=self.school, name="Laptops", quantity=1, location="Store B",
+        )
+        resp = ops_inventory(self._req({
+            "intent": "transfer",
+            "transfer_source_id": str(self.item.pk),
+            "transfer_dest_id": str(dest.pk),
+            "transfer_quantity": "5",
+        }))
+        self.assertEqual(resp.status_code, 302)
+        self.item.refresh_from_db()
+        dest.refresh_from_db()
+        self.assertEqual(self.item.quantity, 5)
+        self.assertEqual(dest.quantity, 6)
+
+
+class InventoryReorderAlertTests(TestCase):
+    def setUp(self):
+        self.school = _make_school()
+        self.admin = _make_admin(self.school)
+
+    def _alerts_for(self, user):
+        return Notification.objects.filter(recipient=user)
+
+    def test_is_low_property(self):
+        item = InventoryItem(quantity=5, reorder_threshold=0)
+        self.assertFalse(item.is_low)  # threshold 0 disables
+        item = InventoryItem(quantity=5, reorder_threshold=5)
+        self.assertTrue(item.is_low)  # at threshold
+        item = InventoryItem(quantity=6, reorder_threshold=5)
+        self.assertFalse(item.is_low)  # above threshold
+
+    def test_alert_fires_once_on_crossing(self):
+        item = InventoryItem.objects.create(
+            school=self.school, name="Markers", quantity=10, reorder_threshold=5,
+        )
+        # Not low at creation → no alert yet.
+        self.assertEqual(self._alerts_for(self.admin).count(), 0)
+        record_inventory_movement(
+            school=self.school, item=item,
+            movement_type=InventoryMovement.MovementType.CONSUME,
+            quantity_delta=-6,  # 10 -> 4, crosses <= 5
+        )
+        item.refresh_from_db()
+        self.assertTrue(item.is_low)
+        self.assertIsNotNone(item.last_low_stock_notified_at)
+        self.assertEqual(item.low_stock_notification_count, 1)
+        self.assertEqual(self._alerts_for(self.admin).count(), 1)
+
+    def test_alert_idempotent_while_low(self):
+        item = InventoryItem.objects.create(
+            school=self.school, name="Markers", quantity=10, reorder_threshold=5,
+        )
+        record_inventory_movement(
+            school=self.school, item=item,
+            movement_type=InventoryMovement.MovementType.CONSUME, quantity_delta=-6,
+        )
+        # Another downward move while still low — must NOT re-fire the episode.
+        record_inventory_movement(
+            school=self.school, item=item,
+            movement_type=InventoryMovement.MovementType.CONSUME, quantity_delta=-1,
+        )
+        # A direct task re-run is also a no-op while the episode is open.
+        notify_low_inventory_stock(inventory_item_id=item.pk)
+        item.refresh_from_db()
+        self.assertEqual(item.low_stock_notification_count, 1)
+        self.assertEqual(self._alerts_for(self.admin).count(), 1)
+
+    def test_restock_resets_episode_then_refires(self):
+        item = InventoryItem.objects.create(
+            school=self.school, name="Markers", quantity=10, reorder_threshold=5,
+        )
+        record_inventory_movement(
+            school=self.school, item=item,
+            movement_type=InventoryMovement.MovementType.CONSUME, quantity_delta=-6,
+        )
+        item.refresh_from_db()
+        self.assertEqual(item.low_stock_notification_count, 1)
+        # Restock above the reorder level — episode closes.
+        record_inventory_movement(
+            school=self.school, item=item,
+            movement_type=InventoryMovement.MovementType.RETURN, quantity_delta=+10,
+        )
+        item.refresh_from_db()
+        self.assertFalse(item.is_low)
+        self.assertIsNone(item.last_low_stock_notified_at)
+        self.assertEqual(item.low_stock_notification_count, 0)
+        # Dip again — a fresh episode re-fires.
+        record_inventory_movement(
+            school=self.school, item=item,
+            movement_type=InventoryMovement.MovementType.CONSUME, quantity_delta=-12,
+        )
+        item.refresh_from_db()
+        self.assertTrue(item.is_low)
+        self.assertIsNotNone(item.last_low_stock_notified_at)
+        self.assertEqual(item.low_stock_notification_count, 1)
+
+    def test_alert_recipients_are_school_scoped(self):
+        other_school = _make_school()
+        other_admin = _make_admin(other_school)
+        item = InventoryItem.objects.create(
+            school=self.school, name="Markers", quantity=10, reorder_threshold=5,
+        )
+        record_inventory_movement(
+            school=self.school, item=item,
+            movement_type=InventoryMovement.MovementType.CONSUME, quantity_delta=-6,
+        )
+        self.assertEqual(self._alerts_for(self.admin).count(), 1)
+        self.assertEqual(self._alerts_for(other_admin).count(), 0)
+
+    def test_sweep_alerts_low_rows_the_signal_missed(self):
+        item = InventoryItem.objects.create(
+            school=self.school, name="Markers", quantity=10, reorder_threshold=5,
+        )
+        # Drop below threshold WITHOUT firing the signal (queryset update).
+        InventoryItem.objects.filter(pk=item.pk).update(quantity=2)
+        item.refresh_from_db()
+        self.assertTrue(item.is_low)
+        self.assertIsNone(item.last_low_stock_notified_at)
+
+        summary = sweep_low_inventory_stock()
+        self.assertGreaterEqual(summary["enqueued"], 1)
+        item.refresh_from_db()
+        self.assertIsNotNone(item.last_low_stock_notified_at)
+        self.assertEqual(self._alerts_for(self.admin).count(), 1)
