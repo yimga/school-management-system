@@ -518,6 +518,47 @@ body.control-plane-shell #cp-main-content .rmc-ops-nav-detail__card,
 
 
 
+/* ── Tenant-surface elevation (opt-in via the frame's `tenant_surface` flag) ──────
+   On a tenant portal surface the borrowed control-plane frame reads flat (recessive
+   fills, box-shadow:none, small pills). This modifier gives the step cards real depth
+   + hover and enlarges the action buttons so they read as controls, not chrome.
+   Token-only; scoped to the modifier so operator / control-plane pages are untouched.
+   Same specificity chain as the base rules above so it wins the cascade. */
+:is(body.portal-body-with-layout, body.manager-portal-bridge)
+  :is(#main-content, .portal-page-body)
+  [data-rmc-operational-center-frame="1"].rmc-operational-center-frame--tenant
+  .rmc-ops-nav-detail__card {
+  padding: 1rem 1.1rem;
+  box-shadow: var(--elev-2, 0 6px 18px rgba(20, 24, 40, 0.08));
+  transition: transform var(--motion-fast, 160ms) ease,
+              box-shadow var(--motion-fast, 160ms) ease,
+              border-color var(--motion-fast, 160ms) ease;
+}
+:is(body.portal-body-with-layout, body.manager-portal-bridge)
+  :is(#main-content, .portal-page-body)
+  [data-rmc-operational-center-frame="1"].rmc-operational-center-frame--tenant
+  .rmc-ops-nav-detail__card:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-primary);
+  box-shadow: var(--elev-3, 0 12px 28px rgba(20, 24, 40, 0.14));
+}
+:is(body.portal-body-with-layout, body.manager-portal-bridge)
+  :is(#main-content, .portal-page-body)
+  [data-rmc-operational-center-frame="1"].rmc-operational-center-frame--tenant
+  :is(.cp-btn--primary, .cp-btn--ghost) {
+  min-height: 2.6rem;
+  padding: 0 1.2rem;
+  font-size: var(--type-size-body, 0.9rem);
+  font-weight: 600;
+}
+:is(body.portal-body-with-layout, body.manager-portal-bridge)
+  :is(#main-content, .portal-page-body)
+  [data-rmc-operational-center-frame="1"].rmc-operational-center-frame--tenant
+  .cp-btn--ghost {
+  border: 1px solid var(--hairline, var(--rmc-wcx-border));
+}
+
+
 /* KPI metrics (change-request counts, etc.) — preview cp-kpi row */
 
 body.control-plane-shell #cp-main-content [data-rmc-ops-metrics-grid="1"],

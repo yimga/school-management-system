@@ -29,7 +29,7 @@
       data-rmc-mobile-proof="responsive">
   {% url 'migration_cloud_connector:connector-home' as migration_cloud_url %}
   {% url 'siteconfig:onboarding' as activation_checklist_url %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="tenant_import_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=migration_cloud_url|default:"/school/setup/migration-cloud/" primary_label=_("Open Migration Cloud") secondary_url=activation_checklist_url|default:"/siteconfig/onboarding/" secondary_label=_("Back to activation checklist") %}
+  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" os_center_key="tenant_import_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=migration_cloud_url|default:"/school/setup/migration-cloud/" primary_label=_("Open Migration Cloud") secondary_url=activation_checklist_url|default:"/siteconfig/onboarding/" secondary_label=_("Back to activation checklist") %}
 
   <section class="row g-3 mb-4" aria-label="{% trans 'Import readiness summary' %}">
     <div data-rmc-scroll-policy="paginate" class="col-md-4">
