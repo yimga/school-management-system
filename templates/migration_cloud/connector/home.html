@@ -8,7 +8,7 @@
 
 <div data-rmc-scroll-policy="paginate" class="d-flex gap-2 mb-4">
   <a class="btn btn-primary" href="{% url 'migration_cloud_connector:connector-connect' %}">{% trans "Connect source platform" %}</a>
-  <a class="btn btn-outline-secondary" href="{% url 'school_setup_imports' %}">{% trans "Upload export file" %}</a>
+  {% if upload_url %}<a class="btn btn-outline-secondary" href="{{ upload_url }}">{% trans "Upload export file" %}</a>{% endif %}
 </div>
 <section class="rmc-card mb-4" aria-labelledby="connections-heading">
   <h2 id="connections-heading" class="h5">{% trans "Source connections" %}</h2>

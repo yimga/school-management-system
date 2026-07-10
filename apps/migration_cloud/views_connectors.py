@@ -8,6 +8,7 @@ from uuid import UUID
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import NoReverseMatch, reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
@@ -53,6 +54,35 @@ def _request_school(request: HttpRequest):
     return getattr(membership, "school", None) if membership else None
 
 
+def _resolve_connector_upload_url(request: HttpRequest) -> str:
+    """Host-aware target for the connector "Upload export file" CTA.
+
+    The connector home renders on THREE hosts — the tenant host
+    (``migration_cloud_connector``) and the two operator mounts
+    (``migration_cloud_portal`` under config.urls, ``migration_cloud_super``
+    under manager_urls). A hardcoded ``{% url %}`` to any single namespace
+    ``NoReverseMatch``-es on the other two (that was the cross-host 500). Resolve
+    against the request's active urlconf, preferring the operator bundle-intake
+    wizard when mounted under it, else the tenant import hub, else the connector
+    connect step. Returns "" if nothing resolves (the button then hides).
+    """
+    resolver_match = getattr(request, "resolver_match", None)
+    namespaces = list(getattr(resolver_match, "namespaces", []) or [])
+    candidates: list[str] = []
+    if "migration_cloud_super" in namespaces:
+        candidates.append("migration_cloud_super:bundle_new")
+    if "migration_cloud_portal" in namespaces:
+        candidates.append("migration_cloud_portal:bundle_new")
+    candidates.append("school_setup_imports")  # tenant host import hub
+    candidates.append("migration_cloud_connector:connector-connect")  # universal fallback
+    for name in candidates:
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            continue
+    return ""
+
+
 def _connection_for_request(request: HttpRequest, connection_id: UUID) -> MigrationSourceConnection:
     school = _request_school(request)
     if school is None:
@@ -84,6 +114,7 @@ class MigrationCloudConnectorHomeView(LoginRequiredMixin, TemplateView):
                 "connections": connections,
                 "profiles": profiles,
                 "school": school,
+                "upload_url": _resolve_connector_upload_url(self.request),
             }
         )
         return ctx
