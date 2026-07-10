@@ -1,0 +1,25 @@
+#!/bin/sh
+# RunMyCampus pre-push boundary-gate check.  RMC-PRE-PUSH-HOOK-V1
+#
+# Installed into <git-dir>/hooks/pre-push by `python scripts/install_git_hooks.py`.
+# Mirrors the fast, deps-free CSS/template gates that architectural-boundaries.yml
+# runs, so redness is caught locally BEFORE it lands on main (that workflow only
+# fires on pull_request, and branch protection isn't available on this plan).
+#
+# Warn-only by default: it reports red gates but never blocks the push. Set
+# RMC_PREPUSH_STRICT=1 in your environment to make a red gate abort `git push`.
+#
+# git streams the push refs on stdin; the checker doesn't read them, so redirect
+# from /dev/null to guarantee no accidental blocking read.
+
+if command -v python >/dev/null 2>&1; then
+    PY=python
+elif command -v python3 >/dev/null 2>&1; then
+    PY=python3
+else
+    echo "pre-push: python not found on PATH; skipping boundary gates." >&2
+    exit 0
+fi
+
+"$PY" scripts/pre_push_boundary_check.py < /dev/null
+exit $?
