@@ -1,0 +1,55 @@
+{% load i18n %}
+{% comment %}
+Canvas-first Experience builder - Page outline navigator (design SOT:
+django-studio-canvas-first-builder-approval.html "Page outline").
+
+Region links are real ?region= navigation so selection works server-side with
+NO JavaScript (progressive enhancement); studio_os__experience_builder.js
+upgrades them to in-place inspector swaps. The Draft/Live toggle preserves the
+selected region. The legacy settings rail is preserved below under a details
+fold so no existing route is lost.
+{% endcomment %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+{% if experience_regions %}
+<div class="studio-os__card py-2 mb-2 rmc-studio-experience-outline" data-rmc-experience-outline="1">
+  <div class="rmc-studio-experience-outline__head">
+    <div class="h6 mb-0">{% trans "Page outline" %}</div>
+    <p class="small text-muted mb-0">{% trans "Select a region to scope the inspector to just that surface." %}</p>
+  </div>
+
+  <div class="rmc-studio-experience-segmented" role="group" aria-label="{% trans 'Draft or live source' %}" data-rmc-experience-viewmode="{{ experience_view_mode|default:'draft' }}">
+    <a class="rmc-studio-experience-segmented__btn{% if experience_view_mode != 'live' %} is-active{% endif %}"
+       href="?region={{ experience_selected_region_key }}&amp;view=draft#builder"
+       {% if experience_view_mode != 'live' %}aria-current="true"{% endif %}
+       data-rmc-experience-view="draft">{% trans "Draft" %}</a>
+    <a class="rmc-studio-experience-segmented__btn{% if experience_view_mode == 'live' %} is-active{% endif %}"
+       href="?region={{ experience_selected_region_key }}&amp;view=live#builder"
+       {% if experience_view_mode == 'live' %}aria-current="true"{% endif %}
+       data-rmc-experience-view="live">{% trans "Live" %}</a>
+  </div>
+
+  <ul class="list-unstyled mb-0 rmc-studio-experience-outline__list">
+    {% for item in experience_regions %}
+    <li>
+      <a class="rmc-studio-experience-outline__item{% if item.active %} is-active{% endif %}"
+         href="?region={{ item.key }}&amp;view={{ experience_view_mode|default:'draft' }}#builder"
+         data-rmc-experience-region="{{ item.key }}"
+         {% if item.active %}aria-current="true"{% endif %}>
+        <span class="rmc-studio-experience-outline__num" aria-hidden="true">{{ item.num }}</span>
+        <span class="rmc-studio-experience-outline__body">
+          <strong>{{ item.title }}</strong>
+          <span class="rmc-studio-experience-outline__blurb">{{ item.blurb }}</span>
+        </span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<details class="studio-os__card py-2 mb-2 rmc-studio-experience-outline__more">
+  <summary class="h6 mb-0">{% trans "Jump to settings" %}</summary>
+  <div class="mt-2">
+    {% include "studio_os/partials/workspace/experience_inpage_rail.html" %}
+  </div>
+</details>

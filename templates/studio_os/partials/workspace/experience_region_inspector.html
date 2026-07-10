@@ -1,0 +1,47 @@
+{% load i18n %}
+{% comment %}
+Canvas-first Experience builder - scoped Inspector (design SOT:
+django-studio-canvas-first-builder-approval.html "Inspector").
+
+Shows only the settings that govern the selected region. Editable rows anchor
+to the REAL form widget in the canvas (id_<field>) - the inspector never owns a
+parallel write path. Derived rows are read-only descriptors, clearly tagged, so
+nothing looks editable that is not. The rollout/approve actions are appended by
+the rollout fold (Phase 3) via #rollout.
+{% endcomment %}
+{% if experience_region_inspector %}
+<div class="studio-os__card py-2 mb-2 rmc-studio-experience-inspector"
+     data-rmc-experience-inspector="1"
+     data-rmc-experience-inspector-region="{{ experience_selected_region_key }}"
+     aria-live="polite">
+  <div class="rmc-studio-experience-inspector__head">
+    <div class="h6 mb-0">{% trans "Inspector" %}</div>
+    <p class="small text-muted mb-0">{% trans "Settings for the selected preview region." %}</p>
+  </div>
+  <ul class="list-unstyled mb-0 rmc-studio-experience-inspector__list">
+    {% for row in experience_region_inspector %}
+    <li class="rmc-studio-experience-inspector__row rmc-studio-experience-inspector__row--{{ row.kind }}">
+      <span class="rmc-studio-experience-inspector__label">{{ row.label }}</span>
+      {% if row.editable %}
+      <a class="rmc-studio-experience-inspector__value rmc-studio-experience-inspector__value--edit"
+         href="#{{ row.anchor }}"
+         data-rmc-experience-field="{{ row.field_name }}"
+         title="{% trans 'Edit this setting in the canvas form' %}">
+        {% if row.swatch %}<span class="rmc-studio-experience-inspector__swatch" style="background: {{ row.swatch }};" aria-hidden="true"></span>{% endif %}
+        <span class="rmc-studio-experience-inspector__value-text">{{ row.value }}</span>
+        <span class="rmc-studio-experience-inspector__edit-hint" aria-hidden="true">{% trans "Edit" %}</span>
+      </a>
+      {% else %}
+      <span class="rmc-studio-experience-inspector__value">
+        <span class="rmc-studio-experience-inspector__value-text">{{ row.value }}</span>
+        {% if row.kind == 'derived' %}<span class="rmc-studio-experience-inspector__tag">{% trans "Derived" %}</span>{% endif %}
+      </span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <div class="rmc-studio-experience-inspector__actions" data-rmc-experience-inspector-actions="1">
+    {% include "studio_os/partials/workspace/experience_region_actions.html" %}
+  </div>
+</div>
+{% endif %}

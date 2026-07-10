@@ -27,6 +27,7 @@ from .views import (
     studio_automation_visual_builder,
     studio_automation_workflow_health,
     studio_control_impact,
+    studio_experience_approve_region,
     studio_experience_compare,
     studio_experience_recommendations,
     studio_experience_communication_style_packs,
@@ -68,6 +69,11 @@ urlpatterns = [
         name="experience_recommendations",
     ),
     path("experience/compare/", studio_experience_compare, name="experience_compare"),
+    path(
+        "experience/approve-region/",
+        studio_experience_approve_region,
+        name="experience_approve_region",
+    ),
     path(
         "experience/theme-tokens/",
         studio_experience_theme_tokens,

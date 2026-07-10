@@ -7,6 +7,19 @@
    static/css/studio-experience-mode.css. {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-studio-experience-canvas-clamp" data-rmc-studio-experience-canvas="inpage">
+  {% if experience_selected_region %}
+  <div class="rmc-studio-experience-canvas-strip" data-rmc-experience-canvas-strip="1" aria-label="{% trans 'Canvas selection' %}">
+    <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--ok">{% trans "Live canvas" %}</span>
+    <span class="rmc-studio-experience-state-badge">{% blocktrans with region=experience_selected_region.title %}Selected: {{ region }}{% endblocktrans %}</span>
+    {% if experience_view_mode == 'live' %}
+    <span class="rmc-studio-experience-state-badge">{% trans "Source: live" %}</span>
+    {% else %}
+    <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn">{% trans "Source: draft" %}</span>
+    {% endif %}
+  </div>
+  {% endif %}
   {% include "studio_os/partials/experience_live_preview_pane.html" %}
+  {% include "studio_os/partials/workspace/experience_role_filmstrip.html" %}
+  {% include "studio_os/partials/experience_compare_fold.html" %}
   {% include "siteconfig/partials/theme_colors_content.html" with suppress_theme_inline_preview=1 theme_content_surface="studio_experience" %}
 </div>

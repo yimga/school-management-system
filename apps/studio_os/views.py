@@ -1511,6 +1511,104 @@ def studio_shell(request, mode=None):
         context["experience_context_tool_links"] = experience_context_tool_links
         context["experience_workspace_two_col"] = not bool(experience_context_tool_links)
 
+        # Canvas-first builder (design SOT: django-studio-canvas-first-builder-approval.html):
+        # region outline navigator + Draft/Live toggle + scoped inspector. Never 500 the
+        # shell if the catalog/form is unavailable - the legacy form canvas still renders.
+        try:
+            from apps.studio_os.experience_regions import (
+                build_region_inspector,
+                build_region_outline,
+                resolve_selected_region,
+                resolve_view_mode,
+            )
+
+            _selected_key = (request.GET.get("region") or "").strip().lower()
+            _selected_region = resolve_selected_region(_selected_key)
+            _exp_form = context.get("form")
+            _exp_fields = getattr(_exp_form, "fields", {}) if _exp_form is not None else {}
+            _theme_values: dict = {}
+            for _fname in _selected_region.get("fields", []):
+                if _fname in _exp_fields:
+                    try:
+                        _theme_values[_fname] = _exp_form[_fname].value()
+                    except (KeyError, AttributeError, TypeError, ValueError):
+                        _theme_values[_fname] = None
+            context["experience_regions"] = build_region_outline(_selected_key)
+            context["experience_selected_region"] = _selected_region
+            context["experience_selected_region_key"] = _selected_region["key"]
+            context["experience_region_inspector"] = build_region_inspector(
+                _selected_region, _theme_values
+            )
+            context["experience_view_mode"] = resolve_view_mode(request.GET.get("view"))
+        except (ImportError, AttributeError, TypeError, ValueError, KeyError):
+            log_exception_with_context(
+                "studio_shell experience mode: region catalog build failed",
+                **request_context_for_log(request),
+                extra={"mode": "experience"},
+            )
+            context["experience_regions"] = []
+            context["experience_selected_region"] = None
+            context["experience_selected_region_key"] = ""
+            context["experience_region_inspector"] = []
+            context["experience_view_mode"] = "draft"
+
+        # Phase 2: role/device filmstrip (real role preview links) + published-vs-draft compare.
+        try:
+            from apps.studio_os.experience_regions import build_role_filmstrip
+
+            context["experience_role_filmstrip"] = build_role_filmstrip(
+                get_studio_role_preview_entries(request)
+            )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            context["experience_role_filmstrip"] = []
+        try:
+            from apps.studio_os.services import get_studio_compare_context
+
+            context["experience_compare"] = get_studio_compare_context(
+                request, "experience"
+            )
+            context["experience_compare_url"] = reverse("studio_os:experience_compare")
+        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
+            context["experience_compare"] = {
+                "before_entries": [],
+                "after_entries": [],
+                "has_before": False,
+            }
+            context["experience_compare_url"] = ""
+
+        # Phase 3: proof-before-publish rollout status (#rollout) + approve action.
+        try:
+            from apps.studio_os.experience_rollout import ROLLOUT_RULES, rollout_summary
+
+            _rollout = rollout_summary(request)
+            context["experience_rollout"] = _rollout
+            context["experience_rollout_rules"] = ROLLOUT_RULES
+            context["experience_region_approval_url"] = reverse(
+                "studio_os:experience_approve_region"
+            )
+            _sel_key = context.get("experience_selected_region_key") or ""
+            context["experience_selected_region_approved"] = any(
+                r["key"] == _sel_key and r["approved"] for r in _rollout.get("rows", [])
+            )
+        except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
+            log_exception_with_context(
+                "studio_shell experience mode: rollout status build failed",
+                **request_context_for_log(request),
+                extra={"mode": "experience"},
+            )
+            context["experience_rollout"] = {
+                "rows": [],
+                "approved_count": 0,
+                "pending_count": 0,
+                "stale_count": 0,
+                "total": 0,
+                "all_approved": False,
+                "mode": "advisory",
+            }
+            context["experience_rollout_rules"] = []
+            context["experience_region_approval_url"] = ""
+            context["experience_selected_region_approved"] = False
+
         try:
             from apps.brand_experience.experience_templates import (
                 LAYOUT_FAMILY_NAMES,
@@ -2435,6 +2533,58 @@ def studio_save_draft_api(request):
     result = studio_save_draft(mode, request, payload)
     status = 200 if result.get("ok") else 400
     return JsonResponse(result, status=status)
+
+
+@never_cache
+@require_http_methods(["POST"])
+@login_required
+def studio_experience_approve_region(request):
+    """Record a proof-before-publish approval for one Experience region.
+
+    Fingerprints the region's current live theme values and stores the approval
+    in the session (design SOT #rollout "Approve region"). Redirects back to the
+    Experience shell with the region selected and the rollout fold anchored.
+    """
+    from django.contrib import messages
+    from django.utils import timezone
+
+    from apps.studio_os.experience_regions import resolve_selected_region
+    from apps.studio_os.experience_rollout import (
+        approve_region,
+        compute_region_fingerprint,
+        resolve_theme_values,
+    )
+
+    if not user_can_access_studio_on_request(request):
+        return redirect(reverse("accounts:backend_dashboard"))
+
+    region_key = (request.POST.get("region") or "").strip().lower()
+    region = resolve_selected_region(region_key)
+    try:
+        values = resolve_theme_values(request, region.get("fields", []))
+        fingerprint = compute_region_fingerprint(region, values)
+        actor = (
+            request.user.get_username() if request.user.is_authenticated else "system"
+        )
+        timestamp = timezone.localtime().strftime("%Y-%m-%d %H:%M")
+        approve_region(request, region["key"], fingerprint, actor=actor, timestamp=timestamp)
+        messages.success(
+            request,
+            _("Approved %(region)s for publish.") % {"region": region["title"]},
+        )
+    except (AttributeError, TypeError, ValueError):
+        log_exception_with_context(
+            "studio_experience_approve_region failed",
+            **request_context_for_log(request),
+            extra={"region": region_key},
+        )
+        messages.error(request, _("Could not record the region approval."))
+
+    try:
+        target = reverse("studio_os:experience") + "?region=" + region["key"] + "#rollout"
+    except NoReverseMatch:
+        target = reverse("accounts:backend_dashboard")
+    return redirect(target)
 
 
 @never_cache

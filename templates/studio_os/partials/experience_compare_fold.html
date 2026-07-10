@@ -1,0 +1,48 @@
+{% load i18n %}
+{% comment %}
+Canvas-first Experience builder - published-vs-draft compare (design SOT:
+"Compare mode - Published vs draft"). Before = last published theme snapshot,
+after = current draft. Server-rendered token diff + a link to the full
+side-by-side compare page. Honest empty state until a draft exists.
+{% endcomment %}
+{% if experience_compare.has_before %}
+<section class="rmc-studio-experience-compare" aria-label="{% trans 'Published versus draft' %}" data-rmc-experience-compare="1">
+  <div class="rmc-studio-experience-compare__head">
+    <div class="h6 mb-0">{% trans "Published vs draft" %}</div>
+    <p class="small text-muted mb-0">{% trans "Review the change before publish, not an inline widget." %}</p>
+  </div>
+  <div class="rmc-studio-experience-compare__cols">
+    <div class="rmc-studio-experience-compare__col">
+      <span class="rmc-studio-experience-state-badge">{% trans "Published" %}</span>
+      <ul class="list-unstyled mb-0 mt-1">
+        {% for row in experience_compare.before_entries %}
+        <li class="rmc-studio-experience-token-row">
+          {% if row.value %}<span class="rmc-studio-experience-token-swatch" style="background: {{ row.value }};" aria-hidden="true"></span>{% endif %}
+          <span class="rmc-studio-experience-token-label">{{ row.label }}</span>
+          <code class="rmc-studio-experience-token-value">{{ row.value|default:"—" }}</code>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="rmc-studio-experience-compare__col">
+      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn">{% trans "Draft" %}</span>
+      <ul class="list-unstyled mb-0 mt-1">
+        {% for row in experience_compare.after_entries %}
+        <li class="rmc-studio-experience-token-row">
+          {% if row.value %}<span class="rmc-studio-experience-token-swatch" style="background: {{ row.value }};" aria-hidden="true"></span>{% endif %}
+          <span class="rmc-studio-experience-token-label">{{ row.label }}</span>
+          <code class="rmc-studio-experience-token-value">{{ row.value|default:"—" }}</code>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% if experience_compare_url %}
+  <a class="btn btn-sm btn-outline-primary" href="{{ experience_compare_url }}">{% trans "Open full compare" %}</a>
+  {% endif %}
+</section>
+{% elif experience_compare_url %}
+<div class="rmc-studio-experience-compare rmc-studio-experience-compare--empty" data-rmc-experience-compare="empty">
+  <p class="small text-muted mb-0">{% trans "No draft changes yet. Edit a region, then compare published vs draft here." %}</p>
+</div>
+{% endif %}

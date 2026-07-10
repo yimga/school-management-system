@@ -1,0 +1,23 @@
+{% load i18n %}
+{% comment %}
+Canvas-first Experience builder - role/device snapshot filmstrip (design SOT:
+"Role and device snapshots"). Each thumb opens the REAL role preview full-size;
+inline preview stays a thumbnail. Renders only when the tenant exposes role
+preview URLs (honest empty otherwise - the preview pane owns the empty state).
+{% endcomment %}
+{% if experience_role_filmstrip %}
+<section class="rmc-studio-experience-filmstrip" aria-label="{% trans 'Role and device snapshots' %}" data-rmc-experience-filmstrip="1">
+  <div class="rmc-studio-experience-filmstrip__head">
+    <div class="h6 mb-0">{% trans "Role and device snapshots" %}</div>
+    <p class="small text-muted mb-0">{% trans "Open any role preview full-size; inline stays a thumbnail." %}</p>
+  </div>
+  <div class="rmc-studio-experience-filmstrip__grid">
+    {% for thumb in experience_role_filmstrip %}
+    <a class="rmc-studio-experience-filmstrip__thumb" href="{{ thumb.url }}" target="_blank" rel="noopener noreferrer">
+      <strong>{{ thumb.label }}</strong>
+      <span>{{ thumb.descriptor }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

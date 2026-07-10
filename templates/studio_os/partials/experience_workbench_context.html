@@ -8,6 +8,10 @@
 <aside class="studio-os__experience-context" aria-labelledby="experience-context-heading">
   <h2 id="experience-context-heading" class="visually-hidden">{% trans "Experience context" %}</h2>
 
+  {% comment %} Canvas-first scoped inspector (Phase 1). Renders only when a
+     region catalog is present; degrades to the token/audit cells below. {% endcomment %}
+  {% include "studio_os/partials/workspace/experience_region_inspector.html" %}
+
   {% comment %} State badges {% endcomment %}
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="studio-os__card py-2 mb-2">

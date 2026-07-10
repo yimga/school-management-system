@@ -2031,6 +2031,20 @@ def perform_theme_experience_publish(request):
             ],
         }
 
+    # Canvas-first proof-before-publish gate (Studio #rollout). Advisory by
+    # default; enforce mode refuses publish until every region is approved
+    # against the current live draft. Fail-open (never wedge publish) and only
+    # when a tenant/school context exists (operator preview is exempt).
+    try:
+        if getattr(request, "school", None) is not None:
+            from apps.studio_os.experience_rollout import rollout_publish_block
+
+            rollout_errors = rollout_publish_block(request, baseline_values)
+            if rollout_errors:
+                return {"ok": False, "errors": rollout_errors}
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+
     now_label = timezone.localtime().strftime("%Y-%m-%d %H:%M")
     actor_label = (
         request.user.get_username() if request.user.is_authenticated else "system"

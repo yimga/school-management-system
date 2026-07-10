@@ -1,0 +1,69 @@
+{% load i18n %}
+{% comment %}
+Canvas-first Experience builder - #rollout proof-before-publish (design SOT:
+the four "Rule" note cards + a per-region approval checklist). Advisory mode
+shows the checklist; enforce mode blocks publish server-side until every region
+is approved against the current draft (perform_theme_experience_publish gate).
+{% endcomment %}
+{% if experience_rollout_rules or experience_rollout.rows %}
+<section class="rmc-studio-experience-rollout studio-os__card" id="rollout"
+         aria-labelledby="rmc-experience-rollout-heading" data-rmc-experience-rollout="1">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+  <div class="rmc-studio-experience-rollout__head">
+    <div>
+      <h2 id="rmc-experience-rollout-heading" class="h6 mb-0">{% trans "Rollout — proof before publish" %}</h2>
+      <p class="small text-muted mb-0">{% trans "Review each region, then approve it against the current draft before publishing." %}</p>
+    </div>
+    <div class="rmc-studio-experience-rollout__badges">
+      {% if experience_rollout.mode == 'enforce' %}
+      <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn">{% trans "Enforced" %}</span>
+      {% else %}
+      <span class="rmc-studio-experience-state-badge">{% trans "Advisory" %}</span>
+      {% endif %}
+      {% if experience_rollout.total %}
+      <span class="rmc-studio-experience-state-badge{% if experience_rollout.all_approved %} rmc-studio-experience-state-badge--ok{% endif %}">{% blocktrans with a=experience_rollout.approved_count t=experience_rollout.total %}{{ a }} of {{ t }} approved{% endblocktrans %}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if experience_rollout_rules %}
+  <div class="rmc-studio-experience-rollout__rules">
+    {% for rule in experience_rollout_rules %}
+    <article class="rmc-studio-experience-rollout__rule">
+      <div class="rmc-studio-experience-rollout__eyebrow">{{ rule.eyebrow }}</div>
+      <h3 class="h6 mb-1">{{ rule.title }}</h3>
+      <p class="small text-muted mb-0">{{ rule.body }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if experience_rollout.rows %}
+  <ul class="list-unstyled mb-0 rmc-studio-experience-rollout__checklist">
+    {% for row in experience_rollout.rows %}
+    <li class="rmc-studio-experience-rollout__item">
+      <span class="rmc-studio-experience-rollout__num" aria-hidden="true">{{ row.num }}</span>
+      <span class="rmc-studio-experience-rollout__title">
+        <a href="?region={{ row.key }}#builder">{{ row.title }}</a>
+        {% if row.approved %}
+        <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--ok">{% trans "Approved" %}</span>
+        {% elif row.stale %}
+        <span class="rmc-studio-experience-state-badge rmc-studio-experience-state-badge--warn">{% trans "Changed — re-approve" %}</span>
+        {% else %}
+        <span class="rmc-studio-experience-state-badge">{% trans "Pending" %}</span>
+        {% endif %}
+        {% if row.approved and row.timestamp %}<span class="small text-muted">{{ row.actor }} — {{ row.timestamp }}</span>{% endif %}
+      </span>
+      {% if experience_region_approval_url and not row.approved %}
+      <form method="post" action="{{ experience_region_approval_url }}" class="rmc-studio-experience-rollout__approve">
+        {% csrf_token %}
+        <input type="hidden" name="region" value="{{ row.key }}">
+        <button type="submit" class="btn btn-sm btn-success">{% trans "Approve" %}</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endif %}

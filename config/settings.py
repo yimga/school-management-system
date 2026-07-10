@@ -1346,6 +1346,14 @@ RMC_REBAC_DUAL_RUN_LOG_MISMATCH = (
 RMC_REBAC_ENFORCE_SENSITIVE = (
     os.getenv("RMC_REBAC_ENFORCE_SENSITIVE", "0").strip().lower() in {"1", "true", "yes"}
 )
+# Studio Experience canvas-first "proof before publish" gate (design SOT:
+# django-studio-canvas-first-builder-approval.html #rollout). "advisory" (default)
+# surfaces the per-region approval checklist without blocking publish; "enforce"
+# refuses a theme publish until every region is approved against the current
+# draft. Fail-open: an unset/unknown value is treated as "advisory".
+STUDIO_EXPERIENCE_ROLLOUT_ENFORCEMENT = (
+    os.getenv("STUDIO_EXPERIENCE_ROLLOUT_ENFORCEMENT", "advisory").strip().lower()
+)
 RMC_IAM_SNAPSHOT_TTL_HOURS = int(os.getenv("RMC_IAM_SNAPSHOT_TTL_HOURS", "168"))
 RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS = int(
     os.getenv("RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS", "12")

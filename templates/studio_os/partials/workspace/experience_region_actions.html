@@ -1,0 +1,21 @@
+{% load i18n %}
+{% comment %}
+Region-scoped safe actions (design SOT inspector footer: Reset / Save draft /
+Approve region). Phase 1 exposes real navigation into the canvas form + the
+preview frame. Phase 3 (#rollout) upgrades "Approve region" to a POST that
+records a durable ExperienceRegionApproval against the current draft.
+{% endcomment %}
+<div class="rmc-studio-experience-actions">
+  <a class="btn btn-sm btn-outline-secondary" href="#rmc-studio-experience-preview-frame">{% trans "Preview" %}</a>
+  <a class="btn btn-sm btn-outline-primary" href="#theme-colors-form">{% trans "Edit region settings" %}</a>
+  {% if experience_region_approval_url and experience_selected_region_key %}
+  <form method="post" action="{{ experience_region_approval_url }}" class="rmc-studio-experience-actions__approve">
+    {% csrf_token %}
+    <input type="hidden" name="region" value="{{ experience_selected_region_key }}">
+    <button type="submit" class="btn btn-sm btn-success"
+            {% if experience_selected_region_approved %}disabled aria-disabled="true"{% endif %}>
+      {% if experience_selected_region_approved %}{% trans "Region approved" %}{% else %}{% trans "Approve region" %}{% endif %}
+    </button>
+  </form>
+  {% endif %}
+</div>
