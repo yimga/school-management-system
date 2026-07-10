@@ -3918,7 +3918,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.school_events",
         "apps.student360",
         "apps.athletics",
-        "apps.studio_os.apps.StudioOsConfig",  # Tenant/manager Studio OS routes (no models; views + services)
+        "apps.studio_os.apps.StudioOsConfig",  # Tenant/manager Studio OS: views + services + ExperienceRegionApproval model
     ]
     INSTALLED_APPS = list(SHARED_APPS) + [
         a for a in TENANT_APPS if a not in SHARED_APPS

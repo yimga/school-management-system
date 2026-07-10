@@ -90,8 +90,20 @@ def compute_region_fingerprint(region: dict[str, Any], values: dict[str, Any] | 
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
-def get_region_approvals(request: Any) -> dict[str, dict[str, Any]]:
-    """Session approval records: ``{region_key: {fingerprint, actor, timestamp}}``."""
+def _tenant_school(request: Any):
+    """The request's tenant School instance (with a pk), or None.
+
+    A real tenant context routes approvals to the durable model; the absence of
+    one (operator preview without a selected school, a SimpleNamespace stand-in)
+    routes to the session store.
+    """
+    school = getattr(request, "school", None)
+    if school is not None and getattr(school, "pk", None):
+        return school
+    return None
+
+
+def _session_get_approvals(request: Any) -> dict[str, dict[str, Any]]:
     session = getattr(request, "session", None)
     if session is None:
         return {}
@@ -105,11 +117,12 @@ def get_region_approvals(request: Any) -> dict[str, dict[str, Any]]:
     }
 
 
-def approve_region(
-    request: Any, region_key: str, fingerprint: str, actor: str = "", timestamp: str = ""
+def _session_approve(
+    request: Any, region_key: str, fingerprint: str, actor: str, timestamp: str
 ) -> None:
-    """Record an approval for ``region_key`` against ``fingerprint`` in the session."""
-    session = request.session
+    session = getattr(request, "session", None)
+    if session is None:
+        return
     data = session.get(_SESSION_KEY)
     if not isinstance(data, dict):
         data = {}
@@ -122,13 +135,85 @@ def approve_region(
     session.modified = True
 
 
+def get_region_approvals(request: Any) -> dict[str, dict[str, Any]]:
+    """Approval records ``{region_key: {fingerprint, actor, timestamp}}``.
+
+    Durable ``ExperienceRegionApproval`` rows when a tenant school is in context;
+    the session store is the fallback for operator preview without a selected
+    school (no row to FK to) or a DB read failure (fail-safe: an empty result
+    just shows every region pending / blocks publish under enforce).
+    """
+    school = _tenant_school(request)
+    if school is not None:
+        try:
+            from apps.studio_os.models import ExperienceRegionApproval
+
+            out: dict[str, dict[str, Any]] = {}
+            for row in ExperienceRegionApproval.objects.filter(school=school):
+                out[row.region_key] = {
+                    "fingerprint": row.draft_fingerprint,
+                    "actor": row.approved_by.get_username() if row.approved_by_id else "",
+                    "timestamp": row.approved_at.strftime("%Y-%m-%d %H:%M")
+                    if row.approved_at
+                    else "",
+                }
+            return out
+        except Exception:
+            return _session_get_approvals(request)
+    return _session_get_approvals(request)
+
+
+def approve_region(
+    request: Any, region_key: str, fingerprint: str, actor: str = "", timestamp: str = ""
+) -> None:
+    """Record an approval for ``region_key`` against ``fingerprint``.
+
+    Persists a durable ``ExperienceRegionApproval`` (capturing ``approved_by``)
+    when a tenant school is in context; otherwise records it in the session. On a
+    DB error the session fallback runs so the approval is never silently lost.
+    """
+    region_key = str(region_key)
+    school = _tenant_school(request)
+    if school is not None:
+        try:
+            from apps.studio_os.models import ExperienceRegionApproval
+
+            user = getattr(request, "user", None)
+            approved_by = (
+                user
+                if (user is not None and getattr(user, "is_authenticated", False))
+                else None
+            )
+            ExperienceRegionApproval.objects.update_or_create(
+                school=school,
+                region_key=region_key,
+                defaults={"draft_fingerprint": fingerprint, "approved_by": approved_by},
+            )
+            return
+        except Exception:
+            pass
+    _session_approve(request, region_key, fingerprint, actor, timestamp)
+
+
 def reset_region_approval(request: Any, region_key: str) -> None:
+    region_key = str(region_key)
+    school = _tenant_school(request)
+    if school is not None:
+        try:
+            from apps.studio_os.models import ExperienceRegionApproval
+
+            ExperienceRegionApproval.objects.filter(
+                school=school, region_key=region_key
+            ).delete()
+            return
+        except Exception:
+            pass
     session = getattr(request, "session", None)
     if session is None:
         return
     data = session.get(_SESSION_KEY)
-    if isinstance(data, dict) and str(region_key) in data:
-        data.pop(str(region_key), None)
+    if isinstance(data, dict) and region_key in data:
+        data.pop(region_key, None)
         session[_SESSION_KEY] = data
         session.modified = True
 
