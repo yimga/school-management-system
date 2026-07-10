@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -24,6 +25,7 @@ from apps.academics.scheduling import (
     ScheduleEntry,
     TimeSlot,
     TimetableGenerator,
+    find_schedule_booking_conflicts,
 )
 from apps.academics.scheduling_evaluation import evaluate_schedule
 from apps.academics.services import get_active_year_and_term
@@ -161,6 +163,9 @@ def timetable_review(request, schedule_id):
     generator = TimetableGenerator(schedule.academic_year, schedule.term)
     conflicts = _dedupe_conflicts(generator.detect_conflicts(schedule))
 
+    # Metric-15 (part B): scheduled-class vs ad-hoc room booking (#10) cross-check.
+    booking_conflicts = find_schedule_booking_conflicts(schedule)
+
     return render(
         request,
         "academics/timetable_review.html",
@@ -170,9 +175,14 @@ def timetable_review(request, schedule_id):
             "entries": entries,
             "evaluation": evaluation,
             "conflicts": conflicts,
+            "booking_conflicts": booking_conflicts,
             "hard_violations_total": hard_total,
             "is_published": schedule.status == "PUBLISHED",
-            "can_publish": hard_total == 0 and schedule.status != "PUBLISHED",
+            "can_publish": (
+                hard_total == 0
+                and not booking_conflicts
+                and schedule.status != "PUBLISHED"
+            ),
         },
     )
 
@@ -200,6 +210,29 @@ def timetable_publish(request, schedule_id):
                 "and regenerate before publishing."
             )
             % {"n": hard_total},
+        )
+        return redirect("academics:timetable_review", schedule_id=schedule.id)
+
+    # Metric-15 (part B): refuse if any scheduled class collides with a confirmed
+    # ad-hoc booking of the linked room's resource (#10). Schedule stays DRAFT.
+    booking_conflicts = find_schedule_booking_conflicts(schedule)
+    if booking_conflicts:
+        first = booking_conflicts[0]
+        messages.error(
+            request,
+            _(
+                "Cannot publish: room %(room)s is already booked (%(title)s) at "
+                "%(when)s. Cancel or move the booking, then publish."
+            )
+            % {
+                "room": first["room"],
+                "title": first["booking_title"],
+                "when": timezone.localtime(first["occurrence_start"]).strftime(
+                    "%Y-%m-%d %H:%M"
+                )
+                if timezone.is_aware(first["occurrence_start"])
+                else first["occurrence_start"].strftime("%Y-%m-%d %H:%M"),
+            },
         )
         return redirect("academics:timetable_review", schedule_id=schedule.id)
 

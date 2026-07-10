@@ -31,7 +31,7 @@
         <form method="post" action="{% url 'academics:timetable_publish' schedule.id %}">
           {% csrf_token %}
           <button type="submit" class="btn btn-primary"
-            {% if not grid.has_entries %}disabled aria-disabled="true"{% endif %}>
+            {% if not grid.has_entries or not can_publish %}disabled aria-disabled="true"{% endif %}>
             {% trans "Publish timetable" %}
           </button>
         </form>
@@ -40,28 +40,46 @@
   </header>
 
   <section class="mb-3" aria-label="{% trans 'Clash panel' %}">
-    {% if hard_violations_total > 0 %}
-      <div class="rmc-banner rmc-banner--error" role="alert">
-        <strong>{% blocktrans count counter=hard_violations_total %}{{ counter }} hard clash to resolve.{% plural %}{{ counter }} hard clashes to resolve.{% endblocktrans %}</strong>
-        {% trans "Publishing is blocked until every clash is cleared. Regenerate to rebuild a conflict-free draft." %}
-      </div>
-      <ul class="list-group mt-2">
-        {% for c in conflicts %}
-          <li class="list-group-item d-flex justify-content-between align-items-start">
-            <span>
-              {% if c.type == "TEACHER_CONFLICT" %}
-                <span class="badge bg-danger me-1">{% trans "Teacher" %}</span>
-                {% blocktrans with who=c.teacher slot=c.time_slot %}{{ who }} is double-booked at {{ slot }}.{% endblocktrans %}
-              {% elif c.type == "ROOM_CONFLICT" %}
-                <span class="badge bg-danger me-1">{% trans "Room" %}</span>
-                {% blocktrans with where=c.room slot=c.time_slot %}{{ where }} is double-booked at {{ slot }}.{% endblocktrans %}
-              {% else %}
-                {{ c.type }} — {{ c.time_slot }}
-              {% endif %}
-            </span>
-          </li>
-        {% endfor %}
-      </ul>
+    {% if hard_violations_total > 0 or booking_conflicts %}
+      {% if hard_violations_total > 0 %}
+        <div class="rmc-banner rmc-banner--error" role="alert">
+          <strong>{% blocktrans count counter=hard_violations_total %}{{ counter }} hard clash to resolve.{% plural %}{{ counter }} hard clashes to resolve.{% endblocktrans %}</strong>
+          {% trans "Publishing is blocked until every clash is cleared. Regenerate to rebuild a conflict-free draft." %}
+        </div>
+        <ul class="list-group mt-2">
+          {% for c in conflicts %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <span>
+                {% if c.type == "TEACHER_CONFLICT" %}
+                  <span class="badge bg-danger me-1">{% trans "Teacher" %}</span>
+                  {% blocktrans with who=c.teacher slot=c.time_slot %}{{ who }} is double-booked at {{ slot }}.{% endblocktrans %}
+                {% elif c.type == "ROOM_CONFLICT" %}
+                  <span class="badge bg-danger me-1">{% trans "Room" %}</span>
+                  {% blocktrans with where=c.room slot=c.time_slot %}{{ where }} is double-booked at {{ slot }}.{% endblocktrans %}
+                {% else %}
+                  {{ c.type }} — {{ c.time_slot }}
+                {% endif %}
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if booking_conflicts %}
+        <div class="rmc-banner rmc-banner--error mt-2" role="alert">
+          <strong>{% blocktrans count counter=booking_conflicts|length %}{{ counter }} room-booking clash to resolve.{% plural %}{{ counter }} room-booking clashes to resolve.{% endblocktrans %}</strong>
+          {% trans "A scheduled class overlaps a confirmed room booking. Cancel or move the booking before publishing." %}
+        </div>
+        <ul class="list-group mt-2">
+          {% for bc in booking_conflicts %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <span>
+                <span class="badge bg-danger me-1">{% trans "Booking" %}</span>
+                {% blocktrans with where=bc.room booking=bc.booking_title when=bc.occurrence_start slot=bc.slot %}{{ where }} ({{ slot }}) collides with booking “{{ booking }}” at {{ when }}.{% endblocktrans %}
+              </span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
     {% else %}
       <div class="rmc-banner rmc-banner--success" role="status">
         <strong>{% trans "No clashes detected." %}</strong>

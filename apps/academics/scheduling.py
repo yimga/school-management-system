@@ -8,6 +8,9 @@ INTEGRATES WITH:
 - Existing classroom and subject infrastructure
 """
 
+from datetime import datetime, timedelta
+
+from django.conf import settings
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -46,6 +49,25 @@ class Room(models.Model):
     is_available = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Metric-15 (part B): links this academic Room to the schoolops booking system
+    # (Metric #10 BookableResource) so a scheduled class and an ad-hoc room booking
+    # cannot occupy the same room at the same wall-clock time. Nullable + optional so
+    # unlinked rooms keep their prior behaviour (no cross-check). ``db_constraint=False``
+    # keeps this a soft cross-app link (same convention as academics <-> people/schools
+    # FKs in ``models_tenant_runtime.py``) so the two apps stay independently migratable.
+    bookable_resource = models.ForeignKey(
+        "schoolops.BookableResource",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_constraint=False,
+        related_name="academics_rooms",
+        help_text=(
+            "Optional link to the schoolops BookableResource this room maps to. When "
+            "set, publishing a timetable cross-checks scheduled classes against "
+            "confirmed ad-hoc bookings of the resource."
+        ),
+    )
 
     class Meta:
         ordering = ["building", "floor", "name"]
@@ -622,3 +644,196 @@ class TimetableGenerator:
 
 # API alias used by views_v1 and api_views
 ScheduleGenerator = TimetableGenerator
+
+
+# ---------------------------------------------------------------------------
+# Metric-15 (part B): scheduling <-> booking (#10) room-vs-time cross-check.
+#
+# A ``ScheduleEntry`` books a ``Room`` in a WEEKLY ``TimeSlot`` (day-of-week +
+# start/end time) for a whole ``Term``. A ``schoolops.ResourceBooking`` books a
+# ``BookableResource`` for a CONCRETE wall-clock ``time_range``. When a Room is
+# linked to a BookableResource (``Room.bookable_resource``), the two must not
+# collide: a scheduled class and a confirmed ad-hoc booking cannot own the same
+# room at the same real time.
+#
+# ``find_schedule_booking_conflicts`` expands each linked entry's weekly slot into
+# the concrete occurrences across the term (one per ISO week: from term.start_date
+# to term.end_date, on the slot's day-of-week, at the slot's start/end time), then
+# checks each occurrence for overlap against the resource's CONFIRMED bookings.
+# This is a plain half-open interval overlap (``start < other_end and end >
+# other_start``) computed in Python — no btree_gist / range operators — so it runs
+# identically on SQLite and Postgres. On SQLite ``DateTimeRangeField`` has no
+# ``from_db_value`` and round-trips as its canonical text ``'[lower,upper)'``, so
+# ``_booking_bounds`` parses that text; on Postgres the value is a ``Range`` whose
+# ``.lower``/``.upper`` are datetimes. Expansion is O(term_weeks) per linked entry
+# (weekly stride), independent of term length.
+# ---------------------------------------------------------------------------
+
+_CONFIRMED_STATUS = "confirmed"
+
+
+def _aware(dt: datetime) -> datetime:
+    """Make a naive datetime tz-aware under ``USE_TZ`` (pass-through otherwise)."""
+    if getattr(settings, "USE_TZ", False) and timezone.is_naive(dt):
+        return timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt
+
+
+def _parse_range_text(text: str):
+    """Parse a Postgres range literal ``'[lower,upper)'`` into ``(lower, upper)``.
+
+    Used on SQLite, where ``DateTimeRangeField`` has no ``from_db_value`` and the
+    column round-trips as its canonical text form. Returns a ``(datetime|None,
+    datetime|None)`` tuple, or ``None`` for an empty/unparseable range.
+    """
+    s = (text or "").strip()
+    if not s or "empty" in s.lower():
+        return None
+    if s[0] in "[(" and s[-1] in ")]":
+        s = s[1:-1]
+    if "," not in s:
+        return None
+    lo_str, hi_str = s.split(",", 1)
+
+    def _p(raw: str):
+        raw = raw.strip().strip('"')
+        if not raw:
+            return None
+        try:
+            return datetime.fromisoformat(raw)
+        except ValueError:
+            return None
+
+    return (_p(lo_str), _p(hi_str))
+
+
+def _booking_bounds(value):
+    """Return ``(lower, upper)`` datetimes for a booking ``time_range`` value.
+
+    Backend-portable: a ``Range`` on Postgres (read ``.lower``/``.upper``), the
+    canonical text ``'[lower,upper)'`` on SQLite (parse it). ``None`` when unusable.
+    """
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return _parse_range_text(value)
+    return (getattr(value, "lower", None), getattr(value, "upper", None))
+
+
+def _confirmed_booking_intervals(resource) -> list:
+    """All confirmed booking intervals for one resource as aware ``(lower, upper,
+    title, id)`` tuples. School-scoped via the resource's own ``school_id``."""
+    from apps.schoolops.models_resource_booking import ResourceBooking
+
+    # tenant-isolation-allow: scoped-via-resource-school-id-which-is-tenant-bound
+    qs = ResourceBooking.objects.filter(
+        school_id=resource.school_id,
+        resource_id=resource.id,
+        status=_CONFIRMED_STATUS,
+    ).only("id", "title", "time_range")
+
+    intervals = []
+    for booking in qs.iterator():
+        bounds = _booking_bounds(booking.time_range)
+        if not bounds:
+            continue
+        lower, upper = bounds
+        if lower is None or upper is None:
+            continue
+        intervals.append((_aware(lower), _aware(upper), booking.title, booking.id))
+    return intervals
+
+
+def _slot_occurrences(term_start, term_end, day_of_week, start_time, end_time):
+    """Yield concrete ``(start_dt, end_dt)`` occurrences of a weekly slot across a
+    term. One per week: the first ``day_of_week`` on/after ``term_start``, then a
+    7-day stride through ``term_end`` (inclusive). ``day_of_week`` follows
+    ``TimeSlot`` / Python ``date.weekday()`` (0=Monday)."""
+    if term_start is None or term_end is None:
+        return
+    offset = (day_of_week - term_start.weekday()) % 7
+    day = term_start + timedelta(days=offset)
+    while day <= term_end:
+        yield (
+            datetime.combine(day, start_time),
+            datetime.combine(day, end_time),
+        )
+        day += timedelta(days=7)
+
+
+def find_schedule_booking_conflicts(schedule) -> List[Dict]:
+    """Room-vs-booking conflicts for a schedule (see module section above).
+
+    For every non-cancelled ``ScheduleEntry`` whose ``room.bookable_resource`` is
+    set, expand its weekly slot across the term and look for any CONFIRMED
+    ``ResourceBooking`` on that resource whose interval overlaps an occurrence.
+
+    Returns a list of conflict dicts (``room``, ``resource``, ``slot``,
+    ``occurrence_start``/``occurrence_end``, ``booking_title``, ``booking_id``,
+    ``entry_id``) — at most one per entry (the first overlapping occurrence).
+    Empty list => no room-vs-booking clash. Pure read; no DB writes.
+    """
+    term = getattr(schedule, "term", None)
+    term_start = getattr(term, "start_date", None)
+    term_end = getattr(term, "end_date", None)
+    if term_start is None or term_end is None:
+        # Cannot expand a weekly slot into concrete datetimes without term bounds.
+        return []
+
+    entries = list(
+        # tenant-isolation-allow: scoped-via-parent-schedule-which-is-school-scoped
+        ScheduleEntry.objects.filter(
+            schedule=schedule,
+            is_cancelled=False,
+            room__bookable_resource__isnull=False,
+        ).select_related("room", "room__bookable_resource", "time_slot")
+    )
+    if not entries:
+        return []
+
+    school_id = getattr(schedule.academic_year, "school_id", None)
+    intervals_cache: Dict[int, list] = {}
+    conflicts: List[Dict] = []
+
+    for entry in entries:
+        resource = entry.room.bookable_resource
+        # Isolation: only cross-check bookings owned by this schedule's school.
+        if school_id is not None and resource.school_id != school_id:
+            continue
+        if resource.id not in intervals_cache:
+            intervals_cache[resource.id] = _confirmed_booking_intervals(resource)
+        booking_intervals = intervals_cache[resource.id]
+        if not booking_intervals:
+            continue
+
+        slot = entry.time_slot
+        hit = None
+        for occ_start, occ_end in _slot_occurrences(
+            term_start, term_end, slot.day_of_week, slot.start_time, slot.end_time
+        ):
+            occ_start = _aware(occ_start)
+            occ_end = _aware(occ_end)
+            for lower, upper, title, booking_id in booking_intervals:
+                # Half-open overlap, matching booking_services.overlapping_confirmed_count.
+                if occ_start < upper and occ_end > lower:
+                    hit = (occ_start, occ_end, title, booking_id)
+                    break
+            if hit:
+                break
+
+        if hit:
+            occ_start, occ_end, title, booking_id = hit
+            conflicts.append(
+                {
+                    "room": entry.room.name,
+                    "resource": resource.name,
+                    "slot": str(slot),
+                    "occurrence_start": occ_start,
+                    "occurrence_end": occ_end,
+                    "booking_title": title,
+                    "booking_id": booking_id,
+                    "entry_id": entry.pk,
+                }
+            )
+
+    return conflicts

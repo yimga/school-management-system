@@ -179,6 +179,8 @@ jobs:
 
             apps.schoolops.tests.test_resource_booking \
 
+            apps.academics.tests.test_timetable_booking_integration \
+
             apps.schoolops.tests.test_inventory_movement \
 
             apps.schoolops.tests.test_substitute_market \
