@@ -1261,7 +1261,10 @@ def get_automation_workflow_health_summary(
 
         if school is not None:
             assignments = WorkflowPackAssignment.objects.filter(school=school)
-            pack_ids = list(assignments.values_list("pack_id", flat=True))
+            # The FK is ``workflow_pack`` (id accessor ``workflow_pack_id``);
+            # there is no ``pack_id`` field, so the old literal raised FieldError
+            # and 500'd every /studio/automation/ load.
+            pack_ids = list(assignments.values_list("workflow_pack_id", flat=True))
             pack_count = len(pack_ids)
             paused_count = int(
                 WorkflowPack.objects.filter(id__in=pack_ids, is_active=False).count()
