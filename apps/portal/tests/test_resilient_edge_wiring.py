@@ -114,6 +114,15 @@ class ResilientEdgeFormDraftTemplateTests(SimpleTestCase):
         idx_init = text.index("FormDraftSave.init")
         self.assertLess(idx_lib, idx_init)
 
+    def test_form_draft_save_init_is_idempotent(self):
+        # Pages that self-load form-draft-save.js AND inherit portal_base.html's
+        # global load execute the DOMContentLoaded auto-init twice. Without an
+        # idempotency guard the submit handler (which enqueues an offline
+        # submission) binds twice and double-POSTs on reconnect. init() must mark
+        # the form so a second init is a no-op.
+        js = self._read("static", "js", "form-draft-save.js")
+        self.assertIn("rmcDraftSaveBound", js)
+
 
 class ResilientEdgeCriticalReadTests(SimpleTestCase):
     def _read(self, *parts: str) -> str:

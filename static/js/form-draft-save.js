@@ -227,6 +227,14 @@
 
   FormDraftSave.prototype.init = function (form) {
     if (!form || !form.getAttribute('data-draft-key')) return;
+    // Idempotency guard: init must bind its listeners exactly once per form.
+    // Pages that self-load form-draft-save.js AND inherit portal_base.html's
+    // global load run the DOMContentLoaded auto-init twice; without this guard
+    // the submit handler below is bound twice and an offline submission is
+    // enqueued twice (duplicate POST on reconnect). The visual affordances are
+    // already idempotent (they check for an existing node); the listeners were not.
+    if (form.dataset.rmcDraftSaveBound === '1') return;
+    form.dataset.rmcDraftSaveBound = '1';
     var key = form.getAttribute('data-draft-key');
     var maxAgeHours = parseInt(form.getAttribute('data-draft-max-age-hours') || '', 10) || DEFAULT_MAX_AGE_HOURS;
 
