@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-09T18:56:43.844321+00:00",
+  "generated_at": "2026-07-10T00:34:16.952941+00:00",
   "class_level_allowlist": [
     "apps/platform_runtime/helpers.py",
     "apps/siteconfig/models.py"
@@ -13,10 +13,10 @@
     "django_get_model_sitesettings": 0,
     "sitesettings_get_solo": 0,
     "sitesettings_load": 0,
-    "get_effective_site_settings": 95,
+    "get_effective_site_settings": 96,
     "get_platform_site_settings_record": 32,
     "runtime_defaults_get_singleton": 14,
-    "files_with_any_hit": 130
+    "files_with_any_hit": 131
   },
   "by_app": {
     "accounts": {
@@ -70,6 +70,19 @@
       "sitesettings_load": 0,
       "sitesettings_objects": 0,
       "sitesettings_word": 2
+    },
+    "athletics": {
+      "django_get_model_sitesettings": 0,
+      "files": 1,
+      "get_effective_site_settings": 1,
+      "get_platform_site_settings_record": 0,
+      "get_solo_paren": 0,
+      "import_siteconfig_sitesettings": 0,
+      "runtime_defaults_get_singleton": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "sitesettings_objects": 0,
+      "sitesettings_word": 0
     },
     "automation": {
       "django_get_model_sitesettings": 0,
@@ -492,6 +505,19 @@
     {
       "relpath": "apps/assist_dock/power_views.py",
       "sitesettings_word": 1,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 1,
+      "get_platform_site_settings_record": 0,
+      "runtime_defaults_get_singleton": 0
+    },
+    {
+      "relpath": "apps/athletics/services/fees.py",
+      "sitesettings_word": 0,
       "get_solo_paren": 0,
       "sitesettings_objects": 0,
       "import_siteconfig_sitesettings": 0,

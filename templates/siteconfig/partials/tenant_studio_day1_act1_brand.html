@@ -12,7 +12,7 @@
 {% include "components/next_action_strip.html" %}
 
 <div data-rmc-scroll-policy="paginate"
-  class="rmc-day1-stage container-fluid py-4"
+  class="rmc-day1-stage container-fluid content-max-960 mx-auto py-4"
   data-rmc-tenant-studio-day1="1"
   data-rmc-tenant-studio-day1-active-act="1"
   data-page-archetype="day1-brand"
@@ -30,10 +30,10 @@
 
   <section class="rmc-day1-brand-reveal" data-rmc-day1-act1-reveal>
     <div class="rmc-day1-logo-frame" aria-hidden="false" data-rmc-day1-logo-frame>
-      {% if school.logo_url %}
+      {% if logo_display_url %}
         <img
           class="rmc-day1-logo-img"
-          src="{{ school.logo_url }}"
+          src="{{ logo_display_url }}"
           data-rmc-day1-logo-img
           alt="{% blocktrans with school_name=school.name|default:_('School') %}{{ school_name }} logo{% endblocktrans %}">
       {% else %}
@@ -61,10 +61,11 @@
           {% else %}{% trans "(default — pick a colour in Act 2)" %}{% endif %}
         </span>
       </p>
+      <p class="rmc-day1-logo-notice is-hidden" data-rmc-day1-logo-notice role="status" aria-live="polite"></p>
     </div>
   </section>
 
-  {% if not school.logo_url %}
+  {% if not logo_display_url %}
   <section
     class="rmc-day1-logo-upload"
     data-rmc-day1-logo-upload
@@ -75,7 +76,7 @@
       {% trans "Upload your school logo" %}
     </h2>
     <p class="rmc-day1-logo-upload-lede">
-      {% trans "PNG, JPEG, or WebP up to 1.5 MB. SVG is not accepted." %}
+      {% trans "PNG, JPEG, or WebP. If it's large we'll resize it for you automatically. SVG is not accepted." %}
     </p>
 
     <form

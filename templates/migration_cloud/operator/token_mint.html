@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--operator-token-mint" id="main">
+<main class="rmc-page rmc-page--operator-token-mint content-max-960 mx-auto" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_list' %}{% else %}{% url 'migration_cloud_super:operator_token_list' %}{% endif %}">{% trans "← Back to tokens" %}</a>
     <h1 class="rmc-h1">{% trans "Mint a scoped API token" %}</h1>

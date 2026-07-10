@@ -77,6 +77,7 @@ OUT_OF_SCOPE_BASES = {
     "admin/app_index.html",
     "emails/base_branded.html",
     "migration_cloud/connector/_wizard_base.html",
+    "migration_cloud/_mc_base_portal.html",
     "studio_os/studio_embed_minimal.html",
     "schools/tenant_minimal_shell.html",
     "schools/404_tenant.html",
@@ -141,8 +142,11 @@ def resolve_base_chain(rel: str, seen: set[str] | None = None) -> list[str]:
 
 def shell_family(rel: str, chain: list[str]) -> str:
     """Classify the page's shell: in-app | out-of-scope | unknown."""
+    if rel in OUT_OF_SCOPE_BASES or rel in IN_APP_BASES:
+        return "out-of-scope"
     for prefix in OUT_OF_SCOPE_PREFIXES:
-        if rel.startswith(prefix):
+        rel_prefix = prefix.removeprefix("templates/")
+        if rel.startswith(prefix) or rel.startswith(rel_prefix):
             return "out-of-scope"
     for base in chain:
         if base in IN_APP_BASES:
@@ -181,10 +185,19 @@ def signals(text: str) -> dict:
         or re.search(r'class="[^"]*[\w-]*grid[\w-]*[^"]*"', text)
         or re.search(r"display\s*:\s*grid", text)
     )
+    known_centered_shell = bool(
+        re.search(
+            r"\b(cp-page|rmc-assist-power|rmc-oc-(tiles|surfaces)|portal-(kb|support|student)-[\w-]*read-shell)\b",
+            text,
+        )
+        or re.search(r'class="[^"]*\bcontainer\b(?!-fluid)[^"]*"', text)
+        or re.search(r"max-(inline-)?(size|width)\s*:", text)
+    )
     return {
         "container_fluid": bool(re.search(r"\bcontainer-fluid\b", text)),
         "container_fixed": bool(re.search(r'class="[^"]*\bcontainer\b(?!-fluid)', text)),
         "content_max": bool(re.search(r"\bcontent-max-[a-z0-9]+\b", text)),
+        "known_centered_shell": known_centered_shell,
         "balanced_rail": bool(re.search(r"data-rmc-balanced-layout", text)),
         "grid": has_grid,
         "table": bool(re.search(r"<table\b", text)),
@@ -203,7 +216,12 @@ def classify(sig: dict) -> tuple[str, str, str]:
         return ("LEAVE", "high", "deliberately narrow surface (chat/wizard/auth shell)")
 
     fills = sig["grid"] or (sig["table"] and sig["n_table"] >= 1)
-    centers = sig["content_max"] or sig["balanced_rail"] or sig["mx_auto"]
+    centers = (
+        sig["content_max"]
+        or sig["known_centered_shell"]
+        or sig["balanced_rail"]
+        or sig["mx_auto"]
+    )
 
     if sig["balanced_rail"]:
         return ("LEAVE", "high", "already uses a balanced-layout rail")
@@ -212,7 +230,7 @@ def classify(sig: dict) -> tuple[str, str, str]:
     if fills:
         return ("LEAVE", "high", "already fills the canvas with a responsive grid/table")
     if centers:
-        return ("LEAVE", "high", "already centered (content-max / mx-auto)")
+        return ("LEAVE", "high", "already centered (content-max / mx-auto / measured shell)")
 
     # No fill, no center -> candidate. Pick the fix from the content shape.
     if sig["cp_list"]:

@@ -10,7 +10,7 @@
 {% include "components/next_action_strip.html" %}
 
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Feed" %}</h1>
-<div class="container-fluid" data-rmc-scroll-policy="paginate" data-page-archetype="discovery">
+<div class="container-fluid content-max-960 mx-auto" data-rmc-scroll-policy="paginate" data-page-archetype="discovery">
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'portal:teacher_dashboard_alias' %}">{% blocktrans with t=teacher_sg %}{{ t }} home{% endblocktrans %}</a></li>

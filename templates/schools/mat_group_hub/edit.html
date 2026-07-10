@@ -3,6 +3,7 @@
 {% block title %}{{ page_title }} · MAT Hub · RunMyCampus{% endblock %}
 
 {% block control_plane_body %}
+<section class="content-max-960 mx-auto py-3" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 <header class="mat-edit-header">
   <nav class="mat-edit-breadcrumb">
     <a href="{% url 'super:mat_group_hub_dashboard' %}">MAT Hub</a>
@@ -93,4 +94,5 @@
        class="mat-edit-button mat-edit-button--ghost">Cancel</a>
   </footer>
 </form>
+</section>
 {% endblock %}

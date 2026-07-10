@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div class="container-fluid py-4" data-rmc-tenant-offboarding data-rmc-scroll-policy="paginate">
+<div class="container-fluid content-max-960 mx-auto py-4" data-rmc-tenant-offboarding data-rmc-scroll-policy="paginate">
   <h1 class="h4 mb-2">{% trans "Close school account" %}</h1>
   {% if self_service.operator_only %}
   <p class="text-secondary small mb-4">{% trans "Download a full portability export, then submit an offboarding request. Platform operators review every request — deactivation and permanent deletion run only after operator approval and the grace period." %}</p>

@@ -7,6 +7,7 @@
 
 {% include "components/next_action_strip.html" %}
 
+<section class="content-max-960 mx-auto py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 <nav aria-label="{% trans 'Breadcrumb' %}" class="mb-2">
   <a href="{% url 'portal:forum_home' %}">{% trans "Forums" %}</a> / {{ category.name }}
 </nav>
@@ -23,4 +24,5 @@
   <div class="list-group-item text-muted">{% trans "No topics in this category." %}</div>
   {% endfor %}
 </div>
+</section>
 {% endblock %}
