@@ -21,6 +21,7 @@ from .models_connectors import (
     MigrationDiscoveryRun,
     MigrationImportRun,
     MigrationSourceConnection,
+    MigrationStagingBatch,
     SourceConnectionStatus,
 )
 from .services.connector_credentials import (
@@ -31,7 +32,11 @@ from .services.connector_credentials import (
     store_source_credential_reference,
     verify_source_authorization,
 )
-from .services.connector_discovery import run_source_discovery, stage_entity_preview
+from .services.connector_discovery import (
+    fetch_sample_records,
+    run_source_discovery,
+    stage_entity_preview,
+)
 from .services.connector_import import generate_idempotency_key, run_connector_import
 from .services.connector_mapping import confirm_mappings, suggest_field_mappings
 from .services.connector_rollback import rollback_posture_card
@@ -93,6 +98,31 @@ def _connection_for_request(request: HttpRequest, connection_id: UUID) -> Migrat
         id=connection_id,
         school=school,
     )
+
+
+def _friendly_import_error(code: str) -> str:
+    """Turn a ``run_connector_import`` ValueError code into an operator message."""
+    if code.startswith("import_blocked_unmapped_required:"):
+        fields = code.split(":", 1)[1]
+        return f"Map the required destination field(s) before importing: {fields}."
+    return {
+        "import_blocked_no_rows": (
+            "No source records were discovered for this connection, so there is "
+            "nothing to import. Upload an export file, or run discovery against a "
+            "source that returns data, then try again."
+        ),
+        "import_blocked_data_quality_threshold": (
+            "The data quality score is below the safe import threshold. Resolve the "
+            "quarantined rows, or tick “Import anyway” to override."
+        ),
+        "import_requires_verified_connection": (
+            "This connection is not verified yet. Re-connect and confirm "
+            "authorization before importing."
+        ),
+        "import_requires_authorization": (
+            "Authorization has not been confirmed for this connection."
+        ),
+    }.get(code, "The import could not be started. Review the connection and try again.")
 
 
 class MigrationCloudConnectorHomeView(LoginRequiredMixin, TemplateView):
@@ -212,6 +242,24 @@ class MigrationCloudConnectorDiscoverView(LoginRequiredMixin, View):
 
     def post(self, request: HttpRequest, connection_id: UUID) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
+        if connection.status != SourceConnectionStatus.VERIFIED:
+            # A DRAFT/REVOKED/FAILED connection is still linked from the home
+            # list; running discovery on it raises. Re-render with guidance
+            # instead of a 500.
+            return render(
+                request,
+                self.template_name,
+                {
+                    "page_title": "Discover data",
+                    "connection": connection,
+                    "connection_display": redact_connection_for_display(connection),
+                    "discovery_runs": connection.discovery_runs.order_by("-started_at")[:5],
+                    "discover_error": (
+                        "This connection is not verified yet. Go back and confirm "
+                        "authorization before running discovery."
+                    ),
+                },
+            )
         run = run_source_discovery(connection=connection, started_by=request.user)
         return redirect(
             "migration_cloud_connector:connector-mapping",
@@ -232,11 +280,14 @@ class MigrationCloudConnectorMappingView(LoginRequiredMixin, View):
             source_connection=connection,
         )
         entity = request.GET.get("entity", "students")
-        samples = []
+        # Derive the source columns from real discovered sample rows so the
+        # suggested mapping reflects the actual export, not a hardcoded stub.
+        sample_rows = fetch_sample_records(connection=connection, entity_type=entity)
+        source_fields = sorted({key for row in sample_rows for key in row.keys()})
         mappings = suggest_field_mappings(
             connection=connection,
             entity_type=entity,
-            source_fields=list(samples) or ["admission_number", "first_name", "last_name"],
+            source_fields=source_fields or ["admission_number", "first_name", "last_name"],
             actor=request.user,
         )
         return render(
@@ -271,14 +322,34 @@ class MigrationCloudConnectorValidateView(LoginRequiredMixin, View):
             MigrationDiscoveryRun,
             id=run_id,
             school=connection.school,
+            source_connection=connection,
         )
         entity = request.GET.get("entity", "students")
-        batch, quarantine = stage_entity_preview(
-            connection=connection,
-            discovery_run=discovery_run,
-            entity_type=entity,
-            rows=[],
+        # Idempotent: reuse the batch already staged for this run+entity so a
+        # page refresh (a GET) does not spawn a new empty batch every time.
+        batch = (
+            MigrationStagingBatch.objects.filter(
+                school=connection.school,
+                source_connection=connection,
+                discovery_run=discovery_run,
+                entity_type=entity,
+            )
+            .order_by("-created_at")
+            .first()
         )
+        if batch is None:
+            # Stage the real discovered sample rows (empty when the source has
+            # no export attached — the import step then blocks with guidance
+            # rather than importing nothing).
+            rows = fetch_sample_records(connection=connection, entity_type=entity)
+            batch, quarantine = stage_entity_preview(
+                connection=connection,
+                discovery_run=discovery_run,
+                entity_type=entity,
+                rows=rows,
+            )
+        else:
+            quarantine = list(batch.quarantine_items.all())
         return render(
             request,
             self.template_name,
@@ -300,9 +371,10 @@ class MigrationCloudConnectorQuarantineView(LoginRequiredMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         connection = _connection_for_request(self.request, kwargs["connection_id"])
         batch = get_object_or_404(
-            connection.staging_batches.model,
+            MigrationStagingBatch,
             id=kwargs["batch_id"],
             school=connection.school,
+            source_connection=connection,
         )
         ctx.update(
             {
@@ -320,9 +392,10 @@ class MigrationCloudConnectorImportView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest, connection_id: UUID, batch_id: UUID) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         batch = get_object_or_404(
-            connection.staging_batches.model,
+            MigrationStagingBatch,
             id=batch_id,
             school=connection.school,
+            source_connection=connection,
         )
         return render(
             request,
@@ -338,17 +411,40 @@ class MigrationCloudConnectorImportView(LoginRequiredMixin, View):
     def post(self, request: HttpRequest, connection_id: UUID, batch_id: UUID) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         batch = get_object_or_404(
-            connection.staging_batches.model,
+            MigrationStagingBatch,
             id=batch_id,
             school=connection.school,
+            source_connection=connection,
         )
-        import_run = run_connector_import(
-            connection=connection,
-            staging_batch=batch,
-            started_by=request.user,
-            idempotency_key=request.POST.get("idempotency_key"),
-            quality_override=request.POST.get("quality_override") == "on",
-        )
+        try:
+            import_run = run_connector_import(
+                connection=connection,
+                staging_batch=batch,
+                started_by=request.user,
+                idempotency_key=request.POST.get("idempotency_key"),
+                quality_override=request.POST.get("quality_override") == "on",
+            )
+        except ValueError as exc:
+            # Blocked-import conditions (no rows, quality below threshold,
+            # unmapped required, unverified) are expected outcomes, not 500s.
+            logger.info(
+                "connector_import blocked connection=%s reason=%s",
+                str(connection.id)[:8],
+                str(exc)[:60],
+            )
+            return render(
+                request,
+                self.template_name,
+                {
+                    "page_title": "Confirm import",
+                    "connection": connection,
+                    "staging_batch": batch,
+                    "idempotency_key": (
+                        request.POST.get("idempotency_key") or generate_idempotency_key()
+                    ),
+                    "import_error": _friendly_import_error(str(exc)),
+                },
+            )
         return redirect(
             "migration_cloud_connector:connector-review",
             connection_id=connection.id,

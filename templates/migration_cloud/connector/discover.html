@@ -6,6 +6,10 @@
 
 {% include "components/next_action_strip.html" %}
 
+{% if discover_error %}
+<div class="alert alert-warning" role="alert">{{ discover_error }}</div>
+{% endif %}
+
 <p class="text-muted">{% trans "Connection" %}: {{ connection_display.source_platform_type }} — {{ connection_display.status }}</p>
 <form method="post">{% csrf_token %}
   <button type="submit" class="btn btn-primary">{% trans "Run discovery" %}</button>

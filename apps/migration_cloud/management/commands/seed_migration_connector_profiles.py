@@ -92,29 +92,44 @@ PROFILES = [
 ]
 
 
+def seed_connector_profiles(model=None) -> tuple[int, int]:
+    """Idempotently upsert the connector registry from ``PROFILES``.
+
+    ``model`` is the ``MigrationConnectorProfile`` class to write against —
+    the live model by default, or the historical model passed by the data
+    migration (``0035_seed_connector_profiles``). Keeping this a plain
+    function is what lets the migration and the management command share one
+    source of truth so the two can never drift. Returns ``(total, created)``.
+    """
+    if model is None:
+        model = MigrationConnectorProfile
+    created = 0
+    for row in PROFILES:
+        _, was_created = model.objects.update_or_create(
+            key=row["key"],
+            defaults={
+                "display_name": row["display_name"],
+                "vendor_name": row.get("vendor_name", ""),
+                "supported_methods": row.get("supported_methods", []),
+                "supports_api": row.get("supports_api", False),
+                "supports_export": row.get("supports_export", True),
+                "supports_browser_export": row.get("supports_browser_export", False),
+                "certification_status": row.get(
+                    "certification_status", ConnectorCertificationStatus.PLANNED
+                ),
+                "supported_entities": row.get("supported_entities", []),
+                "known_limitations": row.get("known_limitations", ""),
+                "active": True,
+            },
+        )
+        if was_created:
+            created += 1
+    return len(PROFILES), created
+
+
 class Command(BaseCommand):
     help = "Seed Migration Cloud connector profiles."
 
     def handle(self, *args, **options):
-        created = 0
-        for row in PROFILES:
-            _, was_created = MigrationConnectorProfile.objects.update_or_create(
-                key=row["key"],
-                defaults={
-                    "display_name": row["display_name"],
-                    "vendor_name": row.get("vendor_name", ""),
-                    "supported_methods": row.get("supported_methods", []),
-                    "supports_api": row.get("supports_api", False),
-                    "supports_export": row.get("supports_export", True),
-                    "supports_browser_export": row.get("supports_browser_export", False),
-                    "certification_status": row.get(
-                        "certification_status", ConnectorCertificationStatus.PLANNED
-                    ),
-                    "supported_entities": row.get("supported_entities", []),
-                    "known_limitations": row.get("known_limitations", ""),
-                    "active": True,
-                },
-            )
-            if was_created:
-                created += 1
-        self.stdout.write(self.style.SUCCESS(f"Seeded {len(PROFILES)} profiles ({created} new)."))
+        total, created = seed_connector_profiles()
+        self.stdout.write(self.style.SUCCESS(f"Seeded {total} profiles ({created} new)."))

@@ -6,10 +6,20 @@
 
 {% include "components/next_action_strip.html" %}
 
+{% if import_error %}
+<div class="alert alert-warning" role="alert">{{ import_error }}</div>
+{% endif %}
+
+<p class="text-muted">{% trans "Rows discovered" %}: {{ staging_batch.raw_count }} — {% trans "valid" %}: {{ staging_batch.valid_count }}{% if staging_batch.data_quality_score is not None %} — {% trans "data quality" %}: {{ staging_batch.data_quality_score }}{% endif %}</p>
+
 <form method="post">
   {% csrf_token %}
   <input type="hidden" name="idempotency_key" value="{{ idempotency_key }}">
   <p>{% trans "Import creates a Migration Cloud bundle and purges one-time credentials." %}</p>
+  <div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" id="quality_override" name="quality_override">
+    <label class="form-check-label" for="quality_override">{% trans "Import anyway, even if the data quality score is below the safe threshold." %}</label>
+  </div>
   <button type="submit" class="btn btn-primary">{% trans "Confirm import" %}</button>
 </form>
 {% endblock %}

@@ -59,6 +59,13 @@ def run_connector_import(
     if missing:
         raise ValueError(f"import_blocked_unmapped_required:{','.join(missing)}")
 
+    # Guard the empty-batch case explicitly: without rows the bundle bridge would
+    # write a placeholder and report a "completed" import of zero records (silent
+    # no-op). This is NOT overridable by quality_override — an empty import is
+    # never what the operator wants.
+    if not (staging_batch.staged_rows or []):
+        raise ValueError("import_blocked_no_rows")
+
     if not _quality_threshold_met(staging_batch, override=quality_override):
         raise ValueError("import_blocked_data_quality_threshold")
 

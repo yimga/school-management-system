@@ -107,6 +107,14 @@ run "${PYTHON_BIN}" manage.py normalize_ui_config
 # scope — idempotent, safe to re-run.
 run "${PYTHON_BIN}" manage.py seed_marketplace_scopes
 
+# Migration Cloud connector registry: keeps the DB-side MigrationConnectorProfile
+# rows aligned with the code-level PROFILES catalog on every deploy. update_or_create
+# per profile — idempotent, safe to re-run. Without this the tenant "Connect source
+# platform" dropdown renders empty (the profile table is otherwise never seeded).
+# The 0035 data migration also seeds it, so this is the ongoing re-sync as the
+# catalog grows.
+run "${PYTHON_BIN}" manage.py seed_migration_connector_profiles
+
 # pgvector: post-5k-scale embedding store. Migrates JSON embeddings into a
 # pgvector column + tuned IVFFLAT index, then verifies the planner uses it.
 # Both commands refuse on non-Postgres vendors and are idempotent — safe to
