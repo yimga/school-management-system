@@ -22,9 +22,10 @@
    scrolling — see admin-manager-shell.css. {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div {% if not is_popup %}id="submit-row"{% endif %}
-     class="rmc-admin-submit-row"
+     class="rmc-admin-submit-row rmc-django-actions"
      data-rmc-admin-submit-contract="sticky-safe-actions"
-     data-rmc-admin-submit-row-primary="1">
+     data-rmc-admin-submit-row-primary="1"
+     data-rmc-django-actions="static">
     {% if request.GET.next %}
     <input type="hidden" name="next" value="{{ request.GET.next }}" form="{{ opts.model_name }}_form">
     {% endif %}
@@ -33,13 +34,13 @@
             <span class="rmc-admin-submit-row__hint d-none d-lg-inline text-xs text-base-500 dark:text-base-400 ms-auto" aria-hidden="true">⌘ + S</span>
             {% block submit-row %}
                 {% if show_save %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_save" class="bg-primary-600 block border border-transparent cursor-pointer font-medium px-3 py-2 rounded-default w-full lg:w-auto">
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_save" class="bg-primary-600 block border border-transparent cursor-pointer font-medium px-3 py-2 rounded-default w-full lg:w-auto rmc-django-action rmc-django-action--save">
                         {% translate 'Save' %}
                     </button>
                 {% endif %}
 
                 {% for action in actions_submit_line %}
-                    <button type="submit" form="{{ opts.model_name }}_form" {% if not action.attrs.name %}name="{{ action.action_name }}"{% endif %} class="border border-base-200 cursor-pointer flex font-medium gap-2 items-center justify-center px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900" {% include "unfold/helpers/attrs.html" with attrs=action.attrs %}>
+                    <button type="submit" form="{{ opts.model_name }}_form" {% if not action.attrs.name %}name="{{ action.action_name }}"{% endif %} class="border border-base-200 cursor-pointer flex font-medium gap-2 items-center justify-center px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 rmc-django-action rmc-django-action--ghost" {% include "unfold/helpers/attrs.html" with attrs=action.attrs %}>
                         {% if action.icon %}
                             <span class="material-symbols-outlined">
                                 {{ action.icon }}
@@ -51,7 +52,7 @@
                 {% endfor %}
 
                 {% if show_save_and_continue %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_continue" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900">
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_continue" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 rmc-django-action rmc-django-action--ghost">
                         {% if can_change %}
                             {% translate 'Save and continue editing' %}
                         {% else %}
@@ -61,7 +62,7 @@
                 {% endif %}
 
                 {% url opts|admin_urlname:'changelist' as changelist_url %}
-                <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 js-admin-back js-return-to-origin" data-fallback="{% add_preserved_filters changelist_url %}">
+                <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 js-admin-back js-return-to-origin rmc-django-action rmc-django-action--ghost" data-fallback="{% add_preserved_filters changelist_url %}">
                     {% translate 'Back' %}
                 </a>
                 <script>
@@ -90,20 +91,20 @@
                 </script>
 
                 {% if show_save_and_add_another %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_addanother" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900">
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_addanother" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 rmc-django-action rmc-django-action--ghost">
                         {% translate 'Save and add another' %}
                     </button>
                 {% endif %}
 
                 {% if show_save_as_new %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_saveasnew" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900">
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_saveasnew" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 rmc-django-action rmc-django-action--ghost">
                         {% translate 'Save as new' %}
                     </button>
                 {% endif %}
 
                 <div class="flex flex-col gap-3 mr-auto w-full lg:flex-row lg:w-auto">
                     {% if show_close or adminform.model_admin.change_form_show_cancel_button %}
-                        <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 js-return-to-origin" data-fallback="{% add_preserved_filters changelist_url %}">
+                        <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 js-return-to-origin rmc-django-action rmc-django-action--ghost" data-fallback="{% add_preserved_filters changelist_url %}">
                             {% translate 'Close' %}
                         </a>
                     {% endif %}
@@ -111,7 +112,7 @@
                     {% if show_delete_link and original %}
                         {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
 
-                        <a href="{% add_preserved_filters delete_url %}" class="bg-red-600 cursor-pointer flex items-center justify-center font-medium h-[38px] ml-auto px-3 py-2 rounded-default text-center w-full lg:w-auto dark:bg-red-500/20 dark:text-red-500">
+                        <a href="{% add_preserved_filters delete_url %}" class="bg-red-600 cursor-pointer flex items-center justify-center font-medium h-[38px] ml-auto px-3 py-2 rounded-default text-center w-full lg:w-auto dark:bg-red-500/20 dark:text-red-500 rmc-django-action rmc-django-action--danger">
                             {% translate "Delete" %} {{ opts.verbose_name }}
                         </a>
                     {% endif %}

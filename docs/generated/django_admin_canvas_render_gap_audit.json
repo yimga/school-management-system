@@ -1,0 +1,57 @@
+{
+  "generated": "2026-07-11",
+  "status": "PARTIAL_RENDER_PROOF_BLOCKED_BY_LOCAL_DB",
+  "root_cause": [
+    "Approved HTML proof was untracked in the older working checkout.",
+    "Pushed implementation had CSS and broad markers but lacked enough real Django admin structural hooks.",
+    "Static stylesheet cache key still used the previous rollout key."
+  ],
+  "structural_markers_added": {
+    "change_form": [
+      "data-rmc-django-workspace=\"change-form\"",
+      "data-rmc-django-command-band=\"change-form\"",
+      "rmc-django-form-panel",
+      "data-rmc-django-form-body=\"1\""
+    ],
+    "change_list": [
+      "data-rmc-django-workspace=\"change-list\"",
+      "data-rmc-django-command-band=\"change-list\"",
+      "data-rmc-django-table-panel=\"1\""
+    ],
+    "rail_and_actions": [
+      "data-rmc-django-side-panel=\"1\"",
+      "data-rmc-django-actions=\"static\""
+    ]
+  },
+  "cache_key": "20260711-structural-canvas",
+  "passed_checks": [
+    "python scripts/audit_django_admin_canvas_contract.py",
+    "SECRET_KEY=local-validation-only python manage.py check",
+    "SECRET_KEY=local-validation-only python manage.py makemigrations --check --dry-run",
+    "python -m compileall -q apps config scripts",
+    "SECRET_KEY=local-validation-only python scripts/verify_django_admin_canvas_templates_compile.py",
+    "git diff --check"
+  ],
+  "blocked_checks": [
+    {
+      "command": "SECRET_KEY=local-validation-only python scripts/verify_admin_changelist_render_contract.py",
+      "blockers": [
+        "no such column: siteconfig_dashboarduserpreference.role_dashboard_packs",
+        "table compliance_auditlog has no column named during_impersonation"
+      ]
+    },
+    {
+      "command": "SECRET_KEY=local-validation-only python scripts/verify_dom_performance_budgets.py",
+      "blockers": [
+        "no such column: schools_school.tenant_hash"
+      ]
+    }
+  ],
+  "deployment_verification_required": [
+    "Confirm deployed HTML loads rmc-admin-django-canvas-contract.css?v=20260711-structural-canvas.",
+    "Confirm operator change lists include data-rmc-django-workspace=\"change-list\".",
+    "Confirm operator change forms include data-rmc-django-workspace=\"change-form\".",
+    "Confirm tenant admin equivalents render the same markers with tenant scope.",
+    "Confirm screenshots show full-width command surfaces and no overlapping save row."
+  ]
+}

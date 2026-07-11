@@ -70,7 +70,7 @@ Audited the deploy-state admin shell on `origin/main` for the approved canvas-fi
   and all `change_form_template` / `change_list_template` registrations in
   `apps/**/admin.py` for shared-template inheritance.
 - Bumped the deployed CSS query string to
-  `?v=20260710-intelligent-canvas-sweep` and the service-worker cache to
+  `?v=20260711-structural-canvas` and the service-worker cache to
   `sms-v4.05.122-django-admin-intelligent-canvas-sweep-2026-07-10`.
 
 ## Validation

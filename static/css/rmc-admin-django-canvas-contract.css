@@ -859,3 +859,244 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
     overflow: visible !important;
   }
 }
+
+/* Structural canvas closure, 2026-07-11:
+   The approved browser proof is now represented by real Django template zones,
+   not only inherited Unfold containers. These rules are intentionally last. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] .rmc-django-workspace {
+  --rmc-django-struct-gap: clamp(0.8rem, 1vw, 1.15rem);
+  --rmc-django-struct-pad: clamp(0.8rem, 1.15vw, 1.25rem);
+  --rmc-django-struct-radius: var(--radius-lg, 14px);
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] .rmc-django-canvas {
+  min-height: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-django-workspace="change-form"] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: var(--rmc-django-struct-gap) !important;
+  align-items: start !important;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: var(--rmc-django-struct-radius) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated, currentColor) 86%, transparent), color-mix(in srgb, var(--surface-canvas, currentColor) 96%, transparent)) !important;
+  box-shadow: var(--elev-2, none) !important;
+  padding: var(--rmc-django-struct-pad) !important;
+  overflow: clip !important;
+}
+
+@media (min-width: 1480px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-django-workspace="change-form"] {
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem) !important;
+  }
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-command-band {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: var(--rmc-django-struct-gap, 1rem) !important;
+  align-items: center !important;
+  width: 100% !important;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: calc(var(--rmc-django-struct-radius, 14px) - 2px) !important;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--school-primary, var(--brand-info, currentColor)) 15%, transparent), transparent 64%),
+    color-mix(in srgb, var(--surface-elevated, currentColor) 78%, transparent) !important;
+  padding: var(--rmc-django-struct-pad, 1rem) !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-command-band__copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-command-band__copy strong {
+  color: var(--text-primary, inherit);
+  font-size: clamp(1.05rem, 1.35vw, 1.45rem);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-command-band__copy small,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-command-band__eyebrow {
+  color: var(--text-secondary, inherit);
+  overflow-wrap: anywhere;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-command-band__eyebrow {
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-command-band__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-command-band__meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.65rem;
+  max-width: 100%;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--surface-canvas, currentColor) 74%, transparent);
+  color: var(--text-primary, inherit);
+  padding-inline: 0.7rem;
+  font-size: 0.7rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-form-panel {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: calc(var(--rmc-django-struct-radius, 14px) - 2px) !important;
+  background: color-mix(in srgb, var(--surface-canvas, currentColor) 90%, transparent) !important;
+  overflow: hidden !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-form-body {
+  padding: var(--rmc-django-struct-pad, 1rem) !important;
+  gap: var(--rmc-django-struct-gap, 1rem) !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-side-panel {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  display: grid !important;
+  gap: var(--rmc-django-struct-gap, 1rem) !important;
+}
+
+@media (min-width: 1480px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    .rmc-django-side-panel {
+    position: sticky !important;
+    top: max(1rem, var(--rmc-shell-top-offset, 1rem)) !important;
+  }
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-actions[data-rmc-django-actions="static"] {
+  grid-column: 1 / -1 !important;
+  position: static !important;
+  z-index: auto !important;
+  transform: none !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-action {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-action--save {
+  background: linear-gradient(135deg, var(--brand-info, var(--primary, currentColor)), var(--brand-success, var(--primary, currentColor))) !important;
+  color: var(--text-on-primary, currentColor) !important;
+  border-color: transparent !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-action--ghost {
+  background: color-mix(in srgb, var(--surface-elevated, currentColor) 70%, transparent) !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-action--danger {
+  background: color-mix(in srgb, var(--brand-danger, currentColor) 18%, transparent) !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-django-table-panel {
+  min-height: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-django-workspace="change-list"] {
+  display: grid !important;
+  gap: var(--rmc-django-struct-gap, 1rem) !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  padding: var(--rmc-django-struct-pad, 1rem) !important;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: var(--rmc-django-struct-radius, 14px) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated, currentColor) 82%, transparent), color-mix(in srgb, var(--surface-canvas, currentColor) 96%, transparent)) !important;
+  box-shadow: var(--elev-2, none) !important;
+  overflow: clip !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-django-table-panel="1"] :is(#changelist, .result-list-wrapper, .changelist-form-container, .rmc-admin-changelist-main, #changelist-form, .results) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-django-table-panel="1"] .result-list-wrapper {
+  padding-inline: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-django-table-panel="1"] #changelist {
+  margin-inline: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-django-table-panel="1"] #changelist-form {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-django-table-panel="1"] :is(#result_list, .results table) {
+  width: max-content !important;
+  min-width: 100% !important;
+  border-collapse: collapse !important;
+}
+
+@media (max-width: 900px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    .rmc-django-command-band {
+    grid-template-columns: 1fr !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    .rmc-django-command-band__meta {
+    justify-content: flex-start;
+  }
+}

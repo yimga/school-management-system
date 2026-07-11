@@ -40,8 +40,28 @@
         {% include "admin/includes/admin_change_form_header.html" %}
     {% endif %}
     {% comment %} v4.02.12: manager change forms become a two-pane workspace (field grid + sticky context rail). {% endcomment %}
-    <div class="{% if not is_popup %}rmc-admin-workspace{% endif %}"{% if not is_popup %} data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-form"{% endif %}>
-    <div id="content-main" class="{% if not is_popup %}cp-form-frame{% endif %}"{% if not is_popup %} data-rmc-admin-form-contract="premium-form-frame" data-rmc-admin-form-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}"{% endif %}>
+    <div class="{% if not is_popup %}rmc-admin-workspace rmc-django-workspace rmc-django-canvas{% endif %}"{% if not is_popup %} data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-form" data-rmc-django-workspace="change-form"{% endif %}>
+    {% if not is_popup %}
+        <section class="rmc-django-command-band" data-rmc-django-command-band="change-form" aria-label="{% trans 'Admin form command surface' %}">
+            <div class="rmc-django-command-band__copy">
+                <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% trans "Tenant backend" %}{% endif %}</span>
+                <strong>
+                    {% if add %}
+                        {% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}
+                    {% else %}
+                        {% blocktrans with name=opts.verbose_name %}Change {{ name }}{% endblocktrans %}
+                    {% endif %}
+                </strong>
+                <small>{% trans "Full-canvas form workspace. Fields, audit context, and save actions stay inside one balanced surface." %}</small>
+            </div>
+            <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
+                <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "Tenant scoped" %}{% endif %}</span>
+                <span>{% trans "Live validation" %}</span>
+                <span>{% trans "Static save row" %}</span>
+            </div>
+        </section>
+    {% endif %}
+    <div id="content-main" class="{% if not is_popup %}cp-form-frame rmc-django-form-panel{% endif %}"{% if not is_popup %} data-rmc-admin-form-contract="premium-form-frame" data-rmc-admin-form-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-django-form-panel="1"{% endif %}>
         {% include "unfold/helpers/popup_header.html" %}
 
         {% block form_before %}{% endblock %}
@@ -59,7 +79,7 @@
 
             {% block form_top %}{% endblock %}
 
-            <div class="flex flex-col gap-6">
+            <div class="flex flex-col gap-6 rmc-django-form-body" data-rmc-django-form-body="1">
                 {% if is_popup %}
                     <input type="hidden" name="{{ is_popup_var }}" value="1">
                 {% endif %}

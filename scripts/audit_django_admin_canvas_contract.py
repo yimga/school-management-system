@@ -28,7 +28,7 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260710-intelligent-canvas-sweep" not in base_site:
+    if "?v=20260711-structural-canvas" not in base_site:
         errors.append("Django canvas contract link must be cache-busted for deployment visibility")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
@@ -53,15 +53,29 @@ def main() -> int:
         errors.append("admin/base.html missing canvas-first content marker")
     if 'data-rmc-admin-form-contract="premium-form-frame"' not in change_form:
         errors.append("admin/change_form.html missing premium form frame marker")
+    if 'data-rmc-django-workspace="change-form"' not in change_form:
+        errors.append("admin/change_form.html missing structural change-form workspace marker")
+    if 'data-rmc-django-command-band="change-form"' not in change_form:
+        errors.append("admin/change_form.html missing structural change-form command band")
+    if 'rmc-django-form-panel' not in change_form:
+        errors.append("admin/change_form.html missing structural form panel class")
+    if 'data-rmc-django-form-body="1"' not in change_form:
+        errors.append("admin/change_form.html missing structural form body marker")
     if 'data-rmc-admin-form-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}"' not in change_form:
         errors.append("admin/change_form.html missing operator/tenant form scope marker")
     if 'data-rmc-admin-surface="smart-form"' not in change_form:
         errors.append("admin/change_form.html missing smart form surface marker")
     if 'data-rmc-admin-table-contract="native-table-scroll"' not in change_list:
         errors.append("admin/change_list.html missing native table scroll marker")
+    if 'data-rmc-django-workspace="change-list"' not in change_list:
+        errors.append("admin/change_list.html missing structural change-list workspace marker")
+    if 'data-rmc-django-command-band="change-list"' not in change_list:
+        errors.append("admin/change_list.html missing structural change-list command band")
+    if 'data-rmc-django-table-panel="1"' not in change_list:
+        errors.append("admin/change_list.html missing structural table panel marker")
     if 'data-rmc-admin-surface="smart-changelist"' not in change_list:
         errors.append("admin/change_list.html missing smart changelist surface marker")
-    if 'class="cp-changelist-live"' not in change_list:
+    if 'cp-changelist-live' not in change_list:
         errors.append("admin/change_list.html must apply cp-changelist-live to tenant and operator")
 
     required_css_tokens = (
@@ -79,6 +93,16 @@ def main() -> int:
         "rmc-tenant-admin-page-body",
         "container-type: inline-size",
         "Final platform-wide/tenant-wide Django sweep",
+        "Structural canvas closure, 2026-07-11",
+        "rmc-django-workspace",
+        "rmc-django-command-band",
+        "rmc-django-form-panel",
+        "rmc-django-form-body",
+        "rmc-django-side-panel",
+        "rmc-django-actions",
+        "rmc-django-table-panel",
+        "data-rmc-django-workspace=\"change-form\"",
+        "data-rmc-django-workspace=\"change-list\"",
         "reportcard-builder-preview",
         "theme-preview-section",
         "rmc-admin-changeform-pagehead",
