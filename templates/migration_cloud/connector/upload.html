@@ -1,0 +1,51 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% comment %}
+Tenant connectionless upload surface (views_tenant_upload.TenantMigrationUploadView).
+Drop a file — no connection required — and the bundle pipeline auto-detects format
++ entity. All hrefs are pre-resolved context vars ({{ upload_url }}, {{ cancel_url }})
+so this template carries no cross-host {% url %} reverse (which would 500 on the
+tenant host, since the connector namespace is nested under super/portal too).
+{% endcomment %}
+{% block connector_body %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+<section class="rmc-card mb-4" aria-labelledby="mc-upload-heading">
+  <h2 id="mc-upload-heading" class="h5 mb-2">{% trans "Upload your files — no connection needed" %}</h2>
+  <p class="text-muted mb-3">
+    {% blocktrans %}Drop an export from your current system — Excel, CSV, TSV, JSON, PDF, or a ZIP of several files. You don't need to connect or authorise anything. We automatically detect each file's format and work out what it contains — students, staff, guardians, attendance, grades, fees and more — then let you review before anything is written to your school.{% endblocktrans %}
+  </p>
+
+  <form method="post" enctype="multipart/form-data" action="{{ upload_url }}">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="mc-artifacts" class="form-label fw-semibold">{% trans "Choose files" %}</label>
+      <input type="file" id="mc-artifacts" name="artifacts" multiple
+             accept="{{ accepted_extensions }}" class="form-control" required>
+      <div class="form-text">{% trans "Select several at once. We re-check each file's real format, so a mis-named file still works." %}</div>
+      <div class="form-text">{% trans "Accepted:" %} {{ accepted_extensions }}</div>
+    </div>
+
+    <div class="mb-3">
+      <label for="mc-label" class="form-label">{% trans "Label (optional)" %}</label>
+      <input type="text" id="mc-label" name="label" class="form-control" maxlength="200"
+             placeholder="{% trans 'e.g. September intake from our old system' %}">
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <button type="submit" class="btn btn-primary">{% trans "Upload & auto-detect" %}</button>
+      <a class="btn btn-outline-secondary" href="{{ cancel_url }}">{% trans "Cancel" %}</a>
+    </div>
+  </form>
+</section>
+
+<section class="rmc-card" aria-labelledby="mc-detect-heading">
+  <h3 id="mc-detect-heading" class="h6 text-muted">{% trans "What we detect automatically" %}</h3>
+  <ul class="small text-muted mb-0">
+    <li>{% trans "Format — Excel (.xlsx/.xls), CSV/TSV, JSON, PDF tables, and ZIP archives." %}</li>
+    <li>{% trans "Record type — each file is classified (students, staff, guardians, enrollment, attendance, grades, finance, and more)." %}</li>
+    <li>{% trans "Source system — we recognise common platforms (PowerSchool, Blackbaud, Veracross, OneRoster and others) from the column headers." %}</li>
+    <li>{% trans "You confirm every detection before anything is imported." %}</li>
+  </ul>
+</section>
+{% endblock %}

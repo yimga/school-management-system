@@ -1,0 +1,120 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% comment %}
+Tenant review + import surface (views_tenant_upload.TenantMigrationReviewView /
+TenantMigrationApplyView). Shows the auto-detected format + entity + confidence
+per file, lets the tenant override the record type, then preview (dry-run) and
+import into their own school. All hrefs are pre-resolved context vars — no
+cross-host {% url %} reverse. (Distinct from connector/review.html, which is the
+connection-wizard's post-import status/revoke step.)
+{% endcomment %}
+{% block connector_body %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% if apply_result %}
+<section class="rmc-card mb-4" aria-labelledby="mc-apply-heading">
+  <h2 id="mc-apply-heading" class="h5">
+    {% if apply_result.dry_run %}{% trans "Import preview — nothing written yet" %}{% else %}{% trans "Import complete" %}{% endif %}
+  </h2>
+  <p class="mb-2">
+    <span class="rmc-badge">{% trans "Created" %}: {{ apply_result.created }}</span>
+    <span class="rmc-badge">{% trans "Updated" %}: {{ apply_result.updated }}</span>
+    <span class="rmc-badge">{% trans "Held for review" %}: {{ apply_result.quarantined }}</span>
+  </p>
+  {% if apply_result.per_artifact %}
+  <div class="table-responsive">
+    <table class="table table-sm align-middle rmc-data-table">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Record type" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col" class="text-end">{% trans "Created" %}</th>
+          <th scope="col" class="text-end">{% trans "Updated" %}</th>
+          <th scope="col" class="text-end">{% trans "Held" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in apply_result.per_artifact %}
+        <tr>
+          <td>{{ a.domain|default:"—" }}</td>
+          <td>{{ a.status }}</td>
+          <td class="text-end">{{ a.created }}</td>
+          <td class="text-end">{{ a.updated }}</td>
+          <td class="text-end">{{ a.quarantined }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="rmc-card mb-4" aria-labelledby="mc-review-heading">
+  <h2 id="mc-review-heading" class="h5">{% trans "We detected these files" %}</h2>
+  <p class="text-muted small">{% trans "Auto-detected from your upload. If a record type is wrong, correct it below and we'll re-detect." %}</p>
+
+  {% if artifact_rows %}
+  <form method="post" action="{{ review_url }}">
+    {% csrf_token %}
+    <div class="table-responsive">
+      <table class="table align-middle rmc-data-table">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "File" %}</th>
+            <th scope="col">{% trans "Format" %}</th>
+            <th scope="col" class="text-end">{% trans "Rows" %}</th>
+            <th scope="col">{% trans "Detected record type" %}</th>
+            <th scope="col">{% trans "Correct it" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in artifact_rows %}
+          <tr>
+            <td>
+              {{ row.filename }}
+              {% if row.quarantined %}<span class="rmc-badge">{% trans "needs review" %}</span>{% endif %}
+            </td>
+            <td>{{ row.format }}</td>
+            <td class="text-end">{{ row.rows|default:"—" }}</td>
+            <td>
+              {% if row.detected_domain %}
+                <strong>{{ row.detected_domain }}</strong>{% if row.confidence_pct is not None %} <span class="text-muted small">({{ row.confidence_pct }}%)</span>{% endif %}
+              {% else %}
+                <span class="text-muted">{% trans "auto-detecting…" %}</span>
+              {% endif %}
+              {% if row.source %}<div class="text-muted small">{% trans "source" %}: {{ row.source }}</div>{% endif %}
+            </td>
+            <td>
+              <label class="visually-hidden" for="dom-{{ row.id }}">{% trans "Record type for this file" %}</label>
+              <select id="dom-{{ row.id }}" name="assigned_domain_{{ row.id }}" class="form-select form-select-sm">
+                <option value="auto"{% if not row.assigned %} selected{% endif %}>{% trans "Auto-detect" %}</option>
+                {% for choice in domain_choices %}
+                <option value="{{ choice.slug }}"{% if row.assigned == choice.slug %} selected{% endif %}>{{ choice.label }}</option>
+                {% endfor %}
+              </select>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Save corrections & re-detect" %}</button>
+  </form>
+  {% else %}
+  <p class="text-muted mb-0">{% trans "No files detected yet. If you just uploaded, give it a moment and refresh." %}</p>
+  {% endif %}
+</section>
+
+<section class="rmc-card" aria-labelledby="mc-import-heading">
+  <h2 id="mc-import-heading" class="h5">{% trans "Import into my school" %}</h2>
+  <p class="text-muted small">{% trans "Preview first — nothing is written. Then confirm to import. Records that don't pass validation are held for review, never dropped." %}</p>
+  <form method="post" action="{{ apply_url }}" class="d-flex gap-2 flex-wrap">
+    {% csrf_token %}
+    <button type="submit" name="confirm" value="" class="btn btn-outline-primary">{% trans "Preview import (dry-run)" %}</button>
+    <button type="submit" name="confirm" value="1" class="btn btn-primary">{% trans "Import into my school" %}</button>
+    <a class="btn btn-link" href="{{ upload_url }}">{% trans "Upload more files" %}</a>
+    <a class="btn btn-link" href="{{ home_url }}">{% trans "Back to Migration Cloud" %}</a>
+  </form>
+</section>
+{% endblock %}

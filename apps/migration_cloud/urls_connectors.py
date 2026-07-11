@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from django.urls import path
 
-from . import views_connectors
+from . import views_connectors, views_tenant_upload
 
 app_name = "migration_cloud_connector"
 
@@ -18,6 +18,25 @@ urlpatterns = [
         "connect/",
         views_connectors.MigrationCloudConnectorConnectView.as_view(),
         name="connector-connect",
+    ),
+    # Connectionless file-first path: drop an Excel/CSV/PDF/ZIP, the bundle
+    # pipeline auto-detects format + entity, tenant reviews, then imports.
+    # No source connection required. Tenant-shelled (portal_base) so it renders
+    # on the tenant host; URLs pre-resolved in the view (no cross-host {% url %}).
+    path(
+        "upload/",
+        views_tenant_upload.TenantMigrationUploadView.as_view(),
+        name="upload",
+    ),
+    path(
+        "bundle/<int:bundle_id>/review/",
+        views_tenant_upload.TenantMigrationReviewView.as_view(),
+        name="bundle-review",
+    ),
+    path(
+        "bundle/<int:bundle_id>/apply/",
+        views_tenant_upload.TenantMigrationApplyView.as_view(),
+        name="bundle-apply",
     ),
     path(
         "<uuid:connection_id>/discover/",

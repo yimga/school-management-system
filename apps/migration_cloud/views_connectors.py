@@ -73,6 +73,14 @@ def _resolve_connector_upload_url(request: HttpRequest) -> str:
     """
     resolver_match = getattr(request, "resolver_match", None)
     namespaces = list(getattr(resolver_match, "namespaces", []) or [])
+    # On the tenant host (neither operator mount present) prefer the connectionless
+    # in-place uploader — drop a file, auto-detect entity + format, no connection.
+    # Operator / portal mounts keep their full bundle-intake wizard (bundle_new).
+    if "migration_cloud_super" not in namespaces and "migration_cloud_portal" not in namespaces:
+        try:
+            return _connector_reverse(request, "upload")
+        except NoReverseMatch:
+            pass
     candidates: list[str] = []
     if "migration_cloud_super" in namespaces:
         candidates.append("migration_cloud_super:bundle_new")

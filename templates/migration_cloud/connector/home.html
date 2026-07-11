@@ -6,9 +6,10 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div data-rmc-scroll-policy="paginate" class="d-flex gap-2 mb-4">
-  <a class="btn btn-primary" href="{% url connector_ns|add:':connector-connect' %}">{% trans "Connect source platform" %}</a>
-  {% if upload_url %}<a class="btn btn-outline-secondary" href="{{ upload_url }}">{% trans "Upload export file" %}</a>{% endif %}
+<p class="text-muted mb-3">{% blocktrans %}Bring your data in the way that suits you. Upload an export file — Excel, CSV, PDF, or a ZIP of several — and we auto-detect what's inside (students, staff, guardians, grades and more) with no connection needed. Or connect a live system to sync.{% endblocktrans %}</p>
+<div data-rmc-scroll-policy="paginate" class="d-flex gap-2 mb-4 flex-wrap">
+  {% if upload_url %}<a class="btn btn-primary" href="{{ upload_url }}">{% trans "Upload a file — no connection needed" %}</a>{% endif %}
+  <a class="btn btn-outline-secondary" href="{% url connector_ns|add:':connector-connect' %}">{% trans "Connect a live system" %}</a>
 </div>
 <section class="rmc-card mb-4" aria-labelledby="connections-heading">
   <h2 id="connections-heading" class="h5">{% trans "Source connections" %}</h2>
