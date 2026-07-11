@@ -309,6 +309,12 @@ def portal_toggle_required(flag_name: str, message: str):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped(request, *args, **kwargs):
+            # Break-glass: a platform superuser always reaches the surface, even a
+            # tenant-disabled portal (support / inspection). Feature toggles gate
+            # tenant users, not god-mode — this keeps is_superuser a true master key.
+            user = getattr(request, "user", None)
+            if user is not None and getattr(user, "is_superuser", False):
+                return view_func(request, *args, **kwargs)
             # config-resolver-allow: dynamic attribute key (flag_name varies per decorator instance)
             site = get_effective_site_settings(request=request)
             # Only an explicit False should disable a portal; tolerate missing/None in test doubles.

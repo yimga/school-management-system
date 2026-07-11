@@ -22,7 +22,9 @@ class IsAdminUser(permissions.BasePermission):
         if not user or not getattr(user, "is_authenticated", False):
             return False
         return bool(
-            user.is_staff or (getattr(user, "role", None) or "").upper() == "ADMIN"
+            user.is_staff
+            or getattr(user, "is_superuser", False)
+            or (getattr(user, "role", None) or "").upper() == "ADMIN"
         )
 
 
@@ -118,6 +120,9 @@ class RoleBasedPermission(permissions.BasePermission):
         user = _user(request)
         if not user or not getattr(user, "is_authenticated", False):
             return False
+        # Platform superuser is god-mode: every action on every resource.
+        if getattr(user, "is_superuser", False):
+            return True
         role = (getattr(user, "role", "") or "").strip().upper()
         allowed = self.ROLE_PERMISSIONS.get(role, [])
         if not allowed:
