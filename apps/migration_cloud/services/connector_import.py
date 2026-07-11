@@ -6,7 +6,7 @@ import logging
 import secrets
 from decimal import Decimal
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from apps.migration_cloud.metrics import record_connector_import
@@ -39,7 +39,6 @@ def _quality_threshold_met(batch: MigrationStagingBatch, *, override: bool) -> b
     return score >= MIN_QUALITY_SCORE
 
 
-@transaction.atomic
 def run_connector_import(
     *,
     connection: MigrationSourceConnection,
@@ -50,6 +49,13 @@ def run_connector_import(
     dry_run: bool = False,
     dry_run_apply: bool = False,
 ) -> MigrationImportRun:
+    # NB: this function is deliberately NOT wrapped in a single
+    # ``@transaction.atomic``. The FAILED-status write + audit trail in the
+    # except block MUST survive so a failed import is visible in the DB — under
+    # a function-level atomic the trailing ``raise`` unwound the transaction and
+    # discarded the FAILED save, the import_started audit, AND the run row
+    # itself, leaving no record of the failure. The row-landing work gets its
+    # own nested atomic instead; the bookkeeping writes commit independently.
     if connection.status != SourceConnectionStatus.VERIFIED:
         raise ValueError("import_requires_verified_connection")
     if not connection.authorization_confirmed:
@@ -70,23 +76,20 @@ def run_connector_import(
         raise ValueError("import_blocked_data_quality_threshold")
 
     key = idempotency_key or f"connector:{connection.id}:{staging_batch.id}"
-    existing = MigrationImportRun.objects.filter(
-        school=connection.school,
-        idempotency_key=key,
-    ).first()
-    if existing and existing.status in (ImportRunStatus.COMPLETED, ImportRunStatus.RUNNING):
-        return existing
-
-    import_run = MigrationImportRun.objects.create(
-        school=connection.school,
-        source_connection=connection,
+    import_run = _resolve_or_create_run(
+        connection=connection,
         staging_batch=staging_batch,
-        status=ImportRunStatus.PREVIEW if dry_run else ImportRunStatus.READY,
-        idempotency_key=key,
         started_by=started_by,
+        key=key,
+        dry_run=dry_run,
     )
+    # A terminal/in-flight run for this key short-circuits (real idempotency).
+    if import_run.status in (ImportRunStatus.COMPLETED, ImportRunStatus.RUNNING):
+        return import_run
 
     if dry_run:
+        import_run.status = ImportRunStatus.PREVIEW
+        import_run.save(update_fields=["status"])
         record_connector_audit(
             school=connection.school,
             actor=started_by,
@@ -109,56 +112,52 @@ def run_connector_import(
     )
 
     try:
-        rows = list(staging_batch.staged_rows or [])
-        csv_path = write_staging_csv(rows=rows, entity_type=staging_batch.entity_type)
-        bundle, _registered = ingest_staged_csv_to_bundle(
-            csv_path=csv_path,
-            school=connection.school,
-            idempotency_key=f"bundle-{key}",
-            source_hint=connection.source_platform_type,
-            label=f"Connector import {staging_batch.entity_type}",
-            triggered_by_id=getattr(started_by, "pk", None),
-        )
-        import_run.bundle = bundle
-        connection.linked_bundle = bundle
-        connection.save(update_fields=["linked_bundle", "updated_at"])
+        # Only the tenant-row landing + completion bookkeeping is atomic, so a
+        # mid-landing failure rolls back partial writes WITHOUT discarding the
+        # FAILED record written in the except (which sits outside this block).
+        with transaction.atomic():
+            rows = list(staging_batch.staged_rows or [])
+            csv_path = write_staging_csv(rows=rows, entity_type=staging_batch.entity_type)
+            bundle, _registered = ingest_staged_csv_to_bundle(
+                csv_path=csv_path,
+                school=connection.school,
+                idempotency_key=f"bundle-{key}",
+                source_hint=connection.source_platform_type,
+                label=f"Connector import {staging_batch.entity_type}",
+                triggered_by_id=getattr(started_by, "pk", None),
+            )
+            import_run.bundle = bundle
+            connection.linked_bundle = bundle
+            connection.save(update_fields=["linked_bundle", "updated_at"])
 
-        pipeline = run_bundle_pipeline(
-            bundle_id=bundle.pk,
-            source_hint=connection.source_platform_type,
-            use_accelerator=True,
-            dry_run_apply=dry_run_apply,
-        )
-        apply_block = pipeline.get("apply") or {}
-        import_run.created_counts = {
-            "created": apply_block.get("total_created", 0),
-            "artifacts": pipeline.get("advance", {}).get("artifacts_profiled", 0),
-        }
-        import_run.updated_counts = {"updated": apply_block.get("total_updated", 0)}
-        import_run.skipped_counts = {"quarantined": apply_block.get("total_quarantined", 0)}
-        import_run.rollback_snapshot_reference = f"bundle:{bundle.pk}:{pipeline.get('bundle_status')}"
-        import_run.status = ImportRunStatus.COMPLETED
-        import_run.completed_at = timezone.now()
-        import_run.audit_summary = {
-            "bundle_id": bundle.pk,
-            "bundle_status": pipeline.get("bundle_status"),
-            "dry_run_apply": dry_run_apply,
-            "pipeline": pipeline,
-        }
-        import_run.save()
+            pipeline = run_bundle_pipeline(
+                bundle_id=bundle.pk,
+                source_hint=connection.source_platform_type,
+                use_accelerator=True,
+                dry_run_apply=dry_run_apply,
+            )
+            apply_block = pipeline.get("apply") or {}
+            import_run.created_counts = {
+                "created": apply_block.get("total_created", 0),
+                "artifacts": pipeline.get("advance", {}).get("artifacts_profiled", 0),
+            }
+            import_run.updated_counts = {"updated": apply_block.get("total_updated", 0)}
+            import_run.skipped_counts = {"quarantined": apply_block.get("total_quarantined", 0)}
+            import_run.rollback_snapshot_reference = f"bundle:{bundle.pk}:{pipeline.get('bundle_status')}"
+            import_run.status = ImportRunStatus.COMPLETED
+            import_run.completed_at = timezone.now()
+            import_run.audit_summary = {
+                "bundle_id": bundle.pk,
+                "bundle_status": pipeline.get("bundle_status"),
+                "dry_run_apply": dry_run_apply,
+                "pipeline": pipeline,
+            }
+            import_run.save()
 
-        purge_source_credentials(connection)
-        record_connector_import(connection.school_id, status="completed")
-
-        record_connector_audit(
-            school=connection.school,
-            actor=started_by,
-            event_type="import_completed",
-            source_connection=connection,
-            import_run=import_run,
-            metadata={"bundle_id": bundle.pk, "bundle_status": pipeline.get("bundle_status")},
-        )
+            purge_source_credentials(connection)
     except Exception as exc:  # noqa: BLE001
+        # Outside the atomic block above → these writes COMMIT and persist so the
+        # failure is not invisible.
         import_run.status = ImportRunStatus.FAILED
         import_run.error_counts = {"error": 1}
         import_run.completed_at = timezone.now()
@@ -174,7 +173,62 @@ def run_connector_import(
         )
         raise
 
+    record_connector_import(connection.school_id, status="completed")
+    record_connector_audit(
+        school=connection.school,
+        actor=started_by,
+        event_type="import_completed",
+        source_connection=connection,
+        import_run=import_run,
+        metadata={
+            "bundle_id": import_run.bundle_id,
+            "bundle_status": (import_run.audit_summary or {}).get("bundle_status"),
+        },
+    )
     return import_run
+
+
+def _resolve_or_create_run(*, connection, staging_batch, started_by, key, dry_run):
+    """Reuse the existing run for this idempotency key, or create one.
+
+    ``MigrationImportRun.idempotency_key`` is GLOBALLY unique. The old code did a
+    bare ``create(idempotency_key=key)`` after a filter that only short-circuited
+    on COMPLETED/RUNNING — so a prior PREVIEW (dry-run) or FAILED run with the
+    same key fell through to the create and raised an uncaught ``IntegrityError``
+    (a 500). Reuse any existing run (promoting a re-run), and treat a create race
+    as a reuse.
+    """
+    existing = MigrationImportRun.objects.filter(
+        school=connection.school,
+        idempotency_key=key,
+    ).first()
+    if existing is not None:
+        if existing.status in (ImportRunStatus.COMPLETED, ImportRunStatus.RUNNING):
+            return existing
+        # Promote a prior PREVIEW/FAILED/READY run back to a fresh start.
+        existing.status = ImportRunStatus.PREVIEW if dry_run else ImportRunStatus.READY
+        existing.staging_batch = staging_batch
+        existing.source_connection = connection
+        existing.started_by = started_by
+        existing.save(update_fields=["status", "staging_batch", "source_connection", "started_by"])
+        return existing
+    try:
+        return MigrationImportRun.objects.create(
+            school=connection.school,
+            source_connection=connection,
+            staging_batch=staging_batch,
+            status=ImportRunStatus.PREVIEW if dry_run else ImportRunStatus.READY,
+            idempotency_key=key,
+            started_by=started_by,
+        )
+    except IntegrityError:
+        # Concurrent create for the same key — fetch and reuse the winner.
+        run = MigrationImportRun.objects.filter(
+            school=connection.school, idempotency_key=key
+        ).first()
+        if run is None:
+            raise
+        return run
 
 
 def generate_idempotency_key() -> str:

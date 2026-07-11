@@ -66,6 +66,7 @@ from . import guardian_lander  # noqa: F401
 from . import staff_lander  # noqa: F401
 from . import student_lander  # noqa: F401
 # Phase U5 expansion — domain-specific landers.
+from . import academics_lander  # noqa: F401 — courses/subjects → apps.academics.Subject
 from . import attendance_lander  # noqa: F401
 from . import behavior_lander  # noqa: F401
 from . import enrollment_lander  # noqa: F401

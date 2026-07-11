@@ -179,10 +179,19 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
         Invoice = None
     if Invoice is not None:
         def _finance():
-            qs = Invoice.objects.filter(student__school=school) if hasattr(Invoice, "student") else Invoice.objects.all()  # tenant-isolation-allow: branch above scopes via student__school=school
+            _inv_fields = {f.name for f in Invoice._meta.get_fields()}
+            if "school" in _inv_fields:
+                qs = Invoice.objects.filter(school=school)  # tenant-isolation-allow: scoped by the invoice's own school FK (matches finance_lander)
+            elif "student" in _inv_fields:
+                qs = Invoice.objects.filter(student__school=school)  # tenant-isolation-allow: scoped via student__school=school
+            else:
+                qs = Invoice.objects.all()  # tenant-isolation-allow: no school field; schema-context isolates
             from django.db.models import Sum, Count
 
-            agg = qs.aggregate(amount_sum=Sum("amount"), c=Count("pk"))
+            # Field is ``total_amount`` (NOT ``amount``); Sum("amount") raised
+            # FieldError that the caller's broad except swallowed, so the control
+            # total was silently never computed.
+            agg = qs.aggregate(amount_sum=Sum("total_amount"), c=Count("pk"))
             totals["finance.invoice_total_amount"] = str(agg.get("amount_sum") or Decimal("0"))
             totals["finance.invoice_count"] = str(agg.get("c") or 0)
         try:
@@ -212,7 +221,12 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
         StudentGuardian = None
     if StudentGuardian is not None:
         def _guardians():
-            totals["guardians.count"] = str(StudentGuardian.objects.all().count())
+            _g_fields = {f.name for f in StudentGuardian._meta.get_fields()}
+            if "student" in _g_fields:
+                qs = StudentGuardian.objects.filter(student__school=school)  # tenant-isolation-allow: scoped via student__school=school
+            else:
+                qs = StudentGuardian.objects.all()  # tenant-isolation-allow: no student link; schema-context isolates
+            totals["guardians.count"] = str(qs.count())
         try:
             _run_under_schema(_guardians)
         except Exception:  # noqa: BLE001

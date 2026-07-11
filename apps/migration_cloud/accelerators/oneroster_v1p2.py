@@ -39,7 +39,13 @@ logger = logging.getLogger(__name__)
 # OneRoster file → (canonical domain, {source_column: canonical_field}).
 ONEROSTER_FILE_MAP: dict[str, tuple[str, dict[str, str]]] = {
     "users.csv": (
-        "staff",  # filtered to teachers + admins; students fall through to students.csv
+        # Combined OneRoster user file. It carries a ``role`` column, so the
+        # staff lander role-GATES each row (student/parent/guardian rows are
+        # skipped, never provisioned as teachers). Bundles that also ship
+        # students.csv get their students from there; a pure-1.2 export that
+        # only ships users.csv needs the row-level role fan-out (follow-up) to
+        # import its students — this mapping never mis-lands them as staff.
+        "staff",
         {
             "sourcedId": "staff_external_id",
             "givenName": "first_name",
@@ -113,13 +119,11 @@ ONEROSTER_FILE_MAP: dict[str, tuple[str, dict[str, str]]] = {
             "endDate": "exit_date",
         },
     ),
-    "academicSessions.csv": (
-        "academics",
-        {
-            "sourcedId": "subject_code",  # session id reused as session reference
-            "title": "subject_name",
-        },
-    ),
+    # academicSessions.csv (terms/years) is intentionally NOT pre-classified to
+    # "academics": those rows are calendar sessions, NOT subjects, and mapping
+    # their titles into the Subject catalog created bogus subjects. It falls
+    # through to the universal pipeline (custom_fields) instead of polluting
+    # apps.academics.Subject.
 }
 
 

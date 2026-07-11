@@ -308,7 +308,7 @@ def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:
 # the next wave sees its parent rows already in the tenant schema.
 _DEPENDENCY_WAVES: tuple[frozenset[str], ...] = (
     frozenset({"structure"}),                                       # wave 0: academic scaffold (SPLIT provisioning) — MUST precede students/enrollment/grades
-    frozenset({"students", "staff", "sections"}),                   # wave 1: independent roots
+    frozenset({"students", "staff", "sections", "academics"}),      # wave 1: independent roots (academics = Subject catalog, precedes grades)
     frozenset({"enrollment", "guardians", "schedule"}),             # wave 2: depend on wave 1
     frozenset({"attendance", "grades", "behavior", "finance", "transcripts",  # wave 3: depend on wave 2
                "health", "library", "transport", "hostel", "cafeteria"}),

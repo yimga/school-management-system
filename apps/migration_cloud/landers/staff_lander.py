@@ -1,15 +1,50 @@
 """Staff lander — persists canonical staff rows into ``apps.people.TeacherProfile``.
 
-Best-effort: only the universally-present fields are written. Schools
-with custom HR fields land those via the ``DynamicFieldLander`` fallback
-(custom_fields domain) per the no-data-loss invariant.
+Completeness fix (2026-07-11): the old lander wrote ``first_name``/``last_name``/
+``email``/``role`` straight onto ``TeacherProfile`` (those live on ``User``, not
+the profile), keyed the upsert on ``staff_external_id`` (not a real field →
+``FieldError``), and NEVER set the REQUIRED ``TeacherProfile.user`` OneToOne
+(→ ``IntegrityError``). Every staff/teacher row therefore quarantined and the
+imported count was pinned to 0 — the same class already fixed for guardians.
+
+The lander now RESOLVES-or-PROVISIONS the teacher's ``User`` (role TEACHER,
+unusable password — activation rides the normal invite/reset flow, no credential
+is minted) exactly as ``guardian_lander`` does, then creates the
+``TeacherProfile(user=…, school=…, staff_id=external_id)`` keyed on the OneToOne
+user. Real profile fields (``staff_id``/``position_title``/``phone``/
+``department`` FK) are written; source-only columns (``hire_date``, the raw
+``role`` string) land on the DynamicFieldValue engine so nothing is lost.
+
+Canonical row shape::
+
+    {
+        "staff_external_id": "EMP-021",
+        "first_name": "Jane", "last_name": "Doe",
+        "email": "jane@example.com",
+        "staff_user_ref": "jane.doe",     # internal transfers only
+        "role": "Teacher", "department": "Science",
+        "phone": "+233...", "hire_date": "2020-09-01",
+    }
 """
 
 from __future__ import annotations
 
 from typing import Any, Iterator
 
+from ._helpers import (
+    detect_and_register_assets,
+    get_or_create_named,
+    mint_scoped_code,
+    model_field_names,
+    persist_dfv_extras,
+    record_id_mapping,
+    resolve_or_provision_user,
+    upsert_with_conflict_detection,
+)
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+
+# OneRoster/SIS role tokens that must NEVER be provisioned as teachers.
+_NON_STAFF_ROLES = {"student", "guardian", "parent", "relative"}
 
 
 class StaffLander(Lander):
@@ -22,47 +57,93 @@ class StaffLander(Lander):
         ctx: LanderContext,
     ) -> LanderResult:
         try:
+            from django.contrib.auth import get_user_model
+
+            from apps.academics.models import Department
             from apps.people.models import TeacherProfile
         except ImportError as exc:
             raise LanderError(f"StaffLander could not import TeacherProfile: {exc!s}") from exc
+        User = get_user_model()
 
         result = LanderResult()
-        model_fields = {f.name for f in TeacherProfile._meta.get_fields()}
+        model_fields = model_field_names(TeacherProfile)
+        teacher_role = getattr(getattr(User, "Role", None), "TEACHER", "TEACHER")
+
         for row in canonical_rows:
-            external_id = (row.get("staff_external_id") or "").strip()
+            external_id = (
+                row.get("staff_external_id")
+                or row.get("external_id")
+                or row.get("employee_id")
+                or ""
+            ).strip()
             first_name = (row.get("first_name") or "").strip()
             last_name = (row.get("last_name") or "").strip()
-            if not external_id or not first_name or not last_name:
+            email = (row.get("email") or "").strip()
+            user_ref = (row.get("staff_user_ref") or "").strip()
+            if not external_id or not (first_name or last_name or user_ref or email):
                 result.quarantined += 1
-                result.errors.append(
-                    f"Missing required staff fields in row {row!r}"
-                )
+                result.errors.append(f"Missing required staff fields in row {row!r}")
                 continue
 
-            defaults = {
-                "first_name": first_name,
-                "last_name": last_name,
-                "email": (row.get("email") or "").strip(),
-                "role": (row.get("role") or "").strip(),
-                "department": (row.get("department") or "").strip(),
-                "hire_date": row.get("hire_date") or None,
-            }
-            defaults = {k: v for k, v in defaults.items() if k in model_fields and v not in (None, "")}
+            # Role gate: a combined OneRoster ``users.csv`` is pre-classified to
+            # ``staff`` but carries every role. NEVER provision a student/parent/
+            # guardian as a teacher — skip them here (they land via their own
+            # domain). Blank/teacher/admin/aide/proctor roles fall through.
+            role_raw = (row.get("role") or "").strip().lower()
+            if role_raw in _NON_STAFF_ROLES:
+                result.skipped += 1
+                continue
 
             if ctx.dry_run:
                 result.created += 1
                 continue
 
             try:
-                from ._helpers import (
-                    detect_and_register_assets,
-                    record_id_mapping,
-                    upsert_with_conflict_detection,
+                teacher_user, reason = resolve_or_provision_user(
+                    User=User,
+                    username_hint=user_ref,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    role=teacher_role,
+                    dry_run=ctx.dry_run,
                 )
-                lookup_field = _lookup_field("staff_external_id", model_fields)
+                if teacher_user is None:
+                    result.quarantined += 1
+                    result.errors.append(f"staff {external_id}: {reason or 'no linkable user'}")
+                    continue
+
+                # Optional Department FK (SET_NULL) — reuse an existing one by
+                # (school, name); mint a target-scoped code on create so we never
+                # reuse the source's globally-unique department code.
+                department = None
+                dept_name = (row.get("department") or "").strip()
+                if dept_name and "department" in model_fields:
+                    department, _ = get_or_create_named(
+                        model=Department,
+                        school=ctx.school,
+                        name=dept_name,
+                        create_kwargs=lambda dn=dept_name: {
+                            "code": mint_scoped_code(
+                                prefix="DPT", name=dn, school=ctx.school, model=Department
+                            )
+                        },
+                        result=result,
+                    )
+
+                defaults: dict[str, Any] = {
+                    "staff_id": external_id,
+                    "position_title": (row.get("role") or "").strip()[:120],  # magic-number-allow: position_title CharField max_length
+                    "phone": (row.get("phone") or "").strip()[:50],
+                    "department": department,
+                }
+                if "school" in model_fields and ctx.school is not None:
+                    defaults["school"] = ctx.school
+                defaults = {k: v for k, v in defaults.items() if k in model_fields and v not in (None, "")}
+
                 obj, created, preserved = upsert_with_conflict_detection(
                     ctx=ctx, domain="staff", model=TeacherProfile,
-                    lookup={lookup_field: external_id}, defaults=defaults,
+                    lookup={"user": teacher_user}, defaults=defaults,
                     legacy_id=external_id,
                 )
                 if preserved:
@@ -78,19 +159,19 @@ class StaffLander(Lander):
                     result.updated_ids_with_old_values.append(
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
+                # Source-only columns with no TeacherProfile home → DFV (no data loss).
+                persist_dfv_extras(
+                    ctx=ctx, entity_type="staff", entity_id=obj.pk,
+                    extras={"hire_date": (row.get("hire_date") or "").strip(),
+                            "source_role": (row.get("role") or "").strip()},
+                    result=result,
+                )
                 record_id_mapping(ctx=ctx, legacy_id=external_id, canonical_obj=obj, domain="staff")
                 detect_and_register_assets(ctx=ctx, legacy_id=external_id, entity_kind="staff", row=row)
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(f"staff upsert failed for {external_id}: {type(exc).__name__}: {exc}")
         return result
-
-
-def _lookup_field(canonical: str, available: set[str]) -> str:
-    for c in ("staff_external_id", "external_id", "source_id", "employee_id"):
-        if c in available:
-            return c
-    return canonical
 
 
 register("staff", StaffLander())

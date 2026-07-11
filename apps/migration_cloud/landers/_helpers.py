@@ -19,6 +19,8 @@ Three pieces of shared plumbing every per-domain lander uses:
 from __future__ import annotations
 
 import datetime as _dt
+import hashlib
+import re
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -347,3 +349,140 @@ def upsert_with_conflict_detection(
             return existing, False, True
     obj, created = model.objects.update_or_create(**lookup, defaults=defaults)
     return obj, created, False
+
+
+# --- Structure provisioning helpers (shared with structure_lander) ----------
+# The SPLIT scaffold lander (``structure_lander``) pioneered these; factored
+# here so the ``sections``/``staff``/``academics`` landers provision required
+# FK parents the SAME safe way (reuse-by-(school,name), mint a target-scoped
+# GLOBALLY-unique code, never reuse the source's code — which on single-schema
+# would collide with / resolve ANOTHER school's row).
+
+
+def _slug_upper(value: str, width: int = 8) -> str:
+    return (re.sub(r"[^A-Z0-9]+", "", (value or "").upper())[:width]) or "X"
+
+
+def mint_scoped_code(*, prefix: str, name: str, school, model, code_field: str = "code") -> str:
+    """A fresh, GLOBALLY-unique code for a provisioned structure row.
+
+    ``Department``/``Specialty``/``Classroom.code`` are ``unique=True`` platform-
+    wide, so the source's code MUST NOT be reused (it would collide or, worse,
+    resolve the SOURCE school's row). Deterministic per (school, name) for stable
+    re-runs, with a hash fallback if the short form ever collides.
+    """
+    sid = str(getattr(school, "pk", "") or "0")
+    base = _slug_upper(name)
+    candidate = f"{prefix}{sid}-{base}"[:30]  # magic-number-allow: code column max_length=30
+    if not model.objects.filter(**{code_field: candidate}).exists():  # tenant-isolation-allow: code is a GLOBALLY-unique column; global existence check is intentional
+        return candidate
+    digest = hashlib.sha256(f"{sid}:{prefix}:{name}".encode("utf-8")).hexdigest()[:6]
+    return f"{prefix}{sid}-{base[:4]}-{digest}"[:30]  # magic-number-allow: code column max_length=30
+
+
+def get_or_create_named(*, model, school, name, create_kwargs=None, result=None):
+    """Reuse an existing (school, name) row or create one. Never mutates an
+    existing row (the target's own config wins). ``create_kwargs`` is a callable
+    returning the extra create-only kwargs (e.g. a minted code / required FKs)."""
+    qs = model.objects.all()  # tenant-isolation-allow: scoped-below-by-school-when-present / schema-context-isolates
+    fields = model_field_names(model)
+    if "school" in fields and school is not None:
+        qs = qs.filter(school=school)
+    obj = qs.filter(name=name).order_by("pk").first()
+    if obj is not None:
+        return obj, False
+    kwargs: dict[str, Any] = {"name": name}
+    if "school" in fields and school is not None:
+        kwargs["school"] = school
+    if create_kwargs is not None:
+        kwargs.update(create_kwargs())
+    obj = model.objects.create(**kwargs)
+    if result is not None:
+        result.created_ids.append(obj.pk)
+    return obj, True
+
+
+def _free_username(User, base: str) -> str:
+    base = (re.sub(r"[^a-zA-Z0-9._-]+", "", base or "") or "user")[:130]  # magic-number-allow: username-stem-cap-leaves-digest-room-under-150
+    if not User.objects.filter(username=base).exists():
+        return base
+    digest = hashlib.sha256(base.lower().encode("utf-8")).hexdigest()[:8]
+    return f"{base}-{digest}"[:150]  # magic-number-allow: django-username-field-max-length-150
+
+
+def resolve_or_provision_user(
+    *, User, username_hint: str, email: str, first_name: str, last_name: str,
+    role: str, dry_run: bool,
+):
+    """Return ``(user, reason)`` — reason set only when user is None.
+
+    Resolution order: existing platform user by username_hint → by email →
+    provision a NEW account (role as given, UNUSABLE password — no credential is
+    ever minted; the person activates via the normal invite/reset flow). Existing
+    users are NEVER mutated (their role/names/credentials stay theirs). Mirrors
+    ``guardian_lander._resolve_or_provision_user`` so staff land the same way
+    guardians do.
+    """
+    if username_hint:
+        user = User.objects.filter(username=username_hint).first()
+        if user is not None:
+            return user, ""
+    if email:
+        user = User.objects.filter(email__iexact=email).first()
+        if user is not None:
+            return user, ""
+    if not (email or first_name or last_name or username_hint):
+        return None, "no email or name to resolve or provision a user"
+    if dry_run:
+        return None, ""  # would provision — preview counts it as landable
+    stem = username_hint or (email.split("@", 1)[0] if email else f"{first_name}.{last_name}")
+    username = _free_username(User, stem)
+    user = User.objects.create_user(
+        username=username,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+    )
+    if role and hasattr(user, "role"):
+        user.role = role
+    user.set_unusable_password()
+    user.save()
+    return user, ""
+
+
+def persist_dfv_extras(
+    *, ctx, entity_type: str, entity_id: Any, extras: dict[str, Any], result=None,
+) -> None:
+    """Persist non-model canonical fields to ``apps.metadata.DynamicFieldValue``
+    so the no-data-loss invariant holds for columns the first-class model lacks
+    (e.g. staff ``hire_date`` / ``role`` on ``TeacherProfile``). Best-effort — a
+    failure is recorded on ``result`` (visible), never silently swallowed."""
+    clean = {k: v for k, v in extras.items() if v not in (None, "")}
+    if not clean:
+        return
+    try:
+        from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
+    except Exception as exc:  # noqa: BLE001
+        if result is not None:
+            result.errors.append(f"{entity_type} extras: metadata models unavailable: {type(exc).__name__}")
+        return
+    for field_key, value in clean.items():
+        try:
+            DynamicFieldDefinition.objects.get_or_create(
+                entity_type=entity_type,
+                field_key=field_key,
+                school=getattr(ctx, "school", None),
+                defaults={"label": field_key.replace("_", " ").title(), "data_type": "json"},
+            )
+            DynamicFieldValue.objects.update_or_create(
+                entity_type=entity_type,
+                entity_id=str(entity_id)[:64],
+                field_key=field_key,
+                defaults=filter_to_model_fields(
+                    {"value_json": {"v": value}, "school": getattr(ctx, "school", None)},
+                    DynamicFieldValue,
+                ),
+            )
+        except Exception as exc:  # noqa: BLE001 — extras are best-effort, recorded
+            if result is not None:
+                result.errors.append(f"{entity_type} extras write failed for {field_key}: {type(exc).__name__}")

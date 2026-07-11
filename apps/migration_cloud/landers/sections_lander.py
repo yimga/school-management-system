@@ -1,6 +1,16 @@
 """Sections lander — persists canonical section / classroom rows into
 ``apps.academics.Classroom`` (the tenant's class/section model).
 
+Completeness fix (2026-07-11): the old lander wrote only ``name`` (``grade_level``/
+``subject_code``/``academic_year`` string were dropped by ``filter_to_model_fields``)
+and NEVER set ``Classroom``'s two REQUIRED PROTECT FKs (``academic_year`` +
+``department``), so every section quarantined; worse, it upserted on
+``Classroom.code`` — which is ``unique=True`` GLOBALLY — using the SOURCE's code
+unscoped by school, so on a single-schema deployment a code collision silently
+RENAMED another school's classroom. The lander now provisions the required
+parents the same safe way ``structure_lander`` does (reuse-by-(school,name),
+mint a target-scoped code) and upserts by (school, name) — never the global code.
+
 Canonical row shape::
 
     {
@@ -15,9 +25,16 @@ Canonical row shape::
 
 from __future__ import annotations
 
+import datetime as _dt
 from typing import Any, Iterator
 
-from ._helpers import filter_to_model_fields, model_field_names
+from ._helpers import (
+    get_or_create_named,
+    mint_scoped_code,
+    model_field_names,
+    persist_dfv_extras,
+    record_id_mapping,
+)
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
 
@@ -31,7 +48,7 @@ class SectionsLander(Lander):
         ctx: LanderContext,
     ) -> LanderResult:
         try:
-            from apps.academics.models import Classroom
+            from apps.academics.models import AcademicYear, Classroom, Department
         except ImportError as exc:
             raise LanderError(
                 f"SectionsLander could not import Classroom: {exc!s}"
@@ -39,53 +56,114 @@ class SectionsLander(Lander):
 
         result = LanderResult()
         cls_fields = model_field_names(Classroom)
-        code_field = "code" if "code" in cls_fields else ("slug" if "slug" in cls_fields else None)
-        if code_field is None:
-            raise LanderError("SectionsLander: Classroom model has no code/slug field for upsert.")
 
         for row in canonical_rows:
             code = (row.get("section_code") or row.get("code") or "").strip()
-            if not code:
+            name = (row.get("name") or code).strip()
+            if not code and not name:
                 result.quarantined += 1
-                result.errors.append(f"sections: missing section_code in {row!r}")
+                result.errors.append(f"sections: missing section_code/name in {row!r}")
                 continue
 
-            defaults: dict[str, Any] = {
-                "name": (row.get("name") or code),
-                "grade_level": (row.get("grade_level") or "").strip(),
-                "subject_code": (row.get("subject_code") or "").strip(),
-                "academic_year": (row.get("academic_year") or "").strip(),
-            }
-            defaults = filter_to_model_fields(defaults, Classroom)
-
             if ctx.dry_run:
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-                exists = Classroom.objects.filter(**{code_field: code}).exists()
+                exists = self._existing_by_name(Classroom, ctx.school, name) is not None
                 result.updated += 1 if exists else 0
                 result.created += 0 if exists else 1
                 continue
+
             try:
-                from ._helpers import record_id_mapping, upsert_with_conflict_detection
-                obj, created, preserved = upsert_with_conflict_detection(
-                    ctx=ctx, domain="sections", model=Classroom,
-                    lookup={code_field: code}, defaults=defaults, legacy_id=code,
-                )
-                if preserved:
+                existing = self._existing_by_name(Classroom, ctx.school, name)
+                if existing is not None:
+                    # Reuse the tenant's own classroom — never rename it.
+                    record_id_mapping(ctx=ctx, legacy_id=code or name, canonical_obj=existing, domain="sections")
+                    self._persist_section_extras(ctx, existing, row, result)
                     result.skipped += 1
-                    record_id_mapping(ctx=ctx, legacy_id=code, canonical_obj=obj, domain="sections")
                     continue
-                if created:
-                    result.created += 1
-                    result.created_ids.append(obj.pk)
-                else:
-                    result.updated += 1
-                record_id_mapping(ctx=ctx, legacy_id=code, canonical_obj=obj, domain="sections")
+
+                academic_year = self._resolve_academic_year(
+                    AcademicYear, ctx.school, (row.get("academic_year") or "").strip(), result
+                )
+                department, _ = get_or_create_named(
+                    model=Department,
+                    school=ctx.school,
+                    name=(row.get("department") or "General").strip() or "General",
+                    create_kwargs=lambda: {
+                        "code": mint_scoped_code(prefix="DPT", name="General", school=ctx.school, model=Department)
+                    },
+                    result=result,
+                )
+
+                create_kwargs: dict[str, Any] = {"name": name}
+                if "school" in cls_fields and ctx.school is not None:
+                    create_kwargs["school"] = ctx.school
+                create_kwargs["academic_year"] = academic_year
+                create_kwargs["department"] = department
+                create_kwargs["code"] = mint_scoped_code(
+                    prefix="CLS", name=name or code, school=ctx.school, model=Classroom
+                )
+                obj = Classroom.objects.create(**create_kwargs)
+                result.created += 1
+                result.created_ids.append(obj.pk)
+                record_id_mapping(ctx=ctx, legacy_id=code or name, canonical_obj=obj, domain="sections")
+                self._persist_section_extras(ctx, obj, row, result)
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(
-                    f"sections upsert failed for {code}: {type(exc).__name__}: {exc}"
+                    f"sections upsert failed for {code or name}: {type(exc).__name__}: {exc}"
                 )
         return result
+
+    @staticmethod
+    def _existing_by_name(Classroom, school, name):
+        qs = Classroom.objects.all()  # tenant-isolation-allow: scoped-below-by-school-when-present / schema-context-isolates
+        if "school" in model_field_names(Classroom) and school is not None:
+            qs = qs.filter(school=school)
+        return qs.filter(name=name).order_by("pk").first()
+
+    @staticmethod
+    def _resolve_academic_year(AcademicYear, school, year_name, result):
+        """Reuse/create the (school, name) year; fall back to the school's active
+        year or a provisioned 'Imported' year so the REQUIRED FK is always set."""
+        if year_name:
+            year, _ = get_or_create_named(
+                model=AcademicYear, school=school, name=year_name,
+                create_kwargs=lambda: {
+                    "start_date": _dt.date(2000, 1, 1),
+                    "end_date": _dt.date(2000, 12, 31),
+                    "is_active": False,
+                },
+                result=result,
+            )
+            return year
+        qs = AcademicYear.objects.all()  # tenant-isolation-allow: scoped-below-by-school-when-present / schema-context-isolates
+        if "school" in model_field_names(AcademicYear) and school is not None:
+            qs = qs.filter(school=school)
+        active = qs.filter(is_active=True).order_by("-start_date").first() or qs.order_by("-start_date").first()
+        if active is not None:
+            return active
+        year, _ = get_or_create_named(
+            model=AcademicYear, school=school, name="Imported",
+            create_kwargs=lambda: {
+                "start_date": _dt.date(2000, 1, 1),
+                "end_date": _dt.date(2000, 12, 31),
+                "is_active": False,
+            },
+            result=result,
+        )
+        return year
+
+    @staticmethod
+    def _persist_section_extras(ctx, classroom, row, result):
+        persist_dfv_extras(
+            ctx=ctx, entity_type="classroom", entity_id=classroom.pk,
+            extras={
+                "grade_level": (row.get("grade_level") or "").strip(),
+                "subject_code": (row.get("subject_code") or "").strip(),
+                "source_section_code": (row.get("section_code") or "").strip(),
+                "teacher_external_id": (row.get("teacher_external_id") or "").strip(),
+            },
+            result=result,
+        )
 
 
 register("sections", SectionsLander())

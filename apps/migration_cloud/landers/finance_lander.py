@@ -1,15 +1,25 @@
 """Finance lander — persists canonical invoice rows into ``apps.finance.Invoice``.
 
-Canonical row shape::
+Completeness fix (2026-07-11): the old lander wrote the money into ``amount``
+(the field is ``total_amount``), never set the REQUIRED PROTECT ``profile``
+(ComplianceProfile) FK, assigned the raw ``currency`` STRING to a
+``CurrencyRegistry`` FK, and mapped ``issue_date``/``description`` to fields that
+don't exist (``issued_date``/``notes``). Every invoice therefore failed
+``Invoice.full_clean()`` (``total_amount`` stayed ``0.00`` and tripped
+``MinValueValidator(0.01)``) or raised on the missing ``profile`` — so every
+finance row quarantined and the invoiced amount silently vanished. The student
+lookup was also unscoped (cross-school attach on single-schema).
+
+Canonical row shape (source field names)::
 
     {
         "student_external_id": "PS-1029",
         "reference": "INV-2025-0001",
-        "amount": "1250.00",
-        "currency": "USD",
+        "amount": "1250.00",           # → Invoice.total_amount
+        "currency": "USD",             # display-only; resolved by the app, not stored as a string
         "due_date": "2025-09-30",
-        "issue_date": "2025-09-01",
-        "description": "Tuition Q1 2025-26"
+        "issue_date": "2025-09-01",    # → Invoice.issued_date
+        "description": "Tuition Q1"    # → Invoice.notes
     }
 """
 
@@ -24,6 +34,7 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    resolve_student,
     student_lookup_field,
     upsert_with_conflict_detection,
 )
@@ -41,6 +52,7 @@ class FinanceLander(Lander):
     ) -> LanderResult:
         try:
             from apps.finance.models import Invoice
+            from apps.finance.provisioning_seed import ensure_tenant_compliance_profile
             from apps.people.models import StudentProfile
         except ImportError as exc:
             raise LanderError(
@@ -54,6 +66,14 @@ class FinanceLander(Lander):
         ref_field = "reference" if "reference" in invoice_fields else (
             "payment_code" if "payment_code" in invoice_fields else None
         )
+        # ``Invoice.profile`` is a REQUIRED PROTECT FK; resolve (or create) the
+        # tenant schema's active ComplianceProfile once for the whole batch.
+        profile = None
+        if "profile" in invoice_fields:
+            try:
+                profile = ensure_tenant_compliance_profile(ctx.school)
+            except Exception as exc:  # noqa: BLE001
+                result.errors.append(f"finance: could not resolve compliance profile: {type(exc).__name__}")
 
         for row in canonical_rows:
             external_id = (row.get("student_external_id") or "").strip()
@@ -65,9 +85,18 @@ class FinanceLander(Lander):
                     f"finance: missing student/reference/amount in {row!r}"
                 )
                 continue
-            student = StudentProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
-                **{student_lookup: external_id}
-            ).first()
+            if "profile" in invoice_fields and profile is None:
+                result.quarantined += 1
+                result.errors.append(
+                    f"finance: no compliance profile available for invoice {reference}"
+                )
+                continue
+            student = resolve_student(
+                ctx=ctx,
+                student_model=StudentProfile,
+                lookup_field=student_lookup,
+                external_id=external_id,
+            )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
@@ -76,20 +105,22 @@ class FinanceLander(Lander):
                 continue
 
             defaults: dict[str, Any] = {
-                "amount": amount,
-                "currency": (row.get("currency") or "USD").strip()[:3].upper(),
+                "total_amount": amount,
                 "due_date": coerce_date(row.get("due_date")),
-                "issue_date": coerce_date(row.get("issue_date")),
-                "description": (row.get("description") or "")[:255],
-                "student": student,
+                "issued_date": coerce_date(row.get("issue_date")),
+                "notes": (row.get("description") or ""),
             }
             defaults = filter_to_model_fields(defaults, Invoice)
-            # Restore the student FK (filter_to_model_fields drops empty/None).
-            defaults["student"] = student
+            # Re-attach FKs the empty/None filter drops or that must always be set.
+            defaults["total_amount"] = amount
+            if "student" in invoice_fields:
+                defaults["student"] = student
+            if "profile" in invoice_fields and profile is not None:
+                defaults["profile"] = profile
 
             if ctx.dry_run:
                 if ref_field:
-                    exists = Invoice.objects.filter(**{ref_field: reference}).exists()  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
+                    exists = self._scoped(Invoice, ref_field, reference, ctx).exists()
                     if exists:
                         result.updated += 1
                     else:
@@ -99,9 +130,14 @@ class FinanceLander(Lander):
                 continue
             try:
                 if ref_field:
+                    # Scope the idempotency lookup to the school so two schools'
+                    # invoices sharing a source reference never collide/overwrite.
+                    lookup: dict[str, Any] = {ref_field: reference}
+                    if "school" in invoice_fields and ctx.school is not None:
+                        lookup["school"] = ctx.school
                     obj, created, preserved = upsert_with_conflict_detection(
                         ctx=ctx, domain="finance", model=Invoice,
-                        lookup={ref_field: reference}, defaults=defaults,
+                        lookup=lookup, defaults=defaults,
                         legacy_id=reference,
                     )
                     if preserved:
@@ -134,6 +170,13 @@ class FinanceLander(Lander):
                     f"finance upsert failed for {reference}: {type(exc).__name__}: {exc}"
                 )
         return result
+
+    @staticmethod
+    def _scoped(Invoice, ref_field, reference, ctx):
+        qs = Invoice.objects.filter(**{ref_field: reference})  # tenant-isolation-allow: scoped-below-by-school-when-present / schema-context-isolates
+        if "school" in model_field_names(Invoice) and ctx.school is not None:
+            qs = qs.filter(school=ctx.school)
+        return qs
 
 
 register("finance", FinanceLander())
