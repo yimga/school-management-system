@@ -7,7 +7,7 @@
 {% include "components/next_action_strip.html" %}
 
 <div data-rmc-scroll-policy="paginate" class="d-flex gap-2 mb-4">
-  <a class="btn btn-primary" href="{% url 'migration_cloud_connector:connector-connect' %}">{% trans "Connect source platform" %}</a>
+  <a class="btn btn-primary" href="{% url connector_ns|add:':connector-connect' %}">{% trans "Connect source platform" %}</a>
   {% if upload_url %}<a class="btn btn-outline-secondary" href="{{ upload_url }}">{% trans "Upload export file" %}</a>{% endif %}
 </div>
 <section class="rmc-card mb-4" aria-labelledby="connections-heading">
@@ -17,7 +17,7 @@
     {% for conn in connections %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
       <span>{{ conn.connector_profile.display_name }} — <span class="rmc-badge">{{ conn.status }}</span></span>
-      <a href="{% url 'migration_cloud_connector:connector-discover' connection_id=conn.id %}">{% trans "Continue" %}</a>
+      <a href="{% url connector_ns|add:':connector-discover' connection_id=conn.id %}">{% trans "Continue" %}</a>
     </li>
     {% endfor %}
   </ul>

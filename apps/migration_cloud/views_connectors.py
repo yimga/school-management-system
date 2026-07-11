@@ -88,6 +88,39 @@ def _resolve_connector_upload_url(request: HttpRequest) -> str:
     return ""
 
 
+def _connector_namespace(request: HttpRequest) -> str:
+    """Fully-qualified namespace for connector wizard URLs on the active mount.
+
+    ``urls_connectors`` is included as ``migration_cloud_connector``, but that
+    include lives inside ``apps.migration_cloud.urls`` — itself mounted under
+    ``migration_cloud_super`` (operator) and ``migration_cloud_portal`` (portal)
+    as well as standalone on the tenant host. So the real namespace is
+    ``migration_cloud_super:migration_cloud_connector`` on the operator mount, etc.
+    A bare ``migration_cloud_connector:<name>`` reverse NoReverseMatch-es → 500 on
+    the nested mounts (the same failure ``_resolve_connector_upload_url`` guards).
+    ``resolver_match.namespaces`` already carries the full chain (its last element
+    is ``migration_cloud_connector`` for a wizard view); join it to rebuild the
+    prefix. Falls back to the tenant-host top-level namespace.
+    """
+    resolver_match = getattr(request, "resolver_match", None)
+    namespaces = list(getattr(resolver_match, "namespaces", []) or [])
+    if namespaces and namespaces[-1] == "migration_cloud_connector":
+        return ":".join(namespaces)
+    return "migration_cloud_connector"
+
+
+def _connector_reverse(request: HttpRequest, name: str, **kwargs) -> str:
+    """reverse() a connector wizard URL name under the request's active namespace.
+
+    Mount-agnostic stand-in for ``reverse("migration_cloud_connector:<name>")`` so
+    wizard redirects resolve on the operator/portal mounts, not just the tenant host.
+    """
+    try:
+        return reverse(f"{_connector_namespace(request)}:{name}", kwargs=kwargs)
+    except NoReverseMatch:
+        return reverse(f"migration_cloud_connector:{name}", kwargs=kwargs)
+
+
 def _connection_for_request(request: HttpRequest, connection_id: UUID) -> MigrationSourceConnection:
     school = _request_school(request)
     if school is None:
@@ -145,6 +178,7 @@ class MigrationCloudConnectorHomeView(LoginRequiredMixin, TemplateView):
                 "profiles": profiles,
                 "school": school,
                 "upload_url": _resolve_connector_upload_url(self.request),
+                "connector_ns": _connector_namespace(self.request),
             }
         )
         return ctx
@@ -218,8 +252,7 @@ class MigrationCloudConnectorConnectView(LoginRequiredMixin, View):
             verify_source_authorization(connection)
 
         return redirect(
-            "migration_cloud_connector:connector-discover",
-            connection_id=connection.id,
+            _connector_reverse(request, "connector-discover", connection_id=connection.id)
         )
 
 
@@ -262,9 +295,9 @@ class MigrationCloudConnectorDiscoverView(LoginRequiredMixin, View):
             )
         run = run_source_discovery(connection=connection, started_by=request.user)
         return redirect(
-            "migration_cloud_connector:connector-mapping",
-            connection_id=connection.id,
-            run_id=run.id,
+            _connector_reverse(
+                request, "connector-mapping", connection_id=connection.id, run_id=run.id
+            )
         )
 
 
@@ -307,9 +340,9 @@ class MigrationCloudConnectorMappingView(LoginRequiredMixin, View):
         entity = request.POST.get("entity_type", "students")
         confirm_mappings(connection=connection, entity_type=entity, actor=request.user)
         return redirect(
-            "migration_cloud_connector:connector-validate",
-            connection_id=connection.id,
-            run_id=run_id,
+            _connector_reverse(
+                request, "connector-validate", connection_id=connection.id, run_id=run_id
+            )
         )
 
 
@@ -360,6 +393,7 @@ class MigrationCloudConnectorValidateView(LoginRequiredMixin, View):
                 "staging_batch": batch,
                 "quarantine_items": quarantine,
                 "data_quality_score": batch.data_quality_score,
+                "connector_ns": _connector_namespace(request),
             },
         )
 
@@ -446,9 +480,12 @@ class MigrationCloudConnectorImportView(LoginRequiredMixin, View):
                 },
             )
         return redirect(
-            "migration_cloud_connector:connector-review",
-            connection_id=connection.id,
-            import_run_id=import_run.id,
+            _connector_reverse(
+                request,
+                "connector-review",
+                connection_id=connection.id,
+                import_run_id=import_run.id,
+            )
         )
 
 
@@ -469,6 +506,7 @@ class MigrationCloudConnectorReviewView(LoginRequiredMixin, TemplateView):
                 "import_run": import_run,
                 "rollback_card": rollback_posture_card(import_run),
                 "audit_events": connection.audit_events.order_by("-created_at")[:20],
+                "connector_ns": _connector_namespace(self.request),
             }
         )
         return ctx
@@ -480,7 +518,7 @@ class MigrationCloudConnectorRevokeView(LoginRequiredMixin, View):
         connection = _connection_for_request(request, connection_id)
         revoke_source_connection(connection)
         purge_source_credentials(connection)
-        return redirect("migration_cloud_connector:connector-home")
+        return redirect(_connector_reverse(request, "connector-home"))
 
 
 class MigrationCloudConnectorOperatorView(LoginRequiredMixin, TemplateView):

@@ -28,10 +28,20 @@
     </p>
     <div class="rmc-page__actions">
       <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}" class="rmc-btn rmc-btn--primary">{% trans "Start a new migration" %}</a>
-      <a href="{% url 'admin:migration_cloud_migrationbundle_changelist' %}" class="rmc-btn rmc-btn--ghost" aria-label="{% trans 'Advanced admin fallback: open migration bundles in Django admin' %}">
+      {% if is_super_shell %}
+      {% comment %} The Django-admin changelist is a cross-tenant operator surface. The
+        admin namespace is registered ONLY on the manager host (platform_admin_site,
+        name="admin"); the tenant host mounts tenant_admin_site (name="tenant_admin")
+        and config.urls (dev full surface) mounts neither. A bare admin: url reverse
+        NoReverseMatch-es → 500 wherever admin is absent, so resolve via the "as" form
+        (which yields "" instead of raising) and render only when it binds — and only in
+        the operator shell, never for tenants. {% endcomment %}
+      {% url 'admin:migration_cloud_migrationbundle_changelist' as admin_bundles_url %}
+      {% if admin_bundles_url %}
+      <a href="{{ admin_bundles_url }}" class="rmc-btn rmc-btn--ghost" aria-label="{% trans 'Advanced admin fallback: open migration bundles in Django admin' %}">
         {% trans "Open admin" %}
       </a>
-      {% if is_super_shell %}
+      {% endif %}
       <a href="{% url 'migration_cloud_super:migration_cloud_health' %}" class="rmc-btn rmc-btn--ghost">{% trans "Health" %}</a>
       <a href="{% url 'migration_cloud_super:audit_dashboard' %}" class="rmc-btn rmc-btn--ghost">{% trans "Audit log" %}</a>
       <a href="{% url 'migration_cloud_super:operator_webhook_list' %}" class="rmc-btn rmc-btn--ghost">{% trans "Webhooks" %}</a>
