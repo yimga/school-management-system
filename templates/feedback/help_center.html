@@ -232,9 +232,13 @@
               <p class="rmc-empty__message mb-0">{% trans "Submit feedback and we'll close the loop here when it ships." %}</p>
             </div>
           {% endif %}
-          {% if is_operator %}
+          {% comment %} voice_of_customer only reverses on the operator/manager host; on the tenant
+             host support_links.voice_of_customer is "" (guarded in support_entry_points), so gating on
+             it hides the footer here instead of raising NoReverseMatch → 500 for operator/superuser
+             viewers browsing /help/ on a tenant subdomain. {% endcomment %}
+          {% if is_operator and support_links.voice_of_customer %}
             <div class="card-footer">
-              <a href="{% url 'feedback:voice_of_customer' %}" class="btn btn-link btn-sm p-0">{% trans "Operator: voice of customer" %} →</a>
+              <a href="{{ support_links.voice_of_customer }}" class="btn btn-link btn-sm p-0">{% trans "Operator: voice of customer" %} →</a>
             </div>
           {% endif %}
         </div>

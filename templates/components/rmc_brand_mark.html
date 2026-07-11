@@ -64,7 +64,7 @@ why the manager topbar shipped without a real logo.
       {% if bm_logo_url %}<img src="{{ bm_logo_url }}" alt="" decoding="async" loading="{{ bm_loading }}"{% if bm_loading == 'eager' %} fetchpriority="high"{% endif %} class="rmc-brand-mark__tenant-logo rmc-brand-mark__tenant-logo--light" data-rmc-brand-variant="light">{% endif %}
       {% if bm_logo_dark_url %}<img src="{{ bm_logo_dark_url }}" alt="" decoding="async" loading="{{ bm_loading }}"{% if bm_loading == 'eager' %} fetchpriority="high"{% endif %} class="rmc-brand-mark__tenant-logo rmc-brand-mark__tenant-logo--dark" data-rmc-brand-variant="dark">{% endif %}
     {% else %}
-      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" class="rmc-brand-mark__glyph">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" class="rmc-brand-mark__glyph">
         {% comment %} Monogram — geometric letterform; reads at 16px and 80px alike. {% endcomment %}
         <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
               font-family="'Inter','SF Pro Display',system-ui,-apple-system,sans-serif"
