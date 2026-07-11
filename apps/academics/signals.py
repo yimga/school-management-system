@@ -406,6 +406,7 @@ def on_incident_saved(sender, instance, created, **kwargs):
         )
         try:
             portal_url = "/portal/parent/"
+            notified_count = 0
             for g in guardians:
                 if g.guardian_user_id:
                     FinanceNotification.objects.notify_unread(
@@ -416,6 +417,21 @@ def on_incident_saved(sender, instance, created, **kwargs):
                         recipient_id=g.guardian_user_id,
                         created_by_id=instance.created_by_id,
                     )
+                    notified_count += 1
+            # Stamp the audit timestamp when guardians were actually notified, so
+            # the counselor caseload's "parent flagged but not yet notified" tally
+            # (apps/portal/views_teacher.py `parent_notified_at__isnull=True`)
+            # reflects reality for incidents created outside the API path (admin,
+            # bulk, other code). Signal-free update → no post_save re-entrancy;
+            # the isnull guard preserves the first-notification timestamp.
+            if notified_count and instance.parent_notified_at is None:
+                from django.utils import timezone as _tz
+
+                Incident.objects.filter(
+                    pk=instance.pk,
+                    school_id=instance.school_id,
+                    parent_notified_at__isnull=True,
+                ).update(parent_notified_at=_tz.now())
         except _ACADEMICS_SIGNAL_ERRORS:
             _log_signal_failure(
                 "academics on_incident_saved notify guardians failed",

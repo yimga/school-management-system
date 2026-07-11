@@ -67,3 +67,44 @@ class DisciplineRoutingTests(TestCase):
         self.assertGreaterEqual(total, 10)
         last = Incident.objects.filter(student=self.student).order_by("-id").first()
         self.assertEqual(last.status, Incident.Status.REFERRED)
+
+    def test_signal_notifies_guardian_and_stamps_parent_notified_at(self):
+        # Non-API incident creation (admin/bulk/other code) must notify guardians
+        # AND stamp parent_notified_at, so the counselor caseload's "flagged but
+        # not yet notified" tally is not permanently wrong.
+        from apps.finance.models import Notification
+        from apps.people.models import StudentGuardian
+
+        parent = User.objects.create_user(
+            username=f"par-{uuid.uuid4().hex[:8]}",
+            email="p@disc.test",
+            password="x",
+            role=User.Role.PARENT,
+        )
+        StudentGuardian.objects.create(
+            guardian_user=parent, student=self.student, relationship="Parent",
+        )
+        incident = Incident.objects.create(
+            school=self.school,
+            student=self.student,
+            incident_type=Incident.Type.BEHAVIOR,
+            severity=Incident.Severity.LOW,
+            date=date.today(),
+            description="Called out",
+            notify_parent=True,
+        )
+        self.assertTrue(Notification.objects.filter(recipient=parent).exists())
+        incident.refresh_from_db()
+        self.assertIsNotNone(incident.parent_notified_at)
+
+    def test_notify_parent_false_leaves_timestamp_null(self):
+        incident = Incident.objects.create(
+            school=self.school,
+            student=self.student,
+            incident_type=Incident.Type.BEHAVIOR,
+            severity=Incident.Severity.LOW,
+            date=date.today(),
+            notify_parent=False,
+        )
+        incident.refresh_from_db()
+        self.assertIsNone(incident.parent_notified_at)
