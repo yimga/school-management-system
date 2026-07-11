@@ -43,6 +43,10 @@ Audited the deploy-state admin shell on `origin/main` for the approved canvas-fi
   - cache-busted the final contract stylesheet URL;
   - added contract-marker selectors that do not depend solely on body class timing;
   - kept the same operator/tenant scope through Django admin shell markers.
+- Added specificity hardening after production screenshots still showed the add/change
+  form capped by older `--rmc-backoffice-form-max` rules from `admin-cp-parity.css`.
+  The final contract now targets the exact manager and tenant form-frame selectors
+  with higher specificity and a new cache-busted URL.
 
 ## Validation
 

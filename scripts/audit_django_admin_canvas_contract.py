@@ -27,7 +27,7 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260710-deploy-hardening" not in base_site:
+    if "?v=20260710-specificity-hardening" not in base_site:
         errors.append("Django canvas contract link must be cache-busted for deployment visibility")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
@@ -50,6 +50,9 @@ def main() -> int:
         "body:is(.admin-manager-shell, .admin-premium-shell)",
         "[data-rmc-shell-root=\"django-admin\"]",
         "[data-rmc-admin-table-contract=\"native-table-scroll\"]",
+        "--rmc-backoffice-form-max",
+        "Specificity hardening",
+        "#content-main.cp-form-frame[data-rmc-admin-form-contract=\"premium-form-frame\"]",
         "rmc-admin-workspace",
         "data-rmc-admin-form-contract=\"premium-form-frame\"",
         "grid-template-columns: repeat(auto-fit",

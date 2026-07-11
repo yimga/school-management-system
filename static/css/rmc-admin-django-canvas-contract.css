@@ -404,3 +404,77 @@ html[data-rmc-admin-html="unfold"] .submit-row {
     flex-direction: column !important;
   }
 }
+
+/* Specificity hardening:
+   admin-cp-parity.css still caps manager change forms with
+   --rmc-backoffice-form-max using higher-specificity !important selectors.
+   These exact final selectors deliberately beat that old cap so Django add/edit
+   forms use the full canvas between sidebars. */
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content,
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content.w-100,
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content.max-w-none,
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #content {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content .rmc-admin-workspace[data-rmc-admin-workspace-scope],
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] .rmc-admin-workspace[data-rmc-admin-workspace-scope] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: var(--rmc-django-panel-gap, 1rem) !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+
+@media (min-width: 1440px) {
+  html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content .rmc-admin-workspace[data-rmc-admin-workspace-scope],
+  html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] .rmc-admin-workspace[data-rmc-admin-workspace-scope] {
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 18vw) !important;
+  }
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"],
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] > form,
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] form > .flex.flex-col.gap-6,
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"],
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] > form,
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] form > .flex.flex-col.gap-6 {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows,
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)) !important;
+  column-gap: clamp(1rem, 1.6vw, 1.75rem) !important;
+  row-gap: 0.5rem !important;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(.form-row.grid, .form-row:has(textarea), .form-row:has(.selector), .form-row:has(.related-widget-wrapper), .form-row:has(.vLargeTextField)),
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(.form-row.grid, .form-row:has(textarea), .form-row:has(.selector), .form-row:has(.related-widget-wrapper), .form-row:has(.vLargeTextField)) {
+  grid-column: 1 / -1 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"],
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: var(--rmc-django-panel-gap, 1rem) 0 0 !important;
+  transform: none !important;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] > .rmc-admin-submit-row__inner,
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] > .rmc-admin-submit-row__inner {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
