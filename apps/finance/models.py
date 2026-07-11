@@ -696,10 +696,12 @@ class Invoice(models.Model):
         them would understate the outstanding balance after a payment reversal.
         Payments that are definitively NOT money received (failed / cancelled /
         refunded) are likewise excluded — counting them flips an invoice to
-        PAID/PARTIAL for money that never arrived (or was returned).
+        PAID/PARTIAL for money that never arrived (or was returned). A PARTIALLY
+        refunded payment stays 'completed' but only its net (amount -
+        refunded_amount) counts, so a partial refund raises the balance too.
         """
         total_paid = sum(
-            p.amount
+            max(p.amount - (p.refunded_amount or Decimal("0.00")), Decimal("0.00"))
             for p in self.payments.filter(deleted_at__isnull=True).exclude(
                 status__in=_NON_RECEIVED_PAYMENT_STATUSES
             )
@@ -814,6 +816,17 @@ class Payment(models.Model):
         max_digits=12,
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))],  # Must be positive
+    )
+    refunded_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text=(
+            "Cumulative amount refunded against this payment. Net money received "
+            "is amount - refunded_amount; a full refund also flips status to "
+            "'refunded'. Written only by services.process_refund_request."
+        ),
     )
     currency_code = models.CharField(max_length=3, default="USD")
     currency = models.ForeignKey(

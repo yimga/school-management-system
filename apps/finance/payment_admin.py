@@ -1,6 +1,6 @@
 """Payment Admin Classes for Phase 2.0"""
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.html import format_html
 from apps.finance.models import (
     Payment,
@@ -137,6 +137,50 @@ class TransactionAdmin(admin.ModelAdmin):
 @admin.register(RefundRequest)
 class RefundRequestAdmin(admin.ModelAdmin):
     """Admin for RefundRequest model."""
+
+    actions = ["process_selected_refunds"]
+
+    @admin.action(description="Process selected refund requests (reduce invoice balance)")
+    def process_selected_refunds(self, request, queryset):
+        """Apply each selected refund to the ledger via the canonical producer.
+
+        Before this action a RefundRequest could be flipped to 'processed' in
+        the change form with no effect on the payment or invoice — the refund
+        was recorded but the money kept counting as received. This routes every
+        selected request through ``process_refund_request`` so the payment's
+        ``refunded_amount`` grows (and it flips to 'refunded' when fully
+        refunded) and the invoice balance is recomputed.
+        """
+        from apps.finance.services import (
+            RefundProcessingError,
+            process_refund_request,
+        )
+
+        processed = 0
+        skipped = 0
+        for refund in queryset:
+            if refund.status in ("processed", "rejected"):
+                skipped += 1
+                continue
+            try:
+                process_refund_request(refund, processed_by=request.user)
+                processed += 1
+            except RefundProcessingError as exc:
+                self.message_user(
+                    request, f"Refund {refund.pk}: {exc}", level=messages.ERROR
+                )
+        if processed:
+            self.message_user(
+                request,
+                f"Processed {processed} refund request(s).",
+                level=messages.SUCCESS,
+            )
+        if skipped:
+            self.message_user(
+                request,
+                f"Skipped {skipped} already-processed or rejected request(s).",
+                level=messages.WARNING,
+            )
 
     list_display = (
         "id",

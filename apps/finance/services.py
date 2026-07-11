@@ -747,14 +747,19 @@ def recalculate_invoice(invoice: Invoice) -> None:
     paid = Decimal("0.00")
     # Exclude soft-deleted payments AND not-received statuses (failed/cancelled/
     # refunded) so a reversed/failed payment stops counting toward paid — mirrors
-    # Invoice.computed_balance.
+    # Invoice.computed_balance. A partially-refunded payment stays 'completed' but
+    # only its net (amount - refunded_amount) counts, so partial refunds reduce
+    # paid too (also mirrors computed_balance).
     from apps.finance.models import _NON_RECEIVED_PAYMENT_STATUSES
 
     # tenant-isolation-allow: service-scoped-via-request-school-context
     for payment in Payment.objects.filter(
         invoice_id=invoice.pk, deleted_at__isnull=True
     ).exclude(status__in=_NON_RECEIVED_PAYMENT_STATUSES):
-        paid += payment.amount
+        paid += max(
+            payment.amount - (payment.refunded_amount or Decimal("0.00")),
+            Decimal("0.00"),
+        )
 
     balance = max(total - paid, Decimal("0.00"))
     invoice.total_amount = total
@@ -769,6 +774,86 @@ def recalculate_invoice(invoice: Invoice) -> None:
         invoice._recalculating = False
     invoice.reconcile_balance()
     post_invoice_to_ledger(invoice)
+
+
+class RefundProcessingError(Exception):
+    """Raised when a RefundRequest cannot be applied to the ledger."""
+
+
+def process_refund_request(refund_request, *, processed_by=None):
+    """Apply a ``RefundRequest`` to the ledger and recompute the invoice balance.
+
+    This is the missing PRODUCER for a refund: it increments the underlying
+    payment's ``refunded_amount``, flips the payment to ``status="refunded"``
+    once it is fully refunded, marks the request ``processed`` (stamping
+    ``processed_at``), and recomputes the invoice so collected revenue stops
+    counting the returned money. Without it a ``RefundRequest`` (created e.g.
+    for an overpayment) sat ``pending`` forever and the invoice balance never
+    reflected the refund.
+
+    Idempotent: a request already ``processed`` is a no-op (so double-clicking
+    the admin action or a retried task never double-refunds). Raises
+    ``RefundProcessingError`` for an un-processable request (rejected, amount
+    <= 0, deleted/reversed payment, or a refund that would exceed the payment's
+    refundable balance).
+
+    The status/``refunded_amount`` transition is a deliberately scoped
+    ``.update()`` (NOT ``payment.save()``) so the Payment ``post_save`` signal
+    does not re-fire ``apply_payment`` — which would re-send a "payment
+    received" notification and re-run payer-share allocation on what is
+    actually a refund. The balance is instead recomputed here explicitly via
+    ``recalculate_invoice``. (Payment.save()'s immutability guard explicitly
+    directs refunds to a separate entry like this one.)
+    """
+    from apps.finance.models import Payment
+
+    if refund_request.status == "processed":
+        return refund_request  # idempotent: already applied
+    if refund_request.status == "rejected":
+        raise RefundProcessingError("Cannot process a rejected refund request.")
+
+    amount = refund_request.amount or Decimal("0.00")
+    if amount <= Decimal("0.00"):
+        raise RefundProcessingError("Refund amount must be positive.")
+
+    with transaction.atomic():
+        payment = Payment.objects.select_for_update().get(pk=refund_request.payment_id)
+        if payment.deleted_at is not None:
+            raise RefundProcessingError(
+                "Cannot refund a reversed (soft-deleted) payment."
+            )
+        already_refunded = payment.refunded_amount or Decimal("0.00")
+        refundable = payment.amount - already_refunded
+        if amount > refundable:
+            raise RefundProcessingError(
+                f"Refund {amount} exceeds the refundable balance {refundable} "
+                f"on payment {payment.pk}."
+            )
+        new_refunded = already_refunded + amount
+        new_status = "refunded" if new_refunded >= payment.amount else payment.status
+
+        # Scoped status/refund transition — see the docstring for why this is a
+        # queryset .update() and not payment.save(). (Payment has no updated_at
+        # column; created_at is auto_now_add, so nothing else to stamp here.)
+        # tenant-isolation-allow: pk-scoped-refund-transition-on-invoice-owned-payment
+        Payment.objects.filter(pk=payment.pk).update(
+            refunded_amount=new_refunded,
+            status=new_status,
+        )
+
+        refund_request.status = "processed"
+        refund_request.processed_at = timezone.now()
+        if processed_by is not None and refund_request.approved_by_id is None:
+            refund_request.approved_by = processed_by
+        refund_request.save(
+            update_fields=["status", "processed_at", "approved_by", "updated_at"]
+        )
+
+        if payment.invoice_id:
+            payment.refresh_from_db(fields=["refunded_amount", "status"])
+            recalculate_invoice(payment.invoice)
+
+    return refund_request
 
 
 @transaction.atomic
