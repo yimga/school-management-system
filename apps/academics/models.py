@@ -929,6 +929,25 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.student} – {self.date} – {self.get_status_display()}"
 
+    def save(self, *args, **kwargs):
+        # Backfill the tenant FK at this single chokepoint. Every school-scoped
+        # consumer (attendance CSV export, multi-campus rollup, tenant-overview
+        # viz, student-transfer export) filters on school_id, and the offboarding
+        # purge deletes by school_id — so a row with school=NULL silently escapes
+        # all reporting AND survives a tenant's "permanent" delete as orphan
+        # student PII (see apps/wal_stream/writers.py). Several create paths
+        # (teacher roll-call, mobile sync, REST record) omit school, so derive it
+        # from the student (fallback: classroom). The student/classroom are the
+        # roll-call path's already-loaded objects, so this is free there.
+        if self.school_id is None:
+            self.school_id = getattr(self.student, "school_id", None) or getattr(
+                self.classroom, "school_id", None
+            )
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None and "school" not in update_fields:
+                kwargs["update_fields"] = list(update_fields) + ["school"]
+        super().save(*args, **kwargs)
+
     def clean(self):
         super().clean()
         from apps.compliance.attendance_region_packs import (
