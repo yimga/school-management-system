@@ -76,6 +76,34 @@
     </div>
   </div>
 
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">{% trans "Return, consume, or record loss" %}</div>
+        <div class="card-body">
+          <form method="post" class="row g-2 align-items-end">{% csrf_token %}
+            <input type="hidden" name="intent" value="stock_event">
+            <div class="col-md-5"><label class="form-label small">{% trans "Item" %}</label>
+              <select class="form-select" name="stock_item_id" required>
+                <option value="">{% trans "Select item…" %}</option>
+                {% for it in items %}<option value="{{ it.pk }}">{{ it.name }} ({{ it.quantity }})</option>{% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3"><label class="form-label small">{% trans "Movement" %}</label>
+              <select class="form-select" name="movement" required>
+                <option value="return">{% trans "Return to stock" %}</option>
+                <option value="consume">{% trans "Consume" %}</option>
+                <option value="loss">{% trans "Record loss" %}</option>
+              </select>
+            </div>
+            <div class="col-md-2"><label class="form-label small">{% trans "Quantity" %}</label><input class="form-control" type="number" name="stock_quantity" value="1" min="1"></div>
+            <div class="col-md-2"><button type="submit" class="btn btn-outline-primary">{% trans "Record" %}</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1"><thead><tr><th scope="col">{% trans "Name" %}</th><th scope="col">{% trans "Qty" %}</th><th scope="col">{% trans "Location" %}</th><th scope="col">{% trans "Reorder level" %}</th><th scope="col">{% trans "Adjust" %}</th></tr></thead>
     <caption class="visually-hidden">{% trans "Inventory" %} — {{ school.name }}</caption>
     <tbody>{% for it in items %}<tr data-rmc-row-detail="1" tabindex="0" data-rmc-row-title="{{ it.name }}" data-rmc-row-subtitle="{{ it.location|default:'—' }}"><td>{{ it.name }}{% if it.is_low %} <span class="badge text-bg-warning">{% trans "Low" %}</span>{% endif %}</td><td>{{ it.quantity }}</td><td>{{ it.location|default:"—" }}</td><td>

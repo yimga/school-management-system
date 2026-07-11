@@ -329,6 +329,55 @@ def ops_inventory(request):
                     messages.error(request, str(exc))
                 except (DatabaseError, TypeError, ValueError):
                     messages.error(request, "Could not transfer stock.")
+        elif intent == "stock_event":
+            pk_raw = (request.POST.get("stock_item_id") or "").strip()
+            movement = (request.POST.get("movement") or "").strip().lower()
+            if not pk_raw.isdigit():
+                messages.error(request, "Select a valid inventory line.")
+            elif movement not in ("return", "consume", "loss"):
+                messages.error(request, "Choose return, consume, or loss.")
+            else:
+                try:
+                    from apps.schoolops.inventory_services import (
+                        InventoryMovementError,
+                        consume_inventory,
+                        record_inventory_loss,
+                        return_inventory,
+                    )
+
+                    item = InventoryItem.objects.get(pk=int(pk_raw), school=school)
+                    qty = (request.POST.get("stock_quantity") or "0").strip()
+                    note = (request.POST.get("stock_notes") or "").strip()
+                    if movement == "return":
+                        return_inventory(
+                            school=school, item=item, quantity=qty,
+                            recorded_by=request.user, notes=note,
+                        )
+                        verb = "returned to"
+                    elif movement == "consume":
+                        consume_inventory(
+                            school=school, item=item, quantity=qty,
+                            recorded_by=request.user, notes=note,
+                        )
+                        verb = "consumed from"
+                    else:
+                        record_inventory_loss(
+                            school=school, item=item, quantity=qty,
+                            recorded_by=request.user, notes=note,
+                        )
+                        verb = "recorded as loss from"
+                    item.refresh_from_db()
+                    messages.success(
+                        request,
+                        f"Stock {verb} “{item.name}” (now {item.quantity}).",
+                    )
+                    return _ops_save_redirect(request, "accounts:ops_inventory")
+                except InventoryItem.DoesNotExist:
+                    messages.error(request, "Inventory line not found.")
+                except InventoryMovementError as exc:
+                    messages.error(request, str(exc))
+                except (DatabaseError, TypeError, ValueError):
+                    messages.error(request, "Could not record stock event.")
         elif intent == "set_reorder":
             pk_raw = (request.POST.get("reorder_item_id") or "").strip()
             if not pk_raw.isdigit():

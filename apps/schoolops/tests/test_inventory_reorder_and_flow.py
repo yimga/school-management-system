@@ -11,7 +11,10 @@ from apps.finance.models import Notification
 from apps.schoolops.inventory_services import (
     InventoryMovementError,
     checkout_inventory,
+    consume_inventory,
+    record_inventory_loss,
     record_inventory_movement,
+    return_inventory,
     transfer_inventory,
 )
 from apps.schoolops.models import InventoryItem
@@ -161,6 +164,104 @@ class InventoryCheckoutTransferTests(TestCase):
         dest.refresh_from_db()
         self.assertEqual(self.item.quantity, 5)
         self.assertEqual(dest.quantity, 6)
+
+    # ---- return / consume / loss producers ------------------------------
+
+    def test_return_increments_and_ledgers(self):
+        return_inventory(
+            school=self.school, item=self.item, quantity=4,
+            recorded_by=self.user, returned_from="Coach Lee",
+        )
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 14)
+        mv = InventoryMovement.objects.get(item=self.item)
+        self.assertEqual(mv.movement_type, InventoryMovement.MovementType.RETURN)
+        self.assertEqual(mv.quantity_delta, 4)
+        self.assertEqual(mv.quantity_after, 14)
+        self.assertIn("Coach Lee", mv.notes)
+
+    def test_consume_decrements_and_ledgers(self):
+        consume_inventory(
+            school=self.school, item=self.item, quantity=3, recorded_by=self.user,
+        )
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 7)
+        mv = InventoryMovement.objects.get(item=self.item)
+        self.assertEqual(mv.movement_type, InventoryMovement.MovementType.CONSUME)
+        self.assertEqual(mv.quantity_delta, -3)
+
+    def test_consume_insufficient_rejected(self):
+        with self.assertRaises(InventoryMovementError):
+            consume_inventory(school=self.school, item=self.item, quantity=99)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 10)
+        self.assertFalse(InventoryMovement.objects.filter(item=self.item).exists())
+
+    def test_loss_decrements_and_ledgers(self):
+        record_inventory_loss(
+            school=self.school, item=self.item, quantity=2,
+            recorded_by=self.user, reason="Water damage",
+        )
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 8)
+        mv = InventoryMovement.objects.get(item=self.item)
+        self.assertEqual(mv.movement_type, InventoryMovement.MovementType.LOSS)
+        self.assertEqual(mv.quantity_delta, -2)
+        self.assertIn("Water damage", mv.notes)
+
+    def test_loss_insufficient_rejected(self):
+        with self.assertRaises(InventoryMovementError):
+            record_inventory_loss(school=self.school, item=self.item, quantity=99)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 10)
+
+    # ---- view wiring for the stock_event intent -------------------------
+
+    def test_return_intent_via_view(self):
+        resp = ops_inventory(self._req({
+            "intent": "stock_event", "movement": "return",
+            "stock_item_id": str(self.item.pk), "stock_quantity": "5",
+        }))
+        self.assertEqual(resp.status_code, 302)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 15)
+        self.assertTrue(InventoryMovement.objects.filter(
+            item=self.item, movement_type=InventoryMovement.MovementType.RETURN,
+        ).exists())
+
+    def test_consume_intent_via_view(self):
+        resp = ops_inventory(self._req({
+            "intent": "stock_event", "movement": "consume",
+            "stock_item_id": str(self.item.pk), "stock_quantity": "4",
+        }))
+        self.assertEqual(resp.status_code, 302)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 6)
+        self.assertTrue(InventoryMovement.objects.filter(
+            item=self.item, movement_type=InventoryMovement.MovementType.CONSUME,
+        ).exists())
+
+    def test_loss_intent_via_view(self):
+        resp = ops_inventory(self._req({
+            "intent": "stock_event", "movement": "loss",
+            "stock_item_id": str(self.item.pk), "stock_quantity": "1",
+        }))
+        self.assertEqual(resp.status_code, 302)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 9)
+        self.assertTrue(InventoryMovement.objects.filter(
+            item=self.item, movement_type=InventoryMovement.MovementType.LOSS,
+        ).exists())
+
+    def test_stock_event_invalid_movement_creates_nothing(self):
+        # An unknown movement value must not touch stock or write a ledger row.
+        ops_inventory(self._req({
+            "intent": "stock_event", "movement": "teleport",
+            "stock_item_id": str(self.item.pk), "stock_quantity": "3",
+        }))
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 10)
+        self.assertFalse(InventoryMovement.objects.filter(item=self.item).exists())
 
 
 class InventoryReorderAlertTests(TestCase):

@@ -137,3 +137,87 @@ def transfer_inventory(
             notes=f"{base_note} (in)",
         )
     return out_movement, in_movement
+
+
+def return_inventory(
+    *,
+    school: Any,
+    item: Any,
+    quantity: Any,
+    recorded_by: Any | None = None,
+    returned_from: str = "",
+    notes: str = "",
+) -> Any:
+    """Return checked-out units back into stock.
+
+    Records a single RETURN movement with a POSITIVE delta (the inverse of a
+    checkout), so stock goes back up and a restock can close a low-stock episode.
+    """
+    from apps.schoolops.models_inventory_movement import InventoryMovement
+
+    qty = _coerce_positive_qty(quantity, label="Return")
+    who = (returned_from or "").strip()
+    note = (notes or "").strip() or (f"Returned by {who}" if who else "Return")
+    return record_inventory_movement(
+        school=school,
+        item=item,
+        movement_type=InventoryMovement.MovementType.RETURN,
+        quantity_delta=qty,
+        recorded_by=recorded_by,
+        notes=note,
+    )
+
+
+def consume_inventory(
+    *,
+    school: Any,
+    item: Any,
+    quantity: Any,
+    recorded_by: Any | None = None,
+    notes: str = "",
+) -> Any:
+    """Consume (use up) units — a negative CONSUME movement.
+
+    Consumption cannot exceed stock: the quantity-below-zero guard in
+    :func:`record_inventory_movement` rejects over-consumption.
+    """
+    from apps.schoolops.models_inventory_movement import InventoryMovement
+
+    qty = _coerce_positive_qty(quantity, label="Consume")
+    note = (notes or "").strip() or "Consumed"
+    return record_inventory_movement(
+        school=school,
+        item=item,
+        movement_type=InventoryMovement.MovementType.CONSUME,
+        quantity_delta=-qty,
+        recorded_by=recorded_by,
+        notes=note,
+    )
+
+
+def record_inventory_loss(
+    *,
+    school: Any,
+    item: Any,
+    quantity: Any,
+    recorded_by: Any | None = None,
+    reason: str = "",
+    notes: str = "",
+) -> Any:
+    """Record lost/damaged/stolen units — a negative LOSS movement.
+
+    Same below-zero guard as consumption: you cannot lose more than you hold.
+    """
+    from apps.schoolops.models_inventory_movement import InventoryMovement
+
+    qty = _coerce_positive_qty(quantity, label="Loss")
+    why = (reason or "").strip()
+    note = (notes or "").strip() or (f"Loss: {why}" if why else "Loss")
+    return record_inventory_movement(
+        school=school,
+        item=item,
+        movement_type=InventoryMovement.MovementType.LOSS,
+        quantity_delta=-qty,
+        recorded_by=recorded_by,
+        notes=note,
+    )
