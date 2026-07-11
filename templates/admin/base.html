@@ -84,11 +84,11 @@
                         {% include "admin/includes/admin_operator_steering_strip.html" %}
                     {% endif %}
                 {% endblock admin_operator_steering %}
-                <div class="cp-page-body cp-admin-page-body @container px-4 pb-4 rmc-shell-canvas-container" data-rmc-cp-page-body="1" data-rmc-backoffice-page-body="1" data-rmc-page-fold-nav="required">
+                <div class="cp-page-body cp-admin-page-body @container px-4 pb-4 rmc-shell-canvas-container" data-rmc-cp-page-body="1" data-rmc-backoffice-page-body="1" data-rmc-page-fold-nav="required" data-rmc-admin-canvas-contract="intelligent-full-width">
                 {% endif %}
 
                     {% comment %} v4.00.19 admin canvas defaults to full width on manager/change-form surfaces. {% endcomment %}
-                    <div id="content" class="{% if is_manager_host or opts %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}w-100 max-w-none{% endif %} mx-auto {% block coltype %}colM{% endblock %}"{% if not is_manager_host %} data-page-archetype="decision-console" data-decision-console-scope="django-admin"{% endif %}>
+                    <div id="content" class="{% if is_manager_host or opts %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}w-100 max-w-none{% endif %} mx-auto {% block coltype %}colM{% endblock %}" data-rmc-admin-content="canvas-first"{% if not is_manager_host %} data-page-archetype="decision-console" data-decision-console-scope="django-admin"{% endif %}>
                         {% block content_tabs %}
                             {% if opts and opts.app_label == 'siteconfig' and opts.model_name == 'sitesettings' and adminform %}
                                 <div class="site-settings-layout flex flex-col lg:flex-row gap-4 lg:gap-6">

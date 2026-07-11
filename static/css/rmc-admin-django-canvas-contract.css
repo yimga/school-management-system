@@ -478,3 +478,274 @@ html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rm
   max-width: none !important;
   margin-inline: 0 !important;
 }
+
+/* Intelligent full-canvas revamp:
+   Approved browser proof: creative, simple, full-width command surfaces.
+   This is the shared operator + tenant Django admin layer. */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] {
+  --rmc-admin-command-gap: clamp(0.75rem, 1vw, 1rem);
+  --rmc-admin-command-pad: clamp(0.85rem, 1.25vw, 1.2rem);
+  --rmc-admin-command-radius: var(--radius-lg, 14px);
+  --rmc-admin-command-rail: clamp(16rem, 20vw, 23rem);
+  --rmc-admin-command-field: clamp(18rem, 23vw, 25rem);
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-canvas-contract="intelligent-full-width"] {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  padding-inline: var(--rmc-django-canvas-gutter, clamp(0.75rem, 1.05vw, 1.25rem)) !important;
+  padding-bottom: max(4rem, env(safe-area-inset-bottom)) !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-content="canvas-first"] {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-content="canvas-first"] :is(
+  .rmc-admin-changeform-pagehead,
+  .rmc-admin-changelist-pagehead
+) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 var(--rmc-admin-command-gap) !important;
+  padding: var(--rmc-admin-command-pad) !important;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: var(--rmc-admin-command-radius);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--school-primary, var(--primary, currentColor)) 16%, transparent), transparent 56%),
+    color-mix(in srgb, var(--surface-elevated, currentColor) 78%, transparent);
+  box-shadow: var(--elev-1, none);
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-content="canvas-first"] :is(
+  .rmc-admin-changeform-pagehead,
+  .rmc-admin-changelist-pagehead
+) h1 {
+  margin: 0 !important;
+  color: var(--text-primary, inherit) !important;
+  font-size: clamp(1.25rem, 1.55vw, 1.8rem) !important;
+  line-height: 1.12 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-content="canvas-first"] :is(
+  .rmc-admin-changeform-pagehead,
+  .rmc-admin-changelist-pagehead
+) .object-tools :is(a, button) {
+  min-height: 2.1rem;
+  border-radius: var(--radius-pill, 999px) !important;
+  border-color: var(--hairline, rgba(255, 255, 255, 0.14)) !important;
+  background: color-mix(in srgb, var(--surface-canvas, currentColor) 70%, transparent) !important;
+  color: var(--text-primary, inherit) !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: var(--rmc-admin-command-radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated, currentColor) 92%, transparent), color-mix(in srgb, var(--surface-canvas, currentColor) 96%, transparent));
+  box-shadow: var(--elev-2, none);
+  padding: var(--rmc-admin-command-pad);
+}
+
+@media (min-width: 1320px) {
+  html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] {
+    grid-template-columns: minmax(0, 1fr) var(--rmc-admin-command-rail) !important;
+  }
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] [data-rmc-admin-form-contract="premium-form-frame"] {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: calc(var(--rmc-admin-command-radius) - 2px);
+  background: color-mix(in srgb, var(--surface-canvas, currentColor) 88%, transparent);
+  overflow: hidden !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] form > .flex.flex-col.gap-6 {
+  gap: var(--rmc-admin-command-gap) !important;
+  padding: var(--rmc-admin-command-pad) !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] :is(
+  fieldset.module,
+  .module,
+  .inline-group
+) {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: calc(var(--rmc-admin-command-radius) - 4px) !important;
+  background: color-mix(in srgb, var(--surface-elevated, currentColor) 72%, transparent) !important;
+  box-shadow: none !important;
+  overflow: clip !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] :is(
+  fieldset.module > h2,
+  .module > h2,
+  .inline-group > h2,
+  .inline-group h2
+) {
+  margin: 0 !important;
+  padding: 0.75rem 0.9rem !important;
+  border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  background: color-mix(in srgb, var(--surface-canvas, currentColor) 72%, transparent) !important;
+  color: var(--text-primary, inherit) !important;
+  font-size: 0.75rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--rmc-admin-command-field)), 1fr)) !important;
+  gap: 0.55rem clamp(0.9rem, 1.35vw, 1.45rem) !important;
+  padding: var(--rmc-admin-command-pad) !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row {
+  min-width: 0 !important;
+  border-block-end: 0 !important;
+  padding-block: 0.18rem !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] :is(label, .form-label) {
+  margin-bottom: 0.35rem !important;
+  color: var(--text-secondary, inherit) !important;
+  font-size: 0.72rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.045em !important;
+  text-transform: uppercase !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select, .vTextField, .vLargeTextField) {
+  min-height: 2.45rem !important;
+  border-radius: var(--radius-md, 10px) !important;
+  border-color: var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  background: color-mix(in srgb, var(--surface-canvas, currentColor) 88%, transparent) !important;
+  color: var(--text-primary, inherit) !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] :is(.help, .helptext, .readonly, .description) {
+  color: var(--text-tertiary, var(--text-secondary, inherit)) !important;
+  font-size: 0.76rem !important;
+  line-height: 1.45 !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] .rmc-admin-context-rail {
+  display: grid;
+  gap: var(--rmc-admin-command-gap);
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] .rmc-rail-card {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: calc(var(--rmc-admin-command-radius) - 2px);
+  background: color-mix(in srgb, var(--surface-elevated, currentColor) 72%, transparent);
+  overflow: hidden;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] .rmc-rail-h {
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  color: var(--text-primary, inherit);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] .rmc-rail-b {
+  padding: 0.85rem;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] .rmc-rail-actions {
+  display: grid;
+  gap: 0.45rem;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] .rmc-rail-actions a,
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-form"] .rmc-onthispage a {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  border-radius: var(--radius-md, 10px);
+  color: var(--text-primary, inherit);
+  text-decoration: none;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-submit-contract="sticky-safe-actions"] {
+  padding-top: 0 !important;
+  border-top: 0 !important;
+  background: transparent !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-submit-contract="sticky-safe-actions"] > .rmc-admin-submit-row__inner {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: calc(var(--rmc-admin-command-radius) - 2px) !important;
+  background: color-mix(in srgb, var(--surface-elevated, currentColor) 82%, transparent) !important;
+  box-shadow: none !important;
+  padding: 0.8rem !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-submit-contract="sticky-safe-actions"] :is(button, a) {
+  min-height: 2.2rem !important;
+  border-radius: var(--radius-md, 10px) !important;
+  font-weight: 850 !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-changelist"] {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: var(--rmc-admin-command-radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated, currentColor) 88%, transparent), color-mix(in srgb, var(--surface-canvas, currentColor) 94%, transparent));
+  box-shadow: var(--elev-2, none);
+  padding: var(--rmc-admin-command-pad);
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-surface="smart-changelist"] .rmc-admin-changelist-toolbar {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: calc(var(--rmc-admin-command-radius) - 2px) !important;
+  background: color-mix(in srgb, var(--surface-elevated, currentColor) 72%, transparent) !important;
+  box-shadow: none !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] #changelist-form {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: calc(var(--rmc-admin-command-radius) - 2px) !important;
+  background: color-mix(in srgb, var(--surface-canvas, currentColor) 86%, transparent) !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] :is(#result_list thead th, .results table thead th) {
+  background: color-mix(in srgb, var(--surface-elevated, currentColor) 78%, transparent) !important;
+  color: var(--brand-success, var(--text-primary, inherit)) !important;
+  font-size: 0.7rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] :is(#result_list tbody td, .results table tbody td) {
+  padding-block: 0.62rem !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline, currentColor) 70%, transparent) !important;
+  color: var(--text-primary, inherit) !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] :is(#result_list tbody tr:nth-child(even) td, .results table tbody tr:nth-child(even) td) {
+  background: color-mix(in srgb, var(--surface-elevated, currentColor) 34%, transparent) !important;
+}
+
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-content="canvas-first"] :is(
+  .rmc-preview-iframe,
+  iframe[data-rmc-preview-frame],
+  .document-preview,
+  .theme-preview-section,
+  .rmc-mv-form-with-preview__preview
+) {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: var(--rmc-admin-command-radius);
+  background: color-mix(in srgb, var(--surface-elevated, currentColor) 72%, transparent);
+}

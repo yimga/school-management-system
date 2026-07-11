@@ -27,7 +27,7 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260710-specificity-hardening" not in base_site:
+    if "?v=20260710-intelligent-canvas" not in base_site:
         errors.append("Django canvas contract link must be cache-busted for deployment visibility")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
@@ -37,12 +37,20 @@ def main() -> int:
 
     if 'data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}"' not in base:
         errors.append("admin/base.html missing explicit manager/tenant shell host marker")
+    if 'data-rmc-admin-canvas-contract="intelligent-full-width"' not in base:
+        errors.append("admin/base.html missing intelligent full-width canvas marker")
+    if 'data-rmc-admin-content="canvas-first"' not in base:
+        errors.append("admin/base.html missing canvas-first content marker")
     if 'data-rmc-admin-form-contract="premium-form-frame"' not in change_form:
         errors.append("admin/change_form.html missing premium form frame marker")
     if 'data-rmc-admin-form-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}"' not in change_form:
         errors.append("admin/change_form.html missing operator/tenant form scope marker")
+    if 'data-rmc-admin-surface="smart-form"' not in change_form:
+        errors.append("admin/change_form.html missing smart form surface marker")
     if 'data-rmc-admin-table-contract="native-table-scroll"' not in change_list:
         errors.append("admin/change_list.html missing native table scroll marker")
+    if 'data-rmc-admin-surface="smart-changelist"' not in change_list:
+        errors.append("admin/change_list.html missing smart changelist surface marker")
     if 'class="cp-changelist-live"' not in change_list:
         errors.append("admin/change_list.html must apply cp-changelist-live to tenant and operator")
 
@@ -52,6 +60,14 @@ def main() -> int:
         "[data-rmc-admin-table-contract=\"native-table-scroll\"]",
         "--rmc-backoffice-form-max",
         "Specificity hardening",
+        "Intelligent full-canvas revamp",
+        "data-rmc-admin-canvas-contract=\"intelligent-full-width\"",
+        "data-rmc-admin-content=\"canvas-first\"",
+        "data-rmc-admin-surface=\"smart-form\"",
+        "data-rmc-admin-surface=\"smart-changelist\"",
+        "rmc-admin-changeform-pagehead",
+        "rmc-admin-changelist-pagehead",
+        "rmc-rail-card",
         "#content-main.cp-form-frame[data-rmc-admin-form-contract=\"premium-form-frame\"]",
         "rmc-admin-workspace",
         "data-rmc-admin-form-contract=\"premium-form-frame\"",

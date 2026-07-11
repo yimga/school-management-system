@@ -40,7 +40,7 @@
         {% include "admin/includes/admin_change_form_header.html" %}
     {% endif %}
     {% comment %} v4.02.12: manager change forms become a two-pane workspace (field grid + sticky context rail). {% endcomment %}
-    <div class="{% if not is_popup %}rmc-admin-workspace{% endif %}"{% if not is_popup %} data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}"{% endif %}>
+    <div class="{% if not is_popup %}rmc-admin-workspace{% endif %}"{% if not is_popup %} data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-form"{% endif %}>
     <div id="content-main" class="{% if not is_popup %}cp-form-frame{% endif %}"{% if not is_popup %} data-rmc-admin-form-contract="premium-form-frame" data-rmc-admin-form-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}"{% endif %}>
         {% include "unfold/helpers/popup_header.html" %}
 

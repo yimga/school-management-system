@@ -47,6 +47,15 @@ Audited the deploy-state admin shell on `origin/main` for the approved canvas-fi
   form capped by older `--rmc-backoffice-form-max` rules from `admin-cp-parity.css`.
   The final contract now targets the exact manager and tenant form-frame selectors
   with higher specificity and a new cache-busted URL.
+- Applied the approved intelligent full-canvas browser direction across shared
+  Django admin surfaces:
+  - base admin canvas now carries `data-rmc-admin-canvas-contract="intelligent-full-width"`;
+  - all admin content carries `data-rmc-admin-content="canvas-first"`;
+  - change forms carry `data-rmc-admin-surface="smart-form"`;
+  - changelists carry `data-rmc-admin-surface="smart-changelist"`;
+  - final CSS styles the command headers, smart form grid, context rail, static
+    save row, native changelist table, and preview-heavy panels for operator and
+    tenant backends.
 
 ## Validation
 

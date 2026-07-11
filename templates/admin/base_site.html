@@ -221,7 +221,7 @@
   {% comment %} v4.10.2: last-loaded Django admin surface contract for both operator
      and tenant backends. Keeps approved canvas-first/full-width rules from being
      undone by older model-specific or Unfold defaults. {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260710-specificity-hardening">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260710-intelligent-canvas">
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
   {% comment %} Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). {% endcomment %}
   <style id="admin-brand-resolved-tokens">
@@ -611,6 +611,6 @@
   {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   {% comment %} v4.10.2: terminal repeat so Django canvas contract wins after
      late preview/theme inline styles too. {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260710-specificity-hardening">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260710-intelligent-canvas">
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}
