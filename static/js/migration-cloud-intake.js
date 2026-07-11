@@ -73,6 +73,59 @@
     return file.name + "|" + file.size + "|" + (file.lastModified || 0);
   }
 
+  // Filename -> canonical domain (client-side auto-detect). Mirrors the server's
+  // guess_domain_from_filename so a JS-off submit still lands a sane default;
+  // first substring match wins, longer/more-specific tokens listed first.
+  var DOMAIN_HINTS = [
+    ["transport_assignment", "transport_assignments"], ["hostel_assignment", "hostel_assignments"],
+    ["cafeteria_assignment", "cafeteria_assignments"], ["meal_plan_assignment", "cafeteria_assignments"],
+    ["student", "students"], ["pupil", "students"], ["learner", "students"],
+    ["teacher", "staff"], ["staff", "staff"], ["employee", "staff"], ["faculty", "staff"],
+    ["parent", "guardians"], ["guardian", "guardians"], ["contact", "guardians"],
+    ["enrol", "enrollment"], ["enroll", "enrollment"], ["registration", "enrollment"],
+    ["subject", "sections"], ["course", "sections"], ["class", "sections"], ["section", "sections"],
+    ["attendance", "attendance"],
+    ["grade", "grades"], ["mark", "grades"], ["score", "grades"], ["result", "grades"],
+    ["behavior", "behavior"], ["behaviour", "behavior"], ["discipline", "behavior"], ["incident", "behavior"],
+    ["invoice", "finance"], ["fee", "finance"], ["finance", "finance"], ["billing", "finance"], ["payment", "finance"],
+    ["transcript", "transcripts"],
+    ["health", "health"], ["medical", "health"],
+    ["payroll", "payroll"], ["payslip", "payroll"], ["salary", "payroll"],
+    ["message", "communications"], ["communication", "communications"],
+    ["event", "events"],
+    ["library", "library"], ["book", "library"],
+    ["transport", "transport"], ["bus", "transport"],
+    ["hostel", "hostel"], ["boarding", "hostel"], ["dorm", "hostel"],
+    ["cafeteria", "cafeteria"], ["meal", "cafeteria"], ["canteen", "cafeteria"],
+    ["alumni", "alumni"], ["alumnus", "alumni"],
+    ["compliance", "compliance"]
+  ];
+  function guessDomain(name) {
+    var n = String(name || "").toLowerCase();
+    for (var i = 0; i < DOMAIN_HINTS.length; i++) {
+      if (n.indexOf(DOMAIN_HINTS[i][0]) !== -1) { return DOMAIN_HINTS[i][1]; }
+    }
+    return "";
+  }
+
+  // Operator's per-file domain choice, keyed by fileKey so a manual override
+  // survives a re-render (adding/removing another file). The map submitted to
+  // the server is keyed by filename.
+  var domainByKey = {};
+
+  function rebuildDomainMap(form) {
+    var input = form.querySelector("[data-mc-upload-input]");
+    var hidden = form.querySelector("[data-mc-domain-map]");
+    if (!input || !hidden) { return; }
+    var files = Array.prototype.slice.call(input.files || []);
+    var map = {};
+    files.forEach(function (f) {
+      var d = domainByKey[fileKey(f)];
+      if (d) { map[f.name] = d; }
+    });
+    hidden.value = Object.keys(map).length ? JSON.stringify(map) : "";
+  }
+
   // Accumulate newly-chosen files onto the input's existing selection so
   // operators can add files across MULTIPLE browse clicks / drops (a native
   // <input multiple> otherwise REPLACES the whole list on every new pick —
@@ -117,12 +170,16 @@
     var list = form.querySelector("[data-mc-upload-list]");
     if (!input || !summary || !list) return;
     var files = Array.prototype.slice.call(input.files || []);
+    var tagHint = form.querySelector("[data-mc-tag-hint]");
     list.innerHTML = "";
     if (!files.length) {
       summary.textContent = "No files selected yet.";
+      if (tagHint) { tagHint.hidden = true; }
+      rebuildDomainMap(form);
       updateReadiness(form);
       return;
     }
+    if (tagHint) { tagHint.hidden = false; }
     var maxBytes = Number(form.getAttribute("data-mc-max-upload-bytes") || 0);
     var total = files.reduce(function (sum, file) { return sum + file.size; }, 0);
     var oversized = files.filter(function (file) { return maxBytes && file.size > maxBytes; });
@@ -134,7 +191,9 @@
         " " + oversized.length + " file" +
         (oversized.length === 1 ? "" : "s") + " exceed the per-file cap.";
     }
+    var tmpl = form.querySelector("[data-mc-domain-template]");
     files.forEach(function (file) {
+      var key = fileKey(file);
       var item = document.createElement("li");
       item.innerHTML =
         "<strong></strong><span></span>" +
@@ -142,12 +201,32 @@
       item.querySelector("strong").textContent = file.name;
       item.querySelector("span").textContent = bytesLabel(file.size);
       var rm = item.querySelector(".rmc-intake-file-remove");
-      rm.setAttribute("data-mc-file-key", fileKey(file));
+      rm.setAttribute("data-mc-file-key", key);
       if (maxBytes && file.size > maxBytes) {
         item.setAttribute("data-mc-file-warning", "oversized");
       }
+      // Per-file domain tagger: clone the hidden template <select>, preselect
+      // the auto-detected domain (operator can change it), and keep the
+      // {filename: domain} map in sync on every change.
+      if (tmpl && tmpl.cloneNode) {
+        var sel = tmpl.cloneNode(true);
+        sel.removeAttribute("data-mc-domain-template");
+        sel.removeAttribute("hidden");
+        sel.removeAttribute("aria-hidden");
+        sel.removeAttribute("tabindex");
+        sel.setAttribute("data-mc-file-domain", key);
+        sel.setAttribute("aria-label", "Record type for " + file.name);
+        if (!(key in domainByKey)) { domainByKey[key] = guessDomain(file.name); }
+        sel.value = domainByKey[key] || "";
+        sel.addEventListener("change", function () {
+          domainByKey[key] = sel.value;
+          rebuildDomainMap(form);
+        });
+        item.appendChild(sel);
+      }
       list.appendChild(item);
     });
+    rebuildDomainMap(form);
     updateReadiness(form);
   }
 

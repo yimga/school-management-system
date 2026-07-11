@@ -37,6 +37,25 @@ from .progress import emit as _emit_progress, refresh_snapshot
 logger = logging.getLogger(__name__)
 
 
+def _operator_domain_for(operator_domains: dict, artifact) -> str:
+    """The operator's per-file domain tag for this artifact, if any.
+
+    Matches by ``path_within_bundle`` first (exact) then the bare ``filename``
+    (the tagger keys by upload filename). Validated against the canonical domain
+    registry so a stale/garbage tag can never route an artifact to a bogus
+    lander. Returns '' when the operator did not tag this file.
+    """
+    if not operator_domains:
+        return ""
+    from .accelerators.runmycampus_canonical import is_valid_canonical_domain
+
+    for key in (artifact.path_within_bundle, artifact.filename):
+        val = (operator_domains.get(key) or "").strip()
+        if val and is_valid_canonical_domain(val):
+            return val
+    return ""
+
+
 def _coerce_secret(value: Any) -> dict[str, Any]:
     """Normalise a bundle's ``connector_secret`` to a plain dict.
 
@@ -204,20 +223,31 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
             summary["ai_calls"] += 1
 
         # --- Phase U3: per-artifact domain classification -----------------
+        # Operator per-file tags (from the multi-file canonical-CSV upload
+        # tagger) OVERRIDE inference — the operator explicitly said "this file
+        # is X", which is more authoritative than any content/filename guess.
+        operator_domains = (
+            (bundle.discovery_summary or {}).get("operator_assigned_domains") or {}
+        )
         per_artifact: dict[str, dict[str, Any]] = {}
         for artifact in artifacts:
             domain_result = classify_domain(artifact=artifact)
+            assigned = _operator_domain_for(operator_domains, artifact)
             artifact.inferred_source = source_result["chosen"][:64]
             artifact.inferred_domain = domain_result["candidates"]
-            artifact.save(
-                update_fields=["inferred_source", "inferred_domain", "updated_at"]
-            )
+            update_fields = ["inferred_source", "inferred_domain", "updated_at"]
+            if assigned:
+                artifact.assigned_domain = assigned
+                update_fields.append("assigned_domain")
+            artifact.save(update_fields=update_fields)
+            chosen = assigned or domain_result["chosen"]
+            method = "operator_assigned" if assigned else domain_result["method"]
             per_artifact[artifact.path_within_bundle] = {
-                "domain": domain_result["chosen"],
+                "domain": chosen,
                 "candidates": domain_result["candidates"],
-                "method": domain_result["method"],
+                "method": method,
             }
-            if domain_result["method"] == "ai_bridge":
+            if not assigned and domain_result["method"] == "ai_bridge":
                 summary["ai_calls"] += 1
 
         bundle.discovery_summary = {
@@ -273,6 +303,10 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
                         if not domain:
                             continue
                         existing = dict(per_artifact_domain.get(path) or {})
+                        # An explicit operator tag outranks even the deterministic
+                        # accelerator — never override "this file is X".
+                        if existing.get("method") == "operator_assigned":
+                            continue
                         existing.update(
                             {
                                 "domain": domain,

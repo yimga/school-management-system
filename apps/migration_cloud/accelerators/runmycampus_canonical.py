@@ -241,6 +241,134 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
 }
 
 
+# Human-friendly labels for the per-file upload tagger (operator picks
+# "this file is X"). Any domain not listed falls back to a title-cased slug,
+# so the tagger never breaks when a new canonical domain is added above.
+DOMAIN_UI_LABELS: dict[str, str] = {
+    "students": "Students",
+    "staff": "Teachers / Staff",
+    "guardians": "Parents / Guardians",
+    "enrollment": "Enrollment",
+    "structure": "Academic structure",
+    "sections": "Classes / Sections",
+    "attendance": "Attendance",
+    "grades": "Grades / Marks",
+    "behavior": "Behaviour / Discipline",
+    "finance": "Invoices / Fees",
+    "transcripts": "Transcripts",
+    "health": "Health records",
+    "payroll": "Payroll",
+    "communications": "Communications",
+    "events": "Events",
+    "library": "Library",
+    "transport": "Transport",
+    "transport_assignments": "Transport assignments",
+    "hostel": "Hostel / Boarding",
+    "hostel_assignments": "Hostel assignments",
+    "cafeteria": "Cafeteria / Meals",
+    "cafeteria_assignments": "Meal plan assignments",
+    "alumni": "Alumni",
+    "compliance": "Compliance",
+    "athletics_teams": "Athletics — teams",
+    "athletics_memberships": "Athletics — roster",
+    "athletics_fixtures": "Athletics — fixtures",
+}
+
+# Filename tokens → domain, so the tagger can AUTO-DETECT a file's record type
+# from its name (server-side fallback mirrored by the client JS). First match
+# wins; longer/more-specific tokens are listed before their prefixes.
+DOMAIN_FILENAME_HINTS: tuple[tuple[str, str], ...] = (
+    ("transport_assignment", "transport_assignments"),
+    ("hostel_assignment", "hostel_assignments"),
+    ("cafeteria_assignment", "cafeteria_assignments"),
+    ("meal_plan_assignment", "cafeteria_assignments"),
+    ("student", "students"),
+    ("pupil", "students"),
+    ("learner", "students"),
+    ("teacher", "staff"),
+    ("staff", "staff"),
+    ("employee", "staff"),
+    ("faculty", "staff"),
+    ("parent", "guardians"),
+    ("guardian", "guardians"),
+    ("contact", "guardians"),
+    ("enrol", "enrollment"),
+    ("enroll", "enrollment"),
+    ("registration", "enrollment"),
+    ("subject", "sections"),
+    ("course", "sections"),
+    ("class", "sections"),
+    ("section", "sections"),
+    ("attendance", "attendance"),
+    ("grade", "grades"),
+    ("mark", "grades"),
+    ("score", "grades"),
+    ("result", "grades"),
+    ("behavior", "behavior"),
+    ("behaviour", "behavior"),
+    ("discipline", "behavior"),
+    ("incident", "behavior"),
+    ("invoice", "finance"),
+    ("fee", "finance"),
+    ("finance", "finance"),
+    ("billing", "finance"),
+    ("payment", "finance"),
+    ("transcript", "transcripts"),
+    ("health", "health"),
+    ("medical", "health"),
+    ("payroll", "payroll"),
+    ("payslip", "payroll"),
+    ("salary", "payroll"),
+    ("message", "communications"),
+    ("communication", "communications"),
+    ("event", "events"),
+    ("library", "library"),
+    ("book", "library"),
+    ("transport", "transport"),
+    ("bus", "transport"),
+    ("hostel", "hostel"),
+    ("boarding", "hostel"),
+    ("dorm", "hostel"),
+    ("cafeteria", "cafeteria"),
+    ("meal", "cafeteria"),
+    ("canteen", "cafeteria"),
+    ("alumni", "alumni"),
+    ("alumnus", "alumni"),
+    ("compliance", "compliance"),
+)
+
+
+def canonical_domain_label(slug: str) -> str:
+    """Friendly label for a canonical domain slug (title-cased fallback)."""
+    return DOMAIN_UI_LABELS.get(slug) or (slug or "").replace("_", " ").title()
+
+
+def is_valid_canonical_domain(slug: str) -> bool:
+    return bool(slug) and slug in DOMAIN_CANONICAL_HEADERS
+
+
+def canonical_domain_choices() -> list[dict[str, str]]:
+    """Ordered [{'slug','label'}] for the per-file upload domain selector."""
+    return [
+        {"slug": slug, "label": canonical_domain_label(slug)}
+        for slug in sorted(DOMAIN_CANONICAL_HEADERS)
+    ]
+
+
+def guess_domain_from_filename(filename: str) -> str:
+    """Best-effort canonical domain from a filename (server-side auto-detect).
+
+    Returns '' when nothing matches (the tagger then shows 'Auto-detect' and the
+    classifier decides). Mirrors the client-side JS so a JS-off submit still gets
+    a sensible default.
+    """
+    name = (filename or "").rsplit("/", 1)[-1].rsplit("\\", 1)[-1].lower()
+    for token, domain in DOMAIN_FILENAME_HINTS:
+        if token in name:
+            return domain
+    return ""
+
+
 # Minimum canonical headers that must be present for the second-tier
 # (header-only) activation to fire when the filename has been renamed.
 HEADER_MATCH_MIN_HITS = 3

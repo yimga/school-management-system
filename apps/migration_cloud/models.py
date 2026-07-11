@@ -366,6 +366,18 @@ class MigrationArtifact(models.Model):
         blank=True,
         help_text="Phase U3 ranked domain candidates: [{'domain': 'students', 'confidence': 0.93}, ...].",
     )
+    assigned_domain = models.CharField(
+        max_length=40,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=(
+            "Operator-assigned canonical domain for this file (e.g. 'students', "
+            "'staff', 'finance'). Set from the multi-file upload tagger; OVERRIDES "
+            "inference and accelerator routing so the operator's explicit "
+            "'this file is X' always wins. Blank = auto-detect."
+        ),
+    )
     quarantined = models.BooleanField(default=False, db_index=True)
     quarantine_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

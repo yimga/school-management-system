@@ -247,6 +247,21 @@ body.control-plane-shell #cp-main-content .cp-page-body:has(.rmc-page--migration
   color: var(--text-primary, #111827);
 }
 
+/* Per-file domain tagger: lay the record-type <select> alongside each file
+   row so the operator confirms what each uploaded file holds. Layout only —
+   colours inherit from the shared .rmc-input tokens. */
+.rmc-page--migration-cloud-intake .rmc-intake-file-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.rmc-page--migration-cloud-intake .rmc-intake-file-domain {
+  margin-inline-start: auto;
+  inline-size: auto;
+  max-inline-size: 15rem;
+}
+
 .rmc-page--migration-cloud-intake .rmc-intake-dropzone {
   min-block-size: 7.5rem;
 }

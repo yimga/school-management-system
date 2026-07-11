@@ -393,6 +393,10 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
                 bundle_id = result.bundle_id
                 bundle = MigrationBundle.objects.get(pk=bundle_id, school_id=school_id)
                 self._apply_intake_options(bundle=bundle, values=intake_options)
+                # Persist the operator's per-file domain tags BEFORE auto-advance
+                # so the classify step routes each file to the domain the
+                # operator chose (students / teachers / subjects / …).
+                self._store_operator_domains(request=request, bundle=bundle)
             except Exception as exc:  # noqa: BLE001 — surface intake failures inline
                 logger.exception("migration_cloud.views: intake failed for method=%s", method)
                 cache.delete(lock_key)
@@ -431,6 +435,44 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
         )
         return redirect(detail_url)
 
+    def _store_operator_domains(self, *, request, bundle) -> None:
+        """Record the operator's per-file domain tags on the bundle.
+
+        The multi-file uploader posts a JSON ``artifact_domain_map`` of
+        ``{filename: canonical_domain}``. We validate each tag against the
+        canonical domain registry (an unknown/garbage tag is dropped, never
+        routed) and stash the map under
+        ``discovery_summary['operator_assigned_domains']``, which the pipeline's
+        classify step reads to override inference. Best-effort — a malformed map
+        never blocks the intake.
+        """
+        import json
+
+        raw = (request.POST.get("artifact_domain_map") or "").strip()
+        if not raw:
+            return
+        try:
+            parsed = json.loads(raw)
+        except (ValueError, TypeError):
+            return
+        if not isinstance(parsed, dict):
+            return
+        from .accelerators.runmycampus_canonical import is_valid_canonical_domain
+
+        cleaned: dict[str, str] = {}
+        for fname, domain in parsed.items():
+            tag = (str(domain).strip() if domain is not None else "")
+            if tag and tag != "auto" and is_valid_canonical_domain(tag):
+                cleaned[str(fname)[:255]] = tag  # magic-number-allow: matches MigrationArtifact.filename max_length
+        if not cleaned:
+            return
+        summary = dict(bundle.discovery_summary or {})
+        existing = dict(summary.get("operator_assigned_domains") or {})
+        existing.update(cleaned)
+        summary["operator_assigned_domains"] = existing
+        bundle.discovery_summary = summary
+        bundle.save(update_fields=["discovery_summary", "updated_at"])
+
     def _context(self, *, request, shell: str, errors, form):
         defaults = {
             "intake_method": "",
@@ -449,6 +491,8 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
             "expected_invoice_count": "",
             "expected_invoice_total_amount": "",
         }
+        from .accelerators.runmycampus_canonical import canonical_domain_choices
+
         form_data = {**defaults, **(form or {})}
         max_upload_bytes = self._max_upload_bytes()
         intake_methods = [
@@ -512,6 +556,11 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
                 "Include a row-count or financial control total when the source provides one.",
                 "Use remote URL/SFTP/S3 for exports that exceed browser upload limits.",
             ],
+            # Per-file domain tagger: the operator uploads many canonical CSVs at
+            # once and tells us which record type each file is (students /
+            # teachers / subjects / …). Auto-detected from the filename, always
+            # overridable, and authoritative over inference at apply time.
+            "canonical_domains": canonical_domain_choices(),
         }
 
     def _clean_intake_options(self, *, form: dict[str, Any], errors: list[str]) -> dict[str, Any]:

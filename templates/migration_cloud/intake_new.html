@@ -203,7 +203,21 @@
           <div class="rmc-intake-file-summary" data-mc-upload-summary aria-live="polite">
             {% trans "No files selected yet." %}
           </div>
+          <p class="rmc-form__help" data-mc-tag-hint hidden>{% trans "Tell us what each file holds — auto-detected from the filename, change any that are wrong. Your choice overrides automatic detection." %}</p>
           <ul class="rmc-intake-file-list" data-mc-upload-list></ul>
+          {% comment %}
+            Per-file domain tagger. The JS clones the hidden template <select>
+            into each file row so the operator confirms which record type each
+            uploaded file is (students / teachers / subjects / invoices / …).
+            The chosen tags post as a JSON {filename: domain} map that the
+            pipeline uses to route each file to the right lander — overriding
+            automatic classification.
+          {% endcomment %}
+          <input type="hidden" name="artifact_domain_map" data-mc-domain-map value="">
+          <select class="rmc-input rmc-input--select rmc-intake-file-domain" data-mc-domain-template hidden aria-hidden="true" tabindex="-1">
+            <option value="">{% trans "Auto-detect record type" %}</option>
+            {% for d in canonical_domains %}<option value="{{ d.slug }}">{{ d.label }}</option>{% endfor %}
+          </select>
         </div>
 
         <div class="rmc-intake-source-section" data-mc-intake-kind="url" hidden>
