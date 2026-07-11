@@ -166,7 +166,22 @@ def enforce_permission_token(user, code: str, *, school=None) -> bool:
         return False
     if not bool(getattr(settings, "RMC_REBAC_ENFORCE_SENSITIVE", False)):
         return True
-    return check_permission_token(user, code, school=school)
+    rebac_ok = check_permission_token(user, code, school=school)
+    if not rebac_ok:
+        # RBAC allows but the ReBAC `can` tuple is missing/stale, so enforcement
+        # denies a user who is otherwise permitted. This is the operational-drift
+        # lockout signal: surface it (ids + code only, never PII) so a denied
+        # legitimate user is diagnosable instead of a bare 403. Behaviour is
+        # unchanged — the deny still stands; run `check_rebac_enforcement_readiness`
+        # before enabling enforcement to drive this count to zero per tenant.
+        logger.warning(
+            "rebac_enforce_denied user_id=%s school_id=%s code=%s "
+            "(rbac=allow rebac=deny — missing/stale can tuple)",
+            getattr(user, "pk", None),
+            getattr(school, "pk", None),
+            code,
+        )
+    return rebac_ok
 
 
 def tuples_for_user(*, school, user) -> list[dict[str, str]]:
