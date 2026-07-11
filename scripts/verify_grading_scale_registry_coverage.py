@@ -35,6 +35,32 @@ if str(REPO) not in sys.path:
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 
+def _boundary_display_ok(boundary) -> bool:
+    """A band table is DISPLAYABLE (not merely present) when every band carries a
+    non-empty ``grade`` label AND a representative mid-range score resolves to one
+    of those labels. That catches an unlabeled band or a coverage hole where an
+    in-range mark would render blank. Range-only scales display the numeric value
+    itself and are checked separately (they need no band label)."""
+    entries = [b for b in boundary if isinstance(b, dict)]
+    if len(entries) < 2:
+        return False
+    if not all(isinstance(b.get("grade"), str) and b.get("grade").strip() for b in entries):
+        return False
+    try:
+        lo = min(float(b["min"]) for b in entries)
+        hi = max(float(b["max"]) for b in entries)
+    except (KeyError, TypeError, ValueError):
+        return False
+    mid = (lo + hi) / 2.0
+    for b in entries:
+        try:
+            if float(b["min"]) <= mid <= float(b["max"]):
+                return bool(b.get("grade") and b["grade"].strip())
+        except (KeyError, TypeError, ValueError):
+            continue
+    return False  # mid-range score fell in no band → a display coverage hole
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--write", action="store_true")
@@ -55,6 +81,7 @@ def main() -> int:
         if not GradeScaleRegistry.objects.filter(code=code, is_active=True).exists()
     ]
     band_gaps: list[str] = []
+    display_gaps: list[str] = []
     if args.strict:
         for code in REQUIRED_CODES:
             row = GradeScaleRegistry.objects.filter(code=code, is_active=True).first()
@@ -67,24 +94,31 @@ def main() -> int:
             has_bands = isinstance(boundary, list) and len(boundary) >= 2
             if not has_range and not has_bands:
                 band_gaps.append(code)
+            # A band-based scale must not just HAVE a band table — it must render a
+            # display label for an in-range score (labeled bands, no coverage hole).
+            # Range-only scales display the numeric value and need no band label.
+            if has_bands and not _boundary_display_ok(boundary):
+                display_gaps.append(code)
     payload = {
         "verdict": (
             "GRADING_SCALE_REGISTRY_PASS"
-            if not missing and not band_gaps
+            if not missing and not band_gaps and not display_gaps
             else "GRADING_SCALE_REGISTRY_FAIL"
         ),
         "required": list(REQUIRED_CODES),
         "missing": missing,
         "band_gaps": band_gaps,
-        "finding_count": len(missing) + len(band_gaps),
+        "display_gaps": display_gaps,
+        "finding_count": len(missing) + len(band_gaps) + len(display_gaps),
     }
     if args.write:
         OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
         OUT_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    if (missing or band_gaps) and args.strict:
+    if (missing or band_gaps or display_gaps) and args.strict:
         print(
-            f"verify_grading_scale_registry_coverage: FAIL missing={missing} band_gaps={band_gaps}",
+            "verify_grading_scale_registry_coverage: FAIL "
+            f"missing={missing} band_gaps={band_gaps} display_gaps={display_gaps}",
             file=sys.stderr,
         )
         return 1
