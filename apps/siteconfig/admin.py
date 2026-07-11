@@ -343,29 +343,77 @@ class TenantSettingsAdminFormWithCockpit(TenantSettingsAdminForm):
     nested dict the operator UI writes.
     """
 
+    # Declare the flat cockpit fields at CLASS level (copied from
+    # ``CockpitPayloadForm``) rather than adding them in ``__init__``. Django's
+    # admin ``get_form`` builds this form via
+    # ``modelform_factory(fields=flatten_fieldsets(...))`` and validates every
+    # fieldset field name against the form's *declared* fields at class-creation
+    # time — which happens BEFORE ``__init__`` runs. Adding the cockpit fields
+    # only in ``__init__`` therefore made the change page 500 with
+    # "Unknown field(s) (...) specified for SiteSettings" for every field the
+    # "Cockpit configuration" fieldset lists. All cockpit fields are
+    # ``required=False``, so declaring them here is validation-safe. In a class
+    # body ``locals()`` IS the namespace that becomes the class dict, so this
+    # registers them as declared fields exactly as if each were written out by
+    # hand (the comprehension's loop vars are scoped to it and do not leak).
+    locals().update(
+        {
+            _cockpit_field_name: _cockpit_field
+            for _cockpit_field_name, _cockpit_field in _CockpitPayloadForm.base_fields.items()
+            if _cockpit_field_name != "cockpit_payload"
+        }
+    )
+    # Also carry CockpitPayloadForm's class-level DATA attributes — the
+    # ``_*_FIELD_TO_KEY`` maps and ``*_FIELDS`` tuples that
+    # ``_seed_initial_from_payload`` / ``_build_payload`` read off ``self``.
+    # Without these the seeded/round-tripped payload raises ``AttributeError``
+    # (e.g. ``_FRONT_OFFICE_FIELD_TO_KEY``) the moment the form is instantiated.
+    # Only non-callables are copied (methods/Meta/Media stay on their own class,
+    # and this form defines its own ``__init__`` / ``clean``); ``base_fields`` /
+    # ``declared_fields`` are excluded so the metaclass-computed field surface of
+    # THIS form is not clobbered.
+    locals().update(
+        {
+            _cockpit_attr_name: _cockpit_attr_val
+            for _cockpit_attr_name, _cockpit_attr_val in vars(_CockpitPayloadForm).items()
+            if not _cockpit_attr_name.startswith("__")
+            and not callable(_cockpit_attr_val)
+            and _cockpit_attr_name not in {"base_fields", "declared_fields", "media"}
+        }
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Append every flat field from the cockpit form. ``deepcopy``
-        # isn't required — these field descriptors are stateless.
-        for field_name, field in _CockpitPayloadForm.base_fields.items():
-            # Skip the underlying JSON field — the parent form already
-            # has it (or will, via dynamic-fields enumeration).
-            if field_name == "cockpit_payload":
-                continue
-            self.fields[field_name] = field
-        # Hide the raw JSON field if present.
+        # The flat cockpit fields are declared at class level (above). Here we
+        # only hide the raw JSON widget (if the parent form surfaced it) and
+        # seed the flat fields' initials from the stored payload so the editor
+        # round-trips.
         if "cockpit_payload" in self.fields:
             self.fields["cockpit_payload"].widget = forms.HiddenInput()
             self.fields["cockpit_payload"].required = False
-        # Seed initials from the existing payload.
         _CockpitPayloadForm._seed_initial_from_payload(
             self, getattr(self.instance, "cockpit_payload", None) or {}
         )
 
+    # The admin "Cockpit configuration" fieldset edits ONLY these three payload
+    # sections; every other cockpit section is configured on the dedicated
+    # cockpit page and must survive a SiteSettings save untouched.
+    _COCKPIT_ADMIN_SECTIONS = ("footer", "community_band", "newsletter_band")
+
     def clean(self):
         cleaned = super().clean() or {}
-        payload = _CockpitPayloadForm._build_payload(self, cleaned)
-        cleaned["cockpit_payload"] = payload
+        built = _CockpitPayloadForm._build_payload(self, cleaned)
+        # ``_build_payload`` rebuilds ALL cockpit sections from the flat fields,
+        # and ``set_cockpit_payload`` replaces the stored payload wholesale — so
+        # persisting the full rebuild would wipe the ~37 dashboard cockpit
+        # sections whose fields this fieldset does not render (they rebuild
+        # empty). Overlay ONLY the three edited sections onto the existing
+        # stored payload so a footer/community/newsletter save is non-destructive.
+        existing = dict(getattr(self.instance, "cockpit_payload", None) or {})
+        for _section in self._COCKPIT_ADMIN_SECTIONS:
+            if _section in built:
+                existing[_section] = built[_section]
+        cleaned["cockpit_payload"] = existing
         # Phase B: cockpit_payload moved off SiteSettings to RuntimeDefaults.payload;
         # the admin persists it in save_model() via set_cockpit_payload(). No
         # model-instance mirror (the column no longer exists).
