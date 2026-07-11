@@ -107,11 +107,15 @@ def timetable_generate(request):
         )
         return redirect("accounts:ops_timetabling")
 
-    # Fresh slate: drop prior unpublished drafts for this term so regeneration is
-    # idempotent and never collides with the term-wide DB uniqueness constraints.
+    # Fresh slate: drop ALL prior schedules for this term (draft AND published) so
+    # regeneration is idempotent and never collides with the term-wide DB uniqueness
+    # constraints. Those constraints key on (term, teacher/room, time_slot) with
+    # condition is_cancelled=False and are STATUS-AGNOSTIC — so a surviving PUBLISHED
+    # schedule's entries would raise IntegrityError (500) the moment the generator
+    # re-places the same slot. Regenerate = replace the term's timetable.
     # tenant-isolation-allow: scoped-via-academic-year-school-fk-graph
     Schedule.objects.filter(
-        academic_year=year, term=term, academic_year__school=school, status="DRAFT"
+        academic_year=year, term=term, academic_year__school=school
     ).delete()
 
     generator = TimetableGenerator(year, term)
