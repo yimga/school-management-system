@@ -75,14 +75,21 @@
     return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
-  async function tenantHash() {
-    // Cookie carries the rmc_rls_jwt; we can't decode the HMAC client-side,
-    // but the server cross-checks tenant_hash against the bound school anyway.
-    // Best-effort: hash the document host so dev environments still validate.
-    const host = window.location.host || "_";
-    const buf = new TextEncoder().encode(host);
-    const digest = await crypto.subtle.digest("SHA-256", buf);
-    return [...new Uint8Array(digest)].slice(0, 6).map((b) => b.toString(16).padStart(2, "0")).join("");
+  function tenantHash() {
+    // The server derives the authoritative tenant_hash from the authenticated WS
+    // scope (sha256(str(school.id))[:12]), stamps it on the stored envelope, AND
+    // cross-checks any tenant_hash we assert against it. We cannot compute that
+    // value from the opaque rmc_rls_jwt cookie, so we read the server-provided
+    // value from the offline config island and assert exactly that. Empty when the
+    // island has none (the server-side check is then skipped and the server still
+    // stamps its own). NEVER hash the document host — that never matches
+    // sha256(school.id) and was rejected as tenant_mismatch, killing the WAL rail.
+    try {
+      const v = window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.tenantHash;
+      return v == null ? "" : String(v);
+    } catch (_e) {
+      return "";
+    }
   }
 
   // Identity of the signed-in user (from the offline config island). Stamped on

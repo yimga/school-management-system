@@ -341,6 +341,13 @@ def resolve_sms_offline_config(
         "currentUserId": str(
             getattr(getattr(request, "user", None), "pk", "") or ""
         ),
+        # The current tenant's WAL tenant_hash. The WAL offline client asserts this
+        # on every envelope; it must equal the value the server derives from the
+        # authenticated socket scope (sha256(str(school.id))[:12]) in
+        # apps/wal_stream/consumers.py, else the server rejects tenant_mismatch and
+        # the whole WAL rail is dead-on-arrival. The client cannot compute it from
+        # the opaque rmc_rls_jwt cookie, so it reads this server-provided value.
+        "tenantHash": wal_tenant_hash_for_request(request),
         "encryptOutbox": _yn("enable_offline_queue_encryption", True),
         "enableQueueEncryption": _yn("enable_offline_queue_encryption", True),
         "encryptionKeyUrl": offline_urls.get("encryption_key")
@@ -350,6 +357,22 @@ def resolve_sms_offline_config(
         "sseStreamsEnabled": _sse_streams_client_enabled(),
         "webServerMode": resolve_web_server_mode(),
     }
+
+
+def wal_tenant_hash_for_request(request) -> str:
+    """The current tenant's WAL ``tenant_hash`` for the offline config island.
+
+    Equals ``School.tenant_hash`` (``sha256(str(school.id))[:12]``) — the SAME
+    value ``apps/wal_stream/consumers.py`` derives from the authenticated socket
+    scope. Exposing it lets the offline client assert the CORRECT tenant_hash on
+    WAL envelopes instead of a host-derived guess that never matched (which got
+    every real-browser envelope rejected ``tenant_mismatch``, killing the rail).
+    Empty when there is no resolved tenant.
+    """
+    school = getattr(request, "school", None)
+    if school is None:
+        return ""
+    return str(getattr(school, "tenant_hash", "") or "")
 
 
 def sms_offline_config_json(
