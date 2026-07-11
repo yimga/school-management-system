@@ -1,0 +1,18 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% comment %}
+Finance "not set up yet" surface. Rendered by apps/finance/views_dashboard.dashboard
+when the tenant has no active ComplianceProfile — replaces a bare HttpResponseForbidden
+white page. Full tenant chrome + a guided call to action into payment setup. Uses the
+platform empty-state component (which carries the .rmc-empty-state-sentinel marker).
+{% endcomment %}
+{% block title %}{% trans "Finance" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <h1 class="visually-hidden">{% trans "Finance setup" %}</h1>
+  {% url 'finance:payment_readiness_setup' as finance_setup_url %}
+  {% url 'finance:invoices' as finance_invoices_url %}
+  {% include "components/rmc_empty_state.html" with illustration="first_run" title="Finance isn’t set up for this school yet" message="The Money Center needs a compliance profile — region, currency, and tax rules — before it can open. Set up payments to configure this for your school." primary_url=finance_setup_url primary_label="Set up payments" secondary_url=finance_invoices_url secondary_label="View invoices" %}
+</div>
+{% endblock %}

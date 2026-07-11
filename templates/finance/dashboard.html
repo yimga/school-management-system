@@ -136,7 +136,6 @@
           {% endif %}
         </div>
       </div>
-    </div>
     <div class="card border-0 shadow-sm" data-widget-id="finance-recent-payments">
       <div class="card-body">
         <h5 class="mb-3">Recent Payments</h5>
@@ -168,17 +167,16 @@
         </div>
       </div>
     </div>
-  </div>
-  <div class="finance-summary-footer mt-3 pt-3 border-top">
-    {% tenant_hook 'FINANCE_SUMMARY_FOOTER' %}
-  </div>
-</div> <!-- /finance-dashboard-widgets -->
+    <div class="finance-summary-footer mt-3 pt-3 border-top">
+      {% tenant_hook 'FINANCE_SUMMARY_FOOTER' %}
+    </div>
+  </div> <!-- /finance-dashboard-widgets -->
+</div> <!-- /rmc-tenant-exception-task -->
 {% endblock %}
 
 {% block extrajs %}
 {% include "partials/rmc_chart_js_self_host.html" %}
 <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
 <script src="{% static 'js/_pages/finance__dashboard-2.js' %}"></script>
-</div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

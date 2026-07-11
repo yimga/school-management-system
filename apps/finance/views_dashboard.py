@@ -8,7 +8,7 @@ import json
 
 from django.conf import settings
 from apps.accounts.decorators import require_permission
-from django.http import HttpRequest, HttpResponseForbidden
+from django.http import HttpRequest
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -22,7 +22,13 @@ from .services import finance_dashboard_data
 def dashboard(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
-        return HttpResponseForbidden("No compliance profile configured.")
+        # No active compliance profile yet (e.g. a newly provisioned school that
+        # hasn't completed finance setup; under Postgres RLS the profile lookup is
+        # tenant-scoped, so a global default won't rescue it). Render a guided
+        # setup surface WITH full tenant chrome instead of a bare HTTP 403 white
+        # page — the authorization is fine (require_permission already passed);
+        # the tenant simply hasn't configured finance.
+        return render(request, "finance/no_profile.html", {})
 
     dashboard_data = finance_dashboard_data(profile)
     summary = dashboard_data.get("summary", {})
