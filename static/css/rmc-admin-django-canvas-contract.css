@@ -41,6 +41,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 }
 
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) .cp-admin-page-body,
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell .rmc-tenant-admin-page-body,
 html[data-rmc-admin-html="unfold"] body.admin-premium-shell .rmc-app-shell__canvas-body > .px-4,
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-breadcrumb-nav {
   padding-inline: var(--rmc-django-canvas-gutter) !important;
@@ -491,6 +492,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] {
 }
 
 html[data-rmc-admin-html="unfold"] [data-rmc-admin-canvas-contract="intelligent-full-width"] {
+  container-type: inline-size;
   display: block !important;
   width: 100% !important;
   max-width: none !important;
@@ -748,4 +750,112 @@ html[data-rmc-admin-html="unfold"] [data-rmc-admin-content="canvas-first"] :is(
   border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
   border-radius: var(--rmc-admin-command-radius);
   background: color-mix(in srgb, var(--surface-elevated, currentColor) 72%, transparent);
+}
+
+/* Final platform-wide/tenant-wide Django sweep:
+   model-specific admin templates, app indexes, theme previews, report previews,
+   and custom configuration panels inherit the same uncluttered canvas grammar. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-canvas-contract="intelligent-full-width"] {
+  isolation: isolate;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell [data-rmc-admin-canvas-host="operator"],
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell [data-rmc-admin-canvas-host="tenant"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] > :is(.module, .app-list, .dashboard-container, .dashboard-grid, .bento-grid, .app-section),
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(.site-settings-layout, .site-settings-main, .rmc-command-surface, .rmc-command-panel, .rmc-live-preview-contract, .reportcard-builder-shell, .reportcard-builder-preview, .theme-experience-shell) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] > :is(.module, .app-section, .dashboard-container),
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(.rmc-command-panel, .reportcard-builder-preview, .theme-preview-section, .document-preview-grid) {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: var(--rmc-admin-command-radius) !important;
+  background: color-mix(in srgb, var(--surface-elevated, currentColor) 78%, transparent) !important;
+  box-shadow: var(--elev-1, none) !important;
+  overflow: clip !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(.dashboard-grid, .bento-grid, .app-list) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)) !important;
+  gap: var(--rmc-admin-command-gap) !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(.site-settings-layout, .rmc-mv-form-with-preview, .reportcard-builder-layout, .theme-colors-workbench) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: var(--rmc-admin-command-gap) !important;
+  align-items: start !important;
+}
+
+@container (min-width: 1320px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-admin-content="canvas-first"] :is(.site-settings-layout, .rmc-mv-form-with-preview, .reportcard-builder-layout, .theme-colors-workbench) {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem) !important;
+  }
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(
+    .theme-preview-section,
+    .theme-preview-card,
+    .preview-device,
+    .report-preview-shell,
+    .report-preview-shell-inner,
+    .report-preview-frame,
+    #liveReportPreviewFrame,
+    .rmc-preview-iframe,
+    iframe[data-rmc-preview-frame]
+  ) {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(.report-preview-frame, #liveReportPreviewFrame, .rmc-preview-iframe, iframe[data-rmc-preview-frame]) {
+  min-height: clamp(34rem, 64vh, 52rem) !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(.preview-device, .theme-preview-card) {
+  overflow: hidden !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(.preview-topbar, .preview-metrics-grid, .preview-nav, .object-tools, .submit-row, .rmc-admin-submit-row__inner) {
+  min-width: 0 !important;
+  flex-wrap: wrap !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(.preview-chip, .badge, .button, .btn, button, a) {
+  max-width: 100%;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-content="canvas-first"] :is(.preview-chip, .badge) {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+@media (max-width: 1079.98px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-admin-content="canvas-first"] :is(.rmc-admin-context-rail, .site-settings-layout aside, .reportcard-builder-sidecar) {
+    max-height: none !important;
+    overflow: visible !important;
+  }
 }

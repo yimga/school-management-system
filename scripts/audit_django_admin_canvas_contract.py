@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,7 +28,7 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260710-intelligent-canvas" not in base_site:
+    if "?v=20260710-intelligent-canvas-sweep" not in base_site:
         errors.append("Django canvas contract link must be cache-busted for deployment visibility")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
@@ -39,6 +40,15 @@ def main() -> int:
         errors.append("admin/base.html missing explicit manager/tenant shell host marker")
     if 'data-rmc-admin-canvas-contract="intelligent-full-width"' not in base:
         errors.append("admin/base.html missing intelligent full-width canvas marker")
+    if 'data-rmc-admin-canvas-host="{% if is_manager_host %}operator{% else %}tenant{% endif %}"' not in base:
+        errors.append("admin/base.html missing explicit operator/tenant canvas host marker")
+    marker_index = base.find('data-rmc-admin-canvas-contract="intelligent-full-width"')
+    manager_guard_index = base.rfind("{% if is_manager_host %}", 0, marker_index)
+    manager_guard_end_index = base.rfind("{% endif %}", 0, marker_index)
+    if manager_guard_index > manager_guard_end_index:
+        errors.append("admin/base.html must not wrap the full-canvas contract in is_manager_host only")
+    if "rmc-tenant-admin-page-body" not in base:
+        errors.append("admin/base.html missing tenant admin full-canvas page body")
     if 'data-rmc-admin-content="canvas-first"' not in base:
         errors.append("admin/base.html missing canvas-first content marker")
     if 'data-rmc-admin-form-contract="premium-form-frame"' not in change_form:
@@ -62,9 +72,15 @@ def main() -> int:
         "Specificity hardening",
         "Intelligent full-canvas revamp",
         "data-rmc-admin-canvas-contract=\"intelligent-full-width\"",
+        "data-rmc-admin-canvas-host",
         "data-rmc-admin-content=\"canvas-first\"",
         "data-rmc-admin-surface=\"smart-form\"",
         "data-rmc-admin-surface=\"smart-changelist\"",
+        "rmc-tenant-admin-page-body",
+        "container-type: inline-size",
+        "Final platform-wide/tenant-wide Django sweep",
+        "reportcard-builder-preview",
+        "theme-preview-section",
         "rmc-admin-changeform-pagehead",
         "rmc-admin-changelist-pagehead",
         "rmc-rail-card",
@@ -87,6 +103,9 @@ def main() -> int:
         if token not in css:
             errors.append(f"rmc-admin-django-canvas-contract.css missing {token}")
 
+    admin_template_errors = _audit_admin_template_overrides()
+    errors.extend(admin_template_errors)
+
     if errors:
         print("DJANGO_ADMIN_CANVAS_CONTRACT_FAIL")
         for error in errors:
@@ -97,6 +116,52 @@ def main() -> int:
     print("  scope: operator + tenant Django admin")
     print("  contract: full-width canvas, native tables, stable forms, preview sizing")
     return 0
+
+
+def _audit_admin_template_overrides() -> list[str]:
+    errors: list[str] = []
+    admin_templates = ROOT / "templates" / "admin"
+    safe_extends = (
+        'extends "admin/change_form.html"',
+        "extends 'admin/change_form.html'",
+        'extends "admin/change_list.html"',
+        "extends 'admin/change_list.html'",
+        'extends "admin/base_site.html"',
+        "extends 'admin/base_site.html'",
+        'extends "admin/base.html"',
+        "extends 'admin/base.html'",
+        'extends "admin/app_index.html"',
+        "extends 'admin/app_index.html'",
+    )
+    for path in admin_templates.rglob("*.html"):
+        rel = path.relative_to(ROOT).as_posix()
+        text = path.read_text(encoding="utf-8")
+        if rel in {
+            "templates/admin/base.html",
+            "templates/admin/base_site.html",
+            "templates/admin/change_form.html",
+            "templates/admin/change_list.html",
+        }:
+            continue
+        if rel.endswith(("change_form.html", "change_list.html", "app_index.html", "index.html")):
+            if "{% extends" in text and not any(token in text for token in safe_extends):
+                errors.append(f"{rel}: admin override does not inherit a shared admin canvas template")
+            if "{% extends" not in text and "<html" in text.lower():
+                errors.append(f"{rel}: standalone admin HTML bypasses the shared admin canvas")
+
+    admin_py = "\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in (ROOT / "apps").rglob("admin.py"))
+    template_refs = set(re.findall(r"change_(?:form|list)_template\s*=\s*[\"']([^\"']+)[\"']", admin_py))
+    for ref in sorted(template_refs):
+        path = ROOT / "templates" / ref
+        if not path.is_file():
+            errors.append(f"{ref}: referenced admin template is missing")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if "{% extends" in text and not any(token in text for token in safe_extends):
+            errors.append(f"{ref}: referenced admin template bypasses shared change_form/change_list/base")
+        if "{% extends" not in text and "<html" in text.lower():
+            errors.append(f"{ref}: referenced admin template is standalone HTML")
+    return errors
 
 
 if __name__ == "__main__":

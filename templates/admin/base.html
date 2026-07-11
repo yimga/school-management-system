@@ -84,8 +84,8 @@
                         {% include "admin/includes/admin_operator_steering_strip.html" %}
                     {% endif %}
                 {% endblock admin_operator_steering %}
-                <div class="cp-page-body cp-admin-page-body @container px-4 pb-4 rmc-shell-canvas-container" data-rmc-cp-page-body="1" data-rmc-backoffice-page-body="1" data-rmc-page-fold-nav="required" data-rmc-admin-canvas-contract="intelligent-full-width">
                 {% endif %}
+                <div class="{% if is_manager_host %}cp-page-body cp-admin-page-body{% else %}rmc-tenant-admin-page-body{% endif %} @container px-4 pb-4 rmc-shell-canvas-container" data-rmc-cp-page-body="{% if is_manager_host %}1{% else %}0{% endif %}" data-rmc-backoffice-page-body="1" data-rmc-page-fold-nav="required" data-rmc-admin-canvas-contract="intelligent-full-width" data-rmc-admin-canvas-host="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
 
                     {% comment %} v4.00.19 admin canvas defaults to full width on manager/change-form surfaces. {% endcomment %}
                     <div id="content" class="{% if is_manager_host or opts %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}w-100 max-w-none{% endif %} mx-auto {% block coltype %}colM{% endblock %}" data-rmc-admin-content="canvas-first"{% if not is_manager_host %} data-page-archetype="decision-console" data-decision-console-scope="django-admin"{% endif %}>
@@ -125,8 +125,8 @@
                         {% block sidebar %}{% endblock %}
                     </div>
 
-                {% if is_manager_host %}
                 </div>
+                {% if is_manager_host %}
                 <div id="admin-manager-sticky-slot" class="admin-manager-sticky-slot">
                   {% block admin_manager_sticky_actions %}{% endblock %}
                 </div>

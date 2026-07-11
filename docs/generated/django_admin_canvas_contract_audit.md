@@ -56,6 +56,22 @@ Audited the deploy-state admin shell on `origin/main` for the approved canvas-fi
   - final CSS styles the command headers, smart form grid, context rail, static
     save row, native changelist table, and preview-heavy panels for operator and
     tenant backends.
+- Re-audit on 2026-07-10 found the contract wrapper still opened only for
+  `is_manager_host`. Closed it at the root:
+  - operator and tenant admin now both render the full-canvas wrapper;
+  - the wrapper carries `data-rmc-admin-canvas-host="operator|tenant"`;
+  - tenant admin has `rmc-tenant-admin-page-body` for the same canvas rules
+    without operator-only links or chrome;
+  - final CSS includes a platform-wide/tenant-wide sweep for app indexes,
+    model-specific admin overrides, theme previews, report-card previews,
+    document previews, and custom configuration panels.
+- Strengthened `scripts/audit_django_admin_canvas_contract.py` so it now scans
+  all `templates/admin/**/*.html` change-form/change-list/app-index overrides
+  and all `change_form_template` / `change_list_template` registrations in
+  `apps/**/admin.py` for shared-template inheritance.
+- Bumped the deployed CSS query string to
+  `?v=20260710-intelligent-canvas-sweep` and the service-worker cache to
+  `sms-v4.05.122-django-admin-intelligent-canvas-sweep-2026-07-10`.
 
 ## Validation
 
@@ -63,10 +79,14 @@ Audited the deploy-state admin shell on `origin/main` for the approved canvas-fi
 - `SECRET_KEY=local-validation-only python manage.py check`: pass.
 - `python -m py_compile scripts/audit_django_admin_canvas_contract.py scripts/verify_admin_manager_shell_aggressive.py`: pass.
 - `git diff --check`: pass.
+- `python scripts/pre_push_boundary_check.py`: pass.
 
 ## Remaining Local Proof Blocker
 
-`scripts/verify_admin_changelist_render_contract.py` is blocked in this clean worktree by local database schema drift outside this CSS/template change:
+`scripts/verify_admin_changelist_render_contract.py` and
+`scripts/verify_admin_manager_shell_aggressive.py --css-only` are blocked in
+this clean worktree by local database schema drift outside this CSS/template
+change:
 
 - missing `siteconfig_dashboarduserpreference.role_dashboard_packs`;
 - missing `compliance_auditlog.during_impersonation`.
