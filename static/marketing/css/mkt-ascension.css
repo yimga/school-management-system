@@ -612,7 +612,7 @@
 .mkt-asc-split-bar:nth-child(2) { background: #6366f1; /* off-token-allow: hex-literal-decorative */ }
 .mkt-asc-split-bar:nth-child(3) { background: #f59e0b; /* off-token-allow: hex-literal-decorative */ }
 
-#asc-net-toggle.is-offline { background: #ef4444; /* off-token-allow: hex-literal-decorative */ color: #fff; /* off-token-allow: hex-literal-decorative */ }
+#asc-net-toggle.is-offline { background: #dc2626; /* off-token-allow: hex-literal-decorative — WCAG-AA: white-on-#dc2626 = 4.83 */ color: #fff; /* off-token-allow: hex-literal-decorative */ }
 
 .mkt-asc-grade-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
 .mkt-asc-grade-btns button {
@@ -625,7 +625,7 @@
   cursor: pointer;
   font-family: inherit;
 }
-.mkt-asc-grade-btns button.is-active { background: #6366f1; /* off-token-allow: hex-literal-decorative */ color: #fff; /* off-token-allow: hex-literal-decorative */ border-color: #6366f1; /* off-token-allow: hex-literal-decorative */ }
+.mkt-asc-grade-btns button.is-active { background: #4f46e5; /* off-token-allow: hex-literal-decorative — WCAG-AA: white-on-#4f46e5 = 6.29 */ color: #fff; /* off-token-allow: hex-literal-decorative */ border-color: #4f46e5; /* off-token-allow: hex-literal-decorative */ }
 
 .mkt-asc-sov-grid {
   position: absolute;
