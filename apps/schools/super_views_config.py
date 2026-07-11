@@ -109,6 +109,13 @@ def super_platform_operator_hub(request):
             "super",
         ),
         (
+            "super:superadmin_console",
+            _("Platform superadmin"),
+            _("Grant or revoke platform god-mode (is_superuser) — real-time, superuser-only"),
+            "bi-shield-lock",
+            "super",
+        ),
+        (
             "super:backlog_unlock_center",
             _("Backlog unlock center"),
             _("Gates + program tracks; refresh when criteria may have been met"),

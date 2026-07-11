@@ -31,10 +31,12 @@ from django.contrib.auth import get_user_model
 from django.core.management import BaseCommand, CommandError
 from django.db import DatabaseError
 
-User = get_user_model()
+from apps.accounts.superadmin_service import (
+    apply_superadmin_change,
+    compute_superadmin_changes,
+)
 
-_ROLE = getattr(User, "Role", None)
-SUPERADMIN_ROLE_VALUE = getattr(_ROLE, "SUPERADMIN", None) if _ROLE is not None else None
+User = get_user_model()
 
 
 class Command(BaseCommand):
@@ -94,20 +96,7 @@ class Command(BaseCommand):
 
         self._report_memberships(user)
 
-        changes = []
-        if not user.is_staff:
-            changes.append("is_staff -> True")
-        if not user.is_superuser:
-            changes.append("is_superuser -> True")
-        if not user.is_active:
-            changes.append("is_active -> True")
-        if (
-            SUPERADMIN_ROLE_VALUE is not None
-            and hasattr(user, "role")
-            and user.role != SUPERADMIN_ROLE_VALUE
-        ):
-            changes.append(f"role -> {SUPERADMIN_ROLE_VALUE}")
-
+        changes = compute_superadmin_changes(user)
         if not changes:
             self.stdout.write(
                 self.style.SUCCESS("Already a full super-admin — nothing to do.")
@@ -121,14 +110,7 @@ class Command(BaseCommand):
             self.stdout.write("Re-run without --dry-run to apply.")
             return
 
-        user.is_staff = True
-        user.is_superuser = True
-        user.is_active = True
-        update_fields = ["is_staff", "is_superuser", "is_active"]
-        if SUPERADMIN_ROLE_VALUE is not None and hasattr(user, "role"):
-            user.role = SUPERADMIN_ROLE_VALUE
-            update_fields.append("role")
-        user.save(update_fields=update_fields)
+        apply_superadmin_change(user)
 
         self.stdout.write(
             "  after:  is_staff=%s is_superuser=%s is_active=%s role=%s"

@@ -143,6 +143,16 @@ class NotificationSyncConsumer(_TenantScopedSyncConsumer):
             )
         )
 
+    async def access_changed(self, event):
+        # Handler for a ``{"type": "access.changed", ...}`` group_send — the user's
+        # RBAC / authority changed, so tell the client to refresh nav / permissions
+        # live (see apps.accounts.access_realtime.push_access_changed_realtime).
+        await self.send(
+            text_data=json.dumps(
+                {"type": "access_changed", "reason": event.get("reason", "")}
+            )
+        )
+
 
 class SubstituteMarketConsumer(_TenantScopedSyncConsumer):
     """Listen-only real-time delivery of substitute cover-shift market events.

@@ -24,6 +24,7 @@ from . import super_views_config_crud
 from . import super_views_enterprise_security
 from . import super_views_security_surface
 from . import super_views_operator_team
+from . import super_views_superadmin
 from .super_views_founder_dashboard import super_founder_dashboard
 from .super_views_catalog import (
     super_blueprints_catalog,
@@ -642,6 +643,11 @@ urlpatterns = [
             super_views_enterprise_security.super_security_hub
         ),
         name="security_hub",
+    ),
+    path(
+        "superadmin/",
+        super_views_superadmin.super_superadmin_console,
+        name="superadmin_console",
     ),
     path(
         "team/",
