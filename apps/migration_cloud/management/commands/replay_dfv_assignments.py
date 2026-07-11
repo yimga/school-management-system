@@ -57,8 +57,14 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser) -> None:
         parser.add_argument(
-            "--tenant", type=int, default=None,
-            help="School PK. Either --tenant or --bundle is required.",
+            # School PK is a UUID (apps.schools.School.id = UUIDField), so
+            # this MUST be str — ``type=int`` rejected every real school id
+            # with "invalid int value" and made per-tenant replay impossible.
+            # ``_build_queryset`` filters ``school_id=tenant_id`` and the ORM
+            # coerces the UUID string against the UUIDField, matching the
+            # ``dfv.school_id`` fallback used when only --bundle is given.
+            "--tenant", type=str, default=None,
+            help="School PK (UUID). Either --tenant or --bundle is required.",
         )
         parser.add_argument(
             "--bundle", type=int, default=None,

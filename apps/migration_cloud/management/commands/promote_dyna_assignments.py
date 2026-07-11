@@ -25,6 +25,7 @@ Logs a structured summary at the end:
 from __future__ import annotations
 
 import logging
+import uuid
 from decimal import Decimal
 from typing import Any
 
@@ -73,8 +74,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--tenant",
             required=True,
-            type=int,
-            help="School PK to promote rows for (REQUIRED; no cross-tenant runs).",
+            # School PK is a UUID (apps.schools.School.id = UUIDField); int
+            # rejected every real school id at parse time. Downstream this is
+            # used only as ``school_id=tenant_id`` filters, all UUID-safe.
+            type=str,
+            help="School PK (UUID) to promote rows for (REQUIRED; no cross-tenant runs).",
         )
         parser.add_argument(
             "--apply",
@@ -102,8 +106,14 @@ class Command(BaseCommand):
         limit = max(1, int(options["limit"]))
         only_entity = options.get("entity_type")
 
-        if tenant_id is None or tenant_id <= 0:
-            raise CommandError("--tenant must be a positive integer school PK")
+        # School PK is a UUID — validate/normalize instead of the old
+        # ``<= 0`` integer guard (which raised TypeError on a UUID string).
+        try:
+            tenant_id = str(uuid.UUID(str(tenant_id)))
+        except (ValueError, AttributeError, TypeError) as exc:
+            raise CommandError(
+                "--tenant must be a valid school PK (UUID)",
+            ) from exc
 
         try:
             from apps.metadata.models import DynamicFieldValue
@@ -180,11 +190,12 @@ class Command(BaseCommand):
                     dfv.pk, type(exc).__name__, exc,
                 )
 
-        # Structured summary — operators parse this from logs.
-        self.stdout.write(
-            self.style.SUCCESS if apply_changes else self.style.WARNING,
-        )
-        self.stdout.write(str(summary))
+        # Structured summary — operators parse this from logs. ``self.style.*``
+        # are callables that COLOR a string; the previous code passed the
+        # callable itself as the message, so ``stdout.write`` blew up on
+        # ``msg.endswith`` for every run. Apply the style TO the summary text.
+        style = self.style.SUCCESS if apply_changes else self.style.WARNING
+        self.stdout.write(style(str(summary)))
         logger.info("promote_dyna_assignments summary: %s", summary)
 
     # ------------------------------------------------------------------
@@ -194,7 +205,7 @@ class Command(BaseCommand):
         self,
         *,
         dfv,
-        tenant_id: int,
+        tenant_id: str,
         apply_changes: bool,
         StudentProfile,
         Route,

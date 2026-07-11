@@ -22,6 +22,7 @@ expected shape.
 from __future__ import annotations
 
 import datetime as _dt
+import uuid
 from decimal import Decimal
 from io import StringIO
 
@@ -184,10 +185,15 @@ class _TenantFixtureMixin:
             CanteenMeal, Hostel, HostelRoom, Route,
         )
 
+        # School is single-schema now: no ``schema_name``/``domain_url`` fields
+        # (that stale kwarg pair raised TypeError at fixture setup, erroring
+        # every test here). Real identity fields are slug/subdomain — use a
+        # unique token so the isolation test can build two tenants.
+        _tok = uuid.uuid4().hex[:8]
         school = School.objects.create(  # tenant-isolation-allow: test-fixture-creates-tenant-explicitly
             name="Test Academy",
-            schema_name=f"test_academy_{_dt.datetime.now().microsecond}",
-            domain_url=f"test-{_dt.datetime.now().microsecond}.example.com",
+            slug=f"test-academy-{_tok}",
+            subdomain=f"test-academy-{_tok}",
         )
         student = StudentProfile.objects.create(  # tenant-isolation-allow: test-fixture-student-tied-to-test-school
             school=school,
