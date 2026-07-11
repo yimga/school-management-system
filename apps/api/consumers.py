@@ -32,13 +32,23 @@ class _TenantScopedSyncConsumer(AsyncWebsocketConsumer):
 
     room_prefix = "sync"
 
+    def resolve_room_group_name(self):
+        """Channels group this socket joins, or ``None`` when the tenant bind
+        failed (→ close 4403). Defaults to the per-(school, user) room
+        ``tenant_sync_room_name(room_prefix, scope)``. Subclasses override this
+        for a per-SCHOOL broadcast room (see ``SubstituteMarketConsumer``); the
+        room is ALWAYS derived from the authenticated ``scope`` — never client
+        input — so a socket can never join another tenant's group.
+        """
+        return tenant_sync_room_name(self.room_prefix, self.scope)
+
     async def connect(self):
         self.user = self.scope.get("user")
         if not self.user or not getattr(self.user, "is_authenticated", False):
             await self.close(code=4401)
             return
 
-        self.room_group_name = tenant_sync_room_name(self.room_prefix, self.scope)
+        self.room_group_name = self.resolve_room_group_name()
         if not self.room_group_name:
             await self.close(code=4403)
             return
@@ -129,6 +139,53 @@ class NotificationSyncConsumer(_TenantScopedSyncConsumer):
                 {
                     "type": "notification",
                     "notification": event.get("notification", {}),
+                }
+            )
+        )
+
+
+class SubstituteMarketConsumer(_TenantScopedSyncConsumer):
+    """Listen-only real-time delivery of substitute cover-shift market events.
+
+    Joins the per-SCHOOL group ``school-{school_id}-substitute-market`` (built by
+    ``apps.schoolops.substitute_market.substitute_market_room_name``), so every
+    ops-admin and teacher socket on a tenant hears a cover shift open / get
+    claimed the moment ``open_shift`` / ``claim_shift`` fires — instead of only
+    seeing it on the next page load of the substitutes ops hub
+    (``accounts:ops_substitutes``).
+
+    ``school_id`` is taken from ``scope["school_id"]`` — the tenant bound by
+    ``TenantChannelsMiddleware`` from the request host + membership check — never
+    from anything the client sends, so a socket can only ever join its OWN
+    school's market group and one tenant's shift events can never reach another
+    tenant's socket. The client only listens (a shift is opened / claimed over
+    the HTTP ops view, not this socket), so ``receive`` is intentionally absent.
+    """
+
+    room_prefix = "substitute_market"
+
+    def resolve_room_group_name(self):
+        # Per-SCHOOL broadcast room, derived ONLY from the authenticated socket
+        # scope's tenant bind. Mirrors ``tenant_sync_room_name``'s guards so a
+        # denied / unbound scope yields None (→ close 4403, no group join).
+        if self.scope.get("school_access_denied"):
+            return None
+        school_id = self.scope.get("school_id")
+        user = self.scope.get("user")
+        if not school_id or user is None or not getattr(user, "is_authenticated", False):
+            return None
+        from apps.schoolops.substitute_market import substitute_market_room_name
+
+        return substitute_market_room_name(school_id)
+
+    async def substitute_shift_event(self, event):
+        # Handler for a ``{"type": "substitute.shift.event", "payload": ...}``
+        # group_send from the substitute-market producer.
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "substitute_shift",
+                    "payload": event.get("payload", {}),
                 }
             )
         )

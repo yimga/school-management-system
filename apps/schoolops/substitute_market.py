@@ -24,6 +24,32 @@ DEFAULT_LOCK_TTL_SEC = 120
 DEFAULT_SHIFT_TTL_SEC = 86400  # magic-number-allow: substitute shift availability TTL = 1 day (seconds)
 
 
+def substitute_market_room_name(school_id: Any) -> str:
+    """Per-SCHOOL Channels group for the substitute-shift market.
+
+    Every ops-admin and teacher socket on a tenant joins this ONE group, so an
+    opened / claimed cover shift fans out to the whole school's substitute
+    market at once. This is a per-SCHOOL broadcast (a shift opening must reach
+    every eligible substitute + the ops desk), NOT a per-(school, user) room
+    like ``tenant_sync_room_name``.
+
+    ``apps.api.consumers.SubstituteMarketConsumer`` derives ``school_id`` from
+    the authenticated socket scope (``scope["school_id"]``, bound by
+    ``TenantChannelsMiddleware`` from the host + membership check) — never from
+    client input — so a user can only ever join their OWN school's group and a
+    cross-tenant subscription is impossible. This helper is the single source of
+    the group name for BOTH the producer (below) and that consumer; the two are
+    locked byte-for-byte by
+    ``test_substitute_market_realtime.test_room_formula_matches_consumer``.
+
+    Pass the CANONICAL ``str(school.pk)`` (what ``scope["school_id"]`` holds).
+    ``School.pk`` is a UUID, so the module's internal integer ``school_id`` (used
+    for cache-lock keys) must NOT be used here: ``int(uuid)`` and ``str(uuid)``
+    differ, and the consumer only ever has the ``str`` form.
+    """
+    return f"school-{school_id}-substitute-market"
+
+
 class SubstituteMarketError(RuntimeError):
     pass
 
@@ -189,7 +215,15 @@ def open_shift(
         candidate_count=len(candidates),
         expires_at=(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
     ).to_dict()
-    _publish_substitute_event(school_id=school_id, payload=payload, publish_fn=publish_fn)
+    # Route on the CANONICAL str(school.pk) — byte-identical to
+    # ``scope["school_id"]`` (set by TenantChannelsMiddleware), so the send lands
+    # in the exact group SubstituteMarketConsumer joins. School.pk is a UUID, so
+    # the internal int ``school_id`` (cache keys) must NOT be used for the group.
+    _publish_substitute_event(
+        room_school_id=str(getattr(school, "pk")),
+        payload=payload,
+        publish_fn=publish_fn,
+    )
     logger.info(
         "substitute_market.open shift=%s school=%s absent=%s candidates=%s",
         shift.shift_id,
@@ -257,13 +291,21 @@ def claim_shift(
         substitute_teacher_id_hash=_hash(str(substitute_teacher_id)),
         cover_id=cover.pk,
     ).to_dict()
-    _publish_substitute_event(school_id=school_id, payload=payload, publish_fn=publish_fn)
+    # Route on the CANONICAL str(school.pk) — byte-identical to
+    # ``scope["school_id"]`` (set by TenantChannelsMiddleware), so the send lands
+    # in the exact group SubstituteMarketConsumer joins. School.pk is a UUID, so
+    # the internal int ``school_id`` (cache keys) must NOT be used for the group.
+    _publish_substitute_event(
+        room_school_id=str(getattr(school, "pk")),
+        payload=payload,
+        publish_fn=publish_fn,
+    )
     return int(cover.pk)
 
 
 def _publish_substitute_event(
     *,
-    school_id: int,
+    room_school_id: Any,
     payload: dict[str, Any],
     publish_fn: Callable[[dict[str, Any]], None] | None = None,
 ) -> None:
@@ -281,7 +323,7 @@ def _publish_substitute_event(
         layer = get_channel_layer()
         if layer is None:
             return
-        group = f"school-{school_id}-substitute-market"
+        group = substitute_market_room_name(room_school_id)
         async_to_sync(layer.group_send)(
             group,
             {"type": "substitute.shift.event", "payload": payload},
