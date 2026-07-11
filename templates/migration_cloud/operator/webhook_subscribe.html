@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--operator-webhook-subscribe content-max-960 mx-auto" id="main">
+<main class="rmc-page rmc-page--operator-webhook-subscribe w-100 max-w-none mx-auto" id="main">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
     <h1 class="rmc-h1">{% trans "Register webhook subscription" %}</h1>

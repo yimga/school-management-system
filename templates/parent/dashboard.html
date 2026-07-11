@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="rmc-preview-live-parent-workspace" data-rmc-preview-live-parent="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
+<div class="rmc-preview-live-parent-workspace" data-rmc-preview-live-parent="1" data-rmc-balanced-layout="tenant-dashboard-rail" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
@@ -79,7 +79,7 @@
 {% with widgets=display_widgets %}
 {% comment %} v4.04.x 100X: cockpit keeps operator-only extras — sections already in .rmc-dh are omitted. {% endcomment %}
 {% if cockpit.year_progress.enabled or cockpit.parent_teacher_thread.enabled or cockpit.financial_timeline.enabled or cockpit.life_event_timeline.enabled or cockpit.sibling_compare.enabled or cockpit.teacher_spotlight.enabled %}
-<div id="rmc-parent-cockpit" class="tp-dashboard-cockpit container-fluid px-3 px-lg-4" data-rmc-tp-dashboard-cockpit="parent" data-rmc-section-anchor>
+<div id="rmc-parent-cockpit" class="tp-dashboard-cockpit container-fluid px-3 px-lg-4" data-rmc-tp-dashboard-cockpit="parent" data-dashboard-column="rail" data-rmc-section-anchor>
   {% if cockpit.year_progress.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Year progress") key="parent__year_progress" default_state="collapsed" include_partial="partials/cockpit/_year_progress.html" chrome="section" %}{% endif %}
   {% if cockpit.teacher_spotlight.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Teacher spotlight") key="parent__teacher_spotlight_card" default_state="collapsed" include_partial="partials/cockpit/_teacher_spotlight_card.html" chrome="section" %}{% endif %}
   {% if cockpit.parent_teacher_thread.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("Parent / teacher thread") key="parent__parent_teacher_thread" default_state="collapsed" include_partial="partials/cockpit/_parent_teacher_thread.html" chrome="section" %}{% endif %}

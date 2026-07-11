@@ -31,7 +31,7 @@ REQUIRED_TEMPLATE_CONTRACTS = {
     ],
     "templates/schools/super_migration_cloud.html": [
         'data-rmc-balanced-layout="operator-detail-rail"',
-        '<table class="table table-sm align-middle mb-0 table-family"',
+        '<table class="table table-sm align-middle mb-0 table-family rmc-data-table"',
     ],
 }
 

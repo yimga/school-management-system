@@ -1,0 +1,88 @@
+{
+  "generated_at": "2026-07-11T07:54:37-04:00",
+  "scope": "operator and tenant Django/admin/studio/configuration surfaces",
+  "status": "PASS_WITH_LOCAL_RENDER_DB_BLOCKERS",
+  "audits": [
+    {
+      "command": "python scripts/audit_django_admin_canvas_contract.py",
+      "status": "PASS",
+      "evidence": "DJANGO_ADMIN_CANVAS_CONTRACT_PASS"
+    },
+    {
+      "command": "SECRET_KEY=local-validation-only python scripts/verify_django_admin_canvas_templates_compile.py",
+      "status": "PASS",
+      "evidence": "DJANGO_ADMIN_CANVAS_TEMPLATE_COMPILE_PASS"
+    },
+    {
+      "command": "SECRET_KEY=local-validation-only python scripts/audit_platform_surface_sweep.py --write --json",
+      "status": "PASS",
+      "evidence": "121 templates, 0 findings"
+    },
+    {
+      "command": "python scripts/audit_platform_layout_balance.py",
+      "status": "PASS",
+      "evidence": "1842 checks, 0 warnings"
+    },
+    {
+      "command": "python scripts/audit_canvas_chrome_void.py --write --json",
+      "status": "PASS",
+      "evidence": "0 findings"
+    },
+    {
+      "command": "python -m compileall -q apps config scripts",
+      "status": "PASS",
+      "evidence": "Python compilation completed"
+    },
+    {
+      "command": "SECRET_KEY=local-validation-only python manage.py check",
+      "status": "PASS",
+      "evidence": "System check identified no issues"
+    },
+    {
+      "command": "SECRET_KEY=local-validation-only python manage.py makemigrations --check --dry-run",
+      "status": "PASS",
+      "evidence": "No changes detected"
+    },
+    {
+      "command": "python scripts/pre_push_boundary_check.py",
+      "status": "PASS",
+      "evidence": "All boundary gates green"
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS",
+      "evidence": "No whitespace errors"
+    }
+  ],
+  "fixes_applied": [
+    "Removed the global next-action strip from the login page so auth surfaces do not inherit post-login action chrome.",
+    "Marked the parent dashboard with the tenant dashboard rail balance contract.",
+    "Updated the migration cloud balance audit expectation to match the stronger rmc-data-table class already present in the template.",
+    "Removed remaining narrow content-max clamps from operator AI center, marketplace, migration cloud, runtime, schoolops, MAT group, and dashboard-default admin surfaces.",
+    "Reduced oversized py-4 vertical chrome on platform runtime and dashboard-default operator templates flagged by the canvas void audit."
+  ],
+  "local_render_blockers": [
+    {
+      "command": "SECRET_KEY=local-validation-only python scripts/verify_admin_changelist_render_contract.py",
+      "status": "BLOCKED_LOCAL_DB_SCHEMA_DRIFT",
+      "blockers": [
+        "siteconfig_dashboarduserpreference.role_dashboard_packs missing",
+        "compliance_auditlog.during_impersonation missing"
+      ]
+    },
+    {
+      "command": "SECRET_KEY=local-validation-only python scripts/verify_dom_performance_budgets.py",
+      "status": "BLOCKED_LOCAL_DB_SCHEMA_DRIFT",
+      "blockers": [
+        "schools_school.tenant_hash missing"
+      ]
+    },
+    {
+      "command": "SECRET_KEY=local-validation-only DB_FILE=.django_test_dbs/surface_audit.sqlite3 python manage.py migrate --noinput",
+      "status": "TIMEOUT_LOCAL_ENVIRONMENT",
+      "blockers": [
+        "Disposable SQLite migration did not complete within 4 minutes on this machine; partial DB was removed and not committed."
+      ]
+    }
+  ]
+}
