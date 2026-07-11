@@ -74,7 +74,7 @@
     {% endif %}{# /if not operator_only — confirmation fields are tenant-owner only #}
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-sm btn-danger">{% if operator_only %}{% trans "Export and submit request" %}{% else %}{% trans "Export and close" %}{% endif %}</button>
-      <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Cancel" %}</a>
+      <a href="{% url 'tenant_gdpr_data_export' %}" class="btn btn-sm btn-outline-secondary">{% trans "Cancel" %}</a>
     </div>
   </form>
   {% endif %}{# /phase branch #}

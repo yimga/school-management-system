@@ -36,10 +36,13 @@ Needs Django (live resolvers) → runs in ``ci.yml::django-tests``.
 from __future__ import annotations
 
 import argparse
+import ast
+import inspect
 import json
 import os
 import re
 import sys
+import textwrap
 
 import django
 from django.template.loader import get_template
@@ -109,6 +112,104 @@ def _cbv_template_names(resolver) -> set[str]:
     return out
 
 
+# --- function-view template discovery (host-bound render() / TemplateResponse) ---
+# A CBV exposes its template via ``view_class.template_name`` (read above). A
+# function view names its template as a literal arg to ``render(request, "x.html")``
+# / ``TemplateResponse(request, "x.html")`` — invisible to the CBV walk, which is
+# exactly why the help-center function view's cross-host reverse shipped a 500.
+# We AST-parse each function-view callback's OWN source and collect those literals.
+# False-negative biased: a render via a helper, a non-literal path, or a callback
+# whose source can't be read is skipped (never a false finding).
+_FV_RENDER_TEMPLATE_ARG = {"render": 1, "TemplateResponse": 1}
+_FV_TEMPLATE_KWARGS = {"template_name", "template"}
+
+
+def _call_func_name(call: ast.Call) -> str | None:
+    f = call.func
+    if isinstance(f, ast.Name):
+        return f.id
+    if isinstance(f, ast.Attribute):
+        return f.attr
+    return None
+
+
+def _str_literal(node) -> str | None:
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    return None
+
+
+def _is_request_first_arg(call: ast.Call) -> bool:
+    """Gate render()/TemplateResponse() on a literal ``request`` first arg so a
+    custom ``obj.render(...)`` method is never misread as the Django shortcut."""
+    if not call.args:
+        return False
+    a = call.args[0]
+    return (isinstance(a, ast.Name) and a.id == "request") or (
+        isinstance(a, ast.Attribute) and a.attr == "request"
+    )
+
+
+def _looks_like_template(value: str) -> bool:
+    return bool(value) and " " not in value and value.endswith((".html", ".htm"))
+
+
+def _fv_rendered_templates(source: str) -> set[str]:
+    out: set[str] = set()
+    try:
+        tree = ast.parse(textwrap.dedent(source))
+    except (SyntaxError, ValueError):
+        return out
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        name = _call_func_name(node)
+        if name not in _FV_RENDER_TEMPLATE_ARG or not _is_request_first_arg(node):
+            continue
+        idx = _FV_RENDER_TEMPLATE_ARG[name]
+        val = _str_literal(node.args[idx]) if len(node.args) > idx else None
+        if val is None:
+            for kw in node.keywords:
+                if kw.arg in _FV_TEMPLATE_KWARGS:
+                    val = _str_literal(kw.value)
+                    if val:
+                        break
+        if val and _looks_like_template(val):
+            out.add(val)
+    return out
+
+
+def _function_view_template_names(resolver) -> set[str]:
+    out: set[str] = set()
+    seen: set[int] = set()
+    for cb in _walk_callbacks(resolver):
+        if getattr(cb, "view_class", None) is not None:
+            continue  # CBV — covered by _cbv_template_names
+        if id(cb) in seen:
+            continue
+        seen.add(id(cb))
+        try:
+            source = inspect.getsource(inspect.unwrap(cb))
+        except (OSError, TypeError, ValueError):
+            continue  # C funcs, dynamically-built views, unreadable source
+        out |= _fv_rendered_templates(source)
+    return out
+
+
+def _is_finding(is_cbv: bool, missing_on: set[str], hosts: set[str]) -> bool:
+    """Two-tier sensitivity. A CBV's ``template_name`` maps to hosts exactly, so a
+    namespace absent on ANY host it renders on is a real conditional 500. A template
+    discovered only via a function-view ``render()`` is looser (shared app-includes
+    attribute a page to hosts it never serves), so it is a finding only when the
+    namespace is absent on EVERY host it renders on — a guaranteed 500 wherever it
+    renders, which ``verify_url_name_integrity`` misses (it unions across hosts)."""
+    if not missing_on:
+        return False
+    if not is_cbv and set(missing_on) != set(hosts):
+        return False
+    return True
+
+
 def _is_host_guard(cond: str) -> bool:
     low = (cond or "").lower()
     return any(tok in low for tok in _HOST_GUARD_TOKENS)
@@ -159,19 +260,26 @@ def _unguarded_ns_refs(text: str) -> list[tuple[int, str, str]]:
 
 def scan() -> list[dict]:
     per_host_ns: dict[str, set[str]] = {}
-    per_host_templates: dict[str, set[str]] = {}
+    per_host_cbv: dict[str, set[str]] = {}
+    per_host_fv: dict[str, set[str]] = {}
     for uc in HOST_URLCONFS:
         try:
             resolver = get_resolver(uc)
         except Exception:  # noqa: BLE001 — a missing host urlconf is not this gate's job
             continue
         per_host_ns[uc] = _flat_namespaces(resolver)
-        per_host_templates[uc] = _cbv_template_names(resolver)
+        per_host_cbv[uc] = _cbv_template_names(resolver)
+        per_host_fv[uc] = _function_view_template_names(resolver)
 
-    # template_name -> set of hosts it renders on
+    # template_name -> set of hosts it renders on (CBV ∪ function-view discovery),
+    # and the set of templates that ANY CBV renders (they get the sensitive check).
     template_hosts: dict[str, set[str]] = {}
-    for uc, names in per_host_templates.items():
-        for name in names:
+    cbv_templates: set[str] = set()
+    for uc in per_host_ns:
+        for name in per_host_cbv.get(uc, set()):
+            template_hosts.setdefault(name, set()).add(uc)
+            cbv_templates.add(name)
+        for name in per_host_fv.get(uc, set()):
             template_hosts.setdefault(name, set()).add(uc)
 
     findings: list[dict] = []
@@ -189,28 +297,38 @@ def scan() -> list[dict]:
             continue
         if "{% url" not in text and "{%url" not in text:
             continue
+        # CBV template_name → hosts is exact, so a namespace absent on ANY host it
+        # renders on is a real cross-host 500 (the connector-home class). A template
+        # discovered ONLY through a function-view render() is looser — shared app
+        # includes (e.g. apps.accounts.urls on the marketing host) attribute a page
+        # to hosts it never actually serves — so we require the namespace to be
+        # absent on EVERY host the page renders on: that is a guaranteed 500 wherever
+        # it renders (the /help/ class), which verify_url_name_integrity misses
+        # because it unions names across all hosts. This keeps the gate zero-FP.
+        is_cbv = name in cbv_templates
         rel = os.path.relpath(origin, REPO_ROOT).replace(os.sep, "/")
         for lineno, ns, ref_name in _unguarded_ns_refs(text):
             missing_on = sorted(
                 uc for uc in hosts if ns not in per_host_ns.get(uc, set())
             )
-            if missing_on:
-                findings.append(
-                    {
-                        "file": rel,
-                        "line": lineno,
-                        "template": name,
-                        "reverse": f"{ns}:{ref_name}",
-                        "renders_on": sorted(hosts),
-                        "missing_on": missing_on,
-                        "reason": (
-                            f"'{ns}' is absent on {missing_on} but this template also "
-                            f"renders there; resolve the URL host-aware in the view "
-                            f"(pass it into context) or add "
-                            f"{{# {MARKER}: <reason> #}}"
-                        ),
-                    }
-                )
+            if not _is_finding(is_cbv, set(missing_on), hosts):
+                continue
+            findings.append(
+                {
+                    "file": rel,
+                    "line": lineno,
+                    "template": name,
+                    "reverse": f"{ns}:{ref_name}",
+                    "renders_on": sorted(hosts),
+                    "missing_on": missing_on,
+                    "discovery": "cbv" if is_cbv else "function_view",
+                    "reason": (
+                        f"'{ns}' is absent on {missing_on} but this template also "
+                        f"renders there; resolve the URL host-aware in the view "
+                        f"(pass it into context) or add {{# {MARKER}: <reason> #}}"
+                    ),
+                }
+            )
     return sorted(findings, key=lambda f: (f["file"], f["line"]))
 
 
