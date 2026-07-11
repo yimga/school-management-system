@@ -164,6 +164,34 @@ def _required_fields_for_evaluation(evaluation: Evaluation) -> list[str]:
     return fields or ["seq1_score", "seq2_score", "exam_score"]
 
 
+def _apply_fill_missing(
+    evaluation: Evaluation, fill_value: Decimal, fields: list[str]
+) -> bool:
+    """Fill the still-missing required score components on ``evaluation``.
+
+    Persists via ``evaluation.save()`` — deliberately NOT a queryset
+    ``.update()``. ``final_score`` / ``normalized_value`` are denormalized
+    columns recomputed only inside ``Evaluation.save()``; a bare ``.update()``
+    writes the raw seqN/exam columns and leaves ``final_score`` frozen at its
+    pre-fill (incomplete) value, which every reader of the stored column —
+    rankings (``Avg("final_score")``), degree-audit credit, EWS, and frozen
+    transcripts — would then read as stale indefinitely. ``save()`` also reruns
+    validation and fires the ranking-cache / audit signals.
+
+    Returns True when a row was written, False when nothing was missing.
+    Propagates ``ValidationError`` when the value is out of range for the
+    school's grading scale (the caller decides how to surface it).
+    """
+    changed = False
+    for field in fields:
+        if getattr(evaluation, field) is None:
+            setattr(evaluation, field, fill_value)
+            changed = True
+    if changed:
+        evaluation.save()
+    return changed
+
+
 def _serialize_evaluation(evaluation: Evaluation) -> dict[str, str]:
     sa = evaluation.subject_assignment
     student_name = f"{evaluation.student.last_name} {evaluation.student.first_name} ({evaluation.student.student_code})"
@@ -2744,21 +2772,25 @@ def evaluation_admin(request: HttpRequest):
         if fill_form.is_valid():
             fill_value = Decimal(fill_form.cleaned_data["fill_value"])
             updated = 0
+            skipped = 0
             for evaluation in evals_list:
-                needs_update = False
-                updates = {}
-                # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-                for field in _required_fields_for_evaluation(evaluation):
-                    if getattr(evaluation, field) is None:
-                        updates[field] = fill_value
-                        needs_update = True
-                # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-                if needs_update:
-                    Evaluation.objects.filter(id=evaluation.id).update(**updates)
-                    updated += 1
+                fields = _required_fields_for_evaluation(evaluation)
+                try:
+                    # save() (not .update()) so the denormalized final_score /
+                    # normalized_value are recomputed — see _apply_fill_missing.
+                    if _apply_fill_missing(evaluation, fill_value, fields):
+                        updated += 1
+                except ValidationError:
+                    skipped += 1
             messages.success(
                 request, f"Filled missing scores for {updated} evaluations."
             )
+            if skipped:
+                messages.warning(
+                    request,
+                    f"{skipped} evaluation(s) skipped — fill value out of range "
+                    f"for the school's grading scale.",
+                )
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             redirect_target = request.path + f"?year={year_obj.id}&term={term_obj.id}"
             if classroom_id:
