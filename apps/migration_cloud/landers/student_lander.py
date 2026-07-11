@@ -13,6 +13,8 @@ from ._helpers import (
     conflict_resolution_for,
     detect_and_register_assets,
     detect_conflict,
+    map_enrollment_status,
+    persist_dfv_extras,
     record_id_mapping,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -47,6 +49,10 @@ class StudentLander(Lander):
                 )
                 continue
 
+            # Canonical enrollment_status is a lifecycle token; StudentProfile
+            # stores it on ``status`` (a constrained choice), NOT a field named
+            # ``enrollment_status`` — writing that key silently dropped the state.
+            mapped_status = map_enrollment_status(row.get("enrollment_status"))
             defaults = {
                 "first_name": first_name,
                 "last_name": last_name,
@@ -57,11 +63,24 @@ class StudentLander(Lander):
                 "date_of_birth": row.get("date_of_birth") or None,
                 "gender": (row.get("gender") or "").strip(),
                 "grade_level": (row.get("grade_level") or "").strip(),
-                "enrollment_status": (row.get("enrollment_status") or "").strip(),
+                "status": mapped_status,
                 "address": (row.get("address") or "").strip(),
             }
             # Filter to fields the model actually has, to be schema-tolerant.
             model_fields = {f.name for f in StudentProfile._meta.get_fields()}
+            # Canonical columns this tenant's StudentProfile doesn't model
+            # (middle_name/email/phone/grade_level/address vary by deployment) —
+            # preserved as custom fields after the upsert so no source data is
+            # silently dropped. The raw enrollment_status token is kept too.
+            extras = {
+                "middle_name": (row.get("middle_name") or "").strip(),
+                "email": (row.get("email") or "").strip(),
+                "phone": (row.get("phone") or "").strip(),
+                "grade_level": (row.get("grade_level") or "").strip(),
+                "address": (row.get("address") or "").strip(),
+                "enrollment_status": (row.get("enrollment_status") or "").strip(),
+            }
+            extras = {k: v for k, v in extras.items() if k not in model_fields and v}
             defaults = {k: v for k, v in defaults.items() if k in model_fields and v not in (None, "")}
 
             # Bind created/updated rows to the bundle's school, and scope the
@@ -118,6 +137,10 @@ class StudentLander(Lander):
                     result.updated_ids_with_old_values.append(
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
+                persist_dfv_extras(
+                    ctx=ctx, entity_type="student", entity_id=obj.pk,
+                    extras=extras, result=result,
+                )
                 record_id_mapping(
                     ctx=ctx, legacy_id=external_id,
                     canonical_obj=obj, domain="students",

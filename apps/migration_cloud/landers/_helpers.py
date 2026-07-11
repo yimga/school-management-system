@@ -68,6 +68,59 @@ def filter_to_model_fields(defaults: dict[str, Any], model) -> dict[str, Any]:
     return {k: v for k, v in defaults.items() if k in available and v not in (None, "")}
 
 
+# Canonical enrollment_status token → StudentProfile.Status value. Kept here so
+# the students AND enrollment landers map identically (both write onto the same
+# StudentProfile.status column). Returns "" for tokens with no confident mapping —
+# the caller then leaves status untouched and preserves the raw token in DFV, so a
+# vendor-specific value is never silently coerced to a wrong lifecycle state.
+_ENROLLMENT_STATUS_MAP = {
+    "new": "NEW", "new_admission": "NEW", "admitted": "NEW", "fresh": "NEW",
+    "active": "RETURNING", "enrolled": "RETURNING", "current": "RETURNING",
+    "continuing": "RETURNING", "returning": "RETURNING", "promoted": "RETURNING",
+    "probation": "PROBATION", "on_probation": "PROBATION", "suspended": "PROBATION",
+    "graduated": "ALUMNI", "alumni": "ALUMNI", "completed": "ALUMNI", "passed_out": "ALUMNI",
+    "withdrawn": "TRANSFERRED", "transferred": "TRANSFERRED", "left": "TRANSFERRED",
+    "exited": "TRANSFERRED", "inactive": "TRANSFERRED", "dropped": "TRANSFERRED",
+}
+
+
+def map_enrollment_status(raw: Any) -> str:
+    """Map a canonical enrollment_status token to a ``StudentProfile.Status`` value.
+
+    Returns "" when there is no confident mapping so the caller leaves ``status``
+    untouched (the field is ``blank=True``) and can preserve the raw token as a
+    custom field instead of writing an invalid choice.
+    """
+    if not raw:
+        return ""
+    return _ENROLLMENT_STATUS_MAP.get(str(raw).strip().lower(), "")
+
+
+# Canonical attendance status → the exact lowercase ``Attendance.Status`` choice.
+# The canonical present/absent/late/excused already ARE the choices; this only
+# folds aliases (and the out-of-choice holiday/suspended) into a valid value so
+# every landed row is a real choice that report filters and get_status_display see.
+_ATTENDANCE_STATUS_MAP = {
+    "present": "present", "p": "present", "here": "present",
+    "absent": "absent", "a": "absent", "unexcused": "absent", "suspended": "absent",
+    "late": "late", "l": "late", "tardy": "late",
+    "excused": "excused", "e": "excused", "holiday": "excused", "leave": "excused",
+}
+
+
+def map_attendance_status(raw: Any, *, valid: set[str], default: str) -> str:
+    """Normalize a canonical attendance token to a valid ``Attendance.Status``.
+
+    Pass-through when the token already matches a choice; else fold known aliases;
+    else fall back to ``default`` (the model's own default) rather than an invalid
+    single-letter code.
+    """
+    token = str(raw or "").strip().lower()
+    if token in valid:
+        return token
+    return _ATTENDANCE_STATUS_MAP.get(token, default)
+
+
 def truthy(v: Any) -> bool:
     if v is None:
         return False

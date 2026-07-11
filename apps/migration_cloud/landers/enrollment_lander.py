@@ -24,7 +24,9 @@ from typing import Any, Iterator
 from ._helpers import (
     coerce_date,
     filter_to_model_fields,
+    map_enrollment_status,
     model_field_names,
+    persist_dfv_extras,
     resolve_student,
     student_lookup_field,
 )
@@ -72,16 +74,23 @@ class EnrollmentLander(Lander):
 
             section_ref = (row.get("section_code") or row.get("section") or "").strip()
             year_ref = (row.get("academic_year") or "").strip()
+            # enrollment_status is a lifecycle token → StudentProfile.status (a
+            # constrained choice), NOT a phantom ``enrollment_status`` column.
             updates: dict[str, Any] = {
-                "grade_level": (row.get("grade_level") or "").strip(),
-                "enrollment_status": (row.get("enrollment_status") or "").strip(),
-                "enrolled_at": coerce_date(row.get("enrolled_at")),
+                "status": map_enrollment_status(row.get("enrollment_status")),
                 "joined_date": coerce_date(
                     row.get("enrolled_at") or row.get("enrollment_date")
                 ),
                 "section": section_ref,
             }
             updates = filter_to_model_fields(updates, StudentProfile)
+            # grade_level + the raw enrollment token aren't first-class columns —
+            # preserve them as custom fields so nothing is silently dropped.
+            extras = {
+                "grade_level": (row.get("grade_level") or "").strip(),
+                "enrollment_status": (row.get("enrollment_status") or "").strip(),
+            }
+            extras = {k: v for k, v in extras.items() if k not in student_fields and v}
 
             # Placement: resolve NAMED structures into real FKs at the
             # student's school. The docstring's "linked to a Section if
@@ -126,16 +135,21 @@ class EnrollmentLander(Lander):
                     f"school for student {external_id!r}"
                 )
                 continue
-            if not updates:
+            if not updates and not extras:
                 continue
 
             if ctx.dry_run:
                 result.updated += 1
                 continue
             try:
-                for k, v in updates.items():
-                    setattr(student, k, v)
-                student.save(update_fields=list(updates.keys()))
+                if updates:
+                    for k, v in updates.items():
+                        setattr(student, k, v)
+                    student.save(update_fields=list(updates.keys()))
+                persist_dfv_extras(
+                    ctx=ctx, entity_type="student", entity_id=student.pk,
+                    extras=extras, result=result,
+                )
                 result.updated += 1
                 result.updated_ids_with_old_values.append({"pk": student.pk, "old": {}})
                 from ._helpers import record_id_mapping

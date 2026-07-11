@@ -20,21 +20,12 @@ from typing import Any, Iterator
 from ._helpers import (
     coerce_date,
     filter_to_model_fields,
+    map_attendance_status,
     model_field_names,
     resolve_student,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
-
-
-_STATUS_MAP = {
-    "present": "P",
-    "absent": "A",
-    "late": "L",
-    "excused": "E",
-    "holiday": "H",
-    "suspended": "S",
-}
 
 
 class AttendanceLander(Lander):
@@ -59,6 +50,14 @@ class AttendanceLander(Lander):
         student_lookup = student_lookup_field(student_fields)
         att_fields = model_field_names(Attendance)
         status_field = "status" if "status" in att_fields else None
+        # Valid Status choices + the model default, read off the model so a schema
+        # change can't silently reintroduce out-of-choice values.
+        status_choices = {c for c, _ in getattr(Attendance, "Status").choices}
+        status_default = getattr(
+            Attendance._meta.get_field("status"), "default", "present"
+        )
+        if not isinstance(status_default, str):
+            status_default = "present"
 
         for row in canonical_rows:
             external_id = (row.get("student_external_id") or "").strip()
@@ -83,12 +82,17 @@ class AttendanceLander(Lander):
                 )
                 continue
 
-            mapped_status = _STATUS_MAP.get(status_raw, status_raw.upper()[:1] or "A")
+            mapped_status = map_attendance_status(
+                status_raw, valid=status_choices, default=status_default
+            )
             defaults: dict[str, Any] = {"date": date_val}
             if status_field:
                 defaults["status"] = mapped_status
-            if "remarks" in att_fields and row.get("remarks"):
-                defaults["remarks"] = str(row["remarks"])[:255]
+            # Canonical attendance carries the remark under ``notes``; the model
+            # column is ``remarks``. Read notes first, fall back to remarks.
+            remark = (row.get("notes") or row.get("remarks") or "").strip()
+            if "remarks" in att_fields and remark:
+                defaults["remarks"] = remark[:255]
             # Bind the row to the bundle's school (NOT NULL FK on single-schema
             # deployments) and default the classroom to the student's current
             # one — canonical attendance rows carry neither.

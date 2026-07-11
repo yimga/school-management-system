@@ -311,8 +311,9 @@ _DEPENDENCY_WAVES: tuple[frozenset[str], ...] = (
     frozenset({"students", "staff", "sections", "academics"}),      # wave 1: independent roots (academics = Subject catalog, precedes grades)
     frozenset({"enrollment", "guardians", "schedule"}),             # wave 2: depend on wave 1
     frozenset({"attendance", "grades", "behavior", "finance", "transcripts",  # wave 3: depend on wave 2
-               "health", "library", "transport", "hostel", "cafeteria"}),
-    frozenset({"custom_fields"}),                                   # wave 4: catch-all last
+               "health", "library", "transport", "hostel", "cafeteria",
+               "athletics_teams"}),                                 # athletics_teams precedes its roster/fixtures
+    frozenset({"custom_fields"}),                                   # wave 4: catch-all (athletics_memberships/fixtures, *_assignments) — after their parents
 )
 
 

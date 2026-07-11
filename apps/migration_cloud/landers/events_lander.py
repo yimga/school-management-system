@@ -63,34 +63,51 @@ class EventsLander(Lander):
             location = (row.get("location") or "").strip()
             description = (row.get("description") or "").strip()
 
-            defaults: dict[str, Any] = {
-                "title": title[:255],
-            }
-            for src, target in [
-                ("description", "description"),
-                ("location", "location"),
-                ("venue", "venue"),
-                ("category", "category"),
-                ("event_type", "event_type"),
-            ]:
-                v = {"description": description, "location": location, "venue": location, "category": category, "event_type": category}[src]
-                if target in e_fields and v:
-                    defaults[target] = v[:255]
-            if "starts_at" in e_fields:
+            defaults: dict[str, Any] = {"title": title[:255]}
+            if "description" in e_fields and description:
+                defaults["description"] = description
+            # SchoolEvent's real datetime columns are start_at/end_at (start_at is
+            # required) — NOT starts_at/start_date. venue is an FK to EventVenue;
+            # assigning the location STRING to it raised ValueError, so location +
+            # category go into the metadata JSON instead of a phantom/FK column.
+            if "start_at" in e_fields:
+                defaults["start_at"] = _dt.datetime.combine(starts, _dt.time.min)
+            elif "starts_at" in e_fields:
                 defaults["starts_at"] = _dt.datetime.combine(starts, _dt.time.min)
             elif "start_date" in e_fields:
                 defaults["start_date"] = starts
-            if "ends_at" in e_fields:
+            if "end_at" in e_fields:
+                defaults["end_at"] = _dt.datetime.combine(ends, _dt.time(23, 59))
+            elif "ends_at" in e_fields:
                 defaults["ends_at"] = _dt.datetime.combine(ends, _dt.time(23, 59))
             elif "end_date" in e_fields:
                 defaults["end_date"] = ends
+            if "metadata" in e_fields:
+                meta: dict[str, Any] = {"source": "migration_cloud"}
+                if location:
+                    meta["location"] = location[:255]
+                if category:
+                    meta["category"] = category[:64]
+                defaults["metadata"] = meta
+            # school is a required NOT NULL FK; canonical event rows carry none.
+            if "school" in e_fields and ctx.school is not None:
+                defaults["school"] = ctx.school
             defaults = filter_to_model_fields(defaults, SchoolEvent)
 
-            lookup_kwargs: dict[str, Any] = {"title": title[:255]}
-            if "starts_at" in e_fields:
-                lookup_kwargs["starts_at"] = defaults.get("starts_at")
-            elif "start_date" in e_fields:
-                lookup_kwargs["start_date"] = starts
+            # slug is unique per (school, slug); derive it from title+date so
+            # recurring same-titled events don't collide and re-runs are idempotent.
+            slug = ""
+            if "slug" in e_fields:
+                from django.utils.text import slugify
+                slug = (slugify(f"{title}-{starts.isoformat()}") or "event")[:100]
+
+            lookup_kwargs: dict[str, Any] = {}
+            if "school" in e_fields and ctx.school is not None:
+                lookup_kwargs["school"] = ctx.school
+            if slug:
+                lookup_kwargs["slug"] = slug
+            else:
+                lookup_kwargs["title"] = title[:255]
 
             if ctx.dry_run:
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator

@@ -24,6 +24,7 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    resolve_student,
     student_lookup_field,
     truthy,
 )
@@ -62,10 +63,12 @@ class HealthLander(Lander):
                     f"health: missing student/category in {row!r}"
                 )
                 continue
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
-            student = StudentProfile.objects.filter(
-                **{student_lookup: external_id}
-            ).first()
+            student = resolve_student(
+                ctx=ctx,
+                student_model=StudentProfile,
+                lookup_field=student_lookup,
+                external_id=external_id,
+            )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
@@ -73,22 +76,36 @@ class HealthLander(Lander):
                 )
                 continue
 
-            defaults: dict[str, Any] = {
-                "record_type": category[:64],
-                "notes": (row.get("description") or row.get("notes") or "")[:2000],
-                "confidential": truthy(row.get("confidential")),
-            }
-            if date_val and "recorded_at" in h_fields:
-                # recorded_at is typically a DateTimeField; coerce the date.
-                import datetime as _dt
-                defaults["recorded_at"] = _dt.datetime.combine(date_val, _dt.time.min)
+            # HealthRecord.record_type is max_length=32. The source event date +
+            # provider + follow-up have no dedicated columns (recorded_at is
+            # auto_now_add = server insert time), so fold them into notes — that
+            # keeps the date visible AND lets (school, student, record_type, notes)
+            # key an idempotent upsert that preserves DISTINCT events instead of
+            # collapsing every same-type record into one row.
+            record_type = category[:32]
+            note_body = (row.get("description") or row.get("notes") or "").strip()
+            if date_val:
+                note_body = f"[{date_val.isoformat()}] {note_body}".strip()
+            provider = (row.get("provider") or "").strip()
+            if provider:
+                note_body = f"{note_body} (provider: {provider})".strip()
+            follow_up = (row.get("follow_up") or "").strip()
+            if follow_up:
+                note_body = f"{note_body} [follow-up: {follow_up}]".strip()
+            note_body = note_body[:2000]
+
+            defaults: dict[str, Any] = {"confidential": truthy(row.get("confidential"))}
             defaults = filter_to_model_fields(defaults, HealthRecord)
 
+            # school is a required NOT NULL FK; canonical health rows carry none,
+            # so bind the bundle's school or every insert IntegrityErrors.
             lookup_kwargs: dict[str, Any] = {"student": student}
-            if "record_type" in h_fields and category:
-                lookup_kwargs["record_type"] = category[:64]
-            if "recorded_at" in h_fields and defaults.get("recorded_at"):
-                lookup_kwargs["recorded_at"] = defaults["recorded_at"]
+            if "school" in h_fields and ctx.school is not None:
+                lookup_kwargs["school"] = ctx.school
+            if "record_type" in h_fields:
+                lookup_kwargs["record_type"] = record_type
+            if "notes" in h_fields:
+                lookup_kwargs["notes"] = note_body
 
             if ctx.dry_run:
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator

@@ -1,4 +1,4 @@
-"""Payroll lander — persists canonical payroll rows into ``apps.payroll.Payslip``.
+"""Payroll lander — preserves canonical payroll rows as custom records.
 
 Canonical row shape::
 
@@ -12,28 +12,23 @@ Canonical row shape::
         "reference":          "PS-2025-09-T1029",  # optional natural key
     }
 
-Upsert key: (employee, reference) when reference is present, else
-(employee, pay_period). All money is Decimal — never float.
-
-Money safety: parsed via coerce_decimal; persists as Decimal to avoid
-ledger corruption (compliant with the platform's ``scan_money_float``
-zero-tolerance gate).
+Design note: the platform's first-class ``apps.payroll.Payslip`` requires a
+``payroll_run``→PayrollRun FK and an ``employee``→PayrollEmployee FK (a distinct
+model from ``people.TeacherProfile``). A data migration can't manufacture payroll
+RUNS or PayrollEmployee records without inventing HR/ledger infrastructure, so
+rather than force-fit (which ValueError/IntegrityError-quarantined every row) we
+PRESERVE each payslip row losslessly as a ``DynamicFieldValue`` custom record
+keyed to a stable (staff, pay_period) identity. Money stays as the source string
+(never coerced to float) so no ledger value is corrupted. Re-runs update the same
+record; distinct pay periods stay distinct.
 """
 
 from __future__ import annotations
 
-import datetime as _dt
 from typing import Any, Iterator
 
-from ._helpers import (
-    coerce_date,
-    coerce_decimal,
-    filter_to_model_fields,
-    model_field_names,
-    record_id_mapping,
-    staff_lookup_field,
-)
-from .base import Lander, LanderContext, LanderError, LanderResult, register
+from ._helpers import persist_dfv_extras
+from .base import Lander, LanderContext, LanderResult, register
 
 
 class PayrollLander(Lander):
@@ -45,100 +40,37 @@ class PayrollLander(Lander):
         canonical_rows: Iterator[dict[str, Any]],
         ctx: LanderContext,
     ) -> LanderResult:
-        try:
-            from apps.payroll.models import Payslip
-            from apps.people.models import TeacherProfile
-        except ImportError as exc:
-            raise LanderError(
-                f"PayrollLander could not import target models: {exc!s}"
-            ) from exc
-
         result = LanderResult()
-        staff_fields = model_field_names(TeacherProfile)
-        staff_lookup = staff_lookup_field(staff_fields)
-        p_fields = model_field_names(Payslip)
-
         for row in canonical_rows:
             external_id = (row.get("staff_external_id") or row.get("external_id") or "").strip()
-            reference = (row.get("reference") or "").strip()
-            pay_period = (row.get("pay_period") or "").strip()
             if not external_id:
                 result.quarantined += 1
                 result.errors.append(
                     f"payroll: missing staff_external_id in {row!r}"
                 )
                 continue
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
-            employee = TeacherProfile.objects.filter(
-                **{staff_lookup: external_id}
-            ).first()
-            if employee is None:
-                result.quarantined += 1
-                result.errors.append(
-                    f"payroll: no staff with {staff_lookup}={external_id!r}"
-                )
-                continue
-
-            gross = coerce_decimal(row.get("gross_amount") or row.get("gross_pay"))
-            net = coerce_decimal(row.get("net_amount") or row.get("net_pay"))
-            issued = coerce_date(row.get("issued_date") or row.get("paid_at"))
-
-            defaults: dict[str, Any] = {}
-            if gross is not None and "gross_pay" in p_fields:
-                defaults["gross_pay"] = gross
-            if net is not None and "net_pay" in p_fields:
-                defaults["net_pay"] = net
-            if reference and "reference" in p_fields:
-                defaults["reference"] = reference[:128]
-            if issued and "paid_at" in p_fields:
-                defaults["paid_at"] = _dt.datetime.combine(issued, _dt.time.min)
-            if "details" in p_fields:
-                defaults["details"] = {
-                    "pay_period": pay_period,
-                    "currency": (row.get("currency") or "USD").upper()[:3],
-                }
-            defaults = filter_to_model_fields(defaults, Payslip)
-
-            lookup_kwargs: dict[str, Any] = {"employee": employee}
-            if reference and "reference" in p_fields:
-                lookup_kwargs["reference"] = reference[:128]
-            elif issued and "paid_at" in p_fields:
-                lookup_kwargs["paid_at"] = defaults["paid_at"]
+            reference = (row.get("reference") or "").strip()
+            pay_period = (row.get("pay_period") or "").strip()
+            # Stable per-record identity → re-runs update the same custom record.
+            record_key = (reference or f"{external_id}:{pay_period or 'na'}")[:64]
+            record = {k: str(v) for k, v in row.items() if v not in (None, "")}
 
             if ctx.dry_run:
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
-                exists = Payslip.objects.filter(**lookup_kwargs).exists()
-                result.updated += 1 if exists else 0
-                result.created += 0 if exists else 1
+                result.created += 1
                 continue
             try:
-                from ._helpers import upsert_with_conflict_detection
-                _pr_legacy = reference or f"{external_id}:{pay_period}"
-                obj, created, preserved = upsert_with_conflict_detection(
-                    ctx=ctx, domain="payroll", model=Payslip,
-                    lookup=lookup_kwargs, defaults=defaults, legacy_id=_pr_legacy,
-                )
-                if preserved:
-                    result.skipped += 1
-                    record_id_mapping(ctx=ctx, legacy_id=_pr_legacy, canonical_obj=obj, domain="payroll")
-                    continue
-                if created:
-                    result.created += 1
-                    result.created_ids.append(obj.pk)
-                else:
-                    result.updated += 1
-                    result.updated_ids_with_old_values.append(
-                        {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
-                    )
-                record_id_mapping(
+                persist_dfv_extras(
                     ctx=ctx,
-                    legacy_id=_pr_legacy,
-                    canonical_obj=obj, domain="payroll",
+                    entity_type="payroll",
+                    entity_id=record_key,
+                    extras={"record": record},
+                    result=result,
                 )
+                result.created += 1
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(
-                    f"payroll upsert failed for {external_id} {pay_period}: "
+                    f"payroll preserve failed for {external_id} {pay_period}: "
                     f"{type(exc).__name__}: {exc}"
                 )
         return result

@@ -914,8 +914,17 @@ class MigrationCloudAdvanceView(LoginRequiredMixin, View):
     @idempotent_post
     @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
+        from django.http import Http404
+
         from .pipeline import advance_bundle
 
+        # Tenant scope: the portal shell must only drive its OWN bundles. This
+        # view (and the DRF action that delegates here) previously ran the
+        # pipeline on the raw pk with no tenant check — a cross-tenant IDOR.
+        try:
+            _tenant_scoped_bundle(request, bundle_id, shell)
+        except Http404:
+            return JsonResponse({"error": "bundle not found"}, status=404)
         try:
             summary = advance_bundle(bundle_id=bundle_id, use_accelerator=True)
         except MigrationBundle.DoesNotExist:
@@ -953,8 +962,17 @@ class MigrationCloudApplyView(LoginRequiredMixin, View):
     @idempotent_post
     @safe_500
     def post(self, request, bundle_id: int, shell: str = "super"):
+        from django.http import Http404
+
         from .orchestrator import apply_bundle
 
+        # Tenant scope before a LIVE apply — a portal caller must never apply
+        # another tenant's bundle (cross-tenant IDOR closed here + on the DRF
+        # action that delegates to this view).
+        try:
+            _tenant_scoped_bundle(request, bundle_id, shell)
+        except Http404:
+            return JsonResponse({"error": "bundle not found"}, status=404)
         dry_run_explicit = str(request.GET.get("dry_run", "")).lower() in ("1", "true", "yes")
         confirmed = str(request.GET.get("confirm", "")).lower() in ("1", "true", "yes")
         # Live apply iff the caller explicitly confirmed AND did not set dry_run=1.
@@ -1001,8 +1019,16 @@ class MigrationCloudReconcileView(LoginRequiredMixin, View):
     def post(self, request, bundle_id: int, shell: str = "super"):
         import json
 
+        from django.http import Http404
+
         from .reconciliation import reconcile_bundle
 
+        # Tenant scope — reconcile returns per-domain counts/parity/field names;
+        # a portal caller must only reconcile their own bundle.
+        try:
+            _tenant_scoped_bundle(request, bundle_id, shell)
+        except Http404:
+            return JsonResponse({"error": "bundle not found"}, status=404)
         try:
             payload = json.loads(request.body or b"{}")
         except json.JSONDecodeError:
@@ -2128,13 +2154,26 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
             payload = json.loads(request.body or b"{}")
         except json.JSONDecodeError:
             payload = request.POST.dict()
+        from django.http import Http404
+
         conflict_id = payload.get("conflict_id")
         resolution = (payload.get("resolution") or "").upper()
         if resolution not in {c[0] for c in ConflictResolution.choices}:
             return JsonResponse({"error": "invalid resolution"}, status=400)
-        if not conflict_id:
+        try:
+            conflict_pk = int(conflict_id)
+        except (TypeError, ValueError):
             return JsonResponse({"error": "conflict_id required"}, status=400)
-        conflict = get_object_or_404(MigrationConflict, pk=conflict_id, bundle_id=bundle_id)
+        # Scope by tenant: the GET already resolves via _tenant_scoped_bundle;
+        # the POST must too, then look up the conflict WITHIN that bundle — else a
+        # portal caller could flip another tenant's conflict resolution (which
+        # drives whether apply overwrites/preserves rows). MigrationConflict has
+        # no school_id, so the view-layer scope is the only guard here.
+        try:
+            bundle = _tenant_scoped_bundle(request, bundle_id, shell)
+        except Http404:
+            return JsonResponse({"error": "bundle not found"}, status=404)
+        conflict = get_object_or_404(MigrationConflict, pk=conflict_pk, bundle=bundle)
         conflict.resolution = resolution
         conflict.resolved_by = request.user if request.user.is_authenticated else None
         conflict.resolved_at = timezone.now()
