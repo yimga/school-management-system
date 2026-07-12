@@ -124,6 +124,10 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
                     recipient=user,
                     subject="Finance access granted",
                     body=f"You can now view finance records for {student}.",
+                    # bulk_create bypasses Message.save()'s school backfill, so set
+                    # the tenant explicitly or the row lands school=NULL and drops
+                    # out of school-scoped consumers + survives GDPR purge.
+                    school=getattr(request, "school", None),
                 )
             )
             if "sms" in channels:
@@ -248,6 +252,9 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             recipient=recipient,
             subject=subject,
             body=body,
+            # bulk_create bypasses Message.save()'s school backfill — set the
+            # tenant so the row isn't orphaned with school=NULL.
+            school=getattr(request, "school", None),
         )
         for recipient in recipients
     ]
