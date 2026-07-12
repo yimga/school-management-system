@@ -40,6 +40,11 @@ urlpatterns = [
         name="coach_record_result",
     ),
     path(
+        "fixtures/<int:fixture_id>/cancel/",
+        views.coach_cancel_fixture,
+        name="coach_cancel_fixture",
+    ),
+    path(
         "memberships/<int:membership_id>/request-consent/",
         views.coach_request_consent,
         name="coach_request_consent",

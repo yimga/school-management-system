@@ -248,6 +248,28 @@ def coach_record_result(request, fixture_id):
 @require_school
 @require_permission("athletics.manage")
 @require_POST
+def coach_cancel_fixture(request, fixture_id):
+    """Cancel a fixture and free every venue booking it holds."""
+    school = request.school
+    fixture = get_object_or_404(
+        Fixture.objects.filter(school=school).select_related("team"), pk=fixture_id
+    )
+    assert_team_manage(request, fixture.team_id)
+
+    from apps.athletics.services.scheduling import cancel_fixture
+
+    try:
+        cancel_fixture(fixture=fixture, actor=request.user)
+        messages.success(request, "Fixture cancelled and its venue released.")
+    except ValueError as exc:
+        messages.error(request, str(exc) or "That fixture can't be cancelled.")
+    return redirect("athletics:coach_fixtures", team_id=fixture.team_id)
+
+
+@login_required
+@require_school
+@require_permission("athletics.manage")
+@require_POST
 def coach_request_consent(request, membership_id):
     """Mint a guardian participation-consent token for a pending membership."""
     school = request.school

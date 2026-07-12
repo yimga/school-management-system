@@ -7,6 +7,7 @@ introspection) can reach them from ``apps.athletics.views`` directly.
 from apps.athletics.views.admin_console import admin_fixtures, admin_seasons
 from apps.athletics.views.coach import (
     coach_add_member,
+    coach_cancel_fixture,
     coach_dashboard,
     coach_eligibility,
     coach_fixtures,
@@ -25,6 +26,7 @@ __all__ = [
     "admin_fixtures",
     "admin_seasons",
     "coach_add_member",
+    "coach_cancel_fixture",
     "coach_dashboard",
     "coach_eligibility",
     "coach_fixtures",

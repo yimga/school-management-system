@@ -24,7 +24,7 @@
               <th scope="col">{% trans "Venue" %}</th>
               <th scope="col">{% trans "Status" %}</th>
               <th scope="col">{% trans "Result" %}</th>
-              {% if can_manage %}<th scope="col" class="text-end">{% trans "Record result" %}</th>{% endif %}
+              {% if can_manage %}<th scope="col" class="text-end">{% trans "Actions" %}</th>{% endif %}
             </tr>
           </thead>
           <tbody>
@@ -43,14 +43,22 @@
               </td>
               {% if can_manage %}
               <td class="text-end">
-                {% if not fixture.result %}
-                <form method="post" action="{% url 'athletics:coach_record_result' fixture_id=fixture.id %}" class="d-inline-flex gap-2 justify-content-end">
-                  {% csrf_token %}
-                  <input type="number" name="home_score" min="0" value="0" class="form-control form-control-sm" style="width:4.5rem;" aria-label="{% trans 'Home score' %}"><!-- inline-style-allow: inline-score-field-width -->
-                  <input type="number" name="away_score" min="0" value="0" class="form-control form-control-sm" style="width:4.5rem;" aria-label="{% trans 'Away score' %}"><!-- inline-style-allow: inline-score-field-width -->
-                  <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
-                </form>
-                {% else %}<span class="text-muted small">{% trans "Recorded" %}</span>{% endif %}
+                <div class="d-inline-flex gap-2 justify-content-end align-items-center flex-wrap">
+                  {% if not fixture.result %}
+                  <form method="post" action="{% url 'athletics:coach_record_result' fixture_id=fixture.id %}" class="d-inline-flex gap-2">
+                    {% csrf_token %}
+                    <input type="number" name="home_score" min="0" value="0" class="form-control form-control-sm" style="width:4.5rem;" aria-label="{% trans 'Home score' %}"><!-- inline-style-allow: inline-score-field-width -->
+                    <input type="number" name="away_score" min="0" value="0" class="form-control form-control-sm" style="width:4.5rem;" aria-label="{% trans 'Away score' %}"><!-- inline-style-allow: inline-score-field-width -->
+                    <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                  </form>
+                  {% else %}<span class="text-muted small">{% trans "Recorded" %}</span>{% endif %}
+                  {% if fixture.status != "completed" and fixture.status != "cancelled" %}
+                  <form method="post" action="{% url 'athletics:coach_cancel_fixture' fixture_id=fixture.id %}" class="d-inline" onsubmit="return confirm('{% trans "Cancel this fixture and release its venue?" %}');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm" title="{% trans 'Cancel fixture and free its venue' %}">{% trans "Cancel" %}</button>
+                  </form>
+                  {% endif %}
+                </div>
               </td>
               {% endif %}
             </tr>

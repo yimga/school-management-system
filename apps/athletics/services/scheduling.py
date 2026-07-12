@@ -119,4 +119,37 @@ def record_result(*, fixture, home_score: int, away_score: int, actor=None):
     return result
 
 
-__all__ = ["schedule_fixture", "record_result"]
+@transaction.atomic
+def cancel_fixture(*, fixture, actor=None):
+    """Cancel a fixture and release every confirmed venue booking it holds.
+
+    Idempotent: an already-CANCELLED fixture is returned unchanged. A COMPLETED
+    fixture (a played match with a recorded result) cannot be cancelled — raise
+    ``ValueError`` so the caller can surface it. Releasing the confirmed venue
+    bookings is the whole point: without it a cancelled match would pin its venue
+    forever, and the ``FixtureVenueBooking.CANCELLED`` branch had no producer at
+    all — the exclusion constraint only fires on ``status="confirmed"`` rows, so a
+    released booking also stops blocking the slot for a replacement fixture.
+    """
+    from apps.athletics.models import Fixture, FixtureVenueBooking
+    from apps.athletics.services.booking import cancel_fixture_venue_booking
+
+    if fixture.status == Fixture.Status.CANCELLED:
+        return fixture
+    if fixture.status == Fixture.Status.COMPLETED:
+        raise ValueError("a completed fixture cannot be cancelled")
+
+    fixture.status = Fixture.Status.CANCELLED
+    fixture.save(update_fields=["status", "updated_at"])
+
+    # Reverse relation is already scoped to this single fixture (one school).
+    confirmed = fixture.venue_bookings.filter(  # tenant-isolation-allow: reverse-relation-on-single-fixture-already-school-scoped
+        status=FixtureVenueBooking.Status.CONFIRMED
+    )
+    for booking in confirmed:
+        cancel_fixture_venue_booking(booking=booking)
+
+    return fixture
+
+
+__all__ = ["schedule_fixture", "record_result", "cancel_fixture"]
