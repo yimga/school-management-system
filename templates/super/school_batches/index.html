@@ -1,13 +1,13 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
 {% block title %}{% trans "School merge / split" %} — {{ block.super }}{% endblock %}
-{% block content %}
+{% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 {% include "components/next_action_strip.html" %}
 
-<div class="container-fluid rmc-page" style="max-width: 1280px;">
+<div class="container-fluid rmc-page">
   <header class="rmc-page__header" style="margin-bottom: 14px;">
     <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "School merge / split" %}</h1>
     <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 78ch;">

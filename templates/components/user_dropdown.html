@@ -257,18 +257,24 @@
         {% endif %}
       </li>
       {% if request.public_host_kind == 'manager' %}
+      {% url 'manager_feature_center' as manager_feature_center_url %}
+      {% if manager_feature_center_url %}
       <li>
-        <a class="dropdown-item" href="{% url 'manager_feature_center' %}">
+        <a class="dropdown-item" href="{{ manager_feature_center_url }}">
           <i class="bi bi-lightbulb"></i>
           <span>{% trans "Request a feature" %}</span>
         </a>
       </li>
+      {% endif %}
+      {% url 'manager_contact_us' as manager_contact_us_url %}
+      {% if manager_contact_us_url %}
       <li>
-        <a class="dropdown-item" href="{% url 'manager_contact_us' %}">
+        <a class="dropdown-item" href="{{ manager_contact_us_url }}">
           <i class="bi bi-chat-dots"></i>
           <span>{% trans "Contact us" %}</span>
         </a>
       </li>
+      {% endif %}
       {% elif feature_center_url %}
       <li>
         <a class="dropdown-item" href="{{ feature_center_url }}">
@@ -355,7 +361,7 @@ JSON data island so the inline executable script can be removed
   "profileUrl": "{% url 'accounts:user_profile' %}",
   "preferencesUrl": "{% url 'siteconfig:user_preferences' as p %}{{ p }}",
   "logoutUrl": "{% url 'accounts:logout' %}",
-  "helpUrl": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' %}{% else %}{% url 'feedback:help_center' as h %}{{ h }}{% endif %}"
+  "helpUrl": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' as mh %}{{ mh }}{% else %}{% url 'feedback:help_center' as h %}{{ h }}{% endif %}"
 }</script>
 <script src="{% static 'js/_pages/components__user_dropdown.js' %}"></script>
 <script src="{% static 'js/rmc-theme-toggle.js' %}"></script>

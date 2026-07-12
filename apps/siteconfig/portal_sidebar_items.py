@@ -88,12 +88,22 @@ def _safe_reverse(url_name, kwargs=None, args=None, default=None):
 
 
 def _baseline_reverse(url_name):
-    """Reverse sidebar baseline targets (tenant urlconf for school configuration routes)."""
+    """Reverse sidebar baseline targets (tenant urlconf for school configuration routes).
+
+    Restores the request's *live* urlconf in ``finally`` — NOT ``settings.ROOT_URLCONF``.
+    This function runs from the sidebar context processor on every render, so clobbering
+    the thread-local with ROOT_URLCONF (``config.urls``) used to strand the rest of the
+    render on the wrong urlconf: on a manager/operator host the handler activates
+    ``config.manager_urls``, but after this call any page-body ``{% url 'sales:…' %}`` /
+    ``{% url 'super:…' %}`` (namespaces that live only in ``manager_urls``) raised
+    ``NoReverseMatch: '…' is not a registered namespace``. Preserving ``get_urlconf()``
+    keeps the temporary tenant switch fully local to this reverse.
+    """
     from django.conf import settings
-    from django.urls import set_urlconf
+    from django.urls import get_urlconf, set_urlconf
 
     tenant_conf = getattr(settings, "TENANT_SCHEMA_URLCONF", None)
-    root_conf = settings.ROOT_URLCONF
+    prev_conf = get_urlconf()
     if tenant_conf:
         set_urlconf(tenant_conf)
     try:
@@ -103,7 +113,7 @@ def _baseline_reverse(url_name):
         return url
     finally:
         if tenant_conf:
-            set_urlconf(root_conf)
+            set_urlconf(prev_conf)
 
 
 def _badge_or_none(value):

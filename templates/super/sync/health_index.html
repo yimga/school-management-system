@@ -1,13 +1,13 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
 {% block title %}{% trans "Sync health" %} — {{ block.super }}{% endblock %}
-{% block content %}
+{% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 {% include "components/next_action_strip.html" %}
 
-<div class="container-fluid rmc-page" style="max-width: 1200px;">
+<div class="container-fluid rmc-page">
   <nav style="margin-bottom: 10px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
     <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
     <span aria-hidden="true">›</span>
