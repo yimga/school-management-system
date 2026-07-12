@@ -186,11 +186,28 @@
   font-weight: 600;
 }
 
+/* Two-zone body: card grid + context rail. Without the rail the body is a
+   plain block so the grid spans the full width. With --railed it becomes a
+   grid whose rail track collapses under 1080px (rail drops below the cards). */
+.rmc-template-marketplace__body {
+  min-width: 0;
+}
+
+.rmc-template-marketplace__body--railed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 21rem);
+  gap: var(--space-5, 1.25rem);
+  align-items: start;
+}
+
 .rmc-template-marketplace__grid,
 .rmc-template-local__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  /* auto-FIT (not auto-fill): a short/filtered catalog EXPANDS its cards to
+     fill the row instead of leaving empty reserved tracks (the dead-space bug). */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
   gap: var(--space-5, 1.25rem);
+  align-content: start;
 }
 
 .rmc-template-marketplace__card,
@@ -495,6 +512,186 @@
   }
   .rmc-template-marketplace__filter-rail {
     flex-direction: column;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Context rail — fills the previously-empty right region of the       */
+/* marketplace with AI recommendations, recent applies, and coverage.  */
+/* ------------------------------------------------------------------ */
+.rmc-template-marketplace__rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+  position: sticky;
+  top: var(--space-4, 1rem);
+  min-width: 0;
+}
+
+.rmc-tpl-rail-panel {
+  padding: var(--space-4, 1rem);
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 1rem);
+  box-shadow: var(--elev-1);
+}
+
+.rmc-tpl-rail-panel__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  margin: 0 0 var(--space-3, 0.75rem);
+  font-size: var(--type-size-xs, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.rmc-tpl-rail-panel--ai {
+  border-color: color-mix(in srgb, var(--color-primary, var(--text-primary)) 35%, var(--hairline));
+}
+
+.rmc-tpl-rail-panel__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background-color: var(--color-primary, var(--text-primary));
+}
+
+.rmc-tpl-rail-panel--ai .rmc-tpl-rail-panel__dot {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, var(--text-primary)) 25%, transparent);
+}
+
+.rmc-tpl-rec {
+  min-width: 0;
+}
+
+.rmc-tpl-rec__kicker {
+  margin: 0 0 var(--space-1, 0.25rem);
+  font-size: var(--type-size-xs, 0.75rem);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.rmc-tpl-rec__name {
+  display: block;
+  color: var(--text-primary);
+  font-size: var(--type-size-lg, 1.125rem);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rmc-tpl-rec__name:hover { text-decoration: underline; }
+
+.rmc-tpl-rec__why {
+  margin: var(--space-2, 0.5rem) 0;
+  color: var(--text-secondary);
+  font-size: var(--type-size-sm, 0.875rem);
+  line-height: var(--line-height-relaxed, 1.5);
+}
+
+.rmc-tpl-rec__actions {
+  display: flex;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-tpl-rail-list {
+  list-style: none;
+  margin: var(--space-3, 0.75rem) 0 0;
+  padding: var(--space-3, 0.75rem) 0 0;
+  border-top: 1px solid var(--hairline);
+  display: grid;
+  gap: var(--space-1, 0.25rem);
+}
+
+.rmc-tpl-rail-list a {
+  color: var(--text-primary);
+  font-size: var(--type-size-sm, 0.875rem);
+  text-decoration: none;
+}
+
+.rmc-tpl-rail-list a:hover { text-decoration: underline; }
+
+.rmc-tpl-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-tpl-timeline__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+  padding-bottom: var(--space-2, 0.5rem);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-tpl-timeline__item:last-child { border-bottom: 0; padding-bottom: 0; }
+.rmc-tpl-timeline__item--inactive { opacity: 0.6; }
+
+.rmc-tpl-timeline__name {
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 600;
+}
+
+.rmc-tpl-timeline__time {
+  color: var(--text-secondary);
+  font-size: var(--type-size-xs, 0.75rem);
+  white-space: nowrap;
+}
+
+.rmc-tpl-timeline__rollback {
+  grid-column: 1 / -1;
+  justify-self: start;
+  color: var(--color-primary, var(--text-primary));
+  font-size: var(--type-size-xs, 0.75rem);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rmc-tpl-timeline__rollback:hover { text-decoration: underline; }
+
+.rmc-tpl-coverage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 0.25rem);
+}
+
+.rmc-tpl-coverage__chip {
+  padding: var(--space-1, 0.25rem) var(--space-2, 0.5rem);
+  background-color: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 0.25rem);
+  color: var(--text-secondary);
+  font-size: var(--type-size-xs, 0.75rem);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rmc-tpl-coverage__chip:hover { border-color: var(--hairline-strong); color: var(--text-primary); }
+
+.rmc-tpl-coverage__foot {
+  margin: var(--space-3, 0.75rem) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-size-xs, 0.75rem);
+}
+
+@media (max-width: 1080px) {
+  .rmc-template-marketplace__body--railed {
+    grid-template-columns: 1fr;
+  }
+  .rmc-template-marketplace__rail {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .rmc-template-marketplace__rail > .rmc-tpl-rail-panel {
+    flex: 1 1 15rem;
   }
 }
 

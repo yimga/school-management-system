@@ -288,7 +288,15 @@ class TenantTemplateMarketplaceViewsRuntimeTests(TestCase):
         set_urlconf(None)
 
     def _req(self, path: str = "/school/studio/templates/"):
-        return _attach_tenant(self.rf.get(path), user=self.user, school=self.school)
+        request = self.rf.get(path)
+        # portal_base context processors (get_effective_portal_role) read
+        # request.session — RequestFactory doesn't attach one, so supply an
+        # in-memory session (mirrors _build_request above).
+        from django.contrib.sessions.backends.signed_cookies import (
+            SessionStore as SignedCookiesSessionStore,
+        )
+        request.session = SignedCookiesSessionStore()
+        return _attach_tenant(request, user=self.user, school=self.school)
 
     def test_browse_view_returns_200(self):
         response = views_tm.tenant_template_marketplace(self._req())

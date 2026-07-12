@@ -53,49 +53,106 @@
     <button type="submit" class="rmc-template-marketplace__filter-submit">{% trans "Filter" %}</button>
   </form>
 
-  <div class="rmc-template-marketplace__grid">
-    {% for t in templates %}
-      <article class="rmc-template-marketplace__card rmc-reveal" data-rmc-template-card="{{ t.key }}" data-rmc-template-palette="{{ t.palette_family }}">
-        <figure class="rmc-template-marketplace__thumb">
-          <img src="{% static t.thumbnail %}" alt="" loading="lazy" decoding="async">
-          <figcaption>{{ t.layout_family_name }}</figcaption>
-        </figure>
-        <header class="rmc-template-marketplace__card-header">
-          <div>
-            <p class="rmc-template-marketplace__card-kicker">{{ t.palette_family }}</p>
-            <h2>{{ t.name }}</h2>
+  <div class="rmc-template-marketplace__body{% if ai_recommendation or recent_assignments or local_first_coverage %} rmc-template-marketplace__body--railed{% endif %}">
+    <div class="rmc-template-marketplace__grid">
+      {% for t in templates %}
+        <article class="rmc-template-marketplace__card rmc-reveal" data-rmc-template-card="{{ t.key }}" data-rmc-template-palette="{{ t.palette_family }}">
+          <figure class="rmc-template-marketplace__thumb">
+            <img src="{% static t.thumbnail %}" alt="" loading="lazy" decoding="async">
+            <figcaption>{{ t.layout_family_name }}</figcaption>
+          </figure>
+          <header class="rmc-template-marketplace__card-header">
+            <div>
+              <p class="rmc-template-marketplace__card-kicker">{{ t.palette_family }}</p>
+              <h2>{{ t.name }}</h2>
+            </div>
+            <span class="rmc-template-marketplace__category-chip">{{ t.category }}</span>
+          </header>
+          <p class="rmc-template-marketplace__description">{{ t.description }}</p>
+          <div class="rmc-template-marketplace__quality-row" aria-label="{% trans 'Template quality signals' %}">
+            <span>{% trans "WCAG" %} {{ t.accessibility_level }}</span>
+            <span>{{ t.mobile_level }}</span>
+            <span>{{ t.typography_stack }}</span>
           </div>
-          <span class="rmc-template-marketplace__category-chip">{{ t.category }}</span>
-        </header>
-        <p class="rmc-template-marketplace__description">{{ t.description }}</p>
-        <div class="rmc-template-marketplace__quality-row" aria-label="{% trans 'Template quality signals' %}">
-          <span>{% trans "WCAG" %} {{ t.accessibility_level }}</span>
-          <span>{{ t.mobile_level }}</span>
-          <span>{{ t.typography_stack }}</span>
+          <dl class="rmc-template-marketplace__meta">
+            <dt>{% trans "Layout" %}</dt><dd>{{ t.layout_family_name }}</dd>
+            <dt>{% trans "Palette" %}</dt><dd>{{ t.palette_family }}</dd>
+            <dt>{% trans "Mobile" %}</dt><dd>{{ t.mobile_level }}</dd>
+            <dt>{% trans "Accessibility" %}</dt><dd>WCAG {{ t.accessibility_level }}</dd>
+            {% if t.is_local_first %}<dt>{% trans "Local-first" %}</dt><dd>{{ t.supported_countries|join:", " }}</dd>{% endif %}
+          </dl>
+          {% if t.tags %}
+            <ul class="rmc-template-marketplace__tags">
+              {% for tag in t.tags %}<li class="rmc-template-marketplace__tag">{{ tag }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+          <div class="rmc-template-marketplace__actions">
+            <a class="rmc-template-marketplace__action" href="{% url 'template_marketplace:detail' t.key %}">{% trans "Details" %}</a>
+            <a class="rmc-template-marketplace__action" href="{% url 'template_marketplace:preview' t.key %}">{% trans "Preview" %}</a>
+            <a class="rmc-template-marketplace__action rmc-template-marketplace__action--primary" href="{% url 'template_marketplace:apply' t.key %}">{% trans "Apply" %}</a>
+          </div>
+        </article>
+      {% empty %}
+        <div class="rmc-template-marketplace__empty">
+          <p>{% trans "No templates match the active filters." %}</p>
         </div>
-        <dl class="rmc-template-marketplace__meta">
-          <dt>{% trans "Layout" %}</dt><dd>{{ t.layout_family_name }}</dd>
-          <dt>{% trans "Palette" %}</dt><dd>{{ t.palette_family }}</dd>
-          <dt>{% trans "Mobile" %}</dt><dd>{{ t.mobile_level }}</dd>
-          <dt>{% trans "Accessibility" %}</dt><dd>WCAG {{ t.accessibility_level }}</dd>
-          {% if t.is_local_first %}<dt>{% trans "Local-first" %}</dt><dd>{{ t.supported_countries|join:", " }}</dd>{% endif %}
-        </dl>
-        {% if t.tags %}
-          <ul class="rmc-template-marketplace__tags">
-            {% for tag in t.tags %}<li class="rmc-template-marketplace__tag">{{ tag }}</li>{% endfor %}
-          </ul>
+      {% endfor %}
+    </div>
+
+    {% if ai_recommendation or recent_assignments or local_first_coverage %}
+    <aside class="rmc-template-marketplace__rail" aria-label="{% trans 'Recommendations and recent activity' %}">
+
+      {% if ai_recommendation %}
+      <section class="rmc-tpl-rail-panel rmc-tpl-rail-panel--ai">
+        <h2 class="rmc-tpl-rail-panel__title"><span class="rmc-tpl-rail-panel__dot"></span>{% trans "AI recommends" %}</h2>
+        <div class="rmc-tpl-rec">
+          <p class="rmc-tpl-rec__kicker">{{ ai_recommendation.primary.category }}{% if ai_recommendation.primary.palette_family %} · {{ ai_recommendation.primary.palette_family }}{% endif %}</p>
+          <a class="rmc-tpl-rec__name" href="{% url 'template_marketplace:detail' ai_recommendation.primary.key %}">{{ ai_recommendation.primary.name }}</a>
+          <p class="rmc-tpl-rec__why">{{ ai_recommendation.why }}</p>
+          <div class="rmc-tpl-rec__actions">
+            <a class="rmc-template-marketplace__action" href="{% url 'template_marketplace:preview' ai_recommendation.primary.key %}">{% trans "Preview" %}</a>
+            <a class="rmc-template-marketplace__action rmc-template-marketplace__action--primary" href="{% url 'template_marketplace:apply' ai_recommendation.primary.key %}">{% trans "Apply" %}</a>
+          </div>
+        </div>
+        {% if ai_recommendation.alternatives %}
+        <ul class="rmc-tpl-rail-list">
+          {% for alt in ai_recommendation.alternatives %}
+          <li><a href="{% url 'template_marketplace:detail' alt.key %}">{{ alt.name }}</a></li>
+          {% endfor %}
+        </ul>
         {% endif %}
-        <div class="rmc-template-marketplace__actions">
-          <a class="rmc-template-marketplace__action" href="{% url 'template_marketplace:detail' t.key %}">{% trans "Details" %}</a>
-          <a class="rmc-template-marketplace__action" href="{% url 'template_marketplace:preview' t.key %}">{% trans "Preview" %}</a>
-          <a class="rmc-template-marketplace__action rmc-template-marketplace__action--primary" href="{% url 'template_marketplace:apply' t.key %}">{% trans "Apply" %}</a>
+      </section>
+      {% endif %}
+
+      {% if recent_assignments %}
+      <section class="rmc-tpl-rail-panel">
+        <h2 class="rmc-tpl-rail-panel__title"><span class="rmc-tpl-rail-panel__dot"></span>{% trans "Recently applied" %}</h2>
+        <ul class="rmc-tpl-timeline">
+          {% for a in recent_assignments %}
+          <li class="rmc-tpl-timeline__item{% if not a.is_active %} rmc-tpl-timeline__item--inactive{% endif %}">
+            <span class="rmc-tpl-timeline__name">{{ a.name }}</span>
+            {% if a.applied_at %}<time class="rmc-tpl-timeline__time" datetime="{{ a.applied_at|date:'c' }}">{{ a.applied_at|date:"M j, Y" }}</time>{% endif %}
+            {% if a.is_active %}<a class="rmc-tpl-timeline__rollback" href="{% url 'template_marketplace:rollback' a.template_key %}">{% trans "Roll back" %}</a>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+
+      {% if local_first_coverage %}
+      <section class="rmc-tpl-rail-panel">
+        <h2 class="rmc-tpl-rail-panel__title"><span class="rmc-tpl-rail-panel__dot"></span>{% trans "Local-first coverage" %}</h2>
+        <div class="rmc-tpl-coverage">
+          {% for c in local_first_coverage.countries %}
+          <a class="rmc-tpl-coverage__chip" href="{% url 'template_marketplace:local_catalog' c %}">{{ c }}</a>
+          {% endfor %}
         </div>
-      </article>
-    {% empty %}
-      <div class="rmc-template-marketplace__empty">
-        <p>{% trans "No templates match the active filters." %}</p>
-      </div>
-    {% endfor %}
+        <p class="rmc-tpl-coverage__foot">{% blocktrans with p=local_first_coverage.profile_count cc=local_first_coverage.country_count lc=local_first_coverage.language_count %}{{ p }} profiles · {{ cc }} countries · {{ lc }} languages{% endblocktrans %}</p>
+      </section>
+      {% endif %}
+
+    </aside>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

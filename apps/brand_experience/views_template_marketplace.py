@@ -74,6 +74,13 @@ def tenant_template_marketplace(request: HttpRequest) -> HttpResponse:
     category_counts: dict[str, int] = {}
     for row in rows:
         category_counts[row["category"]] = category_counts.get(row["category"], 0) + 1
+
+    # --- Context-rail data (fills the previously-empty right region). Every
+    # block is defensive: a failure hides its panel, it never 500s the page. ---
+    ai_recommendation = _rail_ai_recommendation(school, request.user, packs_by_key)
+    recent_assignments = _rail_recent_assignments(school, packs_by_key)
+    local_first_coverage = _rail_local_first_coverage(rows)
+
     return render(
         request,
         "marketplace/templates_browse.html",
@@ -87,8 +94,97 @@ def tenant_template_marketplace(request: HttpRequest) -> HttpResponse:
             "active_country": country or "",
             "active_language": language or "",
             "categories": ["tenant-admin", "teacher", "parent", "student", "staff", "specialized", "local-first"],
+            # Context rail
+            "ai_recommendation": ai_recommendation,
+            "recent_assignments": recent_assignments,
+            "local_first_coverage": local_first_coverage,
         },
     )
+
+
+def _rail_ai_recommendation(school: Any, user: Any, packs_by_key: dict) -> dict | None:
+    """Deterministic (``use_ai=False``) recommendation for the browse rail.
+
+    Rules-only so the page load never blocks on the AI gateway; the live
+    ``ai_recommend`` endpoint still runs the AI path on demand.
+    """
+    try:
+        rec = recommend_for_school(school, user=user, use_ai=False)
+        primary = packs_by_key.get(rec.primary)
+        if not primary:
+            return None
+        return {
+            "primary": {
+                "key": rec.primary,
+                "name": primary.get("name", rec.primary),
+                "category": primary.get("category", ""),
+                "palette_family": primary.get("palette_family", ""),
+            },
+            "why": rec.why,
+            "confidence": rec.confidence,
+            "alternatives": [
+                {"key": k, "name": packs_by_key.get(k, {}).get("name", k)}
+                for k in rec.alternatives
+                if k in packs_by_key
+            ],
+        }
+    except Exception:  # noqa: BLE001 — rail is best-effort, never fatal
+        return None
+
+
+def _rail_recent_assignments(school: Any, packs_by_key: dict) -> list[dict]:
+    """Most-recent template applies for this school (for the rollback panel)."""
+    try:
+        from apps.brand_experience.models_template import TemplateAssignment
+
+        qs = (
+            TemplateAssignment.objects.filter(installed_package__school=school)
+            .select_related("installed_package")
+            .order_by("-applied_at")[:5]
+        )
+        out = []
+        for a in qs:
+            pack = packs_by_key.get(a.template_key) or {}
+            out.append(
+                {
+                    "template_key": a.template_key,
+                    "name": pack.get("name", a.template_key),
+                    "applied_at": getattr(a, "applied_at", None),
+                    "is_active": bool(getattr(a.installed_package, "is_active", False)),
+                }
+            )
+        return out
+    except Exception:  # noqa: BLE001 — rail is best-effort, never fatal
+        return []
+
+
+def _rail_local_first_coverage(rows: list[dict]) -> dict | None:
+    """Country / language coverage aggregated from the local-first rows."""
+    try:
+        countries: set[str] = set()
+        languages: set[str] = set()
+        profiles = 0
+        for row in rows:
+            if not row.get("is_local_first"):
+                continue
+            profiles += 1
+            for c in row.get("supported_countries") or []:
+                if c and c != "*":
+                    countries.add(str(c).upper())
+            for lang in row.get("supported_languages") or []:
+                if lang and lang != "*":
+                    languages.add(str(lang))
+        if not (countries or languages):
+            return None
+        return {
+            "countries": sorted(countries),
+            "languages": sorted(languages),
+            "profile_count": profiles,
+            "country_count": len(countries),
+            "language_count": len(languages),
+        }
+    except Exception:  # noqa: BLE001 — rail is best-effort, never fatal
+        return None
 
 
 @login_required
