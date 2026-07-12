@@ -176,11 +176,22 @@ def acknowledge_inbox_entry(
 def list_unacknowledged(
     current_inbox: list[dict[str, Any]] | None,
 ) -> list[dict[str, Any]]:
-    """Filter the inbox to entries no DSL has clicked yet."""
+    """Filter the inbox to real, unacknowledged DSL *concern* entries.
+
+    A concern entry is one produced by ``notify_dsl_of_concern`` — identified by
+    its ``entry_id`` (and clearable only via ``acknowledge_inbox_entry``, which
+    matches on that id). Non-concern rows that other producers may append to the
+    same ``dsl_inbox`` bucket — e.g. the privilege-audit sweep's ``{ts, kind,
+    count}`` flags, which carry NO ``entry_id`` and so could never be acknowledged
+    — must NOT be counted as open concerns. Otherwise the operator-queue "DSL
+    action required within KCSIE SLA" banner lights on audit noise and can never be
+    cleared. Requiring ``entry_id`` here is both the fix and a defence-in-depth
+    that auto-heals any tenant whose inbox already holds such stray rows.
+    """
     return [
         row
         for row in (current_inbox or [])
-        if not row.get("acknowledged_at_iso")
+        if row.get("entry_id") and not row.get("acknowledged_at_iso")
     ]
 
 
