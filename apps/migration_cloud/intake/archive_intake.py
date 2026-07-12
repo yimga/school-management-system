@@ -23,6 +23,7 @@ import hashlib
 import io
 import mimetypes
 import os
+import re
 import tarfile
 import zipfile
 from pathlib import Path
@@ -30,6 +31,7 @@ from typing import Any, Iterator
 
 from apps.migration_cloud import defaults as mc_defaults
 from apps.migration_cloud.models import IntakeMethod
+from apps.migration_cloud.xlsx_explode import explode_workbook
 
 from .base import (
     ArtifactPayload,
@@ -40,6 +42,7 @@ from .base import (
 )
 
 _READ_CHUNK = 1024 * 1024  # 1 MiB
+_XLSX_SUFFIXES = (".xlsx", ".xlsm")
 
 
 class ArchiveIntakeAdapter(IntakeAdapter):
@@ -84,6 +87,39 @@ class ArchiveIntakeAdapter(IntakeAdapter):
                     f"artifact cap ({max_artifact_bytes:,} bytes)."
                 )
 
+            member_within = os.path.join(parent_path, member_name)
+
+            # A multi-tab workbook member is several tables in one file. Explode
+            # it into one TSV artifact per sheet so an archived workbook doesn't
+            # silently drop tabs 2+ (same fix as the FILE_UPLOAD adapter). We
+            # must read the member fully for openpyxl; single-sheet / unreadable
+            # workbooks fall through to the raw-member path below.
+            if member_name.lower().endswith(_XLSX_SUFFIXES):
+                with opener() as stream:
+                    data = stream.read()
+                sheets = explode_workbook(data)
+                if len(sheets) >= 2:
+                    for payload in _sheet_member_payloads(
+                        member_within, member_name, sheets, parent_path
+                    ):
+                        yield payload
+                        emitted += 1
+                    continue
+                # Single-sheet / unreadable: emit the raw member, reusing the
+                # bytes we already read (no second archive pass).
+                mime = mimetypes.guess_type(member_name)[0] or ""
+                yield ArtifactPayload(
+                    path_within_bundle=member_within,
+                    filename=os.path.basename(member_name),
+                    byte_size=len(data),
+                    sha256=hashlib.sha256(data).hexdigest(),
+                    mime_type=mime,
+                    parent_archive_path=parent_path,
+                    content_opener=_bytes_opener(data),
+                )
+                emitted += 1
+                continue
+
             # Hash the member without loading it fully into memory.
             digest = hashlib.sha256()
             actual_size = 0
@@ -97,7 +133,7 @@ class ArchiveIntakeAdapter(IntakeAdapter):
 
             mime = mimetypes.guess_type(member_name)[0] or ""
             yield ArtifactPayload(
-                path_within_bundle=os.path.join(parent_path, member_name),
+                path_within_bundle=member_within,
                 filename=os.path.basename(member_name),
                 byte_size=actual_size,
                 sha256=digest.hexdigest(),
@@ -106,6 +142,45 @@ class ArchiveIntakeAdapter(IntakeAdapter):
                 content_opener=opener,
             )
             emitted += 1
+
+
+def _bytes_opener(data: bytes):
+    def _open():
+        return io.BytesIO(data)
+
+    return _open
+
+
+def _sheet_member_payloads(
+    member_within: str,
+    member_name: str,
+    sheets: list[tuple[str, bytes]],
+    parent_path: str,
+) -> Iterator[ArtifactPayload]:
+    """Yield one TSV ``ArtifactPayload`` per exploded worksheet of an archive
+    member, preserving the member's folder + parent-archive lineage.
+
+    ``parent_archive_path`` is the archive's own name (identical to raw
+    members) so the orchestrator links each sheet back to the parent artifact.
+    """
+    parent_dir = os.path.dirname(member_within)
+    stem = os.path.splitext(os.path.basename(member_name))[0]
+    seen: set[str] = set()
+    for index, (sheet_name, tsv_bytes) in enumerate(sheets, start=1):
+        safe_sheet = re.sub(r"[^\w\- ]", "_", sheet_name).strip() or f"Sheet{index}"
+        art = f"{stem} - {safe_sheet}.tsv"
+        if art in seen:
+            art = f"{stem} - {index}. {safe_sheet}.tsv"
+        seen.add(art)
+        yield ArtifactPayload(
+            path_within_bundle=os.path.join(parent_dir, art) if parent_dir else art,
+            filename=art,
+            byte_size=len(tsv_bytes),
+            sha256=hashlib.sha256(tsv_bytes).hexdigest(),
+            mime_type="text/tab-separated-values",
+            parent_archive_path=parent_path,
+            content_opener=_bytes_opener(tsv_bytes),
+        )
 
 
 def _coerce_path(handle: Any) -> Path:

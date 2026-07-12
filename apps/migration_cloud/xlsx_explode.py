@@ -21,6 +21,7 @@ from __future__ import annotations
 import csv
 import io
 import logging
+from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -59,23 +60,38 @@ def _sheet_to_tsv(ws) -> str:
     return buf.getvalue() if wrote_any else ""
 
 
-def count_nonempty_sheets(path) -> int:
+def count_nonempty_sheets(source) -> int:
     """Number of worksheets with at least one non-blank row. 0 if unreadable."""
-    return len(explode_workbook(path))
+    return len(explode_workbook(source))
 
 
-def explode_workbook(path) -> list[tuple[str, bytes]]:
+def _as_workbook_arg(source):
+    """Coerce a path / bytes / stream to something ``load_workbook`` accepts.
+
+    openpyxl takes a path string or a file-like object, so raw bytes (an
+    archive member read into memory) are wrapped in a BytesIO.
+    """
+    if isinstance(source, (bytes, bytearray)):
+        return io.BytesIO(bytes(source))
+    if isinstance(source, (str, Path)):
+        return str(source)
+    return source  # already a file-like object
+
+
+def explode_workbook(source) -> list[tuple[str, bytes]]:
     """Return ``[(sheet_name, tsv_bytes), ...]`` for every non-empty sheet.
 
-    Empty list when openpyxl is unavailable or the file is unreadable — the
-    caller then falls back to treating the workbook as a single artifact.
+    ``source`` may be a path, raw bytes, or a binary file-like object — so both
+    a FILE_UPLOAD workbook (path) and an archive member (bytes) can be exploded
+    by the same code. Empty list when openpyxl is unavailable or the file is
+    unreadable — the caller then treats the workbook as a single artifact.
     """
     try:
         from openpyxl import load_workbook  # type: ignore[import-not-found]
     except Exception:  # noqa: BLE001
         return []
     try:
-        wb = load_workbook(filename=str(path), read_only=True, data_only=True)
+        wb = load_workbook(filename=_as_workbook_arg(source), read_only=True, data_only=True)
     except Exception:  # noqa: BLE001
         return []
     out: list[tuple[str, bytes]] = []
