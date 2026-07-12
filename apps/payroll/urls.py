@@ -7,6 +7,7 @@ from .views import (
     employee_payslips,
     export_disbursement,
     generate_run,
+    mark_run_paid,
     run_detail,
 )
 
@@ -17,6 +18,7 @@ urlpatterns = [
     path("runs/create/", create_run, name="create_run"),
     path("runs/<int:run_id>/", run_detail, name="run_detail"),
     path("runs/<int:run_id>/generate/", generate_run, name="generate_run"),
+    path("runs/<int:run_id>/mark-paid/", mark_run_paid, name="mark_run_paid"),
     path(
         "runs/<int:run_id>/disbursement.csv",
         export_disbursement,

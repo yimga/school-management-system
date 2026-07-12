@@ -10,14 +10,18 @@ from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.db.models import Count
 from django.utils import timezone
 
 from apps.accounts.decorators import require_permission
 from .forms import LeaveRequestForm
 from .models import LeaveRequest, PayrollEmployee, PayrollRun, Payslip
-from .services import generate_payslips, get_active_payroll_profile
+from .services import (
+    generate_payslips,
+    get_active_payroll_profile,
+    mark_payroll_run_paid,
+)
 
 
 def _employee_for_user(user) -> PayrollEmployee | None:
@@ -286,6 +290,23 @@ def generate_run(request: HttpRequest, run_id: int):
 
     generate_payslips(run)
     messages.success(request, "Payslips generated.")
+    return redirect("payroll:run_detail", run_id=run.id)
+
+
+@require_permission("payroll.manage")
+@require_POST
+def mark_run_paid(request: HttpRequest, run_id: int):
+    """Mark a processed payroll run PAID (freezes it from regeneration)."""
+    run = get_object_or_404(PayrollRun, id=run_id)
+    if run.status == PayrollRun.Status.PAID:
+        messages.info(request, "This payroll run is already marked paid.")
+        return redirect("payroll:run_detail", run_id=run.id)
+    try:
+        mark_payroll_run_paid(run, actor=request.user)
+    except ValueError as exc:
+        messages.error(request, str(exc) or "Generate payslips before marking paid.")
+        return redirect("payroll:run_detail", run_id=run.id)
+    messages.success(request, "Payroll run marked paid and payslips locked.")
     return redirect("payroll:run_detail", run_id=run.id)
 
 

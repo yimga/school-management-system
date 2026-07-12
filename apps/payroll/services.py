@@ -302,3 +302,34 @@ def generate_payslips(
     run.processed_at = run.processed_at or timezone.now()
     run.save(update_fields=["status", "processed_at"])
     return payslips
+
+
+@transaction.atomic
+def mark_payroll_run_paid(run: PayrollRun, *, actor=None) -> PayrollRun:
+    """Transition a processed run to PAID and stamp every payslip PAID.
+
+    This is the producer for ``PayrollRun.Status.PAID`` / ``Payslip.Status.PAID``
+    and both ``paid_at`` columns — which previously had NO writer, leaving the
+    ``generate_run`` "already paid" guard dead and payslips silently overwritable
+    after disbursement. Idempotent no-op if already PAID; refuses a DRAFT run
+    (nothing generated yet). Freezing the run is the point: ``generate_run``
+    refuses to regenerate a PAID run, so figures can't change after the money has
+    gone out. ``actor`` is accepted for a future audit trail (PayrollRun has no
+    ``paid_by`` column today).
+    """
+    if run.status == PayrollRun.Status.PAID:
+        return run
+    if run.status == PayrollRun.Status.DRAFT:
+        raise ValueError("cannot mark a draft run paid; generate payslips first")
+
+    now = timezone.now()
+    run.status = PayrollRun.Status.PAID
+    run.paid_at = run.paid_at or now
+    run.save(update_fields=["status", "paid_at"])
+
+    # Bulk stamp: Payslip has no custom save()/denormalized recompute, so a scoped
+    # .update() is correct here (and cheaper than per-row saves).
+    Payslip.objects.filter(payroll_run=run).exclude(
+        status=Payslip.Status.PAID
+    ).update(status=Payslip.Status.PAID, paid_at=now, updated_at=now)
+    return run

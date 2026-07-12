@@ -22,6 +22,14 @@
     {% if run.status == "APPROVED" or run.status == "PROCESSED" or run.status == "REVIEWED" or run.status == "PAID" %}
       <a class="btn btn-sm btn-outline-primary" href="{% url 'payroll:export_disbursement' run.id %}">{% trans "Export bank CSV" %}</a>
     {% endif %}
+    {% if run.status == "PROCESSED" or run.status == "REVIEWED" or run.status == "APPROVED" %}
+      <form method="post" action="{% url 'payroll:mark_run_paid' run.id %}" class="d-inline" onsubmit="return confirm('{% trans "Mark this run paid? Payslips will be locked from regeneration." %}');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-success">{% trans "Mark as paid" %}</button>
+      </form>
+    {% elif run.status == "PAID" %}
+      <span class="badge bg-success align-self-center">{% trans "Paid" %}</span>
+    {% endif %}
   </div>
 </div>
 
