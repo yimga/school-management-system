@@ -31,7 +31,7 @@
 {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
 {% include "partials/help_module_inline_assistant.html" %}
 {% endif %}
-{% include "components/apple_class_data_quality_meter.html" with meter_id="money-usage-meter" title=_("Usage Meter") value="68" status="external-required" status_label=_("PSP external") body=_("Entitlements, billing impact, PSP status, and manual fallback stay visible before upgrade or collection actions.") %}
+{% include "components/apple_class_data_quality_meter.html" with meter_id="money-usage-meter" title=_("Usage Meter") value="68" status="external-required" status_label=_("PSP external") body=_("Entitlements, billing impact, PSP status, and manual fallback stay visible before upgrade or collection actions — live PSP collection requires external onboarding.") %}
 {% if finance_requests_count %}
   <article class="insight-card warning mb-4" data-rmc-insight-card="1" data-rmc-insight-tone="warning">
     <div class="ico" aria-hidden="true"><i class="bi bi-clock-history"></i></div>
