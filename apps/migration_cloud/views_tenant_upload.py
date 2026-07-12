@@ -118,6 +118,33 @@ def _idempotency_key(school_id, user_pk, digests) -> str:
     return "mc-" + hashlib.sha256(composite.encode("utf-8")).hexdigest()[:48]
 
 
+def _row_hint(artifact) -> str:
+    """Plain-language explanation when a file profiled to zero rows.
+
+    A silent "0 rows" reads as "nothing to import" with no reason. For the two
+    formats most likely to arrive empty — a scanned PDF (no text layer) or an
+    Excel sheet whose first tab is blank — tell the operator exactly what to do
+    instead of leaving them staring at a dead-end.
+    """
+    if artifact.quarantined or (artifact.row_count or 0) > 0:
+        return ""
+    fmt = artifact.detected_format
+    if fmt == "pdf":
+        return (
+            "No text could be read from this PDF. Digitally-generated PDFs "
+            "(exported from another system) import automatically — but a "
+            "scanned or photographed PDF has no text layer. Re-export it as "
+            "CSV or Excel from your old system, or ask us to enable OCR."
+        )
+    if fmt in ("xlsx", "xls"):
+        return (
+            "No rows were found on the first worksheet. Make sure the first "
+            "sheet has a header row followed by data, or save it as CSV and "
+            "upload again."
+        )
+    return ""
+
+
 def _advance(bundle_id) -> None:
     """Run profile → classify → map after intake. Celery if up, inline otherwise
     so a broker outage never blocks the tenant's migration."""
@@ -270,6 +297,7 @@ class TenantMigrationReviewView(LoginRequiredMixin, View):
                     "source": artifact.inferred_source,
                     "quarantined": artifact.quarantined,
                     "quarantine_reason": artifact.quarantine_reason,
+                    "hint": _row_hint(artifact),
                 }
             )
         return {

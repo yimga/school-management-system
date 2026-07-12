@@ -463,14 +463,23 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
                 blob_stream.close()
             except Exception:  # noqa: BLE001
                 pass
-        text = raw_bytes.decode(blob_encoding or "utf-8", errors="replace")
         fmt = artifact.detected_format
-        if fmt in ("csv", "tsv", "unknown"):
-            raw_iter = _iter_csv_rows_stream(io.StringIO(text), mapping_index, locale_hints)
-        elif fmt == "json":
-            raw_iter = _iter_json_rows_text(text, mapping_index, locale_hints)
-        elif fmt == "jsonl":
-            raw_iter = _iter_jsonl_rows_stream(io.StringIO(text), mapping_index, locale_hints)
+        if fmt in ("csv", "tsv", "unknown", "json", "jsonl"):
+            text = raw_bytes.decode(blob_encoding or "utf-8", errors="replace")
+            if fmt == "json":
+                raw_iter = _iter_json_rows_text(text, mapping_index, locale_hints)
+            elif fmt == "jsonl":
+                raw_iter = _iter_jsonl_rows_stream(io.StringIO(text), mapping_index, locale_hints)
+            else:
+                raw_iter = _iter_csv_rows_stream(io.StringIO(text), mapping_index, locale_hints)
+        elif fmt in ("xlsx", "xls"):
+            # Binary spreadsheet: read from bytes, NOT the decoded text (which
+            # would be garbage). openpyxl/xlrd degrade to no rows if absent.
+            raw_iter = _iter_spreadsheet_rows_bytes(raw_bytes, fmt, mapping_index, locale_hints)
+        elif fmt == "pdf":
+            # PDF: extract + tabularise via the shared extractor, then read the
+            # resulting TSV. Digital PDFs land rows; scanned-without-OCR → none.
+            raw_iter = _iter_pdf_rows_bytes(raw_bytes, mapping_index, locale_hints)
         else:
             return iter(())
         if diff_threshold is not None:
@@ -494,6 +503,12 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
         raw_iter = _iter_json_rows(path, encoding, mapping_index, locale_hints)
     elif artifact.detected_format == "jsonl":
         raw_iter = _iter_jsonl_rows(path, encoding, mapping_index, locale_hints)
+    elif artifact.detected_format in ("xlsx", "xls"):
+        raw_iter = _iter_spreadsheet_rows_bytes(
+            path.read_bytes(), artifact.detected_format, mapping_index, locale_hints
+        )
+    elif artifact.detected_format == "pdf":
+        raw_iter = _iter_pdf_rows_bytes(path.read_bytes(), mapping_index, locale_hints)
     else:
         return iter(())
     if diff_threshold is not None:
@@ -586,6 +601,140 @@ def _iter_jsonl_rows_stream(
             continue
         if isinstance(raw_row, dict):
             yield _transform_row(raw_row, mapping_index, locale_hints)
+
+
+def _stringify_cell(cell: Any) -> str:
+    """Coerce a spreadsheet cell to the string shape downstream expects.
+
+    CSV rows arrive as strings; transformers assume strings. Integers stored
+    as floats by the reader (``36.0``) are rendered as ``"36"`` to match what
+    the same value would look like in a CSV export.
+    """
+    if cell is None:
+        return ""
+    if isinstance(cell, str):
+        return cell
+    if isinstance(cell, float) and cell.is_integer():
+        return str(int(cell))
+    return str(cell)
+
+
+def _xlsx_rows(raw_bytes: bytes) -> tuple[list[Any], Iterator[Any]]:
+    """Return ``(header_row, data_row_iterator)`` for an in-memory XLSX.
+
+    ``([], iter(()))`` when openpyxl is unavailable or the file is unreadable,
+    so apply degrades to zero rows instead of raising. The workbook is held
+    open until the data iterator is exhausted (read-only, streaming).
+    """
+    try:
+        from openpyxl import load_workbook  # type: ignore[import-not-found]
+    except Exception:  # noqa: BLE001
+        return [], iter(())
+    try:
+        wb = load_workbook(filename=io.BytesIO(raw_bytes), read_only=True, data_only=True)
+    except Exception:  # noqa: BLE001
+        return [], iter(())
+    ws = wb[wb.sheetnames[0]] if wb.sheetnames else None
+    if ws is None:
+        _close_quietly(wb)
+        return [], iter(())
+    rows_iter = ws.iter_rows(values_only=True)
+    try:
+        header_row = next(rows_iter)
+    except StopIteration:
+        _close_quietly(wb)
+        return [], iter(())
+
+    def _gen() -> Iterator[Any]:
+        try:
+            for row in rows_iter:
+                yield row
+        finally:
+            _close_quietly(wb)
+
+    return list(header_row), _gen()
+
+
+def _xls_rows(raw_bytes: bytes) -> tuple[list[Any], Iterator[Any]]:
+    """Return ``(header_row, data_row_iterator)`` for a legacy in-memory XLS.
+
+    ``([], iter(()))`` when xlrd is unavailable or the file is unreadable.
+    """
+    try:
+        import xlrd  # type: ignore[import-not-found]
+    except Exception:  # noqa: BLE001
+        return [], iter(())
+    try:
+        wb = xlrd.open_workbook(file_contents=raw_bytes)
+    except Exception:  # noqa: BLE001
+        return [], iter(())
+    if wb.nsheets == 0:
+        return [], iter(())
+    sh = wb.sheet_by_index(0)
+    if sh.nrows == 0:
+        return [], iter(())
+    header_row = [sh.cell_value(0, c) for c in range(sh.ncols)]
+
+    def _gen() -> Iterator[Any]:
+        for r in range(1, sh.nrows):
+            yield [sh.cell_value(r, c) for c in range(sh.ncols)]
+
+    return header_row, _gen()
+
+
+def _close_quietly(wb: Any) -> None:
+    try:
+        wb.close()
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _iter_spreadsheet_rows_bytes(
+    raw_bytes: bytes,
+    fmt: str,
+    mapping_index: dict[str, dict[str, Any]],
+    locale_hints: dict[str, Any],
+) -> Iterator[dict[str, Any]]:
+    """Yield canonical rows from an in-memory XLSX/XLS workbook.
+
+    First worksheet, first row = headers. All cells are stringified so the
+    downstream transformers see the same shape they get from CSV. This is the
+    apply-time counterpart to the profiler's ``_read_xlsx`` / ``_read_xls`` —
+    without it, an Excel upload classifies but lands zero rows.
+    """
+    header_row, data_rows = _xls_rows(raw_bytes) if fmt == "xls" else _xlsx_rows(raw_bytes)
+    if not header_row:
+        return
+    headers = [str(h).strip() if h is not None else "" for h in header_row]
+    for row in data_rows:
+        raw_row: dict[str, Any] = {}
+        for h, cell in zip(headers, row):
+            if not h:
+                continue  # unnamed column — nothing to map onto
+            raw_row[h] = _stringify_cell(cell)
+        if not any(str(v).strip() for v in raw_row.values()):
+            continue  # skip fully-blank trailing rows
+        yield _transform_row(raw_row, mapping_index, locale_hints)
+
+
+def _iter_pdf_rows_bytes(
+    raw_bytes: bytes,
+    mapping_index: dict[str, dict[str, Any]],
+    locale_hints: dict[str, Any],
+) -> Iterator[dict[str, Any]]:
+    """Yield canonical rows from a PDF's extracted + tabularised text.
+
+    Digitally-generated PDFs (pdfplumber) yield rows; scanned PDFs with no OCR
+    binaries yield nothing (the review surface explains why). Reuses the CSV
+    row iterator over the TSV the shared extractor produces, so a PDF lands
+    exactly like the equivalent CSV would.
+    """
+    from .pdf_extract import extract_pdf_tsv
+
+    tsv = extract_pdf_tsv(raw_bytes)
+    if not tsv.strip():
+        return
+    yield from _iter_csv_rows_stream(io.StringIO(tsv), mapping_index, locale_hints)
 
 
 def _transform_row(

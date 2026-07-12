@@ -24,6 +24,17 @@ WeasyPrint>=61.0
 Pillow>=10.0
 reportlab==4.2.2
 
+# PDF *reading* for Migration Cloud connectionless ingest — a tenant can drop
+# an exported transcript / fee statement / roster saved as PDF and the profiler
+# extracts rows from it (apps/migration_cloud/pdf_extract.py). Pure-Python,
+# manylinux wheels, no system binaries — so this is a core dep like openpyxl is
+# for XLSX. pdfplumber handles the layout; pypdf is a lighter text-layer
+# fallback. (Scanned/image-only PDFs additionally need Tesseract + Poppler
+# system binaries for OCR — intentionally NOT required here; those degrade to a
+# clear "needs OCR" message rather than a hard failure.)
+pdfplumber>=0.11
+pypdf>=4.0
+
 # Admin theme
 django-unfold==0.76.0
 

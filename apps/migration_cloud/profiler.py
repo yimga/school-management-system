@@ -120,6 +120,17 @@ def profile_bundle(bundle: MigrationBundle) -> int:
 def _profile_one(artifact: MigrationArtifact) -> None:
     """Profile a single artifact: detect format, sample rows, infer types."""
     fmt = artifact.detected_format
+    if fmt == ArtifactFormat.UNKNOWN:
+        # Resolve *binary* formats (XLSX / XLS / PDF) from magic bytes BEFORE
+        # sampling. A connectionless FILE_UPLOAD artifact arrives UNKNOWN, and
+        # those formats need a dedicated reader — reading them as CSV yields
+        # garbage columns (and, for PDF, zero real rows). Text formats stay
+        # UNKNOWN here and are still resolved by the header heuristic after the
+        # CSV-like read below, so the existing CSV/JSON paths are unchanged.
+        signature = _sniff_format(artifact, [], [])
+        if signature in (ArtifactFormat.XLSX, ArtifactFormat.XLS, ArtifactFormat.PDF):
+            artifact.detected_format = signature
+            fmt = signature
     rows, headers, encoding = _read_sample(artifact)
     if fmt == ArtifactFormat.UNKNOWN:
         fmt = _sniff_format(artifact, headers, rows)
@@ -188,6 +199,8 @@ def _read_sample(artifact: MigrationArtifact) -> tuple[list[list[Any]], list[str
             return _read_xlsx(stream, encoding)
         if artifact.detected_format == ArtifactFormat.XLS:
             return _read_xls(stream, encoding)
+        if artifact.detected_format == ArtifactFormat.PDF:
+            return _read_pdf(stream, encoding)
     finally:
         try:
             stream.close()
@@ -638,3 +651,25 @@ def _read_xls(stream, encoding: str) -> tuple[list[list[Any]], list[str], str]:
     for r in range(1, min(sh.nrows, 201)):
         rows.append([sh.cell_value(r, c) for c in range(sh.ncols)])
     return rows, headers, encoding
+
+
+def _read_pdf(stream, encoding: str) -> tuple[list[list[Any]], list[str], str]:
+    """Extract a PDF's text, tabularise it, and sample it like a TSV.
+
+    Digitally-generated PDFs (pdfplumber / pypdf) yield real rows — the common
+    case of an exported transcript / fee statement / roster saved as PDF.
+    Scanned PDFs with no OCR binaries installed yield ``([], [], encoding)`` so
+    the classifier sees a thin signal and the review surface can honestly tell
+    the operator the file needs OCR. Shares the extraction heuristics with the
+    ``IntakeMethod.PDF`` adapter via :mod:`apps.migration_cloud.pdf_extract`.
+    """
+    from .pdf_extract import extract_pdf_tsv
+
+    try:
+        data = stream.read()
+    except Exception:  # noqa: BLE001
+        return [], [], encoding
+    tsv = extract_pdf_tsv(data)
+    if not tsv.strip():
+        return [], [], encoding
+    return _read_csv_like(io.BytesIO(tsv.encode("utf-8")), "utf-8")
