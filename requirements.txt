@@ -34,6 +34,16 @@ reportlab==4.2.2
 # clear "needs OCR" message rather than a hard failure.)
 pdfplumber>=0.11
 pypdf>=4.0
+# OCR for *scanned / image-only* PDFs (a photographed / photocopied transcript
+# with no text layer). Thin pure-Python wrappers with no heavy deps — both use
+# Pillow (already pinned above), so importing them is always safe. They stay
+# INERT until BOTH (a) RMC_OCR_ENABLED=1 and (b) the Tesseract + Poppler *system*
+# binaries are present (build.sh vendors them from conda-forge when the flag is
+# set — Render's native runtime has no apt/root). Without the binaries the OCR
+# path degrades to "" and the caller surfaces an honest "needs OCR" hint — never
+# a 500. See apps/migration_cloud/pdf_extract.py::_try_ocr + docs/MIGRATION_CLOUD_OCR.md.
+pytesseract>=0.3.10
+pdf2image>=1.17
 
 # Admin theme
 django-unfold==0.76.0

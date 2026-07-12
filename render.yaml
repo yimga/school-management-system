@@ -131,6 +131,17 @@ services:
       # feature flags), not seeding.
       - key: RUN_INTEGRATION_PREFLIGHT
         value: "1"
+      # ── OCR for scanned / image-only PDFs (Migration Cloud) ─────────────────
+      # Default OFF. Flip to "1" — here for a fresh blueprint apply, OR (the
+      # normal path for the already-running service) in the Render Dashboard →
+      # Environment — to (a) have build.sh vendor Tesseract + Poppler from
+      # conda-forge and (b) let apps/migration_cloud/pdf_extract.py OCR scanned
+      # PDFs. Best-effort + non-fatal: if vendoring fails the deploy still
+      # succeeds and OCR stays inert (zero regression). Set it on BOTH this web
+      # service AND the worker. The first build after enabling is ~2-3 min slower
+      # (binary download). Runbook: docs/MIGRATION_CLOUD_OCR.md.
+      - key: RMC_OCR_ENABLED
+        value: "0"
       - key: COLLABORA_BASE_URL
         value: ""
       - key: WOPI_SHARED_SECRET
@@ -259,6 +270,11 @@ services:
         value: "0"
       - key: PYTHON_VERSION
         value: "3.12.3"
+      # OCR for scanned PDFs — default OFF. Must MATCH the web service (set both
+      # to "1" to enable) so async / Celery-driven Migration Cloud ingest can OCR
+      # too. See the web service's RMC_OCR_ENABLED note + docs/MIGRATION_CLOUD_OCR.md.
+      - key: RMC_OCR_ENABLED
+        value: "0"
       - key: DJANGO_SETTINGS_MODULE
         value: "config.settings"
       - key: MULTI_TENANT_BASE_DOMAIN

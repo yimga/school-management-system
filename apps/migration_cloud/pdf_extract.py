@@ -141,24 +141,68 @@ def _try_pypdf(data: bytes) -> str:
     return "\n".join(out)
 
 
+def _ocr_paths() -> tuple[str | None, str | None, str | None]:
+    """Resolve ``(tesseract_cmd, poppler_path, tessdata_prefix)`` for OCR.
+
+    Explicit env vars win (``RMC_OCR_TESSERACT_CMD`` / ``RMC_OCR_POPPLER_PATH`` /
+    ``TESSDATA_PREFIX``); otherwise auto-discover the ``.ocr-env`` prefix that
+    ``build.sh`` vendors at the repo root on Render's native runtime. Any piece
+    left unresolved is ``None`` — the caller then relies on the binary being on
+    ``PATH`` (or degrades to "").
+    """
+    tess = os.environ.get("RMC_OCR_TESSERACT_CMD") or None
+    poppler = os.environ.get("RMC_OCR_POPPLER_PATH") or None
+    tessdata = os.environ.get("TESSDATA_PREFIX") or None
+    try:
+        # apps/migration_cloud/pdf_extract.py → parents[2] == repo root.
+        env_root = Path(__file__).resolve().parents[2] / ".ocr-env"
+        env_bin = env_root / "bin"
+        if tess is None and (env_bin / "tesseract").exists():
+            tess = str(env_bin / "tesseract")
+        if poppler is None and (env_bin / "pdftoppm").exists():
+            poppler = str(env_bin)
+        if tessdata is None and (env_root / "share" / "tessdata").exists():
+            tessdata = str(env_root / "share" / "tessdata")
+    except Exception:  # noqa: BLE001
+        pass
+    return tess, poppler, tessdata
+
+
 def _try_ocr(data: bytes) -> str:
     """OCR fallback — needs Tesseract + Poppler system binaries.
 
-    ``pdf2image`` renders pages from a *path*, so the bytes are spilled to a
-    short-lived temp file. Absent binaries → ``""`` (graceful).
+    Disabled unless ``RMC_OCR_ENABLED=1``, so stock deploys behave exactly as
+    before (scanned PDFs degrade to ""). When enabled, the binaries are located
+    via :func:`_ocr_paths` (explicit env vars or the ``.ocr-env`` prefix that
+    ``build.sh`` vendors). ``pdf2image`` renders pages from a *path*, so the
+    bytes are spilled to a short-lived temp file. Absent binaries / libs → ``""``
+    (graceful — never a 500).
     """
+    if os.environ.get("RMC_OCR_ENABLED", "0") != "1":
+        return ""
     try:
         import pytesseract  # type: ignore[import-not-found]
         from pdf2image import convert_from_path  # type: ignore[import-not-found]
     except Exception:  # noqa: BLE001
         return ""
+    tess_cmd, poppler_path, tessdata_prefix = _ocr_paths()
+    if tess_cmd:
+        try:
+            pytesseract.pytesseract.tesseract_cmd = tess_cmd
+        except Exception:  # noqa: BLE001
+            pass
+    if tessdata_prefix:
+        os.environ.setdefault("TESSDATA_PREFIX", tessdata_prefix)
     fd, tmp_name = tempfile.mkstemp(prefix="mc_pdf_ocr_", suffix=".pdf")
     os.close(fd)
     tmp = Path(tmp_name)
     try:
         tmp.write_bytes(data)
+        convert_kwargs: dict[str, Any] = {"dpi": 200}
+        if poppler_path:
+            convert_kwargs["poppler_path"] = poppler_path
         try:
-            pages = convert_from_path(str(tmp), dpi=200)
+            pages = convert_from_path(str(tmp), **convert_kwargs)
         except Exception:  # noqa: BLE001
             return ""
         out: list[str] = []
