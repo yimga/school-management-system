@@ -1065,8 +1065,24 @@ def backend_applicant_list(request):
         qs, search, "first_name", "last_name", "email", "lead_source"
     )
     stage = request.GET.get("stage")
-    if stage and stage in dict(Applicant.Stage.choices):
+    if stage == "ACTIONABLE":
+        # The cockpit "Awaiting review" tile drills in with a meta-stage that is
+        # NOT a real Applicant.Stage member; expand it to the shared actionable
+        # set so the list matches the tile's subtotal instead of showing every
+        # applicant (stage was silently ignored before).
+        from apps.admissions.queue_depth import actionable_stage_codes
+
+        qs = qs.filter(stage__in=actionable_stage_codes())
+    elif stage and stage in dict(Applicant.Stage.choices):
         qs = qs.filter(stage=stage)
+
+    if request.GET.get("stale") == "1":
+        # The stale-leads chip drills in with ?stale=1; honor it with the SAME
+        # created_at cutoff the tile used to compute the stale count, so the chip
+        # lands on exactly the stale subset it advertised (was ignored before).
+        from apps.admissions.queue_depth import stale_lead_cutoff
+
+        qs = qs.filter(created_at__lt=stale_lead_cutoff())
 
     if request.GET.get("format") == "csv":
         response = HttpResponse(content_type="text/csv; charset=utf-8")

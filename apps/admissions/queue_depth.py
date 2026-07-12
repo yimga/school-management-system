@@ -53,6 +53,29 @@ def stage_to_pill_variant(stage_code: str) -> str:
 _STALE_LEAD_THRESHOLD_DAYS = 14
 
 
+def actionable_stage_codes() -> tuple[str, ...]:
+    """Stage codes the admissions queue treats as 'awaiting review'.
+
+    Single source of truth shared by the cockpit tile's ACTIONABLE total (below)
+    and the backend applicant list's ``?stage=ACTIONABLE`` drill-down filter, so
+    the number the tile shows equals the number the drill-down lands on. Without
+    this, ``?stage=ACTIONABLE`` was not a real ``Applicant.Stage`` member, so the
+    list view's validity guard skipped filtering and the tile drilled into EVERY
+    applicant.
+    """
+    return tuple(code for code, _label, actionable in _QUEUE_STAGES if actionable)
+
+
+def stale_lead_cutoff(now: datetime | None = None) -> datetime:
+    """The ``created_at`` cutoff below which an actionable applicant is 'stale'.
+
+    Shared with the list view's ``?stale=1`` drill-down so the stale chip's count
+    matches the filtered list it lands on.
+    """
+    base = now if now is not None else datetime.now(tz=timezone.utc)
+    return base - timedelta(days=_STALE_LEAD_THRESHOLD_DAYS)
+
+
 def _applicant_list_base_url() -> str:
     """Resolve the real backend applicant-list route, falling back to its path.
 
@@ -86,7 +109,7 @@ def compute_admissions_queue_depth(school: Any) -> list[dict[str, Any]]:
 
         rows: list[dict[str, Any]] = []
         total_actionable = 0
-        stale_cutoff = datetime.now(tz=timezone.utc) - timedelta(days=_STALE_LEAD_THRESHOLD_DAYS)
+        stale_cutoff = stale_lead_cutoff()
         for stage_code, label, actionable in _QUEUE_STAGES:
             qs = Applicant.objects.filter(
                 school=school, stage=stage_code,
