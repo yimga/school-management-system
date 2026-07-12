@@ -46,6 +46,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/verify_get_model_integrity.py", "ci.yml"),
     ("scripts/verify_url_name_integrity.py", "ci.yml"),
     ("scripts/verify_template_reference_integrity.py", "ci.yml"),
+    # Compile sibling of the two template gates above: a balanced-but-invalid
+    # tag argument ({% trans 'a'b' %}) compiles-fail without being a missing
+    # reference or a structural imbalance, so it slips both. Must always run.
+    ("scripts/verify_template_compiles.py", "ci.yml"),
     ("scripts/verify_static_reference_integrity.py", "ci.yml"),
     ("scripts/verify_settings_key_integrity.py", "ci.yml"),
     ("scripts/verify_field_reference_integrity.py", "ci.yml"),

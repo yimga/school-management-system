@@ -25,8 +25,8 @@
 
   <div data-rmc-scroll-policy="paginate" class="row g-3">
     {% for section in sections %}
-    {% can_access_permission section.permission as _sec_ok %}
-    {% if _sec_ok %}
+    {% can_access_permission section.permission as sec_ok %}
+    {% if sec_ok %}
     <div class="col-12 col-lg-6">
       <article class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-school-configuration-section="{{ section.name }}" data-world-class-tenant-card="1">
         <div class="card-body">

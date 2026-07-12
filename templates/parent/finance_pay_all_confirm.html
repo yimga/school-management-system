@@ -26,9 +26,11 @@
       <div class="rmc-banner border mb-3" role="note" data-rmc-regional-payment-hint="1">
         <div class="fw-semibold small mb-1">{% trans "Regional payment guidance" %}</div>
         <p class="small mb-1">
-          {% blocktrans with rail=regional_payment_profile.primary_rail|default:"" backup=regional_payment_profile.backup_rail|default:"" %}
-          Preferred rail: <strong>{{ rail }}</strong>{% if backup %} · Backup: {{ backup }}{% endif %}
-          {% endblocktrans %}
+          {% if regional_payment_profile.backup_rail %}
+          {% blocktrans with rail=regional_payment_profile.primary_rail|default:"" backup=regional_payment_profile.backup_rail|default:"" %}Preferred rail: <strong>{{ rail }}</strong> · Backup: {{ backup }}{% endblocktrans %}
+          {% else %}
+          {% blocktrans with rail=regional_payment_profile.primary_rail|default:"" %}Preferred rail: <strong>{{ rail }}</strong>{% endblocktrans %}
+          {% endif %}
         </p>
         {% if regional_payment_profile.provider_notes %}
         <p class="small text-muted mb-0">{{ regional_payment_profile.provider_notes }}</p>
