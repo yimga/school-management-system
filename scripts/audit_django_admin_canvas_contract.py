@@ -28,8 +28,8 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260712-runtime-hardening" not in base_site:
-        errors.append("Django canvas contract link must use the runtime-hardening cache bust for deployment visibility")
+    if "?v=20260712-preview-parity" not in base_site:
+        errors.append("Django canvas contract link must use the preview-parity cache bust for deployment visibility")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
     if contract_link in base_site and "rmc_theme_experience_dual_plane_styles.html" in base_site:
@@ -101,11 +101,15 @@ def main() -> int:
         "Final platform-wide/tenant-wide Django sweep",
         "Structural canvas closure, 2026-07-11",
         "Production hardening, 2026-07-12",
+        "Preview parity closure, 2026-07-12",
         "rmc-django-workspace",
         "rmc-django-command-band",
         "[data-rmc-django-command-band]",
         "visibility: visible !important",
         "opacity: 1 !important",
+        "grid-template-columns: repeat(12, minmax(0, 1fr)) !important",
+        "grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)) !important",
+        "grid-column: span 6 !important",
         "rmc-django-form-panel",
         "rmc-django-form-body",
         "rmc-django-side-panel",
