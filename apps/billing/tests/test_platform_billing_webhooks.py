@@ -304,6 +304,109 @@ class PlatformBillingWebhookTests(TestCase):
             ).exists()
         )
 
+    def test_stripe_webhook_invoice_paid_posts_credit_that_settles_renewal(self):
+        """invoice.paid is a SETTLEMENT of the internal renewal charge, so it must
+        post a CREDIT that brings the balance back down — not a second CHARGE that
+        ages a paying tenant into PAST_DUE/SUSPENDED (the pre-fix behaviour)."""
+        from apps.billing.services import (
+            platform_account_balance,
+            record_platform_charge,
+        )
+
+        account, _sub, _ = ensure_subscription_for_school(self.school)
+        baseline = platform_account_balance(account)
+        # The billing-lifecycle sweep posts this renewal CHARGE for every tenant
+        # (PSP tenants included). It is exactly what the Stripe payment settles.
+        record_platform_charge(
+            school=self.school,
+            amount=Decimal("199.00"),
+            description="Platform subscription renewal (test)",
+            reference="test-renewal-charge-199",
+            source="billing_lifecycle",
+        )
+        self.assertEqual(
+            platform_account_balance(account), baseline + Decimal("199.00")
+        )
+
+        stripe_config = PlatformBillingProcessorConfig.objects.create(
+            code="stripe",
+            display_name="Stripe",
+            webhook_secret="whsec_settle_1",
+            signature_header="Stripe-Signature",
+            signature_style=PlatformBillingProcessorConfig.SignatureStyle.STRIPE_V1,
+            is_active=True,
+        )
+        payload = {
+            "type": "invoice.paid",
+            "data": {
+                "object": {
+                    "id": "in_settle_1",
+                    "customer": "cus_settle",
+                    "subscription": "sub_settle",
+                    "status": "paid",
+                    "currency": "usd",
+                    "amount_paid": 19900,
+                    "current_period_start": int(
+                        (timezone.now() - timedelta(days=2)).timestamp()
+                    ),
+                    "current_period_end": int(
+                        (timezone.now() + timedelta(days=28)).timestamp()
+                    ),
+                    "metadata": {"school_slug": self.school.slug},
+                }
+            },
+        }
+        raw_body = json.dumps(payload).encode("utf-8")
+        timestamp = int(timezone.now().timestamp())
+        signed_payload = f"{timestamp}.{raw_body.decode('utf-8')}".encode("utf-8")
+        signature = hmac.new(
+            stripe_config.webhook_secret.encode(), signed_payload, hashlib.sha256
+        ).hexdigest()
+        response = self.client.post(
+            "/api/billing/processors/stripe/webhook/",
+            data=raw_body,
+            content_type="application/json",
+            HTTP_HOST="manager.runmycampus.com",
+            HTTP_STRIPE_SIGNATURE=f"t={timestamp},v1={signature}",
+        )
+        self.assertEqual(response.status_code, 202)
+
+        entry = PlatformLedgerEntry.objects.get(
+            source="stripe_webhook",
+            reference__contains="stripe:invoice.paid:",
+        )
+        self.assertEqual(entry.entry_type, PlatformLedgerEntry.EntryType.CREDIT)
+        self.assertEqual(entry.amount, Decimal("199.00"))
+        # Payment settles the renewal charge → balance returns to baseline, NOT
+        # baseline + 2x (the pre-fix double-debit that suspended paying tenants).
+        self.assertEqual(platform_account_balance(account), baseline)
+
+    def test_checkout_session_completed_stays_charge_not_credit(self):
+        """checkout.session.completed is intentionally NOT flipped to CREDIT: it also
+        carries marketplace add-on purchases with no matching internal charge to
+        settle. Only invoice.* settlements become credits — this locks that
+        boundary so a future 'flip them all' change can't silently regress it."""
+        response = self._post(
+            {
+                "school_slug": self.school.slug,
+                "school_id": str(self.school.pk),
+                "event_type": "checkout.session.completed",
+                "processor_source_ref": "cs_charge_guard_1",
+                "billed_amount": "40.00",
+                "currency_code": "USD",
+                "account_status": "active",
+                "subscription_status": "active",
+                "external_customer_ref": "cus-guard-1",
+                "external_subscription_ref": "sub-guard-1",
+            }
+        )
+        self.assertEqual(response.status_code, 202)
+        entry = PlatformLedgerEntry.objects.get(
+            source="stripe_webhook",
+            reference__contains="relay:checkout.session.completed:",
+        )
+        self.assertEqual(entry.entry_type, PlatformLedgerEntry.EntryType.CHARGE)
+
     def test_relay_webhook_checkout_completed_applies_marketplace_addon(self):
         pub = PublisherOrganization.objects.create(
             slug="mkt-pub-web",

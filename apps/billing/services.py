@@ -1504,6 +1504,26 @@ def apply_processor_snapshot(
             ):
                 src_ref = str(processor_source_ref or "").strip()
                 ref = f"{processor_code}:{et}:{src_ref or external_subscription_ref or account.pk}"
+                # A paid subscription invoice SETTLES the matching internal renewal
+                # CHARGE that the billing-lifecycle sweep posts for every tenant
+                # (PSP tenants included — the renewal charge has no
+                # external_subscription_ref exclusion). So it MUST be recorded as a
+                # CREDIT: recording it as a CHARGE (record_platform_charge's default)
+                # made a received payment INCREASE the balance owed, aging paying
+                # tenants to PAST_DUE/SUSPENDED and firing the dunning ladder against
+                # customers who had actually paid. checkout.session.completed is left
+                # as a CHARGE: it also carries marketplace add-on purchases whose
+                # fee-vs-payment accounting is a separate concern (there is no
+                # matching internal charge for it to settle).
+                is_invoice_settlement = et in (
+                    "invoice.paid",
+                    "invoice.payment_succeeded",
+                )
+                payment_entry_type = (
+                    PlatformLedgerEntry.EntryType.CREDIT
+                    if is_invoice_settlement
+                    else PlatformLedgerEntry.EntryType.CHARGE
+                )
                 # tenant-isolation-allow: webhook idempotency check by unique reference (reviewed 2026-05-14)
                 if not PlatformLedgerEntry.objects.filter(
                     reference=ref, source="stripe_webhook"
@@ -1511,7 +1531,12 @@ def apply_processor_snapshot(
                     record_platform_charge(
                         school=school,
                         amount=amt,
-                        description=f"Stripe-compatible payment ({event_type})",
+                        entry_type=payment_entry_type,
+                        description=(
+                            f"Subscription payment settlement ({event_type})"
+                            if is_invoice_settlement
+                            else f"Stripe-compatible payment ({event_type})"
+                        ),
                         reference=ref,
                         source="stripe_webhook",
                         source_ref=src_ref or str(external_subscription_ref or ""),
