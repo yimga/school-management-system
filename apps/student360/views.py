@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from apps.compliance.decorators import audit_pii_view
 
 from .services import (
+    app_installed,
     get_student_360_summary,
     get_student_timeline_feed,
     get_immutable_transcripts_for_student,
@@ -42,7 +43,7 @@ def _student_360_academic(student):
                     academic_year=getattr(student, "academic_year", None),
                 )
             ]
-        if apps.is_installed("evals"):
+        if app_installed("evals"):
             Evaluation = apps.get_model("evals", "Evaluation")
             # tenant-isolation-allow: `student` is school-scoped by caller; FK already binds tenant (reviewed 2026-05-14)
             evaluations = list(
@@ -68,11 +69,13 @@ def _student_360_finance(student):
     try:
         from django.apps import apps
 
-        if apps.is_installed("finance"):
+        if app_installed("finance"):
             Invoice = apps.get_model("finance", "Invoice")
             # tenant-isolation-allow: `student` is school-scoped by caller; FK already binds tenant (reviewed 2026-05-14)
             invoices = list(
-                Invoice.objects.filter(student=student).order_by("-created_at")[:20]
+                Invoice.objects.filter(student=student)
+                .exclude(status=Invoice.Status.VOID)
+                .order_by("-created_at")[:20]
             )
     except (
         ImportError,

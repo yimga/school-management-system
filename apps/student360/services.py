@@ -25,6 +25,23 @@ _STUDENT360_SERVICE_ERRORS = (
 )
 
 
+def app_installed(label: str) -> bool:
+    """Whether an app with this LABEL (e.g. ``"finance"``) is installed.
+
+    ``django.apps.apps.is_installed()`` matches the full dotted app NAME
+    (``"apps.finance"``), NOT the label — so the historical ``is_installed("finance")``
+    guards were ALWAYS False and silently disabled the finance / evals / attendance /
+    reports sections of the 360 view. Resolve by label instead.
+    """
+    from django.apps import apps as _django_apps
+
+    try:
+        _django_apps.get_app_config(label)
+        return True
+    except LookupError:
+        return False
+
+
 def get_student_360_summary(
     school_id,
     student_id: int,
@@ -55,7 +72,7 @@ def get_student_360_summary(
         if not student:
             return out
         # Academic: evaluations count, enrollments
-        if apps.is_installed("evals"):
+        if app_installed("evals"):
             Evaluation = apps.get_model("evals", "Evaluation")
             # tenant-isolation-allow: `student` already school-scoped on line 52 (reviewed 2026-05-14)
             out["academic"]["evaluations_count"] = Evaluation.objects.filter(
@@ -69,17 +86,23 @@ def get_student_360_summary(
             1 if getattr(student, "classroom_id", None) else 0
         )
         # Finance: invoices summary
-        if apps.is_installed("finance"):
+        if app_installed("finance"):
             Invoice = apps.get_model("finance", "Invoice")
+            # Exclude VOID to match the authoritative finance balance runner
+            # (finance/family_billing_aggregator.py::_default_balance_runner does
+            # `.exclude(status=VOID)`); a voided invoice still carries a positive
+            # total_amount, so summing all statuses overstated the 360 headline.
             # tenant-isolation-allow: `student` already school-scoped on line 52 (reviewed 2026-05-14)
-            inv_qs = Invoice.objects.filter(student=student)
+            inv_qs = Invoice.objects.filter(student=student).exclude(
+                status=Invoice.Status.VOID
+            )
             out["finance"]["invoices_count"] = inv_qs.count()
             from django.db.models import Sum
 
             tot = inv_qs.aggregate(s=Sum("total_amount"))
             out["finance"]["invoices_total"] = float(tot["s"] or 0)
         # Attendance: placeholder (policy-driven)
-        out["attendance"]["summary_available"] = apps.is_installed("siteconfig")
+        out["attendance"]["summary_available"] = app_installed("siteconfig")
         if include_timeline_count:
             try:
                 from apps.events.models import DomainEvent
@@ -183,7 +206,7 @@ def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]
     try:
         from django.apps import apps
 
-        if not apps.is_installed("reports"):
+        if not app_installed("reports"):
             return None
         from apps.reports.services import annual_report_context
 
