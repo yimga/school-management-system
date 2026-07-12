@@ -68,6 +68,8 @@ CANONICAL_FILENAME_TO_DOMAIN: dict[str, str] = {
     "incidents.csv": "behavior",
     "finance.csv": "finance",
     "invoices.csv": "finance",
+    "receipts.csv": "finance",
+    "payments.csv": "finance",
     "transcripts.csv": "transcripts",
     "health.csv": "health",
     "payroll.csv": "payroll",
