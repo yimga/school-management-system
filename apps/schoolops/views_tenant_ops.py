@@ -13,7 +13,6 @@ from zoneinfo import ZoneInfo
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import DatabaseError, IntegrityError, transaction
-from django.db.models import F
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -1089,13 +1088,37 @@ def ops_pos(request):
                     try:
                         with transaction.atomic():
                             if inv_item and inventory_enabled:
-                                # Guardrail: atomic decrement only when stock >= qty (same school row).
-                                dec = InventoryItem.objects.filter(
-                                    pk=inv_item.pk,
-                                    school=school,
-                                    quantity__gte=qty,
-                                ).update(quantity=F("quantity") - qty)
-                                if dec != 1:
+                                # Route the stock decrement through the movement
+                                # ledger (not a bare .update()) so a POS sale (a)
+                                # writes an InventoryMovement audit row that keeps
+                                # sum(movements) reconciled with item.quantity and
+                                # (b) fires the post_save low-stock reorder alert —
+                                # both of which the raw decrement silently bypassed.
+                                # CONSUME is the closest type: stock permanently
+                                # leaves inventory via the sale. The below-zero guard
+                                # in record_inventory_movement enforces the same
+                                # oversell protection as the old quantity__gte filter.
+                                from apps.schoolops.inventory_services import (
+                                    InventoryMovementError,
+                                    record_inventory_movement,
+                                )
+                                from apps.schoolops.models_inventory_movement import (
+                                    InventoryMovement,
+                                )
+
+                                try:
+                                    record_inventory_movement(
+                                        school=school,
+                                        item=inv_item,
+                                        movement_type=InventoryMovement.MovementType.CONSUME,
+                                        quantity_delta=-qty,
+                                        recorded_by=request.user,
+                                        notes=f"POS sale: {label[:80]}",
+                                    )
+                                except (
+                                    InventoryMovementError,
+                                    InventoryItem.DoesNotExist,
+                                ):
                                     messages.error(
                                         request,
                                         "Insufficient stock for the selected inventory item.",

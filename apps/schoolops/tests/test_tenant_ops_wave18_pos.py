@@ -114,6 +114,74 @@ class TenantOpsWave18PosTests(TestCase):
         inv.refresh_from_db()
         self.assertEqual(inv.quantity, 1)
 
+    def test_pos_sale_writes_inventory_movement_ledger_row(self):
+        """A POS sale of an inventory item must write an InventoryMovement audit
+        row (not merely decrement item.quantity), so sum(movements) reconciles
+        with stock on hand. Previously the till used a bare .update() decrement
+        that left the movement ledger blind to POS depletion."""
+        from apps.schoolops.models_inventory_movement import InventoryMovement
+
+        self.school.features = {"pos_stub": True, "inventory": True}
+        self.school.save(update_fields=["features"])
+        inv = InventoryItem.objects.create(
+            school=self.school, name="Marker", quantity=10
+        )
+        r = ops_pos(
+            self._req(
+                "POST",
+                "/p/",
+                {
+                    "inventory_item_id": str(inv.pk),
+                    "quantity": "4",
+                    "unit_price": "1.00",
+                    "payment_method": "cash",
+                },
+            )
+        )
+        self.assertEqual(r.status_code, 302)
+        inv.refresh_from_db()
+        self.assertEqual(inv.quantity, 6)
+        mv = InventoryMovement.objects.get(school=self.school, item=inv)
+        self.assertEqual(mv.movement_type, InventoryMovement.MovementType.CONSUME)
+        self.assertEqual(mv.quantity_delta, -4)
+        self.assertEqual(mv.quantity_after, 6)
+        # The ledger reconciles with stock on hand: starting qty + sum(deltas).
+        total_delta = sum(
+            m.quantity_delta
+            for m in InventoryMovement.objects.filter(school=self.school, item=inv)
+        )
+        self.assertEqual(inv.quantity, 10 + total_delta)
+
+    def test_pos_insufficient_stock_writes_no_movement(self):
+        """The oversell path must not leak a ledger row: a blocked sale writes
+        neither a PosSaleLine nor an InventoryMovement, and leaves stock intact."""
+        from apps.schoolops.models_inventory_movement import InventoryMovement
+
+        self.school.features = {"pos_stub": True, "inventory": True}
+        self.school.save(update_fields=["features"])
+        inv = InventoryItem.objects.create(
+            school=self.school, name="One", quantity=1
+        )
+        r = ops_pos(
+            self._req(
+                "POST",
+                "/p/",
+                {
+                    "inventory_item_id": str(inv.pk),
+                    "quantity": "5",
+                    "unit_price": "1.00",
+                    "payment_method": "cash",
+                },
+            )
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(PosSaleLine.objects.filter(school=self.school).exists())
+        self.assertFalse(
+            InventoryMovement.objects.filter(school=self.school).exists()
+        )
+        inv.refresh_from_db()
+        self.assertEqual(inv.quantity, 1)
+
     def test_pos_sales_tax_snapshot_and_gross(self):
         r = ops_pos(
             self._req(
