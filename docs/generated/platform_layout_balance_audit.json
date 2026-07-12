@@ -1,7 +1,7 @@
 {
   "status": "pass",
   "summary": {
-    "checks": 1842,
+    "checks": 1846,
     "failures": 0,
     "warnings": 0
   },
@@ -3145,6 +3145,12 @@
       "count": 0
     },
     {
+      "name": "templates/finance/no_profile.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/finance/no_profile.html",
+      "count": 0
+    },
+    {
       "name": "templates/finance/notifications.html has no stray control characters",
       "status": "pass",
       "file": "templates/finance/notifications.html",
@@ -4741,6 +4747,12 @@
       "count": 0
     },
     {
+      "name": "templates/migration_cloud/connector/bundle_review.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/migration_cloud/connector/bundle_review.html",
+      "count": 0
+    },
+    {
       "name": "templates/migration_cloud/connector/connect.html has no stray control characters",
       "status": "pass",
       "file": "templates/migration_cloud/connector/connect.html",
@@ -4786,6 +4798,12 @@
       "name": "templates/migration_cloud/connector/review.html has no stray control characters",
       "status": "pass",
       "file": "templates/migration_cloud/connector/review.html",
+      "count": 0
+    },
+    {
+      "name": "templates/migration_cloud/connector/upload.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/migration_cloud/connector/upload.html",
       "count": 0
     },
     {
@@ -8800,6 +8818,12 @@
       "name": "templates/schools/super_site_settings_list.html has no stray control characters",
       "status": "pass",
       "file": "templates/schools/super_site_settings_list.html",
+      "count": 0
+    },
+    {
+      "name": "templates/schools/super_superadmin_console.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/schools/super_superadmin_console.html",
       "count": 0
     },
     {

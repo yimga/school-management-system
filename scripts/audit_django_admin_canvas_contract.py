@@ -28,13 +28,19 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260711-structural-canvas" not in base_site:
-        errors.append("Django canvas contract link must be cache-busted for deployment visibility")
+    if "?v=20260712-runtime-hardening" not in base_site:
+        errors.append("Django canvas contract link must use the runtime-hardening cache bust for deployment visibility")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
     if contract_link in base_site and "rmc_theme_experience_dual_plane_styles.html" in base_site:
         if base_site.rfind(contract_link) < base_site.rfind("rmc_theme_experience_dual_plane_styles.html"):
             errors.append("Django canvas contract must load after preview/theme inline styles")
+    if "{% block bodyclass %}" not in base_site:
+        errors.append("templates/admin/base_site.html must server-render admin body classes")
+    if "admin-manager-shell control-plane-shell cp-surface" not in base_site:
+        errors.append("templates/admin/base_site.html missing server-rendered operator admin body classes")
+    if "admin-premium-shell" not in base_site:
+        errors.append("templates/admin/base_site.html missing server-rendered tenant admin body class")
 
     if 'data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}"' not in base:
         errors.append("admin/base.html missing explicit manager/tenant shell host marker")
@@ -94,8 +100,12 @@ def main() -> int:
         "container-type: inline-size",
         "Final platform-wide/tenant-wide Django sweep",
         "Structural canvas closure, 2026-07-11",
+        "Production hardening, 2026-07-12",
         "rmc-django-workspace",
         "rmc-django-command-band",
+        "[data-rmc-django-command-band]",
+        "visibility: visible !important",
+        "opacity: 1 !important",
         "rmc-django-form-panel",
         "rmc-django-form-body",
         "rmc-django-side-panel",
@@ -122,6 +132,7 @@ def main() -> int:
         "iframe[data-rmc-preview-frame]",
         "admin-premium-shell",
         "admin-manager-shell",
+        "[data-rmc-admin-canvas-contract=\"intelligent-full-width\"]",
     )
     for token in required_css_tokens:
         if token not in css:
