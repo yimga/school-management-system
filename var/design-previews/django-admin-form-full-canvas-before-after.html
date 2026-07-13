@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RunMyCampus Django admin full-canvas proof</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050b16;
+      --chrome: #0a1324;
+      --canvas: #101a2e;
+      --panel: #14223a;
+      --panel-2: #182844;
+      --panel-3: #0b1425;
+      --line: rgba(166, 190, 226, .18);
+      --line-2: rgba(166, 190, 226, .32);
+      --text: #eef5ff;
+      --muted: #9eafc8;
+      --dim: #6f829e;
+      --blue: #5f7bff;
+      --cyan: #25bfff;
+      --green: #29d486;
+      --amber: #f7be37;
+      --red: #f25567;
+      --purple: #8d6cff;
+      --sidebar: 256px;
+      --tools: 46px;
+      --footer: 42px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 72% -15%, rgba(95, 123, 255, .2), transparent 30%),
+        radial-gradient(circle at 8% 0%, rgba(41, 212, 134, .11), transparent 28%),
+        var(--bg);
+    }
+
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr) var(--tools);
+      grid-template-rows: 54px 34px minmax(0, 1fr) var(--footer);
+    }
+
+    .topbar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 520px;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 14px;
+      background: rgba(8, 17, 32, .96);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .brand, .nav, .status, .chip, .btn, .sidebar-head, .sidebar-row, .tabbar, .field-meta, .action-row {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand { gap: 10px; min-width: 0; }
+    .logo {
+      width: 31px;
+      height: 31px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      background: linear-gradient(135deg, #293449, #0d1727);
+      border: 1px solid var(--line-2);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+    }
+    .brand strong { display: block; font-size: 14px; letter-spacing: .02em; }
+    .brand small { display: block; color: var(--muted); font-size: 10px; }
+    .badge {
+      margin-left: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--amber), #d18c00);
+      color: #251905;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .nav { justify-content: center; gap: 7px; }
+    .nav a, .btn {
+      min-height: 32px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.045);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 750;
+      gap: 7px;
+    }
+    .nav a.active { background: linear-gradient(135deg, var(--blue), #4a66d8); border-color: rgba(255,255,255,.26); }
+    .status { justify-content: flex-end; gap: 9px; min-width: 0; }
+    .search {
+      min-width: 270px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(247, 190, 55, .26);
+      background: rgba(82, 57, 24, .42);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .kbd {
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,.09);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .ticker {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      padding: 0 18px;
+      color: var(--muted);
+      background: #101331;
+      border-bottom: 1px solid var(--line);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .live {
+      color: #ffdce2;
+      border: 1px solid rgba(242,85,103,.55);
+      background: rgba(242,85,103,.18);
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-weight: 900;
+    }
+
+    .sidebar {
+      grid-row: 3 / 5;
+      background: #0a1221;
+      border-right: 1px solid var(--line);
+      padding: 12px 10px 52px;
+      overflow: hidden;
+    }
+    .sidebar-head { gap: 8px; margin-bottom: 12px; }
+    .filter {
+      flex: 1;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid rgba(247,190,55,.32);
+      background: rgba(60,42,20,.42);
+      color: var(--muted);
+      padding: 0 10px;
+      font-size: 12px;
+    }
+    .gear {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: rgba(95,123,255,.16);
+      border: 1px solid var(--line);
+    }
+    .group {
+      margin: 8px 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(20,34,58,.55);
+    }
+    .group-title {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 10px;
+    }
+    .sidebar-row {
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 36px;
+      padding: 0 8px;
+      color: var(--text);
+      font-size: 12px;
+      border-radius: 7px;
+    }
+    .sidebar-row.muted { color: var(--muted); }
+    .sidebar-row.active { background: linear-gradient(90deg, rgba(95,123,255,.25), rgba(37,191,255,.06)); }
+    .pin { color: var(--muted); }
+
+    .tools {
+      grid-column: 3;
+      grid-row: 3 / 5;
+      background: #080f1d;
+      border-left: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding-top: 12px;
+    }
+    .tool {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .tool.primary { background: linear-gradient(135deg, #7c63ff, #6247d7); color: white; }
+
+    .footer {
+      grid-column: 1 / -1;
+      grid-row: 4;
+      position: sticky;
+      bottom: 0;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-top: 1px solid var(--line);
+      background: rgba(12, 20, 36, .96);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .main {
+      grid-column: 2;
+      grid-row: 3;
+      min-width: 0;
+      overflow: auto;
+      padding: 22px 18px 72px;
+      background: #080e1c;
+    }
+
+    .hero {
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: end;
+    }
+    .hero h1 { margin: 0; font-size: clamp(22px, 2vw, 34px); letter-spacing: 0; }
+    .hero p { margin: 8px 0 0; color: var(--muted); max-width: 78ch; }
+    .proof-note {
+      border: 1px solid rgba(41,212,134,.34);
+      background: rgba(41,212,134,.09);
+      color: #bcffe0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .compare {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .surface {
+      border: 1px solid var(--line);
+      background: rgba(16,26,46,.78);
+      border-radius: 12px;
+      overflow: hidden;
+      min-width: 0;
+      box-shadow: 0 22px 60px rgba(0,0,0,.28);
+    }
+    .surface-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(24,40,68,.8);
+      border-bottom: 1px solid var(--line);
+    }
+    .surface-head h2 { margin: 0; font-size: 15px; letter-spacing: 0; }
+    .surface-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .tag {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .tag.bad { background: rgba(242,85,103,.16); color: #ffb6bf; border: 1px solid rgba(242,85,103,.38); }
+    .tag.good { background: rgba(41,212,134,.16); color: #b9ffdf; border: 1px solid rgba(41,212,134,.38); }
+
+    .admin-frame {
+      padding: 16px;
+      min-height: 620px;
+      position: relative;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        var(--panel-3);
+      background-size: 100% 42px;
+    }
+
+    .steering {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 18px;
+      background: rgba(13,24,42,.86);
+    }
+    .steering strong { font-size: 12px; }
+    .steering p { margin: 6px 0 0; color: var(--muted); font-size: 11px; }
+    .tabbar { gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 11px;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 800;
+      background: rgba(255,255,255,.035);
+    }
+    .tab.active { background: linear-gradient(135deg, var(--green), #b87900); color: white; }
+
+    .admin-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin: 0 0 18px;
+    }
+    .admin-title h3 { margin: 0; font-size: 21px; }
+    .admin-title small { color: var(--muted); }
+
+    .before .form-wrap {
+      width: min(100%, 720px);
+      max-width: 720px;
+      margin-inline: auto;
+    }
+    .after .form-wrap {
+      width: 100%;
+      max-width: none;
+      margin-inline: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(180px, 18vw);
+      gap: 16px;
+      align-items: start;
+    }
+    .form-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(9,17,31,.95);
+      overflow: hidden;
+      min-width: 0;
+    }
+    .section-title {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(24,40,68,.44);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .fields {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+    .before .fields { grid-template-columns: 1fr; }
+    .after .fields { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+    .field { min-width: 0; }
+    .field.wide { grid-column: 1 / -1; }
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .input, .textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(6,13,24,.9);
+      color: var(--text);
+      padding: 10px;
+      font-size: 12px;
+    }
+    .textarea { min-height: 86px; resize: none; }
+    .hint { margin-top: 5px; color: var(--dim); font-size: 10px; line-height: 1.35; }
+    .field-meta { gap: 8px; flex-wrap: wrap; }
+    .radio {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 3px solid var(--cyan);
+      background: rgba(37,191,255,.16);
+    }
+    .dot.off { border-color: var(--line-2); background: transparent; }
+
+    .rail {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(24,40,68,.65);
+      padding: 12px;
+      min-width: 0;
+    }
+    .before .rail { display: none; }
+    .rail h4 { margin: 0 0 10px; font-size: 13px; }
+    .rail-row {
+      padding: 9px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .rail-row:first-of-type { border-top: 0; }
+    .rail-row b { display: block; color: var(--text); margin-bottom: 3px; }
+
+    .action-row {
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+      background: rgba(24,40,68,.72);
+    }
+    .before .action-row {
+      position: sticky;
+      bottom: 0;
+      width: 132%;
+      margin-left: -16%;
+      box-shadow: 0 -16px 40px rgba(0,0,0,.46);
+    }
+    .after .action-row {
+      position: static;
+      width: 100%;
+      margin: 0;
+    }
+    .save {
+      border: 0;
+      border-radius: 8px;
+      min-height: 34px;
+      padding: 0 14px;
+      color: white;
+      background: linear-gradient(135deg, var(--purple), var(--blue));
+      font-weight: 900;
+      font-size: 12px;
+    }
+    .secondary {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 34px;
+      padding: 0 12px;
+      color: var(--text);
+      background: rgba(255,255,255,.045);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .table-card {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(9,17,31,.92);
+    }
+    .table-card h4 { margin: 0; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th, td { padding: 9px 10px; border-bottom: 1px solid rgba(166,190,226,.1); text-align: left; white-space: nowrap; }
+    th { color: var(--green); text-transform: uppercase; font-size: 10px; letter-spacing: .06em; background: rgba(24,40,68,.55); }
+    td { color: var(--text); }
+    .ok { color: var(--green); font-weight: 950; }
+    .no { color: var(--red); font-weight: 950; }
+    .before .table-card { max-width: 720px; margin-inline: auto; }
+    .after .table-card { max-width: none; }
+
+    .callouts {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .callout {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(20,34,58,.72);
+      min-width: 0;
+    }
+    .callout b { display: block; margin-bottom: 6px; }
+    .callout p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+
+    @media (max-width: 1280px) {
+      .compare { grid-template-columns: 1fr; }
+      .after .form-wrap { grid-template-columns: 1fr; }
+      .rail { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .rail h4 { grid-column: 1 / -1; }
+    }
+    @media (max-width: 900px) {
+      .page { grid-template-columns: 1fr; }
+      .sidebar, .tools { display: none; }
+      .main { grid-column: 1; }
+      .topbar { grid-template-columns: 1fr; }
+      .status { justify-content: flex-start; }
+      .search { min-width: 0; width: 100%; }
+      .callouts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">C</div>
+        <div>
+          <strong>RUNMYCAMPUS <span class="badge">Backoffice</span></strong>
+          <small>/admin/ - operator command surface</small>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Preview navigation">
+        <a href="#" class="active">Backoffice</a>
+        <a href="#">Settings</a>
+        <a href="#">Command</a>
+        <a href="#">Reports</a>
+        <a href="#">More</a>
+      </nav>
+      <div class="status">
+        <div class="search">Search models, fields, records... <span class="kbd">Ctrl K</span></div>
+        <button class="btn">20</button>
+        <button class="btn">AD</button>
+      </div>
+    </header>
+
+    <div class="ticker">
+      <span class="live">LIVE</span>
+      <span>Migration sync complete for 12 schools</span>
+      <span>Marketplace app updated</span>
+      <span>Tenant webhook drift detected</span>
+      <span>5 new support tickets</span>
+    </div>
+
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <div class="gear">[]</div>
+        <div class="filter">Filter...</div>
+        <div class="gear">*</div>
+      </div>
+      <div class="group">
+        <div class="group-title">admin</div>
+        <div class="sidebar-row active"><span>Platform operator</span><span class="pin">↗</span></div>
+        <div class="sidebar-row muted"><span>All tenants - Global</span></div>
+      </div>
+      <div class="group">
+        <div class="group-title">Start</div>
+        <div class="sidebar-row"><span>Guided setup</span><span>›</span></div>
+        <div class="sidebar-row"><span>Studio OS</span><span>›</span></div>
+        <div class="sidebar-row"><span>Curriculum & region</span><span>›</span></div>
+        <div class="sidebar-row"><span>Workflows & dashboards</span><span>›</span></div>
+      </div>
+      <div class="group">
+        <div class="group-title">Advanced</div>
+        <div class="sidebar-row"><span>Platform Studio Reports</span><span class="pin">⌁</span></div>
+        <div class="sidebar-row muted"><span>Backoffice configuration</span><span>›</span></div>
+        <div class="sidebar-row muted"><span>Security & access</span><span>›</span></div>
+        <div class="sidebar-row muted"><span>Metadata & audit</span><span>›</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="hero">
+        <div>
+          <h1>Django admin surface fix - before and after</h1>
+          <p>This preview shows the exact issue from your screenshots: old admin CSS capped forms and tables inside a narrow center column and let the save strip overlay the workbench. The fix forces the Django admin form and changelist contracts to use the available canvas.</p>
+        </div>
+        <div class="proof-note">Implemented in commit 11821d302</div>
+      </section>
+
+      <section class="compare" aria-label="Before and after comparison">
+        <article class="surface before">
+          <div class="surface-head">
+            <div>
+              <h2>Before - old constrained admin surface</h2>
+              <p>`--rmc-backoffice-form-max` caps the form. Sticky save row bleeds across the footer.</p>
+            </div>
+            <span class="tag bad">Problem</span>
+          </div>
+          <div class="admin-frame">
+            <div class="steering">
+              <strong>Operator steering</strong>
+              <p>Model maps to Security & Access. Canvas exists, but the actual form is trapped in a narrow center lane.</p>
+              <div class="tabbar">
+                <span class="tab active">Config center</span>
+                <span class="tab">Studio</span>
+                <span class="tab">Control plane</span>
+              </div>
+            </div>
+            <div class="admin-title">
+              <div>
+                <h3>Add user</h3>
+                <small>After creating a user, you can edit more options.</small>
+              </div>
+              <button class="secondary">Browse operator hub</button>
+            </div>
+            <div class="form-wrap">
+              <div class="form-card">
+                <div class="section-title">Credentials</div>
+                <div class="fields">
+                  <div class="field wide">
+                    <label>Username *</label>
+                    <div class="input"></div>
+                    <div class="hint">Required. 150 characters or fewer.</div>
+                  </div>
+                  <div class="field wide">
+                    <label>Password-based authentication</label>
+                    <div class="field-meta">
+                      <span class="radio"><span class="dot"></span> Enabled</span>
+                      <span class="radio"><span class="dot off"></span> Disabled</span>
+                    </div>
+                    <div class="hint">Whether the user can authenticate using a password.</div>
+                  </div>
+                  <div class="field">
+                    <label>Password</label>
+                    <div class="input" style="width: 128px;"></div>
+                    <div class="hint">Your password cannot be too similar to your other personal information.</div>
+                  </div>
+                  <div class="field">
+                    <label>Password confirmation</label>
+                    <div class="input" style="width: 128px;"></div>
+                    <div class="hint">Enter the same password as before.</div>
+                  </div>
+                  <div class="field wide">
+                    <label>Operator summary</label>
+                    <div class="textarea"></div>
+                  </div>
+                </div>
+                <div class="action-row">
+                  <button class="secondary">Save and add another</button>
+                  <button class="secondary">Back</button>
+                  <button class="secondary">Save and continue editing</button>
+                  <button class="save">Save</button>
+                </div>
+              </div>
+            </div>
+            <div class="table-card">
+              <h4>Users list also stayed visually narrow</h4>
+              <table>
+                <thead><tr><th>Username</th><th>Email address</th><th>Role</th><th>Staff status</th><th>Active</th></tr></thead>
+                <tbody>
+                  <tr><td>admin</td><td>admin@example.com</td><td>Super Administrator</td><td class="ok">●</td><td class="ok">●</td></tr>
+                  <tr><td>admin1</td><td>admin@test.com</td><td>Super Administrator</td><td class="ok">●</td><td class="ok">●</td></tr>
+                  <tr><td>admin_bueq_01</td><td>admin_bueq_01@test.com</td><td>Administrator</td><td class="ok">●</td><td class="ok">●</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <article class="surface after">
+          <div class="surface-head">
+            <div>
+              <h2>After - full-canvas Django admin contract</h2>
+              <p>Exact high-specificity selectors beat the old cap. Forms, rails, tables, and save actions use the available canvas.</p>
+            </div>
+            <span class="tag good">Fixed</span>
+          </div>
+          <div class="admin-frame">
+            <div class="steering">
+              <strong>Operator steering</strong>
+              <p>Same content, but the workbench expands intelligently between the sidebars and keeps controls readable.</p>
+              <div class="tabbar">
+                <span class="tab active">Config center</span>
+                <span class="tab">Studio</span>
+                <span class="tab">Control plane</span>
+              </div>
+            </div>
+            <div class="admin-title">
+              <div>
+                <h3>Add user</h3>
+                <small>After creating a user, you can edit more options.</small>
+              </div>
+              <button class="secondary">Browse operator hub</button>
+            </div>
+            <div class="form-wrap">
+              <div class="form-card">
+                <div class="section-title">Credentials</div>
+                <div class="fields">
+                  <div class="field">
+                    <label>Username *</label>
+                    <div class="input"></div>
+                    <div class="hint">Required. 150 characters or fewer.</div>
+                  </div>
+                  <div class="field">
+                    <label>Password-based authentication</label>
+                    <div class="field-meta">
+                      <span class="radio"><span class="dot"></span> Enabled</span>
+                      <span class="radio"><span class="dot off"></span> Disabled</span>
+                    </div>
+                    <div class="hint">Authentication policy stays visible without cramping.</div>
+                  </div>
+                  <div class="field">
+                    <label>Password</label>
+                    <div class="input"></div>
+                    <div class="hint">Password guidance wraps inside the field column.</div>
+                  </div>
+                  <div class="field">
+                    <label>Password confirmation</label>
+                    <div class="input"></div>
+                    <div class="hint">Confirmation sits beside related credentials on wide screens.</div>
+                  </div>
+                  <div class="field wide">
+                    <label>Operator summary</label>
+                    <div class="textarea"></div>
+                  </div>
+                </div>
+                <div class="action-row">
+                  <button class="secondary">Save and add another</button>
+                  <button class="secondary">Back</button>
+                  <button class="secondary">Save and continue editing</button>
+                  <button class="save">Save</button>
+                </div>
+              </div>
+              <aside class="rail">
+                <h4>Context rail</h4>
+                <div class="rail-row"><b>Scope</b>Operator and tenant admin</div>
+                <div class="rail-row"><b>Contract</b>Full canvas, no form max cap</div>
+                <div class="rail-row"><b>Save row</b>Static, no overlay</div>
+              </aside>
+            </div>
+            <div class="table-card">
+              <h4>Users list uses native full-width table contract</h4>
+              <table>
+                <thead><tr><th>Username</th><th>Email address</th><th>Role</th><th>Staff status</th><th>Active</th></tr></thead>
+                <tbody>
+                  <tr><td>admin</td><td>admin@example.com</td><td>Super Administrator</td><td class="ok">●</td><td class="ok">●</td></tr>
+                  <tr><td>admin1</td><td>admin@test.com</td><td>Super Administrator</td><td class="ok">●</td><td class="ok">●</td></tr>
+                  <tr><td>admin_bueq_01</td><td>admin_bueq_01@test.com</td><td>Administrator</td><td class="ok">●</td><td class="ok">●</td></tr>
+                  <tr><td>support_admin</td><td>support@school.test</td><td>Administrator</td><td class="no">●</td><td class="ok">●</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="callouts">
+        <div class="callout">
+          <b>What was wrong</b>
+          <p>Older `admin-cp-parity.css` rules used higher-specificity `!important` selectors and kept forms capped by `--rmc-backoffice-form-max`.</p>
+        </div>
+        <div class="callout">
+          <b>What the patch changes</b>
+          <p>The final contract now targets the exact Django form and table markers: `premium-form-frame`, `native-table-scroll`, and `django-admin` shell root.</p>
+        </div>
+        <div class="callout">
+          <b>Why it should render now</b>
+          <p>The CSS URL and service worker cache were bumped again, and the new selectors are specific enough to beat the old narrow form cap.</p>
+        </div>
+      </section>
+    </main>
+
+    <aside class="tools">
+      <div class="tool primary">+</div>
+      <div class="tool">◎</div>
+      <div class="tool">⚡</div>
+      <div class="tool">?</div>
+      <div class="tool">↗</div>
+    </aside>
+
+    <footer class="footer">
+      <strong>RunMyCampus Manager Backoffice</strong>
+      <span>Canvas contract: full-width forms, native tables, static save actions</span>
+      <span>Security - Privacy - Terms</span>
+    </footer>
+  </div>
+</body>
+</html>
