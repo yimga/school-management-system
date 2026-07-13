@@ -1422,3 +1422,309 @@ html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-f
     grid-template-columns: 1fr !important;
   }
 }
+
+/* HTML-gate independent closure, 2026-07-13:
+   The approved Django canvas must not depend on JavaScript adding
+   html[data-rmc-admin-html="unfold"]. These terminal selectors bind to the
+   server-rendered admin shell and canvas markers that exist on operator and
+   tenant Django surfaces at first paint. */
+[data-rmc-shell-root="django-admin"],
+body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-shell-root="django-admin"] {
+  --rmc-django-struct-gap: clamp(0.8rem, 1vw, 1.15rem);
+  --rmc-django-struct-pad: clamp(0.8rem, 1.15vw, 1.25rem);
+  --rmc-django-struct-radius: var(--radius-lg, 14px);
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-admin-canvas-contract="intelligent-full-width"],
+  [data-rmc-admin-content="canvas-first"],
+  [data-rmc-admin-content="canvas-first"] > #content-main,
+  [data-rmc-admin-content="canvas-first"] .rmc-django-workspace,
+  [data-rmc-admin-surface="smart-form"],
+  [data-rmc-admin-surface="smart-changelist"],
+  [data-rmc-admin-form-contract="premium-form-frame"],
+  [data-rmc-admin-table-contract="native-table-scroll"]
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-canvas-contract="intelligent-full-width"] {
+  padding-inline: clamp(0.75rem, 1.05vw, 1.25rem) !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-surface="smart-form"],
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-surface="smart-changelist"] {
+  display: grid !important;
+  gap: var(--rmc-django-struct-gap, 1rem) !important;
+  align-items: start !important;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: var(--rmc-django-struct-radius, 14px) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated, #111827) 84%, transparent), color-mix(in srgb, var(--surface-canvas, #070b18) 96%, transparent)) !important;
+  box-shadow: var(--elev-2, none) !important;
+  padding: var(--rmc-django-struct-pad, 1rem) !important;
+  overflow: clip !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-command-band] {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: var(--rmc-django-struct-gap, 1rem) !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: calc(var(--rmc-django-struct-radius, 14px) - 2px) !important;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--school-primary, var(--brand-info, #38bdf8)) 15%, transparent), transparent 64%),
+    color-mix(in srgb, var(--surface-elevated, #111827) 78%, transparent) !important;
+  padding: var(--rmc-django-struct-pad, 1rem) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-command-band] .rmc-django-command-band__copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 0.25rem !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-command-band] .rmc-django-command-band__copy strong {
+  color: var(--text-primary, inherit) !important;
+  font-size: clamp(1.05rem, 1.35vw, 1.45rem) !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-command-band] .rmc-django-command-band__meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 0.45rem !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-command-band] .rmc-django-command-band__meta span {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 1.65rem !important;
+  max-width: 100% !important;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: var(--radius-pill, 999px) !important;
+  background: color-mix(in srgb, var(--surface-canvas, #070b18) 74%, transparent) !important;
+  color: var(--text-primary, inherit) !important;
+  padding-inline: 0.7rem !important;
+  font-size: 0.7rem !important;
+  font-weight: 850 !important;
+  white-space: nowrap !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] {
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-content: start !important;
+  overflow: visible !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > [data-rmc-django-command-band],
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > [data-rmc-admin-form-contract="premium-form-frame"],
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > [data-rmc-django-side-panel] {
+  grid-column: 1 / -1 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-side-panel] {
+  position: static !important;
+  top: auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)) !important;
+  gap: var(--rmc-django-struct-gap, 1rem) !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-side-panel] .rmc-rail-card {
+  min-width: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-side-panel] .rmc-rail-b {
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-side-panel] .rmc-onthispage,
+[data-rmc-shell-root="django-admin"] [data-rmc-django-side-panel] .rmc-rail-actions {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)) !important;
+  gap: 0.4rem !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: calc(var(--rmc-django-struct-radius, 14px) - 2px) !important;
+  background: color-mix(in srgb, var(--surface-canvas, #070b18) 90%, transparent) !important;
+  overflow: hidden !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] form > .flex.flex-col.gap-6 {
+  display: grid !important;
+  gap: var(--rmc-django-struct-gap, 1rem) !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  padding: var(--rmc-django-struct-pad, 1rem) !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  gap: clamp(0.75rem, 1vw, 1rem) !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body > :is(
+  .form-row,
+  .flex,
+  fieldset,
+  .module,
+  .fieldset,
+  .aligned,
+  .collapse,
+  .tabular,
+  .inline-group
+) {
+  grid-column: span 6 !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body > :is(
+  .form-row:has(textarea),
+  .form-row:has(.selector),
+  .form-row:has(.related-widget-wrapper),
+  .form-row:has(.vLargeTextField),
+  fieldset,
+  .module,
+  .fieldset,
+  .aligned,
+  .collapse,
+  .tabular,
+  .inline-group
+) {
+  grid-column: 1 / -1 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] :is(
+  fieldset,
+  .module,
+  .fieldset,
+  .aligned
+) .form-row {
+  display: grid !important;
+  grid-template-columns: minmax(10rem, 0.32fr) minmax(0, 1fr) !important;
+  column-gap: clamp(0.8rem, 1.1vw, 1.15rem) !important;
+  align-items: start !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select,
+  .vTextField,
+  .vLargeTextField
+) {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] :is(
+  .readonly,
+  .help,
+  .helptext,
+  pre,
+  code
+) {
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .selector {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-table-contract="native-table-scroll"] :is(
+  #changelist,
+  .result-list-wrapper,
+  .changelist-form-container,
+  .rmc-admin-changelist-main,
+  #changelist-form,
+  .results
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-table-contract="native-table-scroll"] #changelist-form {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-table-contract="native-table-scroll"] :is(#result_list, .results table) {
+  width: max-content !important;
+  min-width: 100% !important;
+  border-collapse: collapse !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-submit-contract="sticky-safe-actions"] {
+  grid-column: 1 / -1 !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  z-index: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-submit-contract="sticky-safe-actions"] > .rmc-admin-submit-row__inner {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+@media (max-width: 1180px) {
+  [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows,
+  [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body {
+    grid-template-columns: 1fr !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body > * {
+    grid-column: 1 / -1 !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] :is(
+    fieldset,
+    .module,
+    .fieldset,
+    .aligned
+  ) .form-row,
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-command-band] {
+    grid-template-columns: 1fr !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-command-band] .rmc-django-command-band__meta {
+    justify-content: flex-start !important;
+  }
+}

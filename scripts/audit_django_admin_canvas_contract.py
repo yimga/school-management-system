@@ -28,8 +28,8 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260712-preview-parity" not in base_site:
-        errors.append("Django canvas contract link must use the preview-parity cache bust for deployment visibility")
+    if "?v=20260713-html-gate-free" not in base_site:
+        errors.append("Django canvas contract link must use the html-gate-free cache bust for deployment visibility")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
     if contract_link in base_site and "rmc_theme_experience_dual_plane_styles.html" in base_site:
@@ -102,6 +102,7 @@ def main() -> int:
         "Structural canvas closure, 2026-07-11",
         "Production hardening, 2026-07-12",
         "Preview parity closure, 2026-07-12",
+        "HTML-gate independent closure, 2026-07-13",
         "rmc-django-workspace",
         "rmc-django-command-band",
         "[data-rmc-django-command-band]",
@@ -137,6 +138,9 @@ def main() -> int:
         "admin-premium-shell",
         "admin-manager-shell",
         "[data-rmc-admin-canvas-contract=\"intelligent-full-width\"]",
+        "[data-rmc-shell-root=\"django-admin\"] [data-rmc-admin-canvas-contract=\"intelligent-full-width\"]",
+        "[data-rmc-shell-root=\"django-admin\"] [data-rmc-django-workspace=\"change-form\"]",
+        "[data-rmc-shell-root=\"django-admin\"] [data-rmc-django-side-panel]",
     )
     for token in required_css_tokens:
         if token not in css:
