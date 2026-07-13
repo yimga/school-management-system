@@ -46,6 +46,13 @@ urlpatterns = [
         views_tenant_upload.TenantMigrationApplyView.as_view(),
         name="bundle-apply",
     ),
+    # Safe idempotent re-import for a failed / partially-held bundle. See
+    # TenantMigrationRepairView + repair.repair_bundle (conservative guardrails).
+    path(
+        "bundle/<int:bundle_id>/repair/",
+        views_tenant_upload.TenantMigrationRepairView.as_view(),
+        name="bundle-repair",
+    ),
     path(
         "<uuid:connection_id>/discover/",
         views_connectors.MigrationCloudConnectorDiscoverView.as_view(),

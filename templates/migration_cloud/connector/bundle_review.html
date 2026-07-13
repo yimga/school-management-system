@@ -106,7 +106,7 @@ any locale can't break the inline script's string literals.
 {% if apply_result %}
 <section class="rmc-card mb-4" aria-labelledby="mc-apply-heading">
   <h2 id="mc-apply-heading" class="h5">
-    {% if apply_result.dry_run %}{% trans "Import preview — nothing written yet" %}{% else %}{% trans "Import complete" %}{% endif %}
+    {% if apply_result.is_repair %}{% trans "Repair complete" %}{% elif apply_result.dry_run %}{% trans "Import preview — nothing written yet" %}{% else %}{% trans "Import complete" %}{% endif %}
   </h2>
   <p class="mb-2">
     <span class="rmc-badge">{% trans "Created" %}: {{ apply_result.created }}</span>
@@ -251,4 +251,30 @@ any locale can't break the inline script's string literals.
     <a class="btn btn-link" href="{{ home_url }}">{% trans "Back to Migration Cloud" %}</a>
   </form>
 </section>
+
+{% if repair %}
+{% comment %}
+Auto-repair affordance. Shows a one-click "Repair this import" when the bundle
+is safely re-appliable (a failed apply, or held / not-fully-landed rows), or a plain
+explanation when repair is deliberately withheld (financial control-total lock,
+finance-needs-atomic). All the safety judgement is server-side in
+repair.repair_readiness — the button is only a trigger.
+{% endcomment %}
+<section class="rmc-card mt-4" aria-labelledby="mc-repair-heading">
+  <h2 id="mc-repair-heading" class="h5">{% trans "Fix a failed or incomplete import" %}</h2>
+  {% if repair.repairable %}
+  <p class="text-muted small">{{ repair.reason }}</p>
+  {% if repair.issue_count %}
+  <p class="small mb-2"><span class="rmc-badge">{% blocktrans count count=repair.issue_count %}{{ count }} record needs another attempt{% plural %}{{ count }} records need another attempt{% endblocktrans %}</span></p>
+  {% endif %}
+  <form method="post" action="{{ repair_url }}" class="d-flex gap-2 flex-wrap">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning"><i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>{% trans "Repair this import" %}</button>
+  </form>
+  <p class="text-muted small mt-2 mb-0">{% trans "Safe to run: records that already imported are updated in place, never duplicated." %}</p>
+  {% else %}
+  <p class="text-muted small mb-0">{{ repair.reason }}</p>
+  {% endif %}
+</section>
+{% endif %}
 {% endblock %}

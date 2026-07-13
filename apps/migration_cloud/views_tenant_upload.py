@@ -378,6 +378,8 @@ class TenantMigrationReviewView(LoginRequiredMixin, View):
             "domain_choices": canonical_domain_choices(),
             "apply_result": apply_result,
             "verification": _build_verification(bundle),
+            "repair": _build_repair(bundle),
+            "repair_url": _connector_reverse(request, "bundle-repair", bundle_id=bundle.pk),
             "detecting": _is_detecting(bundle),
             "progress_url": _connector_reverse(request, "bundle-progress", bundle_id=bundle.pk),
             "upload_url": _connector_reverse(request, "upload"),
@@ -438,6 +440,39 @@ def _build_verification(bundle):
             }
         )
     return {"rows": rows, "ok": ok, "notes": summary.get("notes") or []}
+
+
+# Blockers worth surfacing to the tenant even when repair is withheld — a real,
+# actionable safety hold (vs. a benign "not applied yet / already clean" state,
+# for which the repair panel simply stays hidden on the normal review flow).
+_ACTIONABLE_REPAIR_BLOCKERS = frozenset({"financial_guardrail_failed", "finance_requires_atomic"})
+
+
+def _build_repair(bundle):
+    """Compact repair affordance for the review page.
+
+    Returns ``{repairable, reason, blockers, issue_count}`` from
+    :func:`repair.repair_readiness` so the template can show a "Repair this
+    import" button — or, when a real safety hold applies, a plain explanation.
+    Returns ``None`` (panel hidden) for benign non-repairable states (a fresh
+    upload not yet imported, an already-clean apply), so the panel only appears
+    when there is something to act on. Cheap read-only; never raises.
+    """
+    try:
+        from .repair import repair_readiness
+
+        r = repair_readiness(bundle)
+        if not r.repairable and not (_ACTIONABLE_REPAIR_BLOCKERS & set(r.blockers)):
+            return None
+        return {
+            "repairable": r.repairable,
+            "reason": r.reason,
+            "blockers": r.blockers,
+            "issue_count": r.issue_count,
+        }
+    except Exception:  # noqa: BLE001 — a readiness hiccup must never break the page
+        logger.debug("tenant repair: readiness failed for %s", bundle.pk, exc_info=True)
+        return None
 
 
 class TenantMigrationApplyView(LoginRequiredMixin, View):
@@ -503,4 +538,53 @@ class TenantMigrationApplyView(LoginRequiredMixin, View):
                 f"{result.total_updated} updated, {result.total_quarantined} held for review.",
             )
         context = TenantMigrationReviewView().build_context(request, bundle, apply_result=summary)
+        return render(request, self.template_name, context)
+
+
+class TenantMigrationRepairView(LoginRequiredMixin, View):
+    """POST → safe, idempotent re-import (repair) of the caller's OWN bundle.
+
+    For a bundle whose apply failed part-way or left rows held for review, this
+    re-applies idempotently (upsert — no duplicates) and re-verifies. All the
+    safety judgement lives in :func:`repair.repair_bundle` / ``repair_readiness``
+    (refuses financial-guardrail failures, non-atomic finance, reconciled /
+    in-flight / not-yet-applied bundles). Tenant-scoped (cross-tenant id → 404);
+    ``@idempotent_post`` collapses an accidental double-click into one repair.
+    """
+
+    template_name = "migration_cloud/connector/bundle_review.html"
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int):
+        from .repair import repair_bundle
+
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        result = repair_bundle(bundle_id=bundle.pk)
+        bundle.refresh_from_db()
+
+        if not result.ran:
+            messages.info(request, result.message)
+        elif result.ok:
+            messages.success(request, result.message)
+        else:
+            messages.error(request, result.message)
+
+        # Only surface the results/verification banner when the repair actually
+        # re-imported cleanly; otherwise the message above carries the reason and
+        # the review page renders normally (still offering repair if applicable).
+        apply_result = None
+        if result.ran and result.ok:
+            apply_result = {
+                "dry_run": False,
+                "is_repair": True,
+                "status": result.after_status,
+                "created": result.created,
+                "updated": result.updated,
+                "quarantined": result.quarantined,
+                "per_artifact": [],
+            }
+        context = TenantMigrationReviewView().build_context(
+            request, bundle, apply_result=apply_result
+        )
         return render(request, self.template_name, context)

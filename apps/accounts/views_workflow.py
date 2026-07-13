@@ -166,6 +166,7 @@ def _migration_status_card(request):
             "status_label": bundle.get_status_display(),
             "detecting": detecting,
             "applied": bundle.status in {BundleStatus.APPLIED, BundleStatus.RECONCILED},
+            "needs_attention": bundle.status == BundleStatus.FAILED,
             "review_url": review_url,
             "created_at": bundle.created_at,
         }
