@@ -55,6 +55,8 @@ class BlueprintRollbackEngineTests(TestCase):
         self.school.refresh_from_db()
         self.assertEqual(self.installation.status, BlueprintInstallation.Status.ROLLED_BACK)
         self.assertEqual(self.school.settings, {"original": "kept"})
+        self.assertIn("offline_manifest_invalidation", result)
+        self.assertIn("offline_manifest_invalidation", result["reverted_changes"])
         self.assertTrue(
             PlatformEventLog.objects.filter(
                 event_type="blueprint_rolled_back",

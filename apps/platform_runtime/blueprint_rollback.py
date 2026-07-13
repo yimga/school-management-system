@@ -61,8 +61,13 @@ def rollback_blueprint_installation(
     reverted_changes: list[str] = []
     skipped_changes: list[str] = []
     warnings = [
-        "Rollback deactivates blueprint markers and restores settings snapshot; it does not delete school operational data."
+        "Rollback deactivates blueprint markers, restores settings snapshot, and invalidates the offline manifest; it does not delete school operational data."
     ]
+    offline_manifest_invalidation = (
+        (installation.preview_snapshot or {})
+        .get("rollback_plan", {})
+        .get("offline_manifest_invalidation", {})
+    )
     with transaction.atomic():
         school = installation.school
         snapshot = dict(installation.rollback_snapshot or {})
@@ -70,8 +75,20 @@ def rollback_blueprint_installation(
             school.settings = dict(snapshot.get("settings") or {})
             school.save(update_fields=["settings"])
             reverted_changes.append("school.settings")
+            reverted_changes.append("offline_manifest_invalidation")
         else:
             skipped_changes.append("school.settings_snapshot_missing")
+            settings = dict(school.settings or {})
+            local_first = dict(settings.get("local_first_blueprints") or {})
+            if installation.blueprint_key in local_first:
+                local_first[installation.blueprint_key]["status"] = "rolled_back"
+                local_first[installation.blueprint_key][
+                    "offline_manifest_invalidation"
+                ] = offline_manifest_invalidation
+                settings["local_first_blueprints"] = local_first
+                school.settings = settings
+                school.save(update_fields=["settings"])
+                reverted_changes.append("offline_manifest_invalidation")
         installed_package = (
             InstalledPackage.objects.filter(
                 school=school,
@@ -96,7 +113,10 @@ def rollback_blueprint_installation(
             actor=actor,
             result="rolled_back",
             installation_id=installation.pk,
-            payload={"reverted_changes": reverted_changes},
+            payload={
+                "reverted_changes": reverted_changes,
+                "offline_manifest_invalidation": offline_manifest_invalidation,
+            },
         )
     return {
         "ok": True,
@@ -105,4 +125,5 @@ def rollback_blueprint_installation(
         "warnings": warnings,
         "requires_manual_review": bool(installation.external_blockers),
         "audit_id": getattr(event, "pk", None),
+        "offline_manifest_invalidation": offline_manifest_invalidation,
     }

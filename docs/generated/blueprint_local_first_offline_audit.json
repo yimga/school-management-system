@@ -1,0 +1,757 @@
+{
+  "audit": "blueprint_local_first_offline",
+  "blueprints": [
+    {
+      "decision": "ADAPT EXISTING",
+      "key": "private-primary-school",
+      "local_first_manifest": {
+        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "cached_surfaces": [
+          "admissions",
+          "attendance",
+          "family_communications",
+          "finance_manual_fallback",
+          "reports_and_analytics"
+        ],
+        "conflict_policies": {
+          "attendance": "latest_teacher_intent_with_review",
+          "marks": "teacher_owner_then_admin_review",
+          "payments": "manual_receipt_requires_reconciliation",
+          "profile": "server_wins_sensitive_fields",
+          "reports": "draft_merge_requires_publish_review"
+        },
+        "device_roles": [
+          "Admin",
+          "Teacher",
+          "Parent",
+          "Student"
+        ],
+        "external_dependencies": [],
+        "indexeddb_stores": [
+          "tenant_profile",
+          "offline_action_queue",
+          "draft_forms",
+          "conflict_review_queue",
+          "sync_receipts"
+        ],
+        "manual_fallbacks": [
+          "paper_register",
+          "csv_import_after_outage",
+          "manual_receipt_reconciliation"
+        ],
+        "offline_actions": [
+          "attendance.mark",
+          "conflict.review",
+          "draft.save",
+          "payments.manual_receipt",
+          "reports.draft",
+          "sync.replay"
+        ],
+        "offline_survival_target_days": 3,
+        "proof_tests": [
+          "apps.platform_runtime.tests.test_seven_day_offline_endurance",
+          "scripts.verify_offline_workflow_apply",
+          "browser_storage_restart_harness_pending"
+        ],
+        "rollback_invalidation": {
+          "cache_purge_scope": "tenant_blueprint_manifest",
+          "device_refresh_required": true,
+          "manifest_version_bump": true,
+          "queued_action_policy": "allow_existing_safe_actions_then_reconcile"
+        },
+        "server_proof_status": "SERVER_SEVEN_DAY_RAILS_PRESENT",
+        "service_worker_assets": [
+          "tenant_shell",
+          "dashboard_shell",
+          "offline_queue_shell",
+          "form_runtime",
+          "report_preview_shell"
+        ],
+        "sync_cadence": {
+          "background_minutes": 30,
+          "foreground_seconds": 60,
+          "manual_sync": true
+        }
+      },
+      "missing_local_first_manifest_fields": [],
+      "name": "Private Primary School",
+      "offline_defaults": {
+        "conflict_resolution": "review_queue",
+        "coverage": "attendance_and_report_drafts",
+        "mode": "standard"
+      },
+      "requires_platform_operator": false,
+      "status": "FUNCTIONAL",
+      "tenant_safe": true,
+      "tenant_scoped": true
+    },
+    {
+      "decision": "ADAPT EXISTING",
+      "key": "private-secondary-school",
+      "local_first_manifest": {
+        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "cached_surfaces": [
+          "academics",
+          "attendance",
+          "discipline",
+          "evaluations",
+          "finance_manual_fallback",
+          "marks",
+          "reports_and_analytics"
+        ],
+        "conflict_policies": {
+          "attendance": "latest_teacher_intent_with_review",
+          "marks": "teacher_owner_then_admin_review",
+          "payments": "manual_receipt_requires_reconciliation",
+          "profile": "server_wins_sensitive_fields",
+          "reports": "draft_merge_requires_publish_review"
+        },
+        "device_roles": [
+          "Principal",
+          "Dean",
+          "HOD",
+          "Teacher",
+          "Parent",
+          "Student"
+        ],
+        "external_dependencies": [],
+        "indexeddb_stores": [
+          "tenant_profile",
+          "offline_action_queue",
+          "draft_forms",
+          "conflict_review_queue",
+          "sync_receipts"
+        ],
+        "manual_fallbacks": [
+          "paper_register",
+          "csv_import_after_outage",
+          "manual_receipt_reconciliation"
+        ],
+        "offline_actions": [
+          "attendance.mark",
+          "conflict.review",
+          "draft.save",
+          "marks.capture",
+          "payments.manual_receipt",
+          "reports.draft",
+          "sync.replay"
+        ],
+        "offline_survival_target_days": 3,
+        "proof_tests": [
+          "apps.platform_runtime.tests.test_seven_day_offline_endurance",
+          "scripts.verify_offline_workflow_apply",
+          "browser_storage_restart_harness_pending"
+        ],
+        "rollback_invalidation": {
+          "cache_purge_scope": "tenant_blueprint_manifest",
+          "device_refresh_required": true,
+          "manifest_version_bump": true,
+          "queued_action_policy": "allow_existing_safe_actions_then_reconcile"
+        },
+        "server_proof_status": "SERVER_SEVEN_DAY_RAILS_PRESENT",
+        "service_worker_assets": [
+          "tenant_shell",
+          "dashboard_shell",
+          "offline_queue_shell",
+          "form_runtime",
+          "report_preview_shell"
+        ],
+        "sync_cadence": {
+          "background_minutes": 30,
+          "foreground_seconds": 60,
+          "manual_sync": true
+        }
+      },
+      "missing_local_first_manifest_fields": [],
+      "name": "Private Secondary School",
+      "offline_defaults": {
+        "conflict_resolution": "review_queue",
+        "coverage": "marks_and_attendance_queues",
+        "mode": "standard"
+      },
+      "requires_platform_operator": false,
+      "status": "FUNCTIONAL",
+      "tenant_safe": true,
+      "tenant_scoped": true
+    },
+    {
+      "decision": "ADAPT EXISTING",
+      "key": "cameroon-gce-school",
+      "local_first_manifest": {
+        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "cached_surfaces": [
+          "compliance",
+          "finance_manual_fallback",
+          "gce_setup",
+          "reports_and_analytics",
+          "subjects"
+        ],
+        "conflict_policies": {
+          "attendance": "latest_teacher_intent_with_review",
+          "marks": "teacher_owner_then_admin_review",
+          "payments": "manual_receipt_requires_reconciliation",
+          "profile": "server_wins_sensitive_fields",
+          "reports": "draft_merge_requires_publish_review"
+        },
+        "device_roles": [
+          "Principal",
+          "Censor",
+          "Teacher",
+          "Bursar"
+        ],
+        "external_dependencies": [
+          "Regional PSP corridor proof",
+          "live_payment_collection"
+        ],
+        "indexeddb_stores": [
+          "tenant_profile",
+          "offline_action_queue",
+          "draft_forms",
+          "conflict_review_queue",
+          "sync_receipts"
+        ],
+        "manual_fallbacks": [
+          "paper_register",
+          "csv_import_after_outage",
+          "manual_receipt_reconciliation"
+        ],
+        "offline_actions": [
+          "attendance.mark",
+          "conflict.review",
+          "draft.save",
+          "payments.manual_receipt",
+          "reports.draft",
+          "sync.replay"
+        ],
+        "offline_survival_target_days": 7,
+        "proof_tests": [
+          "apps.platform_runtime.tests.test_seven_day_offline_endurance",
+          "scripts.verify_offline_workflow_apply",
+          "browser_storage_restart_harness_pending"
+        ],
+        "rollback_invalidation": {
+          "cache_purge_scope": "tenant_blueprint_manifest",
+          "device_refresh_required": true,
+          "manifest_version_bump": true,
+          "queued_action_policy": "allow_existing_safe_actions_then_reconcile"
+        },
+        "server_proof_status": "SERVER_SEVEN_DAY_RAILS_PRESENT",
+        "service_worker_assets": [
+          "tenant_shell",
+          "dashboard_shell",
+          "offline_queue_shell",
+          "form_runtime",
+          "report_preview_shell"
+        ],
+        "sync_cadence": {
+          "background_minutes": 10,
+          "foreground_seconds": 30,
+          "manual_sync": true
+        }
+      },
+      "missing_local_first_manifest_fields": [],
+      "name": "Cameroon GCE School",
+      "offline_defaults": {
+        "conflict_resolution": "review_queue",
+        "coverage": "low_connectivity_assessment_entry",
+        "mode": "high"
+      },
+      "requires_platform_operator": false,
+      "status": "FUNCTIONAL",
+      "tenant_safe": true,
+      "tenant_scoped": true
+    },
+    {
+      "decision": "ADAPT EXISTING",
+      "key": "bilingual-school",
+      "local_first_manifest": {
+        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "cached_surfaces": [
+          "academics",
+          "family_communications",
+          "language_packs",
+          "portal",
+          "reports_and_analytics"
+        ],
+        "conflict_policies": {
+          "attendance": "latest_teacher_intent_with_review",
+          "marks": "teacher_owner_then_admin_review",
+          "payments": "manual_receipt_requires_reconciliation",
+          "profile": "server_wins_sensitive_fields",
+          "reports": "draft_merge_requires_publish_review"
+        },
+        "device_roles": [
+          "Admin",
+          "Language coordinator",
+          "Teacher",
+          "Parent"
+        ],
+        "external_dependencies": [],
+        "indexeddb_stores": [
+          "tenant_profile",
+          "offline_action_queue",
+          "draft_forms",
+          "conflict_review_queue",
+          "sync_receipts"
+        ],
+        "manual_fallbacks": [
+          "paper_register",
+          "csv_import_after_outage",
+          "manual_receipt_reconciliation"
+        ],
+        "offline_actions": [
+          "attendance.mark",
+          "conflict.review",
+          "draft.save",
+          "reports.draft",
+          "sync.replay"
+        ],
+        "offline_survival_target_days": 3,
+        "proof_tests": [
+          "apps.platform_runtime.tests.test_seven_day_offline_endurance",
+          "scripts.verify_offline_workflow_apply",
+          "browser_storage_restart_harness_pending"
+        ],
+        "rollback_invalidation": {
+          "cache_purge_scope": "tenant_blueprint_manifest",
+          "device_refresh_required": true,
+          "manifest_version_bump": true,
+          "queued_action_policy": "allow_existing_safe_actions_then_reconcile"
+        },
+        "server_proof_status": "SERVER_SEVEN_DAY_RAILS_PRESENT",
+        "service_worker_assets": [
+          "tenant_shell",
+          "dashboard_shell",
+          "offline_queue_shell",
+          "form_runtime",
+          "report_preview_shell"
+        ],
+        "sync_cadence": {
+          "background_minutes": 30,
+          "foreground_seconds": 60,
+          "manual_sync": true
+        }
+      },
+      "missing_local_first_manifest_fields": [],
+      "name": "Bilingual School",
+      "offline_defaults": {
+        "conflict_resolution": "review_queue",
+        "coverage": "localized_portal_cache",
+        "mode": "standard"
+      },
+      "requires_platform_operator": false,
+      "status": "FUNCTIONAL",
+      "tenant_safe": true,
+      "tenant_scoped": true
+    },
+    {
+      "decision": "ADAPT EXISTING",
+      "key": "boarding-school",
+      "local_first_manifest": {
+        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "cached_surfaces": [
+          "attendance",
+          "discipline",
+          "family_communications",
+          "finance_manual_fallback",
+          "hostel"
+        ],
+        "conflict_policies": {
+          "attendance": "latest_teacher_intent_with_review",
+          "marks": "teacher_owner_then_admin_review",
+          "payments": "manual_receipt_requires_reconciliation",
+          "profile": "server_wins_sensitive_fields",
+          "reports": "draft_merge_requires_publish_review"
+        },
+        "device_roles": [
+          "Boarding manager",
+          "Admin",
+          "Teacher",
+          "Parent"
+        ],
+        "external_dependencies": [],
+        "indexeddb_stores": [
+          "tenant_profile",
+          "offline_action_queue",
+          "draft_forms",
+          "conflict_review_queue",
+          "sync_receipts"
+        ],
+        "manual_fallbacks": [
+          "paper_register",
+          "csv_import_after_outage",
+          "manual_receipt_reconciliation"
+        ],
+        "offline_actions": [
+          "attendance.mark",
+          "conflict.review",
+          "draft.save",
+          "payments.manual_receipt",
+          "sync.replay"
+        ],
+        "offline_survival_target_days": 3,
+        "proof_tests": [
+          "apps.platform_runtime.tests.test_seven_day_offline_endurance",
+          "scripts.verify_offline_workflow_apply",
+          "browser_storage_restart_harness_pending"
+        ],
+        "rollback_invalidation": {
+          "cache_purge_scope": "tenant_blueprint_manifest",
+          "device_refresh_required": true,
+          "manifest_version_bump": true,
+          "queued_action_policy": "allow_existing_safe_actions_then_reconcile"
+        },
+        "server_proof_status": "SERVER_SEVEN_DAY_RAILS_PRESENT",
+        "service_worker_assets": [
+          "tenant_shell",
+          "dashboard_shell",
+          "offline_queue_shell",
+          "form_runtime",
+          "report_preview_shell"
+        ],
+        "sync_cadence": {
+          "background_minutes": 30,
+          "foreground_seconds": 60,
+          "manual_sync": true
+        }
+      },
+      "missing_local_first_manifest_fields": [],
+      "name": "Boarding School",
+      "offline_defaults": {
+        "conflict_resolution": "review_queue",
+        "coverage": "attendance_and_welfare_notes",
+        "mode": "standard"
+      },
+      "requires_platform_operator": false,
+      "status": "FUNCTIONAL",
+      "tenant_safe": true,
+      "tenant_scoped": true
+    },
+    {
+      "decision": "ADAPT EXISTING",
+      "key": "international-school",
+      "local_first_manifest": {
+        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "cached_surfaces": [
+          "compliance",
+          "curriculum_profiles",
+          "finance_manual_fallback",
+          "portal",
+          "reports_and_analytics"
+        ],
+        "conflict_policies": {
+          "attendance": "latest_teacher_intent_with_review",
+          "marks": "teacher_owner_then_admin_review",
+          "payments": "manual_receipt_requires_reconciliation",
+          "profile": "server_wins_sensitive_fields",
+          "reports": "draft_merge_requires_publish_review"
+        },
+        "device_roles": [
+          "Leadership",
+          "Registrar",
+          "Teacher",
+          "Parent"
+        ],
+        "external_dependencies": [
+          "Regional PSP and settlement proof",
+          "multi_currency_live_collection"
+        ],
+        "indexeddb_stores": [
+          "tenant_profile",
+          "offline_action_queue",
+          "draft_forms",
+          "conflict_review_queue",
+          "sync_receipts"
+        ],
+        "manual_fallbacks": [
+          "paper_register",
+          "csv_import_after_outage",
+          "manual_receipt_reconciliation"
+        ],
+        "offline_actions": [
+          "attendance.mark",
+          "conflict.review",
+          "draft.save",
+          "payments.manual_receipt",
+          "reports.draft",
+          "sync.replay"
+        ],
+        "offline_survival_target_days": 3,
+        "proof_tests": [
+          "apps.platform_runtime.tests.test_seven_day_offline_endurance",
+          "scripts.verify_offline_workflow_apply",
+          "browser_storage_restart_harness_pending"
+        ],
+        "rollback_invalidation": {
+          "cache_purge_scope": "tenant_blueprint_manifest",
+          "device_refresh_required": true,
+          "manifest_version_bump": true,
+          "queued_action_policy": "allow_existing_safe_actions_then_reconcile"
+        },
+        "server_proof_status": "SERVER_SEVEN_DAY_RAILS_PRESENT",
+        "service_worker_assets": [
+          "tenant_shell",
+          "dashboard_shell",
+          "offline_queue_shell",
+          "form_runtime",
+          "report_preview_shell"
+        ],
+        "sync_cadence": {
+          "background_minutes": 30,
+          "foreground_seconds": 60,
+          "manual_sync": true
+        }
+      },
+      "missing_local_first_manifest_fields": [],
+      "name": "International School",
+      "offline_defaults": {
+        "conflict_resolution": "review_queue",
+        "coverage": "portal_and_document_cache",
+        "mode": "standard"
+      },
+      "requires_platform_operator": false,
+      "status": "FUNCTIONAL",
+      "tenant_safe": true,
+      "tenant_scoped": true
+    },
+    {
+      "decision": "HIDE FROM TENANT",
+      "key": "multi-campus-network",
+      "local_first_manifest": {
+        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "cached_surfaces": [
+          "billing",
+          "group_analytics",
+          "support",
+          "tenant_lifecycle"
+        ],
+        "conflict_policies": {
+          "attendance": "latest_teacher_intent_with_review",
+          "marks": "teacher_owner_then_admin_review",
+          "payments": "manual_receipt_requires_reconciliation",
+          "profile": "server_wins_sensitive_fields",
+          "reports": "draft_merge_requires_publish_review"
+        },
+        "device_roles": [
+          "Group admin",
+          "Campus admin",
+          "Finance lead"
+        ],
+        "external_dependencies": [
+          "Settlement and PSP corridor proof for network billing",
+          "network_live_settlement"
+        ],
+        "indexeddb_stores": [
+          "tenant_profile",
+          "offline_action_queue",
+          "draft_forms",
+          "conflict_review_queue",
+          "sync_receipts"
+        ],
+        "manual_fallbacks": [
+          "paper_register",
+          "csv_import_after_outage",
+          "manual_receipt_reconciliation"
+        ],
+        "offline_actions": [
+          "attendance.mark",
+          "conflict.review",
+          "draft.save",
+          "sync.replay"
+        ],
+        "offline_survival_target_days": 3,
+        "proof_tests": [
+          "apps.platform_runtime.tests.test_seven_day_offline_endurance",
+          "scripts.verify_offline_workflow_apply",
+          "browser_storage_restart_harness_pending"
+        ],
+        "rollback_invalidation": {
+          "cache_purge_scope": "tenant_blueprint_manifest",
+          "device_refresh_required": true,
+          "manifest_version_bump": true,
+          "queued_action_policy": "allow_existing_safe_actions_then_reconcile"
+        },
+        "server_proof_status": "SERVER_SEVEN_DAY_RAILS_PRESENT",
+        "service_worker_assets": [
+          "tenant_shell",
+          "dashboard_shell",
+          "offline_queue_shell",
+          "form_runtime",
+          "report_preview_shell"
+        ],
+        "sync_cadence": {
+          "background_minutes": 30,
+          "foreground_seconds": 60,
+          "manual_sync": true
+        }
+      },
+      "missing_local_first_manifest_fields": [],
+      "name": "Multi-campus Network",
+      "offline_defaults": {
+        "conflict_resolution": "review_queue",
+        "coverage": "campus_local_queues",
+        "mode": "standard"
+      },
+      "requires_platform_operator": true,
+      "status": "OPERATOR_ONLY",
+      "tenant_safe": false,
+      "tenant_scoped": true
+    },
+    {
+      "decision": "ADAPT EXISTING",
+      "key": "low-connectivity-school",
+      "local_first_manifest": {
+        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "cached_surfaces": [
+          "attendance",
+          "finance_manual_fallback",
+          "marks",
+          "payments",
+          "reports",
+          "reports_and_analytics",
+          "sync_queue"
+        ],
+        "conflict_policies": {
+          "attendance": "latest_teacher_intent_with_review",
+          "marks": "teacher_owner_then_admin_review",
+          "payments": "manual_receipt_requires_reconciliation",
+          "profile": "server_wins_sensitive_fields",
+          "reports": "draft_merge_requires_publish_review"
+        },
+        "device_roles": [
+          "Admin",
+          "Teacher",
+          "Finance staff"
+        ],
+        "external_dependencies": [
+          "PSP proof if live collection is needed",
+          "l",
+          "i",
+          "v",
+          "e",
+          "_",
+          "p",
+          "a",
+          "y",
+          "m",
+          "e",
+          "n",
+          "t",
+          "_",
+          "c",
+          "o",
+          "l",
+          "l",
+          "e",
+          "c",
+          "t",
+          "i",
+          "o",
+          "n"
+        ],
+        "indexeddb_stores": [
+          "tenant_profile",
+          "offline_action_queue",
+          "draft_forms",
+          "conflict_review_queue",
+          "sync_receipts"
+        ],
+        "manual_fallbacks": [
+          "paper_register",
+          "csv_import_after_outage",
+          "manual_receipt_reconciliation"
+        ],
+        "offline_actions": [
+          "attendance.mark",
+          "conflict.review",
+          "draft.save",
+          "marks.capture",
+          "payments.manual_receipt",
+          "reports.draft",
+          "sync.replay"
+        ],
+        "offline_survival_target_days": 7,
+        "proof_tests": [
+          "apps.platform_runtime.tests.test_seven_day_offline_endurance",
+          "scripts.verify_offline_workflow_apply",
+          "browser_storage_restart_harness_pending"
+        ],
+        "rollback_invalidation": {
+          "cache_purge_scope": "tenant_blueprint_manifest",
+          "device_refresh_required": true,
+          "manifest_version_bump": true,
+          "queued_action_policy": "allow_existing_safe_actions_then_reconcile"
+        },
+        "server_proof_status": "SERVER_SEVEN_DAY_RAILS_PRESENT",
+        "service_worker_assets": [
+          "tenant_shell",
+          "dashboard_shell",
+          "offline_queue_shell",
+          "form_runtime",
+          "report_preview_shell"
+        ],
+        "sync_cadence": {
+          "background_minutes": 10,
+          "foreground_seconds": 30,
+          "manual_sync": true
+        }
+      },
+      "missing_local_first_manifest_fields": [],
+      "name": "Low-connectivity School",
+      "offline_defaults": {
+        "conflict_resolution": "review_queue",
+        "coverage": "attendance_marks_reports_payments",
+        "mode": "high"
+      },
+      "requires_platform_operator": false,
+      "status": "FUNCTIONAL",
+      "tenant_safe": true,
+      "tenant_scoped": true
+    }
+  ],
+  "closed_gaps": [
+    "Added a first-class local-first manifest contract for tenant-safe Blueprints.",
+    "Preview emits offline readiness, device-role impact, outage survival, conflict policy, and proof status.",
+    "Apply persists the local-first manifest in tenant-scoped school settings and install snapshots.",
+    "Rollback restores settings and reports offline manifest invalidation posture.",
+    "Tenant Blueprint UI exposes offline readiness, cached surfaces, queued actions, device roles, and proof status."
+  ],
+  "overall_status": "FUNCTIONAL",
+  "recommended_follow_on": [
+    "Replace PARTIAL browser proof status after a real browser restart/storage-pressure harness passes.",
+    "Wire device manifest version bumps to the client sync runtime when that endpoint is available.",
+    "Add per-blueprint browser screenshots for the tenant Blueprint UI after deployment."
+  ],
+  "required_manifest_fields": [
+    "offline_survival_target_days",
+    "cached_surfaces",
+    "offline_actions",
+    "device_roles",
+    "indexeddb_stores",
+    "service_worker_assets",
+    "sync_cadence",
+    "conflict_policies",
+    "manual_fallbacks",
+    "external_dependencies",
+    "proof_tests",
+    "browser_proof_status",
+    "server_proof_status",
+    "rollback_invalidation"
+  ],
+  "scope": "tenant-safe Blueprint modules, offline/local-first readiness, preview/apply/rollback evidence",
+  "source_probes": {
+    "apply_persists_local_first_manifest": true,
+    "impact_scores_offline_risk": true,
+    "preview_emits_offline_readiness": true,
+    "rollback_invalidates_offline_manifest": true,
+    "server_seven_day_proof_exists": true,
+    "tenant_ui_shows_offline_readiness": true
+  },
+  "summary": {
+    "operator_only_blueprints": 1,
+    "source_probes_passing": 6,
+    "source_probes_total": 6,
+    "tenant_safe_blueprints": 7,
+    "tenant_safe_blueprints_missing_manifest_fields": 0
+  }
+}
