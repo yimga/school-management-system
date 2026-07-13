@@ -306,11 +306,65 @@ class TenantMigrationReviewView(LoginRequiredMixin, View):
             "artifact_rows": rows,
             "domain_choices": canonical_domain_choices(),
             "apply_result": apply_result,
+            "verification": _build_verification(bundle),
             "upload_url": _connector_reverse(request, "upload"),
             "review_url": _connector_reverse(request, "bundle-review", bundle_id=bundle.pk),
             "apply_url": _connector_reverse(request, "bundle-apply", bundle_id=bundle.pk),
             "home_url": _connector_reverse(request, "connector-home"),
         }
+
+
+def _safe_reconcile(bundle) -> None:
+    """Run the post-apply reconciliation + tenant-visibility verification pass.
+
+    Best-effort: writes ``bundle.reconciliation_summary`` (source -> landed ->
+    visible per domain) so the results page can prove the data actually populated
+    the school. A reconcile failure must never break the import the tenant ran.
+    """
+    try:
+        from .reconciliation import reconcile_bundle
+
+        reconcile_bundle(bundle_id=bundle.pk)
+    except Exception:  # noqa: BLE001
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "tenant apply: post-apply reconcile failed for bundle %s",
+            bundle.pk,
+            exc_info=True,
+        )
+
+
+def _build_verification(bundle):
+    """Compact per-domain "did it land + is it visible in the school" rows.
+
+    Reads the reconciliation summary written by :func:`_safe_reconcile`. Returns
+    ``None`` when no verification has run yet (the pre-import review GET or a
+    dry-run), so the template simply omits the section.
+    """
+    summary = getattr(bundle, "reconciliation_summary", None) or {}
+    per_domain = summary.get("per_domain") or []
+    if not per_domain:
+        return None
+    rows = []
+    ok = True
+    for d in per_domain:
+        visible = d.get("target_visible_count")
+        created = d.get("target_created") or 0
+        landed = created + (d.get("target_updated") or 0)
+        drift = visible is not None and created > 0 and visible < created
+        if drift:
+            ok = False
+        rows.append(
+            {
+                "domain": d.get("domain"),
+                "source": d.get("source_count"),
+                "landed": landed,
+                "visible_label": "—" if visible is None else visible,
+                "drift": drift,
+            }
+        )
+    return {"rows": rows, "ok": ok, "notes": summary.get("notes") or []}
 
 
 class TenantMigrationApplyView(LoginRequiredMixin, View):
@@ -365,6 +419,11 @@ class TenantMigrationApplyView(LoginRequiredMixin, View):
                 "choose “Import into my school” to make it real.",
             )
         else:
+            # Post-apply: re-query the tenant to prove the rows actually landed
+            # and are visible in the school, then refresh so build_context reads
+            # the fresh reconciliation summary.
+            _safe_reconcile(bundle)
+            bundle.refresh_from_db()
             messages.success(
                 request,
                 f"Imported into your school: {result.total_created} created, "

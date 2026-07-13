@@ -39,6 +39,9 @@ class DomainParity:
     target_updated: int
     quarantined: int
     parity_pct: float
+    # Rows ACTUALLY visible in the tenant school (re-queried post-apply). ``None``
+    # when the domain has no confirmed model mapping (honest "not verified").
+    target_visible_count: int | None = None
     fill_rate_by_field: dict[str, float] = field(default_factory=dict)
     sample_rows: list[dict[str, Any]] = field(default_factory=list)
 
@@ -109,8 +112,15 @@ def reconcile_bundle(
     total_source = 0
     total_landed = 0
 
-    # Pull MigrationRun stats per domain from the audit trail.
+    # Pull MigrationRun stats per domain from the audit trail (self-reported).
     domain_run_stats = _domain_run_stats(bundle)
+
+    # Re-query the tenant to count rows ACTUALLY visible per domain. The
+    # self-reported run stats above cannot detect a rolled-back / wrong-school /
+    # filtered-on-save apply — this is the real "did it land and is it in the
+    # school" proof. Best-effort: verification failure never blocks reconcile.
+    visible_by_domain = _safe_verify_visible(bundle)
+    visible_drift_notes: list[str] = []
 
     for domain, artifacts in sorted(by_domain.items()):
         source_count = sum(a.row_count or 0 for a in artifacts)
@@ -120,6 +130,16 @@ def reconcile_bundle(
         quarantined = run_stats.get("errors", 0)
         landed = target_created + target_updated
         parity_pct = (landed / source_count * 100.0) if source_count else 100.0
+
+        visible = visible_by_domain.get(domain)
+        # Newly-created rows MUST be present in the school; if fewer rows are
+        # visible than were reported created, the apply did not persist (rollback
+        # / wrong scope) — surface it and keep the bundle out of RECONCILED.
+        if visible is not None and target_created > 0 and visible < target_created:
+            visible_drift_notes.append(
+                f"{domain}: landers reported {target_created} created but only "
+                f"{visible} row(s) are visible in the school — verify the apply persisted."
+            )
 
         fill_rate = _fill_rate_for_domain(artifacts, per_artifact_mappings)
         samples = _stratified_sample(
@@ -137,6 +157,7 @@ def reconcile_bundle(
             target_updated=target_updated,
             quarantined=quarantined,
             parity_pct=round(parity_pct, 2),
+            target_visible_count=visible,
             fill_rate_by_field=fill_rate,
             sample_rows=samples,
         ))
@@ -154,6 +175,9 @@ def reconcile_bundle(
             f"Overall parity {overall:.2f}% is below the {parity_threshold}% threshold; "
             "operator review required before marking RECONCILED."
         )
+    # A visible-count shortfall (creates that did not persist) is a hard signal —
+    # keep the bundle APPLIED (not RECONCILED) so it is reviewed / repaired.
+    notes.extend(visible_drift_notes)
 
     report = ReconciliationReport(
         bundle_id=bundle.pk,
@@ -250,6 +274,22 @@ def _domain_run_stats(bundle: MigrationBundle) -> dict[str, dict[str, int]]:
         bucket["updated"] += run.updated_count or 0
         bucket["errors"] += run.error_count or 0
     return stats
+
+
+def _safe_verify_visible(bundle: MigrationBundle) -> dict[str, int]:
+    """Re-query the tenant for visible row-counts per domain; never raises.
+
+    Delegates to :func:`apps.migration_cloud.verification.verify_landed_counts`
+    (the post-apply "did it land + is it in the school" proof). Wrapped so a
+    verification failure degrades to an empty map instead of breaking reconcile.
+    """
+    try:
+        from .verification import verify_landed_counts
+
+        return verify_landed_counts(bundle)
+    except Exception:  # noqa: BLE001
+        logger.warning("reconcile: visible-count verification failed", exc_info=True)
+        return {}
 
 
 def _fill_rate_for_domain(
