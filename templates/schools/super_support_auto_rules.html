@@ -62,7 +62,10 @@
             <td>{% if r.is_active %}<span class="rmc-badge rmc-badge--success">{% trans "On" %}</span>{% else %}<span class="rmc-badge rmc-badge--warning">{% trans "Off" %}</span>{% endif %}</td>
             <td><span class="small text-muted">{{ r.updated_at|date:"Y-m-d H:i" }}</span></td>
             <td class="text-end">
-              <form method="post" action="{% url 'super:support_auto_rules_save' %}" class="d-inline">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% url 'super:support_auto_rules_save' %}" class="d-inline">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="toggle">
                 <input type="hidden" name="rule_id" value="{{ r.pk }}">
@@ -74,7 +77,8 @@
                 <input type="hidden" name="rule_id" value="{{ r.pk }}">
                 <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</button>
               </form>
-            </td>
+                  </div>
+                </details></td>
           </tr>
           {% empty %}
           <tr><td colspan="6" class="text-muted small p-3">{% trans "No auto-ticket rules yet. Add one below." %}</td></tr>

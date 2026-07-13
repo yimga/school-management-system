@@ -58,7 +58,10 @@
         <td>{{ row.created_at|default:"—" }}</td>
         <td>{{ row.expires_at|default:"—" }}</td>
         <td>
-          {% if status_filter == "pending" %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if status_filter == "pending" %}
             <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_dlq_replay' dlq_id=row.id %}{% else %}{% url 'migration_cloud_super:migration_cloud_dlq_replay' dlq_id=row.id %}{% endif %}" class="rmc-form--inline">
               {% csrf_token %}
               <button type="submit" class="rmc-btn rmc-btn--ghost rmc-btn--sm" data-rmc-dlq-replay-btn="{{ row.id }}" aria-label="{% blocktrans %}Replay dead-letter row {{ row.id }}{% endblocktrans %}">{% trans "Replay" %}</button>
@@ -66,7 +69,8 @@
           {% else %}
             <span class="rmc-pill rmc-pill--muted" data-rmc-dlq-status="{{ row.status }}" aria-label="{% blocktrans %}Status: {{ row.status }}{% endblocktrans %}">{% firstof row.status status_filter %}</span>
           {% endif %}
-        </td>
+                  </div>
+                </details></td>
       </tr>
       {% endfor %}
     </tbody>

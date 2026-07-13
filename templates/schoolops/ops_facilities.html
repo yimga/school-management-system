@@ -64,12 +64,16 @@
           <td class="small">{{ b.time_range.lower|date:"Y-m-d H:i" }} — {{ b.time_range.upper|date:"Y-m-d H:i" }}</td>
           <td class="small">{{ b.booked_by.get_full_name|default:b.booked_by.username|default:"—" }}</td>
           <td>
-            <form method="post">{% csrf_token %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post">{% csrf_token %}
               <input type="hidden" name="action" value="cancel_booking">
               <input type="hidden" name="booking_id" value="{{ b.pk }}">
               <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Cancel" %}</button>
             </form>
-          </td>
+                  </div>
+                </details></td>
         </tr>
         {% empty %}
         <tr><td colspan="5" class="rmc-empty-state rmc-empty-state--row">
@@ -109,13 +113,18 @@
           <td><span class="rmc-badge">{{ t.get_status_display }}</span></td>
           <td class="small">{{ t.created_at|date:"Y-m-d H:i" }}</td>
           <td>
-            <form method="post" class="d-flex flex-wrap gap-1">{% csrf_token %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post" class="d-flex flex-wrap gap-1">{% csrf_token %}
               <input type="hidden" name="action" value="set_status">
               <input type="hidden" name="ticket_id" value="{{ t.pk }}">
               {% if t.status != "in_progress" %}<button type="submit" name="new_status" value="in_progress" class="btn btn-outline-primary btn-sm">{% trans "Start" %}</button>{% endif %}
               {% if t.status != "closed" %}<button type="submit" name="new_status" value="closed" class="btn btn-outline-success btn-sm">{% trans "Close" %}</button>{% endif %}
               {% if t.status != "open" %}<button type="submit" name="new_status" value="open" class="btn btn-outline-secondary btn-sm">{% trans "Reopen" %}</button>{% endif %}
             </form>
+                  </div>
+                </details>
                   </div>
                 </details></td>
         </tr>

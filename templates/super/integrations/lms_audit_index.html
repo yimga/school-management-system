@@ -69,7 +69,8 @@
   </form>
 
   <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-eyebrow);">
+    <!-- large-collection-allow: bounded-responsive-table -->
+    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-eyebrow);" class="table table-sm table-sticky-head rmc-data-table">
       <caption class="visually-hidden">{% trans "LMS push-grade audit" %} — {{ block.super }}</caption>
       <thead>
         <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">

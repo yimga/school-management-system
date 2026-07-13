@@ -63,7 +63,10 @@
               {% endwith %}
             </td>
             <td>
-              {% with ra=inc.restorative_actions.all|first %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% with ra=inc.restorative_actions.all|first %}
               {% if ra and ra.status != "completed" %}
               <form method="post" class="d-flex flex-wrap gap-1">{% csrf_token %}
                 <input type="hidden" name="action" value="update_restorative">
@@ -77,7 +80,8 @@
               <span class="small text-secondary">—</span>
               {% endif %}
               {% endwith %}
-            </td>
+                  </div>
+                </details></td>
           </tr>
           {% endfor %}
         </tbody>

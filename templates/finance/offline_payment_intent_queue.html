@@ -62,11 +62,15 @@
             <td class="text-truncate" style="max-width: 12rem;">{{ intent.transaction_reference|default:"—" }}</td>
             <td>{{ intent.created_at }}</td>
             <td>
-              <form method="post" action="{% url 'finance:offline_payment_intent_approve' intent.pk %}">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% url 'finance:offline_payment_intent_approve' intent.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-primary">{% trans "Approve" %}</button>
               </form>
-            </td>
+                  </div>
+                </details></td>
           </tr>
           {% empty %}
           <tr>

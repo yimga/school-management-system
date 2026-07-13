@@ -72,11 +72,15 @@
               <td class="text-muted small">v{{ defn.current_version }}</td>
               <td class="text-muted small">{{ defn.run_count }}</td>
               <td>
-                <form method="post" action="{% url 'super:orchestration_start_run' defn.code %}" class="d-inline">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% url 'super:orchestration_start_run' defn.code %}" class="d-inline">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-primary btn-sm">{% trans "Start run" %}</button>
                 </form>
-              </td>
+                  </div>
+                </details></td>
             </tr>
             {% endfor %}
           </tbody>

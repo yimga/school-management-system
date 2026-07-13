@@ -176,7 +176,10 @@
           <td><span class="small text-muted">{{ row.created_at|date:"Y-m-d H:i" }}</span></td>
           <td><span class="small text-muted">{{ row.expires_at|date:"Y-m-d H:i" }}</span></td>
           <td class="text-end">
-            <button type="button" class="btn btn-sm btn-outline-secondary" data-copy-link="{{ row.verify_url }}" title="{% trans 'Copy the verification link to send it another way' %}">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<button type="button" class="btn btn-sm btn-outline-secondary" data-copy-link="{{ row.verify_url }}" title="{% trans 'Copy the verification link to send it another way' %}">
               <i class="bi bi-clipboard"></i>
             </button>
             {% if row.status != 'verified' %}
@@ -198,7 +201,8 @@
               </button>
             </form>
             {% endif %}
-          </td>
+                  </div>
+                </details></td>
         </tr>
         {% empty %}
         <tr><td colspan="8" class="text-center text-muted py-4">{% trans "No signup verifications match this filter." %}</td></tr>

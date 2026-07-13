@@ -6,7 +6,7 @@
 
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-3" id="provision-queue-main">
+<div class="container-fluid py-3" id="provision-queue-main" data-rmc-scroll-policy="paginate">
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h4 mb-0">{% trans "Provisioning queue" %}</h1>
     <div class="d-flex flex-wrap gap-2 small">
@@ -62,7 +62,10 @@
           <td class="small text-muted">{{ row.phase_message|truncatechars:48 }}</td>
           <td class="small text-muted">{% if row.elapsed_seconds %}{% blocktrans with s=row.elapsed_seconds %}{{ s }}s{% endblocktrans %}{% else %}—{% endif %}</td>
           <td class="text-end">
-            {% if row.can_requeue or row.bucket == "failed" or row.bucket == "stuck" %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if row.can_requeue or row.bucket == "failed" or row.bucket == "stuck" %}
             <form method="post" action="{% url 'super:api_school_requeue_provision' row.school.id %}" class="d-inline">
               {% csrf_token %}
               <input type="hidden" name="next" value="{% url 'super:provision_queue' %}{% if pagination_extra_query %}?{{ pagination_extra_query }}{% endif %}">
@@ -70,7 +73,8 @@
             </form>
             {% endif %}
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:tenant_360' row.school.id %}">{% trans "360" %}</a>
-          </td>
+                  </div>
+                </details></td>
         </tr>
         {% endfor %}
       </tbody>

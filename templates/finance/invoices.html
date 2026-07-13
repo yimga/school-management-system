@@ -200,7 +200,10 @@
                 {% endif %}
               </td>
               <td>
-                <div class="d-flex flex-wrap gap-2">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<div class="d-flex flex-wrap gap-2">
                   <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoice_detail' inv.id %}">{% trans "View" %}</a>
                   {% if inv.payments.first %}
                     <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:invoice_receipt' inv.id %}">{% trans "Receipt" %}</a>
@@ -220,7 +223,8 @@
                   </form>
                   {% endif %}
                 </div>
-              </td>
+                  </div>
+                </details></td>
             </tr>
           {% endfor %}
         </tbody>

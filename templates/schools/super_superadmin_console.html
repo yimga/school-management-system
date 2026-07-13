@@ -80,7 +80,10 @@
                 {% endif %}
               </td>
               <td class="text-end">
-                {% if can_mint %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if can_mint %}
                 <form method="post" class="d-inline">
                   {% csrf_token %}
                   <input type="hidden" name="user_id" value="{{ u.pk }}">
@@ -93,7 +96,8 @@
                 {% else %}
                   <span class="text-muted small">{% trans "View only" %}</span>
                 {% endif %}
-              </td>
+                  </div>
+                </details></td>
             </tr>
             {% endfor %}
           </tbody>
@@ -130,7 +134,10 @@
               <td><span class="rmc-badge">{{ u.role }}</span></td>
               <td>{% if u.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
               <td class="text-end">
-                {% if can_mint %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if can_mint %}
                 <form method="post" class="d-inline">
                   {% csrf_token %}
                   <input type="hidden" name="user_id" value="{{ u.pk }}">
@@ -139,7 +146,8 @@
                 {% else %}
                   <span class="text-muted small">{% trans "View only" %}</span>
                 {% endif %}
-              </td>
+                  </div>
+                </details></td>
             </tr>
             {% endfor %}
           </tbody>

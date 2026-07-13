@@ -44,7 +44,10 @@
             {% with op.history|last as last_entry %}{{ last_entry.note|default:last_entry.to|default:"—" }}{% endwith %}
           </td>
           <td>
-            {% if op.status == "previewed" %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if op.status == "previewed" %}
             <form method="post" action="{% url 'portal:merge_op_approve' %}" style="display: inline;">
               {% csrf_token %}
               <input type="hidden" name="operation_id" value="{{ op.pk }}">
@@ -59,7 +62,8 @@
             {% else %}
             <span style="color: var(--text-secondary);">—</span>
             {% endif %}
-          </td>
+                  </div>
+                </details></td>
         </tr>
         {% empty %}
         <tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 24px;">{% trans "No merge operations yet." %}</td></tr>
