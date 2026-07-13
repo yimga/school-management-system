@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RunMyCampus - Money and Import Workspace Options</title>
+  <style>
+    :root {
+      --page: #090f1d;
+      --shell: #111a30;
+      --panel: #152039;
+      --panel-2: #101827;
+      --panel-3: #1b2742;
+      --line: rgba(255,255,255,.12);
+      --line-strong: rgba(255,255,255,.2);
+      --text: #f5f7fb;
+      --muted: #a9b4c8;
+      --soft: #d5dbea;
+      --warm: #f6a73a;
+      --coral: #ff6b57;
+      --mint: #38d996;
+      --sky: #23b7ef;
+      --violet: #8168ff;
+      --cream: #fff4dc;
+      --brown: #5b3a22;
+      --shadow: 0 20px 80px rgba(0,0,0,.32);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 0%, rgba(246,167,58,.18), transparent 32rem),
+        radial-gradient(circle at 80% 18%, rgba(35,183,239,.11), transparent 36rem),
+        linear-gradient(180deg, #07101f 0%, var(--page) 100%);
+    }
+    .topbar {
+      height: 64px;
+      display: grid;
+      grid-template-columns: 300px 1fr 360px;
+      align-items: center;
+      gap: 20px;
+      padding: 0 22px;
+      background: rgba(11,17,31,.88);
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(18px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .mark {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: linear-gradient(135deg, #fff4d2, #f36f4d 46%, #156e8c);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.3);
+    }
+    .brand strong, .tenant strong { display: block; font-size: 15px; letter-spacing: .02em; }
+    .brand span, .tenant span { color: var(--muted); font-size: 11px; }
+    .nav { justify-self: center; display: flex; gap: 8px; align-items: center; }
+    .nav button, .pill, .btn {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.055);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 9px 13px;
+      font-weight: 750;
+      font-size: 13px;
+    }
+    .nav button.active { background: linear-gradient(135deg, #496dff, #7259e9); border-color: transparent; }
+    .search {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 14px;
+      border: 1px solid rgba(246,167,58,.38);
+      border-radius: 16px;
+      background: rgba(91,58,34,.42);
+      color: #ead9bd;
+      min-width: 0;
+      justify-self: stretch;
+    }
+    .search span { margin-left: auto; color: #c5aa85; font-size: 11px; border: 1px solid rgba(255,255,255,.15); padding: 2px 7px; border-radius: 8px; }
+    .shell {
+      display: grid;
+      grid-template-columns: 284px 1fr 56px;
+      min-height: calc(100vh - 64px);
+    }
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: rgba(14,22,40,.82);
+      padding: 16px 14px;
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      overflow: hidden;
+    }
+    .side-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .filter { flex: 1; height: 32px; border-radius: 10px; border: 1px solid var(--line); background: #10182b; color: var(--muted); padding: 0 10px; }
+    .side-section {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,.035);
+    }
+    .side-title { color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+    .side-item {
+      display: flex; justify-content: space-between; align-items: center;
+      min-height: 36px; color: var(--soft); font-size: 13px; border-radius: 10px; padding: 0 10px;
+    }
+    .side-item.active { background: linear-gradient(135deg, #ff6b57, #f6a73a); color: #111; font-weight: 900; }
+    .rail {
+      border-left: 1px solid var(--line);
+      background: rgba(10,16,29,.72);
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .rail button { width: 36px; height: 36px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--text); }
+    main {
+      padding: 22px;
+      min-width: 0;
+    }
+    .preview-note {
+      max-width: 1580px;
+      margin: 0 auto 18px;
+      padding: 16px 18px;
+      border: 1px solid rgba(246,167,58,.35);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(91,58,34,.46), rgba(24,38,67,.8));
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+    }
+    .preview-note h1 { margin: 0 0 4px; font-size: 20px; }
+    .preview-note p { margin: 0; color: var(--muted); }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab { cursor: pointer; }
+    .tab.active { background: var(--cream); color: #1d2434; border-color: transparent; }
+    .section { max-width: 1580px; margin: 0 auto 26px; }
+    .section h2 { margin: 0 0 12px; font-size: 16px; color: #fff7e7; letter-spacing: .02em; }
+    .issue-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+    .issue {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255,255,255,.045);
+      min-height: 112px;
+    }
+    .issue b { display: block; margin-bottom: 6px; }
+    .issue span { color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .option {
+      border: 1px solid var(--line-strong);
+      background: rgba(18,29,52,.78);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .option-head {
+      display: flex; align-items: end; justify-content: space-between; gap: 16px;
+      padding: 8px 4px 18px;
+    }
+    .option-head h3 { margin: 0; font-size: 22px; }
+    .option-head p { margin: 6px 0 0; color: var(--muted); max-width: 900px; }
+    .workspace {
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.035), transparent 22rem),
+        #101a30;
+      overflow: hidden;
+    }
+    .workspace.hero-warm {
+      background:
+        linear-gradient(135deg, rgba(246,167,58,.16), rgba(255,107,87,.08) 45%, rgba(35,183,239,.08)),
+        #111a30;
+    }
+    .workspace-top {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+      padding: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #f4c875; font-weight: 900; }
+    .title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+    .workspace h4 { margin: 0; font-size: clamp(28px, 3vw, 44px); letter-spacing: -.02em; }
+    .status {
+      border: 1px solid rgba(56,217,150,.35);
+      color: #96ffd0;
+      background: rgba(56,217,150,.1);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .purpose { color: var(--soft); font-size: 16px; line-height: 1.55; max-width: 960px; margin: 12px 0 0; }
+    .hero-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    .btn.primary { background: linear-gradient(135deg, var(--warm), var(--coral)); color: #121212; border-color: transparent; }
+    .btn.blue { background: linear-gradient(135deg, var(--sky), #4d7bff); color: white; border-color: transparent; }
+    .btn.ghost { background: rgba(255,255,255,.06); }
+    .readiness-card {
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(9,15,29,.55);
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+    .meter {
+      height: 10px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden;
+    }
+    .meter span { display: block; height: 100%; width: 68%; background: linear-gradient(90deg, var(--mint), var(--warm), var(--coral)); }
+    .readiness-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+    .metric {
+      min-height: 118px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(7,12,23,.52);
+      padding: 14px;
+    }
+    .metric small { color: var(--muted); display: block; margin-bottom: 10px; }
+    .metric strong { font-size: 28px; display: block; }
+    .metric p { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .workspace-body {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0,1fr) minmax(300px, 420px);
+      gap: 16px;
+      align-items: stretch;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      background: rgba(9,15,29,.68);
+      border-radius: 18px;
+      padding: 16px;
+      min-width: 0;
+    }
+    .panel h5 { margin: 0 0 12px; font-size: 16px; }
+    .list { display: grid; gap: 8px; }
+    .list-row {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.035);
+      border-radius: 13px;
+      padding: 10px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 5px rgba(56,217,150,.12); margin: auto; }
+    .dot.warn { background: var(--warm); box-shadow: 0 0 0 5px rgba(246,167,58,.12); }
+    .dot.bad { background: var(--coral); box-shadow: 0 0 0 5px rgba(255,107,87,.12); }
+    .tag { color: var(--muted); font-size: 12px; }
+    .canvas {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,244,220,.08), rgba(255,255,255,.02));
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 430px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+    }
+    .canvas-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .lane-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; align-content: stretch; }
+    .lane {
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.05);
+      padding: 14px;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .lane h6 { margin: 0; font-size: 14px; color: #fff7e7; }
+    .task {
+      border-radius: 12px;
+      background: rgba(7,12,23,.72);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 10px;
+      font-size: 13px;
+      color: var(--soft);
+    }
+    .side-summary { display: grid; gap: 12px; }
+    .mini-chart {
+      height: 130px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.1);
+      background:
+        linear-gradient(90deg, transparent 0 23%, rgba(255,255,255,.05) 23% 24%, transparent 24% 49%, rgba(255,255,255,.05) 49% 50%, transparent 50% 74%, rgba(255,255,255,.05) 74% 75%, transparent 75%),
+        linear-gradient(180deg, rgba(246,167,58,.36) 0 35%, rgba(35,183,239,.18) 35% 64%, rgba(56,217,150,.22) 64%);
+      position: relative;
+      overflow: hidden;
+    }
+    .mini-chart:after {
+      content: "";
+      position: absolute;
+      inset: 48% 9% 30% 9%;
+      border-top: 3px solid var(--cream);
+      border-radius: 50%;
+      transform: skewY(-10deg);
+    }
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px;
+      padding: 18px;
+    }
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(255,255,255,.045);
+      min-height: 190px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .step-num { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; background: rgba(246,167,58,.18); color: #ffd79b; font-weight: 900; }
+    .step h5 { margin: 14px 0 6px; }
+    .step p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .split {
+      display: grid;
+      grid-template-columns: .92fr 1.08fr;
+      gap: 16px;
+      padding: 18px;
+    }
+    .command-map {
+      min-height: 470px;
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(255,244,220,.08), rgba(35,183,239,.06)),
+        rgba(8,13,25,.7);
+      border: 1px solid var(--line);
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .map-row {
+      display: grid;
+      grid-template-columns: 160px 1fr 120px;
+      gap: 10px;
+      align-items: center;
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0,1fr));
+      gap: 12px;
+    }
+    .palette {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.045);
+      border-radius: 18px;
+      padding: 12px;
+      min-height: 148px;
+    }
+    .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 12px 0; }
+    .swatch { height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,.16); }
+    .palette b { display: block; }
+    .palette span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .rollout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .code-card {
+      background: #07101d;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      color: #dbe7f7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow: auto;
+    }
+    @media (max-width: 1200px) {
+      .topbar { grid-template-columns: 1fr; height: auto; padding: 12px; }
+      .shell { grid-template-columns: 1fr; }
+      .sidebar, .rail { display: none; }
+      .workspace-top, .workspace-body, .split, .rollout { grid-template-columns: 1fr; }
+      .readiness-grid, .issue-grid, .journey, .palette-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 720px) {
+      main { padding: 12px; }
+      .readiness-grid, .issue-grid, .journey, .palette-grid, .lane-grid { grid-template-columns: 1fr; }
+      .preview-note { align-items: stretch; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark"></div>
+      <div><strong>New Test High School</strong><span>Admin workspace</span></div>
+    </div>
+    <nav class="nav" aria-label="Tenant navigation">
+      <button class="active">Home</button>
+      <button>Finance</button>
+      <button>Messages</button>
+      <button>Analytics</button>
+      <button>More</button>
+    </nav>
+    <div class="search">Search students, teachers, invoices... <span>Ctrl+K</span></div>
+  </header>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="side-head">
+        <button class="pill">[]</button>
+        <input class="filter" value="Filter...">
+        <button class="pill">gear</button>
+      </div>
+      <div class="side-section">
+        <div class="side-title">Frequent</div>
+        <div class="side-item"><span>Dashboard</span><span>often</span></div>
+        <div class="side-item"><span>Approval Hub</span><span>often</span></div>
+      </div>
+      <div class="side-section">
+        <div class="side-title">Financial Management</div>
+        <div class="side-item active"><span>Money Center</span><span>pin</span></div>
+        <div class="side-item"><span>Payroll</span><span>pin</span></div>
+      </div>
+      <div class="side-section">
+        <div class="side-title">School Setup</div>
+        <div class="side-item active"><span>Imports</span><span>pin</span></div>
+        <div class="side-item"><span>Migration Cloud</span><span>pin</span></div>
+      </div>
+      <div class="side-section">
+        <div class="side-title">Audit Pattern</div>
+        <div class="side-item"><span>Operational frame</span><span>42</span></div>
+        <div class="side-item"><span>OS headers</span><span>17</span></div>
+        <div class="side-item"><span>Palette surfaces</span><span>all</span></div>
+      </div>
+    </aside>
+    <main>
+      <section class="preview-note">
+        <div>
+          <h1>Approval Preview: Money Center, Import Setup, and Warm Palette Direction</h1>
+          <p>Design only. The source audit found these pages share the operational-center frame, so approved work should become a reusable tenant/operator surface contract.</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active">Option A</button>
+          <button class="tab">Option B</button>
+          <button class="tab">Option C</button>
+          <button class="tab">Palettes</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>What The Current Pages Are Doing Wrong</h2>
+        <div class="issue-grid">
+          <div class="issue"><b>Good content, weak hierarchy</b><span>The purpose text is correct, but it renders like loose copy instead of a decision workspace.</span></div>
+          <div class="issue"><b>Actions look accidental</b><span>Important links such as invoices, payment readiness, and migration cloud read like inline text.</span></div>
+          <div class="issue"><b>Real estate is underused</b><span>The page has enough width for readiness, blockers, lanes, status, and next action in one glance.</span></div>
+          <div class="issue"><b>No warmth or identity</b><span>The current palette is serviceable but cold; branding needs warmer packs that can be applied consistently.</span></div>
+        </div>
+      </section>
+
+      <section class="section option">
+        <div class="option-head">
+          <div>
+            <h3>Option A - Warm Command Workspace</h3>
+            <p>Best default for both Money Center and School Import Setup. It keeps the page full width, puts the job-to-be-done up top, and turns readiness into an operational cockpit.</p>
+          </div>
+          <span class="status">Recommended</span>
+        </div>
+
+        <div class="workspace hero-warm">
+          <div class="workspace-top">
+            <div>
+              <div class="kicker">Finance team</div>
+              <div class="title-row"><h4>Money Center</h4><span class="status">Payment readiness visible</span></div>
+              <p class="purpose">Package comparison, entitlement posture, usage meters, billing impact, manual fallback, external PSP status, and revenue honesty in one workspace.</p>
+              <div class="hero-actions">
+                <button class="btn primary">Open invoices</button>
+                <button class="btn ghost">Payment readiness</button>
+                <button class="btn ghost">Manual fallback</button>
+                <button class="btn ghost">PSP evidence</button>
+              </div>
+            </div>
+            <div class="readiness-card">
+              <div style="display:flex;justify-content:space-between;gap:12px"><b>Readiness pulse</b><span class="tag">External PSP honest</span></div>
+              <div class="meter"><span></span></div>
+              <div class="readiness-grid">
+                <div class="metric"><small>Posture</small><strong>Manual + PSP</strong><p>Collection is gated until settlement proof is attached.</p></div>
+                <div class="metric"><small>Risk</small><strong>External</strong><p>No fake live payment claim in tenant UI.</p></div>
+                <div class="metric"><small>Next</small><strong>Invoices</strong><p>Work the largest overdue balance first.</p></div>
+                <div class="metric"><small>Impact</small><strong>$0 live</strong><p>Manual receipts only until PSP passes readiness.</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="workspace-body">
+            <aside class="panel">
+              <h5>Decision stack</h5>
+              <div class="list">
+                <div class="list-row"><span class="dot"></span><b>Invoices</b><span class="tag">ready</span></div>
+                <div class="list-row"><span class="dot warn"></span><b>Payment gateway</b><span class="tag">external</span></div>
+                <div class="list-row"><span class="dot"></span><b>Entitlements</b><span class="tag">visible</span></div>
+                <div class="list-row"><span class="dot bad"></span><b>Settlement proof</b><span class="tag">blocked</span></div>
+              </div>
+            </aside>
+            <section class="canvas">
+              <div class="canvas-head">
+                <div><b>Finance operating board</b><div class="tag">One glance: cash, readiness, exceptions, external blockers.</div></div>
+                <button class="btn blue">Review payment path</button>
+              </div>
+              <div class="lane-grid">
+                <div class="lane"><h6>Collect</h6><div class="task">Open invoices needing action</div><div class="task">Manual receipt queue</div><div class="task">Overdue guardian balances</div></div>
+                <div class="lane"><h6>Verify</h6><div class="task">PSP onboarding status</div><div class="task">Webhook signing check</div><div class="task">Settlement proof required</div></div>
+                <div class="lane"><h6>Explain</h6><div class="task">Package comparison</div><div class="task">Usage meters</div><div class="task">Billing impact before upgrade</div></div>
+              </div>
+            </section>
+            <aside class="side-summary">
+              <div class="panel"><h5>Revenue honesty</h5><p class="tag">Shows what can be collected now, what is manual, and what needs external PSP proof.</p><div class="mini-chart"></div></div>
+              <div class="panel"><h5>Today</h5><div class="list"><div class="list-row"><span class="dot warn"></span><b>2 invoices high impact</b><span class="tag">open</span></div><div class="list-row"><span class="dot bad"></span><b>PSP blocked</b><span class="tag">proof</span></div></div></div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="section option">
+        <div class="option-head">
+          <div>
+            <h3>Option B - Guided Readiness Journey</h3>
+            <p>Best for School Import Setup. It turns roster, staff, balances, and migration into a visible path with blockers and clear handoff points.</p>
+          </div>
+          <span class="status">Tenant setup friendly</span>
+        </div>
+
+        <div class="workspace">
+          <div class="workspace-top">
+            <div>
+              <div class="kicker">School administrators</div>
+              <div class="title-row"><h4>School Import Setup</h4><span class="status">Import readiness</span></div>
+              <p class="purpose">One import landing for rosters, staff, balances, and full SIS migration handoff, with every blocker visible before launch.</p>
+              <div class="hero-actions">
+                <button class="btn primary">Open Migration Cloud</button>
+                <button class="btn ghost">Activation checklist</button>
+                <button class="btn ghost">Download templates</button>
+                <button class="btn ghost">Ask import help</button>
+              </div>
+            </div>
+            <div class="readiness-card">
+              <b>Launch unlocks</b>
+              <div class="readiness-grid">
+                <div class="metric"><small>Roster</small><strong>0%</strong><p>Students and guardians unlock attendance and parent access.</p></div>
+                <div class="metric"><small>Staff</small><strong>0%</strong><p>Teachers, roles, and approval paths.</p></div>
+                <div class="metric"><small>Balances</small><strong>Manual</strong><p>Finance import must match invoice policy.</p></div>
+                <div class="metric"><small>SIS handoff</small><strong>Ready</strong><p>Connector export can be staged.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="journey">
+            <article class="step"><div><div class="step-num">1</div><h5>Prepare files</h5><p>CSV/XLSX templates, source system notes, and field ownership in one place.</p></div><button class="btn ghost">Open templates</button></article>
+            <article class="step"><div><div class="step-num">2</div><h5>Validate data</h5><p>Show missing guardians, invalid grades, duplicates, and blocked rows before import.</p></div><button class="btn blue">Run validation</button></article>
+            <article class="step"><div><div class="step-num">3</div><h5>Preview impact</h5><p>Preview classes, user accounts, billing links, and communication reach before applying.</p></div><button class="btn ghost">Preview changes</button></article>
+            <article class="step"><div><div class="step-num">4</div><h5>Launch handoff</h5><p>Move approved data into the tenant with audit evidence and rollback posture.</p></div><button class="btn primary">Request launch</button></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section option">
+        <div class="option-head">
+          <div>
+            <h3>Option C - Executive Split Console</h3>
+            <p>Best for pages with many related paths. A left decision map keeps the operator or tenant oriented, while the right work canvas handles the current task.</p>
+          </div>
+          <span class="status">Good for dense pages</span>
+        </div>
+        <div class="workspace">
+          <div class="split">
+            <aside class="command-map">
+              <div>
+                <div class="kicker">Workspace map</div>
+                <h4 style="font-size:32px;margin-top:8px">Setup and Finance Control</h4>
+                <p class="purpose">A compact left map replaces long stacked text sections. It also works for other operational-center pages found in the audit.</p>
+              </div>
+              <div class="map-row"><b>Purpose</b><span>What this page is for</span><span class="tag">always top</span></div>
+              <div class="map-row"><b>Readiness</b><span>Status, blockers, and external proof</span><span class="tag">visible</span></div>
+              <div class="map-row"><b>Work lanes</b><span>Primary tasks grouped into columns</span><span class="tag">full width</span></div>
+              <div class="map-row"><b>Audit</b><span>Last change, proof, and next check</span><span class="tag">right rail</span></div>
+            </aside>
+            <section class="canvas">
+              <div class="canvas-head">
+                <div><b>Current workspace</b><div class="tag">Can render Money, Imports, Blueprint, Packs, App Catalog, Billing, and operator pages.</div></div>
+                <button class="btn primary">Primary action</button>
+              </div>
+              <div class="lane-grid">
+                <div class="lane"><h6>Now</h6><div class="task">Current action and highest priority item</div><div class="task">Inline help where it matters</div></div>
+                <div class="lane"><h6>Next</h6><div class="task">Short ordered list, not scattered links</div><div class="task">Only relevant secondary actions</div></div>
+                <div class="lane"><h6>Proof</h6><div class="task">External owner status</div><div class="task">Audit event and last validation</div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="section option">
+        <div class="option-head">
+          <div>
+            <h3>Warm Palette Expansion</h3>
+            <p>These are platform and tenant palette candidates. They warm the product without making it one-note, and each palette carries surface, accent, status, and chart colors.</p>
+          </div>
+          <span class="status">Branding system</span>
+        </div>
+        <div class="palette-grid">
+          <article class="palette"><b>Sunset Ledger</b><div class="swatches"><i class="swatch" style="background:#101827"></i><i class="swatch" style="background:#f6a73a"></i><i class="swatch" style="background:#ff6b57"></i><i class="swatch" style="background:#38d996"></i><i class="swatch" style="background:#fff4dc"></i></div><span>Best for finance, payments, billing, trust, and revenue surfaces.</span></article>
+          <article class="palette"><b>Campus Dawn</b><div class="swatches"><i class="swatch" style="background:#0e1b2e"></i><i class="swatch" style="background:#ffbf69"></i><i class="swatch" style="background:#2ec4b6"></i><i class="swatch" style="background:#e85d75"></i><i class="swatch" style="background:#f7ede2"></i></div><span>Good tenant default. Warm, academic, friendly, and readable.</span></article>
+          <article class="palette"><b>Cocoa Signal</b><div class="swatches"><i class="swatch" style="background:#12131f"></i><i class="swatch" style="background:#8f5a35"></i><i class="swatch" style="background:#e9b872"></i><i class="swatch" style="background:#4cc9a7"></i><i class="swatch" style="background:#f4f1de"></i></div><span>Strong for admin and configuration pages that need calmer confidence.</span></article>
+          <article class="palette"><b>Coral Slate</b><div class="swatches"><i class="swatch" style="background:#111827"></i><i class="swatch" style="background:#ef476f"></i><i class="swatch" style="background:#ffd166"></i><i class="swatch" style="background:#06d6a0"></i><i class="swatch" style="background:#edf6f9"></i></div><span>High contrast and energetic for launch, imports, and onboarding flows.</span></article>
+          <article class="palette"><b>Blue Ember</b><div class="swatches"><i class="swatch" style="background:#08111f"></i><i class="swatch" style="background:#3a86ff"></i><i class="swatch" style="background:#fb5607"></i><i class="swatch" style="background:#ffbe0b"></i><i class="swatch" style="background:#e6f3ff"></i></div><span>Operator-ready, still warm enough to escape cold navy monotony.</span></article>
+        </div>
+      </section>
+
+      <section class="section option">
+        <div class="option-head">
+          <div>
+            <h3>After Approval: Audit And Rollout Rules</h3>
+            <p>This is the implementation scope I would apply after you approve an option.</p>
+          </div>
+        </div>
+        <div class="rollout">
+          <div class="panel">
+            <h5>Pages to audit first</h5>
+            <div class="list">
+              <div class="list-row"><span class="dot warn"></span><b>Operational frame pages</b><span class="tag">42+</span></div>
+              <div class="list-row"><span class="dot warn"></span><b>OS page headers</b><span class="tag">17+</span></div>
+              <div class="list-row"><span class="dot"></span><b>Tenant finance and import</b><span class="tag">priority</span></div>
+              <div class="list-row"><span class="dot"></span><b>Marketplace, packs, config, billing</b><span class="tag">shared pattern</span></div>
+            </div>
+          </div>
+          <pre class="code-card">Implementation contract:
+- one shared warm operational workspace component
+- full-width canvas with no stray inline action links
+- primary action rail and readiness summary always visible
+- compact page map for dense pages
+- palette tokens applied through branding system
+- page audit finds old sparse surfaces before release
+- visual smoke test for Money Center and Import Setup
+- tenant and operator variants stay separate</pre>
+        </div>
+      </section>
+    </main>
+    <aside class="rail">
+      <button>*</button>
+      <button>i</button>
+      <button>?</button>
+      <button>$</button>
+      <button>up</button>
+    </aside>
+  </div>
+</body>
+</html>

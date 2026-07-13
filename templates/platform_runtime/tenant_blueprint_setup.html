@@ -28,16 +28,69 @@
   <div class="row g-3 rmc-reveal-stagger">
     <div class="col-lg-6 rmc-reveal">
       <div class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-world-class-tenant-card="1"><div class="card-body">
-        <h1 class="h5">{% trans "Recommended blueprints" %}</h1>
-        <ul class="list-unstyled mb-0">{% for blueprint in blueprints %}
-          <li class="mb-2"><a href="?blueprint={{ blueprint.key }}&preview=1">{{ blueprint.name }}</a><div class="small text-muted">{{ blueprint.target_school_type }} - {{ blueprint.status }}</div></li>
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+          <div>
+            <h1 class="h5 mb-1">{% trans "Recommended blueprints" %}</h1>
+            <p class="small text-muted mb-0">{% trans "Choose a tenant-safe school model, preview the changes, then apply it inside this school only." %}</p>
+          </div>
+          <span class="rmc-badge rmc-badge--success">{% trans "Tenant scoped" %}</span>
+        </div>
+        <ul class="list-unstyled mb-0 d-grid gap-2">{% for blueprint in blueprints %}
+          <li class="p-2 rounded border {% if blueprint.key == selected_key %}border-primary bg-primary-subtle{% endif %}">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+              <div class="min-w-0">
+                <a class="fw-semibold" href="?blueprint={{ blueprint.key }}&preview=1">{{ blueprint.name }}</a>
+                <div class="small text-muted">{{ blueprint.target_school_type }} - {{ blueprint.status }}</div>
+              </div>
+              <div class="d-flex flex-wrap gap-1">
+                <a class="btn btn-outline-primary btn-sm" href="?blueprint={{ blueprint.key }}&preview=1">{% trans "Preview" %}</a>
+                {% if blueprint.key == selected_key %}
+                  {% if preview.can_apply %}
+                    <span class="badge text-bg-success">{% trans "Ready to apply" %}</span>
+                  {% else %}
+                    <span class="badge text-bg-warning">{% trans "Review blockers" %}</span>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          </li>
         {% endfor %}</ul>
       </div></div>
     </div>
     <div class="col-lg-6 rmc-reveal">
       <div class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-world-class-tenant-card="1"><div class="card-body">
-        <h2 class="h5">{{ preview.blueprint_name }}</h2>
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+          <div>
+            <h2 class="h5 mb-1">{{ preview.blueprint_name }}</h2>
+            <p class="small text-muted mb-0">{% trans "This preview is evaluated against the current tenant. Operator-only registries and global defaults remain hidden." %}</p>
+          </div>
+          {% if preview.can_apply %}
+            <span class="badge text-bg-success">{% trans "Apply ready" %}</span>
+          {% else %}
+            <span class="badge text-bg-warning">{% trans "Blocked" %}</span>
+          {% endif %}
+        </div>
         {% include "components/world_class_readiness_meter.html" with title=_("Blueprint readiness") value="72" caption=_("Tenant-safe preview; platform-only registries stay hidden.") %}
+        {% if preview.conflicts %}
+        <div class="alert alert-warning py-2 small" role="alert">
+          <strong>{% trans "Resolve before applying:" %}</strong>
+          <ul class="mb-0 mt-1 ps-3">
+            {% for conflict in preview.conflicts %}
+              <li>{{ conflict.message|default:conflict.code }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% if preview.warnings %}
+        <div class="alert alert-info py-2 small" role="status">
+          <strong>{% trans "Review before publish:" %}</strong>
+          <ul class="mb-0 mt-1 ps-3">
+            {% for warning in preview.warnings %}
+              <li>{{ warning.message|default:warning.code }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
         <dl class="row small">
           <dt class="col-sm-4">{% trans "Can apply" %}</dt><dd class="col-sm-8">{{ preview.can_apply|yesno:"yes,no" }}</dd>
           <dt class="col-sm-4">{% trans "External blockers" %}</dt><dd class="col-sm-8">{{ preview.external_required|join:", " }}</dd>
@@ -49,7 +102,12 @@
           {% csrf_token %}
           <input type="hidden" name="blueprint" value="{{ selected_key }}">
           <input type="hidden" name="confirm" value="yes">
-          <button class="btn btn-primary btn-sm" type="submit" {% if not preview.can_apply %}disabled{% endif %}>{% trans "Confirm tenant apply" %}</button>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <button class="btn btn-primary btn-sm" type="submit" {% if not preview.can_apply %}disabled{% endif %}>
+              {% if preview.can_apply %}{% trans "Apply tenant blueprint" %}{% else %}{% trans "Resolve blockers before apply" %}{% endif %}
+            </button>
+            <a class="btn btn-outline-secondary btn-sm" href="?blueprint={{ selected_key }}&preview=1">{% trans "Refresh preview" %}</a>
+          </div>
         </form>
       </div></div>
     </div>

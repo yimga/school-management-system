@@ -4,6 +4,8 @@ from django.test import Client, TestCase, override_settings
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
+from apps.platform_runtime.blueprint_contract import list_blueprints
+from apps.platform_runtime.blueprint_preview import preview_blueprint
 from apps.platform_runtime.models import BlueprintInstallation
 from apps.schools.models import School
 
@@ -61,6 +63,7 @@ class TenantBlueprintSetupTests(TestCase):
         body = response.content.decode("utf-8", errors="replace")
         self.assertIn("School Blueprint Setup", body)
         self.assertIn("Private Primary School", body)
+        self.assertIn("Apply tenant blueprint", body)
 
     def test_tenant_user_cannot_see_platform_only_blueprint_management(self):
         client = self._admin_client()
@@ -96,3 +99,33 @@ class TenantBlueprintSetupTests(TestCase):
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
         body = response.content.decode("utf-8", errors="replace")
         self.assertIn("live_payment_collection", body)
+
+    def test_all_tenant_safe_blueprints_have_resolvable_pack_references(self):
+        blocked = {}
+        for blueprint in list_blueprints(tenant_safe_only=True):
+            preview = preview_blueprint(
+                blueprint["key"],
+                school=self.school,
+                actor=self.admin,
+                platform_operator=False,
+            )
+            missing = [
+                conflict
+                for conflict in preview.get("conflicts", [])
+                if conflict.get("code") == "pack_not_found"
+            ]
+            if missing:
+                blocked[blueprint["key"]] = missing
+
+        self.assertEqual(blocked, {})
+
+    def test_blocked_blueprint_state_explains_reason(self):
+        client = self._admin_client()
+
+        response = client.get("/school/setup/blueprints/?blueprint=private-primary-school&preview=1")
+
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn("Ready to apply", body)
+        self.assertIn("Apply tenant blueprint", body)
+        self.assertNotIn("Resolve blockers before apply", body)

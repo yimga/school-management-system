@@ -245,7 +245,7 @@ def _policy(
 BASELINE_PACKS: tuple[PackContract, ...] = (
     _wf("attendance-recovery", "Attendance Recovery", triggers=("absence_threshold",), actions=("notify_guardian", "create_follow_up"), aliases=("Safety Net",)),
     _wf("fee-collection", "Fee Collection", triggers=("invoice_due",), actions=("send_reminder", "create_reconciliation_task"), aliases=("Fee reminder", "Manual payment reconciliation")),
-    _wf("report-card-publishing", "Report Card Publishing", triggers=("gradebook_locked",), actions=("publish_report", "notify_parent"), aliases=("Term report publish", "Report validation", "Grade moderation")),
+    _wf("report-card-publishing", "Report Card Publishing", triggers=("gradebook_locked",), actions=("publish_report", "notify_parent"), aliases=("Term report publish", "Report validation", "Grade moderation", "Report translation checks")),
     _wf("parent-onboarding", "Parent Onboarding", triggers=("guardian_created",), actions=("send_invite", "verify_contact"), aliases=("Language-specific announcements",)),
     _wf("teacher-accountability", "Teacher Accountability", triggers=("class_session_due",), actions=("alert_hod", "open_teacher_task"), aliases=("Department performance",)),
     _wf("offline-conflict-resolution", "Offline Conflict Resolution", triggers=("sync_conflict",), actions=("open_conflict_queue", "assign_sync_owner"), aliases=("Conflict review",)),
@@ -256,7 +256,7 @@ BASELINE_PACKS: tuple[PackContract, ...] = (
     _db("teacher-workspace", "Teacher Workspace", widgets=("classes", "tasks", "marks"), roles=("Teacher",), aliases=("Teacher classroom",)),
     _db("family-home", "Family Home", widgets=("student_progress", "messages", "fees"), roles=("Parent",), aliases=("Family communications",)),
     _db("money-center", "Money Center", widgets=("collections", "arrears", "reconciliation"), roles=("Bursar", "Finance"), aliases=("Boarding operations",)),
-    _db("insights-center", "Insights Center", widgets=("performance", "risk", "reports"), roles=("Leadership",), aliases=("Exam operations", "Student welfare", "Admissions pipeline", "Sync queue")),
+    _db("insights-center", "Insights Center", widgets=("performance", "risk", "reports"), roles=("Leadership",), aliases=("Exam operations", "Student welfare", "Admissions pipeline", "Sync queue", "Department performance")),
     _db("network-operator", "Network Operator", widgets=("campus_health", "rollout", "support"), roles=("Group admin",), aliases=("Network command", "Campus comparison"), safety="high"),
     _db("board-owner", "Board / Owner", widgets=("strategy", "compliance", "finance"), roles=("Owner", "Board"), aliases=("Board Owner",)),
     _policy("finance-approval", "Finance Approval", rules=("dual_approval", "reconciliation_required"), aliases=("Basic approvals", "Manual audit"), external=("PSP/live settlement proof remains external when live collection is used",)),

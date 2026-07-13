@@ -149,6 +149,23 @@ body:is(.control-plane-shell, .admin-manager-shell, .admin-premium-shell) :is(
   scroll-padding-block: 0.5rem;
 }
 
+[data-rmc-bounded-work-zone] {
+  max-width: 100%;
+  min-width: 0;
+  overflow: clip;
+}
+
+[data-rmc-bounded-work-zone] :is(
+  .dashboard-card-scroll,
+  .table-responsive,
+  .list-group,
+  [data-rmc-table],
+  .rmc-data-table-wrap
+) {
+  max-width: 100%;
+  min-width: 0;
+}
+
 [data-rmc-surface-scroll-zone="bounded"]::-webkit-scrollbar,
 .rmc-surface-page-nav::-webkit-scrollbar {
   width: 8px;
