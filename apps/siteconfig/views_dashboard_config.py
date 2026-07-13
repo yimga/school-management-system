@@ -216,6 +216,43 @@ def get_blueprints(request):
         logger.debug("get_blueprints optional platform_catalog_preview: %s", e)
         platform_catalog_preview = None
     # §2e row 8 page maturity: page_header + data-page-archetype (CONTROL_PLANE_AND_MARKETING_UX_OVERHAUL §5.1)
+    tenant_blueprints = []
+    selected_tenant_blueprint = None
+    selected_tenant_preview = None
+    tenant_blueprint_setup_base_url = None
+    tenant_blueprint_setup_url = None
+    try:
+        from apps.platform_runtime.blueprint_contract import list_blueprints
+        from apps.platform_runtime.blueprint_preview import preview_blueprint
+
+        tenant_blueprints = list_blueprints(tenant_safe_only=True)
+        try:
+            tenant_blueprint_setup_base_url = reverse("tenant_blueprint_setup")
+        except NoReverseMatch:
+            tenant_blueprint_setup_base_url = None
+        selected_key = (
+            request.GET.get("blueprint")
+            or (tenant_blueprints[0]["key"] if tenant_blueprints else "")
+        )
+        selected_tenant_blueprint = next(
+            (bp for bp in tenant_blueprints if bp["key"] == selected_key),
+            tenant_blueprints[0] if tenant_blueprints else None,
+        )
+        if selected_tenant_blueprint:
+            selected_tenant_preview = preview_blueprint(
+                selected_tenant_blueprint["key"],
+                school=school,
+                actor=request.user,
+                platform_operator=False,
+                emit_audit=False,
+            )
+            if tenant_blueprint_setup_base_url:
+                tenant_blueprint_setup_url = (
+                    tenant_blueprint_setup_base_url
+                    + f"?blueprint={selected_tenant_blueprint['key']}&preview=1"
+                )
+    except _OPTIONAL_HUB_ERRORS as e:
+        logger.debug("get_blueprints optional tenant blueprint preview: %s", e)
     if request.GET.get("embed"):
         try:
             action_url = reverse("studio_os:control")
@@ -237,9 +274,14 @@ def get_blueprints(request):
             "pack_update_available": pack_update_available,
             "manager_blueprints_url": manager_blueprints_url,
             "platform_catalog_preview": platform_catalog_preview,
+            "tenant_blueprints": tenant_blueprints,
+            "selected_tenant_blueprint": selected_tenant_blueprint,
+            "selected_tenant_preview": selected_tenant_preview,
+            "tenant_blueprint_setup_base_url": tenant_blueprint_setup_base_url,
+            "tenant_blueprint_setup_url": tenant_blueprint_setup_url,
             "page_title": _("Blueprints"),
             "page_subtitle": _(
-                "Policy blueprint packs for %(school)s. Packs are applied by your platform administrator."
+                "Tenant-safe blueprint packs for %(school)s. Preview inside this school, then apply or request approval without leaving the tenant."
             )
             % {"school": school.name},
             "action_url": action_url,
