@@ -14,6 +14,8 @@ def main() -> int:
     errors: list[str] = []
 
     portal_base = _read("templates/portal_base.html")
+    control_plane_base = _read("templates/control_plane_base.html")
+    admin_base_site = _read("templates/admin/base_site.html")
     studio_workspace = _read("templates/studio_os/components/workspace_layout.html")
     studio_css = _read("static/css/studio-workspace.css")
     tenant_canvas_css = _read("static/css/rmc-tenant-workspace-canvas.css")
@@ -24,7 +26,7 @@ def main() -> int:
 
     portal_tokens = (
         "rmc-tenant-surface-scroll-contract.css",
-        "?v=20260713-tenant-pages",
+        "?v=20260713-platform-pages",
         "rmc-tenant-surface-paginator.js",
         "rmc-section-nav.js",
         "data-rmc-cp-scroll",
@@ -34,6 +36,27 @@ def main() -> int:
         if token not in portal_base:
             errors.append(f"templates/portal_base.html missing {token}")
 
+    control_plane_tokens = (
+        "rmc-tenant-surface-scroll-contract.css",
+        "?v=20260713-platform-pages",
+        "rmc-tenant-surface-paginator.js",
+        "id=\"cp-main-content\"",
+        "data-rmc-cp-page-body=\"1\"",
+    )
+    for token in control_plane_tokens:
+        if token not in control_plane_base:
+            errors.append(f"templates/control_plane_base.html missing {token}")
+
+    admin_tokens = (
+        "rmc-tenant-surface-scroll-contract.css",
+        "?v=20260713-platform-pages",
+        "rmc-tenant-surface-paginator.js",
+        "rmc-admin-django-canvas-contract.css",
+    )
+    for token in admin_tokens:
+        if token not in admin_base_site:
+            errors.append(f"templates/admin/base_site.html missing {token}")
+
     css_tokens = (
         "rmc-tenant-surface-pages",
         "rmc-surface-page-nav",
@@ -42,6 +65,8 @@ def main() -> int:
         "max-height: clamp(22rem, 56vh, 44rem)",
         ".rmc-live-preview-contract",
         ".rmc-studio-workspace[data-rmc-studio-workspace=\"1\"]",
+        "body:is(.control-plane-shell, .admin-manager-shell, .admin-premium-shell)",
+        "[data-rmc-shell-root=\"django-admin\"]",
         "overflow-x: auto",
         "scroll-padding-block",
     )
@@ -54,6 +79,10 @@ def main() -> int:
     js_tokens = (
         "rmc-tenant-surface-paginator",
         "data-rmc-django-surface-canvas=\"tenant-backend\"",
+        "data-rmc-shell-root=\"django-admin\"",
+        "data-rmc-cp-page-body=\"1\"",
+        "studio-os__canvas",
+        "rmc-studio-workspace__main",
         "data-rmc-page=\"studio-os\"",
         "data-rmc-surface-page",
         "data-rmc-surface-scroll-zone",
@@ -104,7 +133,7 @@ def main() -> int:
         return 1
 
     print("TENANT_SURFACE_SCROLL_CONTRACT_PASS")
-    print("  scope: tenant portal + tenant backend + Studio work modes")
+    print("  scope: tenant portal + tenant backend + Studio work modes + operator /super/ + Django /admin/")
     print("  contract: single canvas scroll, long-page page nav, bounded list/table scroll zones")
     return 0
 

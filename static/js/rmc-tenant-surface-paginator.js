@@ -5,7 +5,14 @@
   // Emits data-rmc-surface-page and data-rmc-surface-scroll-zone markers.
   var ROOT_SELECTORS = [
     '[data-rmc-django-surface-canvas="tenant-backend"]',
+    '[data-rmc-shell-root="django-admin"] [data-rmc-admin-content="canvas-first"]',
+    '[data-rmc-admin-surface="smart-form"]',
+    '[data-rmc-admin-surface="smart-changelist"]',
+    '[data-rmc-cp-page-body="1"]',
+    '#cp-main-content',
     '[data-rmc-page="studio-os"]',
+    '.studio-os__canvas',
+    '.rmc-studio-workspace__main[data-rmc-studio-workspace-main="1"]',
     '.tp-canvas-body[data-rmc-scroll-policy="paginate"]',
     '.portal-page-body[data-rmc-scroll-policy="paginate"]',
     '[data-rmc-operational-workbench="1"]',
@@ -29,14 +36,12 @@
   var OVERSIZE_PANEL_SELECTOR = [
     '.table-responsive',
     '.results',
+    '.result-list-wrapper',
+    '.rmc-admin-changelist-main',
     '[data-rmc-table]',
     '.rmc-data-table-wrap',
     '.studio-os-activity-list',
-    '.rmc-admin-bento__panel',
-    '.rmc-command-panel',
-    '.rmc-command-surface',
-    '.rmc-wcx-surface',
-    '.card'
+    '.rmc-admin-bento__panel'
   ].join(",");
 
   function ready(fn) {
@@ -47,7 +52,7 @@
     }
   }
 
-  function isTenantLikePage() {
+  function isEligibleSurfacePage() {
     var body = document.body;
     if (!body) {
       return false;
@@ -58,7 +63,10 @@
     return Boolean(
       body.classList.contains("portal-body-with-layout") ||
         body.classList.contains("backend-shell") ||
-        document.querySelector('[data-rmc-django-surface-canvas="tenant-backend"], [data-rmc-page="studio-os"]')
+        body.classList.contains("control-plane-shell") ||
+        body.classList.contains("admin-manager-shell") ||
+        body.classList.contains("admin-premium-shell") ||
+        document.querySelector('[data-rmc-django-surface-canvas="tenant-backend"], [data-rmc-page="studio-os"], #cp-main-content, [data-rmc-shell-root="django-admin"]')
     );
   }
 
@@ -222,13 +230,16 @@
 
   function collectRoots() {
     var main = document.querySelector("#main-content");
+    var cpMain = document.querySelector("#cp-main-content");
+    var adminMain = document.querySelector('[data-rmc-shell-root="django-admin"]');
     var roots = [];
     ROOT_SELECTORS.forEach(function (selector) {
       Array.prototype.forEach.call(document.querySelectorAll(selector), function (root) {
         if (!isVisible(root)) {
           return;
         }
-        if (main && !main.contains(root) && root !== main) {
+        var shellMain = main || cpMain || adminMain;
+        if (shellMain && !shellMain.contains(root) && root !== shellMain) {
           return;
         }
         roots.push(root);
@@ -243,14 +254,14 @@
           return (
             other !== root &&
             root.contains(other) &&
-            other.matches('[data-rmc-django-surface-canvas="tenant-backend"], [data-rmc-page="studio-os"]')
+            other.matches('[data-rmc-django-surface-canvas="tenant-backend"], [data-rmc-page="studio-os"], .studio-os__canvas, .rmc-studio-workspace__main, [data-rmc-cp-page-body="1"], [data-rmc-admin-content="canvas-first"]')
           );
         })
       ) {
         return false;
       }
       return !roots.some(function (other) {
-        return other !== root && other.contains(root) && other.matches('[data-rmc-django-surface-canvas="tenant-backend"], [data-rmc-page="studio-os"]');
+        return other !== root && other.contains(root) && other.matches('[data-rmc-django-surface-canvas="tenant-backend"], [data-rmc-page="studio-os"], .studio-os__canvas, .rmc-studio-workspace__main, [data-rmc-cp-page-body="1"], [data-rmc-admin-content="canvas-first"]');
       });
     });
   }
@@ -270,7 +281,7 @@
   }
 
   ready(function () {
-    if (!isTenantLikePage()) {
+    if (!isEligibleSurfacePage()) {
       return;
     }
     collectRoots().forEach(hydrateRoot);

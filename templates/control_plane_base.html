@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="{% static 'css/rmc-calendar-weather-dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260713-platform-pages">
 {% endblock %}
 
 {% block cp_shell_content_attrs %} data-shell-layout="control-plane" data-rmc-shell-title="{{ rmc_shell.control_plane_product_title|default:'RunMyCampus Manager' }}" data-rmc-layout-token="{{ rmc_shell.layout_token|default:'control-plane' }}" data-rmc-premium-shell="control-plane" data-rmc-page-purpose="operator-command-center" data-rmc-shell-content-grid="1" data-rmc-os-shell="control-plane" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'operator' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}{% endblock %}
@@ -153,7 +154,8 @@
 <script type="application/json" id="page-data-control_plane_base-1">{
   "url_siteconfig_console_domains_hub": "{% url "siteconfig:console_domains_hub" %}"
 }</script><script src="{% static 'js/_pages/control_plane_base-1.js' %}"></script>
-<div id="cpTourFab" class="cp-tour-fab d-none position-fixed bottom-0 end-0 p-3">
+<script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260713-platform-pages" defer></script>
+  <div id="cpTourFab" class="cp-tour-fab d-none position-fixed bottom-0 end-0 p-3">
   <button type="button" class="btn btn-warning btn-sm shadow" id="cpTourStartBtn" aria-label="{% trans 'Start page tour' %}">{% trans "Page tour" %}</button>
 </div>
 {% include 'components/contextual_feedback_widget.html' %}
