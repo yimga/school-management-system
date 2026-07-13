@@ -420,7 +420,9 @@ def _apply_artifact(
     outcome.result = result
     outcome.status = "PARTIAL" if result.quarantined else "SUCCESS"
     _finalize_audit_run(run, outcome, status=outcome.status)
-    _quarantine_errors(bundle=bundle, run=run, artifact=job.artifact, result=result)
+    _quarantine_errors(
+        bundle=bundle, run=run, artifact=job.artifact, domain=job.domain, result=result
+    )
     return outcome
 
 
@@ -886,14 +888,39 @@ def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> N
     run.save(update_fields=["rollback_snapshot"])
 
 
+def _classify_quarantine_issue(err: str) -> str:
+    """Bucket a lander error string into a ``MigrationQuarantineRecord.issue_class``."""
+    e = (err or "").lower()
+    if "duplicate" in e or "unique" in e or "already exists" in e:
+        return "duplicate"
+    if "invalid" in e or "not found" in e or "unresolved" in e or "no such" in e:
+        return "invalid_ref"
+    if "missing" in e or "required" in e or "not provided" in e:
+        return "missing_required"
+    return "lander_error"
+
+
 def _quarantine_errors(
     *,
     bundle: MigrationBundle,
     run,
     artifact: MigrationArtifact,
+    domain: str,
     result: LanderResult,
 ) -> None:
-    """Write per-row failures to ``apps.automation.MigrationQuarantineRecord``."""
+    """Persist per-row failures to ``apps.automation.MigrationQuarantineRecord``.
+
+    Landers surface per-row problems as strings in ``result.errors`` (they do not
+    carry the source-row payload back), so each error is stored with its position
+    in the error list as ``row_index`` plus a classified ``issue_class`` — enough
+    to make "held for review" rows durable and inspectable instead of silently
+    dropped. Never blocks apply.
+
+    NOTE: the previous implementation wrote ``row_snapshot=``/``reason=`` — fields
+    that do not exist on the model — so every ``create()`` raised ``TypeError``
+    swallowed by the guard below, and quarantine rows were NEVER persisted (silent
+    data loss). This writes the real model fields.
+    """
     if not result.errors:
         return
     try:
@@ -901,18 +928,24 @@ def _quarantine_errors(
     except ImportError:
         return
 
-    for err in result.errors[:200]:  # cap to avoid runaway quarantine
+    domain_label = ((domain or "") or (artifact.path_within_bundle or ""))[:32]
+    for idx, err in enumerate(result.errors[:200], start=1):  # cap runaway quarantine
         try:
             MigrationQuarantineRecord.objects.create(
                 school=bundle.school,
                 migration_run=run,
-                domain=run.migration_type[:64] if run else artifact.path_within_bundle[:64],
-                row_snapshot={"error": err},
-                reason=err[:500],
+                domain=domain_label,
+                row_index=idx,
+                payload={"error": err, "artifact": artifact.path_within_bundle},
+                issue_class=_classify_quarantine_issue(err),
+                status=MigrationQuarantineRecord.Status.PENDING,
             )
         except Exception:  # noqa: BLE001 — quarantine writes never block apply
-            logger.debug(
-                "migration_cloud.apply: quarantine write skipped", exc_info=True
+            logger.warning(
+                "migration_cloud.apply: quarantine write skipped for domain=%s row=%s",
+                domain_label,
+                idx,
+                exc_info=True,
             )
 
 

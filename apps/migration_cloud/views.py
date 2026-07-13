@@ -1418,18 +1418,28 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
 
             run_ids = list(
                 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-                MigrationRun.objects.filter(parent_bundle_id=bundle.pk).values_list("pk", flat=True)
+                # Runs are linked to the bundle via execution_summary["bundle_id"]
+                # (orchestrator._create_audit_run) — there is no parent_bundle FK,
+                # so the old parent_bundle_id filter raised FieldError (swallowed)
+                # and this surface always rendered empty.
+                MigrationRun.objects.filter(
+                    execution_summary__bundle_id=bundle.pk
+                ).values_list("pk", flat=True)
             )
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             for q in MigrationQuarantineRecord.objects.filter(
                 migration_run_id__in=run_ids
             ).order_by("-id")[:200]:
+                payload = q.payload if isinstance(q.payload, dict) else {}
                 quarantine_rows.append({
                     "id": q.pk,
                     "run_id": q.migration_run_id,
-                    "reason": getattr(q, "reason", "") or getattr(q, "error_message", ""),
-                    "raw_row": getattr(q, "raw_row", None) or getattr(q, "row_data", None),
-                    "ack_status": getattr(q, "exception_ack_status", ""),
+                    "domain": q.domain,
+                    "row_index": q.row_index,
+                    "issue_class": q.issue_class,
+                    "reason": payload.get("error", "") or q.issue_class,
+                    "raw_row": q.payload,
+                    "ack_status": q.status,
                 })
         except Exception:  # noqa: BLE001
             logger.debug("anomaly_nudge: quarantine fetch failed", exc_info=True)

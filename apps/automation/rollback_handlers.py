@@ -27,11 +27,20 @@ def get_rollback_handler(
 
 def run_rollback(run, rollback_run) -> dict[str, Any]:
     """Execute the rollback for run; returns dict with success, message, reverted_count."""
-    handler = get_rollback_handler(run.migration_type)
+    migration_type = run.migration_type or ""
+    # The bundle orchestrator writes migration_type as "<domain>:<artifact_path>"
+    # (apps/migration_cloud/orchestrator.py::_create_audit_run), but handlers
+    # register on the bare domain ("students"/"grades"). Resolve the exact key
+    # first, then fall back to the domain prefix — otherwise every bundle rollback
+    # silently no-ops (returns "No handler") while the caller flips the bundle to
+    # FAILED, i.e. reverts NOTHING while claiming it did.
+    handler = get_rollback_handler(migration_type)
+    if not handler and ":" in migration_type:
+        handler = get_rollback_handler(migration_type.split(":", 1)[0])
     if not handler:
         return {
             "success": False,
-            "message": f"No rollback handler for {run.migration_type}.",
+            "message": f"No rollback handler for {migration_type}.",
             "reverted_count": 0,
         }
     return handler(run, rollback_run)
