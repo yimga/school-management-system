@@ -7,7 +7,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page w-100 max-w-none" id="main" data-rmc-ai-center-query>
+<main class="rmc-page w-100 max-w-none" id="main" data-rmc-ai-center-query data-rmc-width-strategy="full">
   {% include "apicenter/super/ai_center_nav.html" %}
   <h1 class="rmc-h1">{% trans "Platform query" %}</h1>
   <form id="ai-center-query-form" method="post" action="{{ ai_query_url }}">
