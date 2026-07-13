@@ -1,6 +1,8 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
 
+{% block extrastyle %}<link rel="stylesheet" href="{% static 'css/rmc-template-marketplace.css' %}">{% endblock %}
+
 {% block portal_title %}{% blocktrans %}Apply: {{ template_key }}{% endblocktrans %}{% endblock %}
 
 {% block content %}

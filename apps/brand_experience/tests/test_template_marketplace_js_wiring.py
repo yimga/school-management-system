@@ -29,3 +29,15 @@ class TemplateMarketplaceJsWiringTests(SimpleTestCase):
         text = self._read("templates", "marketplace", "templates_browse.html")
         self.assertIn("data-rmc-template-filter-form", text)
         self.assertIn("_pages/rmc-template-marketplace.js", text)
+
+    # The CSS was orphaned the same way the JS was: the templates use the
+    # rmc-template-marketplace__* classes and static/css/rmc-template-marketplace.css
+    # defines them, but no template linked the sheet (only extrajs was wired, never
+    # extrastyle), so the cards rendered unstyled. Lock the CSS wiring too.
+    def test_apply_confirm_loads_marketplace_css(self):
+        text = self._read("templates", "marketplace", "templates_apply_confirm.html")
+        self.assertIn("css/rmc-template-marketplace.css", text)
+
+    def test_browse_loads_marketplace_css(self):
+        text = self._read("templates", "marketplace", "templates_browse.html")
+        self.assertIn("css/rmc-template-marketplace.css", text)
