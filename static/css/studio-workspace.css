@@ -230,3 +230,109 @@
 .rmc-studio-workspace--experience .rmc-live-preview-contract__frame {
   min-height: clamp(34rem, 68vh, 62rem);
 }
+
+/* 2026-07-13 real-admin-canvas: Studio Experience production hardening.
+   Keep preview work spacious, move auxiliary context out of the way, and
+   bound long rails so the page does not become an endless document. */
+.studio-os--mode-experience .rmc-studio-workspace,
+[data-rmc-studio-mode="experience"] .rmc-studio-workspace,
+.rmc-studio-workspace--experience {
+  --studio-workspace-rail-width: clamp(12rem, 14vw, 16rem);
+  --studio-workspace-context-width: clamp(16rem, 18vw, 21rem);
+  width: 100%;
+  max-width: none;
+  align-items: start;
+}
+
+.rmc-studio-workspace--experience.rmc-studio-workspace--three-col,
+.rmc-studio-workspace--experience.rmc-studio-workspace--two-col {
+  grid-template-columns: minmax(11rem, var(--studio-workspace-rail-width)) minmax(0, 1fr);
+}
+
+.rmc-studio-workspace--experience .rmc-studio-workspace__rail {
+  position: sticky;
+  top: 1rem;
+  max-height: min(74vh, 52rem);
+  overflow: auto;
+  border-radius: var(--studio-radius, 12px);
+}
+
+.rmc-studio-workspace--experience .rmc-studio-workspace__main {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+.rmc-studio-workspace--experience .rmc-studio-workspace__context {
+  display: none;
+}
+
+.rmc-studio-workspace--experience .rmc-studio-workspace__context-drawer {
+  display: block;
+  grid-column: 2;
+  margin-top: 0;
+}
+
+.rmc-studio-workspace--experience .rmc-studio-experience-canvas-clamp,
+.rmc-studio-workspace--experience [data-rmc-studio-experience-canvas] {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  overflow: visible;
+}
+
+.rmc-studio-workspace--experience .rmc-live-preview-contract {
+  width: 100%;
+  max-width: none;
+}
+
+.rmc-studio-workspace--experience :is(
+  .theme-experience-shell,
+  .theme-experience-grid,
+  .theme-experience-main,
+  .theme-experience-preview,
+  .theme-experience-settings,
+  .theme-experience-left,
+  .theme-experience-right
+) {
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 1280px) {
+  .rmc-studio-workspace--experience .theme-experience-grid,
+  .rmc-studio-workspace--experience .theme-experience-main {
+    display: grid;
+    grid-template-columns: minmax(28rem, 0.95fr) minmax(28rem, 1.05fr);
+    gap: clamp(1rem, 1.4vw, 1.5rem);
+    align-items: start;
+  }
+
+  .rmc-studio-workspace--experience .theme-experience-preview {
+    position: sticky;
+    top: 1rem;
+    max-height: min(78vh, 56rem);
+    overflow: auto;
+  }
+
+  .rmc-studio-workspace--experience .theme-experience-settings {
+    max-height: min(78vh, 56rem);
+    overflow: auto;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .rmc-studio-workspace--experience.rmc-studio-workspace--three-col,
+  .rmc-studio-workspace--experience.rmc-studio-workspace--two-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rmc-studio-workspace--experience .rmc-studio-workspace__rail {
+    position: static;
+    max-height: none;
+  }
+
+  .rmc-studio-workspace--experience .rmc-studio-workspace__context-drawer {
+    grid-column: 1;
+  }
+}
