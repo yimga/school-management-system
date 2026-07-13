@@ -1,0 +1,113 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _read(path: str) -> str:
+    return (ROOT / path).read_text(encoding="utf-8", errors="replace")
+
+
+def main() -> int:
+    errors: list[str] = []
+
+    portal_base = _read("templates/portal_base.html")
+    studio_workspace = _read("templates/studio_os/components/workspace_layout.html")
+    studio_css = _read("static/css/studio-workspace.css")
+    tenant_canvas_css = _read("static/css/rmc-tenant-workspace-canvas.css")
+    scroll_css_path = ROOT / "static/css/rmc-tenant-surface-scroll-contract.css"
+    paginator_js_path = ROOT / "static/js/rmc-tenant-surface-paginator.js"
+    scroll_css = scroll_css_path.read_text(encoding="utf-8", errors="replace") if scroll_css_path.exists() else ""
+    paginator_js = paginator_js_path.read_text(encoding="utf-8", errors="replace") if paginator_js_path.exists() else ""
+
+    portal_tokens = (
+        "rmc-tenant-surface-scroll-contract.css",
+        "?v=20260713-tenant-pages",
+        "rmc-tenant-surface-paginator.js",
+        "rmc-section-nav.js",
+        "data-rmc-cp-scroll",
+        "id=\"main-content\"",
+    )
+    for token in portal_tokens:
+        if token not in portal_base:
+            errors.append(f"templates/portal_base.html missing {token}")
+
+    css_tokens = (
+        "rmc-tenant-surface-pages",
+        "rmc-surface-page-nav",
+        "data-rmc-surface-page",
+        "data-rmc-surface-scroll-zone=\"bounded\"",
+        "max-height: clamp(22rem, 56vh, 44rem)",
+        ".rmc-live-preview-contract",
+        ".rmc-studio-workspace[data-rmc-studio-workspace=\"1\"]",
+        "overflow-x: auto",
+        "scroll-padding-block",
+    )
+    if not scroll_css_path.exists():
+        errors.append("static/css/rmc-tenant-surface-scroll-contract.css is missing")
+    for token in css_tokens:
+        if token not in scroll_css:
+            errors.append(f"rmc-tenant-surface-scroll-contract.css missing {token}")
+
+    js_tokens = (
+        "rmc-tenant-surface-paginator",
+        "data-rmc-django-surface-canvas=\"tenant-backend\"",
+        "data-rmc-page=\"studio-os\"",
+        "data-rmc-surface-page",
+        "data-rmc-surface-scroll-zone",
+        "Page ",
+        "scrollIntoView",
+        "hasExcludedPreview",
+    )
+    if not paginator_js_path.exists():
+        errors.append("static/js/rmc-tenant-surface-paginator.js is missing")
+    for token in js_tokens:
+        if token not in paginator_js:
+            errors.append(f"rmc-tenant-surface-paginator.js missing {token}")
+
+    workspace_tokens = (
+        'data-rmc-studio-workspace="1"',
+        'data-rmc-studio-workspace-main="1"',
+        "rmc-empty-state-sentinel",
+        "data-rmc-scroll-policy=\"paginate\"",
+    )
+    for token in workspace_tokens:
+        if token not in studio_workspace:
+            errors.append(f"studio workspace layout missing {token}")
+
+    existing_scroll_tokens = (
+        "#main-content",
+        "overflow-y: auto",
+        "--rmc-tenant-main-h",
+        ".portal-sidebar-col > .tp-sidebar-inner",
+    )
+    for token in existing_scroll_tokens:
+        if token not in tenant_canvas_css:
+            errors.append(f"rmc-tenant-workspace-canvas.css missing existing scroll contract {token}")
+
+    studio_scroll_tokens = (
+        ".rmc-studio-workspace__rail",
+        "overflow: auto",
+        "overscroll-behavior: contain",
+        ".rmc-live-preview-contract__frame",
+    )
+    for token in studio_scroll_tokens:
+        if token not in studio_css:
+            errors.append(f"studio-workspace.css missing existing studio scroll contract {token}")
+
+    if errors:
+        print("TENANT_SURFACE_SCROLL_CONTRACT_FAIL")
+        for error in errors:
+            print(f"  - {error}")
+        return 1
+
+    print("TENANT_SURFACE_SCROLL_CONTRACT_PASS")
+    print("  scope: tenant portal + tenant backend + Studio work modes")
+    print("  contract: single canvas scroll, long-page page nav, bounded list/table scroll zones")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

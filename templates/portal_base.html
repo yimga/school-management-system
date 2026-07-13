@@ -180,6 +180,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-activation-surfaces.css' %}">
     {% comment %} v4.05 (2026-06-23): viewport-locked canvas scroll — header/sidebar pinned, main scrolls. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-workspace-canvas.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260713-tenant-pages">
     <link rel="stylesheet" href="{% static 'css/tenant-command-workspace.css' %}">
     {% comment %} v4.05 (2026-06-23): tenant-wide operator parity — cp-header band,
        collapsible cp-sidebar v8 groups, compact luxurious task surfaces. {% endcomment %}
@@ -700,6 +701,7 @@
       <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
       {% include "partials/rmc_platform_chrome_scripts.html" %}
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
+      <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260713-tenant-pages" defer></script>
       {% include "partials/rmc_isomorphic_grid_boot.html" %}
       {% comment %} Phase K (2026-05-12): density toggle for .rmc-data-table tables. {% endcomment %}
       <script src="{% static 'js/rmc-data-table.js' %}" defer></script>

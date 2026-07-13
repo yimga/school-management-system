@@ -1,0 +1,225 @@
+/*
+ * rmc-tenant-surface-scroll-contract.css
+ * Tenant-wide long-surface structure for portal, backend, and Studio pages.
+ *
+ * The contract is deliberately non-destructive:
+ * - the main tenant canvas remains the vertical scroll owner;
+ * - long pages receive a sticky page jump strip instead of hidden content;
+ * - oversized lists/tables/panels receive bounded internal scroll zones;
+ * - live previews and edit forms are not cramped into tiny scroll panes.
+ */
+
+html[data-rmc-tp-v3-shell="1"] {
+  scroll-behavior: smooth;
+}
+
+body.portal-body-with-layout :is(
+  #main-content,
+  .portal-main-col,
+  .rmc-django-surface-canvas,
+  [data-rmc-page="studio-os"],
+  [data-rmc-scroll-policy="paginate"]:not(.visually-hidden)
+) {
+  min-width: 0;
+  scroll-padding-block: clamp(0.75rem, 1vw, 1.25rem);
+}
+
+.rmc-tenant-surface-pages[data-rmc-surface-pages-ready="1"] {
+  --rmc-surface-page-gap: clamp(0.65rem, 1vw, 1rem);
+  --rmc-surface-page-pad: clamp(0.65rem, 1vw, 1rem);
+  display: flow-root;
+  min-width: 0;
+}
+
+.rmc-surface-page-nav {
+  position: sticky;
+  top: 0;
+  z-index: 16;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 var(--rmc-surface-page-gap, 0.85rem);
+  padding: 0.55rem;
+  border: 1px solid var(--hairline, rgba(148, 163, 184, 0.22));
+  border-radius: var(--radius-lg, 12px);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated, #111827) 92%, transparent), color-mix(in srgb, var(--surface-canvas, #070b18) 98%, transparent));
+  box-shadow: var(--elev-1, 0 10px 30px rgba(2, 6, 23, 0.18));
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+.rmc-surface-page-nav__label {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding-inline: 0.7rem;
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--surface-canvas, #070b18) 80%, transparent);
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rmc-surface-page-nav__button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: min(18rem, 52vw);
+  min-height: 2rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--hairline, rgba(148, 163, 184, 0.22));
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--surface-canvas, #070b18) 72%, transparent);
+  color: var(--text-primary, #e5e7eb);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.rmc-surface-page-nav__button:hover,
+.rmc-surface-page-nav__button:focus-visible,
+.rmc-surface-page-nav__button[aria-current="true"] {
+  border-color: color-mix(in srgb, var(--school-primary, var(--brand-primary, #38bdf8)) 70%, var(--hairline, transparent));
+  background: color-mix(in srgb, var(--school-primary, var(--brand-primary, #38bdf8)) 18%, var(--surface-elevated, #111827));
+  outline: none;
+}
+
+[data-rmc-surface-page] {
+  position: relative;
+  min-width: 0;
+  scroll-margin-block-start: clamp(0.75rem, 1.1vw, 1.25rem);
+}
+
+[data-rmc-surface-page]::before {
+  content: attr(data-rmc-surface-page-label);
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
+  min-height: 1.45rem;
+  margin: 0 0 0.45rem;
+  padding-inline: 0.55rem;
+  border: 1px solid var(--hairline, rgba(148, 163, 184, 0.22));
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--surface-canvas, #070b18) 76%, transparent);
+  color: var(--text-tertiary, #94a3b8);
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+[data-rmc-surface-scroll-zone="bounded"] {
+  max-height: clamp(22rem, 56vh, 44rem);
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  border-radius: inherit;
+  scroll-padding-block: 0.5rem;
+}
+
+[data-rmc-surface-scroll-zone="bounded"]::-webkit-scrollbar,
+.rmc-surface-page-nav::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-rmc-surface-scroll-zone="bounded"]::-webkit-scrollbar-thumb,
+.rmc-surface-page-nav::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-tertiary, #94a3b8) 42%, transparent);
+}
+
+body.portal-body-with-layout :is(
+  .table-responsive,
+  .results,
+  [data-rmc-table],
+  .rmc-data-table-wrap
+) {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+body.portal-body-with-layout :is(
+  .rmc-live-preview-contract,
+  [data-rmc-live-preview-contract="1"],
+  .rmc-dashboard-preview-shell,
+  .rmc-studio-experience-preview,
+  .reportcard-builder-preview,
+  .theme-preview-section
+) {
+  overflow: visible;
+}
+
+body.portal-body-with-layout :is(
+  .rmc-live-preview-contract__frame,
+  .rmc-studio-experience-preview__frame,
+  iframe[data-rmc-preview-frame],
+  .rmc-preview-iframe
+) {
+  min-height: clamp(32rem, 68vh, 62rem);
+}
+
+.rmc-studio-workspace[data-rmc-studio-workspace="1"] {
+  align-items: start;
+}
+
+.rmc-studio-workspace[data-rmc-studio-workspace="1"] .rmc-studio-workspace__main {
+  display: grid;
+  gap: var(--studio-workspace-gap, 0.8rem);
+  align-content: start;
+}
+
+.rmc-studio-workspace[data-rmc-studio-workspace="1"] :is(
+  .rmc-studio-workspace__rail,
+  .rmc-studio-workspace__context,
+  .rmc-studio-workspace__context-drawer-body
+) {
+  scrollbar-width: thin;
+  scroll-padding-block: 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+  .rmc-surface-page-nav {
+    border-radius: var(--radius-md, 10px);
+    margin-inline: 0;
+  }
+
+  .rmc-surface-page-nav__button {
+    max-width: 72vw;
+  }
+
+  [data-rmc-surface-scroll-zone="bounded"] {
+    max-height: none;
+  }
+}
+
+@media print {
+  .rmc-surface-page-nav {
+    display: none !important;
+  }
+
+  [data-rmc-surface-scroll-zone="bounded"] {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
