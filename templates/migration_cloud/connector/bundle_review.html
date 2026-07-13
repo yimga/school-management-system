@@ -11,6 +11,98 @@ connection-wizard's post-import status/revoke step.)
 {% block connector_body %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 
+{% if detecting and progress_url %}
+{% comment %}
+Live auto-detection progress. Renders only while the bundle is still being
+profiled/classified/mapped (status pre-MAPPED). Polls the tenant-scoped JSON
+progress endpoint and reloads the page once detection finishes, so the review
+table + detected record types appear without a manual refresh. Translatable
+copy travels via data-* attributes (HTML-attribute-escaped) so an apostrophe in
+any locale can't break the inline script's string literals.
+{% endcomment %}
+<section class="rmc-card mb-4" id="mc-detect-progress"
+         aria-live="polite"
+         data-progress-url="{{ progress_url }}"
+         data-msg-failed="{% trans 'We could not read this upload. Try uploading again, or export it as CSV or Excel.' %}"
+         data-msg-done="{% trans 'Detected — loading your results…' %}"
+         data-msg-timeout="{% trans 'Still working. Refresh this page in a moment to see your results.' %}">
+  <h2 class="h5">{% trans "Reading your upload…" %}</h2>
+  <p class="text-muted small mb-2">{% trans "We're detecting the format and the kind of records in each file. This page updates on its own — no need to refresh." %}</p>
+  <div class="progress" role="progressbar" aria-label="{% trans 'Detection progress' %}" aria-valuemin="0" aria-valuemax="100">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" id="mc-detect-bar" style="width: 10%"></div>
+  </div>
+  <div class="d-flex flex-wrap gap-2 mt-2" id="mc-detect-stages">
+    <span class="rmc-badge" data-stage="INGESTING">{% trans "Uploading" %}</span>
+    <span class="rmc-badge" data-stage="PROFILED">{% trans "Reading files" %}</span>
+    <span class="rmc-badge" data-stage="CLASSIFIED">{% trans "Detecting record types" %}</span>
+    <span class="rmc-badge" data-stage="MAPPED">{% trans "Ready to review" %}</span>
+  </div>
+  <p class="small text-muted mt-2 mb-0" id="mc-detect-note">{% trans "Working…" %}</p>
+</section>
+<script>
+(function () {
+  var el = document.getElementById('mc-detect-progress');
+  if (!el || !window.fetch) { return; }
+  var url = el.getAttribute('data-progress-url');
+  if (!url) { return; }
+  var bar = document.getElementById('mc-detect-bar');
+  var note = document.getElementById('mc-detect-note');
+  var order = ['INGESTING', 'PROFILED', 'CLASSIFIED', 'MAPPED'];
+  var pctByStatus = {
+    PENDING: 8, INGESTING: 25, PROFILED: 55, CLASSIFIED: 80,
+    MAPPED: 100, READY: 100, APPLYING: 100, APPLIED: 100, RECONCILED: 100
+  };
+  var tries = 0;
+  function paint(status) {
+    var pct = pctByStatus[status] || 10;
+    if (bar) { bar.style.width = pct + '%'; }
+    var reached = order.indexOf(status);
+    var chips = el.querySelectorAll('#mc-detect-stages [data-stage]');
+    for (var i = 0; i < chips.length; i++) {
+      var idx = order.indexOf(chips[i].getAttribute('data-stage'));
+      if (reached >= 0 && idx >= 0 && idx <= reached) {
+        chips[i].classList.add('rmc-badge--success');
+      }
+    }
+  }
+  function stopBar() {
+    if (bar) { bar.classList.remove('progress-bar-striped', 'progress-bar-animated'); }
+  }
+  function schedule() {
+    if (tries > 120) {  // ~5 min ceiling then stop polling; user can refresh
+      stopBar();
+      if (note) { note.textContent = el.getAttribute('data-msg-timeout'); }
+      return;
+    }
+    window.setTimeout(tick, 2500);
+  }
+  function tick() {
+    tries += 1;
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) { schedule(); return; }
+        paint(data.status);
+        if (data.failed) {
+          stopBar();
+          if (note) { note.textContent = el.getAttribute('data-msg-failed'); }
+          return;
+        }
+        if (data.done) {
+          stopBar();
+          if (note) { note.textContent = el.getAttribute('data-msg-done'); }
+          window.location.reload();
+          return;
+        }
+        schedule();
+      })
+      .catch(function () { schedule(); });
+  }
+  window.setTimeout(tick, 1500);
+})();
+</script>
+{% endif %}
+
 {% if apply_result %}
 <section class="rmc-card mb-4" aria-labelledby="mc-apply-heading">
   <h2 id="mc-apply-heading" class="h5">

@@ -33,6 +33,14 @@ urlpatterns = [
         views_tenant_upload.TenantMigrationReviewView.as_view(),
         name="bundle-review",
     ),
+    # Live auto-detection progress (JSON), polled by the review page while the
+    # pipeline profiles/classifies/maps the upload. Tenant-scoped (404 on cross
+    # tenant). See TenantMigrationProgressView.
+    path(
+        "bundle/<int:bundle_id>/progress/",
+        views_tenant_upload.TenantMigrationProgressView.as_view(),
+        name="bundle-progress",
+    ),
     path(
         "bundle/<int:bundle_id>/apply/",
         views_tenant_upload.TenantMigrationApplyView.as_view(),

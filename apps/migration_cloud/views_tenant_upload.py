@@ -32,7 +32,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.views import View
 
@@ -41,7 +41,25 @@ from .accelerators.runmycampus_canonical import (
     canonical_domain_choices,
     is_valid_canonical_domain,
 )
-from .models import IntakeMethod, MigrationBundle, SlaTier
+from .models import BundleStatus, IntakeMethod, MigrationBundle, SlaTier
+
+# Statuses where auto-detection (profile → classify → map) is still running, so
+# the review page should show a live progress widget and keep polling.
+_DETECTING_STATUSES = frozenset(
+    {
+        BundleStatus.PENDING,
+        BundleStatus.INGESTING,
+        BundleStatus.PROFILED,
+        BundleStatus.CLASSIFIED,
+    }
+)
+# Terminal-failure statuses — stop polling, tell the tenant what to try.
+_FAILED_STATUSES = frozenset({BundleStatus.FAILED, BundleStatus.ABORTED})
+
+
+def _is_detecting(bundle) -> bool:
+    """True while the pipeline is still profiling/classifying/mapping the upload."""
+    return bundle.status in _DETECTING_STATUSES
 from .reliability import idempotent_post, safe_500
 from .services import BundleIngestionService, BundleSpec
 from .views_connectors import _connector_reverse, _request_school
@@ -161,6 +179,59 @@ def _advance(bundle_id) -> None:
         advance_bundle(bundle_id=bundle_id, use_accelerator=True)
     except Exception:  # noqa: BLE001 — surfaced on the review page instead
         logger.exception("mc tenant upload: inline advance failed for %s", bundle_id)
+
+
+def _progress_payload(bundle) -> dict:
+    """Live auto-detection progress for the review-page poller.
+
+    Recomputes the per-stage snapshot from the bundle's current status + event
+    stream (same helper the operator DAG view uses) and adds the plain flags the
+    tenant widget needs: ``detecting`` (still working), ``done`` (detection
+    finished — reload to reveal the review table), ``failed`` (stop + advise).
+    Best-effort: a snapshot failure degrades to the last saved snapshot rather
+    than 500-ing the poller.
+    """
+    try:
+        from .progress import refresh_snapshot
+
+        snapshot = refresh_snapshot(bundle=bundle)
+    except Exception:  # noqa: BLE001 — never break the poller on a snapshot error
+        logger.debug("tenant progress: snapshot failed for %s", bundle.pk, exc_info=True)
+        snapshot = getattr(bundle, "progress_snapshot", None) or {}
+
+    detecting = _is_detecting(bundle)
+    detected = []
+    for art in bundle.artifacts.all():
+        candidates = art.inferred_domain if isinstance(art.inferred_domain, list) else []
+        top = candidates[0] if candidates and isinstance(candidates[0], dict) else {}
+        if top.get("domain"):
+            detected.append({"filename": art.filename, "domain": top.get("domain")})
+    return {
+        "bundle_id": bundle.pk,
+        "status": bundle.status,
+        "status_label": bundle.get_status_display(),
+        "detecting": detecting,
+        "done": not detecting,
+        "failed": bundle.status in _FAILED_STATUSES,
+        "snapshot": snapshot,
+        "detected": detected,
+    }
+
+
+class TenantMigrationProgressView(LoginRequiredMixin, View):
+    """GET JSON: live auto-detection progress for the caller's OWN bundle.
+
+    Polled by ``bundle_review.html`` while profile → classify → map runs (async
+    on the Celery worker in production, or already-complete inline on a broker
+    outage). Tenant-scoped via :func:`_tenant_bundle_or_404` — a cross-tenant or
+    unknown id is a 404 (never 403), so id-enumeration can't distinguish "exists
+    elsewhere". Read-only from the tenant's perspective; grants no operator
+    visibility (isolation preserved).
+    """
+
+    def get(self, request, bundle_id: int):
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        return JsonResponse(_progress_payload(bundle))
 
 
 class TenantMigrationUploadView(LoginRequiredMixin, View):
@@ -307,6 +378,8 @@ class TenantMigrationReviewView(LoginRequiredMixin, View):
             "domain_choices": canonical_domain_choices(),
             "apply_result": apply_result,
             "verification": _build_verification(bundle),
+            "detecting": _is_detecting(bundle),
+            "progress_url": _connector_reverse(request, "bundle-progress", bundle_id=bundle.pk),
             "upload_url": _connector_reverse(request, "upload"),
             "review_url": _connector_reverse(request, "bundle-review", bundle_id=bundle.pk),
             "apply_url": _connector_reverse(request, "bundle-apply", bundle_id=bundle.pk),

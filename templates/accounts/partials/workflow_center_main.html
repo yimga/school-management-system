@@ -81,6 +81,31 @@
           <p class="small text-muted mb-0 mt-2">{% trans "Active year:" %} <strong>{{ active_year.name|default:"-" }}</strong> · {% trans "Active term:" %} <strong>{% firstof active_term.name active_term "-" %}</strong></p>
         </div>
       </section>
+      {% if migration_status %}
+      <section class="rmc-command-panel" aria-label="{% trans 'Data migration status' %}">
+        <div class="rmc-command-panel__body">
+          <h2 class="h6 mb-2"><i class="bi bi-cloud-arrow-up me-1" aria-hidden="true"></i>{% trans "Data migration" %}</h2>
+          {% if migration_status.bundle %}
+          <p class="small mb-1"><strong>{{ migration_status.bundle.label }}</strong></p>
+          <p class="mb-2">
+            <span class="rmc-badge{% if migration_status.bundle.applied %} rmc-badge--success{% elif migration_status.bundle.detecting %} rmc-badge--info{% endif %}">{{ migration_status.bundle.status_label }}</span>
+          </p>
+          {% if migration_status.bundle.detecting %}
+          <p class="small text-muted mb-2">{% trans "Auto-detecting your files — open to watch live progress." %}</p>
+          {% endif %}
+          <div class="d-grid gap-2">
+            {% if migration_status.bundle.review_url %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ migration_status.bundle.review_url }}"><i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>{% trans "Review / import" %}</a>
+            {% endif %}
+            <a class="btn btn-sm btn-link p-0" href="{{ migration_status.upload_url }}">{% trans "Upload more data" %}</a>
+          </div>
+          {% else %}
+          <p class="small text-muted mb-2">{% trans "Bring students, staff, grades and finance from your old system — drop a spreadsheet or export and we auto-detect it." %}</p>
+          <a class="btn btn-sm btn-primary" href="{{ migration_status.upload_url }}"><i class="bi bi-cloud-arrow-up me-1" aria-hidden="true"></i>{% trans "Import school data" %}</a>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
       {% if steps %}
       <section class="rmc-command-panel">
         <div class="rmc-command-panel__body">

@@ -116,6 +116,62 @@ def _workflow_link(label, url_name, primary=False, args=None, kwargs=None):
         return None
 
 
+def _migration_status_card(request):
+    """Compact 'latest data migration' status for the Workflow Center sidebar.
+
+    Tenant-scoped: reads only the CALLER's own school's most recent Migration
+    Cloud bundle (``MigrationBundle`` is a shared-schema model keyed by
+    ``school_id`` — never another tenant's rows). Returns ``None`` on the manager
+    host (no bound school, or the tenant connector namespace isn't mounted there
+    so ``reverse`` fails), or on any soft failure, so the card simply doesn't
+    render. This surfaces the tenant's OWN upload only and grants no operator
+    visibility — operator ⟂ tenant isolation is preserved.
+    """
+    school = getattr(request, "school", None) or getattr(request, "tenant", None)
+    if school is None or getattr(school, "pk", None) is None:
+        return None
+    try:
+        upload_url = reverse("migration_cloud_connector:upload")
+    except NoReverseMatch:
+        return None  # not on the tenant host → no card at all
+    try:
+        from apps.migration_cloud.models import BundleStatus, MigrationBundle
+
+        bundle = (
+            MigrationBundle.objects.filter(school=school)
+            .order_by("-created_at")
+            .first()
+        )
+    except (DatabaseError, OperationalError, ProgrammingError, ImportError, ValueError):
+        return None
+
+    card = {"upload_url": upload_url, "bundle": None}
+    if bundle is not None:
+        detecting = bundle.status in {
+            BundleStatus.PENDING,
+            BundleStatus.INGESTING,
+            BundleStatus.PROFILED,
+            BundleStatus.CLASSIFIED,
+        }
+        try:
+            review_url = reverse(
+                "migration_cloud_connector:bundle-review",
+                kwargs={"bundle_id": bundle.pk},
+            )
+        except NoReverseMatch:
+            review_url = ""
+        card["bundle"] = {
+            "label": bundle.label or f"Upload #{bundle.pk}",
+            "status": bundle.status,
+            "status_label": bundle.get_status_display(),
+            "detecting": detecting,
+            "applied": bundle.status in {BundleStatus.APPLIED, BundleStatus.RECONCILED},
+            "review_url": review_url,
+            "created_at": bundle.created_at,
+        }
+    return card
+
+
 def _can_access_approval_hub(user):
     """Staff roles that can access approval workflows."""
     if not user or not user.is_authenticated:
@@ -357,6 +413,9 @@ def workflow_center(request):
         {"label": "Student list", "url": student_list_url},
         _workflow_link("Onboard student (wizard)", "portal:student_onboarding"),
         _workflow_link("Onboard teacher (wizard)", "portal:teacher_onboarding"),
+        # Bulk import from an old system (Migration Cloud connectionless upload).
+        # Only resolves on the tenant host; auto-dropped by _filter_links elsewhere.
+        _workflow_link("Import old-system data (bulk)", "migration_cloud_connector:upload"),
         _workflow_link(
             "Guardian invites", "admin:portal_pendingguardianinvite_changelist"
         ),
@@ -612,6 +671,7 @@ def workflow_center(request):
         "active_term": term,
         "steps": steps,
         "workflow_progress": progress,
+        "migration_status": _migration_status_card(request),
         "workflow_help": workflow_help,
         "studio_pack_catalog_strip": studio_pack_catalog_strip,
         "studio_simulation_url": studio_simulation_url,
