@@ -535,6 +535,7 @@ def _school_admin_recipients(school) -> list:
     recipients: list = []
     seen: set = set()
     qs = (
+        # tenant-isolation-allow: low-inventory-recipients-are-scoped-by-school-membership
         SchoolMembership.objects.filter(
             school=school, role="ADMIN",  # role-string-allow: notify-school-admins-of-low-inventory-stock
         )
