@@ -1,0 +1,186 @@
+/*
+ * rmc-django-surface-canvas-parity.css
+ * tenant backend/configuration parity for Django-rendered non-admin surfaces.
+ *
+ * Operator /admin and tenant /admin are covered by
+ * rmc-admin-django-canvas-contract.css. This file covers tenant backend routes
+ * that render through backend_base_tenant.html, such as /authentication/backend/,
+ * /configuration/, /school/configuration/, and pages extending backend_base.html.
+ */
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] {
+  --rmc-django-surface-gap: clamp(0.75rem, 1vw, 1rem);
+  --rmc-django-surface-pad: clamp(0.75rem, 1.1vw, 1.15rem);
+  --rmc-django-surface-radius: var(--radius-lg, 14px);
+  width: 100% !important;
+  max-width: none !important;
+  max-inline-size: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] > :is(
+  main,
+  section,
+  article,
+  div,
+  form
+) {
+  max-width: none;
+  max-inline-size: none;
+  min-width: 0;
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+  .container,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl,
+  .container-xxl,
+  .container-fluid,
+  [class*="max-w-"],
+  [style*="max-width"],
+  [style*="max-inline-size"]
+) {
+  max-width: none !important;
+  max-inline-size: none !important;
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+  .row,
+  .dashboard-grid,
+  .bento-grid,
+  .rmc-admin-bento,
+  .rmc-command-workbench,
+  .rmc-command-surface,
+  .rmc-command-panel,
+  .rmc-operational-center-frame,
+  [data-rmc-command-workspace],
+  [data-rmc-operational-workbench],
+  [data-siteconfig-surface],
+  [data-rmc-os-center],
+  [data-rmc-admin-workspace],
+  [data-rmc-admin-bento]
+) {
+  width: 100% !important;
+  max-width: none !important;
+  max-inline-size: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+  .card,
+  .rmc-wcx-surface,
+  .rmc-command-panel,
+  .rmc-command-surface,
+  .rmc-admin-bento,
+  .rmc-admin-bento__panel,
+  .rmc-admin-setup-zone,
+  .rmc-admin-cockpit-zone,
+  .theme-experience-page,
+  .reportcard-builder-root,
+  .feature-control-command
+) {
+  border-radius: var(--rmc-django-surface-radius);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+  .rmc-command-workbench,
+  .theme-experience-grid,
+  .reportcard-builder-layout,
+  .site-settings-layout,
+  .rmc-mv-form-with-preview
+) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: var(--rmc-django-surface-gap);
+  align-items: start;
+}
+
+@media (min-width: 1320px) {
+  .rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+    .rmc-command-workbench--side,
+    .reportcard-builder-layout,
+    .site-settings-layout,
+    .rmc-mv-form-with-preview
+  ) {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem) !important;
+  }
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+  form,
+  .form-grid,
+  .form-rows,
+  .rmc-form-grid,
+  .rmc-command-form,
+  .theme-colors-workbench
+) {
+  min-width: 0;
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select,
+  .form-control,
+  .form-select
+) {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+  table,
+  .table,
+  .results,
+  .table-responsive,
+  [data-rmc-table],
+  [data-rmc-scroll-policy="paginate"]
+) {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+  .table-responsive,
+  .results,
+  [data-rmc-table],
+  [data-rmc-scroll-policy="paginate"]
+) {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+  iframe,
+  .rmc-preview-iframe,
+  iframe[data-rmc-preview-frame],
+  .report-preview-frame,
+  #liveReportPreviewFrame
+) {
+  width: 100%;
+  max-width: 100%;
+  min-height: clamp(28rem, 64vh, 54rem);
+  border-radius: var(--rmc-django-surface-radius);
+}
+
+@media (max-width: 991.98px) {
+  .rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] {
+    padding-inline: 0;
+  }
+
+  .rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
+    .rmc-command-workbench,
+    .theme-experience-grid,
+    .reportcard-builder-layout,
+    .site-settings-layout,
+    .rmc-mv-form-with-preview
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}

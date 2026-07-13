@@ -15,7 +15,13 @@
 {% endcomment %}
 <h1 class="visually-hidden">{% block backend_base_fallback_h1 %}{% trans "Backend" %}{% endblock %}</h1>
 {% comment %} Impersonation strip: portal_base page-wrap (1025) so all portal/backend children inherit without duplicating blocks. {% endcomment %}
-{% block backend_main %}{% endblock %}
+<div class="rmc-django-surface-canvas"
+     data-rmc-django-surface-canvas="tenant-backend"
+     data-rmc-django-surface-scope="tenant"
+     data-rmc-admin-canvas-contract="intelligent-full-width"
+     data-rmc-admin-content="canvas-first">
+  {% block backend_main %}{% endblock %}
+</div>
 {% endblock %}
 
 {% block breadcrumb_actions %}
@@ -75,6 +81,7 @@ Staff theme: /backend uses same ThemePack as /admin. Operator/platform uses dark
 <link rel="stylesheet" href="{% static 'css/backend-themes.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
 <link rel="stylesheet" href="{% static 'css/micro-feedback.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-django-surface-canvas-parity.css' %}?v=20260712-tenant-backend-parity">
 {% endwith %}
 <script src="{% static 'js/runmycampus-toast.js' %}" defer></script>
 <script type="application/json" id="page-data-backend_base-1">{
