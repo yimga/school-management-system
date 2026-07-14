@@ -17,6 +17,7 @@ SCRIPTS = (
     "scripts/audit_shell_scroll_contract.py",
     "scripts/audit_tenant_lifecycle_workflows.py",
     "scripts/verify_tenant_lifecycle_unified.py",
+    "scripts/audit_tenant_lifecycle_six_phase.py",
     "scripts/verify_tenant_offboarding_surface.py",
     "scripts/verify_platform_back_to_top.py",
 )
