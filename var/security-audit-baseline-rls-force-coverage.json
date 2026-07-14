@@ -1,8 +1,15 @@
 {
   "allowlist_count": 10,
-  "finding_count": 0,
-  "findings": [],
-  "generated_at": "2026-06-26T15:58:56+00:00",
+  "finding_count": 1,
+  "findings": [
+    {
+      "line": 16,
+      "model": "studio_os.ExperienceRegionApproval",
+      "path": "apps/studio_os/models.py",
+      "reason": "missing-enable-rls"
+    }
+  ],
+  "generated_at": "2026-07-14T08:55:33+00:00",
   "rule": "every tenant-scoped model must live in an app with both *_enable_rls_postgresql and *_rls_policy_default_deny migrations",
   "scan_dirs": [
     "apps"
