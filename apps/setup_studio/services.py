@@ -372,13 +372,10 @@ def _build_registry_key_rows(
 
 def _registry_settings_cta() -> dict[str, str]:
     """One-click path to school/region context (shared shell)."""
-    try:
-        return {
-            "label": gettext("Open school & region settings"),
-            "url": str(reverse("accounts:backend_dashboard")),
-        }
-    except (NoReverseMatch, TypeError, ValueError, RuntimeError):
-        return {"label": "", "url": "#"}
+    return {
+        "label": gettext("Open school & region settings"),
+        "url": "/school/configuration/",
+    }
 
 
 def _registry_alignment_snapshot(school) -> dict[str, Any]:

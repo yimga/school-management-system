@@ -43,6 +43,7 @@
                 <div class="small text-muted">{{ blueprint.target_school_type }} - {{ blueprint.status }}</div>
                 <div class="d-flex flex-wrap gap-1 mt-1 small" data-blueprint-offline-row="1">
                   <span class="badge text-bg-dark">{% trans "Offline" %}: {{ blueprint.local_first_manifest.offline_survival_target_days }}d</span>
+                  <span class="badge text-bg-primary">{{ blueprint.composition_role }}</span>
                   <span class="badge text-bg-secondary">{{ blueprint.local_first_manifest.browser_proof_status }}</span>
                 </div>
               </div>
@@ -90,7 +91,7 @@
           <strong>{% trans "Review before publish:" %}</strong>
           <ul class="mb-0 mt-1 ps-3">
             {% for warning in preview.warnings %}
-              <li>{{ warning.message|default:warning.code }}</li>
+              <li>{{ warning.message|default:warning }}</li>
             {% endfor %}
           </ul>
         </div>
@@ -146,6 +147,45 @@
               </div>
             </div>
           </details>
+        </section>
+        <section class="rounded-3 border p-3 mb-3" data-blueprint-composition-preview="1">
+          <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+            <div>
+              <h3 class="h6 mb-1">{% trans "Composition guidance" %}</h3>
+              <p class="small text-muted mb-0">{{ preview.composition_guidance.note }}</p>
+            </div>
+            <span class="badge text-bg-primary">{{ preview.composition_guidance.role }}</span>
+          </div>
+          <div class="row g-2 small">
+            <div class="col-md-4">
+              <strong class="d-block">{% trans "Works with" %}</strong>
+              {% for key in preview.composition_guidance.compatible_blueprints %}
+                <span class="badge text-bg-secondary me-1 mb-1">{{ key }}</span>
+              {% empty %}
+                <span class="text-muted">{% trans "Base plan only" %}</span>
+              {% endfor %}
+            </div>
+            <div class="col-md-4">
+              <strong class="d-block">{% trans "Tracks" %}</strong>
+              {% for track in preview.composition_guidance.education_tracks %}
+                <span class="badge text-bg-dark me-1 mb-1">{{ track }}</span>
+              {% endfor %}
+            </div>
+            <div class="col-md-4">
+              <strong class="d-block">{% trans "Tenant apps to consider" %}</strong>
+              {% for app in preview.app_catalog_recommendations %}
+                <span class="badge text-bg-info me-1 mb-1">{{ app }}</span>
+              {% empty %}
+                <a href="/settings/app-catalog/">{% trans "Open app catalog" %}</a>
+              {% endfor %}
+            </div>
+          </div>
+          {% if preview.composition_guidance.local_constraints %}
+            <div class="small mt-2">
+              <strong>{% trans "Local constraints" %}:</strong>
+              {{ preview.composition_guidance.local_constraints|join:", " }}
+            </div>
+          {% endif %}
         </section>
         <dl class="row small">
           <dt class="col-sm-4">{% trans "Can apply" %}</dt><dd class="col-sm-8">{{ preview.can_apply|yesno:"yes,no" }}</dd>

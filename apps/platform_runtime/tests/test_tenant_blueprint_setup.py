@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from django.test import Client, TestCase, override_settings
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
@@ -99,6 +101,14 @@ class TenantBlueprintSetupTests(TestCase):
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
         body = response.content.decode("utf-8", errors="replace")
         self.assertIn("live_payment_collection", body)
+        self.assertNotIn("VariableDoesNotExist", body)
+
+    def test_blueprint_template_never_reads_code_from_string_warnings(self):
+        template = Path("templates/platform_runtime/tenant_blueprint_setup.html").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertNotIn("warning.code", template)
 
     def test_all_tenant_safe_blueprints_have_resolvable_pack_references(self):
         blocked = {}
@@ -118,6 +128,22 @@ class TenantBlueprintSetupTests(TestCase):
                 blocked[blueprint["key"]] = missing
 
         self.assertEqual(blocked, {})
+
+    def test_tenant_safe_blueprints_expose_composition_and_app_catalog_guidance(self):
+        missing = {}
+        for blueprint in list_blueprints(tenant_safe_only=True):
+            preview = preview_blueprint(
+                blueprint["key"],
+                school=self.school,
+                actor=self.admin,
+                platform_operator=False,
+            )
+            guidance = preview.get("composition_guidance") or {}
+            if not guidance.get("role") or not guidance.get("education_tracks"):
+                missing[blueprint["key"]] = guidance
+            self.assertIn("app_catalog_recommendations", preview)
+
+        self.assertEqual(missing, {})
 
     def test_blocked_blueprint_state_explains_reason(self):
         client = self._admin_client()

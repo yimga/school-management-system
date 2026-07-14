@@ -176,6 +176,18 @@ def preview_blueprint(
             {},
         ),
     }
+    composition_guidance = {
+        "role": blueprint.composition_role,
+        "compatible_blueprints": list(blueprint.compatible_blueprints),
+        "regional_overlays": list(blueprint.regional_overlays),
+        "education_tracks": list(blueprint.education_tracks),
+        "local_constraints": list(blueprint.local_constraints),
+        "note": (
+            "Use this as an overlay with a base school blueprint."
+            if blueprint.composition_role.endswith("overlay")
+            else "Use this as a base operating model; add overlays for region, language, boarding, or offline needs."
+        ),
+    }
     result = {
         "blueprint_key": blueprint.key,
         "blueprint_name": blueprint.name,
@@ -206,6 +218,8 @@ def preview_blueprint(
             for role in blueprint.roles
         ],
         "conflict_policy_by_domain": local_first_manifest.get("conflict_policies", {}),
+        "composition_guidance": composition_guidance,
+        "app_catalog_recommendations": list(blueprint.app_catalog_recommendations),
         "tenant_safety_notes": safety_notes,
         "rollback_plan": rollback_plan,
         "audit_summary": {

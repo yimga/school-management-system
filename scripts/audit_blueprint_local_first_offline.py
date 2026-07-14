@@ -55,6 +55,22 @@ SOURCE_PROBES = {
         ROOT / "apps" / "platform_runtime" / "tests" / "test_seven_day_offline_endurance.py",
         "seven_day",
     ),
+    "tenant_blueprint_template_string_warning_safe": (
+        ROOT / "templates" / "platform_runtime" / "tenant_blueprint_setup.html",
+        "warning.message|default:warning",
+    ),
+    "tenant_blueprint_template_no_warning_code_lookup": (
+        ROOT / "templates" / "platform_runtime" / "tenant_blueprint_setup.html",
+        "warning.code",
+    ),
+    "tenant_launch_settings_cta_uses_tenant_configuration": (
+        ROOT / "apps" / "setup_studio" / "services.py",
+        "/school/configuration/",
+    ),
+    "tenant_app_catalog_route_exists": (
+        ROOT / "config" / "tenant_urls.py",
+        '"settings/app-catalog/"',
+    ),
 }
 
 
@@ -83,6 +99,11 @@ def _blueprint_rows() -> list[dict[str, Any]]:
             for field in REQUIRED_MANIFEST_FIELDS
             if field not in local_first_manifest
         ]
+        missing_composition = [
+            field
+            for field in ("composition_role", "education_tracks")
+            if not data.get(field)
+        ]
         rows.append(
             {
                 "key": data["key"],
@@ -93,6 +114,13 @@ def _blueprint_rows() -> list[dict[str, Any]]:
                 "offline_defaults": offline_defaults,
                 "local_first_manifest": local_first_manifest,
                 "missing_local_first_manifest_fields": missing,
+                "composition_role": data.get("composition_role", ""),
+                "compatible_blueprints": data.get("compatible_blueprints", ()),
+                "regional_overlays": data.get("regional_overlays", ()),
+                "education_tracks": data.get("education_tracks", ()),
+                "local_constraints": data.get("local_constraints", ()),
+                "app_catalog_recommendations": data.get("app_catalog_recommendations", ()),
+                "missing_composition_fields": missing_composition,
                 "status": _status(missing, data["tenant_safe"]),
                 "decision": "ADAPT EXISTING" if data["tenant_safe"] else "HIDE FROM TENANT",
             }
@@ -101,14 +129,22 @@ def _blueprint_rows() -> list[dict[str, Any]]:
 
 
 def _source_probe_rows() -> dict[str, bool]:
-    return {name: _contains(path, token) for name, (path, token) in SOURCE_PROBES.items()}
+    rows = {name: _contains(path, token) for name, (path, token) in SOURCE_PROBES.items()}
+    rows["tenant_blueprint_template_no_warning_code_lookup"] = not rows[
+        "tenant_blueprint_template_no_warning_code_lookup"
+    ]
+    return rows
 
 
 def _overall_status(rows: list[dict[str, Any]], probes: dict[str, bool]) -> str:
     tenant_rows = [row for row in rows if row["tenant_safe"]]
     if not tenant_rows:
         return "MISSING"
-    if all(row["status"] == "FUNCTIONAL" for row in tenant_rows) and all(probes.values()):
+    if (
+        all(row["status"] == "FUNCTIONAL" for row in tenant_rows)
+        and all(not row["missing_composition_fields"] for row in tenant_rows)
+        and all(probes.values())
+    ):
         return "FUNCTIONAL"
     return "FUNCTIONAL_BUT_UNPROVEN"
 
@@ -128,6 +164,11 @@ def _payload() -> dict[str, Any]:
                 for row in rows
                 if row["tenant_safe"] and row["missing_local_first_manifest_fields"]
             ),
+            "tenant_safe_blueprints_missing_composition_fields": sum(
+                1
+                for row in rows
+                if row["tenant_safe"] and row["missing_composition_fields"]
+            ),
             "source_probes_passing": sum(1 for passed in probes.values() if passed),
             "source_probes_total": len(probes),
         },
@@ -140,11 +181,16 @@ def _payload() -> dict[str, Any]:
             "Apply persists the local-first manifest in tenant-scoped school settings and install snapshots.",
             "Rollback restores settings and reports offline manifest invalidation posture.",
             "Tenant Blueprint UI exposes offline readiness, cached surfaces, queued actions, device roles, and proof status.",
+            "Tenant Blueprint UI safely renders string warnings from external dependency blockers.",
+            "Launch Studio school/region CTA now targets tenant configuration instead of the backend dashboard.",
+            "Blueprint preview exposes composition guidance for base models, overlays, tracks, local constraints, and tenant app catalog recommendations.",
         ],
         "recommended_follow_on": [
             "Replace PARTIAL browser proof status after a real browser restart/storage-pressure harness passes.",
             "Wire device manifest version bumps to the client sync runtime when that endpoint is available.",
             "Add per-blueprint browser screenshots for the tenant Blueprint UI after deployment.",
+            "Add a multi-select Blueprint composition planner so tenants can preview base + regional + offline + specialty overlays as one combined change set before apply.",
+            "Add country-specific Blueprint fixtures for regional calendars, grading variants, vocational programs, and compliance constraints.",
         ],
     }
 
@@ -165,6 +211,7 @@ def _write_markdown(payload: dict[str, Any]) -> None:
         f"- Tenant-safe blueprints: {payload['summary']['tenant_safe_blueprints']}",
         f"- Operator-only blueprints: {payload['summary']['operator_only_blueprints']}",
         f"- Tenant-safe Blueprints missing full local-first manifests: {payload['summary']['tenant_safe_blueprints_missing_manifest_fields']}",
+        f"- Tenant-safe Blueprints missing composition fields: {payload['summary']['tenant_safe_blueprints_missing_composition_fields']}",
         f"- Source probes passing: {payload['summary']['source_probes_passing']} / {payload['summary']['source_probes_total']}",
         "",
         "## Source Probes",
@@ -177,14 +224,18 @@ def _write_markdown(payload: dict[str, Any]) -> None:
             "",
             "## Blueprint Matrix",
             "",
-            "| Blueprint | Tenant safe | Status | Decision | Missing local-first fields |",
-            "| --- | --- | --- | --- | --- |",
+            "| Blueprint | Tenant safe | Role | Tracks | App recommendations | Status | Missing fields |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for row in payload["blueprints"]:
-        missing = ", ".join(row["missing_local_first_manifest_fields"]) or "None"
+        missing = ", ".join(
+            row["missing_local_first_manifest_fields"] + row["missing_composition_fields"]
+        ) or "None"
+        tracks = ", ".join(row["education_tracks"]) or "None"
+        apps = ", ".join(row["app_catalog_recommendations"]) or "None"
         lines.append(
-            f"| `{row['key']}` | `{row['tenant_safe']}` | `{row['status']}` | `{row['decision']}` | {missing} |"
+            f"| `{row['key']}` | `{row['tenant_safe']}` | `{row['composition_role']}` | {tracks} | {apps} | `{row['status']}` | {missing} |"
         )
     lines.extend(
         [

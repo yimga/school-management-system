@@ -80,6 +80,12 @@ class BlueprintContract:
     proof_links: tuple[str, ...] = ()
     psp_status: str = "not_applicable"
     external_required_items: tuple[str, ...] = ()
+    composition_role: str = "base"
+    compatible_blueprints: tuple[str, ...] = ()
+    regional_overlays: tuple[str, ...] = ()
+    education_tracks: tuple[str, ...] = ("general",)
+    local_constraints: tuple[str, ...] = ()
+    app_catalog_recommendations: tuple[str, ...] = ()
     version: str = "1.0.0"
 
     @property
@@ -263,6 +269,9 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         docs=("docs/architecture/RUNMYCAMPUS_BLUEPRINT_MARKETPLACE.md",),
         route_links=("/configuration/blueprints/private-primary-school/preview/",),
         proof_links=("docs/generated/blueprint_marketplace_depth_discovery.json",),
+        compatible_blueprints=("bilingual-school", "boarding-school", "low-connectivity-school"),
+        education_tracks=("general", "faith_based", "remedial_support"),
+        app_catalog_recommendations=("parent-communication", "attendance-recovery", "fee-reminder"),
     ),
     BlueprintContract(
         key="private-secondary-school",
@@ -285,6 +294,9 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         billing_defaults=_billing("secondary-school-os"),
         offline_defaults=_offline("standard", "marks_and_attendance_queues"),
         implementation_checklist=("Create departments", "Assign subject teachers", "Configure grading", "Review transcript template", "Run moderation simulation"),
+        compatible_blueprints=("cameroon-gce-school", "bilingual-school", "boarding-school", "low-connectivity-school"),
+        education_tracks=("general", "technical_vocational", "science", "arts", "commercial"),
+        app_catalog_recommendations=("grade-moderation", "department-performance", "discipline-escalation"),
     ),
     BlueprintContract(
         key="cameroon-gce-school",
@@ -310,6 +322,12 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         external_dependencies=("Regional PSP corridor proof",),
         external_required_items=("live_payment_collection",),
         psp_status="external_required",
+        composition_role="regional_overlay",
+        compatible_blueprints=("private-secondary-school", "bilingual-school", "low-connectivity-school"),
+        regional_overlays=("CM", "GCE", "subdivision-aware-grading"),
+        education_tracks=("general", "technical_vocational", "science", "arts", "commercial"),
+        local_constraints=("regional_exam_calendar", "manual_payment_fallback", "low_connectivity_assessment_entry"),
+        app_catalog_recommendations=("exam-registration", "report-validation", "manual-payment-reconciliation"),
     ),
     BlueprintContract(
         key="bilingual-school",
@@ -332,6 +350,11 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         billing_defaults=_billing("bilingual-school-os"),
         offline_defaults=_offline("standard", "localized_portal_cache"),
         implementation_checklist=("Set supported languages", "Review translated templates", "Assign language coordinator", "Preview family communications", "Publish language policy"),
+        composition_role="specialty_overlay",
+        compatible_blueprints=("private-primary-school", "private-secondary-school", "cameroon-gce-school", "international-school"),
+        education_tracks=("general", "dual_language", "regional_language_support"),
+        local_constraints=("language_visibility", "translation_review"),
+        app_catalog_recommendations=("language-specific-announcements", "report-translation-checks"),
     ),
     BlueprintContract(
         key="boarding-school",
@@ -354,6 +377,11 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         billing_defaults=_billing("boarding-school-os"),
         offline_defaults=_offline("standard", "attendance_and_welfare_notes"),
         implementation_checklist=("Create dormitories", "Assign boarding manager", "Configure leave approvals", "Review incident policy", "Set boarding fees"),
+        composition_role="specialty_overlay",
+        compatible_blueprints=("private-primary-school", "private-secondary-school", "low-connectivity-school"),
+        education_tracks=("general", "boarding_welfare"),
+        local_constraints=("guardian_approval", "incident_audit", "leave_request_control"),
+        app_catalog_recommendations=("leave-request", "incident-escalation", "boarding-operations"),
     ),
     BlueprintContract(
         key="international-school",
@@ -379,6 +407,11 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         external_dependencies=("Regional PSP and settlement proof",),
         external_required_items=("multi_currency_live_collection",),
         psp_status="external_required",
+        compatible_blueprints=("bilingual-school", "low-connectivity-school"),
+        regional_overlays=("multi_currency", "residency_retention"),
+        education_tracks=("international_curriculum", "general", "language_pathways"),
+        local_constraints=("residency_documents", "multi_currency_settlement_external_required"),
+        app_catalog_recommendations=("document-review", "curriculum-transition", "admissions-pipeline"),
     ),
     BlueprintContract(
         key="multi-campus-network",
@@ -406,6 +439,10 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         requires_platform_operator=True,
         tenant_safe=False,
         psp_status="external_required",
+        composition_role="operator_network",
+        regional_overlays=("portfolio_governance",),
+        education_tracks=("network_operations",),
+        local_constraints=("operator_approval_required", "cross_campus_governance"),
     ),
     BlueprintContract(
         key="low-connectivity-school",
@@ -431,6 +468,11 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         external_dependencies=("PSP proof if live collection is needed",),
         external_required_items=("live_payment_collection"),
         psp_status="external_required",
+        composition_role="offline_overlay",
+        compatible_blueprints=("private-primary-school", "private-secondary-school", "cameroon-gce-school", "boarding-school", "international-school"),
+        education_tracks=("general", "technical_vocational", "low_connectivity"),
+        local_constraints=("offline_queue_required", "manual_receipt_reconciliation", "sync_owner_required"),
+        app_catalog_recommendations=("conflict-review", "manual-payment-reconciliation", "offline-readiness"),
     ),
 )
 

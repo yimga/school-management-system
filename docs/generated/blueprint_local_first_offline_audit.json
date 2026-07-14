@@ -2,8 +2,25 @@
   "audit": "blueprint_local_first_offline",
   "blueprints": [
     {
+      "app_catalog_recommendations": [
+        "parent-communication",
+        "attendance-recovery",
+        "fee-reminder"
+      ],
+      "compatible_blueprints": [
+        "bilingual-school",
+        "boarding-school",
+        "low-connectivity-school"
+      ],
+      "composition_role": "base",
       "decision": "ADAPT EXISTING",
+      "education_tracks": [
+        "general",
+        "faith_based",
+        "remedial_support"
+      ],
       "key": "private-primary-school",
+      "local_constraints": [],
       "local_first_manifest": {
         "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
         "cached_surfaces": [
@@ -73,6 +90,7 @@
           "manual_sync": true
         }
       },
+      "missing_composition_fields": [],
       "missing_local_first_manifest_fields": [],
       "name": "Private Primary School",
       "offline_defaults": {
@@ -80,14 +98,35 @@
         "coverage": "attendance_and_report_drafts",
         "mode": "standard"
       },
+      "regional_overlays": [],
       "requires_platform_operator": false,
       "status": "FUNCTIONAL",
       "tenant_safe": true,
       "tenant_scoped": true
     },
     {
+      "app_catalog_recommendations": [
+        "grade-moderation",
+        "department-performance",
+        "discipline-escalation"
+      ],
+      "compatible_blueprints": [
+        "cameroon-gce-school",
+        "bilingual-school",
+        "boarding-school",
+        "low-connectivity-school"
+      ],
+      "composition_role": "base",
       "decision": "ADAPT EXISTING",
+      "education_tracks": [
+        "general",
+        "technical_vocational",
+        "science",
+        "arts",
+        "commercial"
+      ],
       "key": "private-secondary-school",
+      "local_constraints": [],
       "local_first_manifest": {
         "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
         "cached_surfaces": [
@@ -162,6 +201,7 @@
           "manual_sync": true
         }
       },
+      "missing_composition_fields": [],
       "missing_local_first_manifest_fields": [],
       "name": "Private Secondary School",
       "offline_defaults": {
@@ -169,14 +209,38 @@
         "coverage": "marks_and_attendance_queues",
         "mode": "standard"
       },
+      "regional_overlays": [],
       "requires_platform_operator": false,
       "status": "FUNCTIONAL",
       "tenant_safe": true,
       "tenant_scoped": true
     },
     {
+      "app_catalog_recommendations": [
+        "exam-registration",
+        "report-validation",
+        "manual-payment-reconciliation"
+      ],
+      "compatible_blueprints": [
+        "private-secondary-school",
+        "bilingual-school",
+        "low-connectivity-school"
+      ],
+      "composition_role": "regional_overlay",
       "decision": "ADAPT EXISTING",
+      "education_tracks": [
+        "general",
+        "technical_vocational",
+        "science",
+        "arts",
+        "commercial"
+      ],
       "key": "cameroon-gce-school",
+      "local_constraints": [
+        "regional_exam_calendar",
+        "manual_payment_fallback",
+        "low_connectivity_assessment_entry"
+      ],
       "local_first_manifest": {
         "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
         "cached_surfaces": [
@@ -249,6 +313,7 @@
           "manual_sync": true
         }
       },
+      "missing_composition_fields": [],
       "missing_local_first_manifest_fields": [],
       "name": "Cameroon GCE School",
       "offline_defaults": {
@@ -256,14 +321,39 @@
         "coverage": "low_connectivity_assessment_entry",
         "mode": "high"
       },
+      "regional_overlays": [
+        "CM",
+        "GCE",
+        "subdivision-aware-grading"
+      ],
       "requires_platform_operator": false,
       "status": "FUNCTIONAL",
       "tenant_safe": true,
       "tenant_scoped": true
     },
     {
+      "app_catalog_recommendations": [
+        "language-specific-announcements",
+        "report-translation-checks"
+      ],
+      "compatible_blueprints": [
+        "private-primary-school",
+        "private-secondary-school",
+        "cameroon-gce-school",
+        "international-school"
+      ],
+      "composition_role": "specialty_overlay",
       "decision": "ADAPT EXISTING",
+      "education_tracks": [
+        "general",
+        "dual_language",
+        "regional_language_support"
+      ],
       "key": "bilingual-school",
+      "local_constraints": [
+        "language_visibility",
+        "translation_review"
+      ],
       "local_first_manifest": {
         "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
         "cached_surfaces": [
@@ -332,6 +422,7 @@
           "manual_sync": true
         }
       },
+      "missing_composition_fields": [],
       "missing_local_first_manifest_fields": [],
       "name": "Bilingual School",
       "offline_defaults": {
@@ -339,14 +430,35 @@
         "coverage": "localized_portal_cache",
         "mode": "standard"
       },
+      "regional_overlays": [],
       "requires_platform_operator": false,
       "status": "FUNCTIONAL",
       "tenant_safe": true,
       "tenant_scoped": true
     },
     {
+      "app_catalog_recommendations": [
+        "leave-request",
+        "incident-escalation",
+        "boarding-operations"
+      ],
+      "compatible_blueprints": [
+        "private-primary-school",
+        "private-secondary-school",
+        "low-connectivity-school"
+      ],
+      "composition_role": "specialty_overlay",
       "decision": "ADAPT EXISTING",
+      "education_tracks": [
+        "general",
+        "boarding_welfare"
+      ],
       "key": "boarding-school",
+      "local_constraints": [
+        "guardian_approval",
+        "incident_audit",
+        "leave_request_control"
+      ],
       "local_first_manifest": {
         "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
         "cached_surfaces": [
@@ -415,6 +527,7 @@
           "manual_sync": true
         }
       },
+      "missing_composition_fields": [],
       "missing_local_first_manifest_fields": [],
       "name": "Boarding School",
       "offline_defaults": {
@@ -422,14 +535,34 @@
         "coverage": "attendance_and_welfare_notes",
         "mode": "standard"
       },
+      "regional_overlays": [],
       "requires_platform_operator": false,
       "status": "FUNCTIONAL",
       "tenant_safe": true,
       "tenant_scoped": true
     },
     {
+      "app_catalog_recommendations": [
+        "document-review",
+        "curriculum-transition",
+        "admissions-pipeline"
+      ],
+      "compatible_blueprints": [
+        "bilingual-school",
+        "low-connectivity-school"
+      ],
+      "composition_role": "base",
       "decision": "ADAPT EXISTING",
+      "education_tracks": [
+        "international_curriculum",
+        "general",
+        "language_pathways"
+      ],
       "key": "international-school",
+      "local_constraints": [
+        "residency_documents",
+        "multi_currency_settlement_external_required"
+      ],
       "local_first_manifest": {
         "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
         "cached_surfaces": [
@@ -502,6 +635,7 @@
           "manual_sync": true
         }
       },
+      "missing_composition_fields": [],
       "missing_local_first_manifest_fields": [],
       "name": "International School",
       "offline_defaults": {
@@ -509,14 +643,28 @@
         "coverage": "portal_and_document_cache",
         "mode": "standard"
       },
+      "regional_overlays": [
+        "multi_currency",
+        "residency_retention"
+      ],
       "requires_platform_operator": false,
       "status": "FUNCTIONAL",
       "tenant_safe": true,
       "tenant_scoped": true
     },
     {
+      "app_catalog_recommendations": [],
+      "compatible_blueprints": [],
+      "composition_role": "operator_network",
       "decision": "HIDE FROM TENANT",
+      "education_tracks": [
+        "network_operations"
+      ],
       "key": "multi-campus-network",
+      "local_constraints": [
+        "operator_approval_required",
+        "cross_campus_governance"
+      ],
       "local_first_manifest": {
         "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
         "cached_surfaces": [
@@ -585,6 +733,7 @@
           "manual_sync": true
         }
       },
+      "missing_composition_fields": [],
       "missing_local_first_manifest_fields": [],
       "name": "Multi-campus Network",
       "offline_defaults": {
@@ -592,14 +741,40 @@
         "coverage": "campus_local_queues",
         "mode": "standard"
       },
+      "regional_overlays": [
+        "portfolio_governance"
+      ],
       "requires_platform_operator": true,
       "status": "OPERATOR_ONLY",
       "tenant_safe": false,
       "tenant_scoped": true
     },
     {
+      "app_catalog_recommendations": [
+        "conflict-review",
+        "manual-payment-reconciliation",
+        "offline-readiness"
+      ],
+      "compatible_blueprints": [
+        "private-primary-school",
+        "private-secondary-school",
+        "cameroon-gce-school",
+        "boarding-school",
+        "international-school"
+      ],
+      "composition_role": "offline_overlay",
       "decision": "ADAPT EXISTING",
+      "education_tracks": [
+        "general",
+        "technical_vocational",
+        "low_connectivity"
+      ],
       "key": "low-connectivity-school",
+      "local_constraints": [
+        "offline_queue_required",
+        "manual_receipt_reconciliation",
+        "sync_owner_required"
+      ],
       "local_first_manifest": {
         "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
         "cached_surfaces": [
@@ -696,6 +871,7 @@
           "manual_sync": true
         }
       },
+      "missing_composition_fields": [],
       "missing_local_first_manifest_fields": [],
       "name": "Low-connectivity School",
       "offline_defaults": {
@@ -703,6 +879,7 @@
         "coverage": "attendance_marks_reports_payments",
         "mode": "high"
       },
+      "regional_overlays": [],
       "requires_platform_operator": false,
       "status": "FUNCTIONAL",
       "tenant_safe": true,
@@ -714,13 +891,18 @@
     "Preview emits offline readiness, device-role impact, outage survival, conflict policy, and proof status.",
     "Apply persists the local-first manifest in tenant-scoped school settings and install snapshots.",
     "Rollback restores settings and reports offline manifest invalidation posture.",
-    "Tenant Blueprint UI exposes offline readiness, cached surfaces, queued actions, device roles, and proof status."
+    "Tenant Blueprint UI exposes offline readiness, cached surfaces, queued actions, device roles, and proof status.",
+    "Tenant Blueprint UI safely renders string warnings from external dependency blockers.",
+    "Launch Studio school/region CTA now targets tenant configuration instead of the backend dashboard.",
+    "Blueprint preview exposes composition guidance for base models, overlays, tracks, local constraints, and tenant app catalog recommendations."
   ],
   "overall_status": "FUNCTIONAL",
   "recommended_follow_on": [
     "Replace PARTIAL browser proof status after a real browser restart/storage-pressure harness passes.",
     "Wire device manifest version bumps to the client sync runtime when that endpoint is available.",
-    "Add per-blueprint browser screenshots for the tenant Blueprint UI after deployment."
+    "Add per-blueprint browser screenshots for the tenant Blueprint UI after deployment.",
+    "Add a multi-select Blueprint composition planner so tenants can preview base + regional + offline + specialty overlays as one combined change set before apply.",
+    "Add country-specific Blueprint fixtures for regional calendars, grading variants, vocational programs, and compliance constraints."
   ],
   "required_manifest_fields": [
     "offline_survival_target_days",
@@ -745,13 +927,18 @@
     "preview_emits_offline_readiness": true,
     "rollback_invalidates_offline_manifest": true,
     "server_seven_day_proof_exists": true,
+    "tenant_app_catalog_route_exists": true,
+    "tenant_blueprint_template_no_warning_code_lookup": true,
+    "tenant_blueprint_template_string_warning_safe": true,
+    "tenant_launch_settings_cta_uses_tenant_configuration": true,
     "tenant_ui_shows_offline_readiness": true
   },
   "summary": {
     "operator_only_blueprints": 1,
-    "source_probes_passing": 6,
-    "source_probes_total": 6,
+    "source_probes_passing": 10,
+    "source_probes_total": 10,
     "tenant_safe_blueprints": 7,
+    "tenant_safe_blueprints_missing_composition_fields": 0,
     "tenant_safe_blueprints_missing_manifest_fields": 0
   }
 }
