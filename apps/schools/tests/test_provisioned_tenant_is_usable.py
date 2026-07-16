@@ -188,6 +188,66 @@ class ProvisionedTenantIsUsableTests(TestCase):
 
 
 @override_settings(MULTI_TENANT_BASE_DOMAIN="runmycampus.com")
+class Day1TeacherCanReachAClassroomTests(TestCase):
+    """The outcome the whole grid exists for, end to end.
+
+    The teacher portal resolves classrooms through
+    ``TeacherAssignment -> subject_assignment__classroom_id`` and an unassigned
+    teacher "sees nothing" by design (portal/views_teacher). With no
+    SubjectAssignment there was nothing to assign a teacher TO, so that lockout
+    was unreachable-by-construction rather than a policy: every teacher in a
+    freshly provisioned school saw an empty dropdown on day 1, with no error.
+    """
+
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Day One Academy",
+            slug="day-one-academy",
+            subdomain="day-one-academy",
+            country_code="CM",
+            is_active=False,
+        )
+        from apps.schools.tasks import provision_school_sync
+
+        provision_school_sync(str(self.school.id), contact_email="owner@dayone.test")
+
+    def test_a_teacher_assigned_to_a_seeded_grid_row_reaches_its_classroom(self):
+        from apps.accounts.models import User
+        from apps.evals.models import TeacherAssignment, TeacherProfile
+
+        row = SubjectAssignment.objects.filter(school=self.school).first()
+        self.assertIsNotNone(row, "provisioning must leave something to assign to")
+
+        teacher_user = User.objects.create_user(
+            username="dayone_teacher",
+            email="teacher@dayone.test",
+            password="password123",
+            role=User.Role.TEACHER,
+        )
+        profile = TeacherProfile.objects.create(user=teacher_user, school=self.school)
+        TeacherAssignment.objects.create(
+            school=self.school,
+            teacher=profile,
+            academic_year=row.academic_year,
+            subject_assignment=row,
+            is_active=True,
+        )
+
+        # The exact join the teacher portal makes to build the classroom list.
+        reachable = set(
+            TeacherAssignment.objects.filter(
+                teacher=profile, is_active=True
+            ).values_list("subject_assignment__classroom_id", flat=True)
+        )
+        self.assertIn(
+            row.classroom_id,
+            reachable,
+            "a teacher assigned to a provisioned class must be able to reach it -- "
+            "this is the day-1 attendance/grade-entry surface",
+        )
+
+
+@override_settings(MULTI_TENANT_BASE_DOMAIN="runmycampus.com")
 class TeachingGridPrerequisitesTests(TestCase):
     """The seed must degrade honestly, never half-write or raise."""
 
