@@ -149,9 +149,15 @@ class GatewayLiveHttpTests(SimpleTestCase):
         self.assertTrue(verified.success)
 
     def test_flutterwave_initialize_verify_round_trip(self):
+        # redirect_url is REQUIRED by Flutterwave's /payments call. Without it this
+        # test never reached the HTTP branch at all: the old `if email and redirect:`
+        # was False, http_post_json (patched below) was never invoked, and the test
+        # passed only via the fake-success fallthrough it was meant to be proving.
+        # The mock was decorative. Supplying redirect_url makes the round trip real.
         cfg = {
             "secret_key": "FLWSECK_TEST-xxx",
             "default_payer_email": "parent@school.test",
+            "redirect_url": "https://school.test/pay/return",
         }
         gw = FlutterwaveGateway(_School(), cfg)
         with patch(
