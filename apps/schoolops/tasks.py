@@ -535,10 +535,10 @@ def _school_admin_recipients(school) -> list:
     recipients: list = []
     seen: set = set()
     qs = (
-        # tenant-isolation-allow: low-inventory-recipients-are-scoped-by-school-membership
-        SchoolMembership.objects.filter(
-            school=school, role="ADMIN",  # role-string-allow: notify-school-admins-of-low-inventory-stock
-        )
+        # `school` is the low-stock item's own tenant (guarded non-None above), so
+        # this is tenant-scoped; keep `school=` on the .filter( line so the
+        # celery-tenant-scope gate can see the scoping (audit_celery_tenant_task_scoping).
+        SchoolMembership.objects.filter(school=school, role="ADMIN")  # role-string-allow: notify-school-admins-of-low-inventory-stock
         .select_related("user")
         .order_by("-is_primary", "id")[:_LOW_STOCK_ADMIN_RECIPIENT_CAP]
     )
