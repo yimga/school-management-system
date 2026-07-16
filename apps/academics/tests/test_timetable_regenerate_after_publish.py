@@ -7,13 +7,23 @@ time_slot) with condition is_cancelled=False and are STATUS-AGNOSTIC — so a
 surviving PUBLISHED schedule's entries collided with the regenerated ones,
 raising IntegrityError: a 500 that permanently blocked regenerating a term's
 timetable in-product. The cleanup now clears schedules of every status.
+
+UPDATE (2026-07-16): the delete-everything cleanup treated the symptom. The
+constraints themselves were scoped wrong — keyed on ``term`` when bookings live
+in a ``Schedule`` and a term legitimately holds many (drafts, candidates, the
+published plan). That forced this trade: destroy the live timetable to make room
+for an unreviewed draft, and give up ``compare_schedules`` entirely. Migration
+0066 rescopes the uniques to the PLAN, so a draft may now coexist with the
+published plan it is meant to replace. The cleanup below is kept — a regenerate
+that replaces the term's plans is still reasonable product behaviour — but it is
+no longer load-bearing for correctness. See ScheduleEntry.Meta.
 """
 
 from __future__ import annotations
 
 import uuid
 
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.test import TestCase
 
 from apps.academics.scheduling import Schedule, ScheduleEntry, TimetableGenerator
@@ -63,23 +73,26 @@ class RegenerateAfterPublishTests(_TimetableGraphMixin, TestCase):
         # The published schedule was replaced, not left dangling.
         self.assertFalse(Schedule.objects.filter(pk=first.pk).exists())
 
-    def test_draft_only_cleanup_leaves_published_entry_colliding(self):
-        """Documents the bug the fix closes: the term-wide unique constraint bites
-        ACROSS schedules regardless of status, so a published entry blocks an
-        identical draft entry — which is exactly what a DRAFT-only cleanup left."""
+    def test_a_draft_may_now_coexist_with_the_published_plan(self):
+        """The inverse of what this test used to assert — deliberately.
+
+        It previously pinned the term-wide unique biting ACROSS schedules
+        (a published entry blocking an identical draft entry) as CORRECT, and
+        justified deleting the live timetable on every regenerate. That was the
+        bug, not the contract: it also made the second plan for any term
+        impossible, so a school could generate its timetable exactly once.
+
+        Migration 0066 rescopes the uniques to the plan. A draft proposing the
+        same teacher/room/slot as the published plan is a PROPOSAL, not a clash,
+        and must be storable — that is what lets a school draft a replacement
+        while the current timetable stays live.
+        """
         gen = TimetableGenerator(self.graph["year"], self.graph["term"])
         published = gen.generate_schedule(created_by=self.admin)
         published.publish()
         sample = published.entries.first()
         self.assertIsNotNone(sample)
 
-        # OLD cleanup: DRAFT only — the published schedule + its entries survive.
-        Schedule.objects.filter(
-            academic_year=self.graph["year"],
-            term=self.graph["term"],
-            academic_year__school=self.school,
-            status="DRAFT",
-        ).delete()
         draft = Schedule.objects.create(
             name=f"regen-draft-{self.uid}",
             academic_year=self.graph["year"],
@@ -87,13 +100,41 @@ class RegenerateAfterPublishTests(_TimetableGraphMixin, TestCase):
             status="DRAFT",
             created_by=self.admin,
         )
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                ScheduleEntry.objects.create(
-                    schedule=draft,
-                    classroom=sample.classroom,
-                    subject=sample.subject,
-                    teacher=sample.teacher,
-                    room=sample.room,
-                    time_slot=sample.time_slot,
-                )
+        with transaction.atomic():
+            ScheduleEntry.objects.create(
+                schedule=draft,
+                classroom=sample.classroom,
+                subject=sample.subject,
+                teacher=sample.teacher,
+                room=sample.room,
+                time_slot=sample.time_slot,
+            )
+
+        self.assertTrue(Schedule.objects.filter(pk=published.pk).exists())
+        self.assertEqual(draft.entries.count(), 1)
+
+    def test_publishing_a_replacement_demotes_the_previous_plan(self):
+        """One live timetable per (term, shift) — the invariant term-scoping gave
+        by accident, now enforced where it belongs."""
+        gen = TimetableGenerator(self.graph["year"], self.graph["term"])
+        first = gen.generate_schedule(created_by=self.admin)
+        first.publish()
+
+        replacement = Schedule.objects.create(
+            name=f"regen-replacement-{self.uid}",
+            academic_year=self.graph["year"],
+            term=self.graph["term"],
+            status="DRAFT",
+            created_by=self.admin,
+        )
+        replacement.publish()
+
+        first.refresh_from_db()
+        self.assertEqual(first.status, "DRAFT", "the old plan must step down")
+        self.assertEqual(
+            Schedule.objects.filter(
+                term=self.graph["term"], shift=replacement.shift, status="PUBLISHED"
+            ).count(),
+            1,
+            "a term/shift must have exactly one live timetable",
+        )

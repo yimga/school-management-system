@@ -121,10 +121,12 @@ def _tenant_bundle_or_404(request, bundle_id: int) -> MigrationBundle:
     if school is None:
         raise Http404()
     try:
-        bundle = MigrationBundle.objects.get(pk=bundle_id)
+        # Scoped by construction rather than fetch-then-compare: the school is in
+        # the WHERE clause, so the isolation cannot be lost by deleting a check
+        # below it. Identical contract — a cross-tenant id simply does not match
+        # and raises DoesNotExist, which is the same 404 as an unknown id.
+        bundle = MigrationBundle.objects.get(pk=bundle_id, school=school)
     except (MigrationBundle.DoesNotExist, ValueError, TypeError):
-        raise Http404("bundle not found")
-    if bundle.school_id != getattr(school, "pk", None):
         raise Http404("bundle not found")
     return bundle
 

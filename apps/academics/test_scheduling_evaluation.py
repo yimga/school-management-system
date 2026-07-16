@@ -105,19 +105,29 @@ class SchedulingEvaluationTests(TestCase):
         self.assertEqual(metrics["entry_count"], 2)
         self.assertEqual(metrics["hard_violations_total"], 0)
 
-    def test_teacher_double_booking_detected(self):
+    def test_teacher_double_booking_cannot_be_stored_at_all(self):
+        """Stronger than detecting it: the plan cannot hold one.
+
+        This used to build a teacher double-booking and assert the evaluator
+        counted it. The per-plan DB uniques (ScheduleEntry.Meta) now make that
+        state unstorable, so the fixture could not be built and the test errored.
+        The evaluator's teacher/room counters are kept as defense-in-depth, and
+        its classroom counter — the one class with no DB guard — is still
+        exercised by test_classroom_double_booking_detected below.
+        """
+        from django.db import IntegrityError, transaction
+
         s = self._make_schedule()
         ScheduleEntry.objects.create(
             schedule=s, classroom=self.classroom_a, subject=self.subj_math,
             teacher=self.t1, room=self.room1, time_slot=self.slot_mon_p1,
         )
-        ScheduleEntry.objects.create(
-            schedule=s, classroom=self.classroom_b, subject=self.subj_eng,
-            teacher=self.t1, room=self.room2, time_slot=self.slot_mon_p1,
-        )
-        metrics = evaluate_schedule(s)
-        self.assertEqual(metrics["hard_violations"]["teacher_double_booked"], 1)
-        self.assertEqual(metrics["hard_violations_total"], 1)
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ScheduleEntry.objects.create(
+                    schedule=s, classroom=self.classroom_b, subject=self.subj_eng,
+                    teacher=self.t1, room=self.room2, time_slot=self.slot_mon_p1,
+                )
 
     def test_classroom_double_booking_detected(self):
         s = self._make_schedule()
@@ -174,6 +184,17 @@ class SchedulingEvaluationTests(TestCase):
         self.assertEqual(metrics["classroom_spread_avg"], 2.0)
 
     def test_compare_schedules_prefers_fewer_violations(self):
+        """Two rival plans for one term, weighed on hard violations.
+
+        Note this test could not even RUN before the uniques were rescoped to the
+        plan (0066): building a second Schedule for the same term collided on the
+        term-wide constraint, so the very feature compare_schedules exists for was
+        impossible. The rival plans below are the point.
+
+        The 'bad' plan double-books the CLASSROOM rather than the teacher: the
+        student group is the one hard-violation class with no DB constraint, so it
+        is the only one a stored plan can actually exhibit.
+        """
         good = self._make_schedule()
         ScheduleEntry.objects.create(
             schedule=good, classroom=self.classroom_a, subject=self.subj_math,
@@ -185,8 +206,8 @@ class SchedulingEvaluationTests(TestCase):
             teacher=self.t1, room=self.room1, time_slot=self.slot_mon_p1,
         )
         ScheduleEntry.objects.create(
-            schedule=bad, classroom=self.classroom_b, subject=self.subj_eng,
-            teacher=self.t1, room=self.room2, time_slot=self.slot_mon_p1,
+            schedule=bad, classroom=self.classroom_a, subject=self.subj_eng,
+            teacher=self.t2, room=self.room2, time_slot=self.slot_mon_p1,
         )
         result = compare_schedules(good, bad)
         self.assertEqual(result["winner"], "left")

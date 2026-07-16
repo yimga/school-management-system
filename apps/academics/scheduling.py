@@ -11,7 +11,7 @@ INTEGRATES WITH:
 from datetime import datetime, timedelta
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -190,10 +190,27 @@ class Schedule(models.Model):
         return f"{self.name} - {self.term.name}"
 
     def publish(self):
-        """Publish the schedule"""
-        self.status = "PUBLISHED"
-        self.published_at = timezone.now()
-        self.save()
+        """Publish this plan as the term's live timetable.
+
+        Demotes any rival published plan for the same (term, shift) back to DRAFT,
+        because a term/shift has exactly ONE live timetable — two would mean the
+        school is genuinely double-booking teachers and rooms.
+
+        This invariant used to be an accident of the ScheduleEntry uniques being
+        keyed on ``term``: they made a second plan of ANY status impossible, which
+        blocked double-publishing only as a side effect of also blocking all
+        re-planning. Those uniques are now per-plan (see ScheduleEntry.Meta), so
+        the invariant is enforced here, where it is actually about publishing —
+        and drafting a replacement no longer requires destroying the live one.
+        """
+        with transaction.atomic():
+            # tenant-isolation-allow: schedule-publish-demote-rivals-scoped-by-term-and-shift-fks
+            Schedule.objects.filter(
+                term_id=self.term_id, shift_id=self.shift_id, status="PUBLISHED"
+            ).exclude(pk=self.pk).update(status="DRAFT")
+            self.status = "PUBLISHED"
+            self.published_at = timezone.now()
+            self.save()
 
 
 class ScheduleEntry(models.Model):
@@ -246,28 +263,41 @@ class ScheduleEntry(models.Model):
             models.Index(fields=["term", "teacher", "time_slot"]),
             models.Index(fields=["term", "room", "time_slot"]),
         ]
+        # Double-booking is prevented PER PLAN, not per term.
+        #
+        # Phase 4E (0055) keyed these on ``term``, which is the right intent at the
+        # wrong scope: bookings live in a Schedule, and a term legitimately holds
+        # MANY of them. ``generate_schedule`` mints a new DRAFT on every run,
+        # ``solve_timetable`` does the same, Schedule carries DRAFT/PUBLISHED
+        # statuses, and ``compare_schedules`` exists purely to weigh two candidate
+        # plans for one term against each other. Term-scoping made the SECOND plan
+        # for any term impossible: every entry collided with the first on
+        # (term, teacher|room, time_slot) and died with IntegrityError, so a school
+        # could generate its timetable exactly once, ever.
+        #
+        # That already burned the product once: the regenerate view now deletes
+        # EVERY schedule for the term (see views_timetable + the
+        # test_timetable_regenerate_after_publish regression) purely to dodge this
+        # constraint — destroying the live published timetable to make room for an
+        # unreviewed draft. Scoping to the plan removes the need for that trade.
+        #
+        # A draft is a proposal, not a commitment, so two plans proposing the same
+        # teacher/slot is not a conflict. The real-world invariant — the LIVE
+        # timetable never double-books — is preserved by these per-plan uniques
+        # plus ``Schedule.publish``, which demotes any rival published plan for the
+        # same (term, shift). ``instruction_shift`` is constant within a plan
+        # (``_sync_scope_from_schedule`` copies it from the schedule), so the old
+        # shift/term-wide split collapses to one constraint per resource.
         constraints = [
             models.UniqueConstraint(
-                fields=["term", "teacher", "time_slot", "instruction_shift"],
-                condition=models.Q(is_cancelled=False)
-                & ~models.Q(instruction_shift__isnull=True),
-                name="uniq_schedentry_teacher_slot_shift",
+                fields=["schedule", "teacher", "time_slot"],
+                condition=models.Q(is_cancelled=False),
+                name="uniq_schedentry_teacher_slot_in_plan",
             ),
             models.UniqueConstraint(
-                fields=["term", "teacher", "time_slot"],
-                condition=models.Q(is_cancelled=False, instruction_shift__isnull=True),
-                name="uniq_schedentry_teacher_slot_termwide",
-            ),
-            models.UniqueConstraint(
-                fields=["term", "room", "time_slot", "instruction_shift"],
-                condition=models.Q(is_cancelled=False)
-                & ~models.Q(instruction_shift__isnull=True),
-                name="uniq_schedentry_room_slot_shift",
-            ),
-            models.UniqueConstraint(
-                fields=["term", "room", "time_slot"],
-                condition=models.Q(is_cancelled=False, instruction_shift__isnull=True),
-                name="uniq_schedentry_room_slot_termwide",
+                fields=["schedule", "room", "time_slot"],
+                condition=models.Q(is_cancelled=False),
+                name="uniq_schedentry_room_slot_in_plan",
             ),
         ]
 
@@ -287,34 +317,36 @@ class ScheduleEntry(models.Model):
         super().save(*args, **kwargs)
 
     def clean(self):
-        """Validate no conflicts (ORM layer; DB partial uniques enforce on save)."""
+        """Validate no conflicts (ORM layer; DB partial uniques enforce on save).
+
+        Scoped to the PLAN, mirroring the per-plan uniques in Meta. It used to be
+        term-scoped, which rejected any booking a RIVAL plan for the same term had
+        already made — so this raised ValidationError on every entry of a second
+        draft, blocking re-planning at the ORM layer exactly as the old DB
+        constraints did at the storage layer. A rival draft is a proposal, not a
+        clash.
+        """
         if self.pk is None:
             self._sync_scope_from_schedule()
+            if not self.schedule_id:
+                return
             teacher_qs = ScheduleEntry.objects.filter(
-                term_id=self.term_id,
+                schedule_id=self.schedule_id,
                 teacher=self.teacher,
                 time_slot=self.time_slot,
                 is_cancelled=False,
             )
-            if self.instruction_shift_id:
-                teacher_qs = teacher_qs.filter(
-                    instruction_shift_id=self.instruction_shift_id
-                )
-
             if teacher_qs.exists():
                 raise ValidationError(
                     f"Teacher {self.teacher.username} is already scheduled for {self.time_slot.slot_name}"
                 )
 
             room_qs = ScheduleEntry.objects.filter(
-                term_id=self.term_id,
+                schedule_id=self.schedule_id,
                 room=self.room,
                 time_slot=self.time_slot,
                 is_cancelled=False,
             )
-            if self.instruction_shift_id:
-                room_qs = room_qs.filter(instruction_shift_id=self.instruction_shift_id)
-
             if room_qs.exists():
                 raise ValidationError(
                     f"Room {self.room.name} is already booked for {self.time_slot.slot_name}"
@@ -528,10 +560,42 @@ class TimetableGenerator:
         return subject_assignment.teachers.first()
 
     def detect_conflicts(self, schedule) -> List[Dict]:
-        """Detect scheduling conflicts"""
+        """Detect scheduling conflicts in a plan.
+
+        The teacher and room checks are now defense-in-depth: the per-plan DB
+        uniques (see ScheduleEntry.Meta) make those two classes unstorable, so
+        they can only fire if a constraint is ever dropped or data is loaded
+        around the ORM. Cheap to keep, and they fail loudly rather than silently.
+
+        The CLASSROOM check is not redundant — it is the only guard that exists.
+        A ``Classroom`` here is the student GROUP (Form 1, Class A), not the room,
+        and nothing prevents booking one group into two lessons at the same time.
+        That is the conflict that matters most (students cannot be in two places
+        at once) and it had no DB constraint AND no detector, so the operator
+        conflicts endpoint (api_views) reported a clean plan while a class sat
+        double-booked. ``scheduling_evaluation._hard_violations`` counts it, but
+        nothing surfaced it here.
+        """
         conflicts = []
 
         entries = ScheduleEntry.objects.filter(schedule=schedule, is_cancelled=False)
+
+        # Check for classroom (student group) double-booking — the real gap.
+        for entry in entries:
+            overlaps = entries.filter(
+                classroom=entry.classroom, time_slot=entry.time_slot
+            ).exclude(pk=entry.pk)
+
+            if overlaps.exists():
+                conflicts.append(
+                    {
+                        "type": "CLASSROOM_CONFLICT",
+                        "classroom": entry.classroom.name,
+                        "time_slot": str(entry.time_slot),
+                        "entries": [entry.pk]
+                        + list(overlaps.values_list("pk", flat=True)),
+                    }
+                )
 
         # Check for teacher double-booking
         for entry in entries:

@@ -210,7 +210,12 @@ def repair_bundle(*, bundle_id: int) -> RepairResult:
     """
     from .orchestrator import apply_bundle
 
-    bundle = MigrationBundle.objects.get(pk=bundle_id)  # tenant scoped by caller
+    # tenant-isolation-allow: repair-bundle-pk-already-tenant-verified-by-calling-view
+    # The sole caller (TenantMigrationRepairView.post) resolves the bundle through
+    # _tenant_bundle_or_404 FIRST and passes that verified pk, so this re-fetch
+    # cannot widen scope. Any NEW caller must do the same — pass a pk you have
+    # already scoped to the acting tenant, never a raw user-supplied id.
+    bundle = MigrationBundle.objects.get(pk=bundle_id)
     before = bundle.status
     readiness = repair_readiness(bundle)
     if not readiness.repairable:

@@ -28,6 +28,8 @@ from unittest import mock
 from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
 
+from apps.accounts.models import User
+
 
 @override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost"])
 class SolveTimetableCommandTests(TestCase):
@@ -192,8 +194,17 @@ class SolverRealityTests(TestCase):
             self.skipTest("ortools installed in this env; CSP-fallback assertion N/A")
 
         year, term = self._make_year_term()
+        # created_by must be a real user: Schedule.created_by is a non-null FK, so
+        # passing None raised IntegrityError before the assertions below could run
+        # (the test never actually exercised the solver wiring it is named for).
+        # Every production caller supplies the acting user; only this test did not.
+        actor = User.objects.create_user(
+            username="csp_fallback_actor_%s" % id(self),
+            email="csp_fallback_actor_%s@example.com" % id(self),
+            password="password123",
+        )
         schedule = generate_timetable_with_solver(
-            academic_year=year, term=term, created_by=None,
+            academic_year=year, term=term, created_by=actor,
         )
         self.assertIsInstance(schedule, Schedule)
         self.assertIsNotNone(schedule.pk)

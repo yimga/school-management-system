@@ -372,7 +372,22 @@ class TimetableGeneratorTestCase(TestCase):
             created_by=self.user,
         )
 
-        # Create two entries with same teacher and time
+        # This used to double-book the TEACHER, which the per-plan DB uniques now
+        # make unstorable (see ScheduleEntry.Meta) — so the old fixture could no
+        # longer be built and the test errored on IntegrityError rather than
+        # proving anything. Double-book the CLASSROOM instead: that is the student
+        # group, it has no DB constraint, and it is the conflict detect_conflicts
+        # actually exists to surface.
+        other_teacher = User.objects.create_user(
+            username="teacher2_conflict",
+            email="teacher2_conflict@example.com",
+            password="password123",
+        )
+        other_subject = Subject.objects.create(name="English Conflict")
+        other_room = Room.objects.create(
+            name="Room 102", room_type="CLASSROOM", capacity=30
+        )
+
         ScheduleEntry.objects.create(
             schedule=schedule,
             classroom=classroom,
@@ -381,14 +396,14 @@ class TimetableGeneratorTestCase(TestCase):
             room=room,
             time_slot=time_slot,
         )
-
-        # Force create second entry (bypass validation for test)
+        # Same class group, same slot, different teacher/room/subject: the group
+        # cannot be in two lessons at once.
         ScheduleEntry.objects.create(
             schedule=schedule,
             classroom=classroom,
-            subject=subject,
-            teacher=teacher,
-            room=room,
+            subject=other_subject,
+            teacher=other_teacher,
+            room=other_room,
             time_slot=time_slot,
         )
 
@@ -396,3 +411,61 @@ class TimetableGeneratorTestCase(TestCase):
 
         # Should detect conflicts
         self.assertGreater(len(conflicts), 0)
+        self.assertIn("CLASSROOM_CONFLICT", {c["type"] for c in conflicts})
+
+    def test_teacher_double_booking_is_rejected_by_the_database(self):
+        """The guarantee that replaced detection for this class.
+
+        A teacher double-booking inside a plan is no longer something to detect
+        after the fact — it cannot be stored at all.
+        """
+        from django.db import IntegrityError, transaction
+
+        from apps.academics.models import Classroom, Department, Subject
+
+        department = Department.objects.create(name="Sci2", code="SCI-DBLBOOK")
+        teacher = User.objects.create_user(
+            username="teacher_dblbook",
+            email="teacher_dblbook@example.com",
+            password="password123",
+        )
+        classroom = Classroom.objects.create(
+            name="Class DB",
+            code="CLS-DBLBOOK",
+            academic_year=self.academic_year,
+            department=department,
+        )
+        subject = Subject.objects.create(name="Maths DblBook")
+        room = Room.objects.create(
+            name="Room DblBook", room_type="CLASSROOM", capacity=30
+        )
+        time_slot = TimeSlot.objects.create(
+            day_of_week=0,
+            start_time=time(11, 0),
+            end_time=time(12, 0),
+            slot_name="Period DblBook",
+        )
+        schedule = Schedule.objects.create(
+            name="DblBook Schedule",
+            academic_year=self.academic_year,
+            term=self.term,
+            created_by=self.user,
+        )
+        ScheduleEntry.objects.create(
+            schedule=schedule,
+            classroom=classroom,
+            subject=subject,
+            teacher=teacher,
+            room=room,
+            time_slot=time_slot,
+        )
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ScheduleEntry.objects.create(
+                    schedule=schedule,
+                    classroom=classroom,
+                    subject=subject,
+                    teacher=teacher,
+                    room=room,
+                    time_slot=time_slot,
+                )
