@@ -221,3 +221,71 @@ and both are ruled out:
 migrate that actually gets killed in production never executes locally, so the headline failure is
 proven only against INJECTED faults. Closing that gap requires `USE_DJANGO_TENANTS=1` on staging
 Postgres. `--reuse-db` works (pytest-django is installed) and makes iteration ~1.5 min instead of ~19.
+
+## 10. Post-deploy findings from PRODUCTION (2026-07-16)
+
+The fix was deployed and the live database was inspected. Three things this report
+previously got wrong or missed, corrected here from real data.
+
+### 10.1 The watchdog was INERT in production (fixed: `4e81375d9`)
+
+The heal was registered ONLY as an in-process periodic job ticking off `/health/`.
+`periodic.maybe_run_due_jobs()` early-returns unless `inprocess_scheduler_enabled()`,
+whose default `auto` mode is `not bool(CELERY_BROKER_URL)`. The deployed `render.yaml`
+sets `CELERY_BROKER_URL` on web (from the Valkey service) and runs worker + beat, so the
+in-process tick **stood down and the watchdog never ran in prod**. Neither fallback covers
+the hand-off: `scheduled_job_health.auto_recovery_enabled()` mirrors the same broker check,
+and `select_recovery_candidates()` deliberately skips `auto_eligible` jobs — which the
+watchdog is. Fixed with a `schools.resume_stuck_provisions` `@shared_task` + a 120s beat
+entry, mirroring `reconcile_half_provisioned_tenants` which always had both halves.
+
+**Rule:** any `periodic.py` job that must survive a broker needs a `@shared_task` +
+`CELERY_BEAT_SCHEDULE` entry. The in-process registry is a broker-less convenience, not a
+universal scheduler.
+
+### 10.2 "The idempotent migrate converges each cycle" — WRONG
+
+Earlier sections of this report claimed a resume is safe because the migrate is idempotent
+and converges. Production disproves it. `moja-skola` retried 6 times in 4 minutes and
+produced hard, non-converging failures:
+
+```
+relation "schools_substitutecover" already exists
+duplicate key value violates unique constraint "pg_type_typname_nsp_index"
+  DETAIL: Key (typname, typnamespace)=(academics_certificationdocumentchecklist, 417480)
+relation "reports_reportcard" already exists
+Can't create tenant outside the public schema. Current schema is s_1cecfdf8...
+```
+
+A `pg_type_typname_nsp_index` duplicate is a **Postgres catalog-level collision** — two
+concurrent `CREATE TABLE`s for the same table in one schema. Concurrent drives do NOT
+converge; they corrupt each other's migration. This is the exact race the single-flight +
+`pg_try_advisory_lock` guard closes, and it is now evidenced, not theorised. It also means
+a resume is only safe BECAUSE of that lock, not because migrate is inherently idempotent.
+
+`Can't create tenant outside the public schema` is a separate real bug (a drive running
+with the connection pinned to a tenant schema) — **still open**, not yet fixed.
+
+### 10.3 A FAILED run does NOT mean a failed tenant (fixed: `022848aaf`)
+
+Three tenants each carried a `status="failed"` run pinned at `tenant_schema` while the
+database said the opposite — schema present, **322 tables, 1196 applied migrations,
+`is_active=True`, phase A + B complete**. The drives were killed AFTER the work landed but
+BEFORE `finalize_run` wrote "succeeded". The tenants are fully live; the rows are stale.
+
+That was harmless only while `workflow_failed_provision_auto_requeue_sweep` was a silent
+no-op (its `-updated_at` FieldError). Fixing that ordering made the sweep REAL — and it has
+no settled-check, no cooldown, no attempt cap, and never clears the row it requeues, so
+every 600s tick would re-pick the same stale rows and re-drive three finished tenants: an
+unbounded migrate storm **armed by fixing the FieldError**. Now guarded: settled schools are
+never requeued and their stale rows are resolved to `cancelled` so they leave the candidate
+set. Proven fails-first.
+
+### 10.4 A live tenant with NO schema is invisible to every healer — OPEN
+
+`gilead-school` (created 2026-02-22) is `is_active=True` with **no schema, no provisioning
+settings, no workflow runs, and no provisioning events** — provisioning was never dispatched
+for it. No recovery path can see it: no FAILED run (auto-requeue sweep skips), no
+heartbeat-dead run (the watchdog skips), and `reconcile_half_provisioned_tenants` requires
+`phase_a_complete`, which is only set AFTER `tenant_schema`. It predates the WorkflowRun
+provisioning system. **Open gap:** nothing detects "marked live, never provisioned".
