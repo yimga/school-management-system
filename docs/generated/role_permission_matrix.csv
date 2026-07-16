@@ -1,8 +1,8 @@
 url_pattern,view_symbol,urls_file,view_file,kind,decorators,drf_permission_classes,bases,roles_required,login_gated,role_gated,permission_gated,has_inline_auth_check,auth_mixin_gated,rbac_allow_reason,candidate_anonymous,unresolved,public_surface
 workflow/<str:workflow_key>/,views_workflow.WorkflowWizardView.as_view,apps/academics/urls.py,apps/academics/views_workflow.py,class,login_required,,View,,1,0,0,0,0,,0,0,0
-timetable/generate/,views_timetable.timetable_generate,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_POST | require_permission(_TIMETABLE_PERMISSION),,,,1,0,0,0,0,,0,0,0
-timetable/<int:schedule_id>/review/,views_timetable.timetable_review,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_permission(_TIMETABLE_PERMISSION),,,,1,0,0,0,0,,0,0,0
-timetable/<int:schedule_id>/publish/,views_timetable.timetable_publish,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_POST | require_permission(_TIMETABLE_PERMISSION),,,,1,0,0,0,0,,0,0,0
+timetable/generate/,views_timetable.timetable_generate,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_POST | require_permission(_TIMETABLE_PERMISSION),,,,1,0,1,0,0,,0,0,0
+timetable/<int:schedule_id>/review/,views_timetable.timetable_review,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_permission(_TIMETABLE_PERMISSION),,,,1,0,1,0,0,,0,0,0
+timetable/<int:schedule_id>/publish/,views_timetable.timetable_publish,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_POST | require_permission(_TIMETABLE_PERMISSION),,,,1,0,1,0,0,,0,0,0
 teacher/syllabi/,views_syllabus.teacher_syllabus_hub,apps/academics/urls.py,apps/academics/views_syllabus.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 teacher/syllabi/<int:subject_assignment_id>/builder/,views_syllabus.syllabus_builder,apps/academics/urls.py,apps/academics/views_syllabus.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 teacher/syllabi/<int:subject_assignment_id>/upload/,views_syllabus.syllabus_upload,apps/academics/urls.py,apps/academics/views_syllabus.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -217,9 +217,9 @@ decision/revenue/,decision_revenue_dashboard,apps/analytics/urls.py,apps/analyti
 decision/engagement/,decision_engagement_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
 decision/risk/,decision_risk_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
 decision/founder/,decision_founder_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
-,dashboard,apps/analytics/urls.py,apps/finance/views_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-master-sheet/,master_sheet,apps/analytics/urls.py,apps/analytics/views.py,func,require_permission('analytics.manage'),,,,0,0,0,0,0,,1,0,0
-deadlines/,grading_deadlines,apps/analytics/urls.py,apps/analytics/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
+,dashboard,apps/analytics/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
+master-sheet/,master_sheet,apps/analytics/urls.py,apps/analytics/views.py,func,require_permission('analytics.manage'),,,,1,0,1,0,0,,0,0,0
+deadlines/,grading_deadlines,apps/analytics/urls.py,apps/analytics/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
 strategic/,strategic_report,apps/analytics/urls.py,apps/analytics/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 api/forecaster/,forecaster_api,apps/analytics/urls.py,apps/analytics/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 at-risk/,at_risk_dashboard,apps/analytics/urls.py,apps/analytics/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -659,22 +659,22 @@ teacher/workflow/,teacher_workflow_center,apps/evals/urls.py,apps/evals/views.py
 teacher/marks/entry/,teacher_marks_entry,apps/evals/urls.py,apps/evals/views.py,func,trace_view('grade.entry') | teacher_portal_required | role_required(User.Role.TEACHER),,,User.Role.TEACHER,1,1,0,0,0,,0,0,0
 teacher/marks/,teacher_marks_list,apps/evals/urls.py,apps/evals/views.py,func,teacher_portal_required | role_required(User.Role.TEACHER),,,User.Role.TEACHER,1,1,0,0,0,,0,0,0
 teacher/marks/bulk/,BulkGradeEntryView.as_view,apps/evals/urls.py,apps/evals/views_bulk_grade_entry.py,class,login_required,,View,,1,0,0,0,0,,0,0,0
-rankings/class/,class_ranking_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-rankings/school/,school_ranking_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-admin/evaluations/,evaluation_admin,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-admin/evaluations/evidence/,evaluation_evidence_upload,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-grade-approvals/,grade_approval_list,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-grade-approvals/<uuid:request_id>/,grade_approval_detail,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage') | trace_view('grade.approval.detail'),,,,0,0,0,0,0,,1,0,0
-grade-import/upload/,grade_import_upload_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-grade-import-template/,grade_import_template_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-compliance/dashboard/,compliance_dashboard_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-compliance/deadline/<int:subject_assignment_id>/extend/,extend_deadline_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-api/grade-import/preview/,grade_import_preview_api,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-api/grade-import/apply/,grade_import_apply_api,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
+rankings/class/,class_ranking_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+rankings/school/,school_ranking_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+admin/evaluations/,evaluation_admin,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+admin/evaluations/evidence/,evaluation_evidence_upload,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+grade-approvals/,grade_approval_list,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+grade-approvals/<uuid:request_id>/,grade_approval_detail,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage') | trace_view('grade.approval.detail'),,,,1,0,1,0,0,,0,0,0
+grade-import/upload/,grade_import_upload_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+grade-import-template/,grade_import_template_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+compliance/dashboard/,compliance_dashboard_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+compliance/deadline/<int:subject_assignment_id>/extend/,extend_deadline_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+api/grade-import/preview/,grade_import_preview_api,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+api/grade-import/apply/,grade_import_apply_api,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
 api/rosetta/preview/,rosetta_grade_preview_api,apps/evals/urls.py,apps/evals/views.py,func,teacher_portal_required | role_required(User.Role.TEACHER),,,User.Role.TEACHER,1,1,0,0,0,,0,0,0
-audit-trail/<int:evaluation_id>/,audit_trail_view,apps/evals/urls.py,apps/evals/views.py,func,"require_permission('grades.enter', 'grades.manage')",,,,0,0,0,0,0,,1,0,0
-offline-conflict/<int:offline_entry_id>/resolve/,resolve_offline_conflict_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
-import-jobs/monitor/,import_job_monitor_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,0,0,0,0,0,,1,0,0
+audit-trail/<int:evaluation_id>/,audit_trail_view,apps/evals/urls.py,apps/evals/views.py,func,"require_permission('grades.enter', 'grades.manage')",,,,1,0,1,0,0,,0,0,0
+offline-conflict/<int:offline_entry_id>/resolve/,resolve_offline_conflict_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
+import-jobs/monitor/,import_job_monitor_view,apps/evals/urls.py,apps/evals/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
 ,views_console.event_console,apps/events/urls.py,apps/events/views_console.py,func,never_cache | login_required | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0,0
 analytics/,views_event_ops.event_analytics_console,apps/events/urls.py,apps/events/views_event_ops.py,func,never_cache | login_required | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0,0
 dlq/,views_event_ops.event_dlq_console,apps/events/urls.py,apps/events/views_event_ops.py,func,"never_cache | login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
@@ -703,38 +703,38 @@ super/feedback/<int:pk>/action/,views.operator_feedback_action,apps/feedback/url
 super/feature/<int:pk>/roadmap/,views.add_to_roadmap,apps/feedback/urls.py,apps/feedback/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
 help/,views.help_center,apps/feedback/urls.py,apps/feedback/views.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
 release-notes/,views.release_notes_public,apps/feedback/urls.py,apps/feedback/views.py,func,,,,,1,0,0,0,0,intentionally public — filters is_public=True at QS level,0,0,0
-,dashboard,apps/finance/urls.py,apps/finance/views_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-payment-setup/,payment_readiness_setup,apps/finance/urls.py,apps/finance/views_payment_setup.py,func,require_permission('finance.manage') | require_step_up,,,,0,0,0,0,0,,1,0,0
-integration-credentials/,marketplace_integration_credentials,apps/finance/urls.py,apps/finance/views_marketplace_integration_credentials.py,func,"require_permission('finance.manage') | require_step_up | require_http_methods(['GET', 'POST'])",,,,0,0,0,0,0,,1,0,0
-payment-readiness/,payment_readiness_dashboard,apps/finance/urls.py,apps/finance/views_payment_readiness_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-payment-command-center/,global_payment_command_center,apps/finance/urls.py,apps/finance/views_global_payment_command_center.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-workforce/,workforce_command_center,apps/finance/urls.py,apps/finance/views_workforce_hub.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-offline-intents/queue/,offline_payment_intent_queue,apps/finance/urls.py,apps/finance/views_offline_bursar_queue.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-offline-intents/<int:intent_id>/approve/,offline_payment_intent_approve,apps/finance/urls.py,apps/finance/views_offline_bursar_queue.py,func,require_permission('finance.manage') | require_POST,,,,0,0,0,0,0,,1,0,0
-offline-intents/bulk-approve/,offline_payment_intent_bulk_approve,apps/finance/urls.py,apps/finance/views_offline_bursar_queue.py,func,require_permission('finance.manage') | require_POST,,,,0,0,0,0,0,,1,0,0
-offline-intents/queue/export.csv,offline_payment_intent_queue_export,apps/finance/urls.py,apps/finance/views_offline_bursar_queue.py,func,"require_permission('finance.view', 'finance.manage') | require_GET",,,,0,0,0,0,0,,1,0,0
+,dashboard,apps/finance/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
+payment-setup/,payment_readiness_setup,apps/finance/urls.py,apps/finance/views_payment_setup.py,func,require_permission('finance.manage') | require_step_up,,,,1,0,1,0,0,,0,0,0
+integration-credentials/,marketplace_integration_credentials,apps/finance/urls.py,apps/finance/views_marketplace_integration_credentials.py,func,"require_permission('finance.manage') | require_step_up | require_http_methods(['GET', 'POST'])",,,,1,0,1,0,0,,0,0,0
+payment-readiness/,payment_readiness_dashboard,apps/finance/urls.py,apps/finance/views_payment_readiness_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+payment-command-center/,global_payment_command_center,apps/finance/urls.py,apps/finance/views_global_payment_command_center.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+workforce/,workforce_command_center,apps/finance/urls.py,apps/finance/views_workforce_hub.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+offline-intents/queue/,offline_payment_intent_queue,apps/finance/urls.py,apps/finance/views_offline_bursar_queue.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+offline-intents/<int:intent_id>/approve/,offline_payment_intent_approve,apps/finance/urls.py,apps/finance/views_offline_bursar_queue.py,func,require_permission('finance.manage') | require_POST,,,,1,0,1,0,0,,0,0,0
+offline-intents/bulk-approve/,offline_payment_intent_bulk_approve,apps/finance/urls.py,apps/finance/views_offline_bursar_queue.py,func,require_permission('finance.manage') | require_POST,,,,1,0,1,0,0,,0,0,0
+offline-intents/queue/export.csv,offline_payment_intent_queue_export,apps/finance/urls.py,apps/finance/views_offline_bursar_queue.py,func,"require_permission('finance.view', 'finance.manage') | require_GET",,,,1,0,1,0,0,,0,0,0
 invoices/,invoice_list,apps/finance/urls.py,apps/finance/views_invoicing.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 invoices/<int:invoice_id>/,invoice_detail,apps/finance/urls.py,apps/finance/views_invoicing.py,func,login_required | audit_pii_view,,,,1,0,0,0,0,,0,0,0
 invoices/<int:invoice_id>/request-access/,request_finance_access,apps/finance/urls.py,apps/finance/views_access.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
-invoices/<int:invoice_id>/receipt/,invoice_receipt,apps/finance/urls.py,apps/finance/views_invoicing.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
+invoices/<int:invoice_id>/receipt/,invoice_receipt,apps/finance/urls.py,apps/finance/views_invoicing.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
 invoices/<int:invoice_id>/upload-receipt/,upload_payment_receipt,apps/finance/urls.py,apps/finance/views_invoicing.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
 invoices/<int:invoice_id>/resend-reminder/,resend_reminder,apps/finance/urls.py,apps/finance/views_invoicing.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
 access/request/,request_finance_access,apps/finance/urls.py,apps/finance/views_access.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
-access/bulk/,finance_access_bulk,apps/finance/urls.py,apps/finance/views_access.py,func,require_permission('finance.manage'),,,,0,0,0,0,0,,1,0,0
-payments/,payment_list,apps/finance/urls.py,apps/finance/views_payments.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-payments/cash-closure/,cash_office_closure,apps/finance/urls.py,apps/finance/views_payments.py,func,require_permission('finance.manage'),,,,0,0,0,0,0,,1,0,0
-payments/split-allocation/,split_allocation,apps/finance/urls.py,apps/finance/views_payments.py,func,require_permission('finance.manage'),,,,0,0,0,0,0,,1,0,0
-payments/scan-teller/,scan_teller_placeholder,apps/finance/urls.py,apps/finance/views_payments.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-payments/receipts/,payment_list,apps/finance/urls.py,apps/finance/views_payments.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-fees/generate/,generate_fees,apps/finance/urls.py,apps/finance/views_invoicing.py,func,require_permission('finance.manage'),,,,0,0,0,0,0,,1,0,0
-fees/notify-guardians/,notify_guardians_new_invoices,apps/finance/urls.py,apps/finance/views_invoicing.py,func,require_permission('finance.manage') | require_POST,,,,0,0,0,0,0,,1,0,0
-trial-balance/,trial_balance,apps/finance/urls.py,apps/finance/views_accounting.py,func,"require_permission('accounting.view', 'accounting.manage')",,,,0,0,0,0,0,,1,0,0
-reports/,finance_reports,apps/finance/urls.py,apps/finance/views_reports.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-reports/request/,submit_report_request,apps/finance/urls.py,apps/finance/views_reports.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-notifications/,notifications,apps/finance/urls.py,apps/finance/views_requests.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-requests/,finance_requests,apps/finance/urls.py,apps/finance/views_requests.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-reconciliation/suspense/,suspense_queue,apps/finance/urls.py,apps/finance/views_accounting.py,func,"require_permission('accounting.view', 'accounting.manage')",,,,0,0,0,0,0,,1,0,0
-reconciliation/suspense/<int:suspense_id>/claim/,claim_suspense_payment,apps/finance/urls.py,apps/finance/views_accounting.py,func,require_permission('accounting.manage') | require_POST,,,,0,0,0,0,0,,1,0,0
+access/bulk/,finance_access_bulk,apps/finance/urls.py,apps/finance/views_access.py,func,require_permission('finance.manage'),,,,1,0,1,0,0,,0,0,0
+payments/,payment_list,apps/finance/urls.py,apps/finance/views_payments.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+payments/cash-closure/,cash_office_closure,apps/finance/urls.py,apps/finance/views_payments.py,func,require_permission('finance.manage'),,,,1,0,1,0,0,,0,0,0
+payments/split-allocation/,split_allocation,apps/finance/urls.py,apps/finance/views_payments.py,func,require_permission('finance.manage'),,,,1,0,1,0,0,,0,0,0
+payments/scan-teller/,scan_teller_placeholder,apps/finance/urls.py,apps/finance/views_payments.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+payments/receipts/,payment_list,apps/finance/urls.py,apps/finance/views_payments.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+fees/generate/,generate_fees,apps/finance/urls.py,apps/finance/views_invoicing.py,func,require_permission('finance.manage'),,,,1,0,1,0,0,,0,0,0
+fees/notify-guardians/,notify_guardians_new_invoices,apps/finance/urls.py,apps/finance/views_invoicing.py,func,require_permission('finance.manage') | require_POST,,,,1,0,1,0,0,,0,0,0
+trial-balance/,trial_balance,apps/finance/urls.py,apps/finance/views_accounting.py,func,"require_permission('accounting.view', 'accounting.manage')",,,,1,0,1,0,0,,0,0,0
+reports/,finance_reports,apps/finance/urls.py,apps/finance/views_reports.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+reports/request/,submit_report_request,apps/finance/urls.py,apps/finance/views_reports.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+notifications/,notifications,apps/finance/urls.py,apps/finance/views_requests.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+requests/,finance_requests,apps/finance/urls.py,apps/finance/views_requests.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+reconciliation/suspense/,suspense_queue,apps/finance/urls.py,apps/finance/views_accounting.py,func,"require_permission('accounting.view', 'accounting.manage')",,,,1,0,1,0,0,,0,0,0
+reconciliation/suspense/<int:suspense_id>/claim/,claim_suspense_payment,apps/finance/urls.py,apps/finance/views_accounting.py,func,require_permission('accounting.manage') | require_POST,,,,1,0,1,0,0,,0,0,0
 accounting/bursar-entries/,bursar_entries_report,apps/finance/urls.py,apps/finance/views_accounting.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 accounting/expense-vs-budget/,expense_vs_budget,apps/finance/urls.py,apps/finance/views_accounting.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 ,views.integrations_hub,apps/integrations_marketplace/urls.py,apps/integrations_marketplace/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -897,17 +897,17 @@ start/,views_customer.MigrationIntakeStartView.as_view,apps/migration_cloud/urls
 workbench/,views.operator_workbench,apps/orchestration/urls.py,apps/orchestration/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0,0
 runs/<int:run_id>/retry/,views.retry_run,apps/orchestration/urls.py,apps/orchestration/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0,0
 api/runs/,api.runs_list_or_create,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
-api/runs/<int:run_id>/,api.run_detail,apps/orchestration/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,0,0,0,0,0,,1,0,0
+api/runs/<int:run_id>/,api.run_detail,apps/orchestration/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
 api/runs/<int:run_id>/events/,api.run_events,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 api/runs/<int:run_id>/cancel/,api.run_cancel,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 api/runs/<int:run_id>/retry/,api.run_retry,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 api/slo/,api.slo_snapshot,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
-,dashboard,apps/payroll/urls.py,apps/finance/views_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,0,0,0,0,0,,1,0,0
-runs/create/,create_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage'),,,,0,0,0,0,0,,1,0,0
-runs/<int:run_id>/,run_detail,apps/payroll/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,0,0,0,0,0,,1,0,0
-runs/<int:run_id>/generate/,generate_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage'),,,,0,0,0,0,0,,1,0,0
-runs/<int:run_id>/mark-paid/,mark_run_paid,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage') | require_POST,,,,0,0,0,0,0,,1,0,0
-runs/<int:run_id>/disbursement.csv,export_disbursement,apps/payroll/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage') | require_GET",,,,0,0,0,0,0,,1,0,0
+,dashboard,apps/payroll/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
+runs/create/,create_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage'),,,,1,0,1,0,0,,0,0,0
+runs/<int:run_id>/,run_detail,apps/payroll/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
+runs/<int:run_id>/generate/,generate_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage'),,,,1,0,1,0,0,,0,0,0
+runs/<int:run_id>/mark-paid/,mark_run_paid,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage') | require_POST,,,,1,0,1,0,0,,0,0,0
+runs/<int:run_id>/disbursement.csv,export_disbursement,apps/payroll/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage') | require_GET",,,,1,0,1,0,0,,0,0,0
 employee/payslips/,employee_payslips,apps/payroll/urls.py,apps/payroll/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 employee/leave/,employee_leave,apps/payroll/urls.py,apps/payroll/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 lifecycle/,tenant_lifecycle_dashboard,apps/platform_runtime/urls.py,apps/platform_runtime/views_tenant_lifecycle.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -1064,14 +1064,14 @@ attendance/student/export/,student_attendance_export,apps/portal/urls.py,apps/po
 attendance/student/export/csv/,student_attendance_export_csv,apps/portal/urls.py,apps/portal/views_attendance_export.py,func,login_required | enforce_tenant_security,,,,1,0,0,0,0,,0,0,0
 attendance/teacher/,record_teacher_attendance,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 attendance/seating-chart/,seating_chart_view,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required,,,,1,0,0,0,0,,0,0,0
-staff/contact-requests/,staff_contact_request_list,apps/portal/urls.py,apps/portal/views_contact_requests.py,func,tenant_admin_required,,,,0,0,0,0,0,,1,0,0
+staff/contact-requests/,staff_contact_request_list,apps/portal/urls.py,apps/portal/views_contact_requests.py,func,tenant_admin_required,,,,1,0,0,0,0,,0,0,0
 staff/discipline/incidents/,discipline_incidents_list,apps/portal/urls.py,apps/portal/views_teacher.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
-staff/discipline/caseload/,counselor_caseload,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required | require_school | require_permission('discipline.manage') | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0,0
+staff/discipline/caseload/,counselor_caseload,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required | require_school | require_permission('discipline.manage') | require_http_methods(['GET']),,,,1,0,1,0,0,,0,0,0
 teacher/cahier/,cahier_list,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required | teacher_portal_required | role_required(User.Role.TEACHER),,,User.Role.TEACHER,1,1,0,0,0,,0,0,0
 staff/cahier/verify/,cahier_verify_list,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 staff/cahier/visa/<int:entry_id>/,cahier_visa,apps/portal/urls.py,apps/portal/views_teacher.py,func,require_POST | login_required,,,,1,0,0,0,0,,0,0,0
 staff/cahier/revisions/<int:entry_id>/,cahier_request_revisions,apps/portal/urls.py,apps/portal/views_teacher.py,func,require_POST | login_required,,,,1,0,0,0,0,,0,0,0
-staff/contact-requests/<uuid:request_id>/,staff_contact_request_detail,apps/portal/urls.py,apps/portal/views_contact_requests.py,func,tenant_admin_required,,,,0,0,0,0,0,,1,0,0
+staff/contact-requests/<uuid:request_id>/,staff_contact_request_detail,apps/portal/urls.py,apps/portal/views_contact_requests.py,func,tenant_admin_required,,,,1,0,0,0,0,,0,0,0
 photo-upload/generate/,photo_upload_generate,apps/portal/urls.py,apps/portal/views_photo_upload.py,func,ratelimit | require_GET,,,,1,0,0,0,0,inline-auth (login redirect inside view),0,0,0
 photo-upload/generate-for-profile/,photo_upload_generate_for_profile,apps/portal/urls.py,apps/portal/views_photo_upload.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
 photo-upload/<uuid:token>/qr/,photo_upload_qr,apps/portal/urls.py,apps/portal/views_photo_upload.py,func,require_GET,,,,1,0,0,0,0,UUID token in URL is the auth (single-use phone upload link),0,0,0
@@ -1128,9 +1128,9 @@ parent/report/<int:student_id>/annual/csv/,parent_download_annual_report_csv,app
 parent/report/<int:student_id>/share/<str:report_type>/,parent_share_report,apps/reports/urls.py,apps/reports/views.py,func,parent_portal_required | role_required(User.Role.PARENT),,,User.Role.PARENT,1,1,0,0,0,,0,0,0
 share/<str:token>/,report_share,apps/reports/urls.py,apps/reports/views.py,func,,,,,1,0,0,0,0,token in URL is the auth (single-use report share link),0,0,0
 verify-hash/,verify_report_hash,apps/reports/urls.py,apps/reports/views.py,func,require_http_methods(['GET']),,,,1,0,0,0,0,public report-hash verifier (read-only authenticity check),0,0,0
-publish/,publish_term_results,apps/reports/urls.py,apps/reports/views.py,func,require_permission('reports.manage'),,,,0,0,0,0,0,,1,0,0
-statistical-return/,statistical_return,apps/reports/urls.py,apps/reports/views.py,func,require_permission('reports.manage'),,,,0,0,0,0,0,,1,0,0
-promotion-preview/,promotion_preview,apps/reports/urls.py,apps/reports/views.py,func,require_permission('reports.manage'),,,,0,0,0,0,0,,1,0,0
+publish/,publish_term_results,apps/reports/urls.py,apps/reports/views.py,func,require_permission('reports.manage'),,,,1,0,1,0,0,,0,0,0
+statistical-return/,statistical_return,apps/reports/urls.py,apps/reports/views.py,func,require_permission('reports.manage'),,,,1,0,1,0,0,,0,0,0
+promotion-preview/,promotion_preview,apps/reports/urls.py,apps/reports/views.py,func,require_permission('reports.manage'),,,,1,0,1,0,0,,0,0,0
 regulatory-export/,regulatory_export,apps/reports/urls.py,apps/reports/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 ,requests_dashboard,apps/requests/urls.py,apps/requests/views.py,func,login_required | user_passes_test(_can_manage_requests),,,,1,0,0,0,0,,0,0,0
 module-access/,request_module_access,apps/requests/urls.py,apps/requests/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -1154,7 +1154,7 @@ api/setup-studio/payload/,api_zero_friction_payload,apps/setup_studio/urls.py,ap
 api/setup-studio/recommended/,api_recommended_setup,apps/setup_studio/urls.py,apps/setup_studio/views_zero_friction.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
 customizer/,legacy_customizer_redirect,apps/siteconfig/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 customizer/clear-preview/,legacy_customizer_clear_preview_redirect,apps/siteconfig/urls.py,,,,,,,0,0,0,0,0,,0,1,0
-maintenance/,maintenance_view,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,tenant_admin_required,,,,0,0,0,0,0,,1,0,0
+maintenance/,maintenance_view,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,tenant_admin_required,,,,1,0,0,0,0,,0,0,0
 onboarding/step/complete/,onboarding_step_mark_complete,apps/siteconfig/urls.py,apps/siteconfig/views_school_onboarding.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
 onboarding/step/<str:step_key>/,onboarding_step_detail,apps/siteconfig/urls.py,apps/siteconfig/views_school_onboarding.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 onboarding/,school_activation_onboarding,apps/siteconfig/urls.py,apps/siteconfig/views_school_onboarding.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -1208,7 +1208,7 @@ zero-ticket/api/diagnostics/,api_tenant_diagnostics,apps/siteconfig/urls.py,apps
 zero-ticket/api/permissions/simulate/,api_permission_matrix_simulate,apps/siteconfig/urls.py,apps/siteconfig/views_zero_ticket_hub.py,func,login_required | permission_required('settings.manage') | require_http_methods(['POST']),,,,1,0,1,0,0,,0,0,0
 zero-ticket/api/permissions/export/,api_permission_matrix_export,apps/siteconfig/urls.py,apps/siteconfig/views_zero_ticket_hub.py,func,"login_required | permission_required('settings.manage') | require_http_methods(['GET', 'POST'])",,,,1,0,1,0,0,,0,0,0
 zero-ticket/api/brand-contrast/remediate/,api_brand_contrast_remediate,apps/siteconfig/urls.py,apps/siteconfig/views_zero_ticket_hub.py,func,login_required | permission_required('settings.manage') | require_http_methods(['POST']),,,,1,0,1,0,0,,0,0,0
-preview-from-form/,preview_from_form,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,tenant_admin_required,,,,0,0,0,0,0,,1,0,0
+preview-from-form/,preview_from_form,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,tenant_admin_required,,,,1,0,0,0,0,,0,0,0
 preferences/,user_preferences,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 preferences/dashboard-preset/,quick_set_dashboard_visual_preset,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
 preferences/set-default-view/,set_default_dashboard_view,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -1240,9 +1240,9 @@ reports/preview/<slug:slug>/,reportcard_style_preview,apps/siteconfig/urls.py,ap
 reports/embed-preview/<slug:slug>/<str:report_type>/,reportcard_style_embed_preview,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,permission_required('settings.manage') | xframe_options_exempt,,,,1,0,1,0,0,,0,0,0
 reports/live-preview/<slug:slug>/<str:report_type>/,reportcard_style_live_preview,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,permission_required('settings.manage') | xframe_options_sameorigin,,,,1,0,1,0,0,,0,0,0
 reports/preview/<slug:slug>/<str:report_type>/pdf/,reportcard_style_pdf,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,permission_required('settings.manage') | xframe_options_sameorigin,,,,1,0,1,0,0,,0,0,0
-preview/toggle/,toggle_preview_mode,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,tenant_admin_required,,,,0,0,0,0,0,,1,0,0
-act-as/,set_act_as_role,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,tenant_admin_required,,,,0,0,0,0,0,,1,0,0
-feature-control/,feature_control_panel,apps/siteconfig/urls.py,apps/siteconfig/views_feature_control.py,func,"require_permission(*_FEATURE_CONTROL_PANEL_CODES) | never_cache | require_http_methods(['GET', 'POST'])",,,,0,0,0,0,0,,1,0,0
+preview/toggle/,toggle_preview_mode,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,tenant_admin_required,,,,1,0,0,0,0,,0,0,0
+act-as/,set_act_as_role,apps/siteconfig/urls.py,apps/siteconfig/views.py,func,tenant_admin_required,,,,1,0,0,0,0,,0,0,0
+feature-control/,feature_control_panel,apps/siteconfig/urls.py,apps/siteconfig/views_feature_control.py,func,"require_permission(*_FEATURE_CONTROL_PANEL_CODES) | never_cache | require_http_methods(['GET', 'POST'])",,,,1,0,1,0,0,,0,0,0
 feature-control/export/,feature_control_export,apps/siteconfig/urls.py,apps/siteconfig/views_feature_control.py,func,permission_required('settings.feature_control') | require_http_methods(['GET']),,,,1,0,1,0,0,,0,0,0
 feature-control/audit/,feature_control_audit_log,apps/siteconfig/urls.py,apps/siteconfig/views_feature_control.py,func,permission_required('settings.feature_control') | require_http_methods(['GET']),,,,1,0,1,0,0,,0,0,0
 feature-control/ledger/,feature_control_ledger,apps/siteconfig/urls.py,apps/siteconfig/views_feature_control.py,func,permission_required('settings.feature_control') | never_cache | require_http_methods(['GET']),,,,1,0,1,0,0,,0,0,0

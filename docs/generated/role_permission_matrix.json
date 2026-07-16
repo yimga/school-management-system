@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-07-14T08:55:19.418753+00:00",
+  "generated_at": "2026-07-16T01:40:04.420532+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
   "row_count": 1700,
-  "views_indexed": 2821,
+  "views_indexed": 2820,
   "summary": {
-    "login_gated": 1266,
+    "login_gated": 1327,
     "role_gated": 79,
-    "permission_gated": 110,
+    "permission_gated": 169,
     "has_inline_auth_check": 74,
     "auth_mixin_gated": 124,
     "rbac_allow_reason": 183,
-    "candidate_anonymous": 61,
+    "candidate_anonymous": 0,
     "public_surface": 196,
     "unresolved": 181
   },
@@ -58,7 +58,7 @@
       "unresolved": false,
       "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
@@ -82,7 +82,7 @@
       "unresolved": false,
       "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
@@ -107,7 +107,7 @@
       "unresolved": false,
       "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
@@ -5090,23 +5090,23 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/analytics/urls.py",
-      "view_file": "apps/finance/views_dashboard.py",
+      "view_file": "apps/payroll/views.py",
       "kind": "func",
       "decorators": [
-        "require_permission('finance.view', 'finance.manage')"
+        "require_permission('payroll.view', 'payroll.manage')"
       ],
       "drf_permission_classes": [],
       "bases": [],
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "master-sheet/",
@@ -5122,13 +5122,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "deadlines/",
@@ -5144,13 +5144,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "strategic/",
@@ -15241,13 +15241,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "rankings/school/",
@@ -15263,13 +15263,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "admin/evaluations/",
@@ -15285,13 +15285,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "admin/evaluations/evidence/",
@@ -15307,13 +15307,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "grade-approvals/",
@@ -15329,13 +15329,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "grade-approvals/<uuid:request_id>/",
@@ -15352,13 +15352,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "grade-import/upload/",
@@ -15374,13 +15374,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "grade-import-template/",
@@ -15396,13 +15396,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "compliance/dashboard/",
@@ -15418,13 +15418,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "compliance/deadline/<int:subject_assignment_id>/extend/",
@@ -15440,13 +15440,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "api/grade-import/preview/",
@@ -15462,13 +15462,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "api/grade-import/apply/",
@@ -15484,13 +15484,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "api/rosetta/preview/",
@@ -15531,13 +15531,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "offline-conflict/<int:offline_entry_id>/resolve/",
@@ -15553,13 +15553,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "import-jobs/monitor/",
@@ -15575,13 +15575,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "",
@@ -16222,23 +16222,23 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/finance/urls.py",
-      "view_file": "apps/finance/views_dashboard.py",
+      "view_file": "apps/payroll/views.py",
       "kind": "func",
       "decorators": [
-        "require_permission('finance.view', 'finance.manage')"
+        "require_permission('payroll.view', 'payroll.manage')"
       ],
       "drf_permission_classes": [],
       "bases": [],
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "payment-setup/",
@@ -16255,13 +16255,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "integration-credentials/",
@@ -16279,13 +16279,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "payment-readiness/",
@@ -16301,13 +16301,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "payment-command-center/",
@@ -16323,13 +16323,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "workforce/",
@@ -16345,13 +16345,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "offline-intents/queue/",
@@ -16367,13 +16367,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "offline-intents/<int:intent_id>/approve/",
@@ -16390,13 +16390,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "offline-intents/bulk-approve/",
@@ -16413,13 +16413,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "offline-intents/queue/export.csv",
@@ -16436,13 +16436,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "invoices/",
@@ -16526,13 +16526,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "invoices/<int:invoice_id>/upload-receipt/",
@@ -16617,13 +16617,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "payments/",
@@ -16639,13 +16639,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "payments/cash-closure/",
@@ -16661,13 +16661,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "payments/split-allocation/",
@@ -16683,13 +16683,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "payments/scan-teller/",
@@ -16705,13 +16705,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "payments/receipts/",
@@ -16727,13 +16727,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "fees/generate/",
@@ -16749,13 +16749,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "fees/notify-guardians/",
@@ -16772,13 +16772,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "trial-balance/",
@@ -16794,13 +16794,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "reports/",
@@ -16816,13 +16816,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "reports/request/",
@@ -16838,13 +16838,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "notifications/",
@@ -16860,13 +16860,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "requests/",
@@ -16882,13 +16882,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "reconciliation/suspense/",
@@ -16904,13 +16904,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "reconciliation/suspense/<int:suspense_id>/claim/",
@@ -16927,13 +16927,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "accounting/bursar-entries/",
@@ -20675,13 +20675,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "api/runs/<int:run_id>/events/",
@@ -20767,23 +20767,23 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/payroll/urls.py",
-      "view_file": "apps/finance/views_dashboard.py",
+      "view_file": "apps/payroll/views.py",
       "kind": "func",
       "decorators": [
-        "require_permission('finance.view', 'finance.manage')"
+        "require_permission('payroll.view', 'payroll.manage')"
       ],
       "drf_permission_classes": [],
       "bases": [],
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "runs/create/",
@@ -20799,13 +20799,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "runs/<int:run_id>/",
@@ -20821,13 +20821,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "runs/<int:run_id>/generate/",
@@ -20843,13 +20843,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "runs/<int:run_id>/mark-paid/",
@@ -20866,13 +20866,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "runs/<int:run_id>/disbursement.csv",
@@ -20889,13 +20889,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "employee/payslips/",
@@ -24595,13 +24595,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "staff/discipline/incidents/",
@@ -24645,7 +24645,7 @@
       "unresolved": false,
       "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
@@ -24759,13 +24759,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "photo-upload/generate/",
@@ -26056,13 +26056,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "statistical-return/",
@@ -26078,13 +26078,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "promotion-preview/",
@@ -26100,13 +26100,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "regulatory-export/",
@@ -26645,13 +26645,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "onboarding/step/complete/",
@@ -27885,13 +27885,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "preferences/",
@@ -28616,13 +28616,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "act-as/",
@@ -28638,13 +28638,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
       "permission_gated": false,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "feature-control/",
@@ -28662,13 +28662,13 @@
       "roles_required": [],
       "rbac_allow_reason": null,
       "unresolved": false,
-      "login_gated": false,
+      "login_gated": true,
       "role_gated": false,
-      "permission_gated": false,
+      "permission_gated": true,
       "has_inline_auth_check": false,
       "auth_mixin_gated": false,
       "public_surface": false,
-      "candidate_anonymous": true
+      "candidate_anonymous": false
     },
     {
       "url_pattern": "feature-control/export/",
