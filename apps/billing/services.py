@@ -69,12 +69,22 @@ def _resolve_account_status(school) -> str:
     return BillingAccount.Status.ACTIVE
 
 
-def _resolve_subscription_status(school) -> str:
+def _resolve_subscription_status(school, current_status: str | None = None) -> str:
     billing_type = getattr(school, "billing_type", "") or ""
     if billing_type == getattr(school.BillingType, "FREE_TRIAL", "FREE_TRIAL"):
         return TenantSubscription.Status.TRIALING
     if getattr(school, "is_frozen", False):
         return TenantSubscription.Status.SUSPENDED
+    # PAST_DUE is a verdict owned by the renewal lifecycle (it is set from unpaid
+    # invoices — see mark_overdue_subscriptions). Nothing on the *school* row records
+    # the debt, so re-deriving status from the school alone silently absolves it:
+    # PAST_DUE does not set is_frozen, so this function returned ACTIVE and
+    # ensure_subscription_for_school wrote it back unconditionally. Any read path that
+    # calls ensure_* — including the tenant opening their own billing page — therefore
+    # cleared its own dunning state until the next nightly sweep re-set it. Only a real
+    # payment clears PAST_DUE, via the webhook/reconcile path that sets status directly.
+    if current_status == TenantSubscription.Status.PAST_DUE:
+        return TenantSubscription.Status.PAST_DUE
     return TenantSubscription.Status.ACTIVE
 
 
@@ -962,7 +972,9 @@ def ensure_subscription_for_school(school):
             )
     period_start = timezone.now()
     period_end = period_start + timedelta(days=30)
-    desired_status = _resolve_subscription_status(school)
+    desired_status = _resolve_subscription_status(
+        school, current_status=getattr(subscription, "status", None)
+    )
     base_amount = Decimal(
         str(getattr(getattr(school, "plan", None), "base_price", None) or "0")
     )

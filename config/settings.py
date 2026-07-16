@@ -4031,6 +4031,11 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.schools.middleware.DynamicThemeMiddleware",
         "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",
         "apps.schools.middleware.FeatureGatekeeperMiddleware",
+        # SFDP 1426 parity: this list REPLACES the module-level MIDDLEWARE, so any
+        # entry only added there never loads under USE_DJANGO_TENANTS (= production).
+        # The finance gate was absent here, so SUBSCRIPTION_GATE_MATRIX.md documented
+        # a 402 that never fired in prod. test_middleware_topology_parity locks this.
+        "apps.finance.subscription_gate.FinanceSubscriptionGateMiddleware",
         "apps.schools.middleware.UsageLimitMiddleware",
         "django_otp.middleware.OTPMiddleware",
         "django.contrib.messages.middleware.MessageMiddleware",
@@ -4041,6 +4046,9 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.compliance.middleware.AccessControlMiddleware",
         "apps.observability.middleware.RequestIdLoggingMiddleware",
         "apps.observability.middleware.ObservabilityMiddleware",
+        # Wave C — G2: same parity gap as the finance gate above. db_sessions is a
+        # BILLABLE dimension, so its absence here meant prod metered nothing.
+        "apps.billing.middleware_metering.DBSessionMeteringMiddleware",
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
         "apps.security.embed_frame_middleware.EmbedSameOriginFrameMiddleware",
         "apps.platform_runtime.middleware_transient_db.TransientDatabaseUnavailableMiddleware",

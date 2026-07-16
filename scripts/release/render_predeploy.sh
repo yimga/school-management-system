@@ -115,6 +115,18 @@ run "${PYTHON_BIN}" manage.py seed_marketplace_scopes
 # catalog grows.
 run "${PYTHON_BIN}" manage.py seed_migration_connector_profiles
 
+# Subscription plan / add-on / promotion catalog. update_or_create per row —
+# idempotent, safe to re-run. This is also the ONLY producer of a plan with
+# is_default=True (free-starter), which Plan.get_default_plan() reads to bind a
+# brand-new tenant's School.plan. Without it get_default_plan() returns None, the
+# default-plan binding in ensure_subscription_for_school silently no-ops, and every
+# tenant lands plan-less — which is default-OPEN (is_feature_enabled falls through
+# to the base manifest when school.plan is None), so no entitlement or usage cap
+# applies. Migration 0200 only *marks* a pre-existing Plan, so on a fresh DB it runs
+# before any Plan row exists and marks nothing. Plan.save() keeps the single-default
+# invariant, so re-seeding cannot trip the plan_unique_default constraint.
+run "${PYTHON_BIN}" manage.py seed_subscription_catalog
+
 # pgvector: post-5k-scale embedding store. Migrates JSON embeddings into a
 # pgvector column + tuned IVFFLAT index, then verifies the planner uses it.
 # Both commands refuse on non-Postgres vendors and are idempotent — safe to
