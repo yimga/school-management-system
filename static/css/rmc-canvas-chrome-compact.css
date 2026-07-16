@@ -87,6 +87,29 @@ body.control-plane-shell #cp-main-content > [data-rmc-os-primary-action-slot="1"
   padding: 0;
 }
 
+/* Both shells ALWAYS emit the breadcrumb row: shell_chrome_breadcrumb_row_open /
+   _between_primary_and_actions / _close wrap {% block breadcrumbs %} and
+   {% block breadcrumb_actions %}, so a page that fills NEITHER still got a
+   styled-but-empty .cp-page-header band (it even carries margin-bottom !important
+   below), reserving a phantom strip between the flow launchpad and the page's first
+   panel. Operator: 144 of 237 control_plane_base pages define neither block —
+   marketplace/blueprint_marketplace.html is the reported one. Tenant: portal_base
+   fills the crumb slot with partials/breadcrumbs.html, but that is itself gated on
+   `BREADCRUMBS|length > 1`, so any tenant page without a trail renders the same empty
+   row. Cover both mains (#cp-main-content / #main-content) — collapse only when the
+   row holds no crumb, action or heading; a real row still matches :has() and renders
+   untouched. */
+body.control-plane-shell
+  #cp-main-content
+  > [data-shell-chrome="breadcrumb-row"]:not(:has(a, button, [href], li, h1, .breadcrumb)),
+body.portal-body-with-layout
+  #main-content
+  > [data-shell-chrome="breadcrumb-row"]:not(:has(a, button, [href], li, h1, .breadcrumb)) {
+  display: none;
+  margin: 0;
+  padding: 0;
+}
+
 body.control-plane-shell #cp-main-content > .rmc-os-status-stack:not(:has(.badge, .alert, [data-rmc-platform-status])) {
   display: none;
 }
