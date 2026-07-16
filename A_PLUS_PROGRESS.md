@@ -66,7 +66,7 @@ Frontier rule: metrics 25–28 NOT scored on readiness flags alone — runtime/o
 | 18 | Observability | **76** | NO | Metrics bridge | `/healthz` full dependency proof |
 | 19 | Data Privacy | **68** | NO | Residency export gate in bundle | DSAR export+erase E2E |
 | 20 | API Quality | **92** | NO | DRF schema scan → **0** | Contract tests all mutating APIs |
-| 21 | Internationalization | **82** | NO | 24 locales compile | RTL Playwright |
+| 21 | Internationalization | **82** | NO | 20 locales compile | CERTIFICATE_STRINGS 6/20 (silent English fallback); RTL Playwright |
 | 22 | Infra / DR | **72** | NO | Celery worker+beat config | Restore drill `--apply` ops proof |
 | 23 | Reference Integrity | **99** | **YES** | Import ref → **0**; interaction integrity → **PASS** | Maintain |
 | 24 | Documentation | **78** | NO | Mandate + scoreboard current | Part 2 baseline vs wired surface audit |
@@ -111,7 +111,7 @@ Frontier rule: metrics 25–28 NOT scored on readiness flags alone — runtime/o
 | 18 | Observability | **76** | NO | Metrics bridge | `/healthz` full dependency proof |
 | 19 | Data Privacy | **68** | NO | `test_compliance_residency_export_gate` in bundle | DSAR export+erase E2E |
 | 20 | API Quality | **92** | NO | `scan_drf_schema_coverage --compare` → **0** | Contract tests all mutating APIs |
-| 21 | Internationalization | **82** | NO | 24 locales compile | RTL Playwright |
+| 21 | Internationalization | **82** | NO | 20 locales compile | CERTIFICATE_STRINGS 6/20 (silent English fallback); RTL Playwright |
 | 22 | Infra / DR | **72** | NO | Celery worker+beat config | Restore drill `--apply` ops proof |
 | 23 | Reference Integrity | **99** | **YES** | `scan_import_reference_integrity --compare` → **0**; `verify_interaction_integrity_completion` → **PASS** | Maintain |
 | 24 | Documentation | **76** | NO | Mandate + scoreboard current | Part 2 baseline vs wired surface audit |
