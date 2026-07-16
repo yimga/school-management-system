@@ -178,3 +178,46 @@ reconciled with, not clobbering, that work — but coordinate to avoid two sessi
   a brand-new school provisions through the real pipeline to portal-ready, **not stuck**.
 - New operator tool: `python manage.py unstick_provisions [--dry-run] [--limit N]` — lists and
   re-drives all stalled/dead provisioning jobs (safe to run against prod; single-flighted per school).
+
+## 9. Regression proof vs a clean baseline (2026-07-16)
+
+Ran a 46-file provisioning / onboarding / tenant-lifecycle / offboarding / isolation suite. Raw
+result: **206 failed / 236 passed** — which looks alarming and is almost entirely a HARNESS artifact
+of invoking `pytest` directly. CI runs `python manage.py test` (`ci.yml::django-tests`), not pytest.
+
+Failure-MODE census of the 206:
+
+| mode | n | verdict |
+|---|---|---|
+| `KeyError: 'admin'` → `NoReverseMatch: 'admin' is not a registered namespace` | **161** | harness — the platform is host-split across six urlconfs; `admin` only registers via `autodiscover()`, so every `reverse("admin:…")` in a test explodes under a bare pytest run |
+| `AssertionError: 302 != 200` (host guard) | ~38 | harness — bare `RequestFactory` / wrong host |
+| provisioning-core (incl. 6 `sqlite3.ProgrammingError: Cannot operate on a closed database`) | **16** | the only set worth triaging |
+
+**The 16 were then PROVEN pre-existing**, not caused by the watchdog work, by running the identical
+7 files at a baseline commit verified to lack the fix (`d7f81549a` — `merge-base --is-ancestor
+ada69c138 d7f81549a` ⇒ exit 1; `provision_watchdog.py` absent; zero `resume_stuck_provisions`
+registrations in `periodic.py`):
+
+| run | HEAD | result |
+|---|---|---|
+| with the fix | `4ff3f76d2` | **16 failed / 58 passed** |
+| baseline, fix absent | `d7f81549a` | **16 failed / 58 passed** |
+
+`comm` on the two sorted FAILED lists: **identical sets — 0 only-in-current, 0 only-in-baseline.**
+Zero regressions introduced; zero of these 16 fixed by this work (they are a separate, pre-existing
+pytest-harness problem).
+
+Two mechanisms by which this work *could* have caused the "closed database" failures were checked
+and both are ruled out:
+- `maybe_run_due_jobs()` early-returns on `settings.RUNNING_TESTS`, which DOES detect pytest
+  (`any("pytest" in arg for arg in sys.argv)`) → the health-tick thread never spawns under tests, so
+  the two newly-registered periodic jobs cannot fire and `connections.close_all()` is never reached.
+- the `connection.close()` behind the error is in `workflow_tracker.heartbeat_during._beat`, added by
+  `c00740326` (2026-06-18) and present in the baseline. This work's only edit to that file is the
+  `auto_apply` parameter. (`onboarding_service._discard_connection` is inert here — it sits behind
+  `use_django_tenants()`, false in SQLite/RLS mode.)
+
+**⚠️ Still not exercised:** every run above is SQLite/RLS. The multi-minute Postgres `tenant_schema`
+migrate that actually gets killed in production never executes locally, so the headline failure is
+proven only against INJECTED faults. Closing that gap requires `USE_DJANGO_TENANTS=1` on staging
+Postgres. `--reuse-db` works (pytest-django is installed) and makes iteration ~1.5 min instead of ~19.
