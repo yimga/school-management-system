@@ -51,6 +51,22 @@ def _manager_request(factory, method, path, user, data=None):
     return request
 
 
+def _canonical_admin_user():
+    User = get_user_model()
+    admin, _ = User.objects.update_or_create(
+        username=CANONICAL_PLATFORM_ADMIN_USERNAME,
+        defaults={
+            "email": "admin@example.com",
+            "is_staff": True,
+            "is_superuser": True,
+            "is_active": True,
+        },
+    )
+    admin.set_password("admin")
+    admin.save(update_fields=["password"])
+    return admin
+
+
 class OperatorIdentityHelpersTests(TestCase):
     def test_superuser_has_all_scopes(self):
         User = get_user_model()
@@ -75,13 +91,7 @@ class OperatorIdentityHelpersTests(TestCase):
 
     def test_canonical_admin_cannot_be_offboarded(self):
         User = get_user_model()
-        admin = User.objects.create_user(
-            username=CANONICAL_PLATFORM_ADMIN_USERNAME,
-            email="admin@example.com",
-            password="admin",
-            is_staff=True,
-            is_superuser=True,
-        )
+        admin = _canonical_admin_user()
         actor = User.objects.create_user(
             username="manager1",
             email="manager1@example.com",
@@ -93,14 +103,7 @@ class OperatorIdentityHelpersTests(TestCase):
         self.assertFalse(user_may_offboard_operator(actor, admin))
 
     def test_ensure_platform_operator_profile_break_glass_for_admin(self):
-        User = get_user_model()
-        admin = User.objects.create_user(
-            username=CANONICAL_PLATFORM_ADMIN_USERNAME,
-            email="admin@example.com",
-            password="admin",
-            is_staff=True,
-            is_superuser=True,
-        )
+        admin = _canonical_admin_user()
         ensure_platform_operator_profile(admin)
         profile = PlatformOperatorProfile.objects.get(user=admin)
         self.assertEqual(profile.tier, "break_glass")
@@ -219,14 +222,7 @@ class OperatorTeamHubViewTests(TestCase):
 
 
     def test_offboard_canonical_admin_is_blocked(self):
-        User = get_user_model()
-        admin = User.objects.create_user(
-            username=CANONICAL_PLATFORM_ADMIN_USERNAME,
-            email="admin@example.com",
-            password="admin",
-            is_staff=True,
-            is_superuser=True,
-        )
+        admin = _canonical_admin_user()
         ensure_platform_operator_profile(admin)
         request = _manager_request(
             self.factory,

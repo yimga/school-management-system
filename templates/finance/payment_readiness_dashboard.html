@@ -3,6 +3,12 @@
 {% load static i18n terminology_tags %}
 {% block title %}{% trans "Payment Readiness Center" %} — {{ school.name }}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
@@ -11,17 +17,15 @@
 
 <div class="container-fluid px-3 px-lg-4 py-4" data-page-archetype="finance-payment-readiness-dashboard" data-rmc-os-center="payment_readiness" data-rmc-scroll-policy="paginate">
   {% trans "Finance" as fin_eyebrow %}
+  {% url 'finance:dashboard' as payment_money_url %}
   {% trans "Honest corridor status: metadata-only health checks — no live charges; CARD/BANK stay external until PSP onboarding." as pay_purpose %}
-  {% include "components/rmc_os_page_header.html" with os_center_key="payment_readiness" center_eyebrow=fin_eyebrow center_title=_("Payment Readiness Center") center_purpose=pay_purpose status_badge_text=readiness_display_label status_badge_variant=status_badge_class %}
+  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" os_center_key="payment_readiness" center_eyebrow=fin_eyebrow center_title=_("Payment Readiness Center") center_purpose=pay_purpose status_badge_text=readiness_display_label status_badge_variant=status_badge_class primary_url=primary_cta_url primary_label=primary_cta_label secondary_url=payment_money_url secondary_label=_("Open Money Center") jump_a_id="payment-next-action" jump_a_label=_("Next action") jump_b_id="gateway-health" jump_b_label=_("Gateway health") jump_c_id="psp-matrix" jump_c_label=_("PSP matrix") %}
   {% include "components/rmc_os_status_strip.html" with strip_items=os_strip_items %}
   {% if readiness.subhead %}<p class="text-muted small mb-3">{{ readiness.subhead }}</p>{% endif %}
 
-  {% include "components/rmc_os_action_bar.html" with primary_url=primary_cta_url primary_label=primary_cta_label primary_data_action="payment-readiness-primary" primary_task="payment_readiness" primary_step="finance:readiness-primary" %}
-  <div class="d-flex flex-wrap gap-2 mb-4">
-    <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}" data-action="nav-money-center" data-task="payment_readiness" data-task-step="finance:nav-dashboard">{% trans "Open Money Center" %}</a>
-  </div>
+  {% include "components/world_class_summary_strip.html" with readiness=readiness_display_label readiness_label=_("Payment posture") risk=readiness.status risk_label=_("Gateway readiness") next_step=primary_cta_label next_step_label=_("Primary action") blockers=_("External PSP") blockers_label=_("No fake live charges") %}
 
-  <div class="rmc-banner border-0 shadow-sm mb-4" data-rmc-payment-next-action="1">
+  <div class="rmc-banner border-0 shadow-sm mb-4" id="payment-next-action" data-rmc-payment-next-action="1">
     <div class="fw-semibold mb-1">{% trans "Current status & next action" %}</div>
     <p class="mb-0 small">{{ next_action }}</p>
     <p class="mb-0 small mt-2 text-muted">{% trans "Status vocabulary: ready, degraded, missing credentials, external required, manual fallback." %}</p>
@@ -68,7 +72,7 @@
     </div>
   </div>
 
-  <div class="card shadow-sm mb-4">
+  <div class="card shadow-sm mb-4" id="gateway-health">
     <div class="card-body">
       <h2 class="h5">Gateway health (metadata checks)</h2>
       <p class="small text-muted">No live charges; secrets never logged. CARD/BANK rails stay <code>external_required</code> until PSP onboarding completes.</p>
@@ -103,7 +107,7 @@
   </div>
 
   {% if lane2_corridors %}
-  <div class="card shadow-sm mb-4">
+  <div class="card shadow-sm mb-4" id="psp-matrix">
     <div class="card-body">
       <h2 class="h5">{% trans "Global PSP matrix (Lane 2)" %}</h2>
       <p class="small text-muted">{% trans "Register truth + tenant Integration — verified_live only with evidence on disk." %}</p>

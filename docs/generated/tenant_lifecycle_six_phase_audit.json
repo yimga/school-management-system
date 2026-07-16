@@ -1,0 +1,934 @@
+{
+  "audit": "tenant_lifecycle_six_phase",
+  "failure_count": 0,
+  "failures": [],
+  "gates": [
+    {
+      "exit": 0,
+      "output_tail": "ength=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.\nINFO 2026-07-13 20:51:13,566 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired\nINFO 2026-07-13 20:51:14,302 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- wizard registry: loaded 37 wizards",
+      "passed": true,
+      "script": "scripts/audit_tenant_lifecycle_aggressive.py",
+      "status": "PASS"
+    },
+    {
+      "exit": 0,
+      "output_tail": "ength=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.\nINFO 2026-07-13 20:51:20,037 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired\nINFO 2026-07-13 20:51:20,469 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- wizard registry: loaded 37 wizards",
+      "passed": true,
+      "script": "scripts/verify_tenant_lifecycle_unified.py",
+      "status": "PASS"
+    },
+    {
+      "exit": 0,
+      "output_tail": "verify_migration_cloud_intake_experience: PASS (12/12)",
+      "passed": true,
+      "script": "scripts/verify_migration_cloud_intake_experience.py",
+      "status": "PASS"
+    },
+    {
+      "exit": 0,
+      "output_tail": "BLUEPRINT_LOCAL_FIRST_OFFLINE_AUDIT_COMPLETE docs\\generated\\blueprint_local_first_offline_audit.json docs\\generated\\blueprint_local_first_offline_audit.md",
+      "passed": true,
+      "script": "scripts/audit_blueprint_local_first_offline.py",
+      "status": "PASS"
+    }
+  ],
+  "interpretation": [
+    "PASS means repo-side lifecycle wiring is present and focused gates pass.",
+    "PASS_WITH_WORKTREE_WARNINGS means repo-side wiring passes, but local worktree drift can explain deployment confusion.",
+    "This audit does not claim external vendor readiness, production PostgreSQL/RLS proof, or real DNS/email/PSP completion unless separate environment evidence exists."
+  ],
+  "overall_status": "PASS_WITH_WORKTREE_WARNINGS",
+  "phase_summary": {
+    "phase_1_discovery_evaluation_provisioning": {
+      "failed": [],
+      "label": "Discovery, evaluation, signup, provisioning, isolation",
+      "passed": 10,
+      "status": "PASS",
+      "total": 10
+    },
+    "phase_2_configuration_initialization": {
+      "failed": [],
+      "label": "Configuration, branding, localization, rules, integrations",
+      "passed": 8,
+      "status": "PASS",
+      "total": 8
+    },
+    "phase_3_migration_ingestion": {
+      "failed": [],
+      "label": "Data migration and ingestion",
+      "passed": 8,
+      "status": "PASS",
+      "total": 8
+    },
+    "phase_4_steady_state_operations": {
+      "failed": [],
+      "label": "Steady-state school operations",
+      "passed": 9,
+      "status": "PASS",
+      "total": 9
+    },
+    "phase_5_maintenance_evolution": {
+      "failed": [],
+      "label": "Maintenance, scaling, tenant audit, support",
+      "passed": 7,
+      "status": "PASS",
+      "total": 7
+    },
+    "phase_6_offboarding_deprovisioning": {
+      "failed": [],
+      "label": "Offboarding, export, suspension, purge",
+      "passed": 8,
+      "status": "PASS",
+      "total": 8
+    },
+    "tenant_operator_separation": {
+      "failed": [],
+      "label": "Tenant/operator separation",
+      "passed": 6,
+      "status": "PASS",
+      "total": 6
+    },
+    "truth_and_redundancy": {
+      "failed": [],
+      "label": "Truth ledger and redundancy control",
+      "passed": 3,
+      "status": "PASS",
+      "total": 3
+    }
+  },
+  "probes": [
+    {
+      "exists": true,
+      "invert": false,
+      "key": "public_signup_route",
+      "note": "Public host must expose self-service signup.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "config/public_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "path(\"signup/\", signup_school"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "signup_slug_check_route",
+      "note": "Prospects need live subdomain/workspace availability.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "config/public_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "signup/slug-check/"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "signup_verification_route",
+      "note": "Email verification must be in the lifecycle.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "config/public_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "verify-signup/"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "signup_captures_plan",
+      "note": "Subscription/package intent must be captured before provisioning.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "apps/schools/signup_views.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "plan_slug"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "signup_captures_migration_intent",
+      "note": "Migration Cloud handoff should begin at signup when needed.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "apps/schools/signup_views.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "migration_intent"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "signup_assigns_data_residency",
+      "note": "Tenant data location cannot be fake or implicit.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "apps/schools/signup_views.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "apply_data_residency_for_new_school"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "provisioning_schema_client",
+      "note": "Provisioning must create/bind isolated tenant runtime.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "apps/schools/onboarding_service.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "ensure_tenant_client_for_school"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "provisioning_kill_switch",
+      "note": "Failed provisioning must not leave a half-created tenant without audit.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "apps/schools/onboarding_service.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "kill_switch_on_failure"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_admin_route",
+      "note": "Tenant backend admin must be tenant-owned, not operator admin.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "path(\"admin/\", tenant_admin_site.urls)"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "provisioning_status_route",
+      "note": "Tenant must see provisioning status.",
+      "passed": true,
+      "phase": "phase_1_discovery_evaluation_provisioning",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "tenant_provisioning_status"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_configuration_route",
+      "note": "Tenant configuration center must have a canonical tenant route.",
+      "passed": true,
+      "phase": "phase_2_configuration_initialization",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "path(\"school/configuration/\", school_configuration_center"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_onboarding_route",
+      "note": "Setup/onboarding checklist must be mounted.",
+      "passed": true,
+      "phase": "phase_2_configuration_initialization",
+      "relpath": "apps/siteconfig/urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "onboarding"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "theme_experience_preview",
+      "note": "Branding changes must preview role surfaces, not just color fields.",
+      "passed": true,
+      "phase": "phase_2_configuration_initialization",
+      "relpath": "templates/admin/components/theme_preview_section.html",
+      "severity": "high",
+      "status": "PASS",
+      "token": "Role dashboard"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "palette_preview_surface",
+      "note": "Palette preview must cover status/table/form/page states.",
+      "passed": true,
+      "phase": "phase_2_configuration_initialization",
+      "relpath": "templates/admin/components/theme_preview_section.html",
+      "severity": "high",
+      "status": "PASS",
+      "token": "preview-status-table"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "school_config_sections",
+      "note": "Tenant-visible configuration sections must be explicit.",
+      "passed": true,
+      "phase": "phase_2_configuration_initialization",
+      "relpath": "apps/platform_runtime/administration_catalog.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "TENANT_CONFIGURATION_SECTIONS"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "regional_localization_service",
+      "note": "Timezone, calendar, language, and regional defaults must be catalog-driven.",
+      "passed": true,
+      "phase": "phase_2_configuration_initialization",
+      "relpath": "apps/siteconfig/country_localization_service.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "resolve_country_pack"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "academic_year_lifecycle",
+      "note": "Academic year/term setup needs test coverage.",
+      "passed": true,
+      "phase": "phase_2_configuration_initialization",
+      "relpath": "apps/academics/tests/test_academic_year_setup_lifecycle.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "academic_year"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "integration_catalog",
+      "note": "Third-party integrations should be cataloged.",
+      "passed": true,
+      "phase": "phase_2_configuration_initialization",
+      "relpath": "apps/siteconfig/integration_catalog.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "integration"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_migration_cloud_route",
+      "note": "Tenant Migration Cloud must be reachable on tenant host.",
+      "passed": true,
+      "phase": "phase_3_migration_ingestion",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "\"school/setup/migration-cloud/\""
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_upload_surface",
+      "note": "Tenants need a direct file-first migration path.",
+      "passed": true,
+      "phase": "phase_3_migration_ingestion",
+      "relpath": "apps/migration_cloud/views_tenant_upload.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "TenantMigrationUploadView"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_upload_tenant_scoped",
+      "note": "Migration bundle access must be tenant-scoped.",
+      "passed": true,
+      "phase": "phase_3_migration_ingestion",
+      "relpath": "apps/migration_cloud/views_tenant_upload.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "_tenant_bundle_or_404"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_upload_progress",
+      "note": "Migration processing must not feel blank or stalled.",
+      "passed": true,
+      "phase": "phase_3_migration_ingestion",
+      "relpath": "apps/migration_cloud/views_tenant_upload.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "TenantMigrationProgressView"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_upload_repair",
+      "note": "Failed/incomplete imports need safe idempotent repair.",
+      "passed": true,
+      "phase": "phase_3_migration_ingestion",
+      "relpath": "apps/migration_cloud/views_tenant_upload.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "TenantMigrationRepairView"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "migration_control_totals",
+      "note": "Migration Cloud must support control totals for baseline proof.",
+      "passed": true,
+      "phase": "phase_3_migration_ingestion",
+      "relpath": "templates/migration_cloud/intake_new.html",
+      "severity": "high",
+      "status": "PASS",
+      "token": "expected_students_count"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "migration_post_apply_verification",
+      "note": "Go-live baseline cannot rely on upload success alone.",
+      "passed": true,
+      "phase": "phase_3_migration_ingestion",
+      "relpath": "apps/migration_cloud/verification.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "verify"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "csv_import_verifier",
+      "note": "Tenant CSV path needs a verifier.",
+      "passed": true,
+      "phase": "phase_3_migration_ingestion",
+      "relpath": "scripts/verify_tenant_onboarding_csv_import.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "TENANT_ONBOARDING_CSV_IMPORT"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_dashboard_route",
+      "note": "Tenant daily backend route must exist.",
+      "passed": true,
+      "phase": "phase_4_steady_state_operations",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "\"backend/\""
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "user_role_provisioning",
+      "note": "Tenant admins need scoped role access control.",
+      "passed": true,
+      "phase": "phase_4_steady_state_operations",
+      "relpath": "apps/accounts/permissions.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "tenant_operator_hub_eligible"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "finance_operations_route",
+      "note": "Daily tuition/payment work must be tenant-routed.",
+      "passed": true,
+      "phase": "phase_4_steady_state_operations",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "finance"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "communications_route",
+      "note": "School announcements/messages must be tenant-routed.",
+      "passed": true,
+      "phase": "phase_4_steady_state_operations",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "communication"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "academics_route",
+      "note": "Attendance, classes, gradebook, and reports must be tenant-routed.",
+      "passed": true,
+      "phase": "phase_4_steady_state_operations",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "academics"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "workflow_center_route",
+      "note": "Tenant workflow destination must stay tenant-scoped.",
+      "passed": true,
+      "phase": "phase_4_steady_state_operations",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "\"school/workflows/\""
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_app_catalog_route",
+      "note": "Feature/app consumption must be tenant-visible.",
+      "passed": true,
+      "phase": "phase_4_steady_state_operations",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "\"settings/app-catalog/\""
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "offline_db",
+      "note": "Local-first/offline-first tenant operation must have client storage.",
+      "passed": true,
+      "phase": "phase_4_steady_state_operations",
+      "relpath": "static/js/offline-db.js",
+      "severity": "high",
+      "status": "PASS",
+      "token": "school_readiness"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "offline_action_handlers",
+      "note": "Offline actions need server replay handlers.",
+      "passed": true,
+      "phase": "phase_4_steady_state_operations",
+      "relpath": "apps/schools/offline_workflow_handlers.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "offline"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "subscription_scaling",
+      "note": "Scaling and package lifecycle must be represented.",
+      "passed": true,
+      "phase": "phase_5_maintenance_evolution",
+      "relpath": "apps/billing/tasks_billing_lifecycle.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "subscription"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "payment_readiness",
+      "note": "Payment posture must be honest and visible.",
+      "passed": true,
+      "phase": "phase_5_maintenance_evolution",
+      "relpath": "apps/finance/views_payment_readiness_dashboard.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "payment_readiness_dashboard"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_audit_surface",
+      "note": "Schools need internal audit visibility.",
+      "passed": true,
+      "phase": "phase_5_maintenance_evolution",
+      "relpath": "templates/compliance/dashboard.html",
+      "severity": "high",
+      "status": "PASS",
+      "token": "Audit Trail"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "support_surface",
+      "note": "Tenant support must stay tenant-contextual.",
+      "passed": true,
+      "phase": "phase_5_maintenance_evolution",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "feedback"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "change_request_governance",
+      "note": "Tenant config changes need preview/approval/schedule paths.",
+      "passed": true,
+      "phase": "phase_5_maintenance_evolution",
+      "relpath": "apps/platform_runtime/configuration_change_requests.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "ConfigurationChangeRequest"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "app_install_lifecycle",
+      "note": "App catalog installs need a real lifecycle.",
+      "passed": true,
+      "phase": "phase_5_maintenance_evolution",
+      "relpath": "apps/marketplace/lifecycle.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "install"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_health_signals",
+      "note": "Maintenance needs health signals and test coverage.",
+      "passed": true,
+      "phase": "phase_5_maintenance_evolution",
+      "relpath": "apps/platform_runtime/tests/test_tenant_lifecycle_health_signals.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "health"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_offboarding_route",
+      "note": "Tenant self-service offboarding page must exist.",
+      "passed": true,
+      "phase": "phase_6_offboarding_deprovisioning",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "tenant_offboarding_page"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_offboarding_export_api",
+      "note": "Data extraction/download must be tenant-facing.",
+      "passed": true,
+      "phase": "phase_6_offboarding_deprovisioning",
+      "relpath": "config/tenant_urls.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "tenant_offboarding_export_download"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_wind_down",
+      "note": "Suspension/read-only posture must be explicit.",
+      "passed": true,
+      "phase": "phase_6_offboarding_deprovisioning",
+      "relpath": "apps/lifecycle/wind_down.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "apply_wind_down_mode"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "commerce_wind_down_guard",
+      "note": "Wind-down must block new commerce/enrollment writes.",
+      "passed": true,
+      "phase": "phase_6_offboarding_deprovisioning",
+      "relpath": "apps/lifecycle/wind_down_guards.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "block_if_wind_down_commerce"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "offboarding_inventory",
+      "note": "Purge must know what tenant assets/data exist.",
+      "passed": true,
+      "phase": "phase_6_offboarding_deprovisioning",
+      "relpath": "apps/compliance/tenant_offboarding_inventory.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "tenant"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "offboarding_purge_ops",
+      "note": "Hard deletion must have auditable operations.",
+      "passed": true,
+      "phase": "phase_6_offboarding_deprovisioning",
+      "relpath": "apps/lifecycle/purge_operations.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "Purge"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "operator_only_purge",
+      "note": "Dangerous purge controls remain operator-approved, not hidden fake tenant buttons.",
+      "passed": true,
+      "phase": "phase_6_offboarding_deprovisioning",
+      "relpath": "apps/schools/tenant_offboarding_policy.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "operator_only_offboarding"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "backup_purge_honesty",
+      "note": "Backup/schema purge proof must not be claimed green on SQLite only.",
+      "passed": true,
+      "phase": "phase_6_offboarding_deprovisioning",
+      "relpath": "docs/generated/tenant_lifecycle_forensic_gap_audit.md",
+      "severity": "high",
+      "status": "PASS",
+      "token": "Postgres"
+    },
+    {
+      "exists": true,
+      "invert": true,
+      "key": "tenant_no_operator_super_links",
+      "note": "Tenant blueprint catalog must not expose operator links.",
+      "passed": true,
+      "phase": "tenant_operator_separation",
+      "relpath": "templates/siteconfig/partials/get_blueprints_body.html",
+      "severity": "high",
+      "status": "PASS",
+      "token": "/super/"
+    },
+    {
+      "exists": true,
+      "invert": true,
+      "key": "tenant_no_operator_blueprint_config_links",
+      "note": "Tenant blueprint catalog must not expose operator configuration paths.",
+      "passed": true,
+      "phase": "tenant_operator_separation",
+      "relpath": "templates/siteconfig/partials/get_blueprints_body.html",
+      "severity": "high",
+      "status": "PASS",
+      "token": "/configuration/blueprints/"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_admin_separate_site",
+      "note": "Tenant admin site must be separate from platform admin site.",
+      "passed": true,
+      "phase": "tenant_operator_separation",
+      "relpath": "config/admin.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "tenant_admin_site = TenantAdminSite"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "platform_admin_separate_site",
+      "note": "Operator admin site must be separate from tenant admin site.",
+      "passed": true,
+      "phase": "tenant_operator_separation",
+      "relpath": "config/admin.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "platform_admin_site = PlatformAdminSite"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_admin_denies_platform_host",
+      "note": "Tenant admin must deny platform-host access.",
+      "passed": true,
+      "phase": "tenant_operator_separation",
+      "relpath": "config/admin.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "self._is_platform_host(request)"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "tenant_configuration_forbidden",
+      "note": "Tenant cannot use platform configuration root.",
+      "passed": true,
+      "phase": "tenant_operator_separation",
+      "relpath": "apps/platform_runtime/views_administration.py",
+      "severity": "high",
+      "status": "PASS",
+      "token": "tenant_configuration_forbidden"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "no_fake_payment_copy",
+      "note": "Payment readiness must be honest about external PSP blockers.",
+      "passed": true,
+      "phase": "truth_and_redundancy",
+      "relpath": "templates/finance/payment_readiness_dashboard.html",
+      "severity": "high",
+      "status": "PASS",
+      "token": "No fake"
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "blueprint_truth_audit",
+      "note": "Blueprint truth ledger must exist.",
+      "passed": true,
+      "phase": "truth_and_redundancy",
+      "relpath": "docs/generated/blueprint_local_first_offline_audit.json",
+      "severity": "high",
+      "status": "PASS",
+      "token": "\"overall_status\""
+    },
+    {
+      "exists": true,
+      "invert": false,
+      "key": "migration_truth_audit",
+      "note": "Migration Cloud connector discovery must be generated evidence.",
+      "passed": true,
+      "phase": "truth_and_redundancy",
+      "relpath": "docs/generated/migration_cloud_connector_discovery.json",
+      "severity": "high",
+      "status": "PASS",
+      "token": "\"tenant_routes\""
+    }
+  ],
+  "routes": [
+    {
+      "failure": "",
+      "key": "public_signup",
+      "name": "signup_school",
+      "passed": true,
+      "status": "PASS",
+      "url": "/signup/",
+      "urlconf": "config.public_urls"
+    },
+    {
+      "failure": "",
+      "key": "public_verify_signup",
+      "name": "verify_signup",
+      "passed": true,
+      "status": "PASS",
+      "url": "/verify-signup/",
+      "urlconf": "config.public_urls"
+    },
+    {
+      "failure": "",
+      "key": "tenant_provisioning_status",
+      "name": "tenant_provisioning_status",
+      "passed": true,
+      "status": "PASS",
+      "url": "/school/studio/provisioning/",
+      "urlconf": "config.tenant_urls"
+    },
+    {
+      "failure": "",
+      "key": "tenant_configuration",
+      "name": "school_configuration_center_canonical",
+      "passed": true,
+      "status": "PASS",
+      "url": "/school/configuration/",
+      "urlconf": "config.tenant_urls"
+    },
+    {
+      "failure": "",
+      "key": "tenant_blueprints",
+      "name": "tenant_blueprint_setup",
+      "passed": true,
+      "status": "PASS",
+      "url": "/school/setup/blueprints/",
+      "urlconf": "config.tenant_urls"
+    },
+    {
+      "failure": "",
+      "key": "tenant_packs",
+      "name": "tenant_pack_setup",
+      "passed": true,
+      "status": "PASS",
+      "url": "/school/setup/packs/",
+      "urlconf": "config.tenant_urls"
+    },
+    {
+      "failure": "",
+      "key": "tenant_imports",
+      "name": "school_setup_imports",
+      "passed": true,
+      "status": "PASS",
+      "url": "/school/setup/imports/",
+      "urlconf": "config.tenant_urls"
+    },
+    {
+      "failure": "",
+      "key": "tenant_migration_cloud",
+      "name": "migration_cloud_connector:connector-home",
+      "passed": true,
+      "status": "PASS",
+      "url": "/school/setup/migration-cloud/",
+      "urlconf": "config.tenant_urls"
+    },
+    {
+      "failure": "",
+      "key": "tenant_migration_upload",
+      "name": "migration_cloud_connector:upload",
+      "passed": true,
+      "status": "PASS",
+      "url": "/school/setup/migration-cloud/upload/",
+      "urlconf": "config.tenant_urls"
+    },
+    {
+      "failure": "",
+      "key": "tenant_app_catalog",
+      "name": "tenant_app_catalog",
+      "passed": true,
+      "status": "PASS",
+      "url": "/settings/app-catalog/",
+      "urlconf": "config.tenant_urls"
+    },
+    {
+      "failure": "",
+      "key": "tenant_offboarding",
+      "name": "tenant_offboarding",
+      "passed": true,
+      "status": "PASS",
+      "url": "/school/studio/offboarding/",
+      "urlconf": "config.tenant_urls"
+    }
+  ],
+  "scope": "tenant lifecycle from discovery through offboarding, with Migration Cloud and tenant/operator separation",
+  "worktree_drift": {
+    "rows": [
+      {
+        "git": true,
+        "head": "c94b5bbd0 (HEAD, origin/main, origin/HEAD) Fix tenant blueprint previews and composition audit",
+        "label": "active",
+        "path": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system-render-audit",
+        "status": "## HEAD (no branch)\n M scripts/audit_tenant_lifecycle_full.py\n?? docs/generated/tenant_lifecycle_six_phase_audit.json\n?? docs/generated/tenant_lifecycle_six_phase_audit.md\n?? docs/prompts/tenant_lifecycle_six_phase_gap_closure_prompt.md\n?? scripts/audit_tenant_lifecycle_six_phase.py"
+      },
+      {
+        "git": true,
+        "head": "b8aeb5497 (HEAD -> main) design-previews: add Django admin canvas revamp before/after mockups",
+        "label": "canonical_local",
+        "path": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system",
+        "status": "## main...origin/main [behind 14]\n M docs/generated/role_permission_matrix.csv\n M docs/generated/role_permission_matrix.json\n M scripts/run_phase_h_verification.sh\n M templates/accounts/direct_compose.html\n M templates/accounts/district_interop_token_result.html\n M templates/control_plane_skeleton.html\n M templates/evals/extend_deadline.html\n M var/security-audit-baseline-drf-schema-coverage.json\n M var/security-audit-baseline-field-reference-integrity.json\n M var/security-audit-baseline-get-model-integrity.json\n M var/security-audit-baseline-import-reference-integrity.json\n M var/security-audit-baseline-money-float.json\n M var/security-audit-baseline-relation-path-integrity.json\n M var/security-audit-baseline-rls-bypass.json\n M var/security-audit-baseline-rls-force-coverage.json\n M var/security-audit-baseline-settings-key-integrity.json\n M var/security-audit-baseline-static-reference-integrity.json\n M var/security-audit-baseline-template-reference-integrity.json\n M var/security-audit-baseline-url-name-integrity.json\n?? apps/academics/migrations/0064_ensure_school_fk_columns.py\n?? apps/academics/migrations/0065_ensure_incident_and_all_school_fk_columns.py\n?? apps/communication/migrations/0032_ensure_school_fk_columns.py\n?? apps/evals/migrations/0038_ensure_school_fk_columns.py\n?? apps/finance/migrations/0077_ensure_school_fk_columns.py\n?? apps/people/migrations/0067_ensure_school_fk_columns.py\n?? apps/portal/migrations/0043_ensure_school_fk_columns.py\n?? apps/reports/migrations/0023_ensure_school_fk_columns.py\n?? apps/tenancy/schema_repair.py\n?? apps/tenancy/tests/test_schema_repair.py"
+      }
+    ],
+    "warnings": [
+      "active render-audit worktree and canonical school-management-system worktree are on different commits",
+      "canonical local school-management-system worktree is behind origin/main",
+      "canonical local school-management-system worktree has uncommitted changes"
+    ]
+  }
+}

@@ -683,3 +683,108 @@
   font-size: 0.85rem; overflow-wrap: anywhere;
 }
 .rmc-studio-experience-rollout__approve { margin: 0; }
+
+/* 2026-07-13 real-admin-canvas: terminal Studio Experience fix for
+   production pages still rendering the legacy Theme & Experience include. */
+.studio-os--mode-experience,
+[data-rmc-studio-mode="experience"],
+[data-studio-workspace-mode="experience"] {
+  --rmc-experience-live-min: min(100%, 30rem);
+  --rmc-experience-settings-min: min(100%, 30rem);
+}
+
+.studio-os--mode-experience :is(
+  .rmc-studio-experience-canvas-clamp,
+  [data-rmc-studio-experience-canvas],
+  .theme-experience-shell,
+  .theme-experience-grid,
+  .theme-experience-main,
+  .theme-experience-left,
+  .theme-experience-right,
+  .theme-experience-preview,
+  .theme-experience-settings,
+  .theme-preview-section,
+  .rmc-live-preview-contract
+) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.studio-os--mode-experience :is(
+  .theme-experience-grid,
+  .theme-experience-main,
+  .theme-experience-shell
+) {
+  overflow: visible;
+}
+
+.studio-os--mode-experience :is(
+  .theme-preview-section,
+  .rmc-live-preview-contract,
+  .theme-experience-preview
+) {
+  overflow: hidden;
+}
+
+.studio-os--mode-experience :is(
+  .theme-preview-section iframe,
+  .rmc-live-preview-contract iframe,
+  .theme-experience-preview iframe,
+  .rmc-live-preview-contract__frame
+) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.studio-os--mode-experience :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea,
+  .form-control,
+  .form-select,
+  .btn,
+  .rmc-btn,
+  .badge,
+  .rmc-badge
+) {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.studio-os--mode-experience :is(.btn, .rmc-btn, .badge, .rmc-badge) {
+  white-space: normal;
+}
+
+@media (min-width: 1280px) {
+  .studio-os--mode-experience :is(.theme-experience-grid, .theme-experience-main) {
+    display: grid !important;
+    grid-template-columns: minmax(var(--rmc-experience-live-min), 0.95fr) minmax(var(--rmc-experience-settings-min), 1.05fr) !important;
+    gap: clamp(1rem, 1.4vw, 1.5rem) !important;
+    align-items: start !important;
+  }
+
+  .studio-os--mode-experience :is(.theme-experience-left, .theme-experience-preview, .theme-preview-section, .rmc-live-preview-contract) {
+    position: sticky;
+    top: 1rem;
+    max-height: min(78vh, 56rem);
+    overflow: auto;
+    scrollbar-width: thin;
+  }
+
+  .studio-os--mode-experience :is(.theme-experience-right, .theme-experience-settings) {
+    max-height: min(78vh, 56rem);
+    overflow: auto;
+    scrollbar-width: thin;
+  }
+}
+
+@media (max-width: 1279.98px) {
+  .studio-os--mode-experience :is(.theme-experience-grid, .theme-experience-main) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 1rem !important;
+  }
+}

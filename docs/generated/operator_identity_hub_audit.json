@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-25T11:09:12.372601+00:00",
+  "generated_at": "2026-07-13T14:55:38.223405+00:00",
   "finding_count": 0,
   "rows": [
     {
@@ -140,7 +140,7 @@
     {
       "check_id": "django-tests",
       "ok": true,
-      "proof": "ntent_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key\nINFO 2026-05-25 07:09:11,099 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped\n..\n----------------------------------------------------------------------\nRan 11 tests in 3.634s\n\nOK\nPreserving test database for alias 'default'..."
+      "proof": " accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key\nINFO 2026-07-13 10:55:36,240 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- django_cryptography_key_derived_from_secret_key\n..\n----------------------------------------------------------------------\nRan 11 tests in 5.891s\n\nOK\nPreserving test database for alias 'default'..."
     }
   ]
 }

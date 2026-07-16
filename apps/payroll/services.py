@@ -14,6 +14,7 @@ from .models import (
     EmploymentContract,
     PayrollEmployee,
     PayrollRun,
+    PayrollRunApproval,
     Payslip,
     PayslipLine,
     SalaryAdjustment,
@@ -311,16 +312,20 @@ def mark_payroll_run_paid(run: PayrollRun, *, actor=None) -> PayrollRun:
     This is the producer for ``PayrollRun.Status.PAID`` / ``Payslip.Status.PAID``
     and both ``paid_at`` columns — which previously had NO writer, leaving the
     ``generate_run`` "already paid" guard dead and payslips silently overwritable
-    after disbursement. Idempotent no-op if already PAID; refuses a DRAFT run
-    (nothing generated yet). Freezing the run is the point: ``generate_run``
+    after disbursement. Idempotent no-op if already PAID; requires an APPROVED run —
+    the ``process → review → approve`` gate must clear first (see
+    ``review_payroll_run`` / ``approve_payroll_run``). Freezing the run is the point: ``generate_run``
     refuses to regenerate a PAID run, so figures can't change after the money has
     gone out. ``actor`` is accepted for a future audit trail (PayrollRun has no
     ``paid_by`` column today).
     """
     if run.status == PayrollRun.Status.PAID:
         return run
-    if run.status == PayrollRun.Status.DRAFT:
-        raise ValueError("cannot mark a draft run paid; generate payslips first")
+    if run.status != PayrollRun.Status.APPROVED:
+        raise ValueError(
+            "payroll run must be APPROVED before it can be paid "
+            "(process → review → approve → pay)"
+        )
 
     now = timezone.now()
     run.status = PayrollRun.Status.PAID
@@ -332,4 +337,49 @@ def mark_payroll_run_paid(run: PayrollRun, *, actor=None) -> PayrollRun:
     Payslip.objects.filter(payroll_run=run).exclude(
         status=Payslip.Status.PAID
     ).update(status=Payslip.Status.PAID, paid_at=now, updated_at=now)
+    return run
+
+
+@transaction.atomic
+def review_payroll_run(run: PayrollRun, *, actor=None, notes: str = "") -> PayrollRun:
+    """Producer for ``PayrollRun.Status.REVIEWED`` — the first approval-FSM step.
+
+    A processed run is reviewed (figures checked) before it can be approved. This was
+    a dead enum value: no code ever set REVIEWED. Idempotent no-op if already REVIEWED
+    or further along (APPROVED/PAID); refuses a DRAFT run (nothing generated to review).
+    """
+    if run.status in (
+        PayrollRun.Status.REVIEWED,
+        PayrollRun.Status.APPROVED,
+        PayrollRun.Status.PAID,
+    ):
+        return run
+    if run.status != PayrollRun.Status.PROCESSED:
+        raise ValueError("only a processed payroll run can be reviewed")
+    run.status = PayrollRun.Status.REVIEWED
+    if notes:
+        run.notes = (run.notes + "\n" if run.notes else "") + f"Reviewed: {notes}"
+        run.save(update_fields=["status", "notes"])
+    else:
+        run.save(update_fields=["status"])
+    return run
+
+
+@transaction.atomic
+def approve_payroll_run(run: PayrollRun, *, actor=None, notes: str = "") -> PayrollRun:
+    """Producer for ``PayrollRun.Status.APPROVED`` AND ``PayrollRunApproval``.
+
+    Both were dead: no code set APPROVED and nothing ever created a PayrollRunApproval
+    row (the audit record of WHO signed off). This records the approval and advances
+    the run, which is the gate ``mark_payroll_run_paid`` now requires. Idempotent no-op
+    if already APPROVED/PAID (never double-writes the approval row); refuses a run that
+    has not been reviewed.
+    """
+    if run.status in (PayrollRun.Status.APPROVED, PayrollRun.Status.PAID):
+        return run
+    if run.status != PayrollRun.Status.REVIEWED:
+        raise ValueError("only a reviewed payroll run can be approved")
+    run.status = PayrollRun.Status.APPROVED
+    run.save(update_fields=["status"])
+    PayrollRunApproval.objects.create(run=run, approver=actor, notes=notes or "")
     return run

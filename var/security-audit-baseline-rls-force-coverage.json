@@ -2,7 +2,7 @@
   "allowlist_count": 10,
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-06-26T15:58:56+00:00",
+  "generated_at": "2026-07-16T01:57:44+00:00",
   "rule": "every tenant-scoped model must live in an app with both *_enable_rls_postgresql and *_rls_policy_default_deny migrations",
   "scan_dirs": [
     "apps"

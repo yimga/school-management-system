@@ -188,6 +188,7 @@ class SetupStudioServiceTests(TestCase):
         self.assertGreaterEqual(len(key_rows), 9)
         self.assertEqual(ra.get("mismatch_count"), 0)
         self.assertIn("url", (ra.get("settings_cta") or {}))
+        self.assertEqual(ra.get("settings_cta", {}).get("url"), "/school/configuration/")
         lines = ra.get("summary_lines") or []
         self.assertGreaterEqual(len(lines), 2)
         self.assertEqual(" ".join(lines).strip(), ra.get("detail", "").strip())

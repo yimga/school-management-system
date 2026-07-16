@@ -69,7 +69,10 @@
               <td>{% if shift.absent_teacher %}{{ shift.absent_teacher.get_full_name|default:shift.absent_teacher.username }}{% else %}—{% endif %}</td>
               <td>{{ shift.period_label|default:"—" }}</td>
               <td>
-                <form method="post" class="d-flex flex-wrap gap-2 align-items-center">{% csrf_token %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post" class="d-flex flex-wrap gap-2 align-items-center">{% csrf_token %}
                   <input type="hidden" name="shift_id" value="{{ shift.shift_id }}">
                   {% if is_ops_admin %}
                   <select class="form-select form-select-sm w-auto" name="covering_teacher_id">
@@ -79,7 +82,8 @@
                   {% endif %}
                   <button type="submit" name="action" value="claim_market" class="btn btn-sm btn-primary">{% if can_self_claim and not is_ops_admin %}{% trans "Claim for me" %}{% else %}{% trans "Claim shift" %}{% endif %}</button>
                 </form>
-              </td>
+                  </div>
+                </details></td>
             </tr>
             {% endfor %}
           </tbody>

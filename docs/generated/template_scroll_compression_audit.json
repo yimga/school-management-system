@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-07-09T18:57:12.154802+00:00",
-  "files_scanned": 1810,
-  "unpaginated_for_loop_files": 798,
-  "overflow_hidden_files": 49,
-  "rigid_width_files": 137,
+  "generated_at": "2026-07-13T13:56:32.285424+00:00",
+  "files_scanned": 1831,
+  "unpaginated_for_loop_files": 815,
+  "overflow_hidden_files": 48,
+  "rigid_width_files": 133,
   "priority_unpaginated": [
     {
       "path": "templates/siteconfig/super/cockpit_configure.html",
@@ -1095,6 +1095,45 @@
       "rigid_width": []
     },
     {
+      "path": "templates/migration_cloud/intake_new.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 48,
+          "iterable": "pipeline_steps"
+        },
+        {
+          "line": 61,
+          "iterable": "errors"
+        },
+        {
+          "line": 160,
+          "iterable": "intake_method_groups"
+        },
+        {
+          "line": 177,
+          "iterable": "intake_methods"
+        },
+        {
+          "line": 219,
+          "iterable": "canonical_domains"
+        },
+        {
+          "line": 424,
+          "iterable": "source_playbooks"
+        },
+        {
+          "line": 433,
+          "iterable": "pipeline_steps"
+        },
+        {
+          "line": 447,
+          "iterable": "upload_guardrails"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
       "path": "templates/schools/super_command_center.html",
       "unpaginated_for_loops": [
         {
@@ -1241,41 +1280,6 @@
         {
           "line": 151,
           "iterable": "lic"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/migration_cloud/intake_new.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 48,
-          "iterable": "pipeline_steps"
-        },
-        {
-          "line": 61,
-          "iterable": "errors"
-        },
-        {
-          "line": 160,
-          "iterable": "intake_method_groups"
-        },
-        {
-          "line": 177,
-          "iterable": "intake_methods"
-        },
-        {
-          "line": 410,
-          "iterable": "source_playbooks"
-        },
-        {
-          "line": 419,
-          "iterable": "pipeline_steps"
-        },
-        {
-          "line": 433,
-          "iterable": "upload_guardrails"
         }
       ],
       "overflow_hidden": [],
@@ -1527,6 +1531,37 @@
       "rigid_width": []
     },
     {
+      "path": "templates/academics/timetable_review.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 50,
+          "iterable": "conflicts"
+        },
+        {
+          "line": 73,
+          "iterable": "booking_conflicts"
+        },
+        {
+          "line": 100,
+          "iterable": "grid"
+        },
+        {
+          "line": 104,
+          "iterable": "grid"
+        },
+        {
+          "line": 107,
+          "iterable": "row"
+        },
+        {
+          "line": 109,
+          "iterable": "cell"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
       "path": "templates/analytics/master_sheet.html",
       "unpaginated_for_loops": [
         {
@@ -1623,6 +1658,37 @@
           "match": "min-width: 140px"
         }
       ]
+    },
+    {
+      "path": "templates/marketplace/templates_browse.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 42,
+          "iterable": "categories"
+        },
+        {
+          "line": 60,
+          "iterable": "templates"
+        },
+        {
+          "line": 88,
+          "iterable": "t"
+        },
+        {
+          "line": 121,
+          "iterable": "ai_recommendation"
+        },
+        {
+          "line": 133,
+          "iterable": "recent_assignments"
+        },
+        {
+          "line": 148,
+          "iterable": "local_first_coverage"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
     },
     {
       "path": "templates/partials/cockpit/_activity_ticker.html",
@@ -1931,64 +1997,6 @@
         {
           "line": 214,
           "iterable": "health_recommendations"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/student360/student_360_page.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 70,
-          "iterable": "information_tags"
-        },
-        {
-          "line": 88,
-          "iterable": "identity_matrix"
-        },
-        {
-          "line": 113,
-          "iterable": "academic"
-        },
-        {
-          "line": 121,
-          "iterable": "academic"
-        },
-        {
-          "line": 140,
-          "iterable": "finance"
-        },
-        {
-          "line": 169,
-          "iterable": "timeline"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/academics/backend_classroom_create.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 24,
-          "iterable": "form"
-        },
-        {
-          "line": 27,
-          "iterable": "form"
-        },
-        {
-          "line": 27,
-          "iterable": "field"
-        },
-        {
-          "line": 39,
-          "iterable": "form"
-        },
-        {
-          "line": 46,
-          "iterable": "field"
         }
       ],
       "overflow_hidden": [],
@@ -2878,10 +2886,6 @@
       ],
       "rigid_width": [
         {
-          "line": 10,
-          "match": "max-width: 1280px"
-        },
-        {
           "line": 57,
           "match": "width: 110px"
         },
@@ -3184,78 +3188,6 @@
       ]
     },
     {
-      "path": "templates/super/integrations/lms_audit_index.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 89,
-          "iterable": "rows"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 10,
-          "match": "max-width: 1280px"
-        },
-        {
-          "line": 46,
-          "match": "min-width: 160px"
-        },
-        {
-          "line": 49,
-          "match": "min-width: 110px"
-        },
-        {
-          "line": 56,
-          "match": "min-width: 200px"
-        },
-        {
-          "line": 59,
-          "match": "min-width: 160px"
-        },
-        {
-          "line": 62,
-          "match": "min-width: 130px"
-        }
-      ]
-    },
-    {
-      "path": "templates/super/transfers/cases_index.html",
-      "unpaginated_for_loops": [],
-      "overflow_hidden": [
-        {
-          "line": 48,
-          "match": "overflow: hidden"
-        }
-      ],
-      "rigid_width": [
-        {
-          "line": 10,
-          "match": "max-width: 1200px"
-        },
-        {
-          "line": 20,
-          "match": "min-width: 160px"
-        },
-        {
-          "line": 56,
-          "match": "min-width: 120px"
-        },
-        {
-          "line": 57,
-          "match": "min-width: 160px"
-        },
-        {
-          "line": 90,
-          "match": "min-width: 260px"
-        },
-        {
-          "line": 93,
-          "match": "min-width: 260px"
-        }
-      ]
-    },
-    {
       "path": "templates/schools/marketing_landing.html",
       "unpaginated_for_loops": [
         {
@@ -3468,6 +3400,70 @@
       ]
     },
     {
+      "path": "templates/super/integrations/lms_audit_index.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 89,
+          "iterable": "rows"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 46,
+          "match": "min-width: 160px"
+        },
+        {
+          "line": 49,
+          "match": "min-width: 110px"
+        },
+        {
+          "line": 56,
+          "match": "min-width: 200px"
+        },
+        {
+          "line": 59,
+          "match": "min-width: 160px"
+        },
+        {
+          "line": 62,
+          "match": "min-width: 130px"
+        }
+      ]
+    },
+    {
+      "path": "templates/super/transfers/cases_index.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 48,
+          "match": "overflow: hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 20,
+          "match": "min-width: 160px"
+        },
+        {
+          "line": 56,
+          "match": "min-width: 120px"
+        },
+        {
+          "line": 57,
+          "match": "min-width: 160px"
+        },
+        {
+          "line": 90,
+          "match": "min-width: 260px"
+        },
+        {
+          "line": 93,
+          "match": "min-width: 260px"
+        }
+      ]
+    },
+    {
       "path": "templates/admin/index.html",
       "unpaginated_for_loops": [],
       "overflow_hidden": [],
@@ -3487,34 +3483,6 @@
         {
           "line": 266,
           "match": "min-width:769px"
-        }
-      ]
-    },
-    {
-      "path": "templates/auth/tenant_admin_login.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 242,
-          "iterable": "form"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 65,
-          "match": "max-width: 780px"
-        },
-        {
-          "line": 72,
-          "match": "max-width: 620px"
-        },
-        {
-          "line": 83,
-          "match": "max-width: 620px"
-        },
-        {
-          "line": 201,
-          "match": "max-width: 860px"
         }
       ]
     },
@@ -3575,6 +3543,58 @@
       ]
     },
     {
+      "path": "templates/emails/base_branded.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 49,
+          "match": "overflow:hidden"
+        },
+        {
+          "line": 57,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 39,
+          "match": "max-width: 600px"
+        },
+        {
+          "line": 57,
+          "match": "max-width:560px"
+        },
+        {
+          "line": 93,
+          "match": "max-width:560px"
+        }
+      ]
+    },
+    {
+      "path": "templates/siteconfig/public_status.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 112,
+          "iterable": "recently_resolved"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 24,
+          "match": "max-width: 50rem"
+        },
+        {
+          "line": 31,
+          "match": "width: 0.55rem"
+        },
+        {
+          "line": 45,
+          "match": "min-width: 7.5rem"
+        }
+      ]
+    },
+    {
       "path": "templates/super/devices/registrations_index.html",
       "unpaginated_for_loops": [
         {
@@ -3584,10 +3604,6 @@
       ],
       "overflow_hidden": [],
       "rigid_width": [
-        {
-          "line": 10,
-          "match": "max-width: 1200px"
-        },
         {
           "line": 25,
           "match": "min-width: 120px"
@@ -3613,10 +3629,6 @@
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 10,
-          "match": "max-width: 1280px"
-        },
-        {
           "line": 41,
           "match": "min-width: 280px"
         },
@@ -3627,39 +3639,6 @@
         {
           "line": 52,
           "match": "min-width: 200px"
-        }
-      ]
-    },
-    {
-      "path": "templates/super/merges/index.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 109,
-          "iterable": "dedup_inbox"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 43,
-          "match": "overflow: hidden"
-        }
-      ],
-      "rigid_width": [
-        {
-          "line": 10,
-          "match": "max-width: 1200px"
-        },
-        {
-          "line": 76,
-          "match": "min-width: 140px"
-        },
-        {
-          "line": 83,
-          "match": "min-width: 240px"
-        },
-        {
-          "line": 86,
-          "match": "min-width: 240px"
         }
       ]
     }

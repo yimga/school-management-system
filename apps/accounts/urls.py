@@ -7,6 +7,7 @@ from django.contrib.auth.views import (
     PasswordResetDoneView,
     PasswordResetView,
 )
+from django_ratelimit.decorators import ratelimit
 
 from .password_reset import PortalPasswordResetForm
 from .views_step_up import step_up_challenge
@@ -688,13 +689,17 @@ urlpatterns = [
     ),
     path(
         "password_reset/",
-        PasswordResetView.as_view(
-            form_class=PortalPasswordResetForm,
-            template_name="registration/password_reset_form.html",
-            email_template_name="emails/password_reset.txt",
-            html_email_template_name="emails/password_reset.html",
-            subject_template_name="registration/password_reset_subject.txt",
-            success_url=reverse_lazy("accounts:password_reset_done"),
+        # Throttle the reset-request POST (5/min per IP, matching login_view) to
+        # blunt email-enumeration + reset-spam abuse of this public endpoint.
+        ratelimit(key="ip", rate="5/m", method="POST", block=True)(
+            PasswordResetView.as_view(
+                form_class=PortalPasswordResetForm,
+                template_name="registration/password_reset_form.html",
+                email_template_name="emails/password_reset.txt",
+                html_email_template_name="emails/password_reset.html",
+                subject_template_name="registration/password_reset_subject.txt",
+                success_url=reverse_lazy("accounts:password_reset_done"),
+            )
         ),
         name="password_reset",
     ),  # rbac-allow: anonymous password recovery
@@ -707,12 +712,16 @@ urlpatterns = [
     ),
     path(
         "reset/<uidb64>/<token>/",
-        PasswordResetConfirmView.as_view(
-            template_name="registration/password_reset_confirm.html",
-            success_url=reverse_lazy("accounts:password_reset_complete"),
+        # Throttle the token+new-password POST so the reset token can't be brute
+        # forced from a single IP.
+        ratelimit(key="ip", rate="5/m", method="POST", block=True)(
+            PasswordResetConfirmView.as_view(
+                template_name="registration/password_reset_confirm.html",
+                success_url=reverse_lazy("accounts:password_reset_complete"),
+            )
         ),
         name="password_reset_confirm",
-    ),
+    ),  # rbac-allow: anonymous password recovery (token-scoped)
     path(
         "reset/done/",
         PasswordResetCompleteView.as_view(

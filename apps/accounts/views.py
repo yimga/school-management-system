@@ -1904,6 +1904,19 @@ def _rbac_redirect(request):
     )
 
 
+def _posted_rbac_user_outside_school(request, *, field_name: str, school) -> bool:
+    from apps.accounts.tenant_identity import user_has_school_membership
+
+    raw_user_id = request.POST.get(field_name)
+    if not raw_user_id:
+        return False
+    try:
+        user = User.objects.get(pk=raw_user_id)
+    except (User.DoesNotExist, ValueError):
+        return False
+    return not user_has_school_membership(user, school)
+
+
 @login_required
 @require_school
 @permission_required("settings.manage")
@@ -1992,6 +2005,11 @@ def rbac_dashboard(request):
                 messages.success(request, f"Roles updated for {user.username}.")
                 return _rbac_redirect(request)
             else:
+                if _posted_rbac_user_outside_school(
+                    request, field_name="user_role-user", school=school
+                ):
+                    messages.error(request, _("User is not a member of this school."))
+                    return _rbac_redirect(request)
                 try:
                     role_ids = [int(pk) for pk in request.POST.getlist("user_role-roles")]
                     initial_user_roles = {
@@ -2013,6 +2031,11 @@ def rbac_dashboard(request):
                 permissions = user_permission_form.cleaned_data["permissions"]
                 user.feature_permissions.set(permissions)
                 messages.success(request, f"Permissions updated for {user.username}.")
+                return _rbac_redirect(request)
+            if _posted_rbac_user_outside_school(
+                request, field_name="user_permission-user", school=school
+            ):
+                messages.error(request, _("User is not a member of this school."))
                 return _rbac_redirect(request)
         elif form_type == "edit_role":
             edit_role_form = EditRoleForm(request.POST)
@@ -2075,6 +2098,11 @@ def rbac_dashboard(request):
                     request,
                     f"Temporary role '{role.name}' granted to {user.username} until {expires_date}.",
                 )
+                return _rbac_redirect(request)
+            if _posted_rbac_user_outside_school(
+                request, field_name="temp_grant-user", school=school
+            ):
+                messages.error(request, _("User is not a member of this school."))
                 return _rbac_redirect(request)
 
     today = timezone.localdate()

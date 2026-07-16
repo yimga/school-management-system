@@ -77,7 +77,7 @@
 <section class="rmc-oc-panel">
   <h2 class="rmc-oc-h2">{% trans "Your bundles" %}</h2>
   <div class="rmc-oc-tablewrap">
-    <table class="rmc-oc-table">
+    <table class="rmc-oc-table table-sm table-sticky-head rmc-data-table">
       <thead><tr><th>{% trans "Bundle" %}</th><th>{% trans "Roles" %}</th><th></th></tr></thead>
       <tbody>
         {% for g in group_rows %}
@@ -85,13 +85,17 @@
           <td>{{ g.name }}</td>
           <td>{% for r in g.roles %}<span class="rmc-oc-role">{{ r }}</span>{% empty %}<span class="rmc-oc-muted">{% trans "No roles" %}</span>{% endfor %}</td>
           <td>
-            <form method="post" class="rmc-oc-form">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post" class="rmc-oc-form">
               {% csrf_token %}
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="group_id" value="{{ g.id }}">
               <button type="submit" class="rmc-oc-btn">{% trans "Delete" %}</button>
             </form>
-          </td>
+                  </div>
+                </details></td>
         </tr>
         {% endfor %}
       </tbody>

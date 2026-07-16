@@ -83,7 +83,7 @@ def main() -> int:
         'data-rmc-admin-canvas-host="{% if is_manager_host %}operator{% else %}tenant{% endif %}"',
         'data-rmc-admin-content="canvas-first"',
         "rmc-admin-django-canvas-contract.css",
-        "?v=20260712-preview-parity",
+        "?v=20260713-real-admin-canvas",
     )
     for token in admin_tokens:
         if token not in admin_base and token not in admin_base_site:

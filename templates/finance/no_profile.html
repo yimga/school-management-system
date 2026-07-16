@@ -9,7 +9,7 @@ platform empty-state component (which carries the .rmc-empty-state-sentinel mark
 {% block title %}{% trans "Finance" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+<div class="container-fluid py-4" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-rmc-width-strategy="full">
   <h1 class="visually-hidden">{% trans "Finance setup" %}</h1>
   {% url 'finance:payment_readiness_setup' as finance_setup_url %}
   {% url 'finance:invoices' as finance_invoices_url %}

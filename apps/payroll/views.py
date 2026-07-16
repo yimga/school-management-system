@@ -18,9 +18,11 @@ from apps.accounts.decorators import require_permission
 from .forms import LeaveRequestForm
 from .models import LeaveRequest, PayrollEmployee, PayrollRun, Payslip
 from .services import (
+    approve_payroll_run,
     generate_payslips,
     get_active_payroll_profile,
     mark_payroll_run_paid,
+    review_payroll_run,
 )
 
 
@@ -308,6 +310,67 @@ def mark_run_paid(request: HttpRequest, run_id: int):
         return redirect("payroll:run_detail", run_id=run.id)
     messages.success(request, "Payroll run marked paid and payslips locked.")
     return redirect("payroll:run_detail", run_id=run.id)
+
+
+@require_permission("payroll.manage")
+@require_POST
+def review_run(request: HttpRequest, run_id: int):
+    """Advance a processed payroll run to REVIEWED (approval-FSM step 1)."""
+    run = get_object_or_404(PayrollRun, id=run_id)
+    try:
+        review_payroll_run(run, actor=request.user, notes=(request.POST.get("notes") or "").strip())
+    except ValueError as exc:
+        messages.error(request, str(exc) or "This run cannot be reviewed.")
+        return redirect("payroll:run_detail", run_id=run.id)
+    messages.success(request, "Payroll run marked reviewed.")
+    return redirect("payroll:run_detail", run_id=run.id)
+
+
+@require_permission("payroll.manage")
+@require_POST
+def approve_run(request: HttpRequest, run_id: int):
+    """Approve a reviewed payroll run (records who signed off) — the gate for payment."""
+    run = get_object_or_404(PayrollRun, id=run_id)
+    try:
+        approve_payroll_run(run, actor=request.user, notes=(request.POST.get("notes") or "").strip())
+    except ValueError as exc:
+        messages.error(request, str(exc) or "This run cannot be approved.")
+        return redirect("payroll:run_detail", run_id=run.id)
+    messages.success(request, "Payroll run approved and ready to pay.")
+    return redirect("payroll:run_detail", run_id=run.id)
+
+
+@login_required
+def payslip_pdf(request: HttpRequest, payslip_id: int):
+    """Download a single payslip as a branded PDF (WeasyPrint).
+
+    Access: the payslip's OWN employee, or a payroll.manage user (HR/admin). Payroll is
+    a schema-isolated tenant app so the bare pk is already tenant-scoped; this adds the
+    within-tenant own-or-manage check so one employee cannot pull a colleague's slip.
+    Gracefully degrades if WeasyPrint system libs are missing (RuntimeError) rather than
+    500-ing.
+    """
+    from apps.accounts.decorators import user_has_permission
+    from apps.reports.weasy import render_pdf
+
+    payslip = get_object_or_404(
+        Payslip.objects.select_related("payroll_run__profile", "employee__user"),
+        id=payslip_id,
+    )
+    emp = _employee_for_user(request.user)
+    own = emp is not None and payslip.employee_id == emp.id
+    if not own and not user_has_permission(
+        request.user, getattr(request, "school", None), ("payroll.manage",)
+    ):
+        return HttpResponseForbidden("You may not download this payslip.")
+    filename = f"payslip-{payslip.reference or payslip.pk}.pdf"
+    try:
+        return render_pdf(
+            request, "payroll/payslip_pdf.html", {"payslip": payslip}, filename=filename
+        )
+    except RuntimeError as exc:
+        messages.error(request, str(exc) or "PDF rendering is unavailable on this server.")
+        return redirect("payroll:employee_payslips")
 
 
 @login_required

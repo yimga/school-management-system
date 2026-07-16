@@ -196,6 +196,11 @@ def signals(text: str) -> dict:
     return {
         "container_fluid": bool(re.search(r"\bcontainer-fluid\b", text)),
         "container_fixed": bool(re.search(r'class="[^"]*\bcontainer\b(?!-fluid)', text)),
+        "full_width_strategy": bool(
+            re.search(r'data-rmc-width-strategy=["\']full["\']', text)
+            or re.search(r'data-rmc-intelligent-width=["\']full["\']', text)
+            or re.search(r'class="[^"]*\bw-100\b[^"]*\bmax-w-none\b', text)
+        ),
         "content_max": bool(re.search(r"\bcontent-max-[a-z0-9]+\b", text)),
         "known_centered_shell": known_centered_shell,
         "balanced_rail": bool(re.search(r"data-rmc-balanced-layout", text)),
@@ -225,6 +230,8 @@ def classify(sig: dict) -> tuple[str, str, str]:
 
     if sig["balanced_rail"]:
         return ("LEAVE", "high", "already uses a balanced-layout rail")
+    if sig["full_width_strategy"]:
+        return ("LEAVE", "high", "explicit full-width workspace strategy")
     if fills and centers:
         return ("LEAVE", "high", "already fills (grid/table) and has a width strategy")
     if fills:

@@ -7,7 +7,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div data-rmc-scroll-policy="paginate" class="container-fluid w-100 max-w-none py-4" data-decision-engine="surface" data-rmc-support-playbook-center="{{ page_marker }}">
+<div data-rmc-scroll-policy="paginate" class="container-fluid w-100 max-w-none py-4" data-decision-engine="surface" data-rmc-support-playbook-center="{{ page_marker }}" data-rmc-width-strategy="full">
   {% phase8_dashboard_declaration "platform_runtime/support_playbook_center.html" %}
   <header class="mb-4">
     <h1 class="h3">{% trans "Support playbooks" %}</h1>

@@ -95,9 +95,11 @@ KNOWN_AUTH_DECORATORS = {
     "control_plane_only",
     "superadmin_required",
     "school_admin_required",
+    "tenant_admin_required",
     # apps/schools/* + apps/portal/* tenant / feature gates
     "require_school",
     "require_school_permission",
+    "require_permission",
     "require_feature",
     "require_parent_child_access",
     # apps/accounts/permissions.py — finance / evaluation / mfa gates
@@ -126,8 +128,20 @@ _AUTH_GATING_NAMES = {
     "control_plane_only",
     "superadmin_required",
     "school_admin_required",
+    # Sanctioned replacement for @staff_member_required on tenant-host views
+    # (apps/accounts/decorators.py:178): an UNAUTHENTICATED request is bounced to
+    # login (redirect_to_login, :198-199) and an authenticated-but-not-tenant-admin
+    # one raises PermissionDenied (:202). Sibling of school_admin_required above.
+    "tenant_admin_required",
     "require_school",
     "require_school_permission",
+    # The canonical additive RBAC gate (apps/accounts/decorators.py:259): an
+    # UNAUTHENTICATED request is bounced to login (redirect_to_login, :290-291)
+    # and an authenticated-but-unauthorized one raises PermissionDenied (:301).
+    # Every operational tenant surface adopted it in the granular-RBAC completion
+    # (migr 0048/0049); it belongs with its siblings above (require_school_permission,
+    # finance_access_required, ...) which were already recognized here.
+    "require_permission",
     "require_feature",
     "require_parent_child_access",
     "finance_access_required",
@@ -554,7 +568,7 @@ def _classify(
             "IsStudentOrParent", "IsBursar", "IsAdminLike", "RoleBasedPermission",
         )
     )
-    permission_gated = any(n == "permission_required" for n in decs)
+    permission_gated = any(n in ("permission_required", "require_permission") for n in decs)
 
     login_gated = (
         decorator_login_gated

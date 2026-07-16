@@ -16,6 +16,7 @@
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="superadmin_console" center_eyebrow=_("Platform operators") center_title=_("Platform superadmin console") center_purpose=_("Grant or revoke true platform superadmin status from the operator plane only.") primary_url="" primary_label="" status_badge_text=_("Restricted") nav_groups=operational_nav_groups %}
 
   <div class="mb-3">
     <h1 class="h4 mb-1">{% trans "Platform superadmin console" %}</h1>
@@ -79,7 +80,10 @@
                 {% endif %}
               </td>
               <td class="text-end">
-                {% if can_mint %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if can_mint %}
                 <form method="post" class="d-inline">
                   {% csrf_token %}
                   <input type="hidden" name="user_id" value="{{ u.pk }}">
@@ -92,7 +96,8 @@
                 {% else %}
                   <span class="text-muted small">{% trans "View only" %}</span>
                 {% endif %}
-              </td>
+                  </div>
+                </details></td>
             </tr>
             {% endfor %}
           </tbody>
@@ -129,7 +134,10 @@
               <td><span class="rmc-badge">{{ u.role }}</span></td>
               <td>{% if u.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
               <td class="text-end">
-                {% if can_mint %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if can_mint %}
                 <form method="post" class="d-inline">
                   {% csrf_token %}
                   <input type="hidden" name="user_id" value="{{ u.pk }}">
@@ -138,7 +146,8 @@
                 {% else %}
                   <span class="text-muted small">{% trans "View only" %}</span>
                 {% endif %}
-              </td>
+                  </div>
+                </details></td>
             </tr>
             {% endfor %}
           </tbody>

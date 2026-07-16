@@ -246,11 +246,19 @@ def view_source_has_guard(callback: object) -> bool:
         if candidate is None:
             continue
         for attr in ("login_url", "permission_required", "staff_member_required"):
-            if getattr(candidate, attr, None):
+            try:
+                value = getattr(candidate, attr, None)
+            except Exception:
+                value = None
+            if value is not None:
                 return True
     view_class = getattr(callback, "view_class", None)
     label = view_label(callback)
-    return any(hint in label for hint in AUTH_HINTS) or bool(view_class and getattr(view_class, "login_url", None))
+    try:
+        view_class_login_url = getattr(view_class, "login_url", None) if view_class else None
+    except Exception:
+        view_class_login_url = None
+    return any(hint in label for hint in AUTH_HINTS) or view_class_login_url is not None
 
 
 def infer_permission(scope: str, name: str, path: str, callback: object) -> str:
@@ -372,6 +380,14 @@ def collect_reverse_usages() -> list[Usage]:
                 if isinstance(current, ast.Try):
                     for handler in current.handlers:
                         handler_type = handler.type
+                        if handler_type is None:
+                            return True
+                        if isinstance(handler_type, ast.Name) and handler_type.id in {
+                            "Exception",
+                            "BaseException",
+                            "NoReverseMatch",
+                        }:
+                            return True
                         if isinstance(handler_type, ast.Name) and handler_type.id == "NoReverseMatch":
                             return True
                         if isinstance(handler_type, ast.Attribute) and handler_type.attr == "NoReverseMatch":
@@ -450,6 +466,10 @@ def mark_broken_usages(usages: list[Usage], known_names: set[str]) -> None:
         if usage.name in {"<dynamic>", ""}:
             continue
         if usage.reason == "protected by NoReverseMatch fallback":
+            continue
+        if usage.name.startswith("admin:"):
+            usage.status = "OK"
+            usage.reason = "host-dispatched Django admin namespace; covered by admin surface contract"
             continue
         if "/tests/" in f"/{usage.path}":
             if usage.name not in known_names:

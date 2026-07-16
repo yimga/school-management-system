@@ -1,6 +1,6 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-06-26T18:45:26+00:00",
+  "generated_at": "2026-07-14T09:01:30+00:00",
   "rule": "every get_model('app','Model') literal must resolve against the live Django app registry; guard with try/except LookupError or # get-model-allow: <reason> for intentionally-deferred models"
 }

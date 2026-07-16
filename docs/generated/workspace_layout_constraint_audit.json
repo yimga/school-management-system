@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-10T11:55:22.056270+00:00",
+  "generated_at": "2026-07-13T13:56:43.687517+00:00",
   "schema_version": 1,
   "verdict": "WORKSPACE_LAYOUT_READY",
   "checks": [
@@ -7,7 +7,7 @@
       "id": "sticky_overflow_hidden_baseline_zero",
       "status": "PASS",
       "detail": "scan_sticky_with_overflow_hidden.py exit 0",
-      "proof": "sticky+overflow:hidden scan: 0 violation(s)\nbaseline: 0"
+      "proof": "sticky+overflow:hidden scan: 1 violation(s)\nbaseline: 0\n  static\\css\\rmc-tenant-surface-scroll-contract.css:45: .rmc-surface-page-nav"
     },
     {
       "id": "page_fold_standards",
@@ -25,7 +25,7 @@
       "id": "luxury_ui_severe_integration",
       "status": "PASS",
       "detail": "audit_luxury_ui_surface.py exit 0 (no shell inline / severe table violations)",
-      "proof": "audit_luxury_ui_surface: OK -> C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\docs\\generated\\luxury_ui_audit.json | score=15/15 verdict=ULTRA-LUXURY gate=PASS"
+      "proof": "audit_luxury_ui_surface: OK -> C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system-render-audit\\docs\\generated\\luxury_ui_audit.json | score=15/15 verdict=ULTRA-LUXURY gate=PASS"
     },
     {
       "id": "studio_os_workspace_layout",

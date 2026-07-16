@@ -46,6 +46,14 @@
         </div>
       </div>
       <div class="preview-content">
+        <div class="preview-hero">
+          <div>
+            <span class="preview-eyebrow">School command</span>
+            <strong>Role dashboard</strong>
+            <p>Brand, palette, status, and action colors applied together.</p>
+          </div>
+          <button type="button" class="preview-primary-action">Primary action</button>
+        </div>
         <div class="preview-topbar">
           <span class="preview-chip preview-chip-active">Live metrics</span>
           <span class="preview-chip">Workflow</span>
@@ -76,6 +84,28 @@
             <span style="height: 76%;"></span>
           </div>
         </div>
+        <div class="preview-status-table">
+          <div class="preview-alert" role="status">
+            <strong>Import ready</strong>
+            <span>Roster file passed validation.</span>
+          </div>
+          <table aria-label="{% trans 'Palette table preview' %}">
+            <thead>
+              <tr><th>Student</th><th>Status</th><th>Balance</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Ada</td><td><span class="preview-status-pill">Active</span></td><td>$0</td></tr>
+              <tr><td>Kofi</td><td><span class="preview-status-pill preview-status-pill--warn">Review</span></td><td>$42</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <form class="preview-form" aria-label="{% trans 'Palette form preview' %}">
+          <label>
+            <span>Family note</span>
+            <input type="text" value="Meet after school" readonly>
+          </label>
+          <button type="button" class="preview-secondary-action">Save draft</button>
+        </form>
       </div>
     </div>
 

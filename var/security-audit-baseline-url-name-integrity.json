@@ -1,6 +1,6 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-07-10T11:43:36+00:00",
+  "generated_at": "2026-07-14T09:03:12+00:00",
   "rule": "every literal reverse()/reverse_lazy()/{% url %} name must resolve against the live URL resolver; guard with try/except NoReverseMatch or # url-name-allow: <reason>"
 }

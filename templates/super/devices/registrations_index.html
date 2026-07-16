@@ -38,7 +38,7 @@
   </form>
 
   <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
+    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);" class="table table-sm table-sticky-head rmc-data-table">
       <caption class="visually-hidden">{% trans "Registered offline devices" %}</caption>
       <thead>
         <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
@@ -65,7 +65,10 @@
             </td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.last_seen_at|date:"Y-m-d H:i"|default:"—" }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">
-              {% if r.is_active %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if r.is_active %}
               <form method="post" action="{% url 'portal:device_registration_revoke' %}" style="display: inline;">
                 {% csrf_token %}
                 <input type="hidden" name="device" value="{{ r.pk }}">
@@ -78,7 +81,8 @@
                 <button type="submit" style="padding: 4px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer; font-size: var(--type-size-eyebrow);">{% trans "Reinstate" %}</button>
               </form>
               {% endif %}
-            </td>
+                  </div>
+                </details></td>
           </tr>
         {% empty %}
           <tr><td colspan="6" style="padding: 18px; text-align: center; color: var(--text-secondary);">{% trans "No devices match the filter." %}</td></tr>

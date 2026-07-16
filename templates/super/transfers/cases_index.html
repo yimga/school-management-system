@@ -49,7 +49,10 @@
             {% with case.history|last as last_entry %}{{ last_entry.note|default:last_entry.to|default:"—" }}{% endwith %}
           </td>
           <td>
-            {% if case.status == "draft" %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if case.status == "draft" %}
             <form method="post" action="{% url 'portal:transfer_case_request_consent' %}" style="display: inline;">
               {% csrf_token %}
               <input type="hidden" name="case_id" value="{{ case.pk }}">
@@ -73,7 +76,8 @@
               <button type="submit" style="padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-secondary); cursor: pointer;">{% trans "Abort" %}</button>
             </form>
             {% endif %}
-          </td>
+                  </div>
+                </details></td>
         </tr>
         {% empty %}
         <tr><td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 24px;">{% trans "No transfer cases yet." %}</td></tr>

@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-25T11:08:59.165867+00:00",
+  "generated_at": "2026-07-13T14:56:10.728238+00:00",
   "finding_count": 0,
-  "super_scope_ratio": 1.0,
-  "super_scope_scoped": 126,
-  "super_scope_total": 126,
+  "super_scope_ratio": 0.965034965034965,
+  "super_scope_scoped": 138,
+  "super_scope_total": 143,
   "rows": [
     {
       "check_id": "minimum-strength-middleware",
@@ -48,7 +48,7 @@
     {
       "check_id": "super-scope-coverage-80pct",
       "ok": true,
-      "proof": "126/126 handlers scoped (100%)"
+      "proof": "138/143 handlers scoped (97%)"
     },
     {
       "check_id": "batch-1505-audit",

@@ -203,13 +203,17 @@
             <td><span class="small">{{ s.ends_at|date:"Y-m-d H:i" }}</span></td>
             <td><span class="small text-muted">{{ s.notes|default:"—" }}</span></td>
             <td class="text-end">
-              <form method="post" action="{% url 'super:support_on_call_save' %}" class="d-inline" onsubmit="return confirm('{% trans "Remove this shift?" %}');">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% url 'super:support_on_call_save' %}" class="d-inline" onsubmit="return confirm('{% trans "Remove this shift?" %}');">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="shift_id" value="{{ s.pk }}">
                 <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Remove" %}</button>
               </form>
-            </td>
+                  </div>
+                </details></td>
           </tr>
           {% empty %}
           <tr><td colspan="7" class="text-muted small p-3">{% trans "No upcoming shifts. Add one to start the rotation." %}</td></tr>

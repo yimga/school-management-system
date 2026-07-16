@@ -1,7 +1,17 @@
 {
   "allow_comment_prefix": "# rls-bypass-allow:",
-  "finding_count": 2,
+  "finding_count": 6,
   "findings": [
+    {
+      "call": ".execute() (cursor)",
+      "line": 297,
+      "path": "apps/compliance/audit_retention.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 107,
+      "path": "apps/people/schema_repair.py"
+    },
     {
       "call": ".execute() (cursor)",
       "line": 25,
@@ -11,9 +21,19 @@
       "call": ".execute() (cursor)",
       "line": 26,
       "path": "apps/platform_runtime/sqlite_pragmas.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 27,
+      "path": "apps/platform_runtime/sqlite_pragmas.py"
+    },
+    {
+      "call": ".execute() (cursor)",
+      "line": 28,
+      "path": "apps/platform_runtime/sqlite_pragmas.py"
     }
   ],
-  "generated_at": "2026-06-02T16:59:55+00:00",
+  "generated_at": "2026-07-14T08:55:32+00:00",
   "rule": "Raw-SQL / cursor.execute / .raw() / .extra() / RawSQL() callsites must either run inside set_rls_school_id() or carry an '# rls-bypass-allow: <reason>' comment.",
   "scan_dirs": [
     "apps",

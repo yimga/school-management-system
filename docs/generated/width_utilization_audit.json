@@ -1,10 +1,10 @@
 {
-  "scanned": 719,
+  "scanned": 722,
   "buckets": {
-    "LEAVE": 719
+    "LEAVE": 722
   },
   "by_confidence": {
-    "LEAVE:high": 719
+    "LEAVE:high": 722
   },
   "rows": [
     {
@@ -16,6 +16,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -38,6 +39,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -60,6 +62,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -82,6 +85,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -104,6 +108,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -126,6 +131,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -148,6 +154,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -170,6 +177,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -192,6 +200,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -214,6 +223,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -236,6 +246,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -258,6 +269,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -280,6 +292,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -302,6 +315,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -324,6 +338,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -346,6 +361,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -368,6 +384,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -390,6 +407,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -412,6 +430,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -434,6 +453,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -456,6 +476,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -478,6 +499,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -500,6 +522,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -522,6 +545,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -544,6 +568,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -566,6 +591,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -588,6 +614,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -610,6 +637,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -632,6 +660,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -654,6 +683,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -676,6 +706,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -698,6 +729,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -720,6 +752,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -742,6 +775,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -764,6 +798,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -786,6 +821,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -808,6 +844,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -830,6 +867,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -852,6 +890,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -874,6 +913,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -896,6 +936,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -918,6 +959,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -940,6 +982,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -962,6 +1005,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -984,6 +1028,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1006,6 +1051,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1028,6 +1074,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1050,6 +1097,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1072,6 +1120,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1094,6 +1143,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1116,6 +1166,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1138,6 +1189,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1160,6 +1212,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1182,6 +1235,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1204,6 +1258,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1226,6 +1281,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1248,6 +1304,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1270,6 +1327,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": true,
@@ -1292,6 +1350,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1314,6 +1373,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1336,6 +1396,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1358,6 +1419,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1380,6 +1442,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1402,6 +1465,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1424,6 +1488,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1446,6 +1511,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1468,6 +1534,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1490,6 +1557,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1512,6 +1580,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1534,6 +1603,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1556,6 +1626,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1578,6 +1649,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1600,6 +1672,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1622,6 +1695,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1644,6 +1718,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1666,6 +1741,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1688,6 +1764,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1710,6 +1787,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1732,6 +1810,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1754,6 +1833,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1776,6 +1856,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1798,6 +1879,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1820,6 +1902,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -1842,6 +1925,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1864,6 +1948,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1886,6 +1971,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1908,6 +1994,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1930,6 +2017,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1952,6 +2040,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1974,6 +2063,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -1996,6 +2086,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2018,6 +2109,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2040,6 +2132,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2062,6 +2155,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2084,6 +2178,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2102,16 +2197,17 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 0,
         "n_panel": 0,
@@ -2128,6 +2224,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2146,16 +2243,17 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 1,
         "n_panel": 0,
@@ -2172,6 +2270,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2190,16 +2289,17 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 0,
         "n_panel": 0,
@@ -2212,16 +2312,17 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 0,
         "n_panel": 0,
@@ -2238,6 +2339,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2256,16 +2358,17 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 1,
         "n_panel": 0,
@@ -2282,6 +2385,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2304,6 +2408,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2326,6 +2431,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2348,6 +2454,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2370,6 +2477,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2392,6 +2500,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2414,6 +2523,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2436,6 +2546,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2458,6 +2569,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2480,6 +2592,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2502,6 +2615,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2524,6 +2638,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2546,6 +2661,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2568,6 +2684,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2590,6 +2707,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2612,6 +2730,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2634,6 +2753,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2656,6 +2776,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2678,6 +2799,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2700,6 +2822,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2722,6 +2845,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2744,6 +2868,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2766,6 +2891,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2788,6 +2914,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2810,6 +2937,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2832,6 +2960,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2854,6 +2983,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2876,6 +3006,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2898,6 +3029,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2920,6 +3052,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2942,6 +3075,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -2964,6 +3098,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -2986,6 +3121,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3008,6 +3144,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3030,6 +3167,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3052,6 +3190,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3074,6 +3213,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3096,6 +3236,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3118,6 +3259,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3140,6 +3282,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3162,6 +3305,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3184,6 +3328,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3202,16 +3347,17 @@
       "base": "backend_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 0,
         "n_panel": 0,
@@ -3228,6 +3374,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3250,6 +3397,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3272,6 +3420,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3294,6 +3443,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3316,6 +3466,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3338,6 +3489,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3360,6 +3512,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3382,6 +3535,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3404,6 +3558,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3426,6 +3581,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3448,6 +3604,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3470,6 +3627,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3492,6 +3650,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3514,6 +3673,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3536,6 +3696,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3558,6 +3719,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3580,6 +3742,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3602,6 +3765,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3624,6 +3788,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3646,6 +3811,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3668,6 +3834,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3690,6 +3857,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3712,6 +3880,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3734,6 +3903,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3756,6 +3926,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3778,6 +3949,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3800,6 +3972,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3822,6 +3995,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3844,6 +4018,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3866,6 +4041,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3888,6 +4064,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3910,6 +4087,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3932,6 +4110,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3954,6 +4133,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -3976,6 +4156,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -3998,6 +4179,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4020,6 +4202,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4042,6 +4225,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4064,6 +4248,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4086,6 +4271,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4108,6 +4294,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4130,6 +4317,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4144,6 +4332,29 @@
       }
     },
     {
+      "file": "templates/finance/no_profile.html",
+      "base": "portal_base.html",
+      "bucket": "LEAVE",
+      "confidence": "high",
+      "reason": "explicit full-width workspace strategy",
+      "signals": {
+        "container_fluid": true,
+        "container_fixed": false,
+        "full_width_strategy": true,
+        "content_max": false,
+        "known_centered_shell": false,
+        "balanced_rail": false,
+        "grid": false,
+        "table": false,
+        "mx_auto": false,
+        "cp_list": false,
+        "n_form": 0,
+        "n_panel": 0,
+        "n_table": 0,
+        "narrow_by_design": false
+      }
+    },
+    {
       "file": "templates/finance/notifications.html",
       "base": "portal_base.html",
       "bucket": "LEAVE",
@@ -4152,6 +4363,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4174,6 +4386,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4196,6 +4409,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4218,6 +4432,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4240,6 +4455,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4262,6 +4478,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4284,6 +4501,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4306,6 +4524,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4328,6 +4547,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4350,6 +4570,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4372,6 +4593,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4394,6 +4616,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4416,6 +4639,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4438,6 +4662,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4460,6 +4685,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4482,6 +4708,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4504,6 +4731,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4526,6 +4754,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4548,6 +4777,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4570,6 +4800,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4592,6 +4823,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4614,6 +4846,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4636,6 +4869,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4658,6 +4892,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4680,6 +4915,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4702,6 +4938,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4724,6 +4961,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4746,6 +4984,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4768,6 +5007,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4790,6 +5030,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4812,6 +5053,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4834,6 +5076,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4856,6 +5099,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -4878,6 +5122,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4900,6 +5145,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4922,6 +5168,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4944,6 +5191,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4966,6 +5214,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -4988,6 +5237,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5010,6 +5260,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5032,6 +5283,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5050,11 +5302,12 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already fills (grid/table) and has a width strategy",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": true,
@@ -5076,6 +5329,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5098,6 +5352,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5120,6 +5375,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5142,6 +5398,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5164,6 +5421,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5186,6 +5444,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5204,16 +5463,17 @@
       "base": "portal_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 1,
         "n_panel": 0,
@@ -5230,6 +5490,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5252,6 +5513,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5270,16 +5532,17 @@
       "base": "portal_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 1,
         "n_panel": 0,
@@ -5292,16 +5555,17 @@
       "base": "portal_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 0,
         "n_panel": 0,
@@ -5314,16 +5578,17 @@
       "base": "portal_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 0,
         "n_panel": 0,
@@ -5336,16 +5601,17 @@
       "base": "portal_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 1,
         "n_panel": 0,
@@ -5362,6 +5628,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5384,6 +5651,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5406,6 +5674,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5428,6 +5697,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5450,6 +5720,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5472,6 +5743,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5490,16 +5762,17 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 0,
         "n_panel": 0,
@@ -5516,6 +5789,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5538,6 +5812,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5560,6 +5835,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5582,6 +5858,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5604,6 +5881,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5626,6 +5904,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5648,6 +5927,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5670,6 +5950,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5692,6 +5973,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5714,6 +5996,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5736,6 +6019,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -5758,6 +6042,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5780,6 +6065,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5802,6 +6088,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5824,6 +6111,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5846,6 +6134,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5868,6 +6157,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5886,11 +6176,12 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
@@ -5912,6 +6203,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -5930,11 +6222,12 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
@@ -5952,11 +6245,12 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
@@ -5978,6 +6272,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6000,6 +6295,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6022,6 +6318,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6044,6 +6341,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6062,11 +6360,12 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
@@ -6088,6 +6387,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6110,6 +6410,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6132,6 +6433,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -6154,6 +6456,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6176,6 +6479,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6198,6 +6502,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -6220,6 +6525,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -6242,6 +6548,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -6260,14 +6567,15 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already fills the canvas with a responsive grid/table",
+      "reason": "already fills (grid/table) and has a width strategy",
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
-        "known_centered_shell": false,
+        "known_centered_shell": true,
         "balanced_rail": false,
-        "grid": false,
+        "grid": true,
         "table": true,
         "mx_auto": false,
         "cp_list": false,
@@ -6286,6 +6594,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6295,7 +6604,7 @@
         "cp_list": false,
         "n_form": 1,
         "n_panel": 0,
-        "n_table": 1,
+        "n_table": 2,
         "narrow_by_design": false
       }
     },
@@ -6308,6 +6617,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6330,6 +6640,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6348,13 +6659,14 @@
       "base": "portal_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already fills the canvas with a responsive grid/table",
+      "reason": "already uses a balanced-layout rail",
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
-        "balanced_rail": false,
+        "balanced_rail": true,
         "grid": true,
         "table": false,
         "mx_auto": false,
@@ -6374,6 +6686,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6396,6 +6709,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6418,6 +6732,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6440,6 +6755,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6462,6 +6778,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -6484,6 +6801,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -6506,6 +6824,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6528,6 +6847,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6550,6 +6870,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6572,6 +6893,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6594,6 +6916,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6616,6 +6939,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6638,6 +6962,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6660,6 +6985,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6682,6 +7008,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6689,7 +7016,7 @@
         "table": true,
         "mx_auto": false,
         "cp_list": false,
-        "n_form": 0,
+        "n_form": 1,
         "n_panel": 0,
         "n_table": 1,
         "narrow_by_design": false
@@ -6704,6 +7031,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6726,6 +7054,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6748,6 +7077,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6770,6 +7100,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6792,6 +7123,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6814,6 +7146,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6836,6 +7169,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6858,6 +7192,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6880,6 +7215,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6902,6 +7238,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6924,6 +7261,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6946,6 +7284,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6968,6 +7307,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -6990,6 +7330,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7012,6 +7353,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7034,6 +7376,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7056,6 +7399,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7078,6 +7422,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7100,6 +7445,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7122,6 +7468,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7144,6 +7491,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7166,6 +7514,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7188,6 +7537,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7210,6 +7560,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7232,6 +7583,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7254,6 +7606,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7276,6 +7629,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7298,6 +7652,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7320,6 +7675,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7342,6 +7698,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7364,6 +7721,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7386,6 +7744,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7408,6 +7767,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7430,6 +7790,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7452,6 +7813,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7474,6 +7836,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7496,6 +7859,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7518,6 +7882,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7540,6 +7905,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7562,6 +7928,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7584,6 +7951,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7606,6 +7974,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7628,6 +7997,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7650,6 +8020,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7672,6 +8043,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7690,16 +8062,17 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 0,
         "n_panel": 0,
@@ -7716,6 +8089,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7738,6 +8112,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7760,6 +8135,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7782,6 +8158,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7804,6 +8181,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7826,6 +8204,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7848,6 +8227,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7870,6 +8250,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -7892,6 +8273,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7914,6 +8296,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7936,6 +8319,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7958,6 +8342,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -7980,6 +8365,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8002,6 +8388,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8024,6 +8411,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8046,6 +8434,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8068,6 +8457,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8090,6 +8480,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8112,6 +8503,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8134,6 +8526,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8156,6 +8549,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8178,6 +8572,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8200,6 +8595,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8222,6 +8618,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8244,6 +8641,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8266,6 +8664,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8288,6 +8687,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8310,6 +8710,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8332,6 +8733,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8354,6 +8756,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8376,6 +8779,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8398,6 +8802,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8420,6 +8825,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8442,6 +8848,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8464,6 +8871,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8486,6 +8894,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8508,6 +8917,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8530,6 +8940,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8552,6 +8963,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8574,6 +8986,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8596,6 +9009,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8618,6 +9032,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8640,6 +9055,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8662,6 +9078,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8684,6 +9101,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8706,6 +9124,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8728,6 +9147,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8750,6 +9170,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8772,6 +9193,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8794,6 +9216,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8816,6 +9239,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8838,6 +9262,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8860,6 +9285,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8882,6 +9308,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8904,6 +9331,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8926,6 +9354,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -8948,6 +9377,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8970,6 +9400,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -8992,6 +9423,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9014,6 +9446,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9036,6 +9469,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9058,6 +9492,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9080,6 +9515,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9102,6 +9538,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9124,6 +9561,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9146,6 +9584,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9168,6 +9607,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9190,6 +9630,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9212,6 +9653,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9234,6 +9676,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9256,6 +9699,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9278,6 +9722,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9300,6 +9745,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9322,6 +9768,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9344,6 +9791,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9366,6 +9814,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9388,6 +9837,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9410,6 +9860,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9432,6 +9883,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9454,6 +9906,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9476,6 +9929,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9498,6 +9952,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9520,6 +9975,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9542,6 +9998,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9564,6 +10021,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9586,6 +10044,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9608,6 +10067,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9630,6 +10090,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9652,6 +10113,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9674,6 +10136,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9696,6 +10159,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9718,6 +10182,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9740,6 +10205,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9762,6 +10228,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9784,6 +10251,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9806,6 +10274,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9828,6 +10297,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9850,6 +10320,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9872,6 +10343,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -9894,6 +10366,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9916,6 +10389,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9938,6 +10412,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9960,6 +10435,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9982,6 +10458,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -9989,7 +10466,7 @@
         "table": true,
         "mx_auto": false,
         "cp_list": false,
-        "n_form": 2,
+        "n_form": 6,
         "n_panel": 0,
         "n_table": 2,
         "narrow_by_design": false
@@ -10004,6 +10481,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10026,6 +10504,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10048,6 +10527,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10070,6 +10550,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10092,6 +10573,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10114,6 +10596,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10136,6 +10619,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10154,11 +10638,12 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
@@ -10180,6 +10665,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10202,6 +10688,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10224,6 +10711,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10246,6 +10734,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10268,6 +10757,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10290,6 +10780,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10312,6 +10803,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10334,6 +10826,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10356,6 +10849,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10378,6 +10872,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10400,6 +10895,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10422,6 +10918,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10444,6 +10941,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10466,6 +10964,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10488,6 +10987,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10510,6 +11010,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10532,6 +11033,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10554,6 +11056,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10576,6 +11079,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10598,6 +11102,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10620,6 +11125,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10642,6 +11148,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10664,6 +11171,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10686,6 +11194,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10708,6 +11217,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10726,16 +11236,17 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already centered (content-max / mx-auto / measured shell)",
+      "reason": "explicit full-width workspace strategy",
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
-        "content_max": true,
+        "full_width_strategy": true,
+        "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
         "grid": false,
         "table": false,
-        "mx_auto": true,
+        "mx_auto": false,
         "cp_list": false,
         "n_form": 1,
         "n_panel": 0,
@@ -10752,6 +11263,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10774,6 +11286,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10796,6 +11309,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10818,6 +11332,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10840,6 +11355,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10862,6 +11378,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10884,6 +11401,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -10906,6 +11424,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10928,6 +11447,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10950,6 +11470,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10972,6 +11493,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -10994,6 +11516,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11016,6 +11539,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11038,6 +11562,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11060,6 +11585,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11082,6 +11608,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11104,6 +11631,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11126,6 +11654,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11148,6 +11677,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11170,6 +11700,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11192,6 +11723,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11214,6 +11746,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11236,6 +11769,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11258,6 +11792,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11280,6 +11815,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11302,6 +11838,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11324,6 +11861,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11346,6 +11884,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11368,6 +11907,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11390,6 +11930,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11412,6 +11953,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11434,6 +11976,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11456,6 +11999,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11478,6 +12022,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11500,6 +12045,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11522,6 +12068,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11544,6 +12091,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11566,6 +12114,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11588,6 +12137,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11610,6 +12160,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11632,6 +12183,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11654,6 +12206,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": true,
@@ -11676,6 +12229,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11698,6 +12252,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11720,6 +12275,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11742,6 +12298,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11764,6 +12321,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11786,6 +12344,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11808,6 +12367,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11830,6 +12390,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11852,6 +12413,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11874,6 +12436,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11896,6 +12459,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11918,6 +12482,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -11940,6 +12505,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11962,6 +12528,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -11984,6 +12551,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12006,6 +12574,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12028,6 +12597,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12050,6 +12620,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12072,6 +12643,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12094,6 +12666,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12116,6 +12689,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12138,6 +12712,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12160,6 +12735,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12182,6 +12758,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12204,6 +12781,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12226,6 +12804,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12248,6 +12827,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12270,6 +12850,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12292,6 +12873,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12314,6 +12896,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12336,6 +12919,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12358,6 +12942,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12372,6 +12957,29 @@
       }
     },
     {
+      "file": "templates/schools/super_superadmin_console.html",
+      "base": "control_plane_base.html",
+      "bucket": "LEAVE",
+      "confidence": "high",
+      "reason": "already fills (grid/table) and has a width strategy",
+      "signals": {
+        "container_fluid": true,
+        "container_fixed": false,
+        "full_width_strategy": false,
+        "content_max": false,
+        "known_centered_shell": true,
+        "balanced_rail": false,
+        "grid": true,
+        "table": true,
+        "mx_auto": false,
+        "cp_list": false,
+        "n_form": 3,
+        "n_panel": 0,
+        "n_table": 2,
+        "narrow_by_design": false
+      }
+    },
+    {
       "file": "templates/schools/super_support_auto_rules.html",
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
@@ -12380,6 +12988,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12402,6 +13011,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12424,6 +13034,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12446,6 +13057,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12468,6 +13080,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12490,6 +13103,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": true,
@@ -12512,6 +13126,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12534,6 +13149,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12556,6 +13172,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12578,6 +13195,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12600,6 +13218,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12622,6 +13241,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12644,6 +13264,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12666,6 +13287,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12688,6 +13310,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12710,6 +13333,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12732,6 +13356,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12754,6 +13379,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12776,6 +13402,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12798,6 +13425,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12820,6 +13448,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12842,6 +13471,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12864,6 +13494,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12886,6 +13517,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -12908,6 +13540,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12930,6 +13563,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12952,6 +13586,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12974,6 +13609,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -12996,6 +13632,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13018,6 +13655,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13040,6 +13678,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13062,6 +13701,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -13084,6 +13724,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13106,6 +13747,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13128,6 +13770,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13150,6 +13793,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13172,6 +13816,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13194,6 +13839,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13216,6 +13862,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13238,6 +13885,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13260,6 +13908,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13282,6 +13931,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13304,6 +13954,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13326,6 +13977,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -13348,6 +14000,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13370,6 +14023,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13392,6 +14046,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13414,6 +14069,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13436,6 +14092,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13458,6 +14115,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13480,6 +14138,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13502,6 +14161,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13524,6 +14184,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13546,6 +14207,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -13568,6 +14230,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13590,6 +14253,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13612,6 +14276,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13634,6 +14299,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13656,6 +14322,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13678,6 +14345,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13700,6 +14368,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13722,6 +14391,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13744,6 +14414,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -13766,6 +14437,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -13788,6 +14460,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -13810,6 +14483,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13832,6 +14506,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13854,6 +14529,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13876,6 +14552,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -13898,6 +14575,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13920,6 +14598,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13942,6 +14621,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13964,6 +14644,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -13986,6 +14667,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14008,6 +14690,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14030,6 +14713,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14052,6 +14736,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14074,6 +14759,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14096,6 +14782,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14118,6 +14805,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14140,6 +14828,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -14162,6 +14851,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14184,6 +14874,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14206,6 +14897,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14228,6 +14920,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14250,6 +14943,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -14272,6 +14966,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14294,6 +14989,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14316,6 +15012,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -14338,6 +15035,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -14360,6 +15058,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14382,6 +15081,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -14404,6 +15104,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -14426,6 +15127,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14448,6 +15150,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14470,6 +15173,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14492,6 +15196,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14514,6 +15219,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14536,6 +15242,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14558,6 +15265,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14580,6 +15288,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14602,6 +15311,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14624,6 +15334,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14646,6 +15357,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14668,6 +15380,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14682,6 +15395,29 @@
       }
     },
     {
+      "file": "templates/staff/counselor_caseload.html",
+      "base": "portal_base.html",
+      "bucket": "LEAVE",
+      "confidence": "high",
+      "reason": "already fills the canvas with a responsive grid/table",
+      "signals": {
+        "container_fluid": false,
+        "container_fixed": false,
+        "full_width_strategy": false,
+        "content_max": false,
+        "known_centered_shell": false,
+        "balanced_rail": false,
+        "grid": true,
+        "table": true,
+        "mx_auto": false,
+        "cp_list": false,
+        "n_form": 0,
+        "n_panel": 0,
+        "n_table": 1,
+        "narrow_by_design": false
+      }
+    },
+    {
       "file": "templates/staff/discipline_incidents.html",
       "base": "portal_base.html",
       "bucket": "LEAVE",
@@ -14690,6 +15426,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14712,6 +15449,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14734,6 +15472,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -14756,6 +15495,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14778,6 +15518,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14800,6 +15541,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -14822,6 +15564,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14844,6 +15587,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14866,6 +15610,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14888,6 +15633,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14895,7 +15641,7 @@
         "table": false,
         "mx_auto": false,
         "cp_list": false,
-        "n_form": 0,
+        "n_form": 1,
         "n_panel": 0,
         "n_table": 0,
         "narrow_by_design": false
@@ -14910,6 +15656,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14917,7 +15664,7 @@
         "table": true,
         "mx_auto": false,
         "cp_list": false,
-        "n_form": 0,
+        "n_form": 2,
         "n_panel": 0,
         "n_table": 1,
         "narrow_by_design": false
@@ -14932,6 +15679,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14954,6 +15702,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14976,6 +15725,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -14998,6 +15748,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15020,6 +15771,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15042,6 +15794,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15064,6 +15817,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15086,6 +15840,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15108,6 +15863,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15130,6 +15886,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15148,12 +15905,13 @@
       "base": "control_plane_base.html",
       "bucket": "LEAVE",
       "confidence": "high",
-      "reason": "already fills (grid/table) and has a width strategy",
+      "reason": "already fills the canvas with a responsive grid/table",
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
-        "known_centered_shell": true,
+        "known_centered_shell": false,
         "balanced_rail": false,
         "grid": true,
         "table": true,
@@ -15174,6 +15932,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15196,6 +15955,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15218,6 +15978,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15240,6 +16001,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15262,6 +16024,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15284,6 +16047,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15306,6 +16070,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15328,6 +16093,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15350,6 +16116,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15372,6 +16139,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15394,6 +16162,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15416,6 +16185,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15438,6 +16208,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15460,6 +16231,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15482,6 +16254,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15504,6 +16277,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15526,6 +16300,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15548,6 +16323,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": true,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15570,6 +16346,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15592,6 +16369,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15614,6 +16392,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15636,6 +16415,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15658,6 +16438,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15680,6 +16461,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15702,6 +16484,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": true,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": true,
         "balanced_rail": false,
@@ -15724,6 +16507,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15746,6 +16530,7 @@
       "signals": {
         "container_fluid": true,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15768,6 +16553,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15790,6 +16576,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,
@@ -15812,6 +16599,7 @@
       "signals": {
         "container_fluid": false,
         "container_fixed": false,
+        "full_width_strategy": false,
         "content_max": false,
         "known_centered_shell": false,
         "balanced_rail": false,

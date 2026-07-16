@@ -132,6 +132,10 @@ def apply_blueprint(
             "rollback_available": bool(existing.rollback_snapshot),
             "audit_id": existing.audit_ref,
             "idempotent": True,
+            "local_first_manifest": (existing.preview_snapshot or {}).get(
+                "local_first_manifest",
+                {},
+            ),
         }
 
     rollback_snapshot = _snapshot_school(school)
@@ -140,10 +144,20 @@ def apply_blueprint(
     with transaction.atomic():
         settings = dict(school.settings or {})
         settings.setdefault("blueprint_marketplace", {})
+        settings.setdefault("local_first_blueprints", {})
+        local_first_manifest = dict(preview.get("local_first_manifest") or {})
         settings["blueprint_marketplace"][blueprint.key] = {
             "version": blueprint.version,
             "applied_at": timezone.now().isoformat(),
             "external_required": list(preview.get("external_required") or []),
+            "offline_readiness": dict(preview.get("offline_readiness") or {}),
+            "local_first_manifest": local_first_manifest,
+        }
+        settings["local_first_blueprints"][blueprint.key] = {
+            "version": blueprint.version,
+            "manifest": local_first_manifest,
+            "activated_at": timezone.now().isoformat(),
+            "status": "active",
         }
         school.settings = settings
         school.save(update_fields=["settings"])
@@ -178,7 +192,10 @@ def apply_blueprint(
             actor=actor,
             result="applied",
             installation_id=installation.pk,
-            payload={"external_blockers": installation.external_blockers},
+            payload={
+                "external_blockers": installation.external_blockers,
+                "local_first_manifest": local_first_manifest,
+            },
         )
         if event:
             installation.audit_ref = str(event.pk)
@@ -219,6 +236,7 @@ def apply_blueprint(
                 "external_blockers": list(preview.get("external_required") or []),
                 "rollback_available": True,
                 "audit_id": installation.audit_ref,
+                "local_first_manifest": local_first_manifest,
             }
 
     return {
@@ -233,4 +251,5 @@ def apply_blueprint(
         "package_result": package_result,
         "pack_installations": pack_install_results,
         "idempotent": False,
+        "local_first_manifest": preview.get("local_first_manifest", {}),
     }

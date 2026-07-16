@@ -123,7 +123,10 @@
                     {{ g.views }}{% if g.denied_views %} <span class="text-danger" title="{% trans 'Denied by geo-fence' %}">(+{{ g.denied_views }}⊘)</span>{% endif %}
                   </td>
                   <td class="text-end">
-                    {% if g.valid and not g.revoked %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if g.valid and not g.revoked %}
                     <form method="post" action="" class="d-inline">
                       {% csrf_token %}
                       <input type="hidden" name="action" value="revoke">
@@ -131,7 +134,8 @@
                       <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Revoke" %}</button>
                     </form>
                     {% endif %}
-                  </td>
+                  </div>
+                </details></td>
                 </tr>
                 {% endfor %}
               </tbody>

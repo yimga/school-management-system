@@ -38,6 +38,9 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
 
     def test_manager_admin_scroll_contract_in_css_and_templates(self):
         css = Path("static/css/admin-cp-parity.css").read_text(encoding="utf-8")
+        canvas_css = Path("static/css/rmc-admin-django-canvas-contract.css").read_text(
+            encoding="utf-8"
+        )
         base = Path("templates/admin/base.html").read_text(encoding="utf-8")
         base_site = Path("templates/admin/base_site.html").read_text(encoding="utf-8")
         self.assertTrue(
@@ -60,6 +63,12 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         self.assertIn("block.super", change_form)
         self.assertIn("admin_changelist_header.html", change_list)
         self.assertIn("admin_change_form_header.html", change_form)
+        self.assertIn("20260713-real-admin-canvas", base_site)
+        self.assertIn('data-rmc-admin-surface="smart-form"', change_form)
+        self.assertIn('data-rmc-admin-surface="smart-changelist"', change_list)
+        self.assertIn("real-admin-canvas: terminal production contract", canvas_css)
+        self.assertIn("[data-rmc-django-workspace=\"change-form\"]", canvas_css)
+        self.assertIn("[data-rmc-admin-table-contract=\"native-table-scroll\"]", canvas_css)
         sidebar = Path("templates/partials/manager_platform_admin_sidebar.html").read_text(
             encoding="utf-8"
         )
@@ -83,7 +92,8 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         self.assertIn("SHOW_MANAGER_CORPORATE_FOOTER", text)
         self.assertIn("rmc_operator_footer_civic.html", text)
         self.assertIn("control_plane_unified_header.html", text)
-        self.assertIn("manager-corporate-footer.css", text)
+        self.assertIn("rmc-footer-surfaces.css", text)
+        self.assertIn("rmc-civic-footer.css", text)
         self.assertIn("rmc-surface-overlay-guard.js", text)
         tenant_nav = Path("templates/partials/tenant_primary_nav.html").read_text(
             encoding="utf-8"
@@ -120,3 +130,22 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         self.assertIn('lockup_layout="inline"', text)
         self.assertIn("rmc-platform-header__command", text)
         self.assertIn("rmc-platform-header__actions", text)
+
+    def test_studio_experience_real_canvas_contract_is_terminal(self):
+        workspace_css = Path("static/css/studio-workspace.css").read_text(encoding="utf-8")
+        experience_css = Path("static/css/studio-experience-mode.css").read_text(
+            encoding="utf-8"
+        )
+        body = Path("templates/studio_os/partials/studio_experience_mode_body.html").read_text(
+            encoding="utf-8"
+        )
+        canvas = Path(
+            "templates/studio_os/partials/workspace/experience_inpage_canvas.html"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("experience_inpage_canvas.html", body)
+        self.assertIn("suppress_theme_inline_preview=1", canvas)
+        self.assertIn("real-admin-canvas: Studio Experience production hardening", workspace_css)
+        self.assertIn("real-admin-canvas: terminal Studio Experience fix", experience_css)
+        self.assertIn(".theme-experience-grid", experience_css)
+        self.assertIn("max-height: min(78vh, 56rem)", experience_css)

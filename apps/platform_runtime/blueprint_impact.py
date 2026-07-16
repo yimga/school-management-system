@@ -32,6 +32,9 @@ def analyze_blueprint_impact(
         categories.append("tenant_blocked")
     if external_required:
         categories.append("external_required")
+    offline_readiness = preview.get("offline_readiness", {})
+    if offline_readiness.get("status") in {"PARTIAL", "READY_WITH_EXTERNAL_BLOCKERS"}:
+        categories.append("offline_proof_partial")
     if destructive_changes:
         categories.append("destructive")
     if len(preview["changes"]) >= 20:
@@ -82,6 +85,10 @@ def analyze_blueprint_impact(
                 if row["section"] == "billing_defaults"
             ],
             "external_dependencies_remaining": external_required,
+            "offline_readiness": offline_readiness,
+            "local_first_manifest": preview.get("local_first_manifest", {}),
+            "outage_survival_matrix": preview.get("outage_survival_matrix", {}),
+            "conflict_policy_by_domain": preview.get("conflict_policy_by_domain", {}),
             "rollback_available": preview["rollback_plan"]["available"],
             "cannot_rollback": preview["rollback_plan"]["non_reversible"],
         },

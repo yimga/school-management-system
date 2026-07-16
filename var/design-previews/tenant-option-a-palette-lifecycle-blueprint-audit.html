@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RunMyCampus Tenant Option A - Palette, Lifecycle, Blueprint Audit</title>
+  <style>
+    :root {
+      --ink: #fff8ea;
+      --muted: #d7c4a8;
+      --quiet: #9f8c73;
+      --night: #0b111d;
+      --deep: #121b2c;
+      --panel: #182337;
+      --panel-2: #201b24;
+      --warm: #f7a53a;
+      --coral: #ff654f;
+      --rose: #f25d85;
+      --mint: #35d399;
+      --sky: #22b8ee;
+      --violet: #8b6cff;
+      --cream: #fff1cd;
+      --line: rgba(255, 255, 255, .14);
+      --line-strong: rgba(255, 255, 255, .25);
+      --shadow: 0 30px 100px rgba(0, 0, 0, .38);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% -4%, rgba(247, 165, 58, .26), transparent 34rem),
+        radial-gradient(circle at 95% 10%, rgba(34, 184, 238, .16), transparent 34rem),
+        radial-gradient(circle at 60% 120%, rgba(242, 93, 133, .12), transparent 36rem),
+        linear-gradient(180deg, #07101c, var(--night));
+    }
+    button, input, select { font: inherit; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      min-height: 68px;
+      display: grid;
+      grid-template-columns: minmax(220px, 320px) minmax(320px, 1fr) minmax(260px, 360px);
+      gap: 18px;
+      align-items: center;
+      padding: 10px 22px;
+      background: rgba(9, 15, 28, .82);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(20px);
+    }
+    .brand { display: flex; gap: 12px; align-items: center; min-width: 0; }
+    .mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #fff1b8, #ff654f 45%, #16758f);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35), 0 12px 30px rgba(255, 101, 79, .18);
+    }
+    .brand strong { display: block; font-size: 15px; letter-spacing: .02em; }
+    .brand span { display: block; color: var(--muted); font-size: 11px; }
+    .nav { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .nav button, .btn, .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, .065);
+      min-height: 36px;
+      padding: 8px 13px;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+    .nav .active {
+      background: linear-gradient(135deg, var(--coral), var(--warm));
+      color: #1d120a;
+      border-color: transparent;
+    }
+    .search {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-self: stretch;
+      min-height: 42px;
+      border-radius: 16px;
+      border: 1px solid rgba(247, 165, 58, .42);
+      padding: 0 13px;
+      color: #ffe2b2;
+      background: rgba(79, 49, 29, .54);
+    }
+    .search span { margin-left: auto; color: #c9ad84; font-size: 11px; border: 1px solid var(--line); border-radius: 8px; padding: 2px 7px; }
+    .shell {
+      display: grid;
+      grid-template-columns: 292px minmax(0, 1fr) 58px;
+      min-height: calc(100vh - 68px);
+    }
+    .sidebar {
+      position: sticky;
+      top: 68px;
+      height: calc(100vh - 68px);
+      overflow: auto;
+      padding: 16px 14px;
+      background: rgba(14, 22, 39, .82);
+      border-right: 1px solid var(--line);
+      scrollbar-width: thin;
+    }
+    .side-section {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: rgba(255, 255, 255, .04);
+    }
+    .side-title { margin-bottom: 10px; color: var(--quiet); font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    .side-item { display: flex; align-items: center; justify-content: space-between; min-height: 38px; padding: 0 10px; color: #e7dcc8; border-radius: 10px; font-size: 13px; }
+    .side-item.active { background: linear-gradient(135deg, var(--coral), var(--warm)); color: #1c120b; font-weight: 900; }
+    .rail {
+      position: sticky;
+      top: 68px;
+      height: calc(100vh - 68px);
+      border-left: 1px solid var(--line);
+      background: rgba(9, 15, 28, .72);
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .rail button { width: 38px; height: 38px; border-radius: 13px; border: 1px solid var(--line); background: rgba(255, 255, 255, .06); color: var(--ink); }
+    main {
+      padding: clamp(18px, 2vw, 28px);
+      min-width: 0;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+    .hero-card, .card, .surface {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .025));
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+    .hero-card { padding: clamp(24px, 3vw, 42px); position: relative; overflow: hidden; }
+    .hero-card:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(247, 165, 58, .22), transparent 38%),
+        radial-gradient(circle at 85% 15%, rgba(53, 211, 153, .18), transparent 22rem);
+      pointer-events: none;
+    }
+    .hero-card > * { position: relative; }
+    .eyebrow { color: var(--warm); font-size: 11px; font-weight: 950; letter-spacing: .13em; text-transform: uppercase; }
+    h1, h2, h3 { margin: 0; letter-spacing: 0; }
+    h1 { margin-top: 9px; font-size: clamp(34px, 5vw, 64px); line-height: .95; max-width: 10ch; }
+    h2 { font-size: clamp(22px, 2.5vw, 34px); }
+    h3 { font-size: 18px; }
+    p { color: var(--muted); line-height: 1.55; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .btn.primary { color: #1a120b; border-color: transparent; background: linear-gradient(135deg, var(--warm), var(--coral)); }
+    .snapshot { padding: 18px; display: grid; gap: 12px; }
+    .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .metric { min-height: 116px; border-radius: 8px; border: 1px solid var(--line); padding: 14px; background: rgba(9, 15, 28, .52); }
+    .metric b { display: block; margin-top: 10px; font-size: 28px; }
+    .metric span { color: var(--quiet); font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    .section { margin-top: 18px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+    .section-head p { margin: 6px 0 0; max-width: 74ch; }
+    .option-a {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr) minmax(270px, .72fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .card { padding: 16px; }
+    .lane { display: grid; gap: 10px; }
+    .task {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px;
+      background: rgba(255, 255, 255, .04);
+      display: grid;
+      gap: 7px;
+    }
+    .task strong { display: flex; justify-content: space-between; gap: 8px; }
+    .tag { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 900; background: rgba(255, 255, 255, .08); color: var(--ink); }
+    .tag.good { background: rgba(53, 211, 153, .16); color: #74ffc8; }
+    .tag.warn { background: rgba(247, 165, 58, .16); color: #ffd18b; }
+    .tag.hot { background: rgba(255, 101, 79, .16); color: #ffad9f; }
+    .tenant-canvas {
+      min-height: 520px;
+      border-radius: 8px;
+      border: 1px solid var(--line-strong);
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(255, 241, 205, .98), rgba(255, 250, 238, .94));
+      color: #1b2430;
+      box-shadow: 0 22px 80px rgba(0, 0, 0, .25);
+    }
+    .canvas-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      background: linear-gradient(135deg, #f05f4b, #f7a53a);
+      color: #211306;
+    }
+    .canvas-body { padding: 18px; display: grid; gap: 14px; }
+    .canvas-hero {
+      border-radius: 8px;
+      padding: 22px;
+      background: #fffaf0;
+      border: 1px solid rgba(40, 31, 19, .12);
+    }
+    .canvas-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .canvas-tile { border-radius: 8px; padding: 14px; min-height: 112px; background: #fff; border: 1px solid rgba(40, 31, 19, .1); }
+    .canvas-tile:nth-child(1) { border-top: 5px solid #35d399; }
+    .canvas-tile:nth-child(2) { border-top: 5px solid #22b8ee; }
+    .canvas-tile:nth-child(3) { border-top: 5px solid #f25d85; }
+    .canvas-chart { height: 150px; border-radius: 8px; background: linear-gradient(90deg, rgba(247,165,58,.26), rgba(34,184,238,.2), rgba(53,211,153,.22)); border: 1px dashed rgba(40,31,19,.2); }
+    .palette-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+    .swatch-card { min-height: 130px; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.04); }
+    .swatches { display: flex; gap: 5px; margin: 12px 0; }
+    .swatch { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(255,255,255,.22); }
+    .journey { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+    .step { min-height: 150px; padding: 12px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.04); }
+    .step .num { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; color: #1a120b; background: var(--warm); font-weight: 950; }
+    .blueprint-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+    .blueprint-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.04); }
+    .prompt {
+      white-space: pre-wrap;
+      color: #f7ead5;
+      background: #090f1d;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      overflow: auto;
+      line-height: 1.45;
+      font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    @media (max-width: 1320px) {
+      .topbar, .shell, .hero, .option-a, .blueprint-grid { grid-template-columns: 1fr; }
+      .sidebar, .rail { position: static; height: auto; }
+      .journey { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .palette-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      main { padding: 14px; }
+      .metric-grid, .canvas-grid, .journey, .palette-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="mark"></div><div><strong>New Test High School</strong><span>Tenant command surface</span></div></div>
+    <nav class="nav" aria-label="Tenant navigation">
+      <button class="active">Home</button><button>Finance</button><button>Messages</button><button>Analytics</button><button>More</button>
+    </nav>
+    <div class="search">Search students, invoices, setup... <span>Ctrl K</span></div>
+  </header>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="side-section">
+        <div class="side-title">Tenant setup</div>
+        <div class="side-item active">Launch workspace <span>82%</span></div>
+        <div class="side-item">Blueprints <span>ready</span></div>
+        <div class="side-item">Imports <span>next</span></div>
+      </div>
+      <div class="side-section">
+        <div class="side-title">Daily school</div>
+        <div class="side-item">Dashboard</div>
+        <div class="side-item">Money Center</div>
+        <div class="side-item">Communication</div>
+        <div class="side-item">Academics</div>
+      </div>
+      <div class="side-section">
+        <div class="side-title">Theme & brand</div>
+        <div class="side-item">Palette studio</div>
+        <div class="side-item">Live preview</div>
+        <div class="side-item">Publish guard</div>
+      </div>
+    </aside>
+    <main>
+      <section class="hero">
+        <div class="hero-card">
+          <div class="eyebrow">Option A approved - tenant-wide target</div>
+          <h1>Warm command workspace</h1>
+          <p>Use one full-width tenant surface for setup, money, imports, blueprint application, and daily operations. Pages should feel warm, colorful, and serious without crowding or leaking content.</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#rollout">Apply rollout contract</a>
+            <a class="btn" href="#blueprints">Blueprint fix</a>
+            <a class="btn" href="#lifecycle">Tenant lifecycle</a>
+          </div>
+        </div>
+        <div class="snapshot hero-card">
+          <div class="eyebrow">Audit result</div>
+          <div class="metric-grid">
+            <div class="metric"><span>Shared surfaces</span><b>Frame</b><p>Money Center and Import Setup share one operational frame.</p></div>
+            <div class="metric"><span>Theme</span><b>Needs color rules</b><p>Palette choices need visible page-level application.</p></div>
+            <div class="metric"><span>Blueprints</span><b>2 blocked</b><p>Two tenant-safe blueprints had unresolved pack aliases.</p></div>
+            <div class="metric"><span>Lifecycle</span><b>Exists</b><p>Signup, verify, setup, onboarding, and daily ops exist but need one guided journey.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="option-a">
+        <div class="section-head">
+          <div><div class="eyebrow">Approved interaction model</div><h2>Option A full-width tenant workspace</h2><p>The page opens with the work, not a wall of text. Critical actions sit in a left work queue, the center is a live operational canvas, and the right rail only holds compact state and next actions.</p></div>
+          <span class="tag good">Tenant only</span>
+        </div>
+        <div class="option-a">
+          <div class="card lane">
+            <h3>Work queue</h3>
+            <div class="task"><strong>Prepare roster <span class="tag warn">Next</span></strong><p>Import students, guardians, balances, and staff.</p></div>
+            <div class="task"><strong>Apply blueprint <span class="tag good">Ready</span></strong><p>Use a tenant-safe school model; operator-only options stay hidden.</p></div>
+            <div class="task"><strong>Payment readiness <span class="tag hot">External</span></strong><p>Show PSP, manual fallback, usage meters, and revenue honesty.</p></div>
+          </div>
+          <div class="tenant-canvas">
+            <div class="canvas-top"><strong>School command preview</strong><span>Warm bright palette</span></div>
+            <div class="canvas-body">
+              <div class="canvas-hero"><h3>Today's school pulse</h3><p>Attendance, collections, messages, and setup blockers in one readable canvas.</p></div>
+              <div class="canvas-grid">
+                <div class="canvas-tile"><strong>Attendance</strong><p>94% present</p></div>
+                <div class="canvas-tile"><strong>Collections</strong><p>12 invoices due</p></div>
+                <div class="canvas-tile"><strong>Setup</strong><p>2 launch blockers</p></div>
+              </div>
+              <div class="canvas-chart"></div>
+            </div>
+          </div>
+          <div class="card lane">
+            <h3>Inspector</h3>
+            <div class="task"><strong>Status <span class="tag good">Safe</span></strong><p>No cross-tenant or operator controls visible.</p></div>
+            <div class="task"><strong>Preview <span class="tag good">100%</span></strong><p>Inline if clean, sidecar if complex, popout when frame is blocked.</p></div>
+            <div class="task"><strong>Publish <span class="tag warn">Guarded</span></strong><p>High-impact changes require preview confirmation.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="palette">
+        <div class="section-head">
+          <div><div class="eyebrow">Palette application</div><h2>Color is a system, not decoration</h2><p>Each tenant palette must affect header accent, sidebar active state, page hero, action buttons, status pills, chart accents, alerts, and table focus. The preview must show those surfaces before publish.</p></div>
+        </div>
+        <div class="palette-grid">
+          <div class="swatch-card"><strong>Sunrise campus</strong><div class="swatches"><i class="swatch" style="background:#f7a53a"></i><i class="swatch" style="background:#ff654f"></i><i class="swatch" style="background:#35d399"></i></div><p>Warm admin, friendly school portals, strong CTAs.</p></div>
+          <div class="swatch-card"><strong>Scholar grove</strong><div class="swatches"><i class="swatch" style="background:#1f9d72"></i><i class="swatch" style="background:#a8d87a"></i><i class="swatch" style="background:#2b5a49"></i></div><p>Academic, growth, calm operations.</p></div>
+          <div class="swatch-card"><strong>Coastal clarity</strong><div class="swatches"><i class="swatch" style="background:#22b8ee"></i><i class="swatch" style="background:#16758f"></i><i class="swatch" style="background:#fff1cd"></i></div><p>Clean finance and setup surfaces.</p></div>
+          <div class="swatch-card"><strong>Berry leadership</strong><div class="swatches"><i class="swatch" style="background:#f25d85"></i><i class="swatch" style="background:#8b6cff"></i><i class="swatch" style="background:#ffc857"></i></div><p>Modern, colorful, high confidence.</p></div>
+          <div class="swatch-card"><strong>Accessible midnight</strong><div class="swatches"><i class="swatch" style="background:#0b111d"></i><i class="swatch" style="background:#fff8ea"></i><i class="swatch" style="background:#35d399"></i></div><p>Dark-mode safe with clear semantic colors.</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="lifecycle">
+        <div class="section-head">
+          <div><div class="eyebrow">Tenant lifecycle</div><h2>Signup to daily school operation</h2><p>The tenant should always know the next useful action. The flow should be resumable, email-backed, tenant-scoped, and never send school admins into operator surfaces.</p></div>
+        </div>
+        <div class="journey">
+          <div class="step"><div class="num">1</div><h3>Signup</h3><p>School name, owner email, region, slug, and anti-abuse checks.</p></div>
+          <div class="step"><div class="num">2</div><h3>Verify email</h3><p>Clear resend, expiry, and success path to tenant host.</p></div>
+          <div class="step"><div class="num">3</div><h3>First login</h3><p>MFA, profile, terms, and tenant admin console only.</p></div>
+          <div class="step"><div class="num">4</div><h3>Blueprint</h3><p>Apply a tenant-safe school model with visible blockers.</p></div>
+          <div class="step"><div class="num">5</div><h3>Import</h3><p>Roster, staff, balances, and SIS handoff in one guided workspace.</p></div>
+          <div class="step"><div class="num">6</div><h3>Brand</h3><p>Pick palette, preview every role, publish safely.</p></div>
+          <div class="step"><div class="num">7</div><h3>Readiness</h3><p>Finance, communications, reports, and launch checklist.</p></div>
+          <div class="step"><div class="num">8</div><h3>Run school</h3><p>Daily dashboard, money, academics, messages, and support.</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="blueprints">
+        <div class="section-head">
+          <div><div class="eyebrow">Blueprint audit</div><h2>Tenant apply must be obvious and reliable</h2><p>Audit found the route and apply form exist, but two tenant-safe blueprints were blocked by unresolved pack references, and the UI made blocked apply look like no apply option.</p></div>
+        </div>
+        <div class="blueprint-grid">
+          <div class="card lane">
+            <h3>Before</h3>
+            <div class="blueprint-row"><span>Private Primary School</span><span class="tag good">Can apply</span></div>
+            <div class="blueprint-row"><span>Private Secondary School</span><span class="tag hot">Pack not found</span></div>
+            <div class="blueprint-row"><span>Bilingual School</span><span class="tag hot">Pack not found</span></div>
+            <p>Apply button only appears inside the selected preview and is disabled without a clear row-level reason.</p>
+          </div>
+          <div class="card lane">
+            <h3>After</h3>
+            <div class="blueprint-row"><span>Every tenant-safe blueprint</span><span class="tag good">Resolvable</span></div>
+            <div class="blueprint-row"><span>Row action</span><span class="tag good">Preview / apply</span></div>
+            <div class="blueprint-row"><span>Blocked states</span><span class="tag warn">Explain why</span></div>
+            <p>Tenant admins see exactly what can be applied, what requires approval, and what external work remains.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="rollout">
+        <div class="section-head">
+          <div><div class="eyebrow">Implementation prompt</div><h2>Tenant-wide audit/fix loop</h2><p>This is the prompt shape to apply after approval. It is intentionally tenant-scoped and excludes operator UI redesign except for hard separation/security checks.</p></div>
+        </div>
+        <pre class="prompt">Audit tenant-wide first, then implement. Do not assume coverage.
+
+Scope:
+- Tenant surfaces only: signup, email verification, login/MFA, Setup Studio, blueprints, import/migration, Theme & Experience, Money Center, dashboard, messages, academics, reports, workflow center, feature controls, launch readiness, and daily school operations.
+- Operator surfaces are out of scope except tenant/operator separation checks.
+
+Design contract:
+- Apply Option A warm command workspace to tenant operational pages that currently render as sparse text or cramped panels.
+- Use full available width intelligently.
+- Use bounded vertical scrolling inside long work zones; avoid pages that run endlessly.
+- Live preview must work 100% of the time through inline preview, sidecar, modal, popout, or new tab fallback.
+- Palette previews must show header, sidebar active state, hero, buttons, status, tables, charts, alerts, forms, and role dashboards.
+
+Tenant lifecycle audit:
+- Trace signup -> verify email -> login/MFA -> setup -> blueprint -> import -> brand -> readiness -> daily operation.
+- Every step must have one primary next action, a clear blocker state, and a tenant-scoped destination.
+- No tenant path may redirect to /super/ or operator /admin/.
+
+Blueprint audit:
+- List all tenant-safe blueprints.
+- Preview each with a tenant school and assert no pack_not_found conflicts.
+- Tenant page must show row-level Preview and Apply/Request approval states.
+- Platform-only blueprint controls must remain hidden.
+
+Validation:
+- Run focused Django tests for tenant blueprints, tenant onboarding links, tenant lifecycle, theme experience, and operational workbench surfaces.
+- Run Django check and template/static lint where available.
+- Re-audit generated route/template inventory and close gaps before commit.</pre>
+      </section>
+    </main>
+    <aside class="rail"><button>*</button><button>?</button><button>!</button><button>+</button><button>@</button></aside>
+  </div>
+</body>
+</html>

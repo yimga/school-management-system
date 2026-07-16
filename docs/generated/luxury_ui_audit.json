@@ -50,8 +50,8 @@
       ]
     }
   },
-  "generated_at": "2026-07-10T11:55:19.613159+00:00",
-  "high_impact_templates_total": 266,
+  "generated_at": "2026-07-13T13:56:41.110822+00:00",
+  "high_impact_templates_total": 272,
   "inline_styles": {
     "count": 47,
     "needs_review_count": 47,
@@ -110,8 +110,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 135,
-    "needs_review_count": 135,
+    "count": 139,
+    "needs_review_count": 139,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -221,7 +221,9 @@
       "templates/studio_os/partials/automation_simulation_preview_pane.html",
       "templates/studio_os/partials/control_governance_preview_pane.html",
       "templates/studio_os/partials/control_mode_canvas.html",
+      "templates/studio_os/partials/experience_compare_fold.html",
       "templates/studio_os/partials/experience_live_preview_pane.html",
+      "templates/studio_os/partials/experience_rollout_fold.html",
       "templates/studio_os/partials/experience_workbench_context.html",
       "templates/studio_os/partials/launch_mode_canvas.html",
       "templates/studio_os/partials/launch_readiness_preview_pane.html",
@@ -245,6 +247,8 @@
       "templates/studio_os/partials/workspace/control_canvas.html",
       "templates/studio_os/partials/workspace/control_rail.html",
       "templates/studio_os/partials/workspace/experience_iframe_canvas.html",
+      "templates/studio_os/partials/workspace/experience_region_actions.html",
+      "templates/studio_os/partials/workspace/experience_region_outline.html",
       "templates/studio_os/partials/workspace/launch_canvas.html",
       "templates/studio_os/partials/workspace/output_canvas.html",
       "templates/studio_os/shell.html"

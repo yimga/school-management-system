@@ -67,7 +67,7 @@ def _inject_scroll_policy(text: str) -> str:
             return text[: match.start()] + attrs + f" {SCROLL_ATTR}" + match.group(2) + text[match.end() :]
 
     if "{% extends" not in text and "<table" in text:
-        return f'<div {SCROLL_ATTR}>\n{text}\n</motion>\n'.replace("</motion>", "</div>")
+        return f'<div {SCROLL_ATTR}>\n{text}\n</div>\n'
 
     return text
 
@@ -133,10 +133,8 @@ def _wrap_row_forms(text: str, findings: list[dict]) -> str:
             '                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>\n'
             '                  <div class="rmc-row-disclosure__body mt-1">\n'
             f"{body.strip()}\n"
-            "                  </motion>\n"
+            "                  </div>\n"
             "                </details></td>"
-        ).replace("</motion>", "</motion>").replace(
-            '<motion class="rmc-row-disclosure__body mt-1">', '<div class="rmc-row-disclosure__body mt-1">'
         )
         return wrapped
 

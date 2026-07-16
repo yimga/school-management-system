@@ -52,6 +52,15 @@ def _change_rows(blueprint: BlueprintContract) -> list[dict[str, Any]]:
             "rollback": "restore_previous_school_settings",
         }
     )
+    changes.append(
+        {
+            "section": "local_first_manifest",
+            "operation": "activate_manifest",
+            "target": blueprint.local_first_manifest_payload.get("server_proof_status", "unproven"),
+            "destructive": False,
+            "rollback": "invalidate_offline_manifest_and_restore_previous_school_settings",
+        }
+    )
     return changes
 
 
@@ -65,6 +74,36 @@ def _tenant_counts(school) -> dict[str, int]:
             school=school
         ).count(),
         "active_same_blueprint": 0,
+    }
+
+
+def _offline_readiness(
+    blueprint: BlueprintContract,
+    manifest: dict[str, Any],
+    *,
+    external_required: list[str],
+) -> dict[str, Any]:
+    browser_partial = str(manifest.get("browser_proof_status", "")).startswith("PARTIAL")
+    proof_status = "PARTIAL" if browser_partial else "READY"
+    if external_required:
+        proof_status = "READY_WITH_EXTERNAL_BLOCKERS"
+    target_days = int(manifest.get("offline_survival_target_days") or 0)
+    cached_surfaces = list(manifest.get("cached_surfaces") or [])
+    offline_actions = list(manifest.get("offline_actions") or [])
+    return {
+        "status": proof_status,
+        "mode": blueprint.offline_defaults.get("mode", "standard"),
+        "coverage": blueprint.offline_defaults.get("coverage", ""),
+        "survival_target_days": target_days,
+        "cached_surface_count": len(cached_surfaces),
+        "offline_action_count": len(offline_actions),
+        "browser_proof_status": manifest.get("browser_proof_status"),
+        "server_proof_status": manifest.get("server_proof_status"),
+        "honesty_note": (
+            "Server rails are represented; browser restart/storage proof remains partial until the browser harness runs."
+            if browser_partial
+            else "Server and browser proof are represented."
+        ),
     }
 
 
@@ -115,6 +154,12 @@ def preview_blueprint(
 
     changes = _change_rows(blueprint)
     external_required = list(blueprint.external_required_items or blueprint.external_dependencies)
+    local_first_manifest = blueprint.local_first_manifest_payload
+    offline_readiness = _offline_readiness(
+        blueprint,
+        local_first_manifest,
+        external_required=external_required,
+    )
     can_apply = (
         blueprint.apply_available
         and blueprint.status == "installable"
@@ -123,9 +168,25 @@ def preview_blueprint(
     )
     rollback_plan = {
         "available": blueprint.rollback_available,
-        "strategy": "deactivate blueprint marker and restore previous school settings snapshot",
+        "strategy": "deactivate blueprint marker, restore previous school settings snapshot, and invalidate offline manifest",
         "non_reversible": list(external_required),
         "destructive_delete": False,
+        "offline_manifest_invalidation": local_first_manifest.get(
+            "rollback_invalidation",
+            {},
+        ),
+    }
+    composition_guidance = {
+        "role": blueprint.composition_role,
+        "compatible_blueprints": list(blueprint.compatible_blueprints),
+        "regional_overlays": list(blueprint.regional_overlays),
+        "education_tracks": list(blueprint.education_tracks),
+        "local_constraints": list(blueprint.local_constraints),
+        "note": (
+            "Use this as an overlay with a base school blueprint."
+            if blueprint.composition_role.endswith("overlay")
+            else "Use this as a base operating model; add overlays for region, language, boarding, or offline needs."
+        ),
     }
     result = {
         "blueprint_key": blueprint.key,
@@ -139,6 +200,26 @@ def preview_blueprint(
         "conflicts": conflicts,
         "warnings": warnings,
         "external_required": external_required,
+        "local_first_manifest": local_first_manifest,
+        "offline_readiness": offline_readiness,
+        "outage_survival_matrix": {
+            "target_days": local_first_manifest.get("offline_survival_target_days"),
+            "works_offline": list(local_first_manifest.get("cached_surfaces") or []),
+            "queued_actions": list(local_first_manifest.get("offline_actions") or []),
+            "manual_fallbacks": list(local_first_manifest.get("manual_fallbacks") or []),
+            "proof_status": offline_readiness["status"],
+        },
+        "device_role_impacts": [
+            {
+                "role": role,
+                "offline_access": role in set(local_first_manifest.get("device_roles") or []),
+                "sync_cadence": local_first_manifest.get("sync_cadence", {}),
+            }
+            for role in blueprint.roles
+        ],
+        "conflict_policy_by_domain": local_first_manifest.get("conflict_policies", {}),
+        "composition_guidance": composition_guidance,
+        "app_catalog_recommendations": list(blueprint.app_catalog_recommendations),
         "tenant_safety_notes": safety_notes,
         "rollback_plan": rollback_plan,
         "audit_summary": {

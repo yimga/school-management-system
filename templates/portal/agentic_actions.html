@@ -128,7 +128,10 @@
             <td>{{ r.outcome }}{% if r.blocked_reason %} <span class="small text-muted">({{ r.blocked_reason }})</span>{% endif %}</td>
             <td>{{ r.created_at }}</td>
             <td>
-              {% if mutating_enabled and r.phase == "outcome" and r.outcome == "ok" and r.executed %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if mutating_enabled and r.phase == "outcome" and r.outcome == "ok" and r.executed %}
               <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="gen" value="reverse" />
@@ -136,7 +139,8 @@
                 <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Undo" %}</button>
               </form>
               {% endif %}
-            </td>
+                  </div>
+                </details></td>
           </tr>
           {% endif %}
           {% empty %}

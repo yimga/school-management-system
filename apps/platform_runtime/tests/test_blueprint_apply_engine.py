@@ -67,8 +67,15 @@ class BlueprintApplyEngineTests(TestCase):
 
         self.assertTrue(result["ok"], msg=result)
         installation = BlueprintInstallation.objects.get(pk=result["installation_id"])
+        self.school.refresh_from_db()
         self.assertEqual(installation.school, self.school)
         self.assertEqual(installation.status, BlueprintInstallation.Status.APPLIED)
+        self.assertIn("local_first_manifest", installation.preview_snapshot)
+        self.assertIn("local_first_blueprints", self.school.settings)
+        self.assertEqual(
+            self.school.settings["local_first_blueprints"]["private-primary-school"]["status"],
+            "active",
+        )
         self.assertTrue(installation.audit_ref)
         self.assertTrue(
             PlatformEventLog.objects.filter(

@@ -39,3 +39,23 @@ class OperationalWorkbenchSurfaceTests(SimpleTestCase):
             text = (ROOT / rel).read_text(encoding="utf-8")
             self.assertIn("rmc_operational_center_frame.html", text, rel)
             self.assertNotIn("world_class_page_hero.html", text, rel)
+
+    def test_tenant_finance_surfaces_use_single_command_frame(self):
+        dashboard = (ROOT / "templates" / "finance" / "dashboard.html").read_text(encoding="utf-8")
+        self.assertIn("rmc_operational_center_frame.html", dashboard)
+        self.assertIn("rmc-world-class-experience.css", dashboard)
+        self.assertIn('id="money-actions"', dashboard)
+        self.assertIn('data-rmc-bounded-work-zone="finance-money-center"', dashboard)
+        self.assertNotIn("components/rmc_os_page_header.html", dashboard)
+        self.assertNotIn("components/rmc_os_action_bar.html", dashboard)
+
+        readiness = (ROOT / "templates" / "finance" / "payment_readiness_dashboard.html").read_text(encoding="utf-8")
+        self.assertIn("rmc_operational_center_frame.html", readiness)
+        self.assertIn("world_class_summary_strip.html", readiness)
+        self.assertIn("secondary_url=payment_money_url", readiness)
+        self.assertNotIn('secondary_url="/finance/"', readiness)
+
+    def test_bounded_work_zone_contract_is_shared(self):
+        text = (ROOT / "static" / "css" / "rmc-tenant-surface-scroll-contract.css").read_text(encoding="utf-8")
+        self.assertIn("[data-rmc-bounded-work-zone]", text)
+        self.assertIn(".dashboard-card-scroll", text)

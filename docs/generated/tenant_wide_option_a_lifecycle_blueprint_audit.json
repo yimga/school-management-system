@@ -1,0 +1,78 @@
+{
+  "generated": "2026-07-13",
+  "status": "PASS_WITH_LOCAL_DB_PROOF_GAP",
+  "scope": [
+    "tenant_studio",
+    "setup_blueprints",
+    "import_migration",
+    "money_center",
+    "payment_readiness",
+    "feature_control_shared_content",
+    "tenant_configuration_center",
+    "tenant_lifecycle_links"
+  ],
+  "fixes_applied": [
+    "money_center_single_operational_command_frame",
+    "money_center_duplicate_header_action_bar_removed",
+    "payment_readiness_operational_command_frame",
+    "payment_readiness_named_tenant_finance_route",
+    "payment_readiness_section_anchors",
+    "bounded_work_zone_scroll_contract",
+    "static_tests_for_finance_and_bounded_work_zone"
+  ],
+  "tenant_operator_separation": {
+    "status": "PASS",
+    "audit_command": "python manage.py audit_tenant_operator_boundary --write",
+    "tenant_super_namespace_exposed": false,
+    "tenant_admin_site": "tenant_admin_site",
+    "manager_admin_site": "platform_admin_site"
+  },
+  "blueprints": {
+    "tenant_safe_blueprints_scanned": 7,
+    "pack_not_found_conflicts": 0,
+    "row_level_preview_apply_states": true,
+    "platform_only_controls_hidden": true
+  },
+  "live_preview": {
+    "studio_experience_contract_present": true,
+    "fallbacks": [
+      "retry_inline",
+      "modal_preview",
+      "popout",
+      "new_tab",
+      "preview_theater"
+    ]
+  },
+  "validation": {
+    "django_check": "PASS",
+    "makemigrations_check_dry_run": "PASS",
+    "compileall": "PASS",
+    "git_diff_check": "PASS",
+    "focused_tenant_surface_tests": "PASS",
+    "focused_tenant_surface_test_count": 9,
+    "tenant_safe_blueprint_pack_reference_audit": "PASS",
+    "tenant_template_operator_link_scan": "PASS",
+    "tenant_template_operator_link_findings": 0,
+    "tenant_surface_coverage_matrix": "PASS_NO_DRIFT",
+    "tenant_preview_to_live_adoption": "PASS",
+    "tenant_surface_scroll_contract": "PASS",
+    "tenant_daily_ops_synthetic_chain": "PASS_6_ROLES",
+    "tenant_operator_boundary_audit": "PASS"
+  },
+  "local_environment_proof_gap": {
+    "status": "BLOCKED_BY_LOCAL_SQLITE_SCHEMA_DRIFT",
+    "missing_columns": [
+      {
+        "column": "schools_school.tenant_hash",
+        "expected_migration": "schools.0065_school_tenant_hash",
+        "blocked_proof": "school-backed tenant blueprint preview/test execution"
+      },
+      {
+        "column": "billing_billingaccount.parent_account_id",
+        "expected_migration": "billing.0011_billingaccount_parent_account",
+        "blocked_proof": "DB-backed aggressive tenant lifecycle audit"
+      }
+    ],
+    "migrate_check": "FAIL_UNAPPLIED_LOCAL_MIGRATIONS"
+  }
+}
