@@ -120,6 +120,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # swallowed = silent data loss. Zero-tolerance from day 1; must run every PR
     # or the class silently re-opens.
     ("scripts/scan_lander_phantom_fields.py", "architectural-boundaries.yml"),
+    # Metric 24 (Documentation): every installed app has a README whose factual
+    # claims are checked against the live app registry. Unwired, per-app docs rot
+    # back to nothing -- which is exactly the state this gate was written to end.
+    ("scripts/verify_app_readmes.py", "ci.yml"),
 )
 
 
