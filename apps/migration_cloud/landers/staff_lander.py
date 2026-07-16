@@ -43,6 +43,11 @@ from ._helpers import (
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
+# Canonical role SOT (Django-free module, so it is safe to import at module level
+# unlike the ORM imports below). The bare "TEACHER" literal must not be inlined:
+# scan_role_strings.py enforces that the token comes from here or User.Role.
+from apps.platform_runtime.role_registry import ROLE_TEACHER
+
 # OneRoster/SIS role tokens that must NEVER be provisioned as teachers.
 _NON_STAFF_ROLES = {"student", "guardian", "parent", "relative"}
 
@@ -67,7 +72,10 @@ class StaffLander(Lander):
 
         result = LanderResult()
         model_fields = model_field_names(TeacherProfile)
-        teacher_role = getattr(getattr(User, "Role", None), "TEACHER", "TEACHER")
+        # Prefer the ORM-layer SOT (User.Role TextChoices); fall back to the
+        # registry constant if a swapped user model has no Role enum. Mirrors
+        # guardian_lander's hasattr idiom -- neither branch inlines the token.
+        teacher_role = User.Role.TEACHER if hasattr(User, "Role") else ROLE_TEACHER
 
         for row in canonical_rows:
             external_id = (

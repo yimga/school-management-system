@@ -39,6 +39,25 @@ class FlutterwaveGateway(BasePaymentGateway):
         if secret and not self.config.get("stub_only"):
             email = str(kwargs.get("payer_email") or self.config.get("default_payer_email") or "").strip()
             redirect = str(kwargs.get("redirect_url") or self.config.get("redirect_url") or "").strip()
+            if not (email and redirect):
+                # FAIL CLOSED -- see paystack.py for the full reasoning. Live-configured
+                # (real secret, stub mode off) means the caller intends a real charge;
+                # without both email and redirect_url no /payments call is made, and
+                # falling through to the success return would fabricate a transaction_id
+                # for money that was never requested.
+                missing_fields = [
+                    name for name, value in (("payer_email", email), ("redirect_url", redirect))
+                    if not value
+                ]
+                return GatewayResult(
+                    success=False,
+                    message=(
+                        "Flutterwave is live-configured but "
+                        f"{', '.join(missing_fields)} missing; refusing to report success "
+                        "for a charge that was never sent."
+                    ),
+                    raw_response={"status": "missing_required_field", "missing": missing_fields},
+                )
             if email and redirect:
                 base = str(self.config.get("api_base") or "https://api.flutterwave.com/v3").rstrip("/")
                 status, body = http_post_json(

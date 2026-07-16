@@ -40,6 +40,21 @@ class MTNMoMoGateway(BasePaymentGateway):
         api_user = str(self.config.get("api_user") or "").strip()
         api_key = str(self.config.get("api_key") or "").strip()
         subscription_key = str(self.config.get("subscription_key") or "").strip()
+        if not self.config.get("stub_only") and not payer_phone:
+            # FAIL CLOSED. _missing_config() above already returned for unconfigured
+            # tenants, so reaching here with stub mode off means this gateway is
+            # live-configured and the caller intends a real collection. Without a
+            # payer phone no request-to-pay is sent; the condition below would then
+            # be False and control would fall through to the success return, handing
+            # back a fabricated mtn_<ref> transaction_id for money never requested.
+            return GatewayResult(
+                success=False,
+                message=(
+                    "MTN MoMo is live-configured but no payer phone was supplied; "
+                    "refusing to report success for a collection that was never sent."
+                ),
+                raw_response={"status": "missing_payer_phone"},
+            )
         if (
             api_user
             and api_key

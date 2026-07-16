@@ -38,6 +38,22 @@ class PaystackGateway(BasePaymentGateway):
         secret = str(self.config.get("secret_key") or "").strip()
         if secret and not self.config.get("stub_only"):
             email = str(kwargs.get("payer_email") or self.config.get("default_payer_email") or "").strip()
+            if not email:
+                # FAIL CLOSED. This gateway is live-configured (real secret, stub
+                # mode off), so the caller intends a real charge. Paystack cannot
+                # initialize without an email; skipping the HTTP call and falling
+                # through to the success return below would report a SUCCESSFUL
+                # payment for money that never left this process, and hand back a
+                # fabricated transaction_id. A payment that was not requested must
+                # never read as one that succeeded.
+                return GatewayResult(
+                    success=False,
+                    message=(
+                        "Paystack is live-configured but no payer email was supplied; "
+                        "refusing to report success for a charge that was never sent."
+                    ),
+                    raw_response={"status": "missing_payer_email"},
+                )
             if email:
                 base = str(self.config.get("api_base") or "https://api.paystack.co").rstrip("/")
                 minor = int((amount * Decimal("100")).quantize(Decimal("1")))
