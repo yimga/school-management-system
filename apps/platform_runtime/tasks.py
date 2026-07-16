@@ -479,6 +479,68 @@ def _run_school_is_settled(run) -> bool:
         return False
 
 
+def _resolve_stale_provisioned_run(run) -> bool:
+    """Retire a red row whose school is actually fine, and CLEAR IT OFF THE DECK.
+
+    Setting ``status="cancelled"`` alone is not enough: the Flight Deck lists
+    ``status__in=("failed", "cancelled")``, so a cancelled row keeps rendering as
+    a red item — and because the school is settled, ``_can_requeue_provision``
+    returns False, so that row shows with NO fix button. An operator is then
+    staring at a permanent red row they cannot action, for a school that is
+    healthy. The deck only hides a row that carries the remediation stamp
+    (``workflow_fix_handlers.workflow_run_is_remediated``), so write that too.
+
+    Returns True when this call retired the row (False if already retired), so
+    the sweep does not re-report the same row every tick.
+    """
+    from apps.platform_runtime.models import WorkflowRun
+    from apps.platform_runtime.workflow_fix_handlers import (
+        _REMEDIATED_PAYLOAD_KEY,
+        workflow_run_is_remediated,
+    )
+
+    if workflow_run_is_remediated(run):
+        return False
+
+    now = timezone.now()
+    stamp = {
+        "kind": "stale_run_superseded",
+        "applied_at": now.isoformat(),
+        "school_id": str(getattr(run, "school_id", "") or ""),
+        "result": {"ok": True, "applied": "stale_run_superseded"},
+    }
+    payload = dict(getattr(run, "payload_summary", None) or {})
+    remediation = dict(getattr(run, "suggested_remediation", None) or {})
+    payload[_REMEDIATED_PAYLOAD_KEY] = stamp
+    remediation[_REMEDIATED_PAYLOAD_KEY] = stamp
+    remediation["auto_fix_available"] = False
+    remediation["human_action"] = (
+        "No action needed — this school is fully provisioned. The drive was "
+        "killed after the work landed but before it could record success, so "
+        "this row was stale, not a failure."
+    )
+    # tenant-isolation-allow: platform-workflow-stale-row-resolve-by-pk
+    WorkflowRun.objects.filter(pk=run.pk).update(
+        status="cancelled",
+        ended_at=getattr(run, "ended_at", None) or now,
+        payload_summary=payload,
+        suggested_remediation=remediation,
+        error_summary={
+            "type": "StaleRun",
+            "message": (
+                "superseded: school is fully provisioned (drive died after the "
+                "work landed, before finalize could record success)"
+            ),
+        },
+    )
+    logger.info(
+        "retired stale provisioning run=%s school=%s (school already provisioned)",
+        getattr(run, "pk", None),
+        getattr(run, "school_id", ""),
+    )
+    return True
+
+
 @shared_task(name="platform_runtime.workflow_failed_provision_auto_requeue_sweep")
 def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
     """Batch 1737 — zero-fail: auto-requeue failed/stuck tenant_school_provision runs."""
@@ -515,18 +577,7 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
                 # and never re-drive a settled school.
                 if _run_school_is_settled(run):
                     settled_skipped += 1
-                    if (run.status or "").lower() != "cancelled":
-                        # tenant-isolation-allow: platform-workflow-stale-row-resolve-by-pk
-                        WorkflowRun.objects.filter(pk=run.pk).update(
-                            status="cancelled",
-                            error_summary={
-                                "type": "StaleRun",
-                                "message": (
-                                    "superseded: school is fully provisioned "
-                                    "(drive died after the work landed, before finalize)"
-                                ),
-                            },
-                        )
+                    if _resolve_stale_provisioned_run(run):
                         settled_resolved += 1
                     continue
                 rem = resolve_effective_remediation(run)

@@ -110,6 +110,54 @@ class StaleFailedRunOnProvisionedSchoolTests(TestCase):
         )
         self.assertEqual(second.get("requeued"), 0)
 
+    def test_retired_row_actually_leaves_the_flight_deck(self):
+        """status="cancelled" ALONE does not clear the deck.
+
+        The deck lists status__in=("failed","cancelled") and only hides rows
+        carrying the remediation stamp. Without the stamp the operator is left
+        staring at a permanent red row for a healthy school -- and because the
+        school is settled, _can_requeue_provision is False, so that row renders
+        with NO fix button and nothing they can do about it.
+        """
+        from apps.platform_runtime.tasks import (
+            workflow_failed_provision_auto_requeue_sweep_task,
+        )
+        from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
+
+        self.assertFalse(workflow_run_is_remediated(self.run))
+        workflow_failed_provision_auto_requeue_sweep_task()
+        self.run.refresh_from_db()
+        self.assertTrue(
+            workflow_run_is_remediated(self.run),
+            "a retired stale row MUST carry the remediation stamp, else the deck "
+            "keeps showing it as an unactionable red item",
+        )
+        # ...and it must explain itself rather than look like a silent failure.
+        self.assertIn(
+            "fully provisioned",
+            (self.run.suggested_remediation or {}).get("human_action", ""),
+        )
+
+    def test_retired_row_offers_no_misleading_fix_button(self):
+        from apps.platform_runtime.tasks import (
+            workflow_failed_provision_auto_requeue_sweep_task,
+        )
+        from apps.platform_runtime.workflow_flight_deck_actions import (
+            build_operator_actions,
+        )
+        from apps.platform_runtime.workflow_tracker import serialize_workflow_run
+
+        workflow_failed_provision_auto_requeue_sweep_task()
+        self.run.refresh_from_db()
+        kinds = [
+            a.get("kind")
+            for a in build_operator_actions(
+                run=self.run, payload=serialize_workflow_run(self.run)
+            )
+        ]
+        self.assertNotIn("apply_fix", kinds)
+        self.assertNotIn("requeue_provision", kinds)
+
 
 @override_settings(MULTI_TENANT_BASE_DOMAIN="runmycampus.com")
 class GenuinelyUnprovisionedSchoolStillRequeuedTests(TestCase):
