@@ -357,14 +357,42 @@ def _eta_seconds(run: Any | None) -> int:
         return 60
 
 
+def _workspace_provably_absent(school) -> bool:
+    """True ONLY when we can PROVE this school has no tenant workspace.
+
+    Tri-state probe collapsed deliberately in the safe direction: an unknowable
+    answer (RLS mode / non-PostgreSQL, where there is no schema to look for) is
+    NOT absence. See ``apps.schools.tenant_workspace`` — reading ``None`` as
+    ``False`` here would mark every local/test school a husk.
+    """
+    try:
+        from apps.schools.tenant_workspace import tenant_workspace_exists
+    except ImportError:
+        return False
+    return tenant_workspace_exists(school) is False
+
+
 def resolve_portal_ready(school) -> bool:
-    """True when owner may open the tenant portal (Phase A complete or legacy is_active)."""
+    """True when owner may open the tenant portal (Phase A complete or legacy is_active).
+
+    The legacy ``is_active`` leg exists for schools provisioned before phase
+    tracking (no markers at all) — but ``School.is_active`` DEFAULTS to True, so
+    any row created outside the pipeline also lands here claiming to be ready.
+    Production carries exactly that: an active school with no schema behind it,
+    500-ing on every request while every healer read this function's ``True`` as
+    "nothing to do" and skipped it (and the operator's Requeue button hid itself).
+
+    So the legacy leg now yields only to PROOF of absence — never to a merely
+    unanswerable probe.
+    """
     if school is None:
         return False
     prov = _provisioning_settings(school)
     if prov.get("phase_a_complete"):
         return True
-    return bool(getattr(school, "is_active", False))
+    if not bool(getattr(school, "is_active", False)):
+        return False
+    return not _workspace_provably_absent(school)
 
 
 def resolve_phase_flags(school) -> dict[str, Any]:
@@ -399,12 +427,20 @@ def provisioning_needs_resume(school) -> bool:
     provisioned before phase tracking existed (no provisioning flags at all):
     they would look like "needs resume" forever, so a reconciler scanning every
     active school would wrongly re-provision them. Positive evidence only.
+
+    The ONE exception is positive evidence in the other direction: a marker-less
+    active school whose tenant workspace is PROVABLY absent (schema mode, and no
+    schema under any naming scheme this tree has used) was never provisioned at
+    all — it is a husk from ``School.is_active``'s ``default=True``, not a legacy
+    tenant. That is the only case where the absent marker means "unstarted"
+    rather than "predates tracking", and without it the husk is unreachable by
+    every healer AND by the operator's own Requeue action.
     """
     if school is None or not getattr(school, "is_active", False):
         return False
     prov = _provisioning_settings(school)
     if not prov.get("phase_a_complete"):
-        return False
+        return _workspace_provably_absent(school)
     return not prov.get("phase_b_complete")
 
 

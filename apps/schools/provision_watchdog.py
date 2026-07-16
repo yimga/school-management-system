@@ -176,11 +176,18 @@ def _latest_run(school):
 
 
 def _owner_email(school) -> str:
-    try:
-        from apps.schools.pending_tenant_discovery import _primary_owner_user
+    """Owner address for the re-drive — resolved from every durable record.
 
-        owner = _primary_owner_user(school)
-        return (getattr(owner, "email", "") or "").strip()
+    Deliberately NOT a bare ``_primary_owner_user`` lookup: a school whose
+    admin_user step skipped (no email on the first drive) has no owner membership
+    to read, so that lookup returns "" and the resume re-runs the pipeline with
+    the same empty email that broke it — a fixed point. The resolver also reads
+    SignupVerification / the onboarding blob, which predate provisioning.
+    """
+    try:
+        from apps.schools.tasks import resolve_provisioning_contact_email
+
+        return resolve_provisioning_contact_email(school)
     except (ImportError, AttributeError, TypeError, ValueError):
         return ""
 
@@ -306,8 +313,23 @@ def _record_resume_event(school, *, reason: str, attempt: int) -> None:
         logger.debug("provision_watchdog: resume event log failed", exc_info=True)
 
 
+# Statuses a school's provisioning run may sit in while the tenant is NOT done.
+#
+# ``cancelled`` is load-bearing and was missing: ``_cancel_dead_run`` (below)
+# writes exactly that status onto a heartbeat-dead zombie before kicking a fresh
+# drive. If that fresh drive ALSO dies before it can write its own run row — a
+# deploy landing mid-resume, an OOM kill — the school's only run is left
+# ``cancelled``, and a sweep that ignores that status can never see the school
+# again. The watchdog's own cleanup step would have made the tenant permanently
+# unscannable: the exact failure it exists to prevent.
+#
+# Re-scanning a cancelled run is cheap and cannot storm: ``resume_provision_if_stuck``
+# no-ops on a settled school, and every resume is single-flighted + hourly-capped.
+_UNFINISHED_RUN_STATUSES: tuple[str, ...] = ("running", "stuck", "failed", "cancelled")
+
+
 def _dead_running_school_ids(limit: int) -> list[str]:
-    """School ids whose latest provisioning run is ``running`` but heartbeat-dead."""
+    """School ids whose latest provisioning run is unfinished AND heartbeat-dead."""
     try:
         from apps.platform_runtime.models import WorkflowRun
     except ImportError:
@@ -318,7 +340,7 @@ def _dead_running_school_ids(limit: int) -> list[str]:
             # tenant-isolation-allow: provision-watchdog-system-sweep-cross-tenant-stuck-runs
             WorkflowRun.objects.filter(
                 workflow_key=PROVISION_WORKFLOW_KEY,
-                status__in=("running", "stuck", "failed"),
+                status__in=_UNFINISHED_RUN_STATUSES,
                 last_heartbeat_at__lt=cutoff,
             )
             .exclude(school_id="")

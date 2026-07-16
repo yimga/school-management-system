@@ -544,6 +544,73 @@ def _emit_provisioning_failed_notification(school, contact_email: str, *, error:
         notify_provisioning_failed_operator(school, contact_email, error=error)
 
 
+def resolve_provisioning_contact_email(school, contact_email: str = "") -> str:
+    """Best available owner email for this school — the ONLY way to repair a husk.
+
+    ``ensure_admin_user_for_school`` returns ``(None, False)`` on an empty email,
+    so the tenant-admin step silently skips and the school ends up with no owner
+    account. That was a FIXED POINT on the broken state: every resume path sourced
+    its email from ``_primary_owner_user`` (a SchoolMembership lookup), and the
+    only thing that creates that membership is the step that just skipped. No
+    membership -> no email -> step skips -> still no membership, forever. A
+    re-drive could never repair the one thing it was re-driven to repair.
+
+    So this resolves from every durable record of the owner's address, not just
+    the one the failed step would have written:
+
+      1. an explicitly passed address (the signup / operator path)
+      2. the primary owner membership (the normal, already-healthy case)
+      3. ``SignupVerification.email`` — written at signup, BEFORE provisioning
+         runs, and never dependent on the admin_user step having succeeded
+      4. the onboarding blob captured on the school's own settings
+
+    Returns "" when genuinely unknown; callers must still treat that as a skip.
+    """
+    email = (contact_email or "").strip()
+    if email:
+        return email
+
+    try:
+        from apps.schools.pending_tenant_discovery import _primary_owner_user
+
+        owner = _primary_owner_user(school)
+        email = (getattr(owner, "email", "") or "").strip()
+        if email:
+            return email
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+        logger.debug("resolve_provisioning_contact_email: owner lookup failed", exc_info=True)
+
+    try:
+        from .models import SignupVerification
+
+        row = (
+            SignupVerification.objects.filter(school=school)
+            .only("email")
+            .order_by("-created_at")
+            .first()
+        )
+        email = (getattr(row, "email", "") or "").strip()
+        if email:
+            logger.info(
+                "resolve_provisioning_contact_email: recovered owner email from "
+                "SignupVerification for school_id=%s (no owner membership exists)",
+                getattr(school, "id", None),
+            )
+            return email
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+        logger.debug("resolve_provisioning_contact_email: signup lookup failed", exc_info=True)
+
+    settings_blob = getattr(school, "settings", None) or {}
+    if isinstance(settings_blob, dict):
+        blob = settings_blob.get("rmc_public_onboarding")
+        if isinstance(blob, dict):
+            for key in ("contact_email", "email", "owner_email", "admin_email"):
+                email = str(blob.get(key) or "").strip()
+                if email:
+                    return email
+    return ""
+
+
 def ensure_admin_user_for_school(school, contact_email: str):
     """Find-or-create the school's bootstrap ADMIN owner + primary membership.
 
@@ -1032,11 +1099,19 @@ def _do_provision_tracked(
 
     pulse(wf_run, "admin_user")
 
-    # Create default admin user if contact_email provided and no user exists.
+    # Create default admin user if an owner email is resolvable and no user exists.
     # Shared with the signup-verify view via ensure_admin_user_for_school so the
     # owner row is identical no matter which path (sync provisioning here, or the
     # verify view up-front) creates it first.
+    #
+    # Resolve rather than trusting the passed value: a school whose FIRST drive
+    # ran without an email has no owner membership, and every resume path derives
+    # its email FROM that membership — so the missing owner could never be
+    # repaired by a re-drive (a fixed point on the broken state). The resolver
+    # falls back to SignupVerification / the onboarding blob, which are written
+    # before provisioning and survive the failure.
     admin_user = None
+    contact_email = resolve_provisioning_contact_email(school, contact_email)
     if contact_email:
         admin_user, _ = ensure_admin_user_for_school(school, contact_email)
         try:
@@ -1435,6 +1510,21 @@ def _do_provision_tracked(
                 "is_active": True,
             },
         )
+        # Exactly ONE active year per school. AcademicYear has no single-active DB
+        # constraint, and this seed can legitimately mint a second year (the name is
+        # derived from ``start_month``, so an academic-calendar config change between
+        # a failed drive and its resume produces a DIFFERENT name -> a NEW row, also
+        # is_active=True). Two active years make every ``.get(is_active=True)``
+        # caller raise MultipleObjectsReturned — a 500 across the academic surfaces,
+        # caused by the repair. Enforce the invariant here rather than trusting
+        # ``defaults``, which get_or_create IGNORES on an existing row.
+        AcademicYear.objects.filter(school=school, is_active=True).exclude(
+            pk=ay.pk
+        ).update(is_active=False)
+        if not ay.is_active:
+            # tenant-isolation-allow: provisioning-activate-year-by-pk-resolved-school-scoped-above
+            AcademicYear.objects.filter(pk=ay.pk).update(is_active=True)
+            ay.refresh_from_db(fields=["is_active"])
         # Seed terms idempotently — independent of whether the AcademicYear was
         # just created. A prior provision may have created the year then died
         # before terms; Term.get_or_create makes a requeue safely backfill them
@@ -1471,6 +1561,29 @@ def _do_provision_tracked(
                         "is_active": i == 0,
                     },
                 )
+            # The year MUST end up with an active term. ``is_active`` sits in
+            # ``defaults``, which get_or_create IGNORES when the row already
+            # exists — so a resume over terms seeded by an earlier partial drive
+            # (or by the structure/blueprint seeders, which don't set it) leaves
+            # the year with NO active term. That is not cosmetic: the teacher
+            # marks-entry surface resolves the current term and 403s without one,
+            # so grade entry is dead for the year — created by the repair.
+            if not Term.objects.filter(
+                school=school, academic_year=ay, is_active=True
+            ).exists():
+                first_term = (
+                    Term.objects.filter(school=school, academic_year=ay)
+                    .order_by("position", "start_date", "id")
+                    .first()
+                )
+                if first_term is not None:
+                    # tenant-isolation-allow: provisioning-activate-term-by-pk-resolved-school-scoped-above
+                    Term.objects.filter(pk=first_term.pk).update(is_active=True)
+                    logger.info(
+                        "Activated term %s for school %s (year had no active term)",
+                        first_term.pk,
+                        school_id,
+                    )
         except (DatabaseError, IntegrityError, ValueError, TypeError):
             # One seed sub-step must never abort the whole provision: the school
             # is already active (Phase A) and missing terms are recoverable.
@@ -1567,51 +1680,67 @@ def _do_provision_tracked(
             phase_b_failed_steps.append("academic_structure")
 
         # Optional: seed default subjects. Subject name is unique per school (school_id, name).
+        #
+        # Deliberately NOT gated on ``if not Subject.objects.filter(school).exists()``.
+        # That gate made the seed all-or-nothing: a drive killed partway (the
+        # tenant_schema migrate is the usual casualty) leaves, say, 3 of 15 subjects
+        # written, and every subsequent resume then sees "subjects exist" and skips —
+        # so the tenant is stuck with a partial subject list FOREVER, and the step
+        # reports success each time. The loop below is pure get_or_create, so running
+        # it unconditionally is idempotent and completes a partial seed.
+        #
+        # Re-seeding cannot resurrect subjects a school deliberately deleted: this
+        # whole Phase B block only runs while ``phase_b_complete`` is unset, and
+        # ``_do_provision`` returns early on a settled school (see its is_active
+        # guard). A school that finished provisioning never reaches here again.
         subject_created = 0
         try:
-            if not Subject.objects.filter(school=school).exists():
-                subject_seed = []
-                if profile:
-                    subject_seed = profile.normalized_subject_seed()
-                if not subject_seed:
-                    # Last-resort fallback (no resolved profile / empty seed). Delegate
-                    # to the engine's language-aware helper instead of a hardcoded list
-                    # so an English-medium school never gets French as a core subject
-                    # (the old fallback hardcoded Math/English/French/Science for every
-                    # region). Derive language from the school, falling back to the
-                    # FR/EN sub-system marker when default_language is unset.
-                    from apps.siteconfig.education_profile_engine import (
-                        _default_subject_seed,
-                    )
+            subject_seed = []
+            if profile:
+                subject_seed = profile.normalized_subject_seed()
+            if not subject_seed:
+                # Last-resort fallback (no resolved profile / empty seed). Delegate
+                # to the engine's language-aware helper instead of a hardcoded list
+                # so an English-medium school never gets French as a core subject
+                # (the old fallback hardcoded Math/English/French/Science for every
+                # region). Derive language from the school, falling back to the
+                # FR/EN sub-system marker when default_language is unset.
+                from apps.siteconfig.education_profile_engine import (
+                    _default_subject_seed,
+                )
 
-                    fallback_lang = (getattr(school, "default_language", "") or "").strip()
-                    if not fallback_lang:
-                        sub_system = (getattr(school, "sub_system", "") or "").upper()
-                        fallback_lang = "fr" if sub_system == "FR" else "en"
-                    subject_seed = _default_subject_seed(fallback_lang)
-                valid_categories = {choice[0] for choice in Subject.Category.choices}
-                for item in subject_seed:
-                    name = str(item.get("name") if isinstance(item, dict) else "").strip()
-                    if not name:
-                        continue
-                    raw_category = str(
-                        item.get("category", Subject.Category.GENERAL)
-                        if isinstance(item, dict)
-                        else Subject.Category.GENERAL
-                    ).upper()
-                    category = (
-                        raw_category
-                        if raw_category in valid_categories
-                        else Subject.Category.GENERAL
-                    )
-                    _, created_subject = Subject.objects.get_or_create(
-                        school=school,
-                        name=name,
-                        defaults={"category": category},
-                    )
-                    if created_subject:
-                        subject_created += 1
-                logger.info("Seeded default subjects for school %s", school_id)
+                fallback_lang = (getattr(school, "default_language", "") or "").strip()
+                if not fallback_lang:
+                    sub_system = (getattr(school, "sub_system", "") or "").upper()
+                    fallback_lang = "fr" if sub_system == "FR" else "en"
+                subject_seed = _default_subject_seed(fallback_lang)
+            valid_categories = {choice[0] for choice in Subject.Category.choices}
+            for item in subject_seed:
+                name = str(item.get("name") if isinstance(item, dict) else "").strip()
+                if not name:
+                    continue
+                raw_category = str(
+                    item.get("category", Subject.Category.GENERAL)
+                    if isinstance(item, dict)
+                    else Subject.Category.GENERAL
+                ).upper()
+                category = (
+                    raw_category
+                    if raw_category in valid_categories
+                    else Subject.Category.GENERAL
+                )
+                _, created_subject = Subject.objects.get_or_create(
+                    school=school,
+                    name=name,
+                    defaults={"category": category},
+                )
+                if created_subject:
+                    subject_created += 1
+            logger.info(
+                "Seeded default subjects for school %s (%s new)",
+                school_id,
+                subject_created,
+            )
         except (DatabaseError, IntegrityError, ValueError, TypeError):
             logger.exception("Subject seeding failed for school %s", school_id)
             phase_b_failed_steps.append("subjects")
@@ -2026,6 +2155,7 @@ def reconcile_half_provisioned_tenants(
     now = timezone.now()
     cutoff = now - timedelta(minutes=max(0, cooldown_minutes))
     requeued = 0
+    husks_requeued = 0
     skipped_in_flight = 0
     skipped_cooldown = 0
 
@@ -2039,13 +2169,14 @@ def reconcile_half_provisioned_tenants(
     candidates = School.objects.filter(
         is_active=True, settings__provisioning__phase_a_complete=True
     ).order_by("updated_at")
-    for school in candidates.iterator():
-        if requeued >= limit:
-            break
+
+    def _consider(school) -> str:
+        """Evaluate one candidate. Returns the verdict, dispatching if due."""
+        nonlocal requeued, skipped_in_flight, skipped_cooldown
         # Authoritative gate (handles the phase_b_complete absent/false cases the
         # DB filter deliberately does not).
         if not provisioning_needs_resume(school):
-            continue
+            return "not_needed"
         prov = (getattr(school, "settings", None) or {}).get("provisioning") or {}
         last_raw = str(prov.get("last_reconcile_at") or "").strip()
         if last_raw:
@@ -2057,17 +2188,16 @@ def reconcile_half_provisioned_tenants(
                     )
                 if last_dt > cutoff:
                     skipped_cooldown += 1
-                    continue
+                    return "cooldown"
             except (ValueError, TypeError):
                 pass
         if provisioning_in_flight(school):
             skipped_in_flight += 1
-            continue
+            return "in_flight"
         if dry_run:
             requeued += 1
-            continue
-        owner = _primary_owner_user(school)
-        contact_email = (getattr(owner, "email", "") or "").strip()
+            return "requeued"
+        contact_email = resolve_provisioning_contact_email(school)
         # Stamp the cooldown BEFORE dispatch so a crash mid-dispatch still backs
         # off the next tick rather than hammering the same school.
         _merge_provisioning_settings(school, last_reconcile_at=now.isoformat())
@@ -2077,9 +2207,57 @@ def reconcile_half_provisioned_tenants(
         logger.info(
             "reconcile_half_provisioned_tenants requeued school_id=%s", school.id
         )
+        return "requeued"
+
+    for school in candidates.iterator():
+        if requeued >= limit:
+            break
+        _consider(school)
+
+    # Second pass — the HUSK class: active, but carrying NO Phase A marker.
+    #
+    # ``School.is_active`` defaults to True, so a row created outside the pipeline
+    # lands "live" with no schema behind it and 500s on every request. The filter
+    # above cannot see it (no marker to match) and NO other healer covers it: the
+    # watchdog sweep keys off a WorkflowRun and a husk has none. Production has
+    # exactly one (``gilead-school``, untouched since 2026-02-22).
+    #
+    # This pass is a bounded PYTHON scan, not a SQL filter, on purpose: "JSON key
+    # absent" is not reliably expressible across both backends — an .exclude() on
+    # a missing key drops the row via three-valued logic (the same trap the
+    # comment above documents for phase_b_complete), so the SQL would silently
+    # match nothing. It stays cheap because ``provisioning_needs_resume``
+    # short-circuits on the marker for every normally-provisioned school, and only
+    # a marker-less active school pays the (cached, tri-state) workspace probe —
+    # which answers None outside schema mode, so this whole pass is inert locally.
+    if requeued < limit:
+        scan_cap = max(limit * 20, 100)  # magic-number-allow: husk-scan-row-cap
+        # NOTE: deliberately NOT `.exclude(settings__provisioning__phase_a_complete=True)`
+        # — that is the very three-valued-logic trap described above and would drop
+        # every husk (missing key -> NULL -> excluded), matching nothing at all. The
+        # marker check is done in Python below, where a missing key is just falsy.
+        # tenant-isolation-allow: platform-operator-provisioning-reconciler-cross-tenant-by-design
+        husk_candidates = School.objects.filter(is_active=True).order_by("updated_at")[
+            :scan_cap
+        ]
+        for school in husk_candidates.iterator():
+            if requeued >= limit:
+                break
+            prov = (getattr(school, "settings", None) or {}).get("provisioning") or {}
+            if prov.get("phase_a_complete"):
+                continue  # owned by the first pass; never double-consider
+            if _consider(school) == "requeued":
+                husks_requeued += 1
+                logger.warning(
+                    "reconcile_half_provisioned_tenants: requeued NEVER-PROVISIONED "
+                    "active school school_id=%s slug=%s (no tenant workspace behind it)",
+                    school.id,
+                    getattr(school, "slug", ""),
+                )
 
     result = {
         "requeued": requeued,
+        "husks_requeued": husks_requeued,
         "skipped_in_flight": skipped_in_flight,
         "skipped_cooldown": skipped_cooldown,
         "dry_run": dry_run,
