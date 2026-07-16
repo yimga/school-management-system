@@ -1476,18 +1476,40 @@ def _do_provision_tracked(
             # is already active (Phase A) and missing terms are recoverable.
             logger.exception("Term seeding failed for school %s", school_id)
             phase_b_failed_steps.append("terms")
-        logger.info(
-            "Seeded academic year and %s terms for school %s", term_count, school_id
-        )
+        # The event must report what HAPPENED, not what was attempted. It used to
+        # be recorded unconditionally outside this guard, so a failed term seed
+        # still emitted SUCCESS carrying the INTENDED term_count — and the owner's
+        # progress strip keys its "Creating your academic year" tick off exactly
+        # this event type (provisioning_progress.EXTENDED_PROVISION_STEP_SPECS),
+        # where event-presence outranks the parent run state. Net effect: a green
+        # tick on a step that failed, on a tenant with no terms.
+        _terms_failed = "terms" in phase_b_failed_steps
+        if _terms_failed:
+            logger.warning(
+                "Academic year/term seeding incomplete for school %s", school_id
+            )
+        else:
+            logger.info(
+                "Seeded academic year and %s terms for school %s", term_count, school_id
+            )
         _record_school_event(
             school,
             event_type="ACADEMIC_YEAR_READY",
-            status="SUCCESS",
-            message="Academic year and terms prepared.",
+            status="FAILED" if _terms_failed else "SUCCESS",
+            message=(
+                "Academic year and terms could not be prepared."
+                if _terms_failed
+                else "Academic year and terms prepared."
+            ),
             payload={
                 "academic_year": ay.name,
                 "created": bool(created),
-                "term_count": int(term_count),
+                # Report what is actually in the DB, not the intended count.
+                "term_count": int(
+                    Term.objects.filter(school=school, academic_year=ay).count()
+                ),
+                "intended_term_count": int(term_count),
+                "failed": _terms_failed,
             },
         )
 
@@ -1593,12 +1615,24 @@ def _do_provision_tracked(
         except (DatabaseError, IntegrityError, ValueError, TypeError):
             logger.exception("Subject seeding failed for school %s", school_id)
             phase_b_failed_steps.append("subjects")
+        # Report the OUTCOME, not the attempt — see the ACADEMIC_YEAR_READY note
+        # above. This event drives the owner's "Setting up subjects" tick.
+        _subjects_failed = "subjects" in phase_b_failed_steps
         _record_school_event(
             school,
             event_type="SUBJECTS_READY",
-            status="SUCCESS",
-            message="Default subjects prepared.",
-            payload={"subjects_created": int(subject_created)},
+            status="FAILED" if _subjects_failed else "SUCCESS",
+            message=(
+                "Default subjects could not be prepared."
+                if _subjects_failed
+                else "Default subjects prepared."
+            ),
+            payload={
+                "subjects_created": int(subject_created),
+                # Ground truth: what the tenant actually has, not what we tried.
+                "subjects_total": int(Subject.objects.filter(school=school).count()),
+                "failed": _subjects_failed,
+            },
         )
 
         # 10X local-first: seed the per-school grading scale (+ a matching school-wide
@@ -1609,11 +1643,31 @@ def _do_provision_tracked(
             from apps.evals.grading_provisioning import ensure_local_grading_scale
 
             grading_result = ensure_local_grading_scale(school, academic_year=ay)
+            # ensure_local_grading_scale contractually NEVER raises — it logs and
+            # returns {"ok": False, "error": ...}. So the except below could only
+            # ever fire on ImportError, and a real grading-scale failure sailed
+            # through as SUCCESS (carrying ok=False in its own payload) without
+            # ever landing in phase_b_failed_steps. That let phase_b_complete=True
+            # on a tenant with no grading scale — which then reads as "settled",
+            # so no reconcile or watchdog would ever re-seed it. A school with no
+            # grading scale cannot publish a grade. Inspect the returned contract.
+            _grading_ok = bool((grading_result or {}).get("ok"))
+            if not _grading_ok:
+                logger.error(
+                    "Grading scale provisioning returned not-ok for school %s: %s",
+                    school_id,
+                    (grading_result or {}).get("error"),
+                )
+                phase_b_failed_steps.append("grading_scale")
             _record_school_event(
                 school,
                 event_type="GRADING_SCALE_READY",
-                status="SUCCESS",
-                message="Local grading scale provisioned.",
+                status="SUCCESS" if _grading_ok else "FAILED",
+                message=(
+                    "Local grading scale provisioned."
+                    if _grading_ok
+                    else "Local grading scale could not be provisioned."
+                ),
                 payload=grading_result,
             )
         except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
