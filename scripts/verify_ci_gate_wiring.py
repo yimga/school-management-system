@@ -124,6 +124,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # claims are checked against the live app registry. Unwired, per-app docs rot
     # back to nothing -- which is exactly the state this gate was written to end.
     ("scripts/verify_app_readmes.py", "ci.yml"),
+    # Table-level RLS coverage. scan_rls_force_coverage answers only "does this
+    # app have both RLS migration FILES", which is green even when a table added
+    # after the migration's hard-coded TABLES list has no RLS at all. This one
+    # answers "is this table actually enumerated", and must stay wired so the
+    # uncovered set cannot grow before an RLS-mode flip.
+    ("scripts/scan_rls_table_coverage.py", "ci.yml"),
 )
 
 
