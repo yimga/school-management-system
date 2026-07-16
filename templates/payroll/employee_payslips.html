@@ -28,6 +28,7 @@
             <th scope="col">Status</th>
             <th scope="col" class="text-end">Gross</th>
             <th scope="col" class="text-end">Net</th>
+            <th scope="col" class="text-end">{% trans "Payslip" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -37,9 +38,10 @@
               <td>{{ slip.get_status_display }}</td>
               <td class="text-end">{{ slip.gross_pay }}</td>
               <td class="text-end">{{ slip.net_pay }}</td>
+              <td class="text-end"><a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:payslip_pdf' slip.id %}">{% trans "Download PDF" %}</a></td>
             </tr>
           {% empty %}
-            <tr><td colspan="4" class="text-muted">No payslips yet.</td></tr>
+            <tr><td colspan="5" class="text-muted">No payslips yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>

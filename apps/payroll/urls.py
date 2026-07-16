@@ -9,6 +9,7 @@ from .views import (
     export_disbursement,
     generate_run,
     mark_run_paid,
+    payslip_pdf,
     review_run,
     run_detail,
 )
@@ -29,5 +30,8 @@ urlpatterns = [
         name="export_disbursement",
     ),
     path("employee/payslips/", employee_payslips, name="employee_payslips"),
+    path(
+        "payslips/<int:payslip_id>/pdf/", payslip_pdf, name="payslip_pdf"
+    ),
     path("employee/leave/", employee_leave, name="employee_leave"),
 ]

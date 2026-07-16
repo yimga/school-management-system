@@ -341,6 +341,39 @@ def approve_run(request: HttpRequest, run_id: int):
 
 
 @login_required
+def payslip_pdf(request: HttpRequest, payslip_id: int):
+    """Download a single payslip as a branded PDF (WeasyPrint).
+
+    Access: the payslip's OWN employee, or a payroll.manage user (HR/admin). Payroll is
+    a schema-isolated tenant app so the bare pk is already tenant-scoped; this adds the
+    within-tenant own-or-manage check so one employee cannot pull a colleague's slip.
+    Gracefully degrades if WeasyPrint system libs are missing (RuntimeError) rather than
+    500-ing.
+    """
+    from apps.accounts.decorators import user_has_permission
+    from apps.reports.weasy import render_pdf
+
+    payslip = get_object_or_404(
+        Payslip.objects.select_related("payroll_run__profile", "employee__user"),
+        id=payslip_id,
+    )
+    emp = _employee_for_user(request.user)
+    own = emp is not None and payslip.employee_id == emp.id
+    if not own and not user_has_permission(
+        request.user, getattr(request, "school", None), ("payroll.manage",)
+    ):
+        return HttpResponseForbidden("You may not download this payslip.")
+    filename = f"payslip-{payslip.reference or payslip.pk}.pdf"
+    try:
+        return render_pdf(
+            request, "payroll/payslip_pdf.html", {"payslip": payslip}, filename=filename
+        )
+    except RuntimeError as exc:
+        messages.error(request, str(exc) or "PDF rendering is unavailable on this server.")
+        return redirect("payroll:employee_payslips")
+
+
+@login_required
 def employee_payslips(request: HttpRequest):
     """Payslips for the current user only (user-centric HR)."""
     employee = _employee_for_user(request.user)
