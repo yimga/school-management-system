@@ -104,7 +104,23 @@ body.control-plane-shell
   > [data-shell-chrome="breadcrumb-row"]:not(:has(a, button, [href], li, h1, .breadcrumb)),
 body.portal-body-with-layout
   #main-content
+  .page-wrap
   > [data-shell-chrome="breadcrumb-row"]:not(:has(a, button, [href], li, h1, .breadcrumb)) {
+  display: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Same class, second slot: portal_base.html also emits the primary-action slot
+   (`d-flex … mb-3`, data-rmc-os-primary-action-slot) around a block most tenant pages
+   never fill, but the collapse rule above for that slot is scoped to
+   body.control-plane-shell #cp-main-content, so on tenant the empty slot kept its mb-3
+   band. Mirror it on the tenant path (the slot sits inside #main-content > .page-wrap,
+   not directly under the main). */
+body.portal-body-with-layout
+  #main-content
+  .page-wrap
+  > [data-rmc-os-primary-action-slot="1"]:not(:has(a, button, [href])) {
   display: none;
   margin: 0;
   padding: 0;
