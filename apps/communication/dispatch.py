@@ -297,11 +297,30 @@ def dispatch_event(
 
 
 def _send_in_app(Notification, *, recipient: Any, context: Dict[str, Any], school: Any):
-    """Create the in-app :class:`finance.Notification` row (tenant-scoped).
+    """Create — or REFRESH — the in-app :class:`finance.Notification` row.
 
-    Respects the unread-dedupe unique constraint on ``(recipient, title)`` via
-    ``get_or_create`` so a re-fired event doesn't raise IntegrityError on a row
-    the recipient hasn't read yet.
+    Routes through ``Notification.objects.notify_unread``, the canonical write
+    path the model itself prescribes for a CONSTANT title (see NotificationManager).
+
+    This used to be ``get_or_create(..., defaults=...)``, which looks like safe
+    dedupe and is not. Django applies ``defaults`` ONLY when it creates, so a
+    second event that matched an unread row returned "exists" and threw the new
+    payload away. The titles here are constant per SENDER, not per event —
+    ``f"New message from {sender}"`` / ``f"New message in {thread}"``
+    (communication/signals) — so "the same title" does NOT mean "the same event":
+
+        Mr Smith messages a parent  -> row created, preview = message #1
+        parent does not open it
+        Mr Smith messages again     -> matches the unread row -> "exists"
+                                    -> message #2 is NEVER shown
+
+    Category.MESSAGES fans to IN_APP + PUSH with no email leg, so the inbox row
+    is the message. A silent drop, reported to the caller as success. Announcements
+    collide the same way whenever two share a title ("Reminder").
+
+    ``notify_unread`` uses ``update_or_create``, so the single unread row now
+    carries the LATEST message and link — which is also the inbox behaviour a
+    reader expects from a per-sender/per-thread notification.
     """
     if recipient is None or not getattr(recipient, "pk", None):
         return "no_recipient"
@@ -309,7 +328,7 @@ def _send_in_app(Notification, *, recipient: Any, context: Dict[str, Any], schoo
     if not title:
         return "no_title"
     severity = context.get("severity") or Notification.Severity.INFO
-    defaults = {
+    fields = {
         "message": context.get("message", "") or "",
         "link": context.get("link", "") or "",
         "severity": severity,
@@ -317,18 +336,19 @@ def _send_in_app(Notification, *, recipient: Any, context: Dict[str, Any], schoo
     }
     from django.db import IntegrityError
 
+    # Reported for observability only; the refresh happens either way.
+    # tenant-isolation-allow: in-app-dedupe-probe-scoped-to-resolved-recipient-and-title
+    existed = Notification.objects.filter(
+        recipient=recipient, title=title, is_read=False
+    ).exists()
     try:
-        obj, created = Notification.objects.get_or_create(
-            recipient=recipient,
-            title=title,
-            is_read=False,
-            defaults=defaults,
-        )
-        return "created" if created else "exists"
+        Notification.objects.notify_unread(title=title, recipient=recipient, **fields)
     except IntegrityError:
-        # Race against the partial-unique unread constraint — treat as deduped.
+        # Lost a race to a concurrent writer for the same (recipient, title);
+        # its row is the newer one. Never raise into the router.
         logger.debug("in-app notification dedup race", exc_info=True)
-        return "exists"
+        return "refreshed"
+    return "refreshed" if existed else "created"
 
 
 def _send_email(notification_service, *, recipient, context, school, guardian):

@@ -37,7 +37,10 @@ from apps.finance.services import (
     create_payment_from_receipt,
 )
 from apps.finance.receipt_verification import ReceiptVerificationService
-from apps.finance.fraud_detection import ReceiptFraudDetector
+from apps.finance.fraud_detection import (
+    FRAUD_REVIEW_SCORE_THRESHOLD,
+    ReceiptFraudDetector,
+)
 from apps.apicenter.gating import is_integration_allowed
 from apps.global_registries.models import RegionConfig
 from apps.integrations_marketplace.models import Integration
@@ -1758,9 +1761,21 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
         # This task does not support dry_run; auto-apply is controlled by site settings only.
         dry_run = False
 
-        # If fraud risk is high, force review regardless of verification
-        if proof_upload.fraud_risk_score >= 70:
-            should_auto_apply = False
+        # If fraud risk is high, force review regardless of verification.
+        #
+        # NOTE the flag below is read by the auto-apply decision further down —
+        # do NOT reintroduce a local `should_auto_apply = False` here. That is
+        # what broke this gate: it was assigned here and then UNCONDITIONALLY
+        # reassigned ~20 lines later by an expression carrying no fraud term, so
+        # the block did nothing. A receipt flagged HIGH FRAUD RISK was auto-applied
+        # as a real Payment, and create_payment_from_receipt then overwrote the
+        # DISCREPANCY status set here with VERIFIED — so staff got a fraud email
+        # telling them to review a receipt the system had already credited and
+        # marked verified. The alarm rang; the lock never engaged.
+        fraud_review_required = (
+            proof_upload.fraud_risk_score >= FRAUD_REVIEW_SCORE_THRESHOLD
+        )
+        if fraud_review_required:
             proof_upload.status = PaymentProofUpload.Status.DISCREPANCY
             proof_upload.verification_notes = (
                 f"⚠️ HIGH FRAUD RISK ({proof_upload.fraud_risk_score}/100). "
@@ -1780,9 +1795,14 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                 },
             )
 
-        # Determine if we should auto-apply (skip in dry_run)
+        # Determine if we should auto-apply (skip in dry_run).
+        # ``not fraud_review_required`` is load-bearing: without it this
+        # reassignment silently discards the high-fraud gate above. Its dry-run
+        # twin below has always carried the fraud term — the two must agree, or a
+        # dry run reports would_apply=False for a receipt the live run credits.
         should_auto_apply = (
             not dry_run
+            and not fraud_review_required
             and auto_apply_enabled
             and not require_approval
             and verification_result["matches"]
@@ -1806,7 +1826,7 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                         and not require_approval
                         and verification_result["matches"]
                         and verification_result["confidence"] >= auto_apply_threshold
-                        and proof_upload.fraud_risk_score < 70
+                        and not fraud_review_required
                     ),
                     "confidence": verification_result["confidence"],
                     "discrepancies": verification_result.get("discrepancies", []),
@@ -1864,11 +1884,16 @@ def _process_payment_receipt_upload_impl(proof_upload_id: int) -> dict:
                 "discrepancies": [],
             }
         else:
-            # Flag for review
+            # Flag for review.
+            # APPEND, never assign: the high-fraud block above prepends the
+            # "⚠️ HIGH FRAUD RISK (n/100). Flags: …" explanation to these notes,
+            # and this line used to overwrite it — so the one human asked to judge
+            # a flagged receipt saw only "Amount mismatch (Confidence: 0.42 …)"
+            # and no reason it was flagged. Every other note write here appends.
             proof_upload.status = PaymentProofUpload.Status.DISCREPANCY
-            proof_upload.verification_notes = "; ".join(
-                verification_result.get("discrepancies", [])
-            )
+            proof_upload.verification_notes = (
+                proof_upload.verification_notes or ""
+            ) + "; ".join(verification_result.get("discrepancies", []))
             if verification_result["confidence"] < auto_apply_threshold:
                 proof_upload.verification_notes += f" (Confidence: {verification_result['confidence']:.2f} < threshold: {auto_apply_threshold})"
             proof_upload.save()

@@ -18,6 +18,14 @@ from PIL.ExifTags import TAGS
 import os
 
 
+#: Score at or above which a receipt must NOT be auto-applied and must go to a
+#: human. Single source of truth: the live auto-apply decision and its dry-run
+#: twin both read this. They previously each hardcoded ``70`` and drifted —
+#: the dry-run kept its fraud term while the live path lost one, so a dry run
+#: reported ``would_apply: False`` for a receipt the live run credited.
+FRAUD_REVIEW_SCORE_THRESHOLD = 70
+
+
 class ReceiptFraudDetector:
     """Detects fraudulent receipt uploads."""
 
