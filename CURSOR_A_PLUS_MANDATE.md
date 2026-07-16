@@ -48,7 +48,7 @@ Become the **operating system for schools worldwide** — the way Shopify is for
 
 ## S4 — CAPABILITIES & UNIQUE ASSETS (what we uniquely leverage)
 
-~1M-LOC multi-tenant OS with FORCE-RLS isolation · a self-protecting CI-gate culture (a **quality moat no competitor can copy quickly**) · two-rail offline (SODP+WAL) + CRDT governance · Migration Cloud (6-vendor extractors + MAA legal rail + sealed-box crypto) · 250-country pricing + PPP engine · world-scale grading registry · marketplace + workflow engine + PDP · per-tenant DR + self-host posture · 24 locales · RBAC-gated local-first AI copilots.
+~1M-LOC multi-tenant OS with FORCE-RLS isolation · a self-protecting CI-gate culture (a **quality moat no competitor can copy quickly**) · two-rail offline (SODP+WAL) + CRDT governance · Migration Cloud (6-vendor extractors + MAA legal rail + sealed-box crypto) · 250-country pricing + PPP engine · world-scale grading registry · marketplace + workflow engine + PDP · per-tenant DR + self-host posture · 20 locales · RBAC-gated local-first AI copilots.
 
 ## S5 — EXECUTION & LEARNING SYSTEM (two loops, not one)
 
@@ -136,7 +136,7 @@ You are a **fleet of senior staff engineers** shipping RunMyCampus to **best-in-
 
 Current honest state from the prior audit (your floor — push every one of these to A+):
 
-**Already strong (protect, don't regress):** Tenant RLS isolation (real `FORCE` RLS + parameterized GUC + Postgres CI). Test/CI rigor (~10k tests, 237 gates, meta-gate). Offline two-rail (SODP+WAL). i18n breadth (24 locales). Security baseline (MFA, Argon2, CSP/HSTS, RBAC+ReBAC).
+**Already strong (protect, don't regress):** Tenant RLS isolation (real `FORCE` RLS + parameterized GUC + Postgres CI). Test/CI rigor (~10k tests, 237 gates, meta-gate). Offline two-rail (SODP+WAL). i18n breadth (20 locales). Security baseline (MFA, Argon2, CSP/HSTS, RBAC+ReBAC).
 
 **Overstated / partial / absent (THE WORK — fix to A+ end-to-end):**
 - **Grading:** registry of ~9 scales is real & wired, but the "polymorphic any-country formula engine" (`apps/evals/grading_formula_engine.py`) is **called only from tests** — not in the grade path (`apps/evals/signals.py` / `validators.py` use threshold columns). UK GCSE 9–1, IB 1–7, German 1–6, CBSE, etc. are not first-class.
@@ -183,7 +183,7 @@ Each metric is scored /100. **A+ = ≥98.** A metric is ≥98 only when **all** 
 | 18 | **Observability** | Structured logs (no PII), Sentry wired, Prometheus metrics, `/healthz` covers DB+cache+Celery+queue depth; error-budget/SLO doc; tracing on critical flows. |
 | 19 | **Data Privacy / Compliance** | FERPA/GDPR/COPPA mapping doc; DSAR export+erase end-to-end (already partial — complete it); data-residency switch honored; consent + retention policies enforced in code with tests. |
 | 20 | **API Quality** | DRF schema coverage gate=0; versioned, paginated, rate-limited, documented (OpenAPI), auth-gated; contract tests; deprecation policy. |
-| 21 | **Internationalization** | All 24 locales compile + no missing critical msgids on key flows; RTL verified (Arabic/Hebrew/Farsi) via Playwright; locale number/date/currency formatting correct; pseudo-locale QA. |
+| 21 | **Internationalization** | All 20 locales compile + no missing critical msgids on key flows; **`apps/reports/localization.py::CERTIFICATE_STRINGS` covers all 20 `settings.LANGUAGES` codes (today 6/20 — a school on `ar` gets a certificate stamped `language="ar"` rendered in English; `test_supported_languages_coverage` is the gate and stays RED until real translations land)**; RTL verified (Arabic/Hebrew/Farsi) via Playwright; locale number/date/currency formatting correct; pseudo-locale QA. |
 | 22 | **Infra / Reliability / DR** | Real Celery **worker+beat** in prod (retries+durability); backups + restore runbook tested; migration safety gate; graceful degradation when Redis/Celery down; documented capacity headroom. |
 | 23 | **Reference Integrity (no silent 500s)** | All integrity gates 0: import / get_model / url-name / template-ref / static-ref / settings-key / field-ref / relation-path. |
 | 24 | **Documentation & Runbooks** | Architecture, per-app READMEs current, runbooks for deploy/rollback/incident/offboarding; **no doc overstates delivered surface** (audited). |
@@ -232,7 +232,7 @@ For **each** item: (1) re-verify current state with `file:line`; (2) implement e
 
 **W13 — Offline homework + background-sync (A8).** Implement homework applier (real write) + UI surface; background-sync on reconnect. DoD: `verify_offline_capability_implementation.py`=0 with **no latent**; E2E offline homework → online replay. Verify: `python scripts/verify_offline_capability_implementation.py`.
 
-**W14 — API + i18n + reference integrity + docs (A1/A3/A0).** DRF schema coverage=0; pagination+rate-limit+versioning; 24-locale compile + RTL Playwright; all reference-integrity gates 0; docs corrected to not overstate. Verify: `python scripts/scan_drf_schema_coverage.py`, the 8 reference-integrity gates, `python manage.py compilemessages`.
+**W14 — API + i18n + reference integrity + docs (A1/A3/A0).** DRF schema coverage=0; pagination+rate-limit+versioning; 20-locale compile + RTL Playwright; all reference-integrity gates 0; docs corrected to not overstate. Verify: `python scripts/scan_drf_schema_coverage.py`, the 8 reference-integrity gates, `python manage.py compilemessages`.
 
 **W15 — EXPANSIVE SWEEP (all agents).** Beyond the list: hunt and fix anything blocking A+ — accessibility on every surface, empty-states, error pages, email/SMS deliverability, AI copilot/at-risk-ML quality+safety+guardrails, notification preferences, audit-log completeness, rate-limit coverage on all mutating endpoints, file-upload validation/AV, timezone correctness, soft-delete/restore, bulk-import validation, idempotent webhooks everywhere. **If a reasonable best-in-class platform would have it and we don't, build it.**
 

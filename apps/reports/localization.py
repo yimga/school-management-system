@@ -68,6 +68,8 @@ Certificate and report localization services.
 Handles multi-language certificate generation and score conversion.
 """
 
+import logging
+
 from django.utils import translation
 from apps.global_registries.models import RegionConfig
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
@@ -78,6 +80,23 @@ from apps.evals.grading import (
     get_grade_letter as _grading_get_grade_letter,
 )
 from typing import Optional, Dict, Any
+
+logger = logging.getLogger(__name__)
+
+
+def missing_certificate_languages() -> list[str]:
+    """SUPPORTED_LANGUAGES codes with no hand-written CERTIFICATE_STRINGS pack.
+
+    These render in English via the fallback in ``CertificateLocalizer``. Exposed
+    so the gap is inspectable/assertable rather than folklore — closing it needs
+    real human translation of certificate legal text, not machine-generated
+    strings.
+    """
+    return [
+        code
+        for code in SUPPORTED_LANGUAGES
+        if code not in CertificateLocalizer.CERTIFICATE_STRINGS
+    ]
 
 
 def _normalize_country_code(country_code: str | None) -> str:
@@ -229,12 +248,38 @@ class CertificateLocalizer:
     }
 
     def __init__(self, language: str = "en", region: Optional[RegionConfig] = None):
-        """Initialize localizer with language and region."""
-        self.language = language if language in SUPPORTED_LANGUAGES else "en"
+        """Initialize localizer with language and region.
+
+        ``CERTIFICATE_STRINGS`` is a hand-written pack per language and does NOT
+        yet cover every ``SUPPORTED_LANGUAGES`` code (settings.LANGUAGES ships 20;
+        packs exist for a subset). A requested language with no pack renders in
+        English. That fallback used to be SILENT — ``language`` was stamped with
+        the requested code while the document was English, so an ar/ja/ru school
+        got an English certificate labelled as theirs with no signal anywhere.
+
+        ``language`` keeps its established meaning (the requested/negotiated
+        code) so existing callers and templates are unaffected; the two fields
+        below expose the truth:
+
+          * ``rendered_language`` — the pack actually used to render.
+          * ``localization_fallback`` — True when those two differ.
+
+        Callers that must not ship a mislabelled document should check
+        ``localization_fallback`` (see ``missing_certificate_languages()``).
+        """
+        requested = language if language in SUPPORTED_LANGUAGES else "en"
+        self.language = requested
         self.region = region
-        self.strings = self.CERTIFICATE_STRINGS.get(
-            self.language, self.CERTIFICATE_STRINGS["en"]
-        )
+        self.rendered_language = requested if requested in self.CERTIFICATE_STRINGS else "en"
+        self.localization_fallback = self.rendered_language != requested
+        self.strings = self.CERTIFICATE_STRINGS[self.rendered_language]
+        if self.localization_fallback:
+            logger.warning(
+                "certificate_localization_fallback requested=%s rendered=%s "
+                "(no CERTIFICATE_STRINGS pack; document renders in English)",
+                requested,
+                self.rendered_language,
+            )
 
     def translate(self, key: str) -> str:
         """Translate certificate string by key."""

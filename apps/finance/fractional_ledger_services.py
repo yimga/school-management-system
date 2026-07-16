@@ -37,6 +37,26 @@ def _clearance_threshold(school, invoice_total: Decimal) -> Decimal:
     return (invoice_total * Decimal("0.50")).quantize(Decimal("0.01"))
 
 
+def _resolve_currency_code(invoice: Invoice) -> str:
+    """Resolve the invoice's real currency — never blind-default to USD.
+
+    ``Invoice`` has NO ``currency_code`` field (only the optional canonical
+    ``currency`` FK to registries.CurrencyRegistry), so a
+    ``getattr(invoice, "currency_code", None)`` read always fell through and
+    stamped every fractional row "USD" — wrong for every non-USD tenant
+    (XAF/NGN/GBP...). Mirrors the fallback order already used by
+    ``Invoice.save()`` and ``reconcile_offline_payment_intent``: canonical
+    currency FK -> ComplianceProfile.currency_code -> USD.
+    """
+    code = (getattr(getattr(invoice, "currency", None), "code", "") or "").strip()
+    if code:
+        return code[:3].upper()
+    code = (getattr(getattr(invoice, "profile", None), "currency_code", "") or "").strip()
+    if code:
+        return code[:3].upper()
+    return "USD"
+
+
 def _ledger_paid_total(invoice: Invoice) -> Decimal:
     agg = FractionalPaymentLedger.objects.filter(
         school=invoice.school, invoice=invoice
@@ -76,7 +96,7 @@ def post_partial_payment(
         invoice=invoice,
         student=student,
         amount=amount.quantize(Decimal("0.01")),
-        currency_code=str(getattr(invoice, "currency_code", None) or "USD")[:3],
+        currency_code=_resolve_currency_code(invoice),
         running_paid_total=running,
         invoice_balance_after=balance_after,
         source=source,

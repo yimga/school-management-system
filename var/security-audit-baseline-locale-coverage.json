@@ -4,8 +4,10 @@
     "ar",
     "de",
     "es",
+    "fa",
     "fr",
     "ha",
+    "he",
     "hi",
     "it",
     "ja",
@@ -14,11 +16,12 @@
     "ru",
     "sw",
     "tr",
+    "ur",
     "yo",
     "zh_Hans",
     "zh_Hant"
   ],
-  "finding_count": 17,
+  "finding_count": 20,
   "findings": [
     {
       "coverage_pct": 100.0,
@@ -27,171 +30,201 @@
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/en/LC_MESSAGES/django.po",
-      "total": 14219,
-      "translated": 14219
+      "total": 14761,
+      "translated": 14761
     },
     {
-      "coverage_pct": 0.3,
-      "empty": 13797,
+      "coverage_pct": 1.2,
+      "empty": 14203,
       "locale": "ar",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/ar/LC_MESSAGES/django.po",
-      "total": 13835,
-      "translated": 38
+      "total": 14381,
+      "translated": 178
     },
     {
-      "coverage_pct": 0.4,
-      "empty": 13786,
+      "coverage_pct": 1.5,
+      "empty": 14170,
       "locale": "de",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/de/LC_MESSAGES/django.po",
-      "total": 13835,
-      "translated": 49
+      "total": 14381,
+      "translated": 211
     },
     {
-      "coverage_pct": 0.8,
-      "empty": 13737,
+      "coverage_pct": 1.7,
+      "empty": 14151,
       "locale": "es",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/es/LC_MESSAGES/django.po",
-      "total": 13848,
-      "translated": 111
+      "total": 14394,
+      "translated": 243
     },
     {
-      "coverage_pct": 0.7,
-      "empty": 14122,
+      "coverage_pct": 0.0,
+      "empty": 14338,
+      "locale": "fa",
+      "plural_incomplete": 0,
+      "plural_msgids": 0,
+      "po_path": "locale/fa/LC_MESSAGES/django.po",
+      "total": 14338,
+      "translated": 0
+    },
+    {
+      "coverage_pct": 1.6,
+      "empty": 14528,
       "locale": "fr",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/fr/LC_MESSAGES/django.po",
-      "total": 14219,
-      "translated": 97
+      "total": 14761,
+      "translated": 233
     },
     {
       "coverage_pct": 0.0,
-      "empty": 14219,
+      "empty": 14761,
       "locale": "ha",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/ha/LC_MESSAGES/django.po",
-      "total": 14219,
+      "total": 14761,
       "translated": 0
     },
     {
-      "coverage_pct": 0.3,
-      "empty": 13796,
+      "coverage_pct": 0.0,
+      "empty": 14338,
+      "locale": "he",
+      "plural_incomplete": 0,
+      "plural_msgids": 0,
+      "po_path": "locale/he/LC_MESSAGES/django.po",
+      "total": 14338,
+      "translated": 0
+    },
+    {
+      "coverage_pct": 1.4,
+      "empty": 14180,
       "locale": "hi",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/hi/LC_MESSAGES/django.po",
-      "total": 13835,
-      "translated": 39
+      "total": 14381,
+      "translated": 201
     },
     {
-      "coverage_pct": 0.4,
-      "empty": 13786,
+      "coverage_pct": 1.5,
+      "empty": 14170,
       "locale": "it",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/it/LC_MESSAGES/django.po",
-      "total": 13835,
-      "translated": 49
+      "total": 14381,
+      "translated": 211
     },
     {
-      "coverage_pct": 0.3,
-      "empty": 13797,
+      "coverage_pct": 1.5,
+      "empty": 14170,
       "locale": "ja",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/ja/LC_MESSAGES/django.po",
-      "total": 13835,
-      "translated": 38
+      "total": 14381,
+      "translated": 211
     },
     {
       "coverage_pct": 0.0,
-      "empty": 14219,
+      "empty": 14761,
       "locale": "pid",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/pid/LC_MESSAGES/django.po",
-      "total": 14219,
+      "total": 14761,
       "translated": 0
     },
     {
-      "coverage_pct": 0.8,
-      "empty": 13737,
+      "coverage_pct": 1.7,
+      "empty": 14152,
       "locale": "pt_BR",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/pt_BR/LC_MESSAGES/django.po",
-      "total": 13848,
-      "translated": 111
+      "total": 14394,
+      "translated": 242
     },
     {
-      "coverage_pct": 0.3,
-      "empty": 13798,
+      "coverage_pct": 1.5,
+      "empty": 14171,
       "locale": "ru",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/ru/LC_MESSAGES/django.po",
-      "total": 13835,
-      "translated": 37
+      "total": 14381,
+      "translated": 210
     },
     {
-      "coverage_pct": 0.0,
-      "empty": 14219,
+      "coverage_pct": 1.0,
+      "empty": 14617,
       "locale": "sw",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/sw/LC_MESSAGES/django.po",
-      "total": 14219,
-      "translated": 0
+      "total": 14761,
+      "translated": 144
     },
     {
-      "coverage_pct": 0.3,
-      "empty": 13798,
+      "coverage_pct": 1.5,
+      "empty": 14171,
       "locale": "tr",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/tr/LC_MESSAGES/django.po",
-      "total": 13835,
-      "translated": 37
+      "total": 14381,
+      "translated": 210
     },
     {
       "coverage_pct": 0.0,
-      "empty": 14219,
+      "empty": 14338,
+      "locale": "ur",
+      "plural_incomplete": 0,
+      "plural_msgids": 0,
+      "po_path": "locale/ur/LC_MESSAGES/django.po",
+      "total": 14338,
+      "translated": 0
+    },
+    {
+      "coverage_pct": 0.0,
+      "empty": 14761,
       "locale": "yo",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/yo/LC_MESSAGES/django.po",
-      "total": 14219,
+      "total": 14761,
       "translated": 0
     },
     {
-      "coverage_pct": 0.3,
-      "empty": 13796,
+      "coverage_pct": 1.4,
+      "empty": 14180,
       "locale": "zh_Hans",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/zh_Hans/LC_MESSAGES/django.po",
-      "total": 13835,
-      "translated": 39
+      "total": 14381,
+      "translated": 201
     },
     {
-      "coverage_pct": 0.3,
-      "empty": 13798,
+      "coverage_pct": 1.5,
+      "empty": 14171,
       "locale": "zh_Hant",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/zh_Hant/LC_MESSAGES/django.po",
-      "total": 13835,
-      "translated": 37
+      "total": 14381,
+      "translated": 210
     }
   ],
-  "generated_at": "2026-06-06T11:41:58+00:00",
+  "generated_at": "2026-07-16T12:21:24+00:00",
   "locale_root": "locale",
   "rule": "track per-locale msgstr coverage; drift-detection only (stub locales ship empty and fall back to English)"
 }
