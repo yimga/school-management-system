@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Locale catalog coverage scanner.
 
-Seven-pillar audit P11 follow-up. RunMyCampus ships 17 locales managed
+Seven-pillar audit P11 follow-up. RunMyCampus ships 20 locales managed
 by [`apps/siteconfig/i18n_catalog_builder.py`](../apps/siteconfig/i18n_catalog_builder.py)
 and synced via `python manage.py sync_i18n_catalog --compile`.
 
@@ -41,9 +41,14 @@ BASELINE_PATH = (
 # `LANGUAGES` tuple in config/settings.py at the time of writing
 # (memory v3.13). Drift detection will flag a locale's coverage change,
 # not new locales — operators add new dirs and re-baseline.
+# Must match what actually ships (settings.LANGUAGES == 20 codes, and each has a
+# locale/<code>/LC_MESSAGES/*.po + compiled .mo). This tuple listed only 17 and
+# silently OMITTED the three RTL locales fa / he / ur — so the coverage gate
+# skipped catalogs that ship to real tenants. A scanner that quietly ignores
+# shipped locales is worse than no scanner: it reports green over a blind spot.
 EXPECTED_LOCALES = (
-    "en", "ar", "de", "es", "fr", "ha", "hi", "it", "ja",
-    "pid", "pt_BR", "ru", "sw", "tr", "yo", "zh_Hans", "zh_Hant",
+    "en", "ar", "de", "es", "fa", "fr", "ha", "he", "hi", "it", "ja",
+    "pid", "pt_BR", "ru", "sw", "tr", "ur", "yo", "zh_Hans", "zh_Hant",
 )
 
 # Match a `msgstr "..."`. Multi-line msgstr blocks (the standard PO
