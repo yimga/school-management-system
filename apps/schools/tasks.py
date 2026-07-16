@@ -2168,9 +2168,15 @@ def reconcile_half_provisioned_tenants(
     of whether its original workflow run is stuck, failed, or already gone, which
     the stuck-sweep autopilot (it only fires on an in-flight run) cannot reach.
 
+    Also finishes the HUSK class (second pass below): an ACTIVE school that was
+    never provisioned at all, which no other healer can reach.
+
     Safe by construction:
-    - ``provisioning_needs_resume`` requires the explicit ``phase_a_complete``
-      marker, so legacy schools (no provisioning flags) are never touched.
+    - ``provisioning_needs_resume`` demands POSITIVE evidence either way: the
+      explicit ``phase_a_complete`` marker, or a PROVABLY absent tenant workspace.
+      A legacy school (no provisioning flags, but a real schema behind it) matches
+      neither and is never touched — and outside schema mode the workspace probe
+      answers "unknowable", which is not absence, so the husk pass is inert there.
     - Bounded to ``limit`` re-drives per tick.
     - Per-school ``cooldown_minutes`` (stamped as ``last_reconcile_at``) so a
       permanently-unrepairable tenant is retried at most ~twice/hour, not every
@@ -2182,7 +2188,6 @@ def reconcile_half_provisioned_tenants(
     from django.utils import timezone
 
     from .models import School
-    from apps.schools.pending_tenant_discovery import _primary_owner_user
     from apps.schools.provisioning_progress import provisioning_needs_resume
 
     try:
@@ -2257,10 +2262,16 @@ def reconcile_half_provisioned_tenants(
     # Second pass — the HUSK class: active, but carrying NO Phase A marker.
     #
     # ``School.is_active`` defaults to True, so a row created outside the pipeline
-    # lands "live" with no schema behind it and 500s on every request. The filter
-    # above cannot see it (no marker to match) and NO other healer covers it: the
-    # watchdog sweep keys off a WorkflowRun and a husk has none. Production has
-    # exactly one (``gilead-school``, untouched since 2026-02-22).
+    # lands "live" with no workspace behind it and 500s on every request. The
+    # filter above cannot see it (no marker to match) and NO other healer covers
+    # it: the watchdog sweep keys off a WorkflowRun, and a husk has none.
+    #
+    # This is not a hypothetical class with one unlucky member — the migration
+    # ``schools/0012_seed_default_gilead_school`` MANUFACTURES one on every
+    # deployment (a single-tenant-era leftover that seeds ``gilead-school``
+    # active-but-unprovisioned), so every database the platform has ever created
+    # carries one. It is a get_or_create, so deleting the row is not a fix either;
+    # provisioning it is.
     #
     # This pass is a bounded PYTHON scan, not a SQL filter, on purpose: "JSON key
     # absent" is not reliably expressible across both backends — an .exclude() on

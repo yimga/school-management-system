@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from django.test import TestCase, override_settings
 
-from apps.academics.models import AcademicYear, Subject, Term
+from apps.academics.models import AcademicYear, Subject, SubjectAssignment, Term
 from apps.schools.models import School
 
 
@@ -157,8 +157,12 @@ class PartialSubjectSeedCompletesTests(TestCase):
         )
         self.assertGreater(len(full_names), 1, "seed must produce several subjects")
 
-        # Simulate a drive killed after writing only the first subject.
+        # Simulate a drive killed after writing only the first subject. The grid
+        # goes first: SubjectAssignment.subject is a PROTECT FK, and a drive that
+        # died mid-subject-seed never reached the grid step at all -- leaving the
+        # rows here would model a state that cannot exist.
         survivor = sorted(full_names)[0]
+        SubjectAssignment.objects.filter(school=self.school).delete()
         Subject.objects.filter(school=self.school).exclude(name=survivor).delete()
         self.assertEqual(Subject.objects.filter(school=self.school).count(), 1)
         self.school.refresh_from_db()
