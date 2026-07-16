@@ -453,6 +453,32 @@ def scheduled_job_health_monitor_task() -> dict:
         return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
 
 
+def _run_school_is_settled(run) -> bool:
+    """True when this run's school is already fully provisioned.
+
+    Reuses the provisioning watchdog's single definition of "settled" (portal
+    ready AND Phase B complete) rather than re-deriving it here, so the sweep and
+    the watchdog can never disagree about whether a school still needs work.
+    Fails OPEN (False) — an unknown school is treated as still needing the
+    remediation it would have got before this guard existed.
+    """
+    try:
+        from apps.schools.models import School
+        from apps.schools.provision_watchdog import _school_is_settled
+
+        school = School.objects.filter(pk=getattr(run, "school_id", "") or "").first()
+        if school is None:
+            return False
+        return bool(_school_is_settled(school))
+    except Exception:  # noqa: BLE001 — the guard must never break the sweep
+        logger.debug(
+            "settled-check failed for run=%s; treating as not settled",
+            getattr(run, "pk", None),
+            exc_info=True,
+        )
+        return False
+
+
 @shared_task(name="platform_runtime.workflow_failed_provision_auto_requeue_sweep")
 def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
     """Batch 1737 — zero-fail: auto-requeue failed/stuck tenant_school_provision runs."""
@@ -473,8 +499,36 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
         )
         remediated = 0
         requeued = 0
+        settled_skipped = 0
+        settled_resolved = 0
         for run in candidates:
             try:
+                # A run can be FAILED while its school is fully provisioned: the
+                # drive is killed AFTER the work lands but BEFORE finalize_run
+                # writes "succeeded", so the row stays failed forever while the
+                # tenant is live (observed in prod — schools with 322 tables /
+                # 1196 applied migrations / phase A+B complete still carrying a
+                # FAILED tenant_schema run). Requeuing those re-drives a finished
+                # tenant, and because the requeue never clears the old row it
+                # would be re-picked on EVERY tick — an unbounded migrate storm.
+                # Mark the stale row cancelled so it leaves the candidate set,
+                # and never re-drive a settled school.
+                if _run_school_is_settled(run):
+                    settled_skipped += 1
+                    if (run.status or "").lower() != "cancelled":
+                        # tenant-isolation-allow: platform-workflow-stale-row-resolve-by-pk
+                        WorkflowRun.objects.filter(pk=run.pk).update(
+                            status="cancelled",
+                            error_summary={
+                                "type": "StaleRun",
+                                "message": (
+                                    "superseded: school is fully provisioned "
+                                    "(drive died after the work landed, before finalize)"
+                                ),
+                            },
+                        )
+                        settled_resolved += 1
+                    continue
                 rem = resolve_effective_remediation(run)
                 if rem.get("auto_fix_kind") != "requeue_provision":
                     continue
@@ -503,6 +557,8 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
             "scanned": len(candidates),
             "remediated": remediated,
             "requeued": requeued,
+            "settled_skipped": settled_skipped,
+            "settled_resolved": settled_resolved,
         }
     except Exception as exc:
         return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
