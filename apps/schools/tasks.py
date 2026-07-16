@@ -2164,6 +2164,28 @@ try:
             limit=limit, cooldown_minutes=cooldown_minutes, dry_run=dry_run
         )
 
+    @shared_task(name="schools.resume_stuck_provisions")
+    def resume_stuck_provisions_task(*, limit: int = 5) -> dict:
+        """Beat entry point — resume provisions whose drive died mid-run.
+
+        The heartbeat-staleness watchdog is ALSO registered as an in-process
+        periodic job that ticks off ``/health/``. That path covers only the
+        broker-less topology: ``periodic.inprocess_scheduler_enabled()`` is
+        ``auto`` by default, i.e. enabled ONLY while ``CELERY_BROKER_URL`` is
+        unset, so it stands down the moment a worker + beat are provisioned. The
+        hourly ``scheduled_job_health_monitor`` does not cover the hand-off
+        either — its ``auto_recovery_enabled()`` mirrors the same broker check,
+        and ``select_recovery_candidates`` deliberately skips ``auto_eligible``
+        jobs. Without this beat entry the watchdog would therefore run in
+        exactly the topology that needs it least, and never in production.
+
+        Limit is per tick and deliberately small: a resume re-drives a full
+        tenant migrate, so a burst would pile heavy work onto one worker.
+        """
+        from apps.schools.provision_watchdog import resume_stuck_provisions
+
+        return resume_stuck_provisions(limit=limit, reason="beat-sweep")
+
     @shared_task(name="schools.detect_tenant_table_drift")
     def detect_tenant_table_drift_task() -> dict:
         """Beat entry point — read-only sweep for tenant schemas missing tables."""

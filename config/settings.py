@@ -2125,6 +2125,22 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 600.0,
         "options": {"expires": 540},
     },
+    # Heartbeat-staleness provisioning watchdog — every 2 min, resume any run
+    # stranded status="running" whose drive died mid-migrate (the pre-activation
+    # tenant_schema death that leaves "Preparing your campus workspace" frozen).
+    # The reconcile entry above cannot reach it: that one requires the
+    # phase_a_complete marker, which is only set AFTER tenant_schema succeeds.
+    # This entry is what runs the watchdog in the WORKER+BEAT topology — its
+    # in-process /health/ twin stands down whenever CELERY_BROKER_URL is set
+    # (periodic.inprocess_scheduler_enabled, mode "auto"), so without this the
+    # watchdog would never run in production. Both paths share one cache-locked,
+    # per-school single-flight + hourly cap, so running in either (or, during a
+    # topology change, both) cannot double-drive a migrate.
+    "schools-resume-stuck-provisions": {
+        "task": "schools.resume_stuck_provisions",
+        "schedule": 120.0,
+        "options": {"expires": 110},
+    },
     # Read-only tenant-schema table-drift sweep (apps.schools.tasks
     # .detect_tenant_table_drift_scan): flags any tenant schema missing an
     # expected tenant-app table — the rare "fake-applied CreateModel" drift that
