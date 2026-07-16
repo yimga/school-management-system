@@ -18,9 +18,11 @@ from apps.accounts.decorators import require_permission
 from .forms import LeaveRequestForm
 from .models import LeaveRequest, PayrollEmployee, PayrollRun, Payslip
 from .services import (
+    approve_payroll_run,
     generate_payslips,
     get_active_payroll_profile,
     mark_payroll_run_paid,
+    review_payroll_run,
 )
 
 
@@ -307,6 +309,34 @@ def mark_run_paid(request: HttpRequest, run_id: int):
         messages.error(request, str(exc) or "Generate payslips before marking paid.")
         return redirect("payroll:run_detail", run_id=run.id)
     messages.success(request, "Payroll run marked paid and payslips locked.")
+    return redirect("payroll:run_detail", run_id=run.id)
+
+
+@require_permission("payroll.manage")
+@require_POST
+def review_run(request: HttpRequest, run_id: int):
+    """Advance a processed payroll run to REVIEWED (approval-FSM step 1)."""
+    run = get_object_or_404(PayrollRun, id=run_id)
+    try:
+        review_payroll_run(run, actor=request.user, notes=(request.POST.get("notes") or "").strip())
+    except ValueError as exc:
+        messages.error(request, str(exc) or "This run cannot be reviewed.")
+        return redirect("payroll:run_detail", run_id=run.id)
+    messages.success(request, "Payroll run marked reviewed.")
+    return redirect("payroll:run_detail", run_id=run.id)
+
+
+@require_permission("payroll.manage")
+@require_POST
+def approve_run(request: HttpRequest, run_id: int):
+    """Approve a reviewed payroll run (records who signed off) — the gate for payment."""
+    run = get_object_or_404(PayrollRun, id=run_id)
+    try:
+        approve_payroll_run(run, actor=request.user, notes=(request.POST.get("notes") or "").strip())
+    except ValueError as exc:
+        messages.error(request, str(exc) or "This run cannot be approved.")
+        return redirect("payroll:run_detail", run_id=run.id)
+    messages.success(request, "Payroll run approved and ready to pay.")
     return redirect("payroll:run_detail", run_id=run.id)
 
 

@@ -19,12 +19,23 @@ from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.finance.models import ComplianceProfile
-from apps.payroll.models import PayrollEmployee, PayrollRun, Payslip
-from apps.payroll.services import mark_payroll_run_paid
+from apps.payroll.models import (
+    PayrollEmployee,
+    PayrollRun,
+    PayrollRunApproval,
+    Payslip,
+)
+from apps.payroll.services import (
+    approve_payroll_run,
+    mark_payroll_run_paid,
+    review_payroll_run,
+)
 
 
 class _PayrollGraphMixin:
-    def _graph(self, *, run_status=PayrollRun.Status.PROCESSED, slip_status=Payslip.Status.ISSUED):
+    # Default to APPROVED: the PAID producer now requires the approval FSM
+    # (process → review → approve) to have cleared before a run can be paid.
+    def _graph(self, *, run_status=PayrollRun.Status.APPROVED, slip_status=Payslip.Status.ISSUED):
         uid = uuid.uuid4().hex[:8]
         profile = ComplianceProfile.objects.create(
             name=f"Pay {uid}", country_code="CM", currency_code="XAF", is_active=True
@@ -120,3 +131,62 @@ class GenerateRunLockAfterPaidTests(_PayrollGraphMixin, TestCase):
         # and the payslip stays PAID (would have been reset to ISSUED).
         self.assertEqual(run.status, PayrollRun.Status.PAID)
         self.assertEqual(slip.status, Payslip.Status.PAID)
+
+
+class PayrollApprovalFsmTests(_PayrollGraphMixin, TestCase):
+    """REVIEWED / APPROVED were dead enum values and PayrollRunApproval was never
+    written; review_payroll_run / approve_payroll_run are the producers, and PAID is
+    now gated on APPROVED."""
+
+    def test_review_advances_processed_to_reviewed(self):
+        _, _, _, run, _ = self._graph(run_status=PayrollRun.Status.PROCESSED)
+        review_payroll_run(run, notes="figures check out")
+        run.refresh_from_db()
+        self.assertEqual(run.status, PayrollRun.Status.REVIEWED)
+        self.assertIn("figures check out", run.notes)
+
+    def test_review_refuses_draft(self):
+        _, _, _, run, _ = self._graph(run_status=PayrollRun.Status.DRAFT)
+        with self.assertRaises(ValueError):
+            review_payroll_run(run)
+
+    def test_approve_advances_reviewed_and_records_approval(self):
+        _, user, _, run, _ = self._graph(run_status=PayrollRun.Status.REVIEWED)
+        self.assertFalse(PayrollRunApproval.objects.filter(run=run).exists())
+        approve_payroll_run(run, actor=user, notes="approved by HR")
+        run.refresh_from_db()
+        self.assertEqual(run.status, PayrollRun.Status.APPROVED)
+        approval = PayrollRunApproval.objects.get(run=run)
+        self.assertEqual(approval.approver, user)
+        self.assertEqual(approval.notes, "approved by HR")
+
+    def test_approve_refuses_unreviewed_run(self):
+        _, _, _, run, _ = self._graph(run_status=PayrollRun.Status.PROCESSED)
+        with self.assertRaises(ValueError):
+            approve_payroll_run(run)
+        self.assertFalse(PayrollRunApproval.objects.filter(run=run).exists())
+
+    def test_approve_idempotent_no_duplicate_approval_row(self):
+        _, user, _, run, _ = self._graph(run_status=PayrollRun.Status.REVIEWED)
+        approve_payroll_run(run, actor=user)
+        approve_payroll_run(PayrollRun.objects.get(pk=run.pk), actor=user)
+        self.assertEqual(PayrollRunApproval.objects.filter(run=run).count(), 1)
+
+    def test_mark_paid_refuses_unapproved_run(self):
+        # A merely-PROCESSED run cannot be paid until it is reviewed + approved.
+        _, _, _, run, _ = self._graph(run_status=PayrollRun.Status.PROCESSED)
+        with self.assertRaises(ValueError):
+            mark_payroll_run_paid(run)
+        run.refresh_from_db()
+        self.assertEqual(run.status, PayrollRun.Status.PROCESSED)
+
+    def test_full_fsm_process_review_approve_pay(self):
+        _, user, _, run, slip = self._graph(run_status=PayrollRun.Status.PROCESSED)
+        review_payroll_run(run, actor=user)
+        approve_payroll_run(PayrollRun.objects.get(pk=run.pk), actor=user)
+        mark_payroll_run_paid(PayrollRun.objects.get(pk=run.pk), actor=user)
+        run.refresh_from_db()
+        slip.refresh_from_db()
+        self.assertEqual(run.status, PayrollRun.Status.PAID)
+        self.assertEqual(slip.status, Payslip.Status.PAID)
+        self.assertTrue(PayrollRunApproval.objects.filter(run=run).exists())
