@@ -39,6 +39,7 @@ EXTENDED_PROVISION_STEP_SPECS: tuple[dict[str, str | None], ...] = (
     {"key": "academic_structure", "label": _("Building class structure"), "workflow": "seed_data", "event": "ACADEMIC_STRUCTURE_READY"},
     {"key": "subjects", "label": _("Setting up subjects"), "workflow": "seed_data", "event": "SUBJECTS_READY"},
     {"key": "classrooms", "label": _("Assigning classrooms"), "workflow": "seed_data", "event": "CLASSROOMS_READY"},
+    {"key": "teaching_grid", "label": _("Building your timetable grid"), "workflow": "seed_data", "event": "TEACHING_GRID_READY"},
     {"key": "sample_data", "label": _("Seeding sample data"), "workflow": "seed_data", "event": "SAMPLE_DATA_READY"},
     {"key": "activate", "label": _("Activating your portal"), "workflow": "activate", "event": None},
     {"key": "welcome_email", "label": _("Sending welcome email"), "workflow": "activate", "event": "WELCOME_EMAIL_SENT"},

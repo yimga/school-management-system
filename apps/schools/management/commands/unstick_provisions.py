@@ -80,10 +80,49 @@ class Command(BaseCommand):
             if sid and sid not in school_ids:
                 school_ids.append(sid)
 
-        if dry:
-            self.stdout.write(self.style.WARNING(
-                f"--dry-run: would resume {len(school_ids)} school(s). No changes made."
+        # Never-provisioned ACTIVE schools carry no run at all, so the run-driven
+        # queries above are structurally blind to them — yet they are the most
+        # broken tenants on the platform (live, and 500-ing on every request).
+        # School.is_active defaults to True, and schools/0012_seed_default_gilead_school
+        # seeds exactly one such row into every deployment.
+        husks = self._husk_school_ids(limit)
+        for sid in husks:
+            if sid not in school_ids:
+                school_ids.append(sid)
+        if husks:
+            self.stdout.write(self.style.HTTP_INFO(
+                f"Found {len(husks)} active school(s) with NO tenant workspace "
+                f"(never provisioned):"
             ))
+            for sid in husks:
+                school = School.objects.filter(pk=sid).only("slug", "name").first()
+                self.stdout.write(
+                    f"  HUSK  school={sid} slug={getattr(school, 'slug', '?')}"
+                )
+
+        if dry:
+            # Report what would ACTUALLY happen, not how many candidates were
+            # found. The two are different, and the gap was misleading: the
+            # resume path no-ops on a settled school (a fully-live tenant whose
+            # run row was merely left FAILED), so "would resume 3" routinely
+            # meant "would resume 0" — telling an operator to expect a repair
+            # that was never going to run.
+            would, settled = [], []
+            for sid in school_ids[:limit]:
+                school = School.objects.filter(pk=sid).first()
+                if school is None:
+                    continue
+                if pw._school_is_settled(school):
+                    settled.append(sid)
+                else:
+                    would.append(sid)
+            self.stdout.write(self.style.WARNING(
+                f"--dry-run: would resume {len(would)} school(s); "
+                f"{len(settled)} already fully provisioned (their run row is stale "
+                f"-- the tenant is fine). No changes made."
+            ))
+            for sid in would:
+                self.stdout.write(f"  would resume school={sid}")
             return
 
         resumed, skipped = 0, 0
@@ -103,6 +142,32 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"Done. Resumed {resumed}, skipped {skipped} (live/settled/debounced/capped)."
         ))
+
+    def _husk_school_ids(self, limit: int) -> list[str]:
+        """Active schools whose tenant workspace is PROVABLY absent.
+
+        Bounded Python scan: "no workspace" is not a SQL-expressible property.
+        The probe is tri-state and answers None outside schema mode, so this
+        finds nothing (correctly) on a non-PostgreSQL / RLS-mode connection
+        rather than reporting every school as a husk.
+        """
+        from apps.schools.models import School
+        from apps.schools.tenant_workspace import tenant_workspace_exists
+
+        found: list[str] = []
+        # tenant-isolation-allow: operator-unstick-command-cross-tenant-husk-scan
+        rows = School.objects.filter(is_active=True).order_by("updated_at")[
+            : max(limit * 20, 100)  # magic-number-allow: husk-scan-row-cap
+        ]
+        for school in rows.iterator():
+            if len(found) >= limit:
+                break
+            prov = (getattr(school, "settings", None) or {}).get("provisioning") or {}
+            if prov.get("phase_a_complete"):
+                continue
+            if tenant_workspace_exists(school) is False:
+                found.append(str(school.pk))
+        return found
 
     def _age(self, run) -> int:
         last = getattr(run, "last_heartbeat_at", None)

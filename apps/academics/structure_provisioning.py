@@ -50,6 +50,133 @@ def ensure_general_department(school):
     )
 
 
+def ensure_general_specialty(school):
+    """Return the single canonical "General" specialty for ``school``.
+
+    Idempotent, and the SOLE creator of the default specialty. Nothing in
+    provisioning created a Specialty at all, which quietly made a "COMPLETED"
+    tenant unusable: ``FeePlan.specialty`` is a non-null FK, so no fee plan could
+    be created (the automated fee task just returns ``{"status": "no_plans"}`` as
+    SUCCESS), and ``SubjectAssignment.specialty`` is non-null too, so the entire
+    teaching grid was unbuildable — a day-1 teacher opened the classroom dropdown
+    and saw nothing, with no error to explain why.
+
+    ``Specialty.code`` is GLOBALLY unique (max_length=30), NOT unique-per-school,
+    so the code MUST be namespaced by school id — exactly the trap documented on
+    ``Classroom.code`` below, where two schools sharing a pack school_type
+    collided and the SECOND school's provisioning died on a UNIQUE violation.
+    Mirrors ``ensure_general_department``: resolve by canonical code, adopt any
+    pre-existing same-named row, else create.
+    """
+    if school is None:
+        return None
+    from apps.academics.models import Specialty
+
+    canonical_code = f"SPEC-GEN-{str(school.id)[:8]}"[:30]
+    specialty = Specialty.objects.filter(school=school, code=canonical_code).first()
+    if specialty is not None:
+        return specialty
+    specialty = (
+        Specialty.objects.filter(school=school, name="General").order_by("id").first()
+    )
+    if specialty is not None:
+        return specialty
+    return Specialty.objects.create(
+        school=school,
+        department=ensure_general_department(school),
+        code=canonical_code,
+        name="General",
+    )
+
+
+def provision_teaching_grid_for_school(
+    school,
+    *,
+    academic_year: AcademicYear | None = None,
+) -> dict[str, Any]:
+    """Seed the classroom x subject x term grid a school actually teaches from.
+
+    THE GAP THIS CLOSES
+    -------------------
+    Provisioning marked a tenant COMPLETED while creating ZERO SubjectAssignments,
+    and that model is the hinge the whole school day turns on: teachers reach
+    classrooms through ``TeacherAssignment -> subject_assignment__classroom``, and
+    marks point at a SubjectAssignment. With none, a school that provisioned
+    "successfully" could not take attendance or enter a single grade — and nothing
+    raised. Every surface just rendered an empty dropdown, which reads as "no data
+    yet" rather than "your tenant is broken".
+
+    Idempotent (get_or_create on the model's own unique_together) so a resume
+    completes a partial grid instead of duplicating it. Honours the third-term
+    rule that ``SubjectAssignment.clean()`` enforces — ``.create()`` never calls
+    ``clean()``, so a blind seed would write rows the model itself considers
+    invalid.
+    """
+    if school is None:
+        return {"created_assignments": 0, "skipped": "no_school"}
+
+    from apps.academics.models import Classroom, Specialty, Subject, SubjectAssignment, Term
+
+    year = academic_year
+    if year is None:
+        year = AcademicYear.objects.filter(school=school, is_active=True).first()
+    if year is None:
+        year = AcademicYear.objects.filter(school=school).order_by("-start_date").first()
+    if year is None:
+        return {"created_assignments": 0, "skipped": "no_academic_year"}
+
+    classrooms = list(Classroom.objects.filter(school=school, academic_year=year))
+    subjects = list(Subject.objects.filter(school=school))
+    terms = list(Term.objects.filter(school=school, academic_year=year).order_by("position"))
+    if not (classrooms and subjects and terms):
+        return {
+            "created_assignments": 0,
+            "skipped": "missing_prerequisites",
+            "classrooms": len(classrooms),
+            "subjects": len(subjects),
+            "terms": len(terms),
+        }
+
+    specialty = ensure_general_specialty(school)
+    if specialty is None:
+        return {"created_assignments": 0, "skipped": "no_specialty"}
+
+    created = 0
+    skipped_third_term = 0
+    with transaction.atomic():
+        for classroom in classrooms:
+            for term in terms:
+                # SubjectAssignment.clean() rejects a third-term row on a
+                # classroom that disallows it. create() does not call clean(), so
+                # respect the rule here rather than seeding invalid rows.
+                if term.position == 3 and not classroom.allows_third_term:
+                    skipped_third_term += len(subjects)
+                    continue
+                for subject in subjects:
+                    _, was_created = SubjectAssignment.objects.get_or_create(
+                        academic_year=year,
+                        term=term,
+                        classroom=classroom,
+                        specialty=specialty,
+                        subject=subject,
+                        defaults={"school": school},
+                    )
+                    if was_created:
+                        created += 1
+
+    return {
+        "created_assignments": created,
+        "classrooms": len(classrooms),
+        "subjects": len(subjects),
+        "terms": len(terms),
+        "specialty_code": getattr(specialty, "code", ""),
+        "skipped_third_term": skipped_third_term,
+        "total_assignments": SubjectAssignment.objects.filter(
+            school=school, academic_year=year
+        ).count(),
+    }
+
+
 def provision_academic_structure_for_school(
     school,
     *,

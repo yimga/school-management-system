@@ -1881,6 +1881,46 @@ def _do_provision_tracked(
             logger.exception("Classroom seeding failed for school %s", school_id)
             phase_b_failed_steps.append("classrooms")
 
+        # Seed the teaching grid — the classroom x subject x term SubjectAssignment
+        # rows the school day actually runs on. Provisioning used to mark a tenant
+        # COMPLETED with ZERO of these, which made a "successful" provision
+        # unusable: teachers reach classrooms via
+        # TeacherAssignment -> subject_assignment__classroom, and marks point at a
+        # SubjectAssignment. With none, a day-1 teacher opened the classroom
+        # dropdown and saw nothing, and no grade could be entered — silently, as an
+        # empty dropdown rather than an error. The same step seeds the default
+        # Specialty, whose absence also made FeePlan (non-null specialty FK)
+        # uncreatable, so the fee task reported SUCCESS with {"status": "no_plans"}.
+        # Runs after subjects AND classrooms; idempotent, so a resume completes a
+        # partial grid.
+        try:
+            from apps.academics.structure_provisioning import (
+                provision_teaching_grid_for_school,
+            )
+
+            grid_summary = provision_teaching_grid_for_school(school, academic_year=ay)
+            _record_school_event(
+                school,
+                event_type="TEACHING_GRID_READY",
+                status="SUCCESS" if not grid_summary.get("skipped") else "INFO",
+                message=(
+                    "Teaching grid prepared (classes x subjects x terms)."
+                    if not grid_summary.get("skipped")
+                    else "Teaching grid skipped: %s" % grid_summary.get("skipped")
+                ),
+                payload=grid_summary,
+            )
+        except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
+            logger.exception("Teaching grid seeding failed for school %s", school_id)
+            phase_b_failed_steps.append("teaching_grid")
+            _record_school_event(
+                school,
+                event_type="TEACHING_GRID_READY",
+                status="FAILED",
+                message="Teaching grid could not be prepared.",
+                payload={"failed": True},
+            )
+
         # Assign default dashboard packs per role (Dashboard Packs revival). Idempotent
         # via (school, role) unique_together; never overwrites an operator's choice. A
         # school with no seeded packs is skipped gracefully (role-home default renders).
