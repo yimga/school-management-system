@@ -469,7 +469,7 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
             WorkflowRun.objects.filter(
                 workflow_key="tenant_school_provision",
                 status__in=("failed", "stuck", "cancelled"),
-            ).order_by("-updated_at")[:100]
+            ).order_by("-started_at")[:100]  # WorkflowRun has no `updated_at`; -updated_at raised FieldError (swallowed) → sweep was a no-op
         )
         remediated = 0
         requeued = 0

@@ -86,6 +86,11 @@ _MS_PER_SECOND = 1000  # magic-number-allow: milliseconds per second
 # Scheduler health monitor (dead-man's-switch) cadence. Light + auto_eligible so
 # it runs off the /health/ tick; see scheduled_job_health.run_health_monitor.
 MONITOR_INTERVAL_SECONDS = 60 * 60
+# Provisioning self-heal cadence. LIGHT + auto_eligible so it runs off the
+# /health/ tick in the no-beat topology — the whole reason "self-healing does
+# nothing" was that this class of sweep was beat-only. Kept short so a school
+# stranded at "Preparing your campus workspace" is re-driven within ~2 min.
+PROVISION_HEAL_INTERVAL_SECONDS = 120  # magic-number-allow: provisioning self-heal sweep interval (seconds)
 
 
 @dataclass
@@ -400,7 +405,57 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("people", "transfers", "heavy"),
         )
+        # --- Provisioning self-heal (2026-07-15) ---------------------------------
+        # THE fix for "provisioning gets stuck at 'Preparing your campus workspace'
+        # and self-healing does nothing." A tenant_schema migrate killed before
+        # finalize_run strands a WorkflowRun status="running" with a frozen
+        # heartbeat; the pre-existing stuck→requeue autopilot only fires once a
+        # BEAT sweep flips status="stuck", and beat does not run here — so nothing
+        # ever re-drove it. These two jobs run that recovery off the /health/ tick.
+        #
+        # 1. Heartbeat-dead provision re-drive (covers PRE-activation tenant_schema
+        #    deaths, which reconcile_half_provisioned_tenants is structurally blind
+        #    to). LIGHT: one indexed WorkflowRun query + a single-flighted background
+        #    kick per school (never an inline migrate). auto_eligible so it fires
+        #    without a worker.
+        _REGISTRY["schools.resume_stuck_provisions"] = PeriodicJob(
+            name="schools.resume_stuck_provisions",
+            interval_seconds=PROVISION_HEAL_INTERVAL_SECONDS,
+            func=_run_resume_stuck_provisions,
+            description="Re-drive schools whose provisioning run died mid-flight (heartbeat-dead), single-flighted per school.",
+            tags=("schools", "provisioning", "self-heal", "light"),
+        )
+        # 2. Half-provisioned catch-all (covers POST-activation Phase-B failures):
+        #    tenants left LIVE but without academic year / terms / subjects. Bounded
+        #    limit + per-school cooldown keep it light enough for the /health/ tick.
+        _REGISTRY["schools.reconcile_half_provisioned_tenants"] = PeriodicJob(
+            name="schools.reconcile_half_provisioned_tenants",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_reconcile_half_provisioned_tenants,
+            description="Finish tenants left live but with Phase B unfinished (bounded, per-school cooldown).",
+            tags=("schools", "provisioning", "self-heal", "light"),
+        )
         _DEFAULTS_INSTALLED = True
+
+
+def _run_resume_stuck_provisions() -> object:
+    # Lazy import: schools owns the provisioning watchdog.
+    from apps.schools.provision_watchdog import resume_stuck_provisions
+
+    # Small per-tick fan-out on purpose: each resume is a full cold schema migrate
+    # in a daemon thread on the WEB dyno (+ a heartbeat thread, ~2 DB connections).
+    # A larger batch after a deploy that killed many in-flight migrates could spike
+    # connections/memory on the request-serving process. 2/tick drains a backlog
+    # over successive ticks instead of all at once.
+    return resume_stuck_provisions(limit=2, reason="health-tick-sweep")
+
+
+def _run_reconcile_half_provisioned_tenants() -> object:
+    # Lazy import: schools owns the reconcile task. Small limit keeps the /health/
+    # tick light; the task is idempotent + per-school cooldown-gated.
+    from apps.schools.tasks import reconcile_half_provisioned_tenants
+
+    return reconcile_half_provisioned_tenants(limit=10)
 
 
 def _run_advance_school_transfer_batches() -> object:

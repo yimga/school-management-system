@@ -530,6 +530,7 @@ def finalize_run(
     status: str,
     error: Optional[Exception] = None,
     email_on_failure: bool = False,
+    auto_apply: bool = True,
 ) -> None:
     """Mark a run as succeeded / failed / cancelled. Computes
     ``suggested_remediation`` from the auto-fix matcher on failure.
@@ -538,6 +539,14 @@ def finalize_run(
     ``workflow.run.failed`` through the event bus so the platform email
     matrix routes an operator alert. Best-effort — never raises out of
     the finalize path.
+
+    ``auto_apply=False`` suppresses the inline failure-path auto-remediation
+    (``try_auto_apply_on_failure``). A caller whose remediation is already owned
+    by an out-of-band healer must pass this — otherwise finalize would apply the
+    fix *inline*, which for ``tenant_school_provision`` re-enters provisioning
+    synchronously (recursion + a transaction-poison window; see
+    ``apps.schools.tasks._do_provision``). The autopilot/reconcile sweeps still
+    remediate such runs out of band.
     """
 
     if run is None or getattr(run, "pk", None) is None:
@@ -588,7 +597,7 @@ def finalize_run(
             except Exception:
                 logger.debug("workflow_duration_stat_finalize_skip", exc_info=True)
 
-        if status == "failed" and suggested.get("auto_fix_available"):
+        if status == "failed" and auto_apply and suggested.get("auto_fix_available"):
             try:
                 from apps.platform_runtime.workflow_autopilot import try_auto_apply_on_failure
 

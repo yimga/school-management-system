@@ -4,6 +4,7 @@ Can be run as Celery task or synchronously.
 When USE_DJANGO_TENANTS is True, ensures Client and Domain exist and runs tenant-scoped creation in tenant_context.
 """
 
+import contextvars
 import logging
 import secrets
 from contextlib import contextmanager
@@ -20,6 +21,20 @@ from apps.schools.domain_sync import (
 from apps.schools.rls_context import rls_school
 
 logger = logging.getLogger(__name__)
+
+# Re-entrancy guard for provisioning drives on the current execution context.
+# The primary recursion source — a FAILED provision's finalize_run applying
+# requeue_provision INLINE — is now closed at the root (the failure finalize
+# passes auto_apply=False; retry is owned out-of-band by the provision
+# watchdog). This guard remains as defense-in-depth against ANY other inline
+# re-dispatch of a school already on the current call stack (the
+# complete_provisioning_for_school booster, an operator requeue that runs eager,
+# a poll re-trigger): without it such a re-entry recurses through _do_provision,
+# nesting atomic blocks until the transaction is poisoned
+# (TransactionManagementError) so the finalize never completes cleanly.
+_active_provision_drives: contextvars.ContextVar[frozenset[str]] = (
+    contextvars.ContextVar("rmc_active_provision_drives", default=frozenset())
+)
 
 try:
     from kombu.exceptions import OperationalError as KombuOperationalError
@@ -740,6 +755,73 @@ def kick_complete_provisioning_background(
     transaction.on_commit(_start)
 
 
+# pg_advisory_lock() takes a signed bigint — mask the sha256 slice to 63 bits so the
+# key is always positive.
+_PG_ADVISORY_LOCK_KEY_MASK = 0x7FFFFFFFFFFFFFFF  # magic-number-allow: postgres-signed-bigint-advisory-lock-key-mask
+
+
+def _provision_lock_key(school_id: str) -> int:
+    import hashlib
+
+    digest = hashlib.sha256(f"provision:{school_id}".encode()).digest()
+    # Mask to a 63-bit POSITIVE int: pg_advisory_lock takes a signed bigint, so the
+    # sign bit must be cleared or the key overflows.
+    return int.from_bytes(digest[:8], "big") & _PG_ADVISORY_LOCK_KEY_MASK
+
+
+def _acquire_provision_lock(school_id: str) -> bool:
+    """Cross-process single-flight for a provisioning drive. True ⇒ proceed.
+
+    A Postgres SESSION advisory lock — genuinely cross-worker (unlike the watchdog's
+    per-process cache lock under LocMemCache), and a dead drive's lock auto-releases
+    when its connection drops. No-op ⇒ True on non-Postgres (single-process local
+    dev). Fail-OPEN on any error so a lock-infra hiccup never blocks provisioning.
+    """
+    from django.db import connection
+
+    if connection.vendor != "postgresql":
+        return True
+    try:
+        with connection.cursor() as cur:
+            cur.execute("SELECT pg_try_advisory_lock(%s)", [_provision_lock_key(school_id)])
+            row = cur.fetchone()
+            return bool(row and row[0])
+    except Exception:  # noqa: BLE001 — never block provisioning on a lock error
+        logger.debug("provision advisory lock acquire failed for %s", school_id, exc_info=True)
+        return True
+
+
+def _release_provision_lock(school_id: str) -> None:
+    from django.db import connection
+
+    if connection.vendor != "postgresql":
+        return
+    try:
+        with connection.cursor() as cur:
+            cur.execute("SELECT pg_advisory_unlock(%s)", [_provision_lock_key(school_id)])
+    except Exception:  # noqa: BLE001 — a stale/closed-session lock frees itself anyway
+        logger.debug("provision advisory unlock failed for %s", school_id, exc_info=True)
+
+
+def _has_prior_failed_provision(school_id: str) -> bool:
+    """True if this school already has a failed/cancelled provision run.
+
+    Used to email the operator only on the FIRST failure — not on every auto-resume
+    — so a permanently-broken provision cannot generate an alert storm.
+    """
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+
+        # tenant-isolation-allow: provision-email-dedup-prior-failed-run-lookup
+        return WorkflowRun.objects.filter(
+            workflow_key="tenant_school_provision",
+            school_id=str(school_id),
+            status__in=("failed", "cancelled"),
+        ).exists()
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     from .models import School
 
@@ -784,40 +866,116 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             school_id,
         )
 
-    from apps.platform_runtime.workflow_tracker import (
-        begin_run,
-        finalize_run,
-        pulse_workflow_step,
-    )
-
-    wf_run = begin_run(
-        workflow_key="tenant_school_provision",
-        steps=("admin_user", "profile", "tenant_schema", "seed_data", "activate"),
-        school_id=str(school_id),
-        # 600s (= registry slo_seconds). The `tenant_schema` step runs a blocking
-        # django-tenants schema create + migrate that can take minutes with no
-        # heartbeat; the old 180s (→270s stuck threshold) flagged a healthy run as
-        # "stuck" mid-migrate. 600s → 900s threshold; the >1h abandonment reaper
-        # still catches genuinely dead runs.
-        expected_duration_seconds=600,  # magic-number-allow: workflow-expected-duration-seconds
-        payload={"slug": getattr(school, "slug", "") or ""},
-    )
-    from apps.tenancy.boundary_core_guard import pinned_tenant_boundary
-
+    # Single-flight guard (2026-07-15): refuse to start a second concurrent drive
+    # while one is genuinely in flight (a WorkflowRun whose heartbeat is fresh).
+    # This kills the double-migrate race where a queued task and the in-request
+    # booster in complete_provisioning_for_school both run `migrate` on one fresh
+    # schema, and it stops an owner poll from re-triggering a new inline migrate
+    # every few seconds while a background resume is already running. A
+    # heartbeat-DEAD run is NOT "live", so this never blocks a legitimate resume of
+    # a run whose process died mid-migrate. Best-effort: a check failure falls
+    # through to the normal drive rather than blocking provisioning.
     try:
-        with pinned_tenant_boundary(school_id=str(school_id), host="celery:provision"):
-            _do_provision_tracked(
-                school,
+        from apps.schools.provision_watchdog import provisioning_drive_is_live
+
+        if provisioning_drive_is_live(school):
+            logger.info(
+                "School %s already has a live provisioning drive — skipping concurrent re-entry",
                 school_id,
-                contact_email=contact_email,
-                wf_run=wf_run,
-                pulse_workflow_step=pulse_workflow_step,
-                **kwargs,
             )
-        finalize_run(wf_run, status="succeeded")
-    except Exception as exc:
-        finalize_run(wf_run, status="failed", error=exc, email_on_failure=True)
-        raise
+            return
+    except (ImportError, AttributeError, TypeError, ValueError):
+        logger.debug("provisioning single-flight check skipped", exc_info=True)
+
+    # Re-entrancy guard (2026-07-16): suppress a synchronous re-drive of a school
+    # already on the current call stack. The primary inline-recursion source — the
+    # failure finalize below applying requeue_provision INLINE — is now closed at
+    # its root (it passes auto_apply=False; the async watchdog / reconcile sweep
+    # off the /health/ tick owns the retry out-of-band). This guard stays as
+    # defense-in-depth against any OTHER inline re-drive of a school already on the
+    # call stack, which would otherwise recurse here unboundedly and poison the
+    # transaction.
+    _sid = str(school_id)
+    _active_drives = _active_provision_drives.get()
+    if _sid in _active_drives:
+        logger.warning(
+            "Re-entrant provisioning drive for school %s suppressed "
+            "(auto-fix recursion guard); async watchdog will retry",
+            school_id,
+        )
+        return
+    _drive_token = _active_provision_drives.set(_active_drives | {_sid})
+    _lock_ok = False
+    try:
+        # Cross-process single-flight (Finding 1): the watchdog's per-process cache
+        # lock does NOT span gunicorn workers under LocMemCache (the Redis-less
+        # topology), so two workers could both pass provisioning_drive_is_live and
+        # migrate one fresh schema. A Postgres advisory lock is genuinely
+        # cross-session (no-op ⇒ proceed on sqlite/local single-process).
+        _lock_ok = _acquire_provision_lock(_sid)
+        if not _lock_ok:
+            logger.info(
+                "School %s: another process is already driving provisioning — skipping",
+                school_id,
+            )
+            return
+        # Email the operator only on the FIRST failure for this school, never on
+        # every auto-resume — otherwise a permanently-broken provision storms the
+        # operator inbox (Finding 3).
+        email_on_failure = not _has_prior_failed_provision(_sid)
+        from apps.platform_runtime.workflow_tracker import (
+            begin_run,
+            finalize_run,
+            pulse_workflow_step,
+        )
+
+        wf_run = begin_run(
+            workflow_key="tenant_school_provision",
+            steps=("admin_user", "profile", "tenant_schema", "seed_data", "activate"),
+            school_id=str(school_id),
+            # 600s (= registry slo_seconds). The `tenant_schema` step runs a blocking
+            # django-tenants schema create + migrate that can take minutes with no
+            # heartbeat; the old 180s (→270s stuck threshold) flagged a healthy run as
+            # "stuck" mid-migrate. 600s → 900s threshold; the >1h abandonment reaper
+            # still catches genuinely dead runs.
+            expected_duration_seconds=600,  # magic-number-allow: workflow-expected-duration-seconds
+            payload={"slug": getattr(school, "slug", "") or ""},
+        )
+        from apps.tenancy.boundary_core_guard import pinned_tenant_boundary
+
+        try:
+            with pinned_tenant_boundary(
+                school_id=str(school_id), host="celery:provision"
+            ):
+                _do_provision_tracked(
+                    school,
+                    school_id,
+                    contact_email=contact_email,
+                    wf_run=wf_run,
+                    pulse_workflow_step=pulse_workflow_step,
+                    **kwargs,
+                )
+            finalize_run(wf_run, status="succeeded")
+        except Exception as exc:
+            # auto_apply=False: do NOT inline-remediate a provisioning failure.
+            # finalize's failure-path auto-apply would run requeue_provision
+            # INLINE, re-entering _do_provision synchronously (recursion + a
+            # transaction-poison window that can swallow the FAILED finalize).
+            # Provisioning retry is owned out-of-band by the provision watchdog +
+            # reconcile sweeps (heartbeat-staleness driven, single-flighted,
+            # circuit-broken), whose sweep already picks up status="failed" runs.
+            finalize_run(
+                wf_run,
+                status="failed",
+                error=exc,
+                email_on_failure=email_on_failure,
+                auto_apply=False,
+            )
+            raise
+    finally:
+        if _lock_ok:
+            _release_provision_lock(_sid)
+        _active_provision_drives.reset(_drive_token)
 
 
 def _do_provision_tracked(

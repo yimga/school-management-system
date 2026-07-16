@@ -87,6 +87,60 @@ def _drop_tenant_schema(client) -> None:
         )
 
 
+def _tenant_migrate_lock_timeout_ms() -> int:
+    """Max time a tenant migration may WAIT for a lock before aborting (ms).
+
+    Targets a migrate BLOCKED on a lock (e.g. a concurrent DDL holding it) — which
+    would otherwise hang the process while its heartbeat thread keeps pinging,
+    masking the run as "healthy" forever (the stuck-detector never trips on a live
+    process). A lock-wait timeout raises instead, so the run finalizes FAILED and
+    the provisioning watchdog resumes it — by which point the lock is usually free.
+    It does NOT abort a migration doing long WORK; only one blocked on a lock. 0
+    disables. Env/settings overridable (``TENANT_MIGRATE_LOCK_TIMEOUT_MS``).
+    """
+    from django.conf import settings
+
+    raw = getattr(settings, "TENANT_MIGRATE_LOCK_TIMEOUT_MS", None)
+    try:
+        return int(raw) if raw is not None else 30000  # magic-number-allow: default 30s tenant-migrate lock-wait
+    except (TypeError, ValueError):
+        return 30000  # magic-number-allow: default 30s tenant-migrate lock-wait
+
+
+def _set_lock_timeout(value_ms: int | None) -> None:
+    """Best-effort SET of ``lock_timeout`` on the current (tenant) connection.
+
+    Postgres-only (a no-op on other backends). Session-level so it applies across
+    the migrate's per-migration transactions. ``None`` resets to the DB default.
+    Never raises into provisioning — a timeout knob must not break the migrate.
+    """
+    from django.db import connection
+
+    if connection.vendor != "postgresql":
+        return
+    try:
+        with connection.cursor() as cur:
+            if value_ms is None:
+                cur.execute("SET lock_timeout = DEFAULT")
+            else:
+                # value is int-cast → safe to inline; SET takes no bind params.
+                cur.execute(f"SET lock_timeout = {int(value_ms)}")
+    except Exception:  # noqa: BLE001 — best-effort; never break provisioning
+        logger.debug("could not adjust tenant migrate lock_timeout", exc_info=True)
+
+
+def _discard_connection() -> None:
+    """Close the current DB connection so a tainted session (e.g. an aborted
+    transaction after a failed migrate) can't leak session GUCs onto a pooled or
+    worker-reused connection. The next query reconnects with clean defaults."""
+    from django.db import connection
+
+    try:
+        connection.close()
+    except Exception:  # noqa: BLE001 — best-effort; never break the failure path
+        logger.debug("could not close tenant connection after migrate failure", exc_info=True)
+
+
 def _run_tenant_migrations(client) -> None:
     """Run migrations for the given tenant schema. Tables created = Master Table List (see docs/MASTER_TABLE_LIST.md)."""
     if not use_django_tenants():
@@ -96,7 +150,26 @@ def _run_tenant_migrations(client) -> None:
         from django.core.management import call_command
 
         with tenant_context(client):
-            call_command("migrate", "--run-syncdb", verbosity=1)
+            lock_ms = _tenant_migrate_lock_timeout_ms()
+            if lock_ms > 0:
+                _set_lock_timeout(lock_ms)
+            migrate_ok = False
+            try:
+                call_command("migrate", "--run-syncdb", verbosity=1)
+                migrate_ok = True
+            finally:
+                if lock_ms > 0:
+                    if migrate_ok:
+                        # Clean session — reset to the DB default.
+                        _set_lock_timeout(None)
+                    else:
+                        # Migrate failed: the connection may be in an aborted
+                        # transaction where `SET lock_timeout = DEFAULT` would itself
+                        # error and leak the tightened timeout onto a pooled/worker
+                        # connection (this path runs off-request, so Django won't
+                        # discard it). Close it — a fresh connect resets all session
+                        # GUCs, guaranteeing no leak.
+                        _discard_connection()
     except (
         ImportError,
         DatabaseError,

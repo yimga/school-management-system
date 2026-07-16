@@ -48,26 +48,36 @@ def _public_progress_payload(school) -> dict:
 
 
 def _maybe_kick_stalled_provisioning(request: HttpRequest, school) -> None:
-    """Re-queue provisioning when poll shows no workflow run or stuck early progress."""
+    """Re-drive provisioning when the poll shows a dead/failed run or no run yet.
+
+    The canonical heartbeat-aware, single-flighted resume lives in
+    ``provision_watchdog.resume_provision_if_stuck`` — it judges liveness by
+    heartbeat staleness (not the coarse 15-min ``stuck`` flag), cancels the dead
+    zombie run, and re-drives via a background daemon thread with an atomic
+    per-school lock. That replaces the old ``force=True`` re-kick, which bypassed
+    both the in-flight guard AND the cooldown and so spawned a fresh migrate thread
+    on EVERY poll once ``stuck`` tripped (a thundering herd on one schema).
+    """
     try:
-        from apps.schools.pending_tenant_discovery import kick_pending_tenant_provisioning
         from apps.schools.provisioning_progress import resolve_portal_ready
+        from apps.schools.provision_watchdog import resume_provision_if_stuck
 
         if resolve_portal_ready(school):
             return
+        result = resume_provision_if_stuck(school, reason="pending-poll")
+        # resume_provision_if_stuck returns action ∈ {resumed, capped, error, none}
+        # (settled/in_flight/debounced are all action="none" with the reason in
+        # `reason`). For everything except `error` the watchdog already did the right
+        # thing (kicked a resume, hit the cap, or had nothing to do) — don't also fire
+        # the legacy kick. Only on `error` (its background kick raised) do we fall back.
+        if result.get("action") != "error":
+            return
+        from apps.schools.pending_tenant_discovery import kick_pending_tenant_provisioning
+
         progress = _public_progress_payload(school)
-        workflow_run_id = progress.get("workflow_run_id")
-        progress_percent = int(progress.get("progress_percent") or 0)
-        status = (progress.get("status") or "").strip().lower()
-        if status == "failed" or progress.get("last_error"):
-            kick_pending_tenant_provisioning(request, school, force=True)
-        elif progress.get("stuck"):
-            # A run exists but its heartbeat went silent (the background runner /
-            # worker died mid-provision). Re-kick regardless of how far it got, so
-            # a job that stalled at e.g. 50% never stays frozen — this is the
-            # watchdog that makes "school never finishes provisioning" impossible.
-            kick_pending_tenant_provisioning(request, school, force=True)
-        elif workflow_run_id is None and progress_percent <= 10:
+        if progress.get("workflow_run_id") is None and int(
+            progress.get("progress_percent") or 0
+        ) <= 10:
             kick_pending_tenant_provisioning(request, school)
     except (ImportError, AttributeError, TypeError, ValueError):
         pass

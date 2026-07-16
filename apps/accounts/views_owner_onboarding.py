@@ -526,6 +526,17 @@ def _owner_provisioning_progress_payload(request, school) -> dict:
                 )
             except ImportError:
                 pass
+        else:
+            # Still not ready after the in-request kick: the provisioning run may
+            # have died mid-migrate (gunicorn 120s kill / worker recycle). Trigger
+            # the heartbeat-aware, single-flighted background resume so the owner
+            # watching the spinner drives recovery — no dependency on Celery beat.
+            try:
+                from apps.schools.provision_watchdog import resume_provision_if_stuck
+
+                resume_provision_if_stuck(school, reason="owner-poll")
+            except (ImportError, AttributeError, TypeError, ValueError):
+                pass
 
     payload = resolve_provisioning_progress(
         school,

@@ -49,8 +49,21 @@ def can_operator_requeue_provisioning(school: School) -> bool:
     status = (progress.get("status") or "").strip().lower()
     if status == "failed" or progress.get("blocking_error") or progress.get("last_error"):
         return True
-    if provisioning_in_flight(school) and status == "running":
-        return False
+    # Liveness must be judged by HEARTBEAT, not by status alone. A run whose
+    # process died mid-migrate keeps status="running" forever with a frozen
+    # heartbeat and records no error — and the legacy provisioning_in_flight()
+    # calls any status="running" row "in flight", which HID the operator's
+    # Requeue/Restart action on exactly the stuck jobs that need it. Only a
+    # genuinely live drive (fresh heartbeat) should suppress the action.
+    try:
+        from apps.schools.provision_watchdog import provisioning_drive_is_live
+
+        if provisioning_drive_is_live(school):
+            return False
+    except (ImportError, AttributeError, TypeError, ValueError):
+        # Fail safe to the legacy behaviour if the watchdog is unavailable.
+        if provisioning_in_flight(school) and status == "running":
+            return False
     return not bool(getattr(school, "is_active", False))
 
 
