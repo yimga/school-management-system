@@ -9,8 +9,16 @@
     "NUMERIC_1_5",
     "WAEC_LETTER",
     "STANDARD_SCORE_T",
-    "QUALITATIVE_PD"
+    "QUALITATIVE_PD",
+    "UK_GCSE_9_1",
+    "IB_1_7",
+    "GERMAN_1_6",
+    "CBSE_10",
+    "FRENCH_0_20",
+    "US_LETTER"
   ],
   "missing": [],
+  "band_gaps": [],
+  "display_gaps": [],
   "finding_count": 0
 }

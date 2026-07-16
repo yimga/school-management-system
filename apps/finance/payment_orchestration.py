@@ -122,4 +122,34 @@ def reconcile_offline_payment_intent(
         inv.balance_amount = current_balance
         inv.save(update_fields=["status", "balance_amount", "updated_at"])
 
+        # Feed the fractional sub-ledger. A bursar-approved offline intent IS an
+        # irregular partial payment over the counter — exactly what
+        # FractionalPaymentLedger models. This is its only production producer:
+        # without it the sub-ledger stays permanently EMPTY, so
+        # enrollment_clearance_for_invoice() can never return True and
+        # reports.student_has_financial_clearance() blocks a partial payer's
+        # report card forever (the micro-finance "pay enough instalments -> see
+        # results" loop was wired on the consumer side with nothing producing).
+        # Kept inside this atomic block on purpose: the cash receipt and its
+        # clearance line are one financial event and must commit together — a
+        # swallowed ledger write would be a silent money-integrity bug.
+        # Idempotent on the intent pk, so a retry/redelivery cannot double-post.
+        # Invoice.school is nullable (platform/AP invoices carry no tenant) but
+        # FractionalPaymentLedger.school is NOT NULL, and both clearance readers
+        # are school-scoped — so a school-less row is unwritable AND could never
+        # be read back. Tenant enrollment-clearance simply does not apply there.
+        if inv.school_id is not None:
+            from apps.finance.fractional_ledger_services import post_partial_payment
+            from apps.finance.models_fractional_ledger import FractionalPaymentLedger
+
+            post_partial_payment(
+                school=inv.school,
+                invoice=inv,
+                amount=intent.amount,
+                source=FractionalPaymentLedger.Source.CASH_COUNTER,
+                idempotency_key=f"offline-intent-{intent.pk}",
+                student=inv.student,
+                note=f"Bursar-approved offline intent {intent.pk}",
+            )
+
     return payment

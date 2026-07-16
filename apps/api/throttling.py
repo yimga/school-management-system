@@ -67,6 +67,19 @@ API_PUBLIC_READ_RATE = "60/min"
 #: low; a publisher submitting hundreds of draft apps a minute is abuse.
 API_SUBMISSION_RATE = "30/min"
 
+#: Global BACKSTOP rates. These are not this API's real budget — the scoped
+#: rates above are. They exist because ``DEFAULT_THROTTLE_CLASSES`` previously
+#: held only the Migration Cloud path-scoped throttle, whose ``allow_request``
+#: returns True for any path outside ``/migration/api/v1/``. The net effect: a
+#: DRF view that forgot to declare ``throttle_classes`` was completely
+#: UNTHROTTLED while the settings block looked like it had a blanket throttle.
+#: These are deliberately generous — high enough that no legitimate caller ever
+#: notices, low enough to blunt a runaway loop or a scripted abuser. A view with
+#: explicit ``throttle_classes`` overrides these entirely (DRF replaces, not
+#: merges), so the tighter scoped budgets above are never loosened by them.
+API_BACKSTOP_USER_RATE = "1200/min"
+API_BACKSTOP_ANON_RATE = "120/min"
+
 #: Fraction of the rate at which the soft-warn header starts being emitted.
 SOFT_WARN_FRACTION = 0.80
 
@@ -253,6 +266,30 @@ class ApiSubmissionThrottle(_ApiScopedThrottleBase):
 
     scope = "api-v1-submission"
     rate = API_SUBMISSION_RATE
+
+
+class DefaultBackstopUserThrottle(_ApiScopedThrottleBase):
+    """Global backstop for AUTHENTICATED DRF views with no explicit throttle.
+
+    Paired with :class:`DefaultBackstopAnonThrottle` in
+    ``settings.REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"]``. ``auth_only`` keeps
+    the two from double-counting the same request.
+    """
+
+    scope = "rmc-backstop-user"
+    rate = API_BACKSTOP_USER_RATE
+    auth_only = True
+
+
+class DefaultBackstopAnonThrottle(_ApiScopedThrottleBase):
+    """Global backstop for ANONYMOUS DRF traffic (per client IP, per tenant).
+
+    The open abuse surface, so a tighter budget than the authenticated backstop.
+    """
+
+    scope = "rmc-backstop-anon"
+    rate = API_BACKSTOP_ANON_RATE
+    anon_only = True
 
 
 class ApiSoftWarnHeaderMixin:

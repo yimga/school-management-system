@@ -1,6 +1,9 @@
-# Render Blueprint: Web Service + PostgreSQL + Valkey (cache/sessions).
-# Worker + Beat are present but COMMENTED OUT (no-worker, cost-minimal default —
-# background tasks run eager/inline). See the worker section to enable them.
+# Render Blueprint: Web Service + Worker + Beat + PostgreSQL + Valkey (cache/sessions).
+# Worker + Beat are DEFINED AND ENABLED below (see the worker section at
+# "WORKER + BEAT — enabled"); ~$7/mo each on Render starter. They are paired with
+# CELERY_BROKER_URL on web — with the broker set, tasks run on the worker rather
+# than eager/inline. To run the cost-minimal no-worker topology instead, remove
+# (or comment out) those two services AND leave CELERY_BROKER_URL unset.
 # Outbound mail: set EMAIL_HOST_USER + EMAIL_HOST_PASSWORD on WEB *and* WORKER (see docs/RENDER_EMAIL_SETUP.md).
 # Recommended free SMTP: Brevo — smtp-relay.brevo.com:587 (≈300 emails/day).
 #
@@ -24,6 +27,13 @@ services:
     startCommand: "bash ./scripts/release/render_start_web.sh"
     healthCheckPath: /health/
     envVars:
+      # Error + performance monitoring (Sentry / self-hosted GlitchTip).
+      # settings.py initialises ONLY `if SENTRY_DSN`, so leaving this unset
+      # silently disables monitoring — declare it here so Render prompts for the
+      # value at blueprint apply. Must also be set on the worker + beat services
+      # below (each service gets its own env). Leave blank to disable.
+      - key: SENTRY_DSN
+        sync: false
       - key: DATABASE_URL
         fromDatabase:
           name: school-management-db
@@ -150,8 +160,9 @@ services:
       # REDIS_URL wires a Render Key Value (Valkey, the open-source Redis fork).
       # When set it backs the CACHE + cache-SESSIONS only (moving sessions off
       # Postgres) — it does NOT auto-enable the task broker. Safe to set even
-      # without a worker; tasks keep running inline (eager). This is the
-      # cost-minimal default topology: web + Valkey + Postgres, NO worker.
+      # without a worker; without a broker tasks keep running inline (eager).
+      # NOTE: this blueprint DOES define a worker + beat (see below), so the
+      # deployed topology is web + worker + beat + Valkey + Postgres.
       - key: REDIS_URL
         fromService:
           type: redis
@@ -268,6 +279,13 @@ services:
     envVars:
       - key: DEBUG
         value: "0"
+      # Error monitoring. MUST be declared on the worker too, not just web:
+      # settings.py only initialises Sentry `if SENTRY_DSN`, so an unset value
+      # fails SILENTLY (no init, no warning) and every background-task error
+      # becomes invisible — the CeleryIntegration is dead weight without it.
+      # sync: false => Render prompts for the value; leave unset to disable.
+      - key: SENTRY_DSN
+        sync: false
       - key: PYTHON_VERSION
         value: "3.12.3"
       # OCR for scanned PDFs — default OFF. Must MATCH the web service (set both
@@ -354,6 +372,9 @@ services:
     envVars:
       - key: DEBUG
         value: "0"
+      # See the worker's SENTRY_DSN note — beat needs its own declaration too.
+      - key: SENTRY_DSN
+        sync: false
       - key: PYTHON_VERSION
         value: "3.12.3"
       - key: DJANGO_SETTINGS_MODULE

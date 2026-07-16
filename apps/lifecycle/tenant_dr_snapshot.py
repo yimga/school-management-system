@@ -1,10 +1,27 @@
-"""Compile, sign, and persist daily tenant immutable snapshots.
+"""Compile, encrypt, sign, and persist daily tenant immutable snapshots.
 
-A snapshot is a gzip-compressed, HMAC-SHA256-signed JSON document. The signing
-key is derived from ``SECRET_KEY`` mixed with the school id, so a blob is bound
-to both the platform secret and the owning tenant. ``restore_from_snapshot``
-verifies the signature *before* parsing or materializing anything (fail closed
-on tamper).
+A snapshot is a gzip-compressed, Fernet-ENCRYPTED, HMAC-SHA256-signed JSON
+document. Both the encryption key and the signing key are derived from
+``SECRET_KEY`` mixed with the school id (under distinct domain-separation
+labels, so the confidentiality key is never the same bytes as the integrity
+key), binding a blob to both the platform secret and the owning tenant.
+``restore_from_snapshot`` verifies the signature *before* decrypting, parsing,
+or materializing anything (fail closed on tamper).
+
+Why encryption and not just the signature: an HMAC proves integrity and
+authenticity but gives ZERO confidentiality. The payload carries the tenant's
+whole config core — student and teacher PII, the finance ledger, and
+``accounts.User`` rows whose password HASHES are captured verbatim (see the
+restorable scope below). Left as plain gzip, anyone able to read
+``var/tenant_snapshots/`` or the optional ``TENANT_SNAPSHOT_S3_BUCKET`` could
+``gzip.decompress`` the lot. The blob is now ciphertext at rest in every store.
+
+Order is encrypt-then-MAC: the signature covers the CIPHERTEXT (the bytes
+actually stored), so a tampered blob is rejected before any decryption is
+attempted. Snapshots written before encryption landed are raw gzip and remain
+restorable — ``_decrypt_blob`` passes a gzip-magic blob through unchanged. That
+is not a downgrade vector: the HMAC is verified first, and an attacker cannot
+forge it without ``SECRET_KEY``.
 
 Payload contract (``schema_version`` "2.1"):
 
@@ -53,6 +70,7 @@ are no-ops), so reading legacy blobs stays backward-compatible.
 
 from __future__ import annotations
 
+import base64
 import gzip
 import hashlib
 import hmac
@@ -267,6 +285,56 @@ def _signing_key(school_id: str) -> bytes:
     return hashlib.sha256(material).digest()
 
 
+def _encryption_key(school_id: str) -> bytes:
+    """Fernet key bound to the platform secret AND the owning tenant.
+
+    Derived exactly like ``_signing_key`` but under a DISTINCT domain-separation
+    label, so the confidentiality key is never the same bytes as the integrity
+    key (reusing one key for both HMAC and encryption is a classic footgun).
+    Fernet wants 32 url-safe-base64 bytes, which is what a base64'd sha256
+    digest is.
+    """
+    material = (
+        str(getattr(settings, "SECRET_KEY", "") or "")
+        + ":tenant-snapshot-encryption:"
+        + str(school_id)
+    ).encode("utf-8")
+    return base64.urlsafe_b64encode(hashlib.sha256(material).digest())
+
+
+# gzip's two magic bytes. A stored blob starting with these is a pre-encryption
+# (legacy) snapshot rather than a Fernet token.
+_GZIP_MAGIC = b"\x1f\x8b"
+
+
+def encrypt_blob(compressed: bytes, *, school_id: str) -> bytes:
+    """Fernet-encrypt a compressed snapshot payload (AES-CBC + HMAC under the hood)."""
+    from cryptography.fernet import Fernet
+
+    return Fernet(_encryption_key(school_id)).encrypt(compressed)
+
+
+def decrypt_blob(data: bytes, *, school_id: str) -> bytes:
+    """Decrypt a stored snapshot blob back to its gzip bytes.
+
+    A legacy (pre-encryption) snapshot is raw gzip and is passed through
+    unchanged so existing backups stay restorable — a DR system that cannot read
+    its own history is worse than one that was late to encrypt. This is NOT a
+    downgrade vector: callers verify the HMAC over these exact stored bytes
+    BEFORE calling here, and an attacker cannot forge that signature without
+    ``SECRET_KEY``.
+    """
+    if data[:2] == _GZIP_MAGIC:
+        return data
+    from cryptography.fernet import Fernet, InvalidToken
+
+    try:
+        return Fernet(_encryption_key(school_id)).decrypt(data)
+    except InvalidToken as exc:
+        # Wrong tenant key / wrong SECRET_KEY / corruption — fail closed.
+        raise ValueError("snapshot_decrypt_failed") from exc
+
+
 def sign_payload(payload_bytes: bytes, *, school_id: str) -> str:
     return hmac.new(_signing_key(school_id), payload_bytes, hashlib.sha256).hexdigest()
 
@@ -419,21 +487,25 @@ def _maybe_upload_object_storage(*, local_path: Path, object_key: str) -> str | 
 
 
 def capture_daily_snapshot(school, *, snapshot_date: date | None = None) -> dict[str, Any]:
-    """Write gzip JSON to primary + secondary stores; persist metadata row."""
+    """Write encrypted+signed JSON to primary + secondary stores; persist metadata row."""
     from apps.lifecycle.models_dr_snapshot import TenantImmutableSnapshot
 
     day = snapshot_date or datetime.now(timezone.utc).date()
     payload = compile_snapshot_payload(school)
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     compressed = gzip.compress(raw)
-    digest = hashlib.sha256(compressed).hexdigest()
-    sig = sign_payload(compressed, school_id=str(school.pk))
+    # Encrypt-then-MAC: the tenant PII / password hashes / ledger never touch a
+    # disk or an S3 bucket as plaintext, and the signature covers the CIPHERTEXT
+    # (the bytes actually stored) so tamper is caught before any decryption.
+    stored = encrypt_blob(compressed, school_id=str(school.pk))
+    digest = hashlib.sha256(stored).hexdigest()
+    sig = sign_payload(stored, school_id=str(school.pk))
 
     primary_root, secondary_root = _snapshot_roots()
     fname = f"{getattr(school, 'slug', school.pk)}_{day.isoformat()}.json.gz"
     primary_path = primary_root / fname
     secondary_path = secondary_root / fname
-    primary_path.write_bytes(compressed)
+    primary_path.write_bytes(stored)
     shutil.copy2(primary_path, secondary_path)
     s3_uri = _maybe_upload_object_storage(
         local_path=secondary_path,
@@ -448,14 +520,14 @@ def capture_daily_snapshot(school, *, snapshot_date: date | None = None) -> dict
             "secondary_uri": s3_uri or secondary_path.as_posix(),
             "payload_sha256": digest,
             "signature_hex": sig,
-            "byte_size": len(compressed),
+            "byte_size": len(stored),
         },
     )
     return {
         "snapshot_id": str(row.pk),
         "school_id": str(school.pk),
         "snapshot_date": day.isoformat(),
-        "byte_size": len(compressed),
+        "byte_size": len(stored),
         "payload_sha256": digest,
         "signature_hex": sig,
         "primary_uri": row.primary_uri,
@@ -469,11 +541,15 @@ def load_snapshot_payload(path: Path, *, school_id: str, expected_sig: str) -> d
     This is the read-only half of restore: it raises before any DB write if the
     signature does not match (tamper / wrong key / corruption) or the blob is
     bound to a different school.
+
+    Order matters: verify the HMAC over the stored bytes FIRST, then decrypt.
+    Never decrypt attacker-controlled bytes you have not authenticated.
     """
     data = path.read_bytes()
     if not verify_signature(data, expected_sig, school_id=school_id):
         raise ValueError("snapshot_signature_mismatch")
-    payload = json.loads(gzip.decompress(data).decode("utf-8"))
+    compressed = decrypt_blob(data, school_id=school_id)
+    payload = json.loads(gzip.decompress(compressed).decode("utf-8"))
     if str(payload.get("school_id")) != str(school_id):
         raise ValueError("snapshot_school_mismatch")
     return payload

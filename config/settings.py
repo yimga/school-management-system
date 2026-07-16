@@ -2954,8 +2954,16 @@ REST_FRAMEWORK = {
     #   * bundles_write   — 600/min   (unsafe HTTP method)
     #   * bundles_read    — 100/min   (safe HTTP method)
     # See ``apps/migration_cloud/api/rate_limiting.py``.
+    # The Migration Cloud throttle is PATH-SCOPED: its allow_request() returns
+    # True for anything outside /migration/api/v1/, so on its own this block only
+    # LOOKED like a blanket throttle — every other DRF view that forgot to declare
+    # throttle_classes was entirely unthrottled. The two backstops below close
+    # that default-open gap (generous rates; a view's own throttle_classes still
+    # overrides them wholesale, so the tighter scoped budgets are unaffected).
     "DEFAULT_THROTTLE_CLASSES": (
         "apps.migration_cloud.api.rate_limiting.MigrationCloudGlobalThrottle",
+        "apps.api.throttling.DefaultBackstopUserThrottle",
+        "apps.api.throttling.DefaultBackstopAnonThrottle",
     ),
 }
 
