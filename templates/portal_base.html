@@ -798,7 +798,7 @@
     {% include "partials/rmc_tour_bootstrap.html" %}
     {% if rmc_fr_tour_show and rmc_fr_tour_context %}
     {% comment %} T17: per-role first-run guided tour. The context processor sets this only on the teacher/parent/student landings for a user who hasn't finished that role's tour; rmc-tour.js reads this config, autostarts once, then POSTs completeUrl to remember it per role so it never re-autostarts. {% endcomment %}
-    <script type="application/json" id="rmc-tour-page-config">{
+    <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-tour-page-config">{
   "autostart": "{{ rmc_fr_tour_context|escapejs }}",
   "completeUrl": "{{ rmc_fr_tour_complete_url|escapejs }}",
   "delayMs": 900
