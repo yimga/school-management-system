@@ -26,9 +26,9 @@ def _guardian_contacts_for_payment(payment) -> list[tuple[str, str]]:
         # guardian_user + student) — a FieldError that was silently swallowed by the
         # except below, so guardian payment-received contacts were NEVER resolved.
         # tenant-isolation-allow: student-guardian-fk-scoped-to-school-via-student
-        links = StudentGuardian.objects.filter(student_id=student.pk).select_related(
-            "guardian_user"
-        )
+        links = StudentGuardian.objects.filter(
+            student_id=student.pk, is_active=True
+        ).select_related("guardian_user")
         for link in links:
             user = getattr(link, "guardian_user", None)
             # Prefer the link's own contact columns; fall back to the user email.

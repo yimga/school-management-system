@@ -578,6 +578,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                 guardians = list(
                     StudentGuardian.objects.filter(  # tenant-isolation-allow: celery-finance-beat-caller-or-region-scoped-reviewed
                         student=invoice.student,
+                        is_active=True,
                         can_view_finance=True,
                         guardian_user__is_active=True,
                     ).select_related("guardian_user", "guardian_user__preferences")

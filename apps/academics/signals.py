@@ -332,6 +332,7 @@ def on_attendance_saved(sender, instance, created, **kwargs):
         student = instance.student
         guardians = StudentGuardian.objects.filter(
             student=student,
+            is_active=True,
             guardian_user__isnull=False,
         ).select_related("guardian_user")
 
@@ -393,6 +394,7 @@ def on_incident_saved(sender, instance, created, **kwargs):
         student = instance.student
         guardians = StudentGuardian.objects.filter(
             student=student,
+            is_active=True,
             guardian_user__isnull=False,
         ).select_related("guardian_user")
 

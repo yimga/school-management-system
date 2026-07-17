@@ -217,7 +217,7 @@ class Command(BaseCommand):
         cutoff_date = cutoff.date()
 
         links = (
-            StudentGuardian.objects.filter(receives_email=True)
+            StudentGuardian.objects.filter(is_active=True, receives_email=True)
             .select_related("guardian_user", "student", "student__school")
         )
         if school_id is not None:

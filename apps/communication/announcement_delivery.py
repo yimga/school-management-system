@@ -87,7 +87,7 @@ def _guardian_users_for_school(school) -> Iterator[Any]:
 
     # tenant-isolation-allow: school-bound-guardian-resolution-reviewed
     links = (
-        StudentGuardian.objects.filter(student__school=school)
+        StudentGuardian.objects.filter(student__school=school, is_active=True)
         .select_related("guardian_user")
         .order_by("guardian_user_id")
     )

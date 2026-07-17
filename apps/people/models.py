@@ -157,6 +157,17 @@ class TeacherProfile(models.Model):
         User, on_delete=models.CASCADE, related_name="teacher_profile"
     )
     is_active = models.BooleanField(default=True)
+    # Duplicate-merge tombstone (Wave C): the retired duplicate points at the
+    # surviving row. Without it the merge engine's idempotency guard
+    # (`_resolve_pair`: refuse if `secondary.merged_into_id`) could never fire
+    # for teachers, so an already-merged teacher could be merged again.
+    merged_into = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="merged_teacher_duplicates",
+    )
     pay_grade = models.CharField(
         max_length=50,
         blank=True,
@@ -791,6 +802,18 @@ class StudentProfile(models.Model):
 Student = StudentProfile
 
 
+class StudentGuardianQuerySet(models.QuerySet):
+    def active(self):
+        """Links that are still live — excludes merge-retired duplicates.
+
+        A guardian-record merge soft-retires the losing link (``is_active=False``
+        + ``merged_into``). Notification recipient builders and access checks
+        call this so a retired duplicate is never notified or granted access a
+        second time; a split/unmerge flips ``is_active`` back.
+        """
+        return self.filter(is_active=True)
+
+
 class StudentGuardian(models.Model):
     """
     Links a Parent user to one or more students.
@@ -832,6 +855,24 @@ class StudentGuardian(models.Model):
     receives_whatsapp = models.BooleanField(default=False)
     can_view_results = models.BooleanField(default=True)
     can_view_finance = models.BooleanField(default=False)
+    # Duplicate-merge tombstone (Wave C / guardian). A guardian-record merge
+    # soft-retires the losing link instead of deleting it — its inbound
+    # financial FKs (InvoicePayerShare CASCADE, ReferralReward PROTECT) are
+    # re-pointed onto the surviving link first, then this row is retired.
+    # Reads that notify or grant access use `.active()`; a split/unmerge flips
+    # is_active back. Retiring was previously a NO-OP (this model had neither
+    # field) while the merge FSM still reported APPLIED, so the duplicate stayed
+    # live and the guardian was notified twice.
+    is_active = models.BooleanField(default=True)
+    merged_into = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="merged_guardian_duplicates",
+    )
+
+    objects = StudentGuardianQuerySet.as_manager()
 
     class Meta:
         unique_together = ("guardian_user", "student")

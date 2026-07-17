@@ -31,6 +31,7 @@ def _guardians_with_finance_access(invoice: Invoice):
     return list(
         StudentGuardian.objects.filter(
             student=invoice.student,
+            is_active=True,
             can_view_finance=True,
             guardian_user__isnull=False,
             guardian_user__is_active=True,

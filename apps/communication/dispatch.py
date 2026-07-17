@@ -144,7 +144,7 @@ def _guardian_link_for(recipient: Any) -> Any:
     if recipient is None or not getattr(recipient, "pk", None):
         return None
     try:
-        return getattr(recipient, "guardian_links", None) and recipient.guardian_links.first()
+        return getattr(recipient, "guardian_links", None) and recipient.guardian_links.filter(is_active=True).first()
     except Exception:  # broad-by-design — guardian lookup never breaks the send
         logger.debug("guardian link lookup failed", exc_info=True)
         return None

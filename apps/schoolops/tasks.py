@@ -45,7 +45,7 @@ def _resolve_guardian_locale(student) -> str:
     """
     try:
         # tenant-isolation-allow: guardian-link-row-scoped-via-student-fk-already-tenant-bound
-        links = student.guardian_links.filter(receives_email=True)
+        links = student.guardian_links.filter(is_active=True, receives_email=True)
     except Exception:  # noqa: BLE001
         return "en"
     for link in links:
@@ -74,7 +74,7 @@ def _resolve_guardian_emails(student) -> list[str]:
     """
     try:
         # tenant-isolation-allow: guardian-link-row-scoped-via-student-fk-already-tenant-bound
-        links = student.guardian_links.filter(receives_email=True)
+        links = student.guardian_links.filter(is_active=True, receives_email=True)
     except Exception:  # noqa: BLE001
         return []
     out: list[str] = []
@@ -150,7 +150,7 @@ def _maybe_dispatch_sms_short_form(
     try:
         from apps.communication.notification_service import send_sms
         # tenant-isolation-allow: guardian-link-row-scoped-via-student-fk-already-tenant-bound
-        links = student.guardian_links.filter(receives_sms=True)
+        links = student.guardian_links.filter(is_active=True, receives_sms=True)
         any_sent = False
         for link in links:
             phone = (getattr(link, "phone", "") or "").strip()
