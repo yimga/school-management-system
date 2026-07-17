@@ -147,7 +147,21 @@ body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-context-rail {
   }
 }
 
-/* Save actions must never float across fields or cover the visible workbench. */
+/* Save actions must never float across fields or cover the visible workbench.
+   The row also has to LINE UP with the form it belongs to. It is rendered inside
+   {% block footer %} (templates/admin/change_form.html:159), and base.html closes
+   both #content and the .cp-admin-page-body wrapper BEFORE that block — so the row
+   is a SIBLING of the page body, not a child. With width:100% + margin-inline:0 it
+   therefore spans the full lane while the form frame sits inset by the page body's
+   `padding-inline: var(--rmc-django-canvas-gutter)` (rule at the top of this file,
+   which !important-overrides the template's Tailwind px-4). Result: the buttons were
+   ~1rem proud of the fields on both sides at every width.
+   Mirror the gutter here instead of moving the markup — the row must stay in
+   block footer (change_form.html relies on {{ block.super }}, and other admin
+   templates override that block). Use the same token, not a literal: the real inset
+   is clamp(0.75rem, 1.05vw, 1.25rem), so a hardcoded 1rem to "match px-4" would be
+   wrong at nearly every viewport. box-sizing:border-box (Tailwind preflight) keeps
+   width:100% intact while insetting the content. Fallback mirrors line ~509's form. */
 body:is(.admin-manager-shell, .admin-premium-shell).change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"],
 body:is(.admin-manager-shell, .admin-premium-shell).change-form .submit-row {
   position: static !important;
@@ -155,6 +169,7 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-form .submit-row {
   width: 100% !important;
   max-width: none !important;
   margin-inline: 0 !important;
+  padding-inline: var(--rmc-django-canvas-gutter, clamp(0.75rem, 1.05vw, 1.25rem)) !important;
   margin-top: var(--rmc-django-panel-gap) !important;
 }
 
