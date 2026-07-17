@@ -154,7 +154,7 @@ def compliance_export_download_view(
         return redirect("siteconfig:compliance_exports")
 
     result = cx.generate_regional_compliance_export(
-        export_key, school, request.user, params=params
+        export_key, school, request.user, params=params, request=request
     )
     if not result.get("ok"):
         for m in result.get("missing") or [result.get("message") or "Blocked."]:

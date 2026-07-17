@@ -349,6 +349,7 @@ def generate_regional_compliance_export(
     school,
     user,
     params: dict | None = None,
+    request=None,
 ) -> dict[str, Any]:
     """
     Generate downloadable artifact or return a structured blocked payload.
@@ -363,9 +364,19 @@ def generate_regional_compliance_export(
     from apps.compliance.cross_border_export import cross_border_export_blocked
     from apps.compliance.export_destination import resolve_export_destination_region
 
+    # `user._request` is set nowhere in this codebase, so this always resolved
+    # to None and the destination fell back to the school's own region -- the
+    # gate then compared that region to itself and could never block. The
+    # resolver no longer takes `school`; an unknown destination stays unknown
+    # and the gate decides (strict_unknown_regions).
+    # `request` is threaded in from the view. It used to be dug out of
+    # `user._request`, which nothing in this codebase sets, so it was always
+    # None and the destination fell back to the school's OWN region -- the gate
+    # then compared that region to itself and could never block. The resolver
+    # no longer accepts `school`: an unknown destination stays unknown, and the
+    # gate decides what that means (strict_unknown_regions).
     dest_region = resolve_export_destination_region(
-        school=school,
-        request=getattr(user, "_request", None) if user is not None else None,
+        request=request,
         params=params,
     )
     blocked_cb, cb_message = cross_border_export_blocked(
