@@ -421,7 +421,6 @@ MIDDLEWARE = [
     "apps.schools.middleware_enterprise_security.EnterpriseSuperHttpAuditMiddleware",  # optional: ENTERPRISE_SUPER_HTTP_AUDIT=1
     "apps.schools.middleware.FeatureGatekeeperMiddleware",  # Phase D: enforce plan feature by path
     "apps.finance.subscription_gate.FinanceSubscriptionGateMiddleware",  # SFDP 1426: 402 on finance writes when billing inactive
-    "apps.schools.middleware.UsageLimitMiddleware",  # Phase D (optional, on by default): Plan max_students/max_staff; set DISABLE_USAGE_LIMIT_MIDDLEWARE=1 to turn off
 ]
 MIDDLEWARE += [
     "apps.compliance.middleware.ComplianceGuardMiddleware",  # Phase Compliance: region → feature_code RESTRICTED/DISABLED
@@ -4078,7 +4077,6 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         # The finance gate was absent here, so SUBSCRIPTION_GATE_MATRIX.md documented
         # a 402 that never fired in prod. test_middleware_topology_parity locks this.
         "apps.finance.subscription_gate.FinanceSubscriptionGateMiddleware",
-        "apps.schools.middleware.UsageLimitMiddleware",
         "django_otp.middleware.OTPMiddleware",
         "django.contrib.messages.middleware.MessageMiddleware",
         "apps.siteconfig.middleware.MaintenanceModeMiddleware",

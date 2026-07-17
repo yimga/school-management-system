@@ -4,9 +4,11 @@ Phase D: Tests for Plan model, is_feature_enabled (plan + addons), and Feature G
 
 import json
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory, tag
 from django.http import HttpResponse
 
+from apps.people.models import StudentProfile
 from apps.schools.models import (
     School,
     is_feature_enabled,
@@ -48,11 +50,22 @@ class PlanModelTests(TestCase):
 
 @tag("tenants_rls")
 class UsageLimitMiddlewareTests(TestCase):
-    def test_max_students_limit_blocks_when_at_cap(self):
-        from apps.people.models import StudentProfile
-        from apps.schools.middleware import UsageLimitMiddleware
+    """Plan usage caps. Kept under the historical class name because
+    ``apps.security.tests.test_tenant_breach_scenarios`` asserts this suite
+    exists -- that guard's intent (plan limits must stay covered) survives the
+    move; only the layer changed.
 
-        factory = RequestFactory()
+    REQUIREMENT CHANGED 2026-07-17 (owner decision), so these assertions did
+    too. Phase D enforced the cap in ``UsageLimitMiddleware.process_request``,
+    which 403'd EVERY request once a school hit its limit -- the school could
+    not take attendance, open a report card, or collect a franc. The cap now
+    refuses the enrolment that would exceed it and leaves the school running,
+    which is also what keeps our own fee take-rate reachable. The middleware is
+    gone; the cap lives at the creation chokepoint in
+    ``apps.schools.plan_limits``.
+    """
+
+    def _capped_school(self):
         with rls_bypass():
             plan = Plan.objects.create(
                 name="Seat capped",
@@ -74,15 +87,38 @@ class UsageLimitMiddlewareTests(TestCase):
                 last_name="Cap",
                 student_code="CAP-001",
             )
-        request = factory.get("/api/students/", HTTP_ACCEPT="application/json")
-        request.school = school
-        middleware = UsageLimitMiddleware(lambda r: HttpResponse("ok"))
+        return school
 
+    def test_max_students_limit_blocks_when_at_cap(self):
+        """The enrolment over the cap is refused."""
+        school = self._capped_school()
+        with rls_school(school.id), self.assertRaises(ValidationError) as ctx:
+            StudentProfile.objects.create(
+                school=school,
+                first_name="Over",
+                last_name="Cap",
+                student_code="CAP-002",
+            )
+        self.assertIn("limit", str(ctx.exception).lower())
+
+    def test_being_at_the_cap_does_not_block_the_school(self):
+        """The regression this change exists to prevent.
+
+        A school at its cap must still be able to read and work. Blocking the
+        product blocks the school's operations AND its fee collection, i.e. our
+        own revenue -- a bricked school cannot reach checkout.
+        """
+        school = self._capped_school()
         with rls_school(school.id):
-            response = middleware.process_request(request)
-
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(json.loads(response.content)["limit"], "max_students")
+            self.assertEqual(
+                StudentProfile.objects.filter(school=school).count(), 1,
+                "reading the roster must work at the cap",
+            )
+            existing = StudentProfile.objects.filter(school=school).first()
+            existing.first_name = "Renamed"
+            existing.save()  # an UPDATE is not a new enrolment
+            existing.refresh_from_db()
+            self.assertEqual(existing.first_name, "Renamed")
 
 
 class IsFeatureEnabledTests(TestCase):

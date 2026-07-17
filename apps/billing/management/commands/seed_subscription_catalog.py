@@ -14,8 +14,17 @@ PLAN_CATALOG = (
         "slug": "free-starter",
         "name": "Free Starter",
         "base_price": "0.00",
-        "max_students": 50,
-        "max_staff": 5,
+        # Deliberately UNCAPPED on size. This is the plan every new tenant binds
+        # to (is_default), so any number here is a fuse on the whole school: a
+        # school's size is fixed by its building, so it cannot grow into a plan
+        # the way a store grows sales -- a cap either locks it out on day one or
+        # never binds. At the previous 50 students / 5 staff, Free was a demo,
+        # not a product: real schools run 300-1000 students and 20-40 staff.
+        # Free core is monetised by the share of fees collected through the
+        # platform, not by the school's size, so the free tier is bounded by
+        # FEATURES (below) instead.
+        "max_students": None,
+        "max_staff": None,
         "is_default": True,
         "features": ["attendance", "student_records", "parent_portal", "basic_reports"],
     },

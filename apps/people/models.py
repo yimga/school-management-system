@@ -228,6 +228,12 @@ class TeacherProfile(models.Model):
         return self.default_dashboard_view or self.DashboardView.OVERVIEW
 
     def save(self, *args, **kwargs):
+        # A plan's staff cap refuses THIS hire, not the school's whole day.
+        from apps.schools.plan_limits import enforce_enrolment_cap
+
+        enforce_enrolment_cap(
+            self, cap_field="max_staff", model=TeacherProfile, label="staff"
+        )
         # Only auto-adjust if a specific default hasn't been chosen yet.
         if (
             self.position_title
@@ -710,6 +716,13 @@ class StudentProfile(models.Model):
         return f"{yy}{school_code}{seq_str}{spec_segment}{class_segment}"
 
     def save(self, *args, **kwargs):
+        # A plan's student cap refuses THIS enrolment, not the school's whole
+        # day: attendance, report cards and fee collection keep working.
+        from apps.schools.plan_limits import enforce_enrolment_cap
+
+        enforce_enrolment_cap(
+            self, cap_field="max_students", model=StudentProfile, label="student"
+        )
         # Auto-generate admission number when not provided, from policy (admission_number_mode).
         if (
             getattr(self, "academic_year_id", None)
