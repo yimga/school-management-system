@@ -89,8 +89,12 @@
 {% if PRIMARY_CONTROL_PLANE_NAV and not is_manager_host %}
 {% include "partials/control_plane_primary_nav.html" %}
 {% endif %}
+{% comment %} Intelligent admin index owns its command band + catalog; the Feature Control
+   operator strip belongs on model pages / CCC, not as empty chrome above the index void. {% endcomment %}
 {% if PRIMARY_CONTROL_PLANE_NAV and not is_manager_host %}
+{% if request.resolver_match.url_name|default:"" != "index" %}
 <div class="px-3 pb-2">
   {% operator_console_strip %}
 </div>
+{% endif %}
 {% endif %}

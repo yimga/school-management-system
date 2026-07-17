@@ -1,5 +1,61 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Tenant blueprint Option A chrome (batch 1757 - 2026-07-17)
+
+**A. Scope:** Replace the stacked prose wall between School Blueprint Setup title and the blueprint workbench with Option A compact command chrome (design preview).
+
+**B. Shipped:** `hide_nav_detail` on operational frame; `tenant_blueprint_option_a_strip.html` (3 metrics + one stepper); drop duplicate apple workflow path; humanized result banner; `rmc-tenant-blueprint-option-a.css`; SW `sms-v4.05.130`.
+
+**C. Proof:** `test_governed_installation_ux_flow` + `test_tenant_school_experience_redesign` OK; template compile OK.
+
+**D. Honest:** Live render on new-school.runmycampus.com needs deploy/refresh.
+
+**E. Files:** `tenant_blueprint_setup.html`, `tenant_blueprint_option_a_strip.html`, `rmc_operational_center_frame.html`, Option A CSS, audit + UX tests, `service-worker.js`.
+
+**F. Next:** Hard-refresh `/school/setup/blueprints/` to confirm chrome.
+
+## Slice — Django admin residual closure (batch 1756 - 2026-07-17)
+
+**A. Scope:** Close batch 1755 honest residuals — Form/Preview/Audit toggle, changelist context rail, live screenshot soft harness.
+
+**B. Shipped:** Command-band view toggle + Preview/Audit mode panels; changelist two-pane context rail; `verify_django_admin_canvas_live.py` soft/strict; cache `20260717-residual-closure`; SW `sms-v4.05.129`.
+
+**C. Proof:** `audit_django_admin_canvas_contract.py` PASS; platformwide PASS; scroll PASS; template compile PASS; `verify_django_admin_canvas_live.py` → **DJANGO_ADMIN_CANVAS_LIVE_SOFT_PASS**.
+
+**D. Honest:** Full live screenshots (`DJANGO_ADMIN_CANVAS_LIVE_PASS` / `--strict`) still need healthy Django + admin login.
+
+**E. Files:** `change_form.html`, `change_list.html`, mode/rail includes, `rmc-admin-workspace.js`, canvas CSS, `base_site.html`, live verifier, audit scripts, `service-worker.js`.
+
+**F. Next:** Run `--strict` when local DB/server is healthy for screenshot artifacts under `artifacts/django-admin-canvas-live/`.
+
+## Slice — Django admin second-audit closure (batch 1755 - 2026-07-17)
+
+**A. Scope:** Second deep audit vs intelligent-revamp preview; close high-severity gaps the first pass missed.
+
+**B. Shipped:** Save row inside workbench; disable floating FAB on Django admin; CountryRegistry drawer preview; restore desktop two-pane CSS; skip decision banner on index; operator index + app_index command bands; cache `20260717-second-audit`; SW `sms-v4.05.128`.
+
+**C. Proof:** `audit_django_admin_canvas_contract.py` PASS; platformwide PASS; scroll PASS; template compile PASS.
+
+**D. Honest:** Residuals closed in batch **1756**.
+
+**E. Files:** `change_form.html`, `base.html`, `app_index.html`, `index_superadmin.html`, `countryregistry/change_form.html`, `admin-quickaction.js`, canvas CSS, audit scripts, `base_site.html`, `service-worker.js`.
+
+**F. Next:** Closed by 1756.
+
+## Slice — Django admin intelligent canvas (batch 1754 - 2026-07-17)
+
+**A. Scope:** Audit operator + tenant Django admin vs `django-admin-canvas-intelligent-revamp.html`; fix empty tenant index and canvas chrome so pages are intelligently used.
+
+**B. Shipped:** Tenant intelligent catalog index; skip Feature Control strip on admin index; fix `data-surface=tenant`; canvas CSS index layout + cache bust; audit script extensions; SW `sms-v4.05.127`.
+
+**C. Proof:** `audit_django_admin_canvas_contract.py` PASS; `audit_django_surface_platformwide_contract.py` PASS; `audit_tenant_surface_scroll_contract.py` PASS; `verify_django_admin_canvas_templates_compile.py` PASS.
+
+**D. Honest:** Live Playwright /admin/ screenshots still need a healthy local DB / deploy proof.
+
+**E. Files:** `templates/admin/index_tenant.html`, `index_superadmin.html`, `base_site.html`, `components/admin_nav_bridge.html`, `config/admin.py`, `static/css/rmc-admin-django-canvas-contract.css`, `admin-cp-parity.css`, `rmc-class-grammar.css`, audit scripts, `service-worker.js`.
+
+**F. Next:** Optional live render smoke of `/admin/` + `/admin/auth/user/add/` on operator and tenant hosts when DB is available.
+
 ## Slice — World-class tenant journey 1732–1742 + Pillar E offline-first (2026-06-17)
 
 **A. Scope:** Complete post-1731 program: HTML preview pack, plan Phase 5–7, offline-first readiness cache, launch+7 playbook, lifecycle/year-close strips, flight-deck zero-fail beat, discipline API + MTSS + offline refer queue.

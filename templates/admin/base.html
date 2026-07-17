@@ -107,7 +107,9 @@
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
                             {% if not is_popup and request.user.is_authenticated and not is_manager_host %}
+                                {% if request.resolver_match.url_name|default:"" != "index" %}
                                 {% include "admin/includes/tenant_admin_decision_banner.html" %}
+                                {% endif %}
                                 {% include "admin/includes/admin_operator_outcome_deck.html" %}
                             {% endif %}
                             {% block object-tools %}{% endblock %}

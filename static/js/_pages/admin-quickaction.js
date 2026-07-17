@@ -24,6 +24,15 @@
     if (document.documentElement.getAttribute(MOUNTED) === "1") return;
     document.documentElement.setAttribute(MOUNTED, "1");
 
+    /* Intelligent Django canvas contract: static save row only — never a floating FAB overlay. */
+    if (
+      document.querySelector('[data-rmc-django-workspace="change-form"]') ||
+      document.querySelector('[data-rmc-admin-canvas-contract="intelligent-full-width"]') ||
+      document.querySelector('[data-rmc-shell-root="django-admin"]')
+    ) {
+      return;
+    }
+
     var primaryRow = document.querySelector('[data-rmc-admin-submit-row-primary="1"]');
     if (!primaryRow) return;
 

@@ -9,6 +9,7 @@
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-blueprint-option-a.css' %}?v=20260717-option-a">
 {% endblock %}
 
 {% block backend_page %}
@@ -17,20 +18,35 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="container-fluid py-3" data-rmc-tenant-blueprint-setup="{{ page_marker }}" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-apple-class-tenant-school-admin="1">
+<main class="container-fluid py-3" data-rmc-tenant-blueprint-setup="{{ page_marker }}" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-apple-class-tenant-school-admin="1" data-rmc-blueprint-canvas="option-a">
   {% url 'school_configuration_center' as wcx_school_settings_url %}
-  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" os_center_key="tenant_blueprint_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_school_settings_url primary_label=_("School configuration center") secondary_url="/school/setup/packs/" secondary_label=_("Setup packs") %}
-  {% include "components/world_class_guided_stepper.html" %}
-  {% include "components/apple_class_visual_workflow_path.html" with path_id="tenant-blueprint-flow" title=_("Tenant Blueprint Flow") %}
+  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" hide_nav_detail="1" os_center_key="tenant_blueprint_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_school_settings_url primary_label=_("School configuration center") secondary_url="/school/setup/packs/" secondary_label=_("Setup packs") jump_a_id="rmc-bp-recommended" jump_a_label=_("Blueprints") jump_b_id="rmc-bp-preview" jump_b_label=_("Preview") %}
+
+  {% include "components/tenant_blueprint_option_a_strip.html" %}
+
   {% if result %}
-  <div data-rmc-scroll-policy="paginate" class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}">{{ result }}</div>
+  <div class="rmc-bp-result {% if result.ok %}rmc-bp-result--ok{% else %}rmc-bp-result--warn{% endif %}" data-rmc-blueprint-result="1" role="status">
+    {% if result.ok %}
+      {% if result.change_request_id %}
+        <strong>{% trans "Approval requested" %}</strong>
+        <span>{% blocktrans with id=result.change_request_id status=result.status %}Change request #{{ id }} is {{ status }}. Platform governance will review before apply.{% endblocktrans %}</span>
+      {% else %}
+        <strong>{% trans "Blueprint applied" %}</strong>
+        <span>{% trans "Tenant-scoped changes are live for this school only." %}</span>
+      {% endif %}
+    {% else %}
+      <strong>{% trans "Could not finish apply" %}</strong>
+      <span>{{ result.message|default:result.error|default:_("Resolve blockers and try again.") }}</span>
+    {% endif %}
+  </div>
   {% endif %}
-  <div class="row g-3 rmc-reveal-stagger">
-    <div class="col-lg-6 rmc-reveal">
+
+  <div class="row g-3 rmc-reveal-stagger" data-rmc-bounded-work-zone="tenant-blueprint-setup">
+    <div class="col-lg-6 rmc-reveal" id="rmc-bp-recommended" data-rmc-section-anchor>
       <div class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-world-class-tenant-card="1"><div class="card-body">
         <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
           <div>
-            <h1 class="h5 mb-1">{% trans "Recommended blueprints" %}</h1>
+            <h2 class="h5 mb-1">{% trans "Recommended blueprints" %}</h2>
             <p class="small text-muted mb-0">{% trans "Choose a tenant-safe school model, preview the changes, then apply it inside this school only." %}</p>
           </div>
           <span class="rmc-badge rmc-badge--success">{% trans "Tenant scoped" %}</span>
@@ -62,7 +78,7 @@
         {% endfor %}</ul>
       </div></div>
     </div>
-    <div class="col-lg-6 rmc-reveal">
+    <div class="col-lg-6 rmc-reveal" id="rmc-bp-preview" data-rmc-section-anchor>
       <div class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-world-class-tenant-card="1"><div class="card-body">
         <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
           <div>

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
 from django.test import Client, TestCase, override_settings
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
-from apps.platform_runtime.blueprint_contract import list_blueprints
+from apps.platform_runtime.blueprint_contract import get_blueprint, list_blueprints
 from apps.platform_runtime.blueprint_preview import preview_blueprint
 from apps.platform_runtime.models import BlueprintInstallation
 from apps.schools.models import School
@@ -145,7 +147,7 @@ class TenantBlueprintSetupTests(TestCase):
 
         self.assertEqual(missing, {})
 
-    def test_blocked_blueprint_state_explains_reason(self):
+    def test_ready_blueprint_state_shows_apply(self):
         client = self._admin_client()
 
         response = client.get("/school/setup/blueprints/?blueprint=private-primary-school&preview=1")
@@ -155,3 +157,25 @@ class TenantBlueprintSetupTests(TestCase):
         self.assertIn("Ready to apply", body)
         self.assertIn("Apply tenant blueprint", body)
         self.assertNotIn("Resolve blockers before apply", body)
+
+    def test_blocked_blueprint_state_explains_reason(self):
+        # Force a tenant-safe blueprint into preview_ready so the UI must explain
+        # why Apply is disabled (not a silent empty-conflict block).
+        client = self._admin_client()
+        original = get_blueprint("private-primary-school")
+        blocked = replace(original, status="preview_ready")
+
+        with patch(
+            "apps.platform_runtime.blueprint_preview.get_blueprint_or_raise",
+            return_value=blocked,
+        ):
+            response = client.get(
+                "/school/setup/blueprints/?blueprint=private-primary-school&preview=1"
+            )
+
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn("Blocked", body)
+        self.assertIn("Resolve blockers before apply", body)
+        self.assertIn("Blueprint status is preview_ready.", body)
+        self.assertNotIn("Ready to apply", body)

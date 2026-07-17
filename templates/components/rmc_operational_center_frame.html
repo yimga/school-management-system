@@ -47,7 +47,7 @@
     </nav>
     {% endif %}
   </div>
-  {% if nav_groups %}
+  {% if nav_groups and not hide_nav_detail %}
   <div class="rmc-ops-nav-detail" data-rmc-ops-nav-grid="1" data-apple-class-configuration-groups="operating-models runtime-governance trust-money">
     {% for group in nav_groups %}
     <article class="rmc-ops-nav-detail__card" data-rmc-ops-nav-card="{{ group.key|default:forloop.counter }}">

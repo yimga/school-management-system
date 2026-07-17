@@ -1,0 +1,174 @@
+/**
+ * Tenant Blueprint Setup — Option A command strip
+ * Matches design preview: open with work, compact metrics, one flow path.
+ * Semantic tokens only.
+ */
+
+.rmc-bp-option-a {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0.75rem 0 1rem;
+  padding: clamp(0.9rem, 1.4vw, 1.25rem);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 12px);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--school-primary, var(--brand-primary)) 14%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent), color-mix(in srgb, var(--surface-canvas) 96%, transparent));
+  box-shadow: var(--elev-2, none);
+  min-width: 0;
+}
+
+.rmc-bp-option-a__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.rmc-bp-option-a__eyebrow {
+  display: block;
+  color: var(--school-primary, var(--brand-primary));
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.rmc-bp-option-a__title {
+  margin: 0.35rem 0 0;
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.rmc-bp-option-a__lede {
+  margin: 0.4rem 0 0;
+  max-width: 68ch;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.rmc-bp-option-a__tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.65rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  border: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--surface-canvas) 70%, transparent);
+  color: var(--text-primary);
+}
+
+.rmc-bp-option-a__tag--good {
+  background: color-mix(in srgb, var(--brand-success, var(--rmc-wcx-success)) 16%, transparent);
+  color: var(--text-success);
+  border-color: color-mix(in srgb, var(--brand-success, var(--rmc-wcx-success)) 35%, var(--hairline));
+}
+
+.rmc-bp-option-a__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.rmc-bp-option-a__metric {
+  min-width: 0;
+  min-height: 7.5rem;
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 8px);
+  background: color-mix(in srgb, var(--surface-canvas) 55%, transparent);
+}
+
+.rmc-bp-option-a__metric-label {
+  color: var(--text-muted, var(--text-secondary));
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rmc-bp-option-a__metric-title {
+  color: var(--text-primary);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.rmc-bp-option-a__metric-body {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.rmc-bp-option-a__flow {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.rmc-bp-option-a__flow-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+}
+
+.rmc-bp-option-a__flow-label strong {
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.rmc-bp-option-a__flow-label span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.rmc-bp-option-a .rmc-wcx-stepper {
+  margin: 0;
+}
+
+.rmc-bp-result {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-lg, 8px);
+  border: 1px solid var(--hairline);
+}
+
+.rmc-bp-result--ok {
+  background: color-mix(in srgb, var(--brand-success, var(--rmc-wcx-success)) 14%, var(--surface-elevated));
+  border-color: color-mix(in srgb, var(--brand-success, var(--rmc-wcx-success)) 40%, var(--hairline));
+}
+
+.rmc-bp-result--warn {
+  background: color-mix(in srgb, var(--brand-warning, var(--rmc-wcx-warning)) 14%, var(--surface-elevated));
+  border-color: color-mix(in srgb, var(--brand-warning, var(--rmc-wcx-warning)) 40%, var(--hairline));
+}
+
+.rmc-bp-result strong {
+  color: var(--text-primary);
+}
+
+.rmc-bp-result span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .rmc-bp-option-a__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .rmc-bp-option-a__metric {
+    min-height: 0;
+  }
+}

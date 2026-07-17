@@ -2,72 +2,93 @@
 {% load i18n static %}
 
 {% comment %}
-Wave 14 (v3.62.19 — 2026-05-23): side-by-side live preview for the marketing
-voice rich-edit form. Sits in the right-rail panel; updates as the operator
-types in any of the mv_* form fields. Pure CSS + CSP-safe IIFE JS (no eval,
-no innerHTML on operator input — uses textContent).
-
-Renders a stripped-down version of the marketing band so the operator can
-see exactly how their override will look on the public marketing surface
-before clicking Save.
+Live marketing-voice preview as a drawer/popout affordance — does NOT wrap
+{% block content %} (that nested the shared canvas and broke the two-pane contract).
+Preview sits in form_after and opens as a side drawer so the intelligent canvas grid stays intact.
 {% endcomment %}
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'admin/css/rmc-mv-preview.css' %}">
 {% endblock %}
 
-{% block content %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
-
-<div class="rmc-mv-form-with-preview">
-  <div class="rmc-mv-form-with-preview__form">
-    {{ block.super }}
+{% block form_after %}
+{{ block.super }}
+<button type="button" class="rmc-mv-preview-open ghost rmc-django-action rmc-django-action--ghost mb-3" data-rmc-mv-preview-open aria-controls="rmc-mv-preview-drawer" aria-expanded="false">
+  {% trans "Open live preview" %}
+</button>
+<aside id="rmc-mv-preview-drawer" class="rmc-mv-preview-drawer" data-rmc-mv-preview-drawer hidden aria-label="{% trans 'Marketing voice preview' %}">
+  <div class="rmc-mv-preview-drawer__head">
+    <h2 class="rmc-mv-preview__title">{% trans "Live preview" %}</h2>
+    <button type="button" class="rmc-mv-preview-drawer__close" data-rmc-mv-preview-close aria-label="{% trans 'Close preview' %}">×</button>
   </div>
-  <aside class="rmc-mv-form-with-preview__preview" aria-label="{% trans 'Marketing voice preview' %}">
-    <div class="rmc-mv-preview-sticky">
-      <h2 class="rmc-mv-preview__title">{% trans "Live preview" %}</h2>
-      <p class="rmc-mv-preview__hint">{% trans "Updates as you type. This is how the marketing band will render on the public surface for visitors from this country." %}</p>
-      <p class="rmc-mv-preview__hint">
-        <a href="{% url 'siteconfig:region_validation' %}" class="text-primary-600 hover:underline">{% trans "Open region validation" %}</a>
-        &middot;
-        <a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a>
-      </p>
+  <p class="rmc-mv-preview__hint">{% trans "Updates as you type. This is how the marketing band will render on the public surface for visitors from this country." %}</p>
+  <p class="rmc-mv-preview__hint">
+    <a href="{% url 'siteconfig:region_validation' %}" class="text-primary-600 hover:underline">{% trans "Open region validation" %}</a>
+    &middot;
+    <a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a>
+    &middot;
+    <a href="#" data-rmc-mv-preview-popout class="text-primary-600 hover:underline">{% trans "Pop out" %}</a>
+  </p>
 
-      <div class="rmc-mv-preview-band" data-rmc-mv-preview-band>
-        <div class="rmc-mv-preview-band__row">
-          <div class="rmc-mv-preview-band__chip" data-rmc-mv-preview-greeting>—</div>
-          <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--ghost" data-rmc-mv-preview-anchor>—</div>
-        </div>
-        <h3 class="rmc-mv-preview-band__headline" data-rmc-mv-preview-headline>—</h3>
-        <p class="rmc-mv-preview-band__subline" data-rmc-mv-preview-subline>—</p>
-        <div class="rmc-mv-preview-band__trust" data-rmc-mv-preview-trust>—</div>
-        <div class="rmc-mv-preview-band__row">
-          <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--data" data-rmc-mv-preview-currency>—</div>
-          <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--data" data-rmc-mv-preview-calendar>—</div>
-        </div>
-        <p class="rmc-mv-preview-band__regulatory" data-rmc-mv-preview-regulatory>—</p>
-      </div>
-
-      <div class="rmc-mv-preview-chips" data-rmc-mv-preview-chips-empty>
-        <div class="rmc-mv-preview-chips__heading">{% trans "Case-study chips" %}</div>
-        <div class="rmc-mv-preview-chips__list" data-rmc-mv-preview-chips-list>
-          <em class="rmc-mv-preview-empty">{% trans "(no chips yet — add one per line in the form)" %}</em>
-        </div>
-      </div>
-
-      <figure class="rmc-mv-preview-testimonial" data-rmc-mv-preview-testimonial-empty>
-        <blockquote class="rmc-mv-preview-testimonial__quote" data-rmc-mv-preview-testimonial-quote>
-          <em class="rmc-mv-preview-empty">{% trans "(no testimonial yet)" %}</em>
-        </blockquote>
-        <figcaption class="rmc-mv-preview-testimonial__caption">
-          <span class="rmc-mv-preview-testimonial__author" data-rmc-mv-preview-testimonial-author></span>
-          <span class="rmc-mv-preview-testimonial__credential" data-rmc-mv-preview-testimonial-credential></span>
-        </figcaption>
-      </figure>
+  <div class="rmc-mv-preview-band" data-rmc-mv-preview-band>
+    <div class="rmc-mv-preview-band__row">
+      <div class="rmc-mv-preview-band__chip" data-rmc-mv-preview-greeting>—</div>
+      <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--ghost" data-rmc-mv-preview-anchor>—</div>
     </div>
-  </aside>
-</div>
+    <h3 class="rmc-mv-preview-band__headline" data-rmc-mv-preview-headline>—</h3>
+    <p class="rmc-mv-preview-band__subline" data-rmc-mv-preview-subline>—</p>
+    <div class="rmc-mv-preview-band__trust" data-rmc-mv-preview-trust>—</div>
+    <div class="rmc-mv-preview-band__row">
+      <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--data" data-rmc-mv-preview-currency>—</div>
+      <div class="rmc-mv-preview-band__chip rmc-mv-preview-band__chip--data" data-rmc-mv-preview-calendar>—</div>
+    </div>
+    <p class="rmc-mv-preview-band__regulatory" data-rmc-mv-preview-regulatory>—</p>
+  </div>
 
+  <div class="rmc-mv-preview-chips" data-rmc-mv-preview-chips-empty>
+    <div class="rmc-mv-preview-chips__heading">{% trans "Case-study chips" %}</div>
+    <div class="rmc-mv-preview-chips__list" data-rmc-mv-preview-chips-list>
+      <em class="rmc-mv-preview-empty">{% trans "(no chips yet — add one per line in the form)" %}</em>
+    </div>
+  </div>
+
+  <figure class="rmc-mv-preview-testimonial" data-rmc-mv-preview-testimonial-empty>
+    <blockquote class="rmc-mv-preview-testimonial__quote" data-rmc-mv-preview-testimonial-quote>
+      <em class="rmc-mv-preview-empty">{% trans "(no testimonial yet)" %}</em>
+    </blockquote>
+    <figcaption class="rmc-mv-preview-testimonial__caption">
+      <span class="rmc-mv-preview-testimonial__author" data-rmc-mv-preview-testimonial-author></span>
+      <span class="rmc-mv-preview-testimonial__credential" data-rmc-mv-preview-testimonial-credential></span>
+    </figcaption>
+  </figure>
+</aside>
 <script src="{% static 'admin/js/rmc-mv-preview.js' %}" nonce="{{ csp_nonce }}" defer></script>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  function boot() {
+    var drawer = document.querySelector("[data-rmc-mv-preview-drawer]");
+    var openBtn = document.querySelector("[data-rmc-mv-preview-open]");
+    var closeBtn = document.querySelector("[data-rmc-mv-preview-close]");
+    var pop = document.querySelector("[data-rmc-mv-preview-popout]");
+    if (!drawer || !openBtn) return;
+    function setOpen(on) {
+      if (on) drawer.removeAttribute("hidden");
+      else drawer.setAttribute("hidden", "hidden");
+      openBtn.setAttribute("aria-expanded", on ? "true" : "false");
+      document.documentElement.setAttribute("data-rmc-mv-preview-open", on ? "1" : "0");
+    }
+    openBtn.addEventListener("click", function () { setOpen(drawer.hasAttribute("hidden")); });
+    if (closeBtn) closeBtn.addEventListener("click", function () { setOpen(false); });
+    if (pop) pop.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      var w = window.open("", "rmc-mv-preview", "noopener,noreferrer,width=480,height=720");
+      if (!w) return;
+      w.document.write("<!doctype html><title>Preview</title><body>" + drawer.innerHTML + "</body>");
+      w.document.close();
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+</script>
 {% endblock %}

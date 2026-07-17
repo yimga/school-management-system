@@ -44,7 +44,8 @@
     {% if is_manager_host and not is_popup %}
         {% include "admin/includes/admin_changelist_header.html" %}
     {% endif %}
-    <div id="content-main" class="cp-changelist-live rmc-django-workspace rmc-django-table-panel" data-rmc-admin-changelist-live="1" data-rmc-admin-table-contract="native-table-scroll" data-rmc-admin-surface="smart-changelist" data-rmc-django-workspace="change-list" data-rmc-django-table-panel="1" x-data="{ filterOpen: false }">
+    <div class="{% if not is_popup %}rmc-admin-workspace rmc-django-workspace rmc-django-canvas{% endif %}"{% if not is_popup %} data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-changelist" data-rmc-django-workspace="change-list"{% endif %}>
+    <div id="content-main" class="cp-changelist-live rmc-django-table-panel" data-rmc-admin-changelist-live="1" data-rmc-admin-table-contract="native-table-scroll" data-rmc-django-table-panel="1" x-data="{ filterOpen: false }">
         {% include "unfold/helpers/popup_header.html" %}
 
         {% if not is_popup %}
@@ -89,7 +90,7 @@
 
                             {% block filters %}
                                 {% if cl.has_filters %}
-                                    <a class="{% if cl.has_active_filters %}bg-primary-600 border-primary-600 text-white{% else %}bg-white border-base-200 hover:text-primary-600 dark:bg-base-900 dark:border-base-700 dark:hover:text-primary-500{% endif %} border cursor-pointer flex font-medium gap-2 group items-center px-3 py-2 rounded-default shadow-xs text-sm lg:ml-auto md:mt-0 {% if not cl.model_admin.list_filter_sheet %}2xl:hidden{% endif %}" x-on:click="filterOpen = true" x-on:keydown.escape.window="filterOpen = false">
+                                    <a class="{% if cl.has_active_filters %}bg-primary-600 border-primary-600 text-white{% else %}bg-white border-base-200 hover:text-primary-600 dark:bg-base-900 dark:border-base-700 dark:hover:text-primary-500{% endif %} border cursor-pointer flex font-medium gap-2 group items-center px-3 py-2 rounded-default shadow-xs text-sm lg:ml-auto md:mt-0 {% if not cl.model_admin.list_filter_sheet %}2xl:hidden{% endif %}" x-on:click="filterOpen = true" x-on:keydown.escape.window="filterOpen = false" data-rmc-changelist-filter-trigger>
                                         {% trans "Filters" %}
 
                                         <span class="material-symbols-outlined md-18 ml-auto">filter_list</span>
@@ -123,6 +124,10 @@
                 {% endif %}
             </div>
         </div>
+    </div>
+    {% if not is_popup %}
+        {% include "admin/includes/admin_changelist_rail.html" %}
+    {% endif %}
     </div>
 {% endblock %}
 

@@ -153,11 +153,12 @@ html[data-surface="control-plane"] .cp-admin-index .cp-admin-app-list li {
   padding: 0.85rem 1rem;
 }
 
-/* Tenant admin index — token-aligned (replaces inline block in index_tenant.html) */
+/* Tenant admin index — token-aligned (replaces inline block in index_tenant.html).
+   No min-height:100vh — that created the empty middle void above the CRUD banner. */
 html[data-surface="tenant"] .tenant-admin-index {
   max-width: 100%;
   padding: 1.5rem;
-  min-height: 100vh;
+  min-height: 0;
   background: var(--surface-canvas, var(--color-base-50));
 }
 

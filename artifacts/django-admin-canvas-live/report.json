@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-07-17T12:59:21.461715+00:00",
+  "base_url": "http://127.0.0.1:8000",
+  "static_ok": true,
+  "static_notes": [],
+  "server_reachable": false,
+  "server_note": "<urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>",
+  "playwright": {
+    "playwright": false,
+    "login": false,
+    "screenshots": [],
+    "error": "server_unreachable: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>"
+  },
+  "strict": false
+}

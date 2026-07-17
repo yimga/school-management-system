@@ -5,22 +5,48 @@
 {{ block.super }}
 {% endblock %}
 
+{% block extrahead %}
+{{ block.super }}
+<script nonce="{{ csp_nonce }}">
+  (function () {
+    function mark() {
+      if (document.body) {
+        document.body.setAttribute("data-rmc-admin-index-tenant", "1");
+        document.body.setAttribute("data-rmc-admin-index-intelligent", "1");
+      }
+    }
+    if (document.body) mark();
+    else document.addEventListener("DOMContentLoaded", mark);
+  })();
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<div class="tenant-admin-index">
+<div
+  class="tenant-admin-index rmc-admin-catalog-index rmc-django-workspace rmc-django-canvas"
+  data-rmc-admin-catalog-index="1"
+  data-rmc-admin-surface="smart-index"
+  data-rmc-django-workspace="admin-index"
+  data-rmc-admin-workspace-scope="tenant"
+  data-rmc-page-fold-nav="required"
+  data-rmc-section-nav="curated"
+  data-rmc-scroll-policy="paginate"
+>
+
   {% if PREVIEW_MODE_ENABLED %}
   <div class="rmc-banner rmc-banner--warning d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <div><strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}</div>
+    <div><strong>{% trans "Preview mode" %}</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}</div>
     <div class="d-flex gap-2 mt-2 mt-sm-0">
-      <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
-      <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
+      <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle sandbox" %}</a>
+      <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:clear_preview' %}">{% trans "Clear preview" %}</a>
     </div>
   </div>
   {% elif PREVIEW_TOGGLE_ENABLED %}
   <div class="rmc-banner rmc-banner--info d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <div><strong>Preview ready</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}</div>
+    <div><strong>{% trans "Preview ready" %}</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}</div>
     <div class="d-flex gap-2 mt-2 mt-sm-0">
       <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
     </div>
@@ -28,39 +54,171 @@
   {% endif %}
   {% if FINANCE_REQUEST_ALERT_COUNT %}
   <div class="rmc-banner rmc-banner--error d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <div><strong>{{ FINANCE_REQUEST_ALERT_COUNT }} pending finance access request{% if FINANCE_REQUEST_ALERT_COUNT != 1 %}s{% endif %}</strong></div>
-    <div class="d-flex gap-2 mt-2 mt-sm-0"><a class="btn btn-sm btn-light" href="{{ FINANCE_REQUEST_LINK }}">Open finance inbox</a></div>
+    <div><strong>{{ FINANCE_REQUEST_ALERT_COUNT }} {% blocktrans count counter=FINANCE_REQUEST_ALERT_COUNT %}pending finance access request{% plural %}pending finance access requests{% endblocktrans %}</strong></div>
+    <div class="d-flex gap-2 mt-2 mt-sm-0"><a class="btn btn-sm btn-light" href="{{ FINANCE_REQUEST_LINK }}">{% trans "Open finance inbox" %}</a></div>
   </div>
   {% endif %}
 
-  <header class="tenant-admin-hero">
-    <div class="tenant-admin-hero-label">{% trans "School backoffice" %}</div>
-    <h1>{% trans "Raw model CRUD only" %}</h1>
-    <p>{% trans "For configuration, workflows, and daily operations use the Configuration Control Center and the Backend Console." %}</p>
-    <div class="tenant-admin-hero-actions">
-      <a href="{% url 'siteconfig:console_domains_hub' %}" class="tenant-admin-cta-primary">
-        <i class="bi bi-gear-wide-connected"></i> {% trans "Open Config center" %}
-      </a>
-      <a href="{% url 'accounts:backend_dashboard' %}" class="tenant-admin-cta-secondary">
-        <i class="bi bi-speedometer2"></i> {% trans "Backend Console" %}
-      </a>
+  <section class="rmc-django-command-band" data-rmc-django-command-band="admin-index" aria-label="{% trans 'Tenant admin command surface' %}">
+    <div class="rmc-django-command-band__copy">
+      <span class="rmc-django-command-band__eyebrow">{% trans "School backoffice" %}</span>
+      <strong>{% trans "Tenant model catalog" %}</strong>
+      <small>{% trans "Full-canvas records workspace. Prefer Config center and Backend Console for guided work; open models below when you need raw row access." %}</small>
     </div>
-  </header>
+    <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
+      <span>{% trans "Tenant scoped" %}</span>
+      {% if admin_catalog %}
+      <span>{% blocktrans with n=admin_catalog.model_count %}{{ n }} models{% endblocktrans %}</span>
+      {% endif %}
+      <span>{% trans "Searchable catalog" %}</span>
+    </div>
+  </section>
 
-  <div class="tenant-admin-section-title">{% trans "Applications (raw CRUD)" %}</div>
-  <p class="small text-muted mb-3">{% trans "Direct access to model changelists. For guided configuration use the Configuration Control Center above." %}</p>
-  <ul class="tenant-admin-app-list">
-    {% for app in app_list %}
-    <li>
-      <div>
-        <a href="{% url 'admin:app_list' app.app_label %}">{{ app.name }}</a>
-        <div class="app-models">{% for model in app.models %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="tenant">
+    <div class="rmc-admin-index-main">
+      <div class="tenant-admin-hero rmc-admin-index-hero" id="rmc-tenant-admin-sec-hero" data-rmc-section-anchor>
+        <div class="tenant-admin-hero-label">{% firstof SITE.site_name _("School backoffice") %}</div>
+        <h1>{% trans "Records &amp; raw model access" %}</h1>
+        <p>{% trans "Configuration, workflows, and daily operations stay in Config center and the Backend Console. This catalog is for direct changelist and change-form work when those surfaces are not enough." %}</p>
+        <div class="tenant-admin-hero-actions rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions' %}" data-rmc-section-nav-curated="1">
+          <a href="{% url 'siteconfig:console_domains_hub' %}" class="tenant-admin-cta-primary">
+            <i class="bi bi-gear-wide-connected" aria-hidden="true"></i> {% trans "Open Config center" %}
+          </a>
+          <a href="{% url 'accounts:backend_dashboard' %}" class="tenant-admin-cta-secondary">
+            <i class="bi bi-speedometer2" aria-hidden="true"></i> {% trans "Backend Console" %}
+          </a>
+          <a href="{% url 'siteconfig:feature_control_panel' %}" class="tenant-admin-cta-secondary">
+            <i class="bi bi-toggles2" aria-hidden="true"></i> {% trans "Feature control" %}
+          </a>
+          <a href="#rmc-tenant-admin-sec-catalog" class="tenant-admin-cta-secondary" data-rmc-section-anchor>{% trans "Browse models" %}</a>
+        </div>
       </div>
-      <a href="{% url 'admin:app_list' app.app_label %}" class="btn btn-sm btn-outline-secondary">{% trans "Open" %}</a>
-    </li>
-    {% empty %}
-    <li class="list-unstyled p-0">{% include "components/rmc_empty_state.html" with icon="bi-grid-3x3-gap" title=_("No applications available") message=_("Once apps are installed for this school, they'll appear here with an Open shortcut.") %}</li>
-    {% endfor %}
-  </ul>
+
+      {% if admin_catalog %}
+      <div class="cp-kpi-strip" role="group" aria-label="{% trans 'Catalog metrics' %}">
+        <div class="cp-kpi">
+          <div class="cp-kpi__label">{% trans "Models registered" %}</div>
+          <div class="cp-kpi__value">{{ admin_catalog.model_count }}</div>
+          <div class="cp-kpi__caption">{% blocktrans with n=admin_catalog.app_count %}across {{ n }} apps{% endblocktrans %}</div>
+        </div>
+        <div class="cp-kpi">
+          <div class="cp-kpi__label">{% trans "Sections" %}</div>
+          <div class="cp-kpi__value">{{ admin_catalog.section_count }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <section class="cp-section" id="rmc-tenant-admin-sec-catalog" data-rmc-section-anchor aria-labelledby="tenant-catalog-heading">
+        <h2 class="cp-section__title" id="tenant-catalog-heading">{% trans "Model catalog" %}</h2>
+        <p class="cp-section__lede">{% trans "Search and open any registered school model. Counts are live from this tenant admin site." %}</p>
+
+        <div class="cp-section__row" role="tablist" aria-label="{% trans 'Catalog sections' %}">
+          <label class="visually-hidden" for="rmcAdminCatalogSearch">{% trans "Search models" %}</label>
+          <input type="search" id="rmcAdminCatalogSearch" class="form-control form-control-sm cp-section__search" data-rmc-admin-catalog-search placeholder="{% trans 'Search models, apps, sections…' %}" autocomplete="off">
+          <button type="button" class="cp-tab" data-active data-rmc-catalog-tab="overview" role="tab" aria-selected="true">{% trans "Overview" %}</button>
+          {% if admin_catalog and admin_catalog.sections %}
+          {% for section in admin_catalog.sections %}
+          <button type="button" class="cp-tab" data-rmc-catalog-tab="sec-{{ forloop.counter }}" role="tab" aria-selected="false">{{ section.title }}</button>
+          {% endfor %}
+          {% endif %}
+        </div>
+
+        <p class="cp-catalog-empty small" data-rmc-admin-catalog-empty hidden>{% trans "No models match your search." %}</p>
+
+        {% if admin_catalog and admin_catalog.sections %}
+        <div class="cp-catalog">
+          {% for section in admin_catalog.sections %}
+          <article class="cp-catalog-card" id="rmc-tenant-admin-sec-{{ forloop.counter }}" data-rmc-catalog-card data-rmc-catalog-section-id="sec-{{ forloop.counter }}" data-admin-search="{{ section.title|lower }} {% for app in section.apps %}{{ app.app_name|lower }} {{ app.app_label|lower }} {% for model in app.models %}{{ model.search_blob }} {% endfor %}{% endfor %}">
+            <div class="cp-catalog-card__head">
+              <h3 class="cp-catalog-card__title">{{ section.title }}</h3>
+              <span class="cp-catalog-card__count">{{ section.model_count }}</span>
+            </div>
+            {% if section.preview_models %}
+            <ul class="cp-catalog-card__items">
+              {% for model in section.preview_models %}
+              <li>
+                <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                <span aria-hidden="true">→</span>
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            <div class="cp-catalog-card__foot">
+              <a href="#rmc-tenant-admin-catalog-sec-{{ forloop.counter }}" data-rmc-catalog-expand-details="rmc-tenant-admin-catalog-sec-{{ forloop.counter }}">{% blocktrans with n=section.model_count %}View all {{ n }} →{% endblocktrans %}</a>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+
+        <div class="rmc-admin-catalog-details mt-3">
+          {% for section in admin_catalog.sections %}
+          <details class="rmc-admin-catalog-section" id="rmc-tenant-admin-catalog-sec-{{ forloop.counter }}" data-rmc-admin-catalog-section data-admin-search="{{ section.title|lower }} {% for app in section.apps %}{{ app.app_name|lower }} {{ app.app_label|lower }} {% for model in app.models %}{{ model.search_blob }} {% endfor %}{% endfor %}">
+            <summary>
+              <span>{{ section.title }}</span>
+              <span class="small text-muted" data-rmc-section-visible-count>{{ section.model_count }}</span>
+            </summary>
+            <div class="rmc-admin-catalog-model-grid">
+              {% for app in section.apps %}
+              {% for model in app.models %}
+              <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-card" data-admin-search="{{ model.search_blob }}">
+                <span class="rmc-admin-catalog-model-card__name">{{ model.name }}</span>
+                <span class="rmc-admin-catalog-model-card__app text-muted small">{{ app.app_name }}</span>
+              </a>
+              {% endfor %}
+              {% endfor %}
+            </div>
+          </details>
+          {% endfor %}
+        </div>
+        {% else %}
+        <ul class="tenant-admin-app-list">
+          {% for app in app_list %}
+          <li>
+            <div>
+              <a href="{% url 'admin:app_list' app.app_label %}">{{ app.name }}</a>
+              <div class="app-models">{% for model in app.models %}<a href="{{ model.admin_url }}">{{ model.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+            </div>
+            <a href="{% url 'admin:app_list' app.app_label %}" class="btn btn-sm btn-outline-secondary">{% trans "Open" %}</a>
+          </li>
+          {% empty %}
+          <li class="list-unstyled p-0">{% include "components/rmc_empty_state.html" with icon="bi-grid-3x3-gap" title=_("No applications available") message=_("Once apps are installed for this school, they will appear here with an Open shortcut.") %}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </section>
+    </div>
+
+    <aside class="rmc-admin-context-rail rmc-django-side-panel" data-rmc-rail="1" data-rmc-admin-context-scope="tenant" data-rmc-django-side-panel="1">
+      <div class="rmc-rail-card">
+        <div class="rmc-rail-h">{% trans "Tenant boundary" %}</div>
+        <div class="rmc-rail-b">
+          <div class="rmc-rail-scope">
+            <strong>{% firstof SITE.site_name _("Tenant backend") %}</strong>
+            <span>{% trans "School configuration stays tenant-scoped. Guided changes use Config center; raw rows stay here." %}</span>
+          </div>
+        </div>
+      </div>
+      <div class="rmc-rail-card">
+        <div class="rmc-rail-h">{% trans "On this page" %}</div>
+        <div class="rmc-rail-b">
+          <nav class="rmc-onthispage" aria-label="{% trans 'Index sections' %}">
+            <a href="#rmc-tenant-admin-sec-hero"><span class="rmc-onthispage__n">1</span> {% trans "Guided paths" %}</a>
+            <a href="#rmc-tenant-admin-sec-catalog"><span class="rmc-onthispage__n">2</span> {% trans "Model catalog" %}</a>
+          </nav>
+        </div>
+      </div>
+      <div class="rmc-rail-card">
+        <div class="rmc-rail-h">{% trans "Quick actions" %}</div>
+        <div class="rmc-rail-b">
+          <div class="rmc-rail-actions">
+            <a href="{% url 'siteconfig:console_domains_hub' %}"><span aria-hidden="true">⚙</span> {% trans "Config center" %}</a>
+            <a href="{% url 'accounts:backend_dashboard' %}"><span aria-hidden="true">⌘</span> {% trans "Backend Console" %}</a>
+            <a href="{% url 'siteconfig:feature_control_panel' %}"><span aria-hidden="true">◎</span> {% trans "Feature control" %}</a>
+            <a href="#rmc-tenant-admin-sec-catalog"><span aria-hidden="true">↑</span> {% trans "Back to catalog" %}</a>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
 </div>
 {% endblock %}

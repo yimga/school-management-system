@@ -397,6 +397,34 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
     index_title = "Tenant Administration"
     index_template_name = "admin/index_tenant.html"
 
+    def index(self, request, extra_context=None):
+        """Intelligent tenant catalog index — same canvas contract as operator, tenant-scoped."""
+        context = build_admin_dashboard_context(
+            request,
+            base_context=self.each_context(request),
+            title=self.index_title,
+        )
+        app_list = self.get_app_list(request)
+        context["app_list"] = app_list
+        try:
+            from apps.siteconfig.platform_admin_catalog import build_platform_admin_catalog
+
+            context["admin_catalog"] = build_platform_admin_catalog(app_list)
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+            logging.getLogger(__name__).warning(
+                "tenant admin catalog build failed", exc_info=True
+            )
+            context["admin_catalog"] = {
+                "entries": [],
+                "sections": [],
+                "model_count": 0,
+                "app_count": 0,
+                "section_count": 0,
+            }
+        if extra_context:
+            context.update(extra_context)
+        return TemplateResponse(request, self.index_template_name, context)
+
     def has_permission(self, request):
         if self._is_platform_host(request):
             return False

@@ -60,6 +60,7 @@
     "verify:global-footprint-preview": "python scripts/verify_global_footprint_preview.py",
     "verify:prometheus-stack": "python scripts/verify_prometheus_observability_stack.py",
     "verify:prometheus-stack-live": "python scripts/verify_prometheus_stack_live.py",
+    "verify:django-admin-canvas-live": "python scripts/verify_django_admin_canvas_live.py",
     "ollama:ensure": "python scripts/ensure_ollama_always_on.py --invoke",
     "perf:playwright": "node scripts/verify_playwright_performance_budgets.mjs",
     "perf:forensic-dom": "node scripts/verify_zero_ticket_dom_budget.mjs",

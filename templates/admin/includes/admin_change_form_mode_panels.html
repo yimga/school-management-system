@@ -1,0 +1,62 @@
+{% load i18n admin_urls %}
+{% comment %}
+  Preview + Audit mode panels for the intelligent change-form canvas.
+  Form mode keeps #content-main; these panels activate via data-rmc-django-view-mode.
+{% endcomment %}
+<section class="rmc-django-mode-panel rmc-django-mode-panel--preview" data-rmc-django-mode-panel="preview" hidden aria-label="{% trans 'Preview workspace' %}">
+  <div class="rmc-django-mode-panel__head">
+    <h2>{% trans "Live preview" %}</h2>
+    <p>{% trans "Preview opens as drawer, popout, or new tab when an inline pane would cramp the form." %}</p>
+  </div>
+  <div class="rmc-django-mode-panel__body">
+    <div class="rmc-django-preview-stage" data-rmc-django-preview-stage="1">
+      {% if has_absolute_url %}
+      <a class="rmc-django-preview-cta" href="{{ absolute_url }}" target="_blank" rel="noopener">
+        <span aria-hidden="true">↗</span> {% trans "Open live surface" %}
+      </a>
+      {% endif %}
+      <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="drawer">
+        <span aria-hidden="true">▣</span> {% trans "Open preview drawer" %}
+      </button>
+      <p class="rmc-django-mode-panel__hint">
+        {% if is_manager_host %}
+          {% trans "Operator preview stays read-only. Prefer popout when the control rail is already dense." %}
+        {% else %}
+          {% trans "Tenant preview stays school-scoped. Prefer popout when the control rail is already dense." %}
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</section>
+<section class="rmc-django-mode-panel rmc-django-mode-panel--audit" data-rmc-django-mode-panel="audit" hidden aria-label="{% trans 'Audit workspace' %}">
+  <div class="rmc-django-mode-panel__head">
+    <h2>{% trans "Audit context" %}</h2>
+    <p>{% trans "History, scope, and post-save routing without leaving the canvas." %}</p>
+  </div>
+  <div class="rmc-django-mode-panel__body">
+    <ul class="rmc-django-audit-list">
+      <li>
+        <strong>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "Tenant scoped" %}{% endif %}</strong>
+        <span>{% trans "Save stays inside the workbench. No floating action bar." %}</span>
+      </li>
+      {% if change and original %}
+        {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+        {% if history_url %}
+        <li>
+          <strong>{% trans "Change history" %}</strong>
+          <span><a href="{{ history_url }}">{% trans "Open object history" %}</a></span>
+        </li>
+        {% endif %}
+      {% else %}
+        <li>
+          <strong>{% trans "New record" %}</strong>
+          <span>{% trans "History appears after the first successful save." %}</span>
+        </li>
+      {% endif %}
+      <li>
+        <strong>{% trans "Validation" %}</strong>
+        <span>{% trans "Live field checks remain active in Form mode." %}</span>
+      </li>
+    </ul>
+  </div>
+</section>

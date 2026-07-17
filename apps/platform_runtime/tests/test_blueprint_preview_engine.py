@@ -70,6 +70,23 @@ class BlueprintPreviewEngineTests(TestCase):
         self.assertFalse(preview["can_apply"])
         self.assertIn("tenant_required", {c["code"] for c in preview["conflicts"]})
 
+    def test_preview_ready_status_blocks_apply_with_explained_conflict(self):
+        # multi-campus-network is the only preview_ready baseline blueprint.
+        # Operator + school clears every other gate so the status trap is isolated.
+        preview = preview_blueprint(
+            "multi-campus-network",
+            school=self.school,
+            platform_operator=True,
+        )
+
+        self.assertFalse(preview["can_apply"])
+        codes = {c["code"] for c in preview["conflicts"]}
+        self.assertIn("not_installable", codes)
+        self.assertTrue(
+            any("preview_ready" in c.get("message", "") for c in preview["conflicts"]),
+            msg=preview["conflicts"],
+        )
+
     def test_tenant_isolation_preview_uses_only_selected_school(self):
         other = School.objects.create(
             name="Other Preview School",

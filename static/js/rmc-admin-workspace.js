@@ -1,11 +1,13 @@
 /**
- * rmc-admin-workspace.js (v4.02.12)
- * Builds the manager change-form "On this page" rail nav from the rendered
- * fieldsets + inline groups, with scroll-spy. Purely additive: if the rail or
- * sections are absent it no-ops and leaves the form untouched.
+ * rmc-admin-workspace.js
+ * - Builds the change-form "On this page" rail nav from fieldsets (scroll-spy).
+ * - Form / Preview / Audit view toggle (intelligent canvas contract).
+ * - Changelist rail filter trigger.
  */
 (function () {
   "use strict";
+
+  var VIEW_KEY = "rmc-django-view-mode";
 
   function ready(fn) {
     if (document.readyState !== "loading") fn();
@@ -22,7 +24,135 @@
     return label.length > 42 ? label.slice(0, 41) + "…" : label;
   }
 
-  ready(function () {
+  function ensurePreviewDrawer() {
+    var drawer = document.getElementById("rmc-django-preview-drawer");
+    if (drawer) return drawer;
+    drawer = document.createElement("aside");
+    drawer.id = "rmc-django-preview-drawer";
+    drawer.className = "rmc-mv-preview-drawer";
+    drawer.setAttribute("hidden", "");
+    drawer.setAttribute("aria-label", "Preview drawer");
+    drawer.innerHTML =
+      '<div class="rmc-mv-preview-drawer__head">' +
+      "<strong>Live preview</strong>" +
+      '<button type="button" class="rmc-mv-preview-drawer__close" data-rmc-django-preview-close aria-label="Close preview">&times;</button>' +
+      "</div>" +
+      '<div class="rmc-django-preview-drawer__body">' +
+      "<p>Preview stays in a drawer so the form grid is never squeezed.</p>" +
+      '<p class="rmc-django-mode-panel__hint">Model-specific previews (theme, report card, registry) mount here when available.</p>' +
+      "</div>";
+    document.body.appendChild(drawer);
+    return drawer;
+  }
+
+  function openPreviewDrawer() {
+    var existing = document.querySelector(".rmc-mv-preview-drawer:not([hidden])");
+    if (existing) return;
+    var modelDrawer = document.querySelector(".rmc-mv-preview-drawer[hidden]");
+    if (modelDrawer && modelDrawer.id !== "rmc-django-preview-drawer") {
+      modelDrawer.removeAttribute("hidden");
+      return;
+    }
+    var drawer = ensurePreviewDrawer();
+    drawer.removeAttribute("hidden");
+  }
+
+  function closePreviewDrawer(drawer) {
+    var target = drawer || document.getElementById("rmc-django-preview-drawer");
+    if (target) target.setAttribute("hidden", "");
+    document.querySelectorAll(".rmc-mv-preview-drawer:not(#rmc-django-preview-drawer)").forEach(function (el) {
+      el.setAttribute("hidden", "");
+    });
+  }
+
+  function setViewMode(workspace, mode) {
+    if (!workspace || !mode) return;
+    var allowed = { form: 1, preview: 1, audit: 1 };
+    if (!allowed[mode]) mode = "form";
+    workspace.setAttribute("data-rmc-django-view-mode", mode);
+    try {
+      sessionStorage.setItem(VIEW_KEY, mode);
+    } catch (_e) {
+      /* ignore */
+    }
+
+    workspace.querySelectorAll("[data-rmc-django-view-toggle] [data-rmc-django-view]").forEach(function (btn) {
+      var active = btn.getAttribute("data-rmc-django-view") === mode;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+
+    workspace.querySelectorAll("[data-rmc-django-mode-panel]").forEach(function (panel) {
+      var panelMode = panel.getAttribute("data-rmc-django-mode-panel");
+      var show = panelMode === mode;
+      if (show) panel.removeAttribute("hidden");
+      else panel.setAttribute("hidden", "");
+    });
+
+    if (mode !== "preview") closePreviewDrawer();
+  }
+
+  function initViewToggle() {
+    var workspace = document.querySelector('[data-rmc-django-workspace="change-form"]');
+    if (!workspace) return;
+
+    var stored = null;
+    try {
+      stored = sessionStorage.getItem(VIEW_KEY);
+    } catch (_e) {
+      stored = null;
+    }
+    if (stored === "form" || stored === "preview" || stored === "audit") {
+      setViewMode(workspace, stored);
+    } else {
+      setViewMode(workspace, "form");
+    }
+
+    workspace.addEventListener("click", function (ev) {
+      var jump = ev.target.closest("[data-rmc-django-view-jump]");
+      if (jump) {
+        ev.preventDefault();
+        var jumpMode = jump.getAttribute("data-rmc-django-view-jump");
+        setViewMode(workspace, jumpMode);
+        if (jumpMode === "preview") openPreviewDrawer();
+        return;
+      }
+      var btn = ev.target.closest("[data-rmc-django-view-toggle] [data-rmc-django-view]");
+      if (!btn) return;
+      ev.preventDefault();
+      var mode = btn.getAttribute("data-rmc-django-view");
+      setViewMode(workspace, mode);
+      if (mode === "preview") openPreviewDrawer();
+    });
+  }
+
+  function initPreviewOpeners() {
+    document.addEventListener("click", function (ev) {
+      var openBtn = ev.target.closest("[data-rmc-django-preview-open]");
+      if (openBtn) {
+        ev.preventDefault();
+        openPreviewDrawer();
+        return;
+      }
+      var closeBtn = ev.target.closest("[data-rmc-django-preview-close]");
+      if (closeBtn) {
+        ev.preventDefault();
+        closePreviewDrawer(closeBtn.closest(".rmc-mv-preview-drawer"));
+      }
+    });
+  }
+
+  function initChangelistRail() {
+    document.addEventListener("click", function (ev) {
+      var btn = ev.target.closest("[data-rmc-changelist-open-filters]");
+      if (!btn) return;
+      ev.preventDefault();
+      var trigger = document.querySelector("[data-rmc-changelist-filter-trigger]");
+      if (trigger) trigger.click();
+    });
+  }
+
+  function initOnThisPage() {
     var nav = document.querySelector("[data-rmc-onthispage]");
     var main = document.getElementById("content-main");
     if (!nav || !main) return;
@@ -31,7 +161,6 @@
     var items = [];
 
     Array.prototype.forEach.call(sections, function (sec, i) {
-      // Skip hidden/empty fieldsets (e.g. all-hidden-field rows).
       if (sec.offsetParent === null && sec.getClientRects().length === 0) return;
       var label = sectionLabel(sec, items.length);
       if (!sec.id) sec.id = "rmc-sec-" + (i + 1);
@@ -74,5 +203,12 @@
         io.observe(it.sec);
       });
     }
+  }
+
+  ready(function () {
+    initOnThisPage();
+    initViewToggle();
+    initPreviewOpeners();
+    initChangelistRail();
   });
 })();

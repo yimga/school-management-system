@@ -1,0 +1,48 @@
+{% load i18n admin_urls %}
+{% comment %} Compact context rail for changelist — scope + filters + list actions. {% endcomment %}
+<aside class="rmc-admin-context-rail rmc-django-side-panel" data-rmc-rail="1" data-rmc-admin-context-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-django-side-panel="1" data-rmc-django-changelist-rail="1">
+  <div class="rmc-rail-card">
+    <div class="rmc-rail-h">{% if is_manager_host %}{% trans "Operator boundary" %}{% else %}{% trans "Tenant boundary" %}{% endif %}</div>
+    <div class="rmc-rail-b">
+      <div class="rmc-rail-scope">
+        {% if is_manager_host %}
+          <strong>{% trans "Platform backoffice" %}</strong>
+          <span>{% trans "Native full-width table. Filters stay in the sheet; this rail is context only." %}</span>
+        {% else %}
+          <strong>{% firstof SITE.site_name _("Tenant backend") %}</strong>
+          <span>{% trans "School-scoped records. Tables stay native; this rail is context only." %}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="rmc-rail-card">
+    <div class="rmc-rail-h">{% trans "List status" %}</div>
+    <div class="rmc-rail-b">
+      <div class="rmc-rail-scope">
+        <strong>{% blocktranslate count counter=cl.result_count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktranslate %}</strong>
+        <span>
+          {% if cl.has_filters %}
+            {% if cl.has_active_filters %}{% trans "Filters active" %}{% else %}{% trans "Filters available" %}{% endif %}
+          {% else %}
+            {% trans "No list filters on this model" %}
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="rmc-rail-card">
+    <div class="rmc-rail-h">{% trans "Quick actions" %}</div>
+    <div class="rmc-rail-b">
+      <div class="rmc-rail-actions">
+        {% if has_add_permission %}
+          {% url opts|admin_urlname:'add' as add_url %}
+          {% if add_url %}<a href="{{ add_url }}"><span aria-hidden="true">＋</span> {% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}</a>{% endif %}
+        {% endif %}
+        {% if cl.has_filters %}
+          <button type="button" data-rmc-changelist-open-filters="1"><span aria-hidden="true">☰</span> {% trans "Open filters" %}</button>
+        {% endif %}
+        <a href="#changelist"><span aria-hidden="true">↑</span> {% trans "Back to table" %}</a>
+      </div>
+    </div>
+  </div>
+</aside>

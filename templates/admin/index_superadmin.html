@@ -24,7 +24,7 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<div class="cp-admin-v1-index cp-admin-index rmc-admin-catalog-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated" data-rmc-scroll-policy="paginate">
+<div class="cp-admin-v1-index cp-admin-index rmc-admin-catalog-index rmc-django-workspace" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-admin-surface="smart-index" data-rmc-django-workspace="admin-index" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated" data-rmc-scroll-policy="paginate">
 
   {% if PREVIEW_MODE_ENABLED %}
   <div class="rmc-banner rmc-banner--warning d-flex flex-wrap align-items-center justify-content-between mx-4 mt-3 mb-0">
@@ -32,6 +32,19 @@
     <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle sandbox" %}</a>
   </div>
   {% endif %}
+
+  <section class="rmc-django-command-band mx-4 mt-3" data-rmc-django-command-band="admin-index" aria-label="{% trans 'Operator admin command surface' %}">
+    <div class="rmc-django-command-band__copy">
+      <span class="rmc-django-command-band__eyebrow">{% trans "Platform Backoffice" %}</span>
+      <strong>{% trans "Operator catalog & raw records" %}</strong>
+      <small>{% trans "Full-canvas records workspace. Guided work stays in Config center and Studio; open models below for raw row access." %}</small>
+    </div>
+    <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
+      <span>{% trans "Operator scoped" %}</span>
+      {% if admin_catalog %}<span>{% blocktrans with n=admin_catalog.model_count %}{{ n }} models{% endblocktrans %}</span>{% endif %}
+      <span>{% trans "Searchable catalog" %}</span>
+    </div>
+  </section>
 
   <section class="cp-hero" id="rmc-admin-sec-hero" data-rmc-section-anchor>
     <div class="cp-hero__eyebrow">{% trans "Platform Backoffice" %}</div>
@@ -41,8 +54,7 @@
       Every registered model, jump-to-changelist, audit log, and raw CRUD surface. Guided work stays in
       <em>/super/, Config center, and Studio</em> — raw records live here for the moments those don't fit.
       {% endblocktrans %}
-    </p>
-    <div class="cp-hero__actions cp-hero__actions--toolbar rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions' %}" data-rmc-section-nav-curated="1">
+    </p>    <div class="cp-hero__actions cp-hero__actions--toolbar rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions' %}" data-rmc-section-nav-curated="1">
       <div class="cp-hero__actions-group cp-hero__actions-group--primary" role="group" aria-label="{% trans 'Primary actions' %}">
         <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "New school" %}</a>
         <a class="cp-btn" href="{% url 'super:invite_school' %}">✉ {% trans "Invite a school" %}</a>

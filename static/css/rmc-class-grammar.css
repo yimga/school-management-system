@@ -1284,8 +1284,10 @@
   flex-direction: column;
   gap: var(--space-6, 1.5rem);
   padding: var(--space-6, 1.5rem) var(--space-7, 2rem);
-  max-inline-size: min(1200px, 100%);
-  margin-inline: auto;
+  max-inline-size: none;
+  width: 100%;
+  margin-inline: 0;
+  min-height: 0;
 }
 .tenant-admin-hero {
   display: flex;

@@ -1,0 +1,40 @@
+{% load i18n %}
+{% comment %}
+  Option A command strip for tenant blueprint setup.
+  Replaces the stacked nav-detail prose wall with a compact metric canvas
+  so the page opens with the work (see design preview Option A).
+{% endcomment %}
+<section class="rmc-bp-option-a" data-rmc-blueprint-option-a="1" aria-label="{% trans 'Blueprint command surface' %}">
+  <div class="rmc-bp-option-a__head">
+    <div>
+      <span class="rmc-bp-option-a__eyebrow">{% trans "Approved interaction model" %}</span>
+      <h2 class="rmc-bp-option-a__title">{% trans "Full-width school blueprint workspace" %}</h2>
+      <p class="rmc-bp-option-a__lede">{% trans "Open with the work, not a wall of text. Preview impact, request approval when risk needs sign-off, then apply a tenant-safe model." %}</p>
+    </div>
+    <span class="rmc-bp-option-a__tag rmc-bp-option-a__tag--good">{% trans "Tenant only" %}</span>
+  </div>
+
+  <div class="rmc-bp-option-a__metrics" role="list">
+    {% for group in operational_nav_groups %}
+    <article class="rmc-bp-option-a__metric" role="listitem" data-rmc-bp-metric="{{ group.key }}">
+      <span class="rmc-bp-option-a__metric-label">{{ group.label }}</span>
+      <strong class="rmc-bp-option-a__metric-title">{{ group.title }}</strong>
+      <p class="rmc-bp-option-a__metric-body">{{ group.body }}</p>
+    </article>
+    {% empty %}
+    <article class="rmc-bp-option-a__metric" role="listitem">
+      <span class="rmc-bp-option-a__metric-label">{% trans "Preview" %}</span>
+      <strong class="rmc-bp-option-a__metric-title">{% trans "School impact visible" %}</strong>
+      <p class="rmc-bp-option-a__metric-body">{% trans "Tenant-safe blueprints only; blockers before apply." %}</p>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="rmc-bp-option-a__flow">
+    <div class="rmc-bp-option-a__flow-label">
+      <strong>{% trans "Governed apply path" %}</strong>
+      <span>{% trans "One path — preview through rollback — without stacking the same steps twice." %}</span>
+    </div>
+    {% include "components/world_class_guided_stepper.html" %}
+  </div>
+</section>

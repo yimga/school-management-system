@@ -83,11 +83,22 @@ def main() -> int:
         'data-rmc-admin-canvas-host="{% if is_manager_host %}operator{% else %}tenant{% endif %}"',
         'data-rmc-admin-content="canvas-first"',
         "rmc-admin-django-canvas-contract.css",
-        "?v=20260713-real-admin-canvas",
+        "?v=20260717-residual-closure",
     )
     for token in admin_tokens:
         if token not in admin_base and token not in admin_base_site:
             errors.append(f"shared admin templates missing {token}")
+
+    index_tenant = _read("templates/admin/index_tenant.html")
+    for token in (
+        'data-rmc-admin-surface="smart-index"',
+        'data-rmc-django-workspace="admin-index"',
+        "rmc-admin-catalog-index",
+    ):
+        if token not in index_tenant:
+            errors.append(f"templates/admin/index_tenant.html missing {token}")
+    if "Raw model CRUD only" in index_tenant:
+        errors.append("tenant admin index must not be Raw model CRUD-only empty shell")
 
     if errors:
         print("DJANGO_SURFACE_PLATFORMWIDE_CONTRACT_FAIL")

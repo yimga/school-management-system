@@ -28,8 +28,8 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260713-real-admin-canvas" not in base_site:
-        errors.append("Django canvas contract link must use the real-admin-canvas cache bust for deployment visibility")
+    if "?v=20260717-residual-closure" not in base_site:
+        errors.append("Django canvas contract link must use the residual-closure cache bust for deployment visibility")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
     if contract_link in base_site and "rmc_theme_experience_dual_plane_styles.html" in base_site:
@@ -63,10 +63,18 @@ def main() -> int:
         errors.append("admin/change_form.html missing structural change-form workspace marker")
     if 'data-rmc-django-command-band="change-form"' not in change_form:
         errors.append("admin/change_form.html missing structural change-form command band")
+    if 'data-rmc-django-view-toggle="1"' not in change_form:
+        errors.append("admin/change_form.html missing Form/Preview/Audit view toggle")
+    if 'data-rmc-django-view-mode="form"' not in change_form:
+        errors.append("admin/change_form.html missing default view-mode marker")
+    if "admin_change_form_mode_panels.html" not in change_form:
+        errors.append("admin/change_form.html must include Preview/Audit mode panels")
     if 'rmc-django-form-panel' not in change_form:
         errors.append("admin/change_form.html missing structural form panel class")
     if 'data-rmc-django-form-body="1"' not in change_form:
         errors.append("admin/change_form.html missing structural form body marker")
+    if 'data-rmc-django-actions-slot="1"' not in change_form:
+        errors.append("admin/change_form.html must keep static save row inside the workbench (actions-slot)")
     if 'data-rmc-admin-form-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}"' not in change_form:
         errors.append("admin/change_form.html missing operator/tenant form scope marker")
     if 'data-rmc-admin-surface="smart-form"' not in change_form:
@@ -81,8 +89,13 @@ def main() -> int:
         errors.append("admin/change_list.html missing structural table panel marker")
     if 'data-rmc-admin-surface="smart-changelist"' not in change_list:
         errors.append("admin/change_list.html missing smart changelist surface marker")
+    if "admin_changelist_rail.html" not in change_list:
+        errors.append("admin/change_list.html missing changelist context rail include")
     if 'cp-changelist-live' not in change_list:
         errors.append("admin/change_list.html must apply cp-changelist-live to tenant and operator")
+    workspace_js = _read("static/js/rmc-admin-workspace.js")
+    if "data-rmc-django-view-mode" not in workspace_js or "setViewMode" not in workspace_js:
+        errors.append("rmc-admin-workspace.js must wire Form/Preview/Audit view mode")
 
     required_css_tokens = (
         "body:is(.admin-manager-shell, .admin-premium-shell)",
@@ -96,6 +109,15 @@ def main() -> int:
         "data-rmc-admin-content=\"canvas-first\"",
         "data-rmc-admin-surface=\"smart-form\"",
         "data-rmc-admin-surface=\"smart-changelist\"",
+        "data-rmc-admin-surface=\"smart-index\"",
+        "data-rmc-django-workspace=\"admin-index\"",
+        "data-rmc-admin-index-canvas",
+        "2026-07-17 intelligent-index",
+        "2026-07-17 second-audit closure",
+        "2026-07-17 residual closure",
+        "rmc-django-view-toggle",
+        "data-rmc-django-changelist-rail",
+        "data-rmc-django-actions-slot",
         "rmc-tenant-admin-page-body",
         "container-type: inline-size",
         "Final platform-wide/tenant-wide Django sweep",
@@ -148,6 +170,7 @@ def main() -> int:
 
     admin_template_errors = _audit_admin_template_overrides()
     errors.extend(admin_template_errors)
+    errors.extend(_audit_intelligent_index_surfaces())
 
     if errors:
         print("DJANGO_ADMIN_CANVAS_CONTRACT_FAIL")
@@ -159,6 +182,68 @@ def main() -> int:
     print("  scope: operator + tenant Django admin")
     print("  contract: full-width canvas, native tables, stable forms, preview sizing")
     return 0
+
+
+def _audit_intelligent_index_surfaces() -> list[str]:
+    errors: list[str] = []
+    tenant_index = _read("templates/admin/index_tenant.html")
+    operator_index = _read("templates/admin/index_superadmin.html")
+    admin_py = _read("config/admin.py")
+    nav_bridge = _read("templates/components/admin_nav_bridge.html")
+
+    for token in (
+        'data-rmc-admin-surface="smart-index"',
+        'data-rmc-django-workspace="admin-index"',
+        'data-rmc-django-command-band="admin-index"',
+        'data-rmc-admin-index-canvas="tenant"',
+        "rmc-admin-catalog-index",
+        "Tenant model catalog",
+        "admin_catalog",
+    ):
+        if token not in tenant_index:
+            errors.append(f"templates/admin/index_tenant.html missing intelligent index token: {token}")
+
+    if "Raw model CRUD only" in tenant_index:
+        errors.append("templates/admin/index_tenant.html must not use the empty Raw model CRUD-only hero")
+
+    if "def index(self, request, extra_context=None):" not in admin_py:
+        errors.append("config/admin.py TenantAdminSite must override index for catalog context")
+    if "build_platform_admin_catalog" not in admin_py:
+        errors.append("config/admin.py must build admin_catalog for tenant index")
+    # TenantAdminSite.index must call build_platform_admin_catalog (not only PlatformAdminSite)
+    tenant_site_slice = admin_py.split("class TenantAdminSite", 1)[-1].split("class PlatformAdminSite", 1)[0]
+    if "build_platform_admin_catalog" not in tenant_site_slice:
+        errors.append("TenantAdminSite.index must build admin_catalog via build_platform_admin_catalog")
+
+    if 'url_name|default:"" != "index"' not in nav_bridge and "!= \"index\"" not in nav_bridge:
+        errors.append("admin_nav_bridge must skip operator_console_strip on admin index")
+    if "operator_console_strip" not in nav_bridge:
+        errors.append("admin_nav_bridge must still expose operator_console_strip on non-index pages")
+
+    if 'data-rmc-admin-catalog-index="1"' not in operator_index:
+        errors.append("templates/admin/index_superadmin.html missing catalog index marker")
+    if 'data-rmc-django-command-band="admin-index"' not in operator_index:
+        errors.append("templates/admin/index_superadmin.html missing admin-index command band")
+
+    base = _read("templates/admin/base.html")
+    if 'url_name|default:"" != "index"' not in base or "tenant_admin_decision_banner" not in base:
+        errors.append("admin/base.html must skip tenant decision banner on admin index")
+
+    quickaction = _read("static/js/_pages/admin-quickaction.js")
+    if 'data-rmc-django-workspace="change-form"' not in quickaction:
+        errors.append("admin-quickaction.js must refuse floating FAB on intelligent change-form canvas")
+
+    country = _read("templates/admin/registries/countryregistry/change_form.html")
+    if "{{ block.super }}" in country and "rmc-mv-form-with-preview" in country:
+        errors.append("countryregistry change_form must not wrap shared canvas content in a nested preview grid")
+    if 'data-rmc-mv-preview-drawer' not in country:
+        errors.append("countryregistry preview must use drawer/popout affordance")
+
+    app_index = _read("templates/admin/app_index.html")
+    if 'data-rmc-django-command-band="app-index"' not in app_index:
+        errors.append("templates/admin/app_index.html missing app-index command band")
+
+    return errors
 
 
 def _audit_admin_template_overrides() -> list[str]:

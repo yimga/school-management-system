@@ -1,12 +1,12 @@
 {
-  "date": "2026-06-20",
-  "generated_at": "2026-06-25T21:30:45+00:00",
+  "date": "2026-07-17",
+  "generated_at": "2026-07-17T13:20:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 38,
-  "raw": "sms-v4.05.38-globe-master-preview-parity-2026-06-20",
+  "patch": 130,
+  "raw": "sms-v4.05.130-tenant-blueprint-option-a-2026-07-17",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "globe-master-preview-parity",
+  "slug": "tenant-blueprint-option-a",
   "valid": true
 }

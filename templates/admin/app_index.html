@@ -9,17 +9,23 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<div class="admin-app-index rmc-admin-app-index" data-rmc-scroll-policy="paginate">
+<div class="admin-app-index rmc-admin-app-index rmc-django-workspace" data-rmc-django-workspace="app-index" data-rmc-admin-surface="smart-app-index" data-rmc-scroll-policy="paginate">
+  <section class="rmc-django-command-band" data-rmc-django-command-band="app-index" aria-label="{% trans 'App catalog command surface' %}">
+    <div class="rmc-django-command-band__copy">
+      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% trans "Tenant backend" %}{% endif %}</span>
+      <strong>{{ title }}</strong>
+      <small>{% blocktranslate with app=app_list.0.name|default:title %}Models in {{ app }}. Prefer guided surfaces when available; use changelist for raw row access.{% endblocktranslate %}</small>
+    </div>
+    <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
+      <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "Tenant scoped" %}{% endif %}</span>
+      <span>{% trans "App catalog" %}</span>
+    </div>
+  </section>
   <div class="admin-app-index__back mb-2">
     <a href="{% url 'admin:index' %}" class="text-decoration-none small">
-      <span aria-hidden="true">←</span> {% trans "Back to platform catalog" %}
+      <span aria-hidden="true">←</span> {% if is_manager_host %}{% trans "Back to platform catalog" %}{% else %}{% trans "Back to school catalog" %}{% endif %}
     </a>
   </div>
-
-  <h1 class="admin-app-index__title h4 mb-1">{{ title }}</h1>
-  <p class="admin-app-index__subtitle text-muted small mb-3">
-    {% blocktranslate with app=app_list.0.name %}Models in {{ app }}. Open the operator view when available; use changelist for raw CRUD.{% endblocktranslate %}
-  </p>
 
   {% if admin_app_index_models %}
   <div class="rmc-admin-catalog-model-grid mb-3">

@@ -141,7 +141,7 @@ def preview_blueprint(
                 "message": "Tenant users cannot apply this blueprint directly.",
             }
         )
-    if blueprint.status not in {"preview_ready", "installable"}:
+    if blueprint.status != "installable":
         conflicts.append(
             {
                 "code": "not_installable",
@@ -160,9 +160,10 @@ def preview_blueprint(
         local_first_manifest,
         external_required=external_required,
     )
+    # Status is gated via conflicts (same shape as pack_preview): preview_ready
+    # must surface a blocker, not a silent disabled Apply with empty conflicts.
     can_apply = (
         blueprint.apply_available
-        and blueprint.status == "installable"
         and not conflicts
         and school is not None
     )
