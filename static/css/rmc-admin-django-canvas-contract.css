@@ -273,8 +273,17 @@ body:is(.admin-manager-shell, .admin-premium-shell) :is(.document-preview-grid, 
 }
 
 @container (min-width: 1180px) {
-  body:is(.admin-manager-shell, .admin-premium-shell) :is(.site-settings-layout, .rmc-mv-form-with-preview) {
+  /* Column order follows DOM order, and these two layouts are MIRRORED:
+       .rmc-mv-form-with-preview -> [ __form, __preview aside ]  (main first)
+       .site-settings-layout     -> [ settings_sidebar aside, .site-settings-main ]  (aside FIRST)
+     Sharing one `minmax(0,1fr) <sidecar>` rule therefore handed SiteSettings' ~14rem
+     nav aside the wide track and squeezed the entire settings form into the sidecar.
+     Keep them split: each gets the track order its own markup implies. */
+  body:is(.admin-manager-shell, .admin-premium-shell) .rmc-mv-form-with-preview {
     grid-template-columns: minmax(0, 1fr) var(--rmc-django-sidecar) !important;
+  }
+  body:is(.admin-manager-shell, .admin-premium-shell) .site-settings-layout {
+    grid-template-columns: var(--rmc-django-sidecar) minmax(0, 1fr) !important;
   }
 }
 
@@ -802,9 +811,15 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 }
 
 @container (min-width: 1320px) {
+  /* Same mirrored-DOM split as the 1180px rule above: .site-settings-layout puts its
+     nav aside FIRST, so it needs the sidecar track first or the form lands in it. */
   html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
-    [data-rmc-admin-content="canvas-first"] :is(.site-settings-layout, .rmc-mv-form-with-preview, .reportcard-builder-layout, .theme-colors-workbench) {
+    [data-rmc-admin-content="canvas-first"] :is(.rmc-mv-form-with-preview, .reportcard-builder-layout, .theme-colors-workbench) {
     grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem) !important;
+  }
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-admin-content="canvas-first"] .site-settings-layout {
+    grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr) !important;
   }
 }
 
