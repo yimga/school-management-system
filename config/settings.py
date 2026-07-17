@@ -4036,9 +4036,28 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.accounts.middleware.ImpossibleTravelMiddleware",
         "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
         "apps.schools.middleware.ManagerHostControlPlaneRequiredMiddleware",
+        # Parity restore. "Operator-only" does NOT mean "not needed here": under
+        # USE_DJANGO_TENANTS the manager host is served by this same process
+        # (UrlConfSwitcherMiddleware swaps request.urlconf to config.manager_urls),
+        # so an operator control absent from this list is absent from production.
+        # Needs is_tenant_host (UrlConfSwitcher), request.school (SchoolBridge)
+        # and request.user (Authentication) — all above this point.
+        "apps.accounts.middleware.TenantHostControlPlaneIsolationMiddleware",
+        # NOT a duplicate of ReadOnlyImpersonationGuardMiddleware above. That one
+        # returns immediately unless IMPERSONATION_READ_ONLY_ENFORCED, which defaults
+        # to "0" and is unset in render.yaml — so it is a no-op in prod. THIS guard
+        # is unflagged and actually enforces. With only the flagged one wired,
+        # read-only impersonation was enforced NOWHERE in production: an operator
+        # holding a read_only=True session could write freely. Only fires when
+        # imp["read_only"] is explicitly True; legacy sessions pass through.
+        "apps.accounts.middleware.ImpersonationReadOnlyGuardMiddleware",
         "apps.schools.middleware_dashboard_topology.DashboardTopologyRBACMiddleware",
         "apps.accounts.middleware.ModuleAccessMiddleware",
         "apps.accounts.middleware.RequireMFAMiddleware",
+        # Parity restore. OPERATOR_MFA_REQUIRED_ON_MANAGER defaults "1", so this
+        # enforces on arrival: operators without MFA are redirected to enrollment
+        # on /super/ and /admin/ (redirect, not lockout — they can enroll).
+        "apps.schools.middleware_operator_mfa.OperatorMfaRequiredMiddleware",
         "apps.schools.middleware.TenantFreezeMiddleware",
         "apps.schools.middleware.SentryTenantTagMiddleware",
         "apps.schools.middleware.TenantLastActivityMiddleware",
@@ -4046,6 +4065,13 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "config.middleware.GlobalHotPathRateLimitMiddleware",
         "apps.schools.middleware.DynamicThemeMiddleware",
         "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",
+        # Parity restore: 120/min per user on /super/ (25/min for roster-connector
+        # POSTs). Cache errors degrade to a no-op, and only /super/ is touched.
+        "apps.schools.middleware.SuperAdminRateLimitMiddleware",
+        # Parity restore. Inert unless ENTERPRISE_SUPER_HTTP_AUDIT=1 (default "0"),
+        # so this is wiring, not a behaviour change — but the opt-in could not
+        # engage at all while the middleware was missing from the prod list.
+        "apps.schools.middleware_enterprise_security.EnterpriseSuperHttpAuditMiddleware",
         "apps.schools.middleware.FeatureGatekeeperMiddleware",
         # SFDP 1426 parity: this list REPLACES the module-level MIDDLEWARE, so any
         # entry only added there never loads under USE_DJANGO_TENANTS (= production).
