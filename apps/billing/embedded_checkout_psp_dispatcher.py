@@ -13,8 +13,15 @@ Failures are returned as ``{"ok": False, "error": ...}`` so the kernel's
 fallthrough logic tries the next candidate.
 
 No live HTTP calls are made unless the per-PSP creator function exists AND
-its config is loaded. In dev / test, every dispatcher returns ``{"ok": True,
-"hosted_url": "https://checkout.runmycampus.com/<session_id>?dev"}``.
+its config is loaded.
+
+A PSP that is not ``live`` cannot settle a payment, so it is refused — the
+caller learns no money can be collected instead of receiving a placeholder
+URL alongside ``{"ok": true}``. Placeholder ``mode=dev`` sessions, which keep
+the tenant-side UI flow renderable before PSP contracting completes, are an
+explicit opt-in via ``settings.EMBEDDED_CHECKOUT_DEV_MODE``
+(``RMC_EMBEDDED_CHECKOUT_DEV_MODE=1``) or ``make_dispatcher(force_dev_mode=True)``
+in tests. They report ``metadata["dispatched"] = False``.
 """
 
 from __future__ import annotations
@@ -49,6 +56,39 @@ def _dev_hosted_url(session_id: str, psp_slug: str) -> str:
     return f"https://checkout.runmycampus.com/{session_id}?psp={psp_slug}&mode=dev"
 
 
+def _dev_mode_enabled() -> bool:
+    """Whether placeholder dev sessions are allowed.
+
+    Off unless an operator sets ``RMC_EMBEDDED_CHECKOUT_DEV_MODE=1``. A dev
+    session reports payment success while contacting no PSP, so this endpoint
+    being public + unauthenticated makes the opt-in deliberate rather than
+    inferred from DEBUG.
+    """
+    from django.conf import settings
+
+    return bool(getattr(settings, "EMBEDDED_CHECKOUT_DEV_MODE", False))
+
+
+def _dev_session(session_id: str, processor: str, psp_status: str,
+                 note: str = "") -> dict[str, Any]:
+    """A placeholder session that is honest about having settled nothing.
+
+    ``create_session`` stamps ``metadata["dispatched"] = True`` for any ok
+    outcome and then merges this metadata over it, so ``dispatched: False``
+    here is what the caller finally sees — no PSP was contacted.
+    """
+    metadata: dict[str, Any] = {
+        "mode": "dev", "psp_status": psp_status, "dispatched": False,
+    }
+    if note:
+        metadata["note"] = note
+    return {
+        "ok": True,
+        "hosted_url": _dev_hosted_url(session_id, processor),
+        "metadata": metadata,
+    }
+
+
 def make_dispatcher(*, force_dev_mode: bool = False):
     """Return a dispatcher callable suitable for ``create_session``."""
 
@@ -63,15 +103,19 @@ def make_dispatcher(*, force_dev_mode: bool = False):
             return {"ok": False, "error": reason}
 
         row = get_psp(processor)
-        if force_dev_mode or row.adapter_status != "live":
-            # Dev / scaffold mode — return a placeholder hosted URL so the
-            # tenant-side UI flow can render. Real settlement requires
-            # adapter_status="live" + live credentials.
-            return {
-                "ok": True,
-                "hosted_url": _dev_hosted_url(session_id, processor),
-                "metadata": {"mode": "dev", "psp_status": row.adapter_status},
-            }
+        dev_allowed = force_dev_mode or _dev_mode_enabled()
+
+        if force_dev_mode or row.adapter_status not in _PRODUCTION_STATUSES:
+            if not dev_allowed:
+                # Cannot settle, and dev sessions are off. Refuse, so the
+                # kernel's fallthrough tries the next candidate and finally
+                # returns ok=False -> HTTP 422. Handing back a placeholder
+                # URL here would report a payment that can never arrive.
+                error = (f"PSP {processor!r} status={row.adapter_status} "
+                         f"is not live -- cannot settle a payment")
+                logger.warning("embedded_checkout refused: %s", error)
+                return {"ok": False, "error": error}
+            return _dev_session(session_id, processor, row.adapter_status)
 
         # Live dispatch path. Each live PSP has its own session creator —
         # we look it up lazily so unconfigured PSPs don't break the import.
@@ -79,14 +123,16 @@ def make_dispatcher(*, force_dev_mode: bool = False):
         if live_outcome is not None:
             return live_outcome
 
-        # No live creator found → fall back to dev shape so the caller still
-        # gets something usable, but mark mode=dev.
-        return {
-            "ok": True,
-            "hosted_url": _dev_hosted_url(session_id, processor),
-            "metadata": {"mode": "dev", "psp_status": row.adapter_status,
-                         "note": "live creator not implemented yet"},
-        }
+        # Adapter is live but has no session creator wired yet — the same
+        # "cannot actually take the money" case as above, so it fails the
+        # same way rather than dressing itself up as a success.
+        if not dev_allowed:
+            error = (f"PSP {processor!r} is live but has no session creator "
+                     f"implemented -- cannot settle a payment")
+            logger.error("embedded_checkout refused: %s", error)
+            return {"ok": False, "error": error}
+        return _dev_session(session_id, processor, row.adapter_status,
+                            note="live creator not implemented yet")
 
     return dispatcher
 

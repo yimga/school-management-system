@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase, override_settings
 
 from apps.billing.embedded_checkout_psp_dispatcher import (
     _is_dispatchable,
@@ -117,7 +117,17 @@ class PSPDispatcherTests(SimpleTestCase):
 
 class CreateSessionViewTests(SimpleTestCase):
 
+    @override_settings(EMBEDDED_CHECKOUT_DEV_MODE=True)
     def test_valid_post_returns_ok(self):
+        """A well-formed payload parses into a session of the right shape.
+
+        Dev mode is pinned on because this asserts the REQUEST contract (the
+        400 / 422 / 200 trio in this class), not settlement: no PSP adapter is
+        live, so with dev mode off the same payload correctly returns 422 --
+        the checkout is refused rather than faking success. That fail-closed
+        contract is covered by
+        ``test_embedded_checkout_never_fakes_success.py``.
+        """
         req = _make_request({
             "tenant_id": "t1",
             "parent_email": "parent@example.com",

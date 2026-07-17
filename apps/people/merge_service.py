@@ -47,6 +47,47 @@ def person_model_for(kind: str):
     return django_apps.get_model(app_label, model_name)
 
 
+_MISSING = object()
+
+# How to reach the owning school from a person row, per merge kind. Stated
+# explicitly because the three kinds are NOT the same shape: StudentProfile
+# and TeacherProfile carry a school FK, while StudentGuardian is a link row
+# scoped only through its student. A soft `getattr(row, "school_id", None)`
+# therefore answered None for every guardian row, which the same-school guard
+# read as "nothing to check" -- so it never fired for that kind.
+_KIND_SCHOOL_PATHS: dict[str, tuple[str, ...]] = {
+    "student": ("school_id",),
+    "teacher": ("school_id",),
+    "guardian": ("student", "school_id"),
+}
+
+
+def row_school_id(kind: str, row) -> Any:
+    """The id of the school owning ``row``, or refuse.
+
+    Never returns ``None`` for an unresolvable row: a guard that cannot
+    determine the school must block the merge, not wave it through. If a new
+    kind is added to ``_KIND_MODELS`` without a path here, every merge of that
+    kind is refused until someone states where its school lives.
+    """
+    try:
+        path = _KIND_SCHOOL_PATHS[kind]
+    except KeyError as exc:
+        raise MergeBlockedError(
+            f"no school path is defined for merge kind {kind!r} — refusing "
+            "rather than merging unguarded"
+        ) from exc
+    value: Any = row
+    for attr in path:
+        value = getattr(value, attr, _MISSING)
+        if value is _MISSING or value is None:
+            raise MergeBlockedError(
+                f"cannot resolve the owning school of this {kind} record "
+                f"(no {attr!r}) — refusing rather than merging unguarded"
+            )
+    return value
+
+
 def inbound_fk_fields(person_model) -> list[tuple[Any, Any]]:
     """Every ``(model, field)`` in the registry whose FK/OneToOne targets
     ``person_model`` — including auto-created m2m through tables, which is
@@ -72,8 +113,7 @@ def _resolve_pair(op):
     if primary is None or secondary is None:
         raise MergeBlockedError("primary or secondary record not found")
     for row, label in ((primary, "primary"), (secondary, "secondary")):
-        row_school_id = getattr(row, "school_id", None)
-        if row_school_id is not None and str(row_school_id) != str(op.school_id):
+        if str(row_school_id(op.kind, row)) != str(op.school_id):
             raise MergeBlockedError(
                 f"{label} record belongs to a different school — merge is "
                 "same-school only (cross-school moves are transfers)"

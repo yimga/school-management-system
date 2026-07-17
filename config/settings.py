@@ -1725,6 +1725,22 @@ BILLING_REMOTE_CANCEL_ADAPTER = (
     os.getenv("RMC_BILLING_REMOTE_CANCEL_ADAPTER", _default_billing_cancel) or ""
 ).strip() or None
 
+# Embedded checkout (/billing/embedded-checkout/session/) dev sessions.
+#
+# When a PSP adapter is not `live` in ``apps.billing.psp_adapter_registry``,
+# it cannot settle a payment. With this ON, the dispatcher answers such a
+# checkout with a placeholder ``mode=dev`` URL so the tenant-side UI flow
+# stays renderable before PSP contracting completes. With it OFF (the
+# default, and the only correct value in production) the checkout fails
+# loudly instead — a parent must never be handed a URL that takes no money
+# while the API reports success.
+#
+# Deliberately NOT derived from DEBUG: this endpoint is public and
+# unauthenticated, so the fail-open must be an explicit, auditable opt-in.
+EMBEDDED_CHECKOUT_DEV_MODE = (
+    os.environ.get("RMC_EMBEDDED_CHECKOUT_DEV_MODE", "0").strip() == "1"
+)
+
 # --- Policy / Marketplace (Phase 7, 24.12) — non-negotiable, always on ---
 # When True, get_effective_policy merges from TenantBlueprint.active_bundle.policy_snapshot when set. Required; default on.
 POLICY_USE_BUNDLES = os.getenv("POLICY_USE_BUNDLES", "1") in ("1", "true", "yes")
