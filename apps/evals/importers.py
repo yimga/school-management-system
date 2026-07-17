@@ -7,7 +7,7 @@ admin action, management command, or portal view later without duplication.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, List, Sequence
+from typing import Any, Iterable, List, Sequence
 
 from django.apps import apps as django_apps
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -304,6 +304,10 @@ def apply_import(csv_rows, academic_year=None):
     start_time = time.time()
     created_count = 0
     updated_count = 0
+    # A dropped row must land in a bucket the caller can see. Logging it and
+    # moving on meant 200 lost grades were reported as a clean import.
+    failed_count = 0
+    errors: list[dict[str, Any]] = []
 
     Evaluation = django_apps.get_model("evals", "Evaluation")
     SubjectAssignment = django_apps.get_model("academics", "SubjectAssignment")
@@ -319,7 +323,7 @@ def apply_import(csv_rows, academic_year=None):
         academic_year = AcademicYear.objects.filter(is_active=True).first()
 
     # tenant-isolation-allow: import-pipeline-validates-school-before-persist
-    for row in csv_rows:
+    for row_index, row in enumerate(csv_rows, start=2):
         try:
             # tenant-isolation-allow: import-pipeline-validates-school-before-persist
             subject_assignment = SubjectAssignment.objects.get(
@@ -362,7 +366,7 @@ def apply_import(csv_rows, academic_year=None):
             else:
                 updated_count += 1
 
-        except _EVALS_IMPORTERS_ROW_ERRORS:
+        except _EVALS_IMPORTERS_ROW_ERRORS as exc:
             log_exception_with_context(
                 "evals importers apply_import row failed",
                 school_id=getattr(academic_year, "school_id", None)
@@ -373,6 +377,16 @@ def apply_import(csv_rows, academic_year=None):
                     "academic_year_id": getattr(academic_year, "id", None),
                 },
             )
+            failed_count += 1
+            # Enough for a teacher to find the row in their spreadsheet, with
+            # no grade values echoed back into the job's error_log.
+            errors.append(
+                {
+                    "row_index": row_index,
+                    "student_code": str(row.get("student_code") or ""),
+                    "error": str(exc)[:200],
+                }
+            )
             continue
 
     duration = time.time() - start_time
@@ -380,6 +394,8 @@ def apply_import(csv_rows, academic_year=None):
     return {
         "created": created_count,
         "updated": updated_count,
+        "failed": failed_count,
+        "errors": errors,
         "duration_seconds": round(duration, 2),
     }
 

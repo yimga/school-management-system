@@ -3322,6 +3322,28 @@ def grade_import_preview_api(request):
             status=400,
         )
 
+# How many failed rows are echoed back to the teacher / stored on the job.
+# Enough to fix a spreadsheet; not so many that one bad upload bloats the row.
+_IMPORT_ERROR_LOG_CAP = 50  # magic-number-allow: import-error-report-cap
+
+
+def _resolve_import_job_outcome(result: dict) -> tuple[str, int]:
+    """Map an apply_import result to (job status, failed row count).
+
+    ``GradeImportJob.STATUS_CHOICES`` has carried ``partial`` ("Partially
+    Completed") since it was written and nothing ever used it: the apply path
+    hard-coded ``"completed"``, so an import that dropped rows reported a clean
+    run. Grades are the one dataset a school cannot reconstruct from memory.
+
+    ``.get("failed", 0)`` rather than ``["failed"]`` so an older caller or a
+    stubbed importer degrades to the previous shape instead of raising.
+    """
+    failed = int(result.get("failed", 0) or 0)
+    if failed:
+        return "partial", failed
+    return "completed", 0
+
+
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
 @require_permission("grades.manage")
@@ -3389,10 +3411,18 @@ def grade_import_apply_api(request):
         # Apply import
         result = apply_import(csv_rows)
 
-        # Update job
+        # Update job. Rows the importer had to drop are reported, not buried:
+        # job.failed_count used to be touched only by the outer except (a
+        # whole-import crash), so a run that lost 50 of 250 grades still saved
+        # status="completed", failed_count=0 — and the grades were simply gone.
+        status, failed = _resolve_import_job_outcome(result)
         job.created_count = result["created"]
         job.updated_count = result["updated"]
-        job.status = "completed"
+        job.failed_count = failed
+        job.total_rows = len(csv_rows)
+        if result.get("errors"):
+            job.error_log = result["errors"][:_IMPORT_ERROR_LOG_CAP]
+        job.status = status
         job.completed_at = timezone.now()
         job.save()
 
@@ -3400,9 +3430,11 @@ def grade_import_apply_api(request):
             json.dumps(
                 {
                     "job_id": job.id,
-                    "status": "completed",
+                    "status": status,
                     "created": result["created"],
                     "updated": result["updated"],
+                    "failed": failed,
+                    "errors": (result.get("errors") or [])[:_IMPORT_ERROR_LOG_CAP],
                     "duration_seconds": result.get("duration_seconds", 0),
                 }
             ),
