@@ -503,32 +503,61 @@ def migration_wizard(request):
                     )
                 else:
                     try:
+                        from django.core.exceptions import (
+                            ValidationError as _ValidationError,
+                        )
+
                         from apps.evals.importers import (
                             apply_import_from_preview,
                             preview_import,
                         )
 
                         preview = preview_import(transformed)
-                        apply_result = apply_import_from_preview(preview, active_year)
-                        result["created"] = apply_result.get("created", 0)
-                        result["updated"] = apply_result.get("updated", 0)
-                        result["duration_seconds"] = apply_result.get(
-                            "duration_seconds", 0
-                        )
-                        result["error_count"] = (
-                            len(transformed) - result["created"] - result["updated"]
-                        )
-                        result["rollback_snapshot"] = {
-                            "created_ids": apply_result.get("created_ids", []),
-                            "updated_ids": apply_result.get("updated_ids", []),
-                        }
-                        run_migration_finish(run, result)
-                        p = result.get("parity", {})
-                        messages.success(
-                            request,
-                            f"Grades: created {result['created']}, updated {result['updated']}, errors {result['error_count']}. Parity: {p.get('total_processed', 0)} rows processed.",
-                        )
+                        if not preview.is_valid:
+                            # A structural/mapping problem (a missing column
+                            # applies to every row) — tell the operator WHICH
+                            # header is missing rather than 500 on an uncaught
+                            # ValidationError out of apply_import_from_preview.
+                            result["error_count"] = len(transformed)
+                            result["errors"] = preview.errors[:30]
+                            run_migration_finish(run, result)
+                            messages.error(
+                                request,
+                                "Grade import could not start: "
+                                + "; ".join(preview.errors[:3]),
+                            )
+                        else:
+                            apply_result = apply_import_from_preview(
+                                preview, active_year
+                            )
+                            result["created"] = apply_result.get("created", 0)
+                            result["updated"] = apply_result.get("updated", 0)
+                            result["duration_seconds"] = apply_result.get(
+                                "duration_seconds", 0
+                            )
+                            # Honest per-row failure count from the importer, not
+                            # a derived subtraction that hides which rows dropped.
+                            row_errors = apply_result.get("errors", [])
+                            result["error_count"] = apply_result.get(
+                                "failed", len(row_errors)
+                            )
+                            if row_errors:
+                                result["errors"] = [
+                                    f"Row {e.get('row_index', '?')}: {e.get('error', '')}"
+                                    for e in row_errors
+                                ]
+                            result["rollback_snapshot"] = {
+                                "created_ids": apply_result.get("created_ids", []),
+                                "updated_ids": apply_result.get("updated_ids", []),
+                            }
+                            run_migration_finish(run, result)
+                            p = result.get("parity", {})
+                            messages.success(
+                                request,
+                                f"Grades: created {result['created']}, updated {result['updated']}, errors {result['error_count']}. Parity: {p.get('total_processed', 0)} rows processed.",
+                            )
                     except (
+                        _ValidationError,
                         ValueError,
                         TypeError,
                         KeyError,

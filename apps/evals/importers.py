@@ -122,6 +122,35 @@ def preview_import(data: Iterable[dict]) -> GradeImportPreview:
     return GradeImportPreview(rows=rows, errors=errors)
 
 
+def _resolve_import_teacher(assignment, teacher_username):
+    """Resolve the ``TeacherProfile`` for a grade-import row.
+
+    ``Evaluation.teacher`` is NOT NULL, so every row needs one. Prefer the
+    teacher named in the sheet; fall back to whoever actually teaches this
+    subject assignment (its first active ``TeacherAssignment``). Returns
+    ``None`` ONLY when neither exists — the caller must treat that as a row
+    failure and never persist, because a null teacher makes ``save()``'s
+    ``full_clean()`` raise ``ValidationError``.
+
+    Both the dry-run and the real apply call this, so the two paths resolve the
+    teacher identically and cannot disagree about which rows are importable.
+    """
+    TeacherProfile = django_apps.get_model("people", "TeacherProfile")
+    username = (teacher_username or "").strip()
+    if username:
+        # tenant-isolation-allow: import-pipeline-validates-school-before-persist
+        teacher = TeacherProfile.objects.filter(user__username=username).first()
+        if teacher is not None:
+            return teacher
+    # No usable teacher on the row — use the subject assignment's own teacher.
+    assignment_teacher = (
+        assignment.teacher_assignments.filter(is_active=True)
+        .select_related("teacher")
+        .first()
+    )
+    return assignment_teacher.teacher if assignment_teacher is not None else None
+
+
 def apply_import_from_preview(preview: GradeImportPreview, academic_year):
     """
     Persist rows from a validated preview. Caller ensures permissions.
@@ -137,15 +166,16 @@ def apply_import_from_preview(preview: GradeImportPreview, academic_year):
     Evaluation = django_apps.get_model("evals", "Evaluation")
     SubjectAssignment = django_apps.get_model("academics", "SubjectAssignment")
     Term = django_apps.get_model("academics", "Term")
-    TeacherProfile = django_apps.get_model("people", "TeacherProfile")
     StudentProfile = django_apps.get_model("people", "StudentProfile")
 
     created = 0
     updated = 0
+    failed = 0
     created_ids = []
     updated_ids = []
+    errors: List[dict] = []
 
-    for row in preview.rows:
+    for row_index, row in enumerate(preview.rows, start=1):
         # student_code is unique per school, so pin the lookup to the import's
         # school (via its academic year) — a same-code student at another
         # school must never be matched.
@@ -160,35 +190,90 @@ def apply_import_from_preview(preview: GradeImportPreview, academic_year):
             )
             .select_related("classroom")
             .first()
-        # tenant-isolation-allow: import-pipeline-validates-school-before-persist
-        )
-        term = Term.objects.filter(id=row.term_id).first()
-        # tenant-isolation-allow: import-pipeline-validates-school-before-persist
-        teacher = None
-        if row.teacher_username:
             # tenant-isolation-allow: import-pipeline-validates-school-before-persist
-            teacher = TeacherProfile.objects.filter(
-                user__username=row.teacher_username
-            ).first()
-        if not student or not assignment or not term:
-            continue
-        obj, was_created = Evaluation.objects.update_or_create(
-            student=student,
-            subject_assignment=assignment,
-            term=term,
-            defaults={
-                "academic_year": academic_year,
-                "teacher": teacher or assignment.teacher
-                if hasattr(assignment, "teacher")
-                else None,
-                "seq1_score": row.seq1,
-                "seq2_score": row.seq2,
-                "exam_score": row.exam,
-                "mock_score": row.mock,
-                "practical_score": row.practical,
-                "remarks": row.remarks,
-            },
         )
+        # tenant-isolation-allow: import-pipeline-validates-school-before-persist
+        term = Term.objects.filter(id=row.term_id).first()
+
+        missing = [
+            label
+            for label, resolved in (
+                ("student", student),
+                ("subject_assignment", assignment),
+                ("term", term),
+            )
+            if resolved is None
+        ]
+        if missing:
+            # A row we cannot resolve used to be silently dropped — the dry-run
+            # counted it as "would create" and the real run made it vanish.
+            failed += 1
+            errors.append(
+                {
+                    "row_index": row_index,
+                    "student_code": str(row.student_code or ""),
+                    "error": f"could not resolve {', '.join(missing)}",
+                }
+            )
+            continue
+
+        # Evaluation.teacher is NOT NULL. The previous ternary
+        # (`teacher or assignment.teacher if hasattr(assignment, "teacher")`)
+        # ALWAYS evaluated to None — SubjectAssignment has no `teacher`
+        # attribute — so the CSV teacher was thrown away and save()'s
+        # full_clean() raised a ValidationError that 500'd the whole import.
+        teacher = _resolve_import_teacher(assignment, row.teacher_username)
+        if teacher is None:
+            failed += 1
+            errors.append(
+                {
+                    "row_index": row_index,
+                    "student_code": str(row.student_code or ""),
+                    "error": (
+                        "no teacher for this subject assignment — add a "
+                        "teacher_username column or assign a teacher to the subject"
+                    ),
+                }
+            )
+            continue
+
+        try:
+            obj, was_created = Evaluation.objects.update_or_create(
+                student=student,
+                subject_assignment=assignment,
+                term=term,
+                defaults={
+                    "academic_year": academic_year,
+                    "teacher": teacher,
+                    "seq1_score": row.seq1,
+                    "seq2_score": row.seq2,
+                    "exam_score": row.exam,
+                    "mock_score": row.mock,
+                    "practical_score": row.practical,
+                    "remarks": row.remarks,
+                },
+            )
+        except _EVALS_IMPORTERS_ROW_ERRORS as exc:
+            # One malformed row (bad score, constraint clash) must not abort the
+            # whole migration — count it and keep going.
+            log_exception_with_context(
+                "evals importers apply_import_from_preview row failed",
+                school_id=getattr(academic_year, "school_id", None),
+                extra={
+                    "row_index": row_index,
+                    "academic_year_id": getattr(academic_year, "id", None),
+                },
+            )
+            failed += 1
+            errors.append(
+                {
+                    "row_index": row_index,
+                    "student_code": str(row.student_code or ""),
+                    "error": str(exc)[:200],
+                }
+            )
+            continue
+
         if was_created:
             created += 1
             created_ids.append(obj.pk)
@@ -198,6 +283,8 @@ def apply_import_from_preview(preview: GradeImportPreview, academic_year):
     return {
         "created": created,
         "updated": updated,
+        "failed": failed,
+        "errors": errors,
         "created_ids": created_ids,
         "updated_ids": updated_ids,
     }
@@ -416,7 +503,6 @@ def dry_run_grade_import(csv_rows, academic_year=None):
     # tenant-isolation-allow: import-pipeline-validates-school-before-persist
     SubjectAssignment = django_apps.get_model("academics", "SubjectAssignment")
     Term = django_apps.get_model("academics", "Term")
-    TeacherProfile = django_apps.get_model("people", "TeacherProfile")
     StudentProfile = django_apps.get_model("people", "StudentProfile")
     AcademicYear = django_apps.get_model("academics", "AcademicYear")
 
@@ -440,11 +526,21 @@ def dry_run_grade_import(csv_rows, academic_year=None):
             )
             # tenant-isolation-allow: import-pipeline-validates-school-before-persist
             term = Term.objects.get(id=row.get("term_id"))
-            teacher_username = (row.get("teacher_username") or "").strip()
-            # tenant-isolation-allow: import-pipeline-validates-school-before-persist
-            if teacher_username:
-                # tenant-isolation-allow: import-pipeline-validates-school-before-persist
-                TeacherProfile.objects.filter(user__username=teacher_username).first()
+            # Resolve the teacher the SAME way the real apply path does, so a
+            # row that would fail on apply (no teacher, and Evaluation.teacher is
+            # NOT NULL) is flagged here instead of passing the dry-run clean and
+            # then 500-ing on apply. The old code discarded this lookup entirely.
+            teacher = _resolve_import_teacher(
+                subject_assignment, row.get("teacher_username")
+            )
+            if teacher is None:
+                errors.append(
+                    f"Row {idx}: no teacher for this subject assignment "
+                    "(add a teacher_username column or assign a teacher to the "
+                    "subject)"
+                )
+                continue
+            # tenant-isolation-allow: scoped-via-student-and-subject-assignment-resolved-inside-the-validated-import-school
             exists = Evaluation.objects.filter(
                 academic_year=academic_year,
                 term=term,
