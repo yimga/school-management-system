@@ -105,10 +105,17 @@
   .rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] :is(
     .rmc-command-workbench--side,
     .reportcard-builder-layout,
-    .site-settings-layout,
     .rmc-mv-form-with-preview
   ) {
     grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem) !important;
+  }
+  /* .site-settings-layout is split out: its markup (templates/admin/base.html:94-96) puts
+     the nav aside FIRST and .site-settings-main second — the mirror of the layouts above.
+     A shared `minmax(0,1fr) <sidecar>` gives the ~14rem nav the wide track and squeezes the
+     settings form into the sidecar. rmc-class-grammar.css:1554 had the intent right all
+     along (`240px 1fr`, no !important) — these contract rules were overriding it backwards. */
+  .rmc-django-surface-canvas[data-rmc-django-surface-canvas="tenant-backend"] .site-settings-layout {
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr) !important;
   }
 }
 
