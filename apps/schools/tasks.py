@@ -18,6 +18,7 @@ from apps.schools.domain_sync import (
     ensure_tenant_client_for_school,
     sync_school_domains_to_runtime,
 )
+from apps.schools.plan_resolution import ensure_school_plan
 from apps.schools.rls_context import rls_school
 
 logger = logging.getLogger(__name__)
@@ -77,6 +78,16 @@ def _activate_portal_phase_a(
     _merge_provisioning_settings(school, phase_a_complete=True)
     school.is_active = True
     school.save(update_fields=["is_active", "settings", "updated_at"])
+    # Every tenant goes live on a real plan — the tenant never picks one, and a
+    # plan-less school can never bind to the free tier or be nudged to upgrade.
+    # Best-effort: a catalog problem must not strand a school mid-provisioning,
+    # which is the failure mode this whole terminus exists to avoid.
+    try:
+        ensure_school_plan(school)
+    except (AttributeError, TypeError, ValueError, DatabaseError, IntegrityError):
+        logger.warning(
+            "default-plan binding skipped for school=%s", school_id, exc_info=True
+        )
     try:
         from apps.schools.signup_completion_notifications import finalize_tenant_activation
 
