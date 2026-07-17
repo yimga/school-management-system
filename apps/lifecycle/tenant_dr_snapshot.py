@@ -345,9 +345,27 @@ def verify_signature(payload_bytes: bytes, signature_hex: str, *, school_id: str
 
 
 def _snapshot_roots() -> tuple[Path, Path]:
+    """Resolve the primary + secondary snapshot directories.
+
+    Defaults to two subdirectories of ``BASE_DIR/var/tenant_snapshots`` (same as
+    before). An operator can override EITHER via ``TENANT_SNAPSHOT_PRIMARY_DIR`` /
+    ``TENANT_SNAPSHOT_SECONDARY_DIR`` (settings, env-driven) to place the second
+    copy on a SEPARATELY MOUNTED disk/volume — making the two stores genuinely
+    independent failure domains instead of two folders on one ephemeral disk.
+    """
     repo = Path(getattr(settings, "BASE_DIR", ".")).resolve()
-    primary = repo / "var" / "tenant_snapshots" / "primary"
-    secondary = repo / "var" / "tenant_snapshots" / "secondary"
+    default_primary = repo / "var" / "tenant_snapshots" / "primary"
+    default_secondary = repo / "var" / "tenant_snapshots" / "secondary"
+
+    primary_override = (getattr(settings, "TENANT_SNAPSHOT_PRIMARY_DIR", None) or "").strip()
+    secondary_override = (
+        getattr(settings, "TENANT_SNAPSHOT_SECONDARY_DIR", None) or ""
+    ).strip()
+
+    primary = Path(primary_override).expanduser() if primary_override else default_primary
+    secondary = (
+        Path(secondary_override).expanduser() if secondary_override else default_secondary
+    )
     primary.mkdir(parents=True, exist_ok=True)
     secondary.mkdir(parents=True, exist_ok=True)
     return primary, secondary

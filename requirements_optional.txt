@@ -21,4 +21,15 @@ shap>=0.44.0
 # set. Works with self-hosted MinIO (FOSS), Cloudflare R2, Backblaze B2, AWS S3,
 # or a regional/edge bucket. The default local-filesystem media path needs none
 # of this. See config/settings.py STORAGES block.
-# django-storages[s3]>=1.14  # pulls boto3
+django-storages[s3]>=1.14  # pulls boto3
+
+# boto3 is ALSO the durable secondary for tenant DR immutable snapshots
+# (apps/lifecycle/tenant_dr_snapshot.py). When TENANT_SNAPSHOT_S3_BUCKET is set,
+# each daily snapshot is uploaded to object storage — the only store that
+# survives an ephemeral-container redeploy (local var/ is wiped). django-storages
+# above already pulls boto3; this explicit pin documents the DR dependency and
+# lets a deploy that wants ONLY the DR S3 leg (not S3 media) install boto3 alone.
+# NOTE: build.sh installs requirements.txt only — an operator enabling S3 DR must
+# also install this file (or add boto3 to the build) on the WORKER service, which
+# is where the capture task runs. See docs/DR_SELF_HOST_RESTORE_RUNBOOK.md §2.
+boto3>=1.34

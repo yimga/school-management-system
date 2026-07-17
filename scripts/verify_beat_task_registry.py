@@ -49,20 +49,21 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 # the gate. Baselining silently would make this the very thing it exists to catch --
 # a gate that reports OK while the job never runs.
 #
-# All ten share one root cause: the @shared_task lives in a module that is not named
+# These share one root cause: the @shared_task lives in a module that is not named
 # exactly `tasks.py`, so config/celery.py:19's bare autodiscover_tasks() never imports
 # it. Fixing that in one shot would wake ALL of them simultaneously -- including a purge
 # job and outbound webhooks -- so each must be woken deliberately, not as a side effect.
+#
+# RESOLVED 2026-07-17: `lifecycle-tenant-immutable-snapshot-daily` was woken
+# SURGICALLY by adding apps/lifecycle/tasks.py (re-exporting ONLY the two
+# DR-snapshot tasks -- verified via the live registry that it wakes no other
+# task; see apps/lifecycle/tests/test_dr_task_registration.py). Its durability
+# was also wired: settings now READ TENANT_SNAPSHOT_S3_BUCKET / _S3_ENDPOINT /
+# _PRIMARY_DIR / _SECONDARY_DIR from the env (they were referenced-but-undeclared,
+# so setting the env var did nothing), boto3 is uncommented in
+# requirements_optional.txt, and render.yaml documents the durable-store options.
+# Removed from the baseline so the list can only SHRINK.
 KNOWN_DEAD_ENTRIES: dict[str, str] = {
-    "lifecycle-tenant-immutable-snapshot-daily":
-        "CRITICAL: tenant DR snapshots have NEVER been captured. Task lives in "
-        "apps/lifecycle/tasks_dr_snapshot.py and apps/lifecycle has no tasks.py. NOTE: "
-        "registering it alone buys little -- _snapshot_roots() writes primary+secondary "
-        "to var/tenant_snapshots/{primary,secondary}, two subdirs of the SAME "
-        "render.yaml-declares-no-persistent-disk filesystem, and the S3 leg needs BOTH "
-        "TENANT_SNAPSHOT_S3_BUCKET (unset) and boto3 (commented out of "
-        "requirements_optional.txt -> except ImportError -> silent skip). Needs durable "
-        "storage, not just registration.",
     "integrations-refresh-oauth-tokens":
         "OAuth tokens are never refreshed -> tenant integrations silently expire. "
         "Waking it starts outbound calls to third-party identity providers.",

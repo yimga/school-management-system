@@ -363,6 +363,42 @@ services:
         value: "1"
       - key: TENANT_OFFBOARDING_S3_CLEANUP_ENABLED
         value: "1"
+      # ── Tenant DR immutable snapshots — DURABILITY (default: NOT durable) ────
+      # The daily capture task (lifecycle.capture_tenant_immutable_snapshots_daily)
+      # runs on THIS worker and writes to <repo>/var/tenant_snapshots/{primary,
+      # secondary}. On Render's native runtime that path is EPHEMERAL — wiped on
+      # every deploy — so out of the box the "two stores" are two subdirs of one
+      # disposable filesystem and NO copy survives a redeploy. Pick ONE durable
+      # option below (both are operator actions; the code is already wired):
+      #
+      # OPTION A — S3-compatible object storage (recommended; genuinely off-box).
+      #   Uncomment + set the bucket; also install boto3 on this worker (add
+      #   `-r requirements_optional.txt` to build.sh, or `boto3` to requirements.txt).
+      #   Works with AWS S3, Cloudflare R2, Backblaze B2, self-hosted MinIO.
+      #   Credentials use boto3's default chain (AWS_ACCESS_KEY_ID / _SECRET_ACCESS_KEY
+      #   / _S3_REGION_NAME, or an attached IAM role). See docs/DR_SELF_HOST_RESTORE_RUNBOOK.md §2.
+      # - key: TENANT_SNAPSHOT_S3_BUCKET
+      #   sync: false
+      # - key: TENANT_SNAPSHOT_S3_ENDPOINT   # blank => real AWS S3; set for R2/MinIO/B2
+      #   sync: false
+      # - key: AWS_ACCESS_KEY_ID
+      #   sync: false
+      # - key: AWS_SECRET_ACCESS_KEY
+      #   sync: false
+      # - key: AWS_S3_REGION_NAME
+      #   sync: false
+      #
+      # OPTION B — a Render persistent disk (survives redeploys, single-instance).
+      #   Uncomment the `disk:` block AND the SECONDARY_DIR env var so the second
+      #   copy lands on the mounted volume instead of the ephemeral var/ subdir.
+      #   Do NOT mount the disk over <repo>/var — that shadows the committed
+      #   var/security-audit-baseline-*.json files. Mount a dedicated path.
+      # - key: TENANT_SNAPSHOT_SECONDARY_DIR
+      #   value: "/var/lib/rmc-dr-snapshots/secondary"
+  # disk:                       # OPTION B — uncomment together with SECONDARY_DIR above
+  #   name: rmc-dr-snapshots
+  #   mountPath: /var/lib/rmc-dr-snapshots
+  #   sizeGB: 5
   - type: worker
     name: school-management-system-beat
     env: python

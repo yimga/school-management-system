@@ -106,6 +106,48 @@ Metadata for each snapshot (paths, `payload_sha256`, `signature_hex`,
 `byte_size`) is recorded in the `TenantImmutableSnapshot` table. The
 `signature_hex` from that row is the **expected signature** you pass to restore.
 
+### 2a. Durability — read this before relying on snapshots (operator action)
+
+**The default two stores are NOT durable on an ephemeral-container host (e.g.
+Render's native runtime).** Both `primary/` and `secondary/` are subdirectories of
+`<repo>/var`, which is wiped on every deploy — so out of the box the "two copies"
+share one disposable filesystem and **no copy survives a redeploy**. The capture
+task runs on the **worker** service, so any durable store must be attached there.
+Choose ONE:
+
+**Option A — S3-compatible object storage (recommended; genuinely off-box).**
+Set on the **worker** (and any process that captures):
+
+| Env var | Purpose |
+|---|---|
+| `TENANT_SNAPSHOT_S3_BUCKET` | Bucket name — turns the S3 leg on. |
+| `TENANT_SNAPSHOT_S3_ENDPOINT` | Blank ⇒ real AWS S3; set for Cloudflare R2 / Backblaze B2 / self-hosted MinIO. |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_S3_REGION_NAME` | boto3's default credential chain (or use an attached IAM role). |
+
+You must also install **boto3** on the worker — it is in `requirements_optional.txt`
+(uncommented), but `build.sh` installs `requirements.txt` only, so add
+`pip install -r requirements_optional.txt` to the build (or add `boto3` to
+`requirements.txt`). When the bucket is set but boto3 is missing, the upload is
+skipped with a `tenant_snapshot_s3_skipped boto3_unavailable` WARNING (never an
+error) — the local copies still write.
+
+**Option B — a persistent disk + an independent secondary directory.**
+Point the second copy at a separately mounted volume so the two on-box copies are
+different failure domains instead of two folders on one disk:
+
+| Env var | Purpose |
+|---|---|
+| `TENANT_SNAPSHOT_PRIMARY_DIR` | Override the primary root (default `var/tenant_snapshots/primary`). |
+| `TENANT_SNAPSHOT_SECONDARY_DIR` | Override the secondary root — point it at the mounted disk. |
+
+On Render, uncomment the `disk:` block + `TENANT_SNAPSHOT_SECONDARY_DIR` on the
+worker service in `render.yaml` (mount a **dedicated** path — do not mount over
+`<repo>/var`, which would shadow the committed `var/security-audit-baseline-*.json`).
+
+> The daily capture task only runs at all once its `@shared_task` is registered.
+> That registration (`apps/lifecycle/tasks.py`) is a prerequisite the durability
+> wiring above sits on top of — without it, nothing writes to any store.
+
 ---
 
 ## 3. Download the master file

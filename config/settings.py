@@ -1107,6 +1107,33 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ── Tenant DR immutable snapshots — durability wiring ─────────────────────────
+# apps/lifecycle/tenant_dr_snapshot.py reads these via getattr(settings, ...).
+# They were referenced but NEVER DECLARED, so an operator who set the env var got
+# nothing (getattr fell through to None) and the S3 leg was permanently dead. Read
+# them from the environment here so setting the env var actually takes effect.
+#
+# TENANT_SNAPSHOT_S3_BUCKET — durable, off-box secondary (AWS S3 / Cloudflare R2 /
+#   Backblaze B2 / self-hosted MinIO). The ONLY store that survives an ephemeral-
+#   container redeploy. Requires boto3 on the worker (requirements_optional.txt);
+#   credentials/region use boto3's default chain (AWS_ACCESS_KEY_ID /
+#   AWS_SECRET_ACCESS_KEY / AWS_S3_REGION_NAME, or an attached IAM role).
+# TENANT_SNAPSHOT_S3_ENDPOINT — blank => real AWS S3; set for R2 / MinIO / B2.
+TENANT_SNAPSHOT_S3_BUCKET = (os.getenv("TENANT_SNAPSHOT_S3_BUCKET", "") or "").strip()
+TENANT_SNAPSHOT_S3_ENDPOINT = (
+    os.getenv("TENANT_SNAPSHOT_S3_ENDPOINT", "") or ""
+).strip()
+# Local store roots. Point SECONDARY_DIR at a SEPARATELY MOUNTED disk/volume so
+# the two on-box copies are genuinely independent failure domains rather than two
+# subdirectories of one filesystem. Blank => the tenant_dr_snapshot.py defaults
+# (BASE_DIR/var/tenant_snapshots/{primary,secondary}); existing behaviour unchanged.
+TENANT_SNAPSHOT_PRIMARY_DIR = (
+    os.getenv("TENANT_SNAPSHOT_PRIMARY_DIR", "") or ""
+).strip()
+TENANT_SNAPSHOT_SECONDARY_DIR = (
+    os.getenv("TENANT_SNAPSHOT_SECONDARY_DIR", "") or ""
+).strip()
+
 # Part F 16.4 / 16.6: Global edge and testing matrix (docs/architecture/global_edge_and_testing_matrix.md)
 EDGE_REGION_HEADER = os.getenv("EDGE_REGION_HEADER", "HTTP_X_REGION")
 CDN_BASE_URL = (os.getenv("CDN_BASE_URL") or "").strip() or ""

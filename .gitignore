@@ -56,6 +56,9 @@ htmlcov/
 pytest-cache-files-*/
 var/pytest-cache-files-*/
 var/tmp/
+# Tenant DR immutable snapshots — encrypted, but still tenant PII + password
+# hashes at rest. Must never be swept into version control by a `git add .`.
+var/tenant_snapshots/
 .tmp_test_artifacts/
 .django_test_dbs/
 full_test_run.txt
