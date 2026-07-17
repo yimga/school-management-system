@@ -197,24 +197,40 @@ class GradeValidator:
         if current_score is None:
             return False
 
-        from apps.academics.models import Term
         from apps.evals.models import Evaluation
 
-        # Get previous term
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        prev_terms = Term.objects.filter(
-            academic_year=evaluation.academic_year
-        ).order_by("-id")
-
-        if not prev_terms.exists():
+        term = getattr(evaluation, "term", None)
+        if term is None or getattr(term, "position", None) is None:
             return False
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
-        prev_eval = Evaluation.objects.filter(
-            student=evaluation.student,
-            subject_assignment=evaluation.subject_assignment,
-            term__in=prev_terms[:1],
-        ).first()
+        # The subject, NOT this term's assignment row. `Evaluation.clean()`
+        # enforces `subject_assignment.term == term`, so a SubjectAssignment is
+        # bound to a single term and no earlier evaluation can ever share this
+        # one. Matching on subject_assignment made the lookup structurally
+        # empty in every term but this evaluation's own -- where it matched the
+        # evaluation ITSELF (unique per year+term+assignment+student), scoring a
+        # 0% change. Either way the check could never fire.
+        subject_id = getattr(evaluation.subject_assignment, "subject_id", None)
+        if subject_id is None:
+            return False
+
+        # Ordered by term POSITION, which is the school calendar. The previous
+        # code ordered terms by `-id` -- creation order, not term order -- and
+        # never referenced this evaluation's term at all, so it reached for the
+        # highest-id term (usually the LAST one, i.e. the future).
+        # Nearest EARLIER graded term, so a term the student was not graded in
+        # (joined late, subject not taught) does not blind the check.
+        prev_eval = (
+            Evaluation.objects.filter(  # tenant-isolation-allow: scoped-via-student-and-academic-year-of-the-evaluation-under-validation
+                student=evaluation.student,
+                academic_year=evaluation.academic_year,
+                subject_assignment__subject_id=subject_id,
+                term__position__lt=term.position,
+            )
+            .exclude(pk=evaluation.pk)
+            .order_by("-term__position")
+            .first()
+        )
 
         prev_score = (
             prev_eval.final_score
