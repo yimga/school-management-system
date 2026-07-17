@@ -12,9 +12,10 @@ import logging
 
 from django.core.cache import cache
 from django.utils import timezone
-from django.db.models import Count, Sum, Avg
-from django.db.models.functions import TruncMonth
+from django.db.models import Count, Sum, Avg, DecimalField, F, Value
+from django.db.models.functions import Coalesce, TruncMonth
 from datetime import timedelta, datetime
+from decimal import Decimal
 import csv
 import json
 from io import StringIO
@@ -50,7 +51,11 @@ class ExecutiveReportingService:
         Financial KPIs for executive dashboard
         Extends AdminDashboardService.get_finance_metrics() with period ranges
         """
-        from apps.finance.models import Invoice, Payment
+        from apps.finance.models import (
+            COLLECTED_PAYMENT_STATUS,
+            Invoice,
+            Payment,
+        )
 
         prefix = _report_cache_prefix(school_id)
         cache_key = f"{prefix}:exec_finance_{school_id or 'global'}_{start_date.date()}_{end_date.date()}"
@@ -64,19 +69,39 @@ class ExecutiveReportingService:
             invoices = invoices.filter(school_id=school_id)
 # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
 
+        # Money that actually arrived. `status` choices on Payment are
+        # lowercase — this read "COMPLETED" and so matched nothing, pinning
+        # every board's collected total to 0. Soft-deleted rows are excluded
+        # and refunds netted off, matching Invoice.computed_balance, which is
+        # the domain's own definition of money received.
         payments = Payment.objects.filter(
-            created_at__range=[start_date, end_date], status="COMPLETED"
+            created_at__range=[start_date, end_date],
+            status=COLLECTED_PAYMENT_STATUS,
+            deleted_at__isnull=True,
         )
         if school_id is not None:
             payments = payments.filter(school_id=school_id)
 
+        # Billed = actually issued and genuinely owed. A DRAFT was never sent
+        # to anyone and a VOID was never owed, so counting either inflates the
+        # denominator of collection_rate and overstates outstanding.
+        billed = invoices.exclude(
+            status__in=(Invoice.Status.DRAFT, Invoice.Status.VOID)
+        )
+
+        net_received = F("amount") - Coalesce(
+            F("refunded_amount"), Value(Decimal("0.00")),
+            output_field=DecimalField(max_digits=12, decimal_places=2),
+        )
+
         summary = {
-            "total_invoiced": invoices.aggregate(total=Sum("total_amount"))["total"]
+            "total_invoiced": billed.aggregate(total=Sum("total_amount"))["total"]
             or 0,
-            "total_collected": payments.aggregate(total=Sum("amount"))["total"] or 0,
-            "outstanding": invoices.filter(status="PENDING").aggregate(
-                total=Sum("total_amount")
-            )["total"]
+            "total_collected": payments.aggregate(total=Sum(net_received))["total"]
+            or 0,
+            # Unpaid remainder of what was billed. `status="PENDING"` was not a
+            # member of Invoice.Status at all, so this was always 0.
+            "outstanding": billed.aggregate(total=Sum("balance_amount"))["total"]
             or 0,
             "invoice_count": invoices.count(),
             "payment_count": payments.count(),

@@ -27,6 +27,12 @@ from apps.siteconfig.models import _tenant_upload_to
 # needs full ledger test coverage.
 _NON_RECEIVED_PAYMENT_STATUSES = ("failed", "cancelled", "refunded")
 
+# The one status that means money actually arrived. Public because reporting
+# callers outside this module need it and MUST NOT re-type the literal: the
+# board KPI service wrote "COMPLETED", which matches nothing (these choices are
+# lowercase), and so reported "collected: 0" for every school forever.
+COLLECTED_PAYMENT_STATUS = "completed"
+
 # Payment immutability (invoice/payment immutability audit): once a payment
 # reaches a FINAL money state, its financial identity (amount / invoice /
 # method) is read-only — corrections are SEPARATE entries (soft-delete
