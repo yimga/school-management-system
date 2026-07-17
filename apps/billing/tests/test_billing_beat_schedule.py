@@ -1,11 +1,29 @@
 """B1: the platform billing lifecycle runs on a Celery beat, not just by hand.
 
 Previously invoicing only advanced when an operator ran the management command.
-A daily beat advances every subscription's billing state on its own cycle.
+A daily beat is meant to advance every subscription's billing state.
+
+Two defects, both effect-proven against the live Celery app (2026-07-17):
+
+1. ``install_billing_beat_schedule`` REASSIGNED ``app.conf.beat_schedule`` to a
+   new dict. Under ``config_from_object("django.conf:settings")`` the conf's
+   ``beat_schedule`` IS ``settings.CELERY_BEAT_SCHEDULE``, and that assignment
+   is silently discarded — so the four billing entries never reached beat and
+   the lifecycle never ran in prod. The old test used a ``_FakeApp`` whose
+   ``beat_schedule`` was a plain settable attribute, so the reassignment
+   "worked" and the test was green forever. ``_CeleryLikeConf`` below mirrors
+   the real semantics (reassignment discarded, in-place mutation lands), so the
+   install test now fails against the reassignment bug.
+
+2. The lifecycle CHARGES then SUSPENDS on unpaid balance and had never run, and
+   with no PSP adapter ``live`` a charge cannot be collected — so the beat is
+   now behind a default-OFF master switch (``RMC_PLATFORM_BILLING_BEAT_ENABLED``)
+   to keep a deploy from mass-suspending un-billable tenants.
 """
 
 from __future__ import annotations
 
+import os
 from unittest import mock
 
 from django.test import SimpleTestCase
@@ -15,17 +33,36 @@ from apps.billing.beat_schedule import (
     install_billing_beat_schedule,
 )
 
+_ENABLE = {"RMC_PLATFORM_BILLING_BEAT_ENABLED": "1"}
 
-class _FakeConf:
+
+class _CeleryLikeConf:
+    """Mirrors Celery's ``config_from_object`` semantics.
+
+    ``beat_schedule`` is backed by the settings dict, so REASSIGNING the
+    attribute is discarded, but IN-PLACE mutation of the returned dict lands.
+    The reassignment install is a no-op against this; the in-place install works.
+    """
+
     def __init__(self):
-        self.beat_schedule: dict = {}
+        self._backing: dict = {}
+
+    @property
+    def beat_schedule(self):
+        return self._backing
+
+    @beat_schedule.setter
+    def beat_schedule(self, value):
+        # Celery discards this when the schedule comes from the settings object.
+        pass
 
 
-class _FakeApp:
+class _CeleryLikeApp:
     def __init__(self):
-        self.conf = _FakeConf()
+        self.conf = _CeleryLikeConf()
 
 
+@mock.patch.dict(os.environ, _ENABLE)
 class BillingBeatScheduleTests(SimpleTestCase):
     def test_schedule_has_daily_lifecycle_entry(self):
         sched = get_billing_beat_schedule()
@@ -51,7 +88,7 @@ class BillingBeatScheduleTests(SimpleTestCase):
             "apps.billing.run_subscription_renewal_reminders",
         )
 
-    @mock.patch.dict("os.environ", {"RMC_RENEWAL_REMINDER_BEAT_DISABLED": "1"})
+    @mock.patch.dict(os.environ, {"RMC_RENEWAL_REMINDER_BEAT_DISABLED": "1"})
     def test_renewal_reminder_entry_env_disablable(self):
         sched = get_billing_beat_schedule()
         self.assertNotIn("platform-renewal-reminders-daily", sched)
@@ -66,7 +103,7 @@ class BillingBeatScheduleTests(SimpleTestCase):
             "apps.billing.run_subscription_dunning_reminders",
         )
 
-    @mock.patch.dict("os.environ", {"RMC_DUNNING_REMINDER_BEAT_DISABLED": "1"})
+    @mock.patch.dict(os.environ, {"RMC_DUNNING_REMINDER_BEAT_DISABLED": "1"})
     def test_dunning_reminder_entry_env_disablable(self):
         sched = get_billing_beat_schedule()
         self.assertNotIn("platform-dunning-reminders-daily", sched)
@@ -79,15 +116,28 @@ class BillingBeatScheduleTests(SimpleTestCase):
 
         self.assertIsNotNone(run_subscription_dunning_reminders_task)
 
-    def test_install_adds_entry(self):
-        app = _FakeApp()
+    def test_install_lands_the_entry_on_a_celery_like_conf(self):
+        """The bug: a reassignment install leaves the entry ABSENT here.
+
+        ``_CeleryLikeConf`` discards ``conf.beat_schedule = <new dict>`` exactly
+        as the real Celery conf does, so this passes only when install mutates
+        the live dict in place.
+        """
+        app = _CeleryLikeApp()
         installed = install_billing_beat_schedule(app)
         self.assertIn("platform-billing-lifecycle-daily", installed)
-        self.assertIn("platform-billing-lifecycle-daily", app.conf.beat_schedule)
+        self.assertIn(
+            "platform-billing-lifecycle-daily", app.conf.beat_schedule,
+            "the entry never reached the live schedule -- install reassigned "
+            "conf.beat_schedule instead of mutating it in place, and the "
+            "assignment is discarded under config_from_object",
+        )
 
     def test_install_preserves_operator_config(self):
-        app = _FakeApp()
-        app.conf.beat_schedule["platform-billing-lifecycle-daily"] = {"task": "operator.custom"}
+        app = _CeleryLikeApp()
+        app.conf.beat_schedule["platform-billing-lifecycle-daily"] = {
+            "task": "operator.custom"
+        }
         installed = install_billing_beat_schedule(app)
         self.assertNotIn("platform-billing-lifecycle-daily", installed)
         self.assertEqual(
@@ -96,7 +146,9 @@ class BillingBeatScheduleTests(SimpleTestCase):
         )
 
     def test_disable_env_yields_empty_schedule(self):
-        with mock.patch.dict("os.environ", {"RMC_PLATFORM_BILLING_BEAT_DISABLED": "1"}):
+        with mock.patch.dict(
+            os.environ, {"RMC_PLATFORM_BILLING_BEAT_DISABLED": "1"}
+        ):
             self.assertEqual(get_billing_beat_schedule(), {})
 
     def test_task_is_importable(self):
@@ -112,3 +164,31 @@ class BillingBeatScheduleTests(SimpleTestCase):
         )
 
         self.assertIsNotNone(materialize_holding_currency_rollups_task)
+
+
+class BillingBeatMasterSwitchTests(SimpleTestCase):
+    """The beat must not auto-activate a never-run, suspend-capable FSM."""
+
+    def test_default_off_without_the_enable_flag(self):
+        # No RMC_PLATFORM_BILLING_BEAT_ENABLED in the environment.
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("RMC_PLATFORM_BILLING_BEAT_ENABLED", None)
+            self.assertEqual(
+                get_billing_beat_schedule(), {},
+                "the billing beat must be OFF by default -- activating the "
+                "lifecycle charges then suspends on unpaid balance, and with no "
+                "live PSP that would suspend every paid-tier tenant",
+            )
+
+    def test_enable_flag_turns_it_on(self):
+        with mock.patch.dict(os.environ, _ENABLE):
+            sched = get_billing_beat_schedule()
+            self.assertIn("platform-billing-lifecycle-daily", sched)
+
+    def test_install_is_a_no_op_when_disabled(self):
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("RMC_PLATFORM_BILLING_BEAT_ENABLED", None)
+            app = _CeleryLikeApp()
+            installed = install_billing_beat_schedule(app)
+            self.assertEqual(installed, {})
+            self.assertEqual(app.conf.beat_schedule, {})
