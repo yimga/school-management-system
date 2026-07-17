@@ -314,75 +314,90 @@ def student_onboarding_wizard(request: HttpRequest):
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                 if not academic_year:
                     academic_year = AcademicYear.objects.filter(is_active=True).first()
-                student = StudentProfile.objects.create(
-                    first_name=form.cleaned_data["first_name"],
-                    last_name=form.cleaned_data["last_name"],
-                    date_of_birth=form.cleaned_data.get("date_of_birth"),
-                    gender=form.cleaned_data.get("gender"),
-                    place_of_birth=form.cleaned_data.get("place_of_birth", ""),
-                    academic_year=academic_year,
-                    specialty=form.cleaned_data.get("specialty"),
-                    classroom=form.cleaned_data.get("classroom"),
-                    admission_number=form.cleaned_data.get(
-                        "admission_number", ""
-                    ).strip()
-                    or None,
-                    parent_phone=form.cleaned_data.get("parent_phone", ""),
-                    referral_code=form.cleaned_data.get("referral_code", "").strip()
-                    or None,
-                    status=StudentProfile.Status.NEW,
-                    is_active=True,
-                )
-                if request.FILES.get("profile_photo"):
-                    student.profile_photo = request.FILES["profile_photo"]
-                    student.save(update_fields=["profile_photo"])
-                parent_email = form.cleaned_data.get("parent_email", "").strip()
-                if parent_email:
-                    parent_user, created = User.objects.get_or_create(
-                        email=parent_email,
-                        defaults={
-                            "username": parent_email,
-                            "first_name": form.cleaned_data.get(
-                                "parent_first_name", ""
-                            ),
-                            "last_name": form.cleaned_data.get("parent_last_name", ""),
-                            "role": User.Role.PARENT,
-                        },
+                try:
+                    student = StudentProfile.objects.create(
+                        first_name=form.cleaned_data["first_name"],
+                        last_name=form.cleaned_data["last_name"],
+                        date_of_birth=form.cleaned_data.get("date_of_birth"),
+                        gender=form.cleaned_data.get("gender"),
+                        place_of_birth=form.cleaned_data.get("place_of_birth", ""),
+                        academic_year=academic_year,
+                        specialty=form.cleaned_data.get("specialty"),
+                        classroom=form.cleaned_data.get("classroom"),
+                        admission_number=form.cleaned_data.get(
+                            "admission_number", ""
+                        ).strip()
+                        or None,
+                        parent_phone=form.cleaned_data.get("parent_phone", ""),
+                        referral_code=form.cleaned_data.get("referral_code", "").strip()
+                        or None,
+                        status=StudentProfile.Status.NEW,
+                        is_active=True,
                     )
-                    StudentGuardian.objects.create(
-                        guardian_user=parent_user,
-                        student=student,
-                        relationship=StudentGuardian.Relationship.GUARDIAN,
-                        phone=form.cleaned_data.get("parent_phone", ""),
-                        email=parent_email,
-                        whatsapp_number=form.cleaned_data.get("parent_whatsapp", ""),
-                        can_view_results=True,
-                        can_view_finance=True,
-                    )
-                    if created:
-                        # Mirror the offline-drain path (offline_workflow_handlers
-                        # ._link_parent): a parent User is created with an unusable
-                        # password, so without a one-time set-password link the
-                        # account is locked out with no recovery path. Best-effort,
-                        # never raises.
-                        from apps.accounts.guardian_invite import send_guardian_invite
-
-                        send_guardian_invite(
-                            parent_user, request=request, school=school
+                except forms.ValidationError as cap_error:
+                    # A plan usage cap (apps/schools/plan_limits.py) raises here on the
+                    # student that would breach the limit. It is a user-facing "upgrade
+                    # to add more" message, not a server error — surface it via the
+                    # messages framework and fall through to re-render step 5. The
+                    # already-set-up school keeps working; only this new enrolment is
+                    # refused. forms.ValidationError IS django.core's ValidationError.
+                    messages.error(request, "; ".join(cap_error.messages))
+                    student = None
+                if student is not None:
+                    if request.FILES.get("profile_photo"):
+                        student.profile_photo = request.FILES["profile_photo"]
+                        student.save(update_fields=["profile_photo"])
+                    parent_email = form.cleaned_data.get("parent_email", "").strip()
+                    if parent_email:
+                        parent_user, created = User.objects.get_or_create(
+                            email=parent_email,
+                            defaults={
+                                "username": parent_email,
+                                "first_name": form.cleaned_data.get(
+                                    "parent_first_name", ""
+                                ),
+                                "last_name": form.cleaned_data.get(
+                                    "parent_last_name", ""
+                                ),
+                                "role": User.Role.PARENT,
+                            },
                         )
-                messages.success(
-                    request,
-                    f"Student pre-registration completed successfully. Admission number: {student.admission_number or 'Pending generation'}. Please contact the school to complete enrollment.",
-                )
-                if session_key in request.session:
-                    del request.session[session_key]
-                if school and request.user.is_authenticated:
-                    FormDraft.objects.filter(
-                        school=school,
-                        user=request.user,
-                        form_key=FORM_DRAFT_KEY_STUDENT_ONBOARDING,
-                    ).delete()
-                return redirect("portal:home")
+                        StudentGuardian.objects.create(
+                            guardian_user=parent_user,
+                            student=student,
+                            relationship=StudentGuardian.Relationship.GUARDIAN,
+                            phone=form.cleaned_data.get("parent_phone", ""),
+                            email=parent_email,
+                            whatsapp_number=form.cleaned_data.get("parent_whatsapp", ""),
+                            can_view_results=True,
+                            can_view_finance=True,
+                        )
+                        if created:
+                            # Mirror the offline-drain path (offline_workflow_handlers
+                            # ._link_parent): a parent User is created with an unusable
+                            # password, so without a one-time set-password link the
+                            # account is locked out with no recovery path. Best-effort,
+                            # never raises.
+                            from apps.accounts.guardian_invite import (
+                                send_guardian_invite,
+                            )
+
+                            send_guardian_invite(
+                                parent_user, request=request, school=school
+                            )
+                    messages.success(
+                        request,
+                        f"Student pre-registration completed successfully. Admission number: {student.admission_number or 'Pending generation'}. Please contact the school to complete enrollment.",
+                    )
+                    if session_key in request.session:
+                        del request.session[session_key]
+                    if school and request.user.is_authenticated:
+                        FormDraft.objects.filter(
+                            school=school,
+                            user=request.user,
+                            form_key=FORM_DRAFT_KEY_STUDENT_ONBOARDING,
+                        ).delete()
+                    return redirect("portal:home")
 
     # Build form with session data (so re-renders after validation errors show data)
     form_data = dict(wizard_data) if wizard_data else {}

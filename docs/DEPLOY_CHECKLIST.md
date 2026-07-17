@@ -10,7 +10,6 @@ Use these env vars and flags to control behavior; avoid hardcoding. Document any
 |------------|--------|----------------|
 | `DEBUG` | Django debug mode; never True in production | `False` in prod |
 | `USE_DJANGO_TENANTS` | Schema-per-tenant (django-tenants). **Default: 1 (on) for PostgreSQL.** Set to 0 to use shared table + RLS. | 1 = schema-per-tenant (default when PostgreSQL), 0 = shared table |
-| `DISABLE_USAGE_LIMIT_MIDDLEWARE` | Turn off Plan max_students/max_staff enforcement | Unset = middleware on |
 | `ALLOWED_HOSTS` | Comma-separated hosts for the app | Must include subdomains if used |
 | `SECRET_KEY` | Django secret; keep out of repo | Required |
 | `CADDY_CHECK_ALLOWED_IPS` | Comma-separated IPs allowed to call `/api/caddy-check/`; if set, other IPs get 403 | Unset = all allowed |
@@ -72,5 +71,5 @@ Before merging a branch that completes a phase or significant feature:
 
 - Gap analysis: `python manage.py phase_i_gap_analysis`
 - DB health: `python manage.py db_health_check`
-- Usage limit: Set `DISABLE_USAGE_LIMIT_MIDDLEWARE=1` to turn off plan limits.
+- Usage limit: plan max_students/max_staff is enforced on enrolment (`apps/schools/plan_limits.py`, on `StudentProfile`/`TeacherProfile.save()`), NOT via a middleware toggle. It refuses only the excess enrolment; waived billing (COMPLIMENTARY/MANUAL_OVERRIDE) and plan-less schools are uncapped. The old `DISABLE_USAGE_LIMIT_MIDDLEWARE` flag was retired with `UsageLimitMiddleware` (2026-07).
 - Env index: See "Environment and feature flags" above.

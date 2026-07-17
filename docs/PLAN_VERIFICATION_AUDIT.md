@@ -79,7 +79,7 @@ This document verifies implementation status against **plan_update_follow-up_and
 | 6.2 | School.plan_id, addons | ✅ schools/models.py |
 | 6.3 | is_feature_enabled(school, code) | ✅ schools/models.py; plan + addons + School.features |
 | 6.4 | FeatureGatekeeperMiddleware, FEATURE_GATE_PATH_MAP | ✅ schools/middleware.py; in MIDDLEWARE |
-| 6.5 | UsageLimitMiddleware (on by default) | ✅ middleware.py; DISABLE_USAGE_LIMIT_MIDDLEWARE=1 to disable |
+| 6.5 | Plan usage cap (max_students / max_staff) | ✅ Enforced on enrolment in `plan_limits.py` (StudentProfile/TeacherProfile.save()); refuses the excess row only. Replaced UsageLimitMiddleware (removed 2026-07); `DISABLE_USAGE_LIMIT_MIDDLEWARE` retired. |
 | 6.6 | 403 or Upgrade Modal | ✅ Middleware returns 403; Upgrade Modal placeholder doc |
 | 6.7 | Upgrade Modal placeholder template | ⚠️ **Was missing** — see fix below |
 | 6.8 | Template tag for feature check in UI | ✅ siteconfig/templatetags/feature_control.py feature_enabled |
@@ -196,7 +196,7 @@ Gaps/tests: See docs/GAPS_SECTION8_AND_TAGGING.md (no automated tests for taggin
 
 | Item | Requirement | Status |
 |------|-------------|--------|
-| 14.1 | UsageLimitMiddleware on by default | ✅ In MIDDLEWARE; DISABLE_USAGE_LIMIT_MIDDLEWARE=1 to turn off |
+| 14.1 | Plan usage cap on by default | ✅ Enforced on enrolment (`plan_limits.py`), not middleware; refuses the excess enrolment only. UsageLimitMiddleware + `DISABLE_USAGE_LIMIT_MIDDLEWARE` retired 2026-07. |
 | 14.2 | Request Waiver at accounts:request_waiver | ✅ View, form, template, URL |
 | 14.3 | Welcome email (post-provisioning) | ✅ schools/welcome_email.py; triggered from provisioning; siteconfig task send_welcome_email |
 | 14.4 | ComplianceRule, ComplianceGuardMiddleware | ✅ apps/compliance; in MIDDLEWARE |

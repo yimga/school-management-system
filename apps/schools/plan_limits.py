@@ -13,12 +13,15 @@ but keeps the storefront readable. Same rule here: block the enrolment, keep
 the school.
 
 SCOPE (documented, not silently missing): this guard hangs off ``save()`` on
-the profile models, which is the one chokepoint every enrolment path shares
-(portal onboarding, bulk CSV import, admissions kernel, geos lane-2 -- there is
-no single enrolment service to gate). ``bulk_create`` bypasses ``save()`` and is
-therefore NOT capped. That is deliberate: an operator bulk-importing is a
-considered act, and failing an 800-row migration at row 51 is worse than
-letting it land and billing for it.
+the profile models, the one chokepoint every enrolment path shares. Portal
+onboarding, bulk CSV import, admissions kernel and geos lane-2 all create rows
+one at a time through ``save()``, so all four ARE capped (there is no single
+enrolment service to gate instead). The one path that would bypass the cap is a
+raw ``bulk_create()``, which skips ``save()`` -- but no product path uses it on
+these models today (verified: zero ``bulk_create`` on Student/TeacherProfile
+outside tests), so that escape hatch is theoretical. If one is ever added,
+decide deliberately whether an operator bulk-import should be capped mid-batch
+or allowed to land.
 """
 
 from __future__ import annotations

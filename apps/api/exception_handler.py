@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_default_handler
 
@@ -99,7 +100,28 @@ def rfc7807_exception_handler(exc, context):
     """Wrap the DRF default handler with an RFC 7807 envelope."""
     response = drf_default_handler(exc, context)
     if response is None:
-        # Non-DRF exception — let Django handle it (500 page / Sentry capture).
+        # DRF's default handler maps only APIException, Http404 and DRF's
+        # PermissionDenied, so a model save()/full_clean() that raises Django's own
+        # ValidationError (e.g. a plan usage cap in apps/schools/plan_limits.py) would
+        # otherwise fall through here to a 500. It is a client input error — surface it
+        # as a 400 in the same envelope rather than a server error + Sentry capture.
+        if isinstance(exc, DjangoValidationError):
+            request = context.get("request") if isinstance(context, dict) else None
+            instance = getattr(request, "path", "") if request is not None else ""
+            error_messages = list(getattr(exc, "messages", []) or [])
+            envelope = {
+                "type": f"{_ERROR_DOC_BASE}{_slug_for(400)}",
+                "title": _title_for(400),
+                "status": 400,
+                "detail": error_messages[0] if error_messages else _title_for(400),
+                "instance": instance,
+            }
+            if len(error_messages) > 1:
+                envelope["errors"] = [{"message": m} for m in error_messages]
+            new_response = Response(envelope, status=400)
+            new_response["Content-Type"] = PROBLEM_CONTENT_TYPE
+            return new_response
+        # Any other non-DRF exception — let Django handle it (500 page / Sentry capture).
         return None
 
     request = context.get("request") if isinstance(context, dict) else None
