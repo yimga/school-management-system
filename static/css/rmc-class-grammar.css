@@ -6597,3 +6597,36 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .studio-os--overview {
   min-height: 0;
 }
+
+/* ── Django admin intelligent canvas class hooks (batch 1755–1757).
+   Attribute selectors in rmc-admin-django-canvas-contract.css carry the real
+   layout; these class selectors seal scan_undefined_css_classes. */
+.rmc-admin-index-canvas {
+  min-width: 0;
+}
+.rmc-admin-index-hero {
+  min-width: 0;
+}
+.rmc-onthispage__n {
+  display: inline-block;
+  min-width: 1.1em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.rmc-django-actions-slot {
+  min-width: 0;
+}
+.rmc-django-mode-panel {
+  min-width: 0;
+}
+.rmc-django-mode-panel__body {
+  min-width: 0;
+}
+.rmc-django-mode-panel--preview,
+.rmc-django-mode-panel--audit {
+  min-width: 0;
+}
+.rmc-mv-preview-open {
+  cursor: pointer;
+}

@@ -11,7 +11,7 @@ from apps.accounts.models import User
 from apps.platform_runtime.blueprint_contract import get_blueprint, list_blueprints
 from apps.platform_runtime.blueprint_preview import preview_blueprint
 from apps.platform_runtime.models import BlueprintInstallation
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 
 @override_settings(
@@ -44,6 +44,12 @@ class TenantBlueprintSetupTests(TestCase):
             password="x" * 8,
             role=User.Role.SUPERADMIN,
             is_staff=True,
+        )
+        SchoolMembership.objects.create(
+            user=self.admin,
+            school=self.school,
+            role=User.Role.ADMIN,
+            is_primary=True,
         )
         TOTPDevice.objects.create(user=self.admin, name="test-device", confirmed=True)
 
