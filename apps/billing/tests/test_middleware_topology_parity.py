@@ -49,7 +49,11 @@ class MiddlewareTopologyParityTests(SimpleTestCase):
 
     def test_no_unclassified_topology_drift(self):
         tenant_set = set(self.tenants)
-        classified = set(self.scanner.INTENTIONAL_BASE_ONLY) | set(self.scanner.KNOWN_GAPS)
+        classified = (
+            set(self.scanner.INTENTIONAL_BASE_ONLY)
+            | set(self.scanner.DO_NOT_ADD)
+            | set(self.scanner.KNOWN_GAPS)
+        )
         unclassified = [m for m in self.base if m not in tenant_set and m not in classified]
         self.assertEqual(
             unclassified,
@@ -58,7 +62,54 @@ class MiddlewareTopologyParityTests(SimpleTestCase):
             "so they never load in production (which takes the USE_DJANGO_TENANTS "
             "branch). Wire each into the tenants list in config/settings.py, or "
             "classify it in scripts/verify_middleware_topology_parity.py as "
-            "INTENTIONAL_BASE_ONLY (with a reason) or KNOWN_GAPS.",
+            "INTENTIONAL_BASE_ONLY / DO_NOT_ADD / KNOWN_GAPS — with a reason verified "
+            "against the code, not inferred from the name.",
+        )
+
+    def test_do_not_add_middleware_stay_out_of_prod(self):
+        # These are base-only ON PURPOSE. Wiring one is a regression, not a fix:
+        # RequestTimeoutMiddleware would run the chain in a ThreadPoolExecutor whose
+        # thread-local DB connection has no search_path (every tenant query hits the
+        # PUBLIC schema); TenantCorsAllowlistMiddleware permanently mutates the global
+        # CORS_ALLOWED_ORIGINS and would leak one tenant's origins to the next request.
+        tenant_set = set(self.tenants)
+        wired = [m for m in self.scanner.DO_NOT_ADD if m in tenant_set]
+        self.assertEqual(
+            wired,
+            [],
+            "DO_NOT_ADD middleware are wired into the tenants (production) list. Read "
+            "the reason in the scanner before assuming this was a fix — these cause "
+            "tenant-isolation breaches, cross-tenant leaks, or are dead code.",
+        )
+
+    def test_tiers_do_not_overlap(self):
+        # An entry in two tiers means two contradictory verdicts; the gate would then
+        # depend on dict iteration order rather than on a decision anyone made.
+        tiers = {
+            "INTENTIONAL_BASE_ONLY": set(self.scanner.INTENTIONAL_BASE_ONLY),
+            "DO_NOT_ADD": set(self.scanner.DO_NOT_ADD),
+            "KNOWN_GAPS": set(self.scanner.KNOWN_GAPS),
+        }
+        names = list(tiers)
+        for i in range(len(names)):
+            for j in range(i + 1, len(names)):
+                with self.subTest(pair=(names[i], names[j])):
+                    self.assertEqual(tiers[names[i]] & tiers[names[j]], set())
+
+    def test_no_phantom_classifications(self):
+        # A classified middleware that is no longer in the base list is stale bookkeeping:
+        # it makes the tier counts lie and hides that the entry is gone.
+        classified = (
+            set(self.scanner.INTENTIONAL_BASE_ONLY)
+            | set(self.scanner.DO_NOT_ADD)
+            | set(self.scanner.KNOWN_GAPS)
+        )
+        phantom = sorted(classified - set(self.base))
+        self.assertEqual(
+            phantom,
+            [],
+            "These are classified in the scanner but no longer appear in the base "
+            "MIDDLEWARE. Delete the stale entries.",
         )
 
     def test_known_gaps_only_shrink(self):
