@@ -3129,7 +3129,10 @@ def grade_approval_detail(request: HttpRequest, request_id):
     ga_policy = get_grade_approval_policy(school=school, policy=policy)
     deadline_note = ga_policy.get("grade_approval_deadline_note", "")
     deadline_display = None  # deadline_at removed from GradeApprovalRequest model
-    validation_flags = []
+    # Auto-validation flags are stored in `summary` at request time (the
+    # dedicated field was dropped); surface them so the approver sees data
+    # quality issues before signing off.
+    validation_flags = (approval.summary or {}).get("validation_flags", []) or []
     return render(
         request,
         "evals/grade_approval_detail.html",

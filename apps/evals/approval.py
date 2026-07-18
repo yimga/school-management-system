@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from decimal import Decimal, InvalidOperation
 from typing import Iterable, List
-from datetime import timedelta
 
 from django.db import transaction
 from django.db.models import Q
@@ -283,10 +282,14 @@ def create_grade_approval_request(
         and getattr(subject_assignment.classroom, "school", None)
     )
     policy = get_grade_approval_policy(school)
-    deadline_days = max(1, policy.get("grade_approval_deadline_days", 3))
-    timezone.now() + timedelta(days=deadline_days)
+    # Auto-validation surfaces data-quality flags (missing required components,
+    # out-of-range scores) to the approver before they sign off. The dedicated
+    # `validation_flags` model field was dropped (migrations 0019-0021) and the
+    # computed result was being DISCARDED, so the `grade_approval_auto_validate`
+    # admin toggle did nothing. Route the flags through the surviving `summary`
+    # JSONField, which the approval-detail view + template already render.
     if policy.get("grade_approval_auto_validate", True):
-        _collect_validation_flags(
+        summary["validation_flags"] = _collect_validation_flags(
             trimmed,
             academic_year=academic_year,
             term=term,
