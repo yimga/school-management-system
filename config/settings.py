@@ -1153,6 +1153,12 @@ LOGIN_URL = "/authentication/login/"
 LOGIN_REDIRECT_URL = "/authentication/redirect/"
 LOGOUT_REDIRECT_URL = "/authentication/login/"
 
+# Password-reset tokens are short-lived security objects (OWASP: <= 1 hour),
+# distinct from the multi-day owner ACTIVATION/onboarding link. 1h also makes
+# the "expires in one hour" copy in the reset email + confirm page accurate
+# (Django's default is 3 days, which contradicted that copy).
+PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT_SECONDS", "3600"))
+
 # Security Powerhouse (plan 3.21): Account locking after 5 failed attempts.
 # Install: pip install django-defender. Set DEFENDER_ENABLED=1 to enable.
 DEFENDER_ENABLED = os.getenv("DEFENDER_ENABLED", "0") in ("1", "true", "yes")

@@ -10,6 +10,7 @@ from apps.portal.views_ai_gateway import (
     api_dashboard_pack_recommend,
     api_marketplace_recommend,
     api_policy_explain,
+    api_semantic_search,
     api_setup_assistant,
     api_support_assistant,
 )
@@ -411,6 +412,80 @@ class AIGatewaySmokeTests(SimpleTestCase):
         payload = json.loads(response.content)
         self.assertFalse(payload["success"])
         self.assertEqual(payload["error"], "unavailable")
+
+    @patch("apps.portal.views_ai_gateway._log_gateway_audit")
+    @patch("apps.portal.views_ai_gateway._gateway_rate_limit")
+    @patch("apps.portal.views_ai_gateway.get_embedding_for_text")
+    def test_semantic_search_signals_503_when_embedding_backend_down(
+        self,
+        mock_embedding,
+        mock_rate_limit,
+        mock_audit,
+    ):
+        """Backend down must NOT masquerade as a healthy empty search.
+
+        Regression guard for dead-guard backlog item #14: the embedding-
+        unavailable branch returned HTTP 200 {"success": true, "results": []},
+        identical at the contract level (top-level ``success``) to a genuine
+        zero-match search — so a caller (and the operator console) could never
+        tell the semantic-search backend was unreachable. In prod with no
+        embedding server deployed this masked-failure branch is the COMMON path,
+        not an edge case.
+        """
+        mock_rate_limit.return_value = None
+        mock_audit.return_value = None
+        mock_embedding.return_value = None  # backend down / unconfigured
+
+        request = self.factory.post(
+            "/api/ai/semantic-search/",
+            data=json.dumps({"query": "attendance policy"}),
+            content_type="application/json",
+        )
+        request.user = self.user
+        request.school = SimpleNamespace(id=11)
+
+        raw_view = api_semantic_search.__wrapped__.__wrapped__.__wrapped__
+        response = raw_view(request)
+
+        self.assertEqual(response.status_code, 503)
+        payload = json.loads(response.content)
+        self.assertFalse(payload["success"])
+        self.assertEqual(payload["meta"]["reason"], "embedding_unavailable")
+
+    @patch("apps.portal.views_ai_gateway._log_gateway_audit")
+    @patch("apps.portal.views_ai_gateway._search_ai_memory")
+    @patch("apps.portal.views_ai_gateway._gateway_rate_limit")
+    @patch("apps.portal.views_ai_gateway.get_embedding_for_text")
+    def test_semantic_search_healthy_empty_stays_success(
+        self,
+        mock_embedding,
+        mock_rate_limit,
+        mock_search,
+        mock_audit,
+    ):
+        """The fix must not break the legitimate healthy-but-zero-match case:
+        a reachable backend that simply finds nothing still returns success."""
+        mock_rate_limit.return_value = None
+        mock_audit.return_value = None
+        mock_embedding.return_value = [0.1, 0.2, 0.3]  # backend healthy
+        mock_search.return_value = []  # genuinely no matches
+
+        request = self.factory.post(
+            "/api/ai/semantic-search/",
+            data=json.dumps({"query": "attendance policy"}),
+            content_type="application/json",
+        )
+        request.user = self.user
+        request.school = SimpleNamespace(id=11)
+
+        raw_view = api_semantic_search.__wrapped__.__wrapped__.__wrapped__
+        response = raw_view(request)
+
+        self.assertEqual(response.status_code, 200)
+        payload = json.loads(response.content)
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["results"], [])
+        self.assertEqual(payload["meta"]["count"], 0)
 
     def test_redact_audit_meta_redacts_sensitive_keys_even_when_short(self):
         redacted = _redact_audit_meta(

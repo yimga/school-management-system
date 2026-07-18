@@ -34,6 +34,55 @@ class PortalPasswordResetForm(PasswordResetForm):
             ),
         )
 
+    def _augment_reset_context(self, context: dict) -> dict:
+        """Populate the keys the branded reset templates expect.
+
+        Django's ``PasswordResetForm`` builds a stock context — ``uid``,
+        ``token``, ``protocol``, ``domain``, ``user``, ``email``, ``site_name``.
+        The templates (``emails/password_reset.{txt,html}``) were authored for a
+        bespoke sender and reference ``reset_url`` / ``user_name`` /
+        ``school_name`` / ``expiry_hours`` — none of which Django supplies. Left
+        unset, ``{{ reset_url }}`` renders EMPTY and the security email ships
+        with no usable link (the recipient can never reset). Computed here
+        because ``send_mail`` runs once per user with that user's
+        ``uid``/``token``/``protocol``/``domain`` (the per-user link a static
+        ``save(extra_email_context=…)`` could not carry), and the URL is built
+        from the request's own host so it is correct on whichever host
+        (public / tenant subdomain / manager) served the reset request.
+        """
+        from django.conf import settings as dj_settings
+        from django.urls import NoReverseMatch, reverse
+
+        uid = context.get("uid")
+        token = context.get("token")
+        protocol = (context.get("protocol") or "https").strip()
+        domain = (context.get("domain") or "").strip()
+        if uid and token and domain and not context.get("reset_url"):
+            try:
+                path = reverse(
+                    "accounts:password_reset_confirm",
+                    kwargs={"uidb64": uid, "token": token},
+                )
+                context["reset_url"] = f"{protocol}://{domain}{path}"
+            except NoReverseMatch:
+                logger.warning("accounts.password_reset.reset_url_reverse_failed")
+        user = context.get("user")
+        if user is not None and not context.get("user_name"):
+            name = (user.get_full_name() or "").strip() or (
+                user.get_username() or ""
+            ).strip()
+            context["user_name"] = name or (context.get("email") or "").strip()
+        if not context.get("school_name"):
+            context["school_name"] = (
+                context.get("site_name") or ""
+            ).strip() or "RunMyCampus"
+        if not context.get("expiry_hours"):
+            timeout_seconds = int(
+                getattr(dj_settings, "PASSWORD_RESET_TIMEOUT", 259200) or 259200
+            )
+            context["expiry_hours"] = max(1, timeout_seconds // 3600)
+        return context
+
     def send_mail(
         self,
         subject_template_name,
@@ -53,6 +102,7 @@ class PortalPasswordResetForm(PasswordResetForm):
         is a user-initiated security action that must reach even an address
         previously suppressed for marketing.
         """
+        context = self._augment_reset_context(dict(context))
         subject = "".join(loader.render_to_string(subject_template_name, context).splitlines())
         body = loader.render_to_string(email_template_name, context)
         html_body = (

@@ -657,12 +657,20 @@ def api_semantic_search(request):
             )
         embedding = get_embedding_for_text(query, max_tokens=512)
         if not embedding:
+            # Backend down / unconfigured must NOT masquerade as a healthy empty
+            # search. A genuine zero-match search returns success:True with
+            # meta.count below; here the embedding backend is unreachable, so we
+            # signal degradation (503 + success:False) the same way every other
+            # endpoint in this file reports a down gateway. Consumers already
+            # render success:False as an error banner.
             return JsonResponse(
                 {
-                    "success": True,
+                    "success": False,
+                    "error": "Semantic search is unavailable (embedding backend not reachable).",
                     "results": [],
                     "meta": {"reason": "embedding_unavailable"},
-                }
+                },
+                status=503,
             )
         results = _search_ai_memory(request, scope, embedding, limit=10)
         # Optional: summarize top result via gateway

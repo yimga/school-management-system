@@ -125,6 +125,36 @@ def _resolve_admin_user(school, contact_email: str):
     return membership.user if membership else None
 
 
+def owner_has_claimed_credential(school, admin_user) -> bool:
+    """True only when the owner has personally established a credential they know.
+
+    ``has_usable_password()`` alone is NOT a safe "ready to sign in" signal: an
+    operator/sales-provisioned owner (``create_school`` sets a staff-generated
+    password the owner never chose or received) has a usable hash. Gating the
+    welcome email on ``has_usable_password()`` sends that owner "sign in with the
+    password you created during setup" — for a credential they do not have,
+    stranding them at a login screen. The reliable signal is the owner having
+    run the token-gated onboarding step that sets their OWN password, stamped in
+    ``School.settings["owner_onboarding"]`` (``step`` advances to "school"/"done"
+    after step 1; ``completed=True`` after the launchpad). We still require a
+    usable password so a half-written state blob can't green-light an owner who
+    has no credential at all. When unclaimed, the caller emits ``activation_url``
+    so the email routes to account setup instead of sign-in.
+    """
+    if not admin_user:
+        return False
+    has_pw = bool(
+        getattr(admin_user, "has_usable_password", None)
+        and admin_user.has_usable_password()
+    )
+    if not has_pw:
+        return False
+    onboarding = dict(
+        (getattr(school, "settings", None) or {}).get("owner_onboarding", {})
+    )
+    return bool(onboarding.get("completed") or onboarding.get("step"))
+
+
 def build_signup_completed_payload(
     school, contact_email: str, admin_user=None
 ) -> dict[str, Any]:
@@ -148,11 +178,7 @@ def build_signup_completed_payload(
         else build_public_login_url()
     )
     activation_url = ""
-    account_ready = bool(
-        admin_user
-        and getattr(admin_user, "has_usable_password", None)
-        and admin_user.has_usable_password()
-    )
+    account_ready = owner_has_claimed_credential(school, admin_user)
     if admin_user and not account_ready:
         activation_url = build_owner_onboarding_url(school, admin_user) or ""
         if not activation_url:

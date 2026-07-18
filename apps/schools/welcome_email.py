@@ -134,7 +134,15 @@ def send_welcome_email(school_id: str, contact_email: str) -> bool:
         .first()
     )
     if admin_user:
-        account_ready = admin_user.has_usable_password()
+        # Mirror the primary matrix email's gate: "ready to sign in" means the
+        # owner personally claimed a credential, not merely that a hash exists
+        # (an operator-set password the owner never chose). See
+        # signup_completion_notifications.owner_has_claimed_credential.
+        from apps.schools.signup_completion_notifications import (
+            owner_has_claimed_credential,
+        )
+
+        account_ready = owner_has_claimed_credential(school, admin_user)
         if getattr(school, "is_active", False) and account_ready:
             from apps.schools.provision_email_urls import (
                 build_tenant_authentication_url,
