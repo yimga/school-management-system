@@ -92,6 +92,105 @@ class PlatformBillingServicesTests(TestCase):
         self.assertEqual(subscription.country_multiplier, Decimal("0.75"))
         self.assertEqual(subscription.billed_amount, Decimal("149.25"))
 
+    def test_country_multiplier_falls_back_to_country_code_without_region(self):
+        """A school with a country_code but no default_region must still get its PPP
+        band — otherwise a frontier tenant that onboarded with a country but no region
+        is silently billed at the full US 1.000 rate."""
+        from apps.billing.services import _resolve_country_multiplier_for_school
+        from apps.siteconfig.models_platform_catalog import CountryMultiplier
+
+        CountryMultiplier.objects.update_or_create(
+            country_code="IN",
+            defaults={"multiplier": Decimal("0.28"), "is_active": True},
+        )
+        self.assertIsNone(self.school.default_region)
+        self.school.country_code = "IN"
+        self.school.save(update_fields=["country_code"])
+
+        self.assertEqual(
+            _resolve_country_multiplier_for_school(self.school), Decimal("0.28")
+        )
+
+        _account, subscription, _created = ensure_subscription_for_school(self.school)
+        self.assertEqual(subscription.country_multiplier, Decimal("0.28"))
+        # base_price 199.00 * 0.28 = 55.72
+        self.assertEqual(subscription.billed_amount, Decimal("55.72"))
+
+    def test_country_code_fallback_used_when_region_code_does_not_resolve(self):
+        """Region present but its code names no CountryMultiplier row: the resolver must
+        still fall through to the school's canonical country_code rather than 1.000."""
+        from apps.billing.services import _resolve_country_multiplier_for_school
+        from apps.siteconfig.models_platform_catalog import CountryMultiplier, RegionConfig
+
+        # "ZZ" is an ISO user-assigned code that names no CountryMultiplier row, and
+        # its 2-char prefix is itself "ZZ" — so neither region candidate can collide
+        # with a real country. That guarantees only the country_code fallback can win
+        # here (a region like "INTL" would falsely pass via its "IN" prefix).
+        region, _ = RegionConfig.objects.get_or_create(
+            code="ZZ",
+            defaults={
+                "name": "Unmapped",
+                "default_currency": "USD",
+                "grading_scale": "0-100",
+            },
+        )
+        CountryMultiplier.objects.update_or_create(
+            country_code="IN",
+            defaults={"multiplier": Decimal("0.28"), "is_active": True},
+        )
+        self.school.default_region = region
+        self.school.country_code = "IN"
+        self.school.save(update_fields=["default_region", "country_code"])
+
+        self.assertEqual(
+            _resolve_country_multiplier_for_school(self.school), Decimal("0.28")
+        )
+
+    def test_resolve_platform_subscription_price_applies_ppp(self):
+        from apps.billing.services import resolve_platform_subscription_price
+        from apps.siteconfig.models_platform_catalog import CountryMultiplier
+
+        CountryMultiplier.objects.update_or_create(
+            country_code="IN",
+            defaults={"multiplier": Decimal("0.28"), "is_active": True},
+        )
+        self.school.country_code = "IN"
+        self.school.save(update_fields=["country_code"])
+
+        price = resolve_platform_subscription_price(self.school)
+        self.assertEqual(price["base"], Decimal("199.00"))
+        self.assertEqual(price["multiplier"], Decimal("0.28"))
+        self.assertEqual(price["amount"], Decimal("55.72"))  # 199.00 * 0.28
+        self.assertTrue(price["currency"])  # a resolved (local-first) currency string
+
+    def test_accrual_billed_amount_matches_single_source_price(self):
+        # The deferred "single price source" reconciliation: the accrual path must agree
+        # with resolve_platform_subscription_price so quoted == charged, with no drift.
+        from apps.billing.services import resolve_platform_subscription_price
+
+        price = resolve_platform_subscription_price(self.school)
+        _account, subscription, _created = ensure_subscription_for_school(self.school)
+        self.assertEqual(subscription.base_amount, price["base"])
+        self.assertEqual(subscription.country_multiplier, price["multiplier"])
+        self.assertEqual(subscription.billed_amount, price["amount"])
+
+    def test_preview_platform_subscription_prices_command_runs(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        out = StringIO()
+        call_command(
+            "preview_platform_subscription_prices",
+            "--plan",
+            self.plan.slug,
+            "--countries",
+            "US,IN",
+            stdout=out,
+        )
+        text = out.getvalue()
+        self.assertIn(self.plan.slug, text)
+
     def test_ensure_subscription_materializes_entitlements_and_limits(self):
         from apps.billing.entitlements import can, limits
 

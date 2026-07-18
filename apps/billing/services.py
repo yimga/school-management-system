@@ -602,6 +602,116 @@ def platform_account_balance(account: BillingAccount) -> Decimal:
     return _current_balance_for_account(account)
 
 
+def record_platform_invoice_payment(
+    invoice,
+    *,
+    amount,
+    method,
+    external_reference: str = "",
+    received_at=None,
+    recorded_by=None,
+    metadata=None,
+):
+    """Record a payment RECEIVED against a platform invoice via a LOCAL rail or manual
+    reconciliation — mobile money, bank transfer, or an operator confirming an offline
+    transfer (Phase 2: localize platform collection off Stripe-only).
+
+    This is the Zone-C floor: a school in a market Stripe never reaches can still settle
+    its subscription here. It posts a CREDIT to the tenant's billing ledger (the immutable
+    money record — no new model needed), marks the invoice PAID once cumulatively covered,
+    and — because balance<=0 clears dunning — lifts a PAST_DUE/SUSPENDED subscription back
+    to ACTIVE immediately. Idempotent on (invoice, external_reference): re-recording the
+    same external payment reference never double-credits.
+
+    No funds move through the platform here; this records money the school sent to the
+    platform's own local account/PSP, mirroring the offline path tenants use for parents.
+    """
+    from apps.billing.models import PlatformLedgerEntry
+
+    amount = Decimal(str(amount)).quantize(Decimal("0.01"))
+    if amount <= 0:
+        raise ValueError("payment amount must be positive")
+
+    received_at = _coerce_datetime(received_at, timezone.now())
+    ref = (external_reference or "").strip() or f"{received_at:%Y%m%d%H%M%S}"
+    credit_reference = f"INVPAY-{invoice.number}-{ref}"
+    account = invoice.billing_account
+
+    # tenant-isolation-allow: billing_account is the school-scoped FK for this invoice
+    already = PlatformLedgerEntry.objects.filter(
+        billing_account=account, reference=credit_reference
+    ).exists()
+    if not already:
+        record_platform_charge(
+            school=invoice.school,
+            amount=amount,
+            entry_type=PlatformLedgerEntry.EntryType.CREDIT,
+            description=f"Payment received for invoice {invoice.number} via {method}",
+            reference=credit_reference,
+            source="platform_local_collection",
+            metadata={
+                "invoice_number": invoice.number,
+                "method": str(method),
+                "external_reference": ref,
+                "received_at": received_at.isoformat(),
+                "recorded_by": getattr(recorded_by, "pk", None),
+                **(metadata or {}),
+            },
+        )
+
+    _settle_platform_invoice_if_covered(invoice)
+    _restore_subscription_if_settled(invoice.school, account)
+    return invoice
+
+
+def _settle_platform_invoice_if_covered(invoice) -> bool:
+    """Mark a platform invoice PAID once cumulative local-collection credits cover its
+    total. Returns True on the transition to PAID."""
+    from apps.billing.models import PlatformInvoice, PlatformLedgerEntry
+
+    if invoice.status == PlatformInvoice.Status.PAID:
+        return False
+    # tenant-isolation-allow: billing_account is the school-scoped FK for this invoice
+    settled = PlatformLedgerEntry.objects.filter(
+        billing_account=invoice.billing_account,
+        entry_type=PlatformLedgerEntry.EntryType.CREDIT,
+        source="platform_local_collection",
+        status=PlatformLedgerEntry.Status.POSTED,
+        metadata__invoice_number=invoice.number,
+    ).aggregate(s=models.Sum("amount")).get("s") or Decimal("0.00")
+    if Decimal(str(settled)) >= invoice.total:
+        meta = dict(invoice.metadata or {})
+        meta["paid_at"] = timezone.now().isoformat()
+        meta["settled_amount"] = str(settled)
+        invoice.metadata = meta
+        invoice.status = PlatformInvoice.Status.PAID
+        invoice.save(update_fields=["status", "metadata", "updated_at"])
+        return True
+    return False
+
+
+def _restore_subscription_if_settled(school, account) -> None:
+    """When the account balance is settled (<=0), lift a PAST_DUE/SUSPENDED subscription
+    back to ACTIVE immediately, rather than waiting for the next lifecycle sweep."""
+    if _current_balance_for_account(account) > 0:
+        return
+    sub = (
+        TenantSubscription.objects.filter(
+            school=school,
+            billing_account=account,
+            status__in=[
+                TenantSubscription.Status.PAST_DUE,
+                TenantSubscription.Status.SUSPENDED,
+            ],
+        )
+        .order_by("-updated_at")
+        .first()
+    )
+    if sub is not None:
+        sub.status = TenantSubscription.Status.ACTIVE
+        sub.save(update_fields=["status", "updated_at"])
+
+
 def _coerce_datetime(value, default: datetime) -> datetime:
     if isinstance(value, datetime):
         return value
@@ -912,7 +1022,16 @@ def record_app_install_for_billing(school, app, installation, *, amount=None):
 
 
 def _resolve_country_multiplier_for_school(school) -> Decimal:
-    """PPP multiplier from siteconfig.CountryMultiplier by school region/country code."""
+    """PPP multiplier from siteconfig.CountryMultiplier by school region/country code.
+
+    Resolution order, first match wins: the school's ``default_region`` code and its
+    ISO alpha-2 prefix, then the school's canonical ``country_code``. The country_code
+    fallback is load-bearing, not a nicety: a school that onboarded with a country but
+    no region (or a region whose code names no CountryMultiplier row) would otherwise
+    fall through to 1.000 — i.e. be billed at the full US rate despite being in, say,
+    India (0.28). This is purely additive — a region that already resolves is reached
+    first and is unaffected — so it can only correct an under-discounted bill.
+    """
     from apps.siteconfig.models_platform_catalog import CountryMultiplier
 
     candidates: list[str] = []
@@ -923,6 +1042,9 @@ def _resolve_country_multiplier_for_school(school) -> Decimal:
             candidates.append(code)
             if len(code) >= 2:
                 candidates.append(code[:2])
+    country_code = str(getattr(school, "country_code", "") or "").strip().upper()
+    if country_code:
+        candidates.append(country_code)
     for lookup in candidates:
         row = (
             CountryMultiplier.objects.filter(country_code__iexact=lookup, is_active=True)
@@ -932,6 +1054,40 @@ def _resolve_country_multiplier_for_school(school) -> Decimal:
         if row is not None:
             return Decimal(str(row.multiplier))
     return Decimal("1.000")
+
+
+def resolve_platform_subscription_price(school, plan=None) -> dict:
+    """Single source of truth for a school's platform subscription price.
+
+    ``amount = plan.base_price * country_multiplier`` (PPP), in the school's resolved
+    (local-first) currency. This is the reconciliation for the deferred "two un-reconciled
+    PPP mechanisms" gap: the accrual path (``ensure_subscription_for_school``) and the
+    Stripe price seed (``seed_stripe_plan_prices_from_multiplier``) BOTH derive their
+    number here, so the price a school is quoted equals the price it is charged.
+
+    Returns ``{"plan", "base", "multiplier", "amount", "currency"}``.
+    """
+    if plan is None:
+        plan = getattr(school, "plan", None)
+    base = Decimal(str(getattr(plan, "base_price", None) or "0"))
+    multiplier = _resolve_country_multiplier_for_school(school)
+    amount = (base * multiplier).quantize(Decimal("0.01"))
+    currency = ""
+    resolver = getattr(school, "resolve_currency", None)
+    if callable(resolver):
+        try:
+            currency = (resolver() or "").strip().upper()
+        except (AttributeError, TypeError, ValueError, DatabaseError):
+            currency = ""
+    if not currency:
+        currency = str(getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD") or "USD")
+    return {
+        "plan": plan,
+        "base": base,
+        "multiplier": multiplier,
+        "amount": amount,
+        "currency": currency[:3],
+    }
 
 
 def ensure_subscription_for_school(school):
@@ -975,11 +1131,10 @@ def ensure_subscription_for_school(school):
     desired_status = _resolve_subscription_status(
         school, current_status=getattr(subscription, "status", None)
     )
-    base_amount = Decimal(
-        str(getattr(getattr(school, "plan", None), "base_price", None) or "0")
-    )
-    country_multiplier = _resolve_country_multiplier_for_school(school)
-    billed_amount = (base_amount * country_multiplier).quantize(Decimal("0.01"))
+    _price = resolve_platform_subscription_price(school)
+    base_amount = _price["base"]
+    country_multiplier = _price["multiplier"]
+    billed_amount = _price["amount"]
     if subscription is None:
         subscription = TenantSubscription.objects.create(
             billing_account=account,

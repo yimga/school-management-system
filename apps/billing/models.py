@@ -750,6 +750,125 @@ class RevenueSharePayout(models.Model):
         return f"{self.payee_name} {self.net_amount}"
 
 
+class ProcessorRevenueShareAccrual(models.Model):
+    """Referral revenue-share the platform accrues on GMV routed through a school's OWN
+    payment gateway.
+
+    Business model (BYO gateway, local-first): parent fees settle to the SCHOOL's own
+    merchant account — the platform never holds the money. Under a referral /
+    record-and-invoice arrangement, the PROCESSOR pays the platform a rebate on the
+    volume the platform routed to it. This table is the per-school, per-processor
+    attribution record for that rebate — a receivable, not a fund movement. One row
+    per settled ``finance.Payment``.
+
+    Honesty guarantees baked in:
+    - ``gross_amount`` is the NET money received (Payment.amount - refunded_amount), so
+      it tracks real GMV, never a gross that a later refund contradicts.
+    - ``rev_share_percent`` is snapshotted at accrual time and defaults to 0, so
+      ``rebate_amount`` is 0 until a real per-processor referral rate is configured
+      (``PLATFORM_PROCESSOR_REVSHARE_PERCENT`` / per-code override). The ledger records
+      routed volume truthfully and never invents revenue before a partner deal exists.
+
+    Schema placement: ``apps.billing`` is a SHARED app (public schema) while
+    ``apps.finance`` is per-tenant, so this cannot FK to ``finance.Payment`` — the
+    payment is referenced by its pk plus the (public) ``school`` FK. ``Payment.pk`` is a
+    per-tenant AutoField and collides across tenant schemas, so the idempotency key is
+    (school, source_payment_id), never source_payment_id alone.
+    """
+
+    class Status(models.TextChoices):
+        ACCRUED = "ACCRUED", "Accrued"
+        INVOICED = "INVOICED", "Invoiced to processor"
+        RECONCILED = "RECONCILED", "Reconciled / settled"
+        VOIDED = "VOIDED", "Voided"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="processor_revshare_accruals",
+    )
+    school_ref = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="Stable school slug/id snapshot, retained for reconciliation if the "
+        "School row is later deleted (school FK is SET_NULL).",
+    )
+    source_payment_id = models.BigIntegerField(
+        db_index=True,
+        help_text="finance.Payment pk. Not an FK: finance is a tenant app, billing is "
+        "shared. Unique only in combination with school (pk collides across tenants).",
+    )
+    processor_code = models.CharField(
+        max_length=40,
+        blank=True,
+        db_index=True,
+        help_text="Gateway/PSP the payment routed through (e.g. flutterwave, mtn_momo, "
+        "stripe) — the counterparty that owes the referral rebate.",
+    )
+    method_code = models.CharField(
+        max_length=32,
+        blank=True,
+        help_text="finance PaymentMethodCode rail for finer attribution.",
+    )
+    gross_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Net money received (Payment.amount - refunded_amount) = attributed GMV.",
+    )
+    currency_code = models.CharField(max_length=3, default=_platform_default_currency)
+    rev_share_percent = models.DecimalField(
+        max_digits=6,
+        decimal_places=3,
+        default=Decimal("0.000"),
+        help_text="Referral rate applied at accrual time (snapshotted).",
+    )
+    rebate_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="gross_amount * rev_share_percent / 100 — what the processor owes the platform.",
+    )
+    status = models.CharField(
+        max_length=12, choices=Status.choices, default=Status.ACCRUED, db_index=True
+    )
+    occurred_at = models.DateTimeField(
+        db_index=True, help_text="When the underlying payment settled (Payment.paid_at)."
+    )
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-occurred_at", "-created_at"]
+        verbose_name = "Processor revenue-share accrual"
+        verbose_name_plural = "Processor revenue-share accruals"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "source_payment_id"],
+                name="billing_processor_revshare_uniq_school_payment",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["processor_code", "status", "occurred_at"],
+                name="bill_revshare_proc_status_idx",
+            ),
+            models.Index(
+                fields=["school", "occurred_at"],
+                name="bill_revshare_school_time_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.school_ref or self.school_id}:{self.processor_code}:"
+            f"{self.gross_amount}{self.currency_code}"
+        )
+
+
 class StripePlanPrice(models.Model):
     """
     Maps a tenant ``Plan.slug`` (plan_code) to a Stripe Price id for Checkout.

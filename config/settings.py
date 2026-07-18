@@ -213,6 +213,22 @@ LOCAL_VOICE_RATE_LIMIT_PER_MINUTE = int(
 )
 # Marketplace: default platform take on gross tenant app charges (see apps.marketplace.monetization).
 MARKETPLACE_PLATFORM_FEE_PERCENT = (os.getenv("MARKETPLACE_PLATFORM_FEE_PERCENT") or "20").strip()
+# Platform processor referral revenue-share (see apps.billing.revenue_share). Referral /
+# record-and-invoice model: the PROCESSOR pays the platform a rebate on parent-fee volume
+# routed to it (funds settle to the school, never through the platform). Percent applied to
+# net GMV. Defaults to 0 so no rebate is fabricated before a real partner rate is set; the
+# per-code override (JSON dict keyed by lowercased processor code) takes precedence.
+PLATFORM_PROCESSOR_REVSHARE_PERCENT = (os.getenv("PLATFORM_PROCESSOR_REVSHARE_PERCENT") or "0").strip()
+try:
+    import json as _revshare_json
+
+    PLATFORM_PROCESSOR_REVSHARE_PERCENT_BY_CODE = _revshare_json.loads(
+        os.getenv("PLATFORM_PROCESSOR_REVSHARE_PERCENT_BY_CODE") or "{}"
+    )
+    if not isinstance(PLATFORM_PROCESSOR_REVSHARE_PERCENT_BY_CODE, dict):
+        PLATFORM_PROCESSOR_REVSHARE_PERCENT_BY_CODE = {}
+except (ValueError, TypeError):
+    PLATFORM_PROCESSOR_REVSHARE_PERCENT_BY_CODE = {}
 # When True, installing a paid catalog app (compute_install_charge > 0) requires a billing account with processor customer.
 _default_marketplace_paid_billing = (
     ""

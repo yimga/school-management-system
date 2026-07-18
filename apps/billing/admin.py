@@ -14,6 +14,8 @@ from apps.billing.models import (
     PlatformLedgerEntry,
     PlatformBillingProcessorConfig,
     Quote,
+    PlatformInvoice,
+    ProcessorRevenueShareAccrual,
     RevenueSharePayout,
     SubscriptionGrant,
     StripePlanPrice,
@@ -303,6 +305,98 @@ class RevenueSharePayoutAdmin(admin.ModelAdmin):
     )
     list_filter = ("payout_scope", "status", "processor_code", "currency_code")
     search_fields = ("payee_name", "payee_ref", "external_payout_ref")
+
+
+@admin.register(ProcessorRevenueShareAccrual, site=platform_admin_site)
+class ProcessorRevenueShareAccrualAdmin(admin.ModelAdmin):
+    """Referral rev-share the platform accrues on parent-fee GMV routed through each
+    school's own gateway (see apps.billing.revenue_share). A receivable ledger — no funds
+    pass through the platform. Rows are produced idempotently from settled payments; use
+    the actions to move a reconciled batch through INVOICED -> RECONCILED."""
+
+    list_display = (
+        "school_ref",
+        "processor_code",
+        "method_code",
+        "gross_amount",
+        "currency_code",
+        "rev_share_percent",
+        "rebate_amount",
+        "status",
+        "occurred_at",
+    )
+    list_filter = ("status", "processor_code", "currency_code")
+    search_fields = ("school_ref", "processor_code", "source_payment_id")
+    readonly_fields = (
+        "school",
+        "school_ref",
+        "source_payment_id",
+        "gross_amount",
+        "rebate_amount",
+        "rev_share_percent",
+        "occurred_at",
+        "created_at",
+        "updated_at",
+    )
+    date_hierarchy = "occurred_at"
+    actions = ("mark_invoiced", "mark_reconciled")
+
+    @admin.action(description="Mark selected accruals as INVOICED to processor")
+    def mark_invoiced(self, request, queryset):
+        updated = queryset.filter(
+            status=ProcessorRevenueShareAccrual.Status.ACCRUED
+        ).update(status=ProcessorRevenueShareAccrual.Status.INVOICED)
+        self.message_user(request, f"{updated} accrual(s) marked INVOICED.")
+
+    @admin.action(description="Mark selected accruals as RECONCILED / settled")
+    def mark_reconciled(self, request, queryset):
+        updated = queryset.filter(
+            status=ProcessorRevenueShareAccrual.Status.INVOICED
+        ).update(status=ProcessorRevenueShareAccrual.Status.RECONCILED)
+        self.message_user(request, f"{updated} accrual(s) marked RECONCILED.")
+
+
+@admin.register(PlatformInvoice, site=platform_admin_site)
+class PlatformInvoiceAdmin(admin.ModelAdmin):
+    """Platform subscription invoices. The ``Record FULL manual payment`` action is the
+    localized, Stripe-free collection path (apps.billing.services): when a school pays its
+    subscription by mobile money / bank transfer / offline, an operator settles the invoice
+    here — it posts the CREDIT, marks the invoice PAID, and lifts any suspension. Idempotent
+    per invoice, so re-running the action never double-credits."""
+
+    list_display = (
+        "number",
+        "school",
+        "total",
+        "currency_code",
+        "status",
+        "issued_at",
+    )
+    list_filter = ("status", "currency_code")
+    search_fields = ("number", "reference_stem", "school__name")
+    date_hierarchy = "issued_at"
+    actions = ("record_full_manual_payment",)
+
+    def has_add_permission(self, request):  # invoices are system-issued, never hand-added
+        return False
+
+    @admin.action(
+        description="Record FULL manual payment (local rail / offline reconciliation)"
+    )
+    def record_full_manual_payment(self, request, queryset):
+        from apps.billing.services import record_platform_invoice_payment
+
+        done = 0
+        for invoice in queryset.exclude(status=PlatformInvoice.Status.PAID):
+            record_platform_invoice_payment(
+                invoice,
+                amount=invoice.total,
+                method="manual",
+                external_reference=f"ADMIN-{invoice.number}",
+                recorded_by=request.user,
+            )
+            done += 1
+        self.message_user(request, f"Recorded manual payment for {done} invoice(s).")
 
 
 @admin.register(UsageCap, site=platform_admin_site)

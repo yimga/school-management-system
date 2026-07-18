@@ -161,6 +161,38 @@ def sync_payment(sender, instance: Payment, created: bool, **kwargs):
             )
 
 
+@receiver(post_save, sender=Payment)
+def attribute_processor_revenue_share(sender, instance: Payment, **kwargs):
+    """Phase 1 platform revenue: record the referral revenue-share the platform accrues
+    on GMV routed through this school's OWN gateway (BYO model — the money has already
+    settled to the school; the processor owes the platform a rebate on routed volume).
+
+    Best-effort by design: the accrual is a platform receivable, so a failure here must
+    NEVER break the payment save. Fires only on meaningful settle/unsettle transitions;
+    the upsert is idempotent, so repeated saves do not double-count.
+    """
+    if not _finance_signals_enabled():
+        return
+    if getattr(instance, "status", None) not in (
+        "completed",
+        "refunded",
+        "failed",
+        "cancelled",
+    ):
+        return
+    try:
+        from apps.billing.revenue_share import (
+            record_processor_revenue_share_attribution,
+        )
+
+        record_processor_revenue_share_attribution(instance)
+    except Exception:  # attribution is best-effort; the payment must still save
+        logger.exception(
+            "processor revenue-share attribution failed for payment %s",
+            getattr(instance, "pk", None),
+        )
+
+
 @receiver(post_delete, sender=Payment)
 def sync_payment_delete(sender, instance: Payment, **kwargs):
     if not _finance_signals_enabled():
