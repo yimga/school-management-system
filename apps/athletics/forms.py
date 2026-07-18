@@ -87,6 +87,52 @@ class RequestConsentForm(forms.Form):
     guardian_email = forms.EmailField(widget=forms.EmailInput(attrs=_TEXT))
 
 
+class RecordClearanceForm(forms.Form):
+    """Record a fitness-to-play medical clearance (the service sets CLEARED).
+
+    Every field is optional: the one-click roster surface submits an empty form
+    and the service applies sensible defaults (today .. today+validity, the
+    team's sport). A richer surface may pass an explicit window, sport, or notes.
+    The service performs the write and stamps ``cleared_by`` — the form only
+    validates + scopes ``sport`` to the school.
+    """
+
+    sport = forms.ModelChoiceField(
+        queryset=None, required=False, widget=forms.Select(attrs=_SELECT)
+    )
+    valid_from = forms.DateField(
+        required=False, widget=forms.DateInput(attrs=_DATE)
+    )
+    valid_until = forms.DateField(
+        required=False, widget=forms.DateInput(attrs=_DATE)
+    )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+    )
+
+    def __init__(self, *args, school=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.athletics.models import Sport
+
+        if school is not None:
+            self.fields["sport"].queryset = Sport.objects.filter(
+                school=school, is_active=True
+            ).order_by("name")
+        else:
+            self.fields["sport"].queryset = Sport.objects.none()
+
+    def clean(self):
+        cleaned = super().clean()
+        start = cleaned.get("valid_from")
+        end = cleaned.get("valid_until")
+        if start and end and end < start:
+            self.add_error(
+                "valid_until", "Valid-until cannot be before valid-from."
+            )
+        return cleaned
+
+
 class AddMemberForm(forms.Form):
     """Add a student to a team roster (view creates the pending TeamMembership)."""
 

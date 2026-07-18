@@ -22,6 +22,7 @@ from apps.accounts.decorators import require_permission
 from apps.athletics.constants import CONSENT_TEXT_VERSION
 from apps.athletics.forms import (
     AddMemberForm,
+    RecordClearanceForm,
     RecordResultForm,
     RequestConsentForm,
     ScheduleFixtureForm,
@@ -310,6 +311,49 @@ def coach_request_consent(request, membership_id):
         )
     except ParticipationConsentError as exc:
         messages.error(request, str(exc) or "Could not send the consent request.")
+    return redirect("athletics:coach_team_detail", team_id=membership.team_id)
+
+
+@login_required
+@require_school
+@require_permission("athletics.manage")
+@require_POST
+def coach_record_clearance(request, membership_id):
+    """Record a fitness-to-play medical clearance for an athlete (sets CLEARED).
+
+    This is the producer that lets ``services.eligibility._medical_ok`` pass — the
+    resolver had a CLEARED consumer but no path ever set it, so no athlete could
+    become ELIGIBLE. Gated exactly like the other roster write surfaces:
+    ``athletics.manage`` plus the object-level ``assert_team_manage`` check, so a
+    coach may only clear athletes on the teams they are assigned to (the manager
+    tier clears any team). The acting user is captured as ``cleared_by``.
+    """
+    school = request.school
+    membership = get_object_or_404(
+        TeamMembership.objects.filter(school=school).select_related("team", "student"),
+        pk=membership_id,
+    )
+    assert_team_manage(request, membership.team_id)
+    form = RecordClearanceForm(request.POST, school=school)
+    if not form.is_valid():
+        messages.error(request, "Please correct the medical-clearance form.")
+        return redirect("athletics:coach_team_detail", team_id=membership.team_id)
+
+    from apps.athletics.services.medical import record_medical_clearance
+
+    data = form.cleaned_data
+    record_medical_clearance(
+        membership=membership,
+        actor=request.user,
+        sport=data.get("sport"),
+        valid_from=data.get("valid_from"),
+        valid_until=data.get("valid_until"),
+        notes=data.get("notes") or "",
+    )
+    messages.success(
+        request,
+        "Medical clearance recorded — the athlete's fitness-to-play is now on record.",
+    )
     return redirect("athletics:coach_team_detail", team_id=membership.team_id)
 
 

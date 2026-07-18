@@ -25,6 +25,14 @@ ELIGIBILITY_ATTENDANCE_WINDOW_DAYS = 90
 PARTICIPATION_CONSENT_EXPIRY_DAYS = 30
 CONSENT_TEXT_VERSION = "v1"
 
+# ── Medical clearance ──────────────────────────────────────────────────────
+# Default validity window (days) a recorded fitness-to-play clearance stays
+# "current" for. A physical is not indefinite; after this the clearance falls
+# out of the eligibility resolver's ``valid_until >= today`` window and the
+# athlete must be re-cleared. Roughly one school year. FLAGGED product default —
+# a school may want a shorter cadence (e.g. per-season).
+MEDICAL_CLEARANCE_VALIDITY_DAYS = 365
+
 # ── Fields / limits ────────────────────────────────────────────────────────
 MEDICAL_CLEARANCE_MAX_UPLOAD_MB = 5
 

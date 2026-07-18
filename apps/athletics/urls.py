@@ -49,6 +49,11 @@ urlpatterns = [
         views.coach_request_consent,
         name="coach_request_consent",
     ),
+    path(
+        "memberships/<int:membership_id>/record-clearance/",
+        views.coach_record_clearance,
+        name="coach_record_clearance",
+    ),
     # ── Family surface (student self / parent's children) ──────────────────
     path("my-team/", views.family_my_team, name="family_my_team"),
     # ── Academic-leadership admin console ──────────────────────────────────

@@ -32,6 +32,7 @@
               <th scope="col">{% trans "Position" %}</th>
               <th scope="col">{% trans "Status" %}</th>
               {% if can_manage %}<th scope="col" class="text-end">{% trans "Guardian consent" %}</th>{% endif %}
+              {% if can_manage %}<th scope="col" class="text-end">{% trans "Medical clearance" %}</th>{% endif %}
             </tr>
           </thead>
           <tbody>
@@ -54,10 +55,16 @@
                 <span class="text-muted small">—</span>
                 {% endif %}
               </td>
+              <td class="text-end">
+                <form method="post" action="{% url 'athletics:coach_record_clearance' membership_id=membership.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Record clearance" %}</button>
+                </form>
+              </td>
               {% endif %}
             </tr>
             {% empty %}
-            <tr><td colspan="{% if can_manage %}5{% else %}4{% endif %}" class="text-muted">{% trans "No athletes on this roster yet." %}</td></tr>
+            <tr><td colspan="{% if can_manage %}6{% else %}4{% endif %}" class="text-muted">{% trans "No athletes on this roster yet." %}</td></tr>
             {% endfor %}
           </tbody>
         </table>
