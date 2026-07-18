@@ -184,12 +184,16 @@ def build_school_readiness(school, *, user: Any = None) -> dict[str, Any]:
             "status": migration_status,
             "local_first": True,
         },
-        "provisioning_slo": _provisioning_slo(provision, needs_resume=needs_resume),
+        "provisioning_slo": _provisioning_slo(
+            provision, school=school, needs_resume=needs_resume
+        ),
     }
 
 
-def _provisioning_slo(provision: dict[str, Any], *, needs_resume: bool = False) -> dict[str, Any]:
-    """Customer-visible provisioning SLO snapshot (targets only — honest status)."""
+def _provisioning_slo(
+    provision: dict[str, Any], *, school: Any = None, needs_resume: bool = False
+) -> dict[str, Any]:
+    """Customer-visible provisioning SLO snapshot (targets + realized TTV — honest status)."""
     status = str(provision.get("status") or "unknown")
     stuck = bool(provision.get("stuck"))
     if needs_resume:
@@ -202,9 +206,56 @@ def _provisioning_slo(provision: dict[str, Any], *, needs_resume: bool = False) 
         tone, label = "progress", str(_("In progress"))
     else:
         tone, label = "unknown", str(_("Status pending"))
+    # S1 realized time-to-value (signup → operating). None until the school launches.
+    ttv_seconds = time_to_value_seconds(school) if school is not None else None
     return {
         "tone": tone,
         "label": label,
         "target_minutes": 15,
+        "ttv_slo_minutes": TTV_SLO_MAX_MINUTES,
+        "time_to_value_seconds": ttv_seconds,
+        "within_ttv_slo": (
+            None if ttv_seconds is None else ttv_seconds <= TTV_SLO_MAX_MINUTES * 60
+        ),
         "stuck": stuck,
     }
+
+
+# ── S1 · Time-to-Value (PROMPT S §S8): signup → operating school, bar < 1 hour ──────
+# A per-tenant TTV clock. ``School.created_at`` is stamped at genesis; ``launched_at``
+# (SetupProgress) is stamped when the tenant finishes onboarding and enters daily
+# operations. Their delta is the realized time-to-value. Returns None until launch — an
+# unlaunched school has no TTV yet, which is honestly distinct from "0". The full
+# signup→operating browser E2E proof remains external; this is the repo-side measurement
+# + SLO predicate the readiness payload surfaces and tests assert against.
+TTV_SLO_MAX_MINUTES = 60  # S1 bar: signup → operating school in under one hour
+
+
+def time_to_value_seconds(school) -> float | None:
+    """Realized signup→operating time for a tenant, in seconds, or None if not launched."""
+    if school is None:
+        return None
+    created = getattr(school, "created_at", None)
+    if created is None:
+        return None
+    try:
+        from apps.setup_studio.models import SetupProgress
+
+        progress = SetupProgress.objects.filter(school=school).first()
+    except Exception:  # noqa: BLE001 — measurement must never break a request
+        return None
+    launched = getattr(progress, "launched_at", None) if progress else None
+    if launched is None:
+        return None
+    delta = (launched - created).total_seconds()
+    return delta if delta >= 0 else 0.0
+
+
+def time_to_value_within_slo(
+    school, *, max_minutes: int = TTV_SLO_MAX_MINUTES
+) -> bool | None:
+    """Whether a launched tenant's realized TTV met the S1 < 1-hour bar (None if unlaunched)."""
+    seconds = time_to_value_seconds(school)
+    if seconds is None:
+        return None
+    return seconds <= max_minutes * 60
