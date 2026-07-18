@@ -314,7 +314,14 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         term=term,
         student=student,
         type=ReportCard.Type.TERM,
+        defaults={"school": student.school},
     )
+    if rc.school_id is None and getattr(student, "school_id", None):
+        # Stamp the owning school so tenant-host QR/hash verification resolves:
+        # verify_report_hash filters report_card__school=request.school, so a
+        # NULL-school row 404s for every tenant. Also heals legacy rows created
+        # before school was stamped. Persisted by the pdf_file.save() below.
+        rc.school = student.school
     filename = f"report_{student.student_code}_{year.name}_{term.name}.pdf".replace(
         "/", "-"
     )
@@ -478,7 +485,14 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
         term=None,
         student=student,
         type=ReportCard.Type.ANNUAL,
+        defaults={"school": student.school},
     )
+    if rc.school_id is None and getattr(student, "school_id", None):
+        # Stamp the owning school so tenant-host QR/hash verification resolves:
+        # verify_report_hash filters report_card__school=request.school, so a
+        # NULL-school row 404s for every tenant. Also heals legacy rows created
+        # before school was stamped. Persisted by the pdf_file.save() below.
+        rc.school = student.school
     filename = f"annual_report_{student.student_code}_{year.name}.pdf".replace("/", "-")
     rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
     _record_report_hash(request.user, rc, pdf_bytes)

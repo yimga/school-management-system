@@ -1,9 +1,11 @@
 """End-to-end: staff publishes term results → parent downloads term report PDF."""
 
+import json
 from datetime import date
+from types import SimpleNamespace
 from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -21,6 +23,7 @@ from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.registries.models import CountryRegistry
 from apps.reports.models import ReportCard, ReportDocumentHash, TermPublishStatus
+from apps.reports.views import verify_report_hash
 from apps.schools.models import School, SchoolMembership
 
 
@@ -241,3 +244,65 @@ class ReportCardPublishParentE2ETests(TestCase):
         self.assertIn("Grade", body)
         self.assertIn(expected_grade, body)
         self.assertIn("Mathematics", body)
+
+    # Drive the REAL view function directly (RequestFactory), mocking only the
+    # ORTHOGONAL gates (portal toggle, publish/clearance checks, PDF render) so the
+    # test deterministically reaches the production ``get_or_create`` create path.
+    # The full Client E2E false-reds locally because the config cascade reports
+    # ``enable_parent_portal``/reports flags as off (host-split harness), which is
+    # unrelated to the school-stamping bug under test.
+    @mock.patch(
+        "apps.accounts.decorators.get_effective_site_settings",
+        return_value=SimpleNamespace(),
+    )
+    @mock.patch("apps.reports.views.render_pdf_bytes", return_value=_MOCK_PDF)
+    @mock.patch("apps.reports.views._reports_enabled", return_value=True)
+    @mock.patch("apps.reports.views.is_term_published", return_value=True)
+    @mock.patch("apps.reports.views.student_has_financial_clearance", return_value=True)
+    @mock.patch("apps.reports.views.student_has_outstanding_returns", return_value=False)
+    def test_report_card_stamps_school_so_tenant_scoped_verify_resolves(self, *_mocks):
+        """The REAL create path must stamp ReportCard.school, so QR/hash verification
+        on the tenant host (where request.school is set) resolves instead of 404ing.
+
+        Fails against HEAD: the create path omitted ``school=``, the row landed
+        NULL-school, ``_record_report_hash`` stamped the ledger row NULL-school too,
+        and ``verify_report_hash`` filters ``report_card__school=school`` → no match →
+        404 for every tenant. The other E2E tests miss this because the Django test
+        client leaves ``request.school`` unset, so the tenant-scoping branch never runs.
+        """
+        from apps.reports.views import parent_download_term_report
+
+        factory = RequestFactory()
+
+        # Parent downloads the term report -> production create path runs.
+        dl_req = factory.get(
+            reverse(
+                "reports:parent_download_term_report",
+                kwargs={"student_id": self.student.id},
+            )
+        )
+        dl_req.user = self.parent
+        dl_resp = parent_download_term_report(dl_req, student_id=self.student.id)
+        self.assertEqual(dl_resp.status_code, 200)
+
+        report_card = ReportCard.objects.get(
+            student=self.student, academic_year=self.year, term=self.term
+        )
+        # Direct assertion on the fix: the row must carry the owning school.
+        self.assertEqual(report_card.school_id, self.school.id)
+
+        hash_row = ReportDocumentHash.objects.get(report_card=report_card)
+        # The denormalized ledger school must be stamped too (unscoped PII otherwise).
+        self.assertEqual(hash_row.school_id, self.school.id)
+
+        # Reproduce the tenant host: request.school is resolved by TenantMiddleware.
+        # Call the verifier directly with a tenant-scoped request (avoids host-split
+        # urlconf traps). On HEAD this returns 404; after the fix it resolves.
+        v_req = factory.get(
+            reverse("reports:verify_report_hash"),
+            {"hash": hash_row.sha256_hash},
+        )
+        v_req.school = self.school
+        v_resp = verify_report_hash(v_req)
+        self.assertEqual(v_resp.status_code, 200)
+        self.assertTrue(json.loads(v_resp.content).get("verified"))
