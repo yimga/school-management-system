@@ -32,6 +32,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.views import View
@@ -63,6 +64,7 @@ def _is_detecting(bundle) -> bool:
 from .reliability import idempotent_post, safe_500
 from .services import BundleIngestionService, BundleSpec
 from .views_connectors import _connector_reverse, _request_school
+from apps.accounts.decorators import user_is_tenant_admin
 
 logger = logging.getLogger(__name__)
 
@@ -220,6 +222,41 @@ def _progress_payload(bundle) -> dict:
     }
 
 
+class _TenantAdminWriteRequiredMixin(LoginRequiredMixin):
+    """Gate a Migration Cloud tenant WRITE surface on the tenant-admin tier.
+
+    ``LoginRequiredMixin`` alone answers only "authenticated"; combined with
+    ``_request_school`` (which falls back to the caller's FIRST school membership
+    with no role filter) the effective gate was "authenticated + ANY membership".
+    Because SAML/SCIM provisions a membership for EVERY IdP user, that let a
+    teacher / parent / student — anyone with a login — POST ``confirm=1`` and have
+    ``apply_bundle`` irreversibly overwrite the school's live data across the
+    landable domains (only students + grades have rollback handlers).
+
+    This mixin additionally requires the caller be the tenant-admin tier for the
+    SAME school the write targets — owner / ``role=ADMIN`` / ``settings.manage``,
+    plus the audited superuser break-glass — via the canonical
+    :func:`apps.accounts.decorators.user_is_tenant_admin`. The school is resolved
+    with ``_request_school``, exactly as :func:`_tenant_bundle_or_404` resolves the
+    bundle's school, so the authorization decision and the write are bound to one
+    school and cannot drift apart. The cross-tenant IDOR guard
+    (``_tenant_bundle_or_404`` — school in the WHERE clause) is untouched; this adds
+    the intra-tenant privilege check it never had.
+
+    Denial semantics match ``tenant_admin_required``: an authenticated non-admin
+    gets ``PermissionDenied`` (rendered by the tenant ``handler403`` branded 403),
+    while an unauthenticated caller is bounced to login by ``LoginRequiredMixin``.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        user = getattr(request, "user", None)
+        if getattr(user, "is_authenticated", False) and not user_is_tenant_admin(
+            user, _request_school(request)
+        ):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
 class TenantMigrationProgressView(LoginRequiredMixin, View):
     """GET JSON: live auto-detection progress for the caller's OWN bundle.
 
@@ -236,8 +273,13 @@ class TenantMigrationProgressView(LoginRequiredMixin, View):
         return JsonResponse(_progress_payload(bundle))
 
 
-class TenantMigrationUploadView(LoginRequiredMixin, View):
-    """GET → connectionless dropzone. POST → stage files, ingest, auto-advance."""
+class TenantMigrationUploadView(_TenantAdminWriteRequiredMixin, View):
+    """GET → connectionless dropzone. POST → stage files, ingest, auto-advance.
+
+    Tenant-admin gated (write surface): staging + auto-advance mutate the school's
+    migration state, so a non-admin member is refused (403). See
+    :class:`_TenantAdminWriteRequiredMixin`.
+    """
 
     template_name = "migration_cloud/connector/upload.html"
 
@@ -312,9 +354,14 @@ class TenantMigrationUploadView(LoginRequiredMixin, View):
         return redirect(_connector_reverse(request, "bundle-review", bundle_id=result.bundle_id))
 
 
-class TenantMigrationReviewView(LoginRequiredMixin, View):
+class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
     """GET → per-file detected format + entity + confidence, with override.
-    POST → save per-file entity overrides and re-detect."""
+    POST → save per-file entity overrides and re-detect.
+
+    Tenant-admin gated (write surface): the POST persists domain overrides and
+    re-runs the detection pipeline, and the GET renders the "Import into my school"
+    control — the whole review/import step is an admin workflow. See
+    :class:`_TenantAdminWriteRequiredMixin`."""
 
     template_name = "migration_cloud/connector/bundle_review.html"
 
@@ -477,12 +524,15 @@ def _build_repair(bundle):
         return None
 
 
-class TenantMigrationApplyView(LoginRequiredMixin, View):
+class TenantMigrationApplyView(_TenantAdminWriteRequiredMixin, View):
     """POST → import the reviewed bundle into the caller's OWN school.
 
     Safety mirrors the operator apply: DRY-RUN by default; a live write requires
     an explicit ``confirm=1``. Tenant-scoped (a caller can only apply their own
-    bundle). Renders the review page with the (dry-run or live) result totals.
+    bundle) AND tenant-admin gated — a non-admin member is refused (403) before
+    ``apply_bundle`` runs, closing the "any member can overwrite the school's live
+    data" hole. Renders the review page with the (dry-run or live) result totals.
+    See :class:`_TenantAdminWriteRequiredMixin`.
     """
 
     template_name = "migration_cloud/connector/bundle_review.html"
@@ -543,8 +593,12 @@ class TenantMigrationApplyView(LoginRequiredMixin, View):
         return render(request, self.template_name, context)
 
 
-class TenantMigrationRepairView(LoginRequiredMixin, View):
+class TenantMigrationRepairView(_TenantAdminWriteRequiredMixin, View):
     """POST → safe, idempotent re-import (repair) of the caller's OWN bundle.
+
+    Tenant-admin gated (write surface): a repair re-applies the bundle into the
+    school, so a non-admin member is refused (403). See
+    :class:`_TenantAdminWriteRequiredMixin`.
 
     For a bundle whose apply failed part-way or left rows held for review, this
     re-applies idempotently (upsert — no duplicates) and re-verifies. All the
