@@ -323,7 +323,12 @@ def _check_wedge_32() -> dict[int, bool]:
     # TVET
     return {
         0: True,  # TVET code referenced in many country packs
-        1: _module_importable("apps.employer.models") or _module_importable("apps.portal.views"),
+        # "Apprentice-hours dual-transcript" is not built (there is no
+        # `apps.employer` app). The prior `or _module_importable("apps.portal.views")`
+        # fallback named THIS package's own views module, which always imports, so
+        # the check was pinned permanently GREEN regardless of the feature. Report
+        # the real signal: it lights up only if/when `apps.employer.models` ships.
+        1: _module_importable("apps.employer.models"),
     }
 
 

@@ -30,7 +30,10 @@ from apps.portal.views_configure import portal_configure_hub
 from apps.siteconfig.views_school_help_ai import school_help_ai
 from apps.schools.views_pending_provision import api_public_pending_provision_progress
 from apps.schools.views_school_readiness import api_school_readiness
-from apps.academics.views_discipline_api import api_discipline_incidents
+from apps.academics.views_discipline_api import (
+    api_discipline_incident_resolve,
+    api_discipline_incidents,
+)
 from apps.lifecycle.views_tenant_lifecycle import (
     api_tenant_launch_rail,
     api_tenant_lifecycle_hub,
@@ -387,6 +390,11 @@ urlpatterns = [
         "api/discipline/incidents/",
         api_discipline_incidents,
         name="api_discipline_incidents",
+    ),
+    path(
+        "api/discipline/incidents/<int:incident_id>/resolve/",
+        api_discipline_incident_resolve,
+        name="api_discipline_incident_resolve",
     ),
     path("school/studio/setup/", school_studio_redirect_setup, name="school_studio_setup"),
     path("school/studio/readiness/", school_studio_hub, name="school_studio_readiness"),

@@ -668,12 +668,60 @@ def site_settings(request):
                 extra={"error": str(e)[:200]},
             )
     weather_defaults = default_header_weather_config()
+    from apps.siteconfig.admin_palette_css import (
+        admin_dashboard_palette_css_vars,
+        extract_admin_dashboard_palette,
+    )
+
+    admin_dashboard_palette = extract_admin_dashboard_palette(admin_theme)
+    # Prefer pack semantic colors when the JSON palette carries them.
+    # Manager /admin/ keeps platform gold/indigo — do not let tenant pack tokens win there.
+    _manager_admin_brand_locked = (
+        path.startswith("/admin/")
+        and getattr(request, "public_host_kind", None) == "manager"
+    )
+    if admin_dashboard_palette.get("success"):
+        admin_success = str(admin_dashboard_palette["success"]).strip() or admin_success
+    if admin_dashboard_palette.get("warning"):
+        admin_warning = str(admin_dashboard_palette["warning"]).strip() or admin_warning
+    if admin_dashboard_palette.get("danger"):
+        admin_danger = str(admin_dashboard_palette["danger"]).strip() or admin_danger
+    if (
+        admin_dashboard_palette.get("primary")
+        and not use_site_primary_for_admin
+        and not _manager_admin_brand_locked
+    ):
+        admin_primary = (
+            str(admin_dashboard_palette["primary"]).strip() or admin_primary
+        )
+    if (
+        admin_dashboard_palette.get("accent")
+        and not use_site_primary_for_admin
+        and not _manager_admin_brand_locked
+    ):
+        admin_accent = str(admin_dashboard_palette["accent"]).strip() or admin_accent
+    if admin_dashboard_palette.get("dashboard_bg") and not _manager_admin_brand_locked:
+        admin_background = (
+            str(admin_dashboard_palette["dashboard_bg"]).strip() or admin_background
+        )
+    # On manager admin, still emit pack surface tokens but strip brand aliases that
+    # would fight the locked gold/indigo primary/accent.
+    emit_palette = admin_dashboard_palette
+    if _manager_admin_brand_locked and emit_palette:
+        emit_palette = {
+            k: v
+            for k, v in emit_palette.items()
+            if k not in {"primary", "accent", "accent_light"}
+        }
+    admin_palette_css = admin_dashboard_palette_css_vars(emit_palette)
     ctx = {
         "SITE": site,
         "SITE_SETTINGS": site,
         "is_backend_context": is_backend_context,
         "SITE_THEME": site_theme,
         "SITE_ADMIN_THEME": admin_theme,
+        "ADMIN_DASHBOARD_PALETTE": admin_dashboard_palette,
+        "ADMIN_DASHBOARD_PALETTE_CSS_VARS": admin_palette_css,
         "ADMIN_RESOLVED_PRIMARY": admin_primary,
         "ADMIN_RESOLVED_ACCENT": admin_accent,
         "ADMIN_RESOLVED_BACKGROUND": admin_background,

@@ -795,13 +795,9 @@ def build_admin_dashboard_context(
 
             site = build_platform_default_site_settings()
     admin_theme = site.get_admin_theme()
-    admin_palette: dict[str, Any] = {}
-    if (
-        admin_theme
-        and getattr(admin_theme, "palette", None)
-        and isinstance(admin_theme.palette, dict)
-    ):
-        admin_palette = admin_theme.palette.get("admin_dashboard") or {}
+    from apps.siteconfig.admin_palette_css import extract_admin_dashboard_palette
+
+    admin_palette = extract_admin_dashboard_palette(admin_theme)
 
     preview_data = {
         "preview_mode_enabled": getattr(site, "preview_mode_enabled", False),

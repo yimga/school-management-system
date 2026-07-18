@@ -1,7 +1,9 @@
 /*
  * Backend dashboard – single token contract.
- * --brand-* and --dashboard-theme-* are set from the active ThemePack (admin_theme_pack)
- * in backend_dashboard.html so the dashboard uses the assigned/active theme colors.
+ * --brand-* and --admin-* are emitted from ThemePack.palette.admin_dashboard
+ * (ADMIN_DASHBOARD_PALETTE_CSS_VARS on admin/backend shells). Declarations below
+ * are fallbacks; the inline :root emitter overrides them when a pack is active
+ * (style block loads after this sheet).
  * Aligns with --admin-content-* and theme-visibility-guard --vis-* for readability.
  *
  * Spacing and padding: use these tokens in backend-dashboard-v2.css and other
@@ -30,7 +32,7 @@
   --dash-pad-side-meta: 0.15rem 0 0.55rem;
   --dash-pad-list: 0.5rem 0.62rem;
 
-  /* ---- Surfaces and colors ---- */
+  /* ---- Surfaces and colors (fallbacks; pack emitter overrides) ---- */
   --admin-dashboard-bg: var(--dashboard-surface-soft, var(--color-base-50));
   --admin-surface: var(--dashboard-surface, var(--admin-content-surface, var(--color-base-0)));
   --admin-surface-alt: var(--admin-content-thead-bg, var(--color-base-100));

@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-07-13T13:56:41.110822+00:00",
+  "generated_at": "2026-07-17T16:16:41.051441+00:00",
   "high_impact_templates_total": 272,
   "inline_styles": {
-    "count": 47,
-    "needs_review_count": 47,
+    "count": 48,
+    "needs_review_count": 48,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -79,6 +79,7 @@
       "templates/siteconfig/partials/ccc_guided_activation_strip.html",
       "templates/siteconfig/partials/departments_setup_evidence_body.html",
       "templates/siteconfig/partials/feature_control_ledger_body.html",
+      "templates/siteconfig/partials/get_blueprints_body.html",
       "templates/siteconfig/partials/mock_reportcard_preview.html",
       "templates/siteconfig/partials/onboarding_body.html",
       "templates/siteconfig/partials/report_output_history_evidence_body.html",
@@ -257,13 +258,14 @@
     "violation_paths": []
   },
   "missing_table_family": {
-    "count": 7,
-    "needs_review_count": 7,
+    "count": 8,
+    "needs_review_count": 8,
     "needs_review_paths": [
       "templates/reports/annual_report_cameroon.html",
       "templates/reports/statistical_return.html",
       "templates/reports/term_report_cameroon.html",
       "templates/siteconfig/partials/dashboard_configuration_hub_body.html",
+      "templates/siteconfig/partials/get_blueprints_body.html",
       "templates/siteconfig/partials/workflow_flow_gallery_body.html",
       "templates/siteconfig/permission_matrix_simulator.html",
       "templates/siteconfig/super/cockpit_health.html"
@@ -839,8 +841,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 47,
-      "needs_review_count": 47,
+      "count": 48,
+      "needs_review_count": 48,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -865,6 +867,7 @@
         "templates/siteconfig/partials/ccc_guided_activation_strip.html",
         "templates/siteconfig/partials/departments_setup_evidence_body.html",
         "templates/siteconfig/partials/feature_control_ledger_body.html",
+        "templates/siteconfig/partials/get_blueprints_body.html",
         "templates/siteconfig/partials/mock_reportcard_preview.html",
         "templates/siteconfig/partials/onboarding_body.html",
         "templates/siteconfig/partials/report_output_history_evidence_body.html",

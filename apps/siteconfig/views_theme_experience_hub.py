@@ -15,6 +15,7 @@ from apps.siteconfig.theme_experience_surfaces import (
     build_tenant_theme_experience_surfaces,
     resolve_operator_school_impersonation_url,
 )
+from apps.platform_runtime.operational_center_nav import theme_experience_frame_context
 
 _HUB_SURFACES_PER_PAGE = 9
 
@@ -73,5 +74,6 @@ def theme_experience_hub(request):
             "impersonation_url": impersonation_url,
             "hub_glance": build_hub_glance_context(request),
             "page_marker": "rmc-theme-experience-hub",
+            **({} if operator_plane else theme_experience_frame_context()),
         },
     )

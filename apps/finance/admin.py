@@ -703,20 +703,45 @@ class PaymentProofUploadAdmin(ModelAdmin):
 
     actions = ["approve_selected", "reject_selected"]
 
+    @staticmethod
+    def _resolve_receipt_school(queryset):
+        """Resolve the school for config lookups from a receipt selection.
+
+        ``PaymentProofUpload`` has no direct ``school`` FK, so the previous
+        ``select_related("school")`` raised ``FieldError`` and 500'd both the
+        approve and reject actions on the first row. School lives on the linked
+        invoice (or the invoice's student).
+        """
+        first = queryset.select_related("invoice__school", "invoice__student").first()
+        invoice = getattr(first, "invoice", None)
+        return getattr(invoice, "school", None) or getattr(
+            getattr(invoice, "student", None), "school", None
+        )
+
     def approve_selected(self, request, queryset):
         """Approve selected receipt uploads and create payments."""
         from apps.finance.services import create_payment_from_receipt
         from apps.finance.receipt_verification import ReceiptVerificationService
 
-        school = getattr(queryset.select_related("school").first(), "school", None)
+        school = self._resolve_receipt_school(queryset)
         require_reason = get_effective_config(
             school=school,
             key="finance_receipt_require_verification_reason",
             default=True,
         )
         approved_count = 0
+        # Approve both manually-reviewed PENDING receipts (auto-verify disabled ⇒
+        # the parent was told "reviewed by finance staff" and the row never leaves
+        # PENDING) and auto-flagged DISCREPANCY receipts. Filtering DISCREPANCY only
+        # made this action a no-op — "Approved 0 receipt upload(s)" — for every
+        # school with `finance_receipt_auto_verify_enabled=False`, while Reject
+        # already handled PENDING. VERIFIED/VERIFYING/REJECTED stay excluded so an
+        # already-applied payment can't be double-credited.
         for proof_upload in queryset.filter(
-            status=PaymentProofUpload.Status.DISCREPANCY
+            status__in=[
+                PaymentProofUpload.Status.PENDING,
+                PaymentProofUpload.Status.DISCREPANCY,
+            ]
         ):
             if require_reason and not (
                 proof_upload.verification_reason or proof_upload.verification_notes
@@ -764,7 +789,7 @@ class PaymentProofUploadAdmin(ModelAdmin):
         """Reject selected receipt uploads (reason in verification_reason or verification_notes). Audited."""
         from apps.compliance.models_audit import AuditLog
 
-        school = getattr(queryset.select_related("school").first(), "school", None)
+        school = self._resolve_receipt_school(queryset)
         require_reason = get_effective_config(
             school=school,
             key="finance_receipt_require_verification_reason",

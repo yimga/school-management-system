@@ -63,7 +63,12 @@ def detect_stalled_onboarding(*, dry_run: bool = False) -> dict:
             SchoolOnboardingProgress.objects.filter(  # tenant-isolation-allow: stall-watch-operator-cross-tenant-ops-task
                 progress_percent__lt=STALL_PERCENT_FLOOR,
                 school__created_at__lt=floor_cutoff,
-                school__is_active=False,
+                # Stalled-onboarding schools are LIVE (School.is_active defaults
+                # True and nothing flips a never-provisioned school to False). The
+                # prior `is_active=False` matched only deactivated/offboarded
+                # schools — the opposite population — so this walk returned empty
+                # every run and the stall alert could never fire.
+                school__is_active=True,
             )
             .select_related("school")
             .only("school__id", "school__slug", "school__created_at", "progress_percent")[:STALL_MAX_REPORTED]
@@ -91,7 +96,9 @@ def detect_stalled_onboarding(*, dry_run: bool = False) -> dict:
             SetupProgress.objects.filter(  # tenant-isolation-allow: stall-watch-operator-cross-tenant-ops-task
                 updated_at__lt=update_cutoff,
                 launch_ready=False,
-                school__is_active=False,
+                # See note above: stalled schools are is_active=True; the prior
+                # `is_active=False` filtered to the wrong (offboarded) population.
+                school__is_active=True,
             )
             .select_related("school")
             .only("school__id", "school__slug", "updated_at", "health_score")[:STALL_MAX_REPORTED]

@@ -706,13 +706,24 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
             )
             from apps.schoolops.email_delivery import send_transactional
 
-            send_transactional(
+            # send_transactional never raises; it returns {"ok": .., "queued": ..}.
+            # Report the REAL outcome — claiming success on a failed/undelivered
+            # send (e.g. SMTP creds unset) leaves the parent expecting an email
+            # that never arrives and the copyable link ignored.
+            result = send_transactional(
                 subject=subject,
                 body=body,
                 to=[request.user.email],
                 priority="transactional",
             )
-            messages.success(request, "Share link emailed successfully.")
+            if result.get("ok") or result.get("queued"):
+                messages.success(request, "Share link emailed successfully.")
+            else:
+                messages.error(
+                    request,
+                    "We couldn't send the email just now. Please try again, or "
+                    "copy the share link below.",
+                )
 
     enable_whatsapp_share = get_effective_config(
         key="enable_whatsapp_parent_portal", request=request, default=False

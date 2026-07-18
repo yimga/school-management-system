@@ -1956,6 +1956,11 @@ def theme_colors_page(request):
             theme_settings.get("skip_theme_publish_guard", False)
         ),
     }
+    from apps.platform_runtime.operational_center_nav import theme_experience_frame_context
+    from apps.schools.control_plane import is_control_plane_request as _is_cp
+
+    if not _is_cp(request):
+        theme_ctx.update(theme_experience_frame_context())
     if request.GET.get("embed") == "1":
         from apps.studio_os.embed_render import render_studio_embed_body
 

@@ -26,6 +26,7 @@ from apps.platform_runtime.onboarding import (
     get_school_onboarding_progress,
     mark_school_onboarding_step_complete,
 )
+from apps.platform_runtime.operational_center_nav import onboarding_activation_frame_context
 
 
 def _reverse_tenant_onboarding() -> str:
@@ -70,6 +71,7 @@ def school_activation_onboarding(request: HttpRequest) -> HttpResponse:
             "health_recommendations": recommendations,
             "misconfiguration_flags": misconfiguration_flags,
             "onboarding_playbook_api_url": onboarding_playbook_api_url,
+            **onboarding_activation_frame_context(),
         },
         cp_title=_("School onboarding"),
         breadcrumbs=default_operator_breadcrumbs(

@@ -118,6 +118,7 @@ def payment_readiness_dashboard(request: HttpRequest):
     }.get(str(readiness.get("status")), str(readiness.get("status") or "—"))
 
     from apps.finance.payment_lane2_status import build_lane2_corridor_rows, stripe_connect_summary
+    from apps.platform_runtime.operational_center_nav import payment_readiness_frame_context
 
     lane2_corridors = build_lane2_corridor_rows(school=school)
     stripe_connect = stripe_connect_summary(school=school)
@@ -141,5 +142,6 @@ def payment_readiness_dashboard(request: HttpRequest):
             "readiness_display_label": readiness_display_label,
             "lane2_corridors": lane2_corridors,
             "stripe_connect": stripe_connect,
+            **payment_readiness_frame_context(),
         },
     )
