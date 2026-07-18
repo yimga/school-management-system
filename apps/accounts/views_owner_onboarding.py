@@ -115,6 +115,23 @@ def _dashboard_redirect():
     return redirect("accounts:redirect")
 
 
+def _owner_mfa_enrolled(user) -> bool:
+    """True when the owner already has a confirmed MFA device.
+
+    The provisioned owner's role is ``ADMIN``, which ``BASELINE_REQUIRED_ROLES``
+    makes MFA-required, so ``RequireMFAMiddleware`` forces enrollment at first
+    dashboard access regardless. Surfacing it on the launchpad turns that
+    required step into a visible part of first-run setup (not a surprise
+    redirect); the CTA hides itself once the owner has enrolled.
+    """
+    try:
+        from django_otp import user_has_device
+
+        return bool(user_has_device(user))
+    except Exception:  # noqa: BLE001 - the launchpad must never 500 on an optional CTA
+        return False
+
+
 def _post_onboarding_dashboard_href(request, school) -> str:
     """Dashboard CTA after wizard — never deep-link an inactive tenant subdomain."""
     from django.urls import reverse
@@ -487,6 +504,8 @@ def owner_onboarding_done(request):
             "school_is_live": portal_ready,
             "portal_ready": portal_ready,
             "dashboard_href": _post_onboarding_dashboard_href(request, school),
+            "owner_mfa_enrolled": _owner_mfa_enrolled(request.user),
+            "mfa_setup_url": reverse("accounts:mfa_setup"),
             "owner_email": (getattr(request.user, "email", "") or "").strip(),
             "provisioning_events": _provisioning_timeline(school),
             "last_provisioning_error": _last_provisioning_error(school),

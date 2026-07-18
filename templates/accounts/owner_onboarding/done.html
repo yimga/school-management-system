@@ -51,6 +51,14 @@
     {% endif %}
 
     <div class="d-grid gap-2 mt-3 text-start">
+      {% if owner_mfa_enrolled %}
+      <div class="rmc-banner rmc-banner--success small d-flex align-items-center" role="status">
+        <i class="bi bi-shield-check me-1"></i>{% trans "Two-factor authentication is on — your account is protected." %}
+      </div>
+      {% elif mfa_setup_url %}
+      <a href="{{ mfa_setup_url }}" class="btn btn-primary"><i class="bi bi-shield-lock me-1"></i>{% trans "Secure your account — set up two-factor authentication" %}</a>
+      <p class="text-muted small mb-1">{% trans "Recommended for school admins — takes about a minute with any authenticator app." %}</p>
+      {% endif %}
       {% url 'accounts:tenant_identity_invite' as invite_url %}
       {% if invite_url %}
       <a href="{{ invite_url }}" class="btn btn-outline-primary"><i class="bi bi-people me-1"></i>{% trans "Invite your team" %}</a>
