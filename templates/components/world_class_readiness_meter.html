@@ -3,10 +3,10 @@
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="d-flex justify-content-between gap-2">
     <h2 class="h6 mb-2">{{ title|default:_("Readiness") }}</h2>
-    <strong>{{ value|default:"72" }}%</strong>
+    <strong>{{ value|default:"0" }}%</strong>
   </div>
-  <div class="rmc-wcx-readiness__bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ value|default:'72' }}" aria-label="{{ title|default:_('Readiness') }}">
-    <div class="rmc-wcx-readiness__fill" style="--rmc-readiness-value: {{ value|default:'72' }}%;"></div>
+  <div class="rmc-wcx-readiness__bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ value|default:'0' }}" aria-label="{{ title|default:_('Readiness') }}">
+    <div class="rmc-wcx-readiness__fill" style="--rmc-readiness-value: {{ value|default:'0' }}%;"></div>
   </div>
   <p class="small text-muted mt-2 mb-0">{{ caption|default:_("Local proof exists; browser and live parity still need explicit certification.") }}</p>
 </section>

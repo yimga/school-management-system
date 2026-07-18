@@ -35,7 +35,12 @@
             <h2 class="h5 mb-0">{{ section.name }}</h2>
             <span class="rmc-badge rmc-badge--muted border">{{ section.status }}</span>
           </div>
-          {% include "components/world_class_readiness_meter.html" with title=_("School readiness score") value="74" caption=_("This section is tenant-safe and excludes platform-wide registry controls.") %}
+          {% if school_readiness.complete %}
+            {% include "components/world_class_readiness_meter.html" with title=_("School readiness score") value=school_readiness.value caption=_("Tenant-safe setup — school, branding, dashboard, and plan are all in place.") %}
+          {% else %}
+            {% blocktrans asvar school_readiness_caption with items=school_readiness.unmet|join:", " %}Pending to reach 100%: {{ items }}{% endblocktrans %}
+            {% include "components/world_class_readiness_meter.html" with title=_("School readiness score") value=school_readiness.value caption=school_readiness_caption %}
+          {% endif %}
           <dl class="row small mb-3">
             <dt class="col-sm-4">{% trans "Tenant scope" %}</dt>
             <dd class="col-sm-8"><code>tenant_scoped_only</code></dd>

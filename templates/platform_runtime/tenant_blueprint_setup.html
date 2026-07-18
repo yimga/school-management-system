@@ -91,7 +91,12 @@
             <span class="badge text-bg-warning">{% trans "Blocked" %}</span>
           {% endif %}
         </div>
-        {% include "components/world_class_readiness_meter.html" with title=_("Blueprint readiness") value="72" caption=_("Tenant-safe preview; platform-only registries stay hidden.") %}
+        {% if blueprint_readiness.complete %}
+          {% include "components/world_class_readiness_meter.html" with title=_("Blueprint readiness") value=blueprint_readiness.value caption=_("Tenant-safe preview — ready to apply.") %}
+        {% else %}
+          {% blocktrans asvar bp_readiness_caption with items=blueprint_readiness.unmet|join:", " %}Pending to reach 100%: {{ items }}{% endblocktrans %}
+          {% include "components/world_class_readiness_meter.html" with title=_("Blueprint readiness") value=blueprint_readiness.value caption=bp_readiness_caption %}
+        {% endif %}
         {% if preview.conflicts %}
         <div class="alert alert-warning py-2 small" role="alert">
           <strong>{% trans "Resolve before applying:" %}</strong>

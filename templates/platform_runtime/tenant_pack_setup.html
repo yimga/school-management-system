@@ -46,7 +46,12 @@
   </section>
   <section class="panel rmc-reveal">
     <h2>{% trans "Selected preview" %}</h2>
-    {% include "components/world_class_readiness_meter.html" with title=_("Pack readiness") value="70" caption=_("Tenant-safe pack preview with approval and external blocker honesty.") %}
+    {% if pack_readiness.complete %}
+      {% include "components/world_class_readiness_meter.html" with title=_("Pack readiness") value=pack_readiness.value caption=_("Tenant-safe pack preview — ready to apply.") %}
+    {% else %}
+      {% blocktrans asvar pack_readiness_caption with items=pack_readiness.unmet|join:", " %}Pending to reach 100%: {{ items }}{% endblocktrans %}
+      {% include "components/world_class_readiness_meter.html" with title=_("Pack readiness") value=pack_readiness.value caption=pack_readiness_caption %}
+    {% endif %}
     <p>{{ preview.pack_name }} - {% trans "risk" %} {{ change_set.risk_level }} - {% trans "approval required" %} {{ change_set.requires_approval }}</p>
     <p data-world-class-approval-state="visible">{% trans "Approval state:" %} {% if change_set.requires_approval %}{% trans "request required" %}{% else %}{% trans "low-risk tenant apply available" %}{% endif %}</p>
     <p data-world-class-rollback-posture="tenant-visible">{% trans "Rollback posture: installed packs can be deactivated or rolled back with confirmation." %}</p>

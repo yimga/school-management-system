@@ -21,6 +21,7 @@ from apps.platform_runtime.blueprint_apply import apply_blueprint
 from apps.platform_runtime.blueprint_contract import get_blueprint, list_blueprints
 from apps.platform_runtime.blueprint_impact import analyze_blueprint_impact
 from apps.platform_runtime.blueprint_preview import preview_blueprint
+from apps.platform_runtime.readiness_meters import blueprint_readiness, pack_readiness
 from apps.platform_runtime.blueprint_rollback import rollback_blueprint_installation
 from apps.platform_runtime.configuration_change_requests import (
     apply_approved_change_request,
@@ -62,6 +63,7 @@ from apps.platform_runtime.pack_simulation import simulate_pack
 from apps.platform_runtime.registry_health import evaluate_registry_health
 from apps.schools.control_plane import require_control_plane_access
 from apps.schools.models import School
+from apps.schools.setup_health import setup_health_score
 
 
 @require_control_plane_access
@@ -445,12 +447,22 @@ def school_configuration_center(request):
     school = getattr(request, "school", None)
     if school is None or not tenant_operator_hub_eligible(request.user):
         return HttpResponseForbidden("Tenant school configuration access required.")
+    # Real school readiness (school created / branding / dashboard / plan) from
+    # setup_health_score — replaces the hardcoded "74" so the bar reaches 100
+    # only when the four setup facts are actually satisfied.
+    health = setup_health_score(school)
+    school_readiness = {
+        "value": health["score"],
+        "unmet": [label for _name, passed, label in health["checks"] if not passed],
+        "complete": health["score"] >= 100,
+    }
     return render(
         request,
         "platform_runtime/school_configuration_center.html",
         {
             "school": school,
             "sections": TENANT_CONFIGURATION_SECTIONS,
+            "school_readiness": school_readiness,
             "page_marker": "rmc-school-configuration-center",
             **school_configuration_frame_context(),
         },
@@ -574,6 +586,10 @@ def tenant_blueprint_setup(request):
             "blueprints": blueprints,
             "selected_key": selected_key,
             "preview": preview,
+            # Real, per-tenant readiness derived from this preview (applyable /
+            # conflict-free / offline proof / live-payment onboarding) — replaces
+            # the old hardcoded "72" placeholder so the bar can actually reach 100.
+            "blueprint_readiness": blueprint_readiness(preview),
             "result": result,
             "page_marker": "rmc-tenant-blueprint-setup",
             **tenant_blueprint_setup_frame_context(),
@@ -631,6 +647,9 @@ def tenant_pack_setup(request):
             "selected_key": selected_key,
             "selected_pack_type": pack_type,
             "preview": preview,
+            # Real per-tenant pack readiness (applyable / conflict-free /
+            # dependencies resolved) — replaces the hardcoded "70" placeholder.
+            "pack_readiness": pack_readiness(preview),
             "change_set": change_set,
             "simulation": simulation,
             "installations": installations,
