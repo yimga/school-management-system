@@ -17,6 +17,7 @@ from django.test import SimpleTestCase
 
 from apps.evals.grading import (
     ASSESSMENT_WEIGHTS_SCALE_MAP,
+    GRADING_SCALES,
     REGISTRY_SCALE_TYPE_MAP,
     cohort_t_scores,
     format_grade_band,
@@ -28,13 +29,19 @@ from apps.evals.models import EXTENDED_GRADE_BANDS, GRADING_SCALE_BANDS, Grading
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
-def _gate_required_codes() -> tuple[str, ...]:
-    """The registries coverage gate's REQUIRED_CODES, loaded by path (its real SOT)."""
+def _load_gate_module():
+    """The registries coverage gate loaded by path (its real SOT for REQUIRED_CODES
+    and the pure ``render_coverage_gaps`` helper)."""
     gate = REPO_ROOT / "scripts" / "verify_grading_scale_registry_coverage.py"
     spec = importlib.util.spec_from_file_location("_gscov", gate)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return tuple(module.REQUIRED_CODES)
+    return module
+
+
+def _gate_required_codes() -> tuple[str, ...]:
+    """The registries coverage gate's REQUIRED_CODES, loaded by path (its real SOT)."""
+    return tuple(_load_gate_module().REQUIRED_CODES)
 
 
 class CohortTScoreTests(SimpleTestCase):
@@ -103,3 +110,59 @@ class WorldScaleCoverageKeystoneTests(SimpleTestCase):
             len(set(REGISTRY_SCALE_TYPE_MAP.values())),
             len(REGISTRY_SCALE_TYPE_MAP),
         )
+
+
+class CoverageGateRenderPathMustFireTests(SimpleTestCase):
+    """The coverage gate must be ABLE to fail on a real render gap (must-fire).
+
+    The old gate seeded the registry then asserted its own write (``missing`` could
+    never be non-empty) and validated ``metadata['boundary_map']`` — a table NO report
+    card renders (read only by the gate + the runtime grading-matrix JSON payload). The
+    de-tautologized gate instead points its RENDER COVERAGE at the exact tables the
+    report-card path reads (``resolve_extended_band_label`` / ``EXTENDED_GRADE_BANDS``
+    + the ``GRADING_SCALE_BANDS`` / ``GRADING_SCALES`` coarse fallback), bridged from
+    the registry code via ``REGISTRY_SCALE_TYPE_MAP``. These tests pin that the gate's
+    pure ``render_coverage_gaps`` helper PASSES on the real maps and FAILS on an
+    injected gap — the property the tautological gate structurally lacked.
+    """
+
+    def _gaps(self, *, registry_map=None, aw_map=None, scales=None, extended=None, bands=None):
+        mod = _load_gate_module()
+        return mod.render_coverage_gaps(
+            _gate_required_codes(),
+            registry_map if registry_map is not None else REGISTRY_SCALE_TYPE_MAP,
+            aw_map if aw_map is not None else ASSESSMENT_WEIGHTS_SCALE_MAP,
+            scales if scales is not None else set(GRADING_SCALES.keys()),
+            extended if extended is not None else EXTENDED_GRADE_BANDS,
+            bands if bands is not None else GRADING_SCALE_BANDS,
+        )
+
+    def test_clean_tree_has_zero_render_gaps(self):
+        # Calibration: every registry code a school can pick renders a real band table.
+        self.assertEqual(self._gaps(), [])
+
+    def test_unmapped_registry_code_is_a_gap(self):
+        # A registry scale a school can PICK but with no operational/render home.
+        broken = dict(REGISTRY_SCALE_TYPE_MAP)
+        broken.pop("IB_1_7")
+        self.assertIn("IB_1_7", self._gaps(registry_map=broken))
+
+    def test_scale_type_without_score_axis_is_a_gap(self):
+        # scale_type not in GRADING_SCALE_BANDS → the model has no score axis to render.
+        broken = dict(REGISTRY_SCALE_TYPE_MAP)
+        broken["IB_1_7"] = "nonexistent_scale_type"
+        self.assertIn("IB_1_7", self._gaps(registry_map=broken))
+
+    def test_no_rich_and_no_coarse_display_scale_is_a_gap(self):
+        # A numeric scale with no rich band table whose coarse display scale is missing
+        # from GRADING_SCALES would silently render the 0–20 fallback for a foreign scale.
+        broken_aw = dict(ASSESSMENT_WEIGHTS_SCALE_MAP)
+        broken_aw["french_0_20"] = "no-such-display-scale"  # FRENCH_0_20 is not in EXTENDED
+        self.assertIn("FRENCH_0_20", self._gaps(aw_map=broken_aw))
+
+    def test_rich_scale_survives_missing_coarse_display_scale(self):
+        # A rich extended-band scale (IB) still renders via EXTENDED_GRADE_BANDS even if
+        # its coarse display alias is gone — so it is NOT a gap (no false positive).
+        broken_aw = dict(ASSESSMENT_WEIGHTS_SCALE_MAP)
+        broken_aw["ib_1_7"] = "no-such-display-scale"
+        self.assertNotIn("IB_1_7", self._gaps(aw_map=broken_aw))
