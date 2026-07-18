@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from django.contrib.auth.tokens import default_token_generator
 from django.urls import NoReverseMatch, reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
+from apps.accounts.onboarding_tokens import activation_token_generator
 from apps.schools.host_routing import get_canonical_base_domain
 
 
@@ -97,7 +97,7 @@ def build_provision_setup_password_url(school, user, next_path: str = "") -> str
     a password instead of the bare login page.
     """
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
+    token = activation_token_generator.make_token(user)
     try:
         path = reverse("accounts:legacy_setup", kwargs={"uidb64": uid, "token": token})
     except NoReverseMatch:
@@ -121,7 +121,7 @@ def build_owner_onboarding_path(user) -> str:
     host — tenant subdomains are not safe for first-run mail deep links.
     """
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
+    token = activation_token_generator.make_token(user)
     try:
         return reverse(
             "accounts:owner_onboarding_account",
@@ -143,7 +143,7 @@ def build_owner_onboarding_url(school, user) -> str:
     """
     del school  # onboarding auth is token-based; host is always public
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = default_token_generator.make_token(user)
+    token = activation_token_generator.make_token(user)
     try:
         path = reverse(
             "accounts:owner_onboarding_account",

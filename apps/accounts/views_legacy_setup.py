@@ -34,6 +34,8 @@ from django.contrib.auth.views import PasswordResetConfirmView
 from django.urls import reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from apps.accounts.onboarding_tokens import activation_token_generator
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,6 +55,10 @@ class LegacySetupView(PasswordResetConfirmView):
 
     template_name = "accounts/legacy_setup.html"
     success_url = reverse_lazy("accounts:login")
+    # Activation-style link (legacy-hash sunset / provision set-password), not a
+    # 1h password reset — validate for the onboarding window. See
+    # apps/accounts/onboarding_tokens.py.
+    token_generator = activation_token_generator
     # Log the user in immediately after they choose a password — the token they
     # just consumed already proved ownership, so a second trip through the login
     # form would be redundant (and impossible for a brand-new signup admin whose

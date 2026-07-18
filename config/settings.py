@@ -1159,6 +1159,13 @@ LOGOUT_REDIRECT_URL = "/authentication/login/"
 # (Django's default is 3 days, which contradicted that copy).
 PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT_SECONDS", "3600"))
 
+# Owner ACTIVATION / first-run onboarding links (welcome email -> set password)
+# are a different security object from reset links: a cold-email recipient needs
+# DAYS to act, not an hour. They reuse the reset-token machinery, so a dedicated
+# generator (apps/accounts/onboarding_tokens.py) validates them for this many
+# days, fully independent of PASSWORD_RESET_TIMEOUT above.
+OWNER_ONBOARDING_TOKEN_DAYS = int(os.getenv("OWNER_ONBOARDING_TOKEN_DAYS", "7"))
+
 # Security Powerhouse (plan 3.21): Account locking after 5 failed attempts.
 # Install: pip install django-defender. Set DEFENDER_ENABLED=1 to enable.
 DEFENDER_ENABLED = os.getenv("DEFENDER_ENABLED", "0") in ("1", "true", "yes")

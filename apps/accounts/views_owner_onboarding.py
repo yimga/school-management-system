@@ -28,7 +28,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth import get_user_model
 from django.contrib.auth import password_validation
-from django.contrib.auth.tokens import default_token_generator
+from apps.accounts.onboarding_tokens import activation_token_generator
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
@@ -275,7 +275,7 @@ def _user_from_onboarding_token(uidb64: str, token: str):
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         return None
-    if not default_token_generator.check_token(user, token):
+    if not activation_token_generator.check_token(user, token):
         return None
     return user
 
@@ -312,6 +312,9 @@ class OwnerOnboardingAccountView(PasswordResetConfirmView):
 
     template_name = "accounts/owner_onboarding/account.html"
     form_class = OwnerAccountSetupForm
+    # Activation window (days), NOT the 1h password-reset window — see
+    # apps/accounts/onboarding_tokens.py.
+    token_generator = activation_token_generator
     post_reset_login = True
     post_reset_login_backend = "django.contrib.auth.backends.ModelBackend"
     success_url = reverse_lazy("accounts:owner_onboarding_school")
