@@ -263,6 +263,36 @@ def record_provider_payment(
     else:
         payment = Payment.objects.create(invoice=invoice, **defaults)
     apply_payment(payment)
+    # Feed the fractional clearance sub-ledger. A confirmed gateway / mobile-money
+    # settlement (Paystack / Flutterwave / MTN MoMo / Stripe webhook) IS an
+    # irregular partial payment against the invoice — exactly what
+    # FractionalPaymentLedger models. Without this the sub-ledger stayed
+    # permanently EMPTY for every gateway payer, so enrollment_clearance_for_invoice()
+    # could never return True and reports.student_has_financial_clearance() +
+    # academics.year_close blocked an M-Pesa instalment payer from their report
+    # card AND re-enrollment forever. The cash path already posts source=CASH_COUNTER
+    # (payment_orchestration.reconcile_offline_payment_intent); GATEWAY was one of
+    # the two producerless holes. Idempotent on the Payment identity: a redelivered
+    # webhook resolves to the same Payment row (update_or_create on
+    # invoice+external_reference), so a second confirmation is a no-op and can
+    # never double-credit clearance. Currency is resolved from the invoice by the
+    # producer (never a blind USD). Invoice.school is nullable (platform/AP
+    # invoices carry no tenant) but FractionalPaymentLedger.school is NOT NULL and
+    # both clearance readers are school-scoped, so a school-less row is unwritable
+    # AND unreadable — tenant enrollment-clearance simply does not apply there.
+    if getattr(invoice, "school_id", None) is not None:
+        from apps.finance.fractional_ledger_services import post_partial_payment
+        from apps.finance.models_fractional_ledger import FractionalPaymentLedger
+
+        post_partial_payment(
+            school=invoice.school,
+            invoice=invoice,
+            amount=amount_val,
+            source=FractionalPaymentLedger.Source.GATEWAY,
+            idempotency_key=f"gateway-payment-{payment.pk}",
+            student=getattr(invoice, "student", None),
+            note=f"Gateway settlement (payment {payment.pk})"[:255],
+        )
     return payment
 
 
@@ -338,6 +368,33 @@ def pay_invoice_with_wallet(
     wallet.balance = new_balance
     wallet.save(update_fields=["balance", "updated_at"])
     apply_payment(payment)
+    # Feed the fractional clearance sub-ledger (same rationale as the gateway and
+    # cash paths): a wallet debit against the invoice is an irregular partial
+    # payment. WALLET was the second producerless hole — without this a parent who
+    # pays school fees from the cashless wallet in instalments never cleared
+    # enrollment_clearance_for_invoice() and stayed blocked from report cards +
+    # year-close re-enrollment. Keyed on the Payment identity; each wallet pay
+    # mints a distinct Payment (unique ref), so distinct instalments post distinct
+    # rows and a retried call is a no-op. Currency is resolved from the invoice by
+    # the producer. Runs inside this function's @transaction.atomic envelope, so
+    # the wallet debit, the Payment and its clearance line commit together — a
+    # swallowed ledger write would be a silent money-integrity bug. school comes
+    # from the invoice (nullable) with the caller's tenant as fallback; both
+    # clearance readers are school-scoped so the row is only written when known.
+    ledger_school = getattr(invoice, "school", None) or school
+    if ledger_school is not None:
+        from apps.finance.fractional_ledger_services import post_partial_payment
+        from apps.finance.models_fractional_ledger import FractionalPaymentLedger
+
+        post_partial_payment(
+            school=ledger_school,
+            invoice=invoice,
+            amount=amount_val,
+            source=FractionalPaymentLedger.Source.WALLET,
+            idempotency_key=f"wallet-payment-{payment.pk}",
+            student=getattr(invoice, "student", None),
+            note=f"Wallet settlement (payment {payment.pk})"[:255],
+        )
     return payment, wallet
 
 
