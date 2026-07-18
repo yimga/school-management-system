@@ -10,10 +10,14 @@ TEMPLATES = ROOT / "templates" / "platform_runtime"
 class GovernedInstallationUXFlowTests(SimpleTestCase):
     def test_platform_install_surfaces_show_stepper_risk_approval_health_and_rollback(self):
         stepper = (ROOT / "templates" / "components" / "world_class_guided_stepper.html").read_text(encoding="utf-8")
+        strip = (ROOT / "templates" / "components" / "tenant_option_a_strip.html").read_text(encoding="utf-8")
         for name in ("blueprint_marketplace.html", "pack_marketplace.html", "change_requests.html"):
             with self.subTest(name=name):
                 text = (TEMPLATES / name).read_text(encoding="utf-8")
-                self.assertIn("world_class_guided_stepper.html", text)
+                self.assertIn("tenant_option_a_strip.html", text)
+                self.assertIn("hide_nav_detail", text)
+                self.assertIn("option_a_show_stepper", text)
+                self.assertIn("world_class_guided_stepper.html", strip)
                 self.assertIn("Preview", stepper)
                 self.assertIn("Simulate", stepper)
                 self.assertIn("Impact", stepper)

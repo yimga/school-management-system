@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Operator Option A governed twins (batch 1762 - 2026-07-18)
+
+**A. Scope:** Apply Option A only to the four operator surfaces that need it (config center, blueprint/pack marketplaces, change requests) — not platform-wide.
+
+**B. Shipped:** `option_a_tag` on shared strip; hide_nav_detail + Option A on those four; nest one guided stepper; drop duplicate visual workflow paths; keep CR KPI counts; SW `sms-v4.05.135`.
+
+**C. Proof:** `audit_approved_html_implementation.py` + governed installation SimpleTests.
+
+**D. Honest:** No operator Option A design preview; other operator pages intentionally skipped.
+
+**E. Files:** four platform_runtime templates, tenant_option_a_strip, audits/tests, SOT/log, SW.
+
+**F. Next:** Deploy + hard-refresh `/configuration/` twins on manager host; do not widen Option A unless a new wall appears.
+
 ## Slice — Django admin parity-close G3–G9 (batch 1761 - 2026-07-17)
 
 **A. Scope:** Close remaining intelligent-revamp gaps G3/G4/G6/G7/G8/G9 after field-grid/save (1760) and scroll parity (1759).

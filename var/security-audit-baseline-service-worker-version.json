@@ -1,12 +1,12 @@
 {
-  "date": "2026-07-17",
-  "generated_at": "2026-07-17T16:30:00+00:00",
+  "date": "2026-07-18",
+  "generated_at": "2026-07-18T12:40:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 134,
-  "raw": "sms-v4.05.134-django-admin-parity-close-2026-07-17",
+  "patch": 135,
+  "raw": "sms-v4.05.135-operator-option-a-governed-2026-07-18",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "django-admin-parity-close",
+  "slug": "operator-option-a-governed",
   "valid": true
 }

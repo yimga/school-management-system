@@ -1,10 +1,10 @@
 {% load i18n %}
 {% comment %}
-  Shared Option A command strip for tenant operational pages.
+  Shared Option A command strip for tenant + operator governed workbenches.
   Replaces stacked nav-detail / prose walls with compact metrics (+ optional stepper).
 
   Include params (all optional):
-    option_a_title, option_a_lede, option_a_aria
+    option_a_title, option_a_lede, option_a_aria, option_a_tag
     option_a_flow_title, option_a_flow_hint
     option_a_show_stepper — truthy to nest world_class_guided_stepper
     option_a_empty_label / option_a_empty_title / option_a_empty_body — empty metrics
@@ -14,7 +14,7 @@
   class="rmc-option-a rmc-bp-option-a"
   data-rmc-option-a="1"
   data-rmc-blueprint-option-a="1"
-  aria-label="{{ option_a_aria|default:_('Tenant command surface') }}"
+  aria-label="{{ option_a_aria|default:_('Command surface') }}"
 >
   <div class="rmc-option-a__head rmc-bp-option-a__head">
     <div>
@@ -26,7 +26,7 @@
         {{ option_a_lede|default:_("Open with the work, not a wall of text. Preview impact, clear blockers, then take the next tenant-safe action.") }}
       </p>
     </div>
-    <span class="rmc-option-a__tag rmc-bp-option-a__tag rmc-option-a__tag--good rmc-bp-option-a__tag--good">{% trans "Tenant only" %}</span>
+    <span class="rmc-option-a__tag rmc-bp-option-a__tag rmc-option-a__tag--good rmc-bp-option-a__tag--good">{{ option_a_tag|default:_("Tenant only") }}</span>
   </div>
 
   <div class="rmc-option-a__metrics rmc-bp-option-a__metrics" role="list">

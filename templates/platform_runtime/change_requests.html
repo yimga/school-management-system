@@ -1,6 +1,11 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block cp_title %}{% trans "Change Requests" %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-blueprint-option-a.css' %}?v=20260718-operator-option-a">
+{% endblock %}
+
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -8,30 +13,18 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section class="cp-page" data-page-marker="rmc-configuration-change-requests" data-apple-class-governed-installation="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-operational-workbench="1">
+<section class="cp-page" data-page-marker="rmc-configuration-change-requests" data-apple-class-governed-installation="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-operational-workbench="1" data-rmc-option-a-canvas="1">
   {% url 'configuration:center' as wcx_config_url %}
   {% url 'configuration:registry_health' as wcx_registry_health_url %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="configuration_change_requests" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_config_url primary_label=_("Configuration center") secondary_url=wcx_registry_health_url secondary_label=_("Registry health") %}
-  <div class="change-request-summary rmc-ops-metrics-grid" data-rmc-ops-metrics-grid="1" data-rmc-ops-metrics-cols="5" data-change-request-summary>
+  {% include "components/rmc_operational_center_frame.html" with hide_nav_detail="1" os_center_key="configuration_change_requests" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_config_url primary_label=_("Configuration center") secondary_url=wcx_registry_health_url secondary_label=_("Registry health") %}
+  {% include "components/tenant_option_a_strip.html" with option_a_tag=_("Operator") option_a_title=_("Full-width change request queue") option_a_lede=_("Open with the work, not a wall of text. Pending, scheduled, and applied stay compact — one lifecycle path into the queue.") option_a_aria=_("Change request command surface") option_a_show_stepper="1" option_a_flow_title=_("Change request lifecycle") option_a_flow_hint=_("Requested → approved → scheduled → applied. Risk and rollback stay on the detail row.") option_a_empty_label=_("Pending") option_a_empty_title=_("Queue visible") option_a_empty_body=_("Operator approvals only; failed and rejected stay in the table.") %}
+  <div class="change-request-summary rmc-ops-metrics-grid mb-3" data-rmc-ops-metrics-grid="1" data-rmc-ops-metrics-cols="5" data-change-request-summary data-rmc-option-a-cr-counts="1" aria-label="{% trans 'Queue counts' %}">
     <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Pending" %}</span><div class="cp-kpi__value">{{ change_request_summary.pending|default:0 }}</div></div>
     <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Scheduled" %}</span><div class="cp-kpi__value">{{ change_request_summary.scheduled|default:0 }}</div></div>
     <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Applied" %}</span><div class="cp-kpi__value">{{ change_request_summary.applied|default:0 }}</div></div>
     <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Rejected" %}</span><div class="cp-kpi__value">{{ change_request_summary.rejected|default:0 }}</div></div>
     <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Failed" %}</span><div class="cp-kpi__value">{{ change_request_summary.failed|default:0 }}</div></div>
   </div>
-  {% include "components/world_class_guided_stepper.html" %}
-  <nav class="rmc-cr-stepper mb-3" aria-label="{% trans 'Change request lifecycle' %}">
-    <ol class="rmc-cr-stepper__list list-unstyled d-flex flex-wrap gap-2 small mb-0">
-      <li><span class="rmc-badge">{% trans "Requested" %}</span></li>
-      <li aria-hidden="true">→</li>
-      <li><span class="rmc-badge">{% trans "Approved" %}</span></li>
-      <li aria-hidden="true">→</li>
-      <li><span class="rmc-badge">{% trans "Scheduled" %}</span></li>
-      <li aria-hidden="true">→</li>
-      <li><span class="rmc-badge">{% trans "Applied" %}</span></li>
-    </ol>
-  </nav>
-  {% include "components/apple_class_visual_workflow_path.html" %}
   {% include "components/apple_class_dependency_graph.html" with graph_id="change-request-dependencies" title="Dependency graph" source="Requested change" dependency="Required approvals" target="Scheduled rollout" %}
   {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="change-request-drawer" role="Approval drawer" title="Quick approve/reject panel" body="Operators can inspect risk, approver, audit, and rollback posture without losing the queue." primary_url="/configuration/change-requests/" primary_label="Review queue" %}
   <div class="cp-card">
