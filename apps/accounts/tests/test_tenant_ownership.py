@@ -20,6 +20,7 @@ from apps.accounts.models import User
 from apps.accounts.views_tenant_identity import (
     _is_school_owner,
     tenant_identity_grant_ownership,
+    tenant_identity_offboard,
     tenant_identity_revoke_ownership,
     tenant_identity_transfer_ownership,
 )
@@ -227,6 +228,140 @@ class TransferOwnershipTests(OwnershipBase):
         self.assertEqual(resp.status_code, 302)
         self.assertFalse(self._membership(self.teacher).is_school_owner)
         self.assertTrue(self._membership(self.owner).is_school_owner)
+
+
+class SuspendedOwnerGuardTests(OwnershipBase):
+    """A suspended owner holds no authority, so the delegation guards must treat
+    ownership on the ACTIVE-owner axis — never the raw is_school_owner flag — or
+    the school can be stranded with an owner who cannot act."""
+
+    def _suspend(self, user) -> None:
+        from django.utils import timezone
+
+        SchoolMembership.objects.filter(user=user, school=self.school).update(
+            suspended_at=timezone.now()
+        )
+
+    def _make_owner(self, user) -> None:
+        SchoolMembership.objects.filter(user=user, school=self.school).update(
+            is_school_owner=True
+        )
+
+    # --- grant / transfer must refuse a suspended target ----------------------
+
+    def test_grant_ownership_to_suspended_member_refused(self) -> None:
+        self._suspend(self.teacher)
+        resp = tenant_identity_grant_ownership(
+            self._post(self.owner, self.teacher.pk), user_id=self.teacher.pk
+        )
+        self.assertEqual(resp.status_code, 302)
+        # Ghost owner not created — suspended member stays a non-owner.
+        self.assertFalse(self._membership(self.teacher).is_school_owner)
+
+    def test_transfer_ownership_to_suspended_member_refused(self) -> None:
+        self._suspend(self.teacher)
+        resp = tenant_identity_transfer_ownership(
+            self._post(self.owner, self.teacher.pk), user_id=self.teacher.pk
+        )
+        self.assertEqual(resp.status_code, 302)
+        # No stranding: caller keeps ownership, suspended target is not promoted.
+        self.assertTrue(self._membership(self.owner).is_school_owner)
+        self.assertFalse(self._membership(self.teacher).is_school_owner)
+
+    # --- revoke must guard on ACTIVE owners, not the raw flag -----------------
+
+    def test_cannot_step_down_when_only_other_owner_is_suspended(self) -> None:
+        # owner (active) + teacher (owner, but suspended). Raw owner_count == 2, so
+        # the OLD total-count guard would have let the active owner step down and
+        # strand the school with only a suspended owner. The active-count guard holds.
+        self._make_owner(self.teacher)
+        self._suspend(self.teacher)
+        resp = tenant_identity_revoke_ownership(
+            self._post(self.owner, self.owner.pk), user_id=self.owner.pk
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(self._membership(self.owner).is_school_owner)
+
+    def test_can_revoke_a_suspended_co_owner(self) -> None:
+        # Revoking a suspended owner never reduces the active-owner pool, so it's
+        # always allowed as long as an active owner remains (self.owner).
+        self._make_owner(self.teacher)
+        self._suspend(self.teacher)
+        resp = tenant_identity_revoke_ownership(
+            self._post(self.owner, self.teacher.pk), user_id=self.teacher.pk
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertFalse(self._membership(self.teacher).is_school_owner)
+        self.assertTrue(self._membership(self.owner).is_school_owner)
+
+
+class OffboardOwnerGuardTests(OwnershipBase):
+    """Deleting an owner's membership is owner-only and can't strip the last
+    active owner — the broad manage gate is not enough to remove an owner."""
+
+    def _make_su(self):
+        return _make_user(
+            "su", role=User.Role.ADMIN, is_staff=True, is_superuser=True
+        )
+
+    def _make_owner(self, user) -> None:
+        SchoolMembership.objects.filter(user=user, school=self.school).update(
+            is_school_owner=True
+        )
+
+    def _exists(self, user) -> bool:
+        return SchoolMembership.objects.filter(
+            school=self.school, user=user
+        ).exists()
+
+    def test_non_owner_manager_cannot_offboard_an_owner(self) -> None:
+        # plain_admin can manage the identity hub (ADMIN) but is NOT an owner — it
+        # must not be able to delete the owner's membership.
+        resp = tenant_identity_offboard(
+            self._post(self.plain_admin, self.owner.pk), user_id=self.owner.pk
+        )
+        self.assertEqual(resp.status_code, 403)
+        self.assertTrue(self._exists(self.owner))
+        self.assertTrue(self._membership(self.owner).is_school_owner)
+
+    def test_cannot_offboard_the_last_active_owner(self) -> None:
+        # A suspended co-owner does not count; owner is the last ACTIVE owner. A
+        # superuser doing support/recovery (a MEMBER here, so it clears the broad
+        # manage gate whose membership check precedes the superuser bypass) still
+        # can't delete the last active owner — the raw 2-owner count must not rescue
+        # the guard. Grant ownership to another active member first.
+        self._make_owner(self.teacher)
+        from django.utils import timezone
+
+        SchoolMembership.objects.filter(user=self.teacher, school=self.school).update(
+            suspended_at=timezone.now()
+        )
+        su = self._make_su()
+        SchoolMembership.objects.create(
+            user=su, school=self.school, role=User.Role.ADMIN, is_school_owner=False,
+        )
+        resp = tenant_identity_offboard(
+            self._post(su, self.owner.pk), user_id=self.owner.pk
+        )
+        self.assertEqual(resp.status_code, 302)  # refused with a message, not deleted
+        self.assertTrue(self._exists(self.owner))
+
+    def test_owner_can_offboard_a_co_owner_when_two_active(self) -> None:
+        self._make_owner(self.teacher)  # now two active owners
+        resp = tenant_identity_offboard(
+            self._post(self.owner, self.teacher.pk), user_id=self.teacher.pk
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertFalse(self._exists(self.teacher))
+        self.assertTrue(self._exists(self.owner))
+
+    def test_manager_can_still_offboard_a_regular_member(self) -> None:
+        # The broad-gate path for non-owner targets is unchanged.
+        resp = tenant_identity_offboard(
+            self._post(self.plain_admin, self.teacher.pk), user_id=self.teacher.pk
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertFalse(self._exists(self.teacher))
 
 
 class CreatorIsOwnerTests(TestCase):

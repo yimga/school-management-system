@@ -83,17 +83,17 @@
           <form method="post" action="{{ revoke_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Step down as owner of this school?" %}');">
             {% csrf_token %}
             {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
-            <button type="submit" class="btn btn-sm btn-outline-danger"{% if owner_count <= 1 %} disabled{% endif %}>{% trans "Step down as owner" %}</button>
+            <button type="submit" class="btn btn-sm btn-outline-danger"{% if active_owner_count <= 1 %} disabled{% endif %}>{% trans "Step down as owner" %}</button>
           </form>
           {% else %}
           <form method="post" action="{{ revoke_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Remove ownership from this member?" %}');">
             {% csrf_token %}
             {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
-            <button type="submit" class="btn btn-sm btn-outline-danger"{% if owner_count <= 1 %} disabled{% endif %}>{% trans "Remove ownership" %}</button>
+            <button type="submit" class="btn btn-sm btn-outline-danger"{% if active_owner_count <= 1 and not target_is_suspended %} disabled{% endif %}>{% trans "Remove ownership" %}</button>
           </form>
           {% endif %}
-          {% if owner_count <= 1 %}
-          <p class="small text-muted mb-0 w-100">{% trans "This is the only owner. Grant ownership to another member before removing it here." %}</p>
+          {% if active_owner_count <= 1 and not target_is_suspended %}
+          <p class="small text-muted mb-0 w-100">{% trans "This is the only active owner. Grant ownership to another member before removing it here." %}</p>
           {% endif %}
         {% else %}
           <form method="post" action="{{ grant_ownership_url }}" class="d-inline" data-rmc-post-mutation="1">
@@ -137,11 +137,24 @@
   <div class="d-flex flex-wrap gap-2 mt-3">
     <a class="btn btn-sm btn-outline-primary" href="{{ rbac_url }}?user={{ staff_user.pk }}">{% trans "Edit RBAC roles" %}</a>
     <a class="btn btn-sm btn-outline-secondary" href="{{ regulator_url }}">{% blocktrans with body=gov_body_label %}{{ body }} grant{% endblocktrans %}</a>
+    {% if target_is_owner %}
+      {# Removing an owner is owner-only and can't strip the last active owner. #}
+      {% if caller_is_owner and target_is_suspended or caller_is_owner and active_owner_count > 1 %}
+      <form method="post" action="{{ offboard_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Remove this owner from the school?" %}');">
+        {% csrf_token %}
+        {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
+        <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Offboard from school" %}</button>
+      </form>
+      {% else %}
+      <button type="button" class="btn btn-sm btn-outline-danger" disabled title="{% trans "Only an owner can remove another owner, and never the last active one." %}">{% trans "Offboard from school" %}</button>
+      {% endif %}
+    {% else %}
     <form method="post" action="{{ offboard_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Remove this user from the school?" %}');">
       {% csrf_token %}
       {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
       <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Offboard from school" %}</button>
     </form>
+    {% endif %}
     <a class="btn btn-sm btn-outline-secondary" href="{{ roster_url }}">{% trans "Back to roster" %}</a>
   </div>
   {% endif %}

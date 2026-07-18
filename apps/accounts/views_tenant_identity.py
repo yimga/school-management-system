@@ -222,6 +222,13 @@ def tenant_identity_detail(request, user_id: int):
     owner_count = SchoolMembership.objects.filter(
         school=school, is_school_owner=True
     ).count()
+    # The step-down / remove-ownership / offboard-owner guards fire on ACTIVE owners
+    # (a suspended owner can't act), so the UI must disable those controls on the
+    # same signal — otherwise a suspended co-owner would re-enable a button whose
+    # POST the server now refuses.
+    active_owner_count = SchoolMembership.objects.filter(
+        school=school, is_school_owner=True, suspended_at__isnull=True
+    ).count()
     return render(
         request,
         "accounts/tenant_identity_detail.html",
@@ -242,6 +249,7 @@ def tenant_identity_detail(request, user_id: int):
             "target_is_owner": membership.is_school_owner,
             "target_is_self": request.user.pk == user.pk,
             "owner_count": owner_count,
+            "active_owner_count": active_owner_count,
             "grant_ownership_url": reverse(
                 "accounts:tenant_identity_grant_ownership", args=[user.pk]
             ),
@@ -478,8 +486,44 @@ def tenant_identity_offboard(request, user_id: int):
         messages.error(request, _("You cannot offboard yourself."))
         detail_url = reverse("accounts:tenant_identity_detail", args=[user_id])
         return redirect_after_detail_mutation(request, detail_url)
-    membership = get_object_or_404(SchoolMembership, school=school, user_id=user_id)
-    membership.delete()
+    with transaction.atomic():
+        membership = get_object_or_404(
+            SchoolMembership.objects.select_for_update(),
+            school=school,
+            user_id=user_id,
+        )
+        # Deleting an OWNER's membership is strictly more than revoking the flag, so
+        # it must require real ownership (never the broad manage role set, which
+        # admits IT_ADMIN / VICE_PRINCIPAL / LEADERSHIP — a lesser manager must not
+        # be able to remove the person who owns the tenant) and it can't strand the
+        # school with no active owner. Non-owner staff stay under the broad gate above.
+        if membership.is_school_owner:
+            if not _is_school_owner(request.user, school):
+                return HttpResponseForbidden(
+                    "Only a school owner can remove another owner."
+                )
+            if membership.suspended_at is None:
+                active_owner_count = (
+                    SchoolMembership.objects.select_for_update()
+                    .filter(
+                        school=school, is_school_owner=True, suspended_at__isnull=True
+                    )
+                    .count()
+                )
+                if active_owner_count <= 1:
+                    messages.error(
+                        request,
+                        _(
+                            "You can't remove the last active owner. Grant ownership "
+                            "to another member first, then remove this one."
+                        ),
+                    )
+                    detail_url = reverse(
+                        "accounts:tenant_identity_detail", args=[user_id]
+                    )
+                    return redirect_after_detail_mutation(request, detail_url)
+            _audit_ownership(request, school, "offboard_owner", membership.user_id)
+        membership.delete()
     messages.success(request, _("Staff member removed from this school."))
     roster_url = reverse("accounts:tenant_identity_roster")
     return redirect_after_delete(request, roster_url, list_url=roster_url)
@@ -509,6 +553,18 @@ def tenant_identity_grant_ownership(request, user_id: int):
             school=school,
             user_id=user_id,
         )
+        if target.suspended_at is not None:
+            # A suspended member holds no authority (is_active_owner is False), so
+            # granting ownership would only create a "ghost owner" that inflates the
+            # owner count without anyone who can actually act. Reactivate first.
+            messages.error(
+                request,
+                _(
+                    "Reactivate this member before granting ownership — a suspended "
+                    "member can't hold owner authority."
+                ),
+            )
+            return _owner_detail_redirect(request, user_id)
         if target.is_school_owner:
             messages.info(request, _("That member is already an owner."))
         else:
@@ -547,19 +603,23 @@ def tenant_identity_revoke_ownership(request, user_id: int):
         if not target.is_school_owner:
             messages.info(request, _("That member is not an owner."))
             return _owner_detail_redirect(request, user_id)
-        # Last-owner guard — lock the owner rows so two concurrent revokes can't
-        # both read "2 owners" and race the school down to zero.
-        owner_count = (
+        # Last-owner guard — count only ACTIVE (non-suspended) owners, and only
+        # guard when the target itself is active: removing a *suspended* owner never
+        # reduces the pool of members who can actually act, whereas stepping down the
+        # last active owner while a suspended co-owner exists would strand the school
+        # with an owner who has no authority. Lock the owner rows so two concurrent
+        # revokes can't both read "2 active owners" and race the school to zero.
+        active_owner_count = (
             SchoolMembership.objects.select_for_update()
-            .filter(school=school, is_school_owner=True)
+            .filter(school=school, is_school_owner=True, suspended_at__isnull=True)
             .count()
         )
-        if owner_count <= 1:
+        if target.suspended_at is None and active_owner_count <= 1:
             messages.error(
                 request,
                 _(
-                    "You can't remove the last owner. Grant ownership to another "
-                    "member first, then remove this one."
+                    "You can't remove the last active owner. Grant ownership to "
+                    "another member first, then remove this one."
                 ),
             )
             return _owner_detail_redirect(request, user_id)
@@ -615,6 +675,18 @@ def tenant_identity_transfer_ownership(request, user_id: int):
             school=school,
             user_id=user_id,
         )
+        if target.suspended_at is not None:
+            # Transfer steps the caller down onto the target. Handing off to a
+            # suspended member (who holds no authority) would leave the school with
+            # no ACTIVE owner — the exact stranding the last-owner guards prevent.
+            messages.error(
+                request,
+                _(
+                    "Reactivate this member before transferring ownership — you'd be "
+                    "stepping down onto a suspended member who can't take over."
+                ),
+            )
+            return _owner_detail_redirect(request, user_id)
         # Promote the chosen member to owner (+ ADMIN) FIRST, so the school always
         # retains at least one owner across the handoff.
         target_fields = ["is_school_owner", "updated_at"]
