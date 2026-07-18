@@ -23,8 +23,42 @@ from django.core.management.base import BaseCommand
 from apps.metadata.models import DynamicFieldDefinition
 
 
+# The form filter (apps.metadata.dynamic_forms._entity_type_for_model) keys every
+# definition on "<app_label>.<model_name>" (e.g. "people.studentprofile"). These
+# recipes historically used bare domain nouns ("student"), so EVERY row this
+# command wrote was permanently invisible to every form — an entity_type mismatch
+# that silently dropped the whole seeded vocabulary. Normalize each recipe's
+# entity_type to the model label the forms actually query so the seed and the
+# form filter speak ONE vocabulary. (apps.metadata.country_eav_catalog already
+# uses the dotted form, which is why the country identity fields worked.)
+_ENTITY_TYPE_TO_MODEL_LABEL: dict[str, str] = {
+    "student": "people.studentprofile",
+    "guardian": "people.studentguardian",
+    "teacher": "people.teacherprofile",
+    "classroom": "academics.classroom",
+    "invoice": "finance.invoice",
+    "payment": "finance.payment",
+    "attendance": "academics.attendance",
+    "evaluation": "evals.evaluation",
+    "applicant": "people.applicant",
+    "event": "school_events.schoolevent",
+    "discipline_incident": "academics.incident",
+    "medical_visit": "schoolops.healthrecord",
+}
+
+
+def canonical_entity_type(raw: str) -> str:
+    """Translate a bare recipe entity noun to the dotted "app_label.model_name"
+    the forms query. Already-dotted or unmapped values pass through unchanged."""
+    if "." in raw:
+        return raw
+    return _ENTITY_TYPE_TO_MODEL_LABEL.get(raw, raw)
+
+
 # Canonical platform-wide custom-field recipes.
 # Format: (entity_type, field_key, label, data_type, required)
+# entity_type is written as a bare domain noun for readability and normalized to
+# the dotted model label via canonical_entity_type() at write time.
 PLATFORM_FIELD_RECIPES: list[tuple[str, str, str, str, bool]] = [
     # === Student profile ===
     ("student", "preferred_name", "Preferred name", "string", False),
@@ -149,7 +183,8 @@ class Command(BaseCommand):
         dry = bool(options.get("dry_run"))
         created = 0
         updated = 0
-        for entity_type, field_key, label, data_type, required in PLATFORM_FIELD_RECIPES:
+        for raw_entity_type, field_key, label, data_type, required in PLATFORM_FIELD_RECIPES:
+            entity_type = canonical_entity_type(raw_entity_type)
             if dry:
                 exists = DynamicFieldDefinition.objects.filter(
                     entity_type=entity_type, field_key=field_key, school=None

@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %}
+  Dynamic EAV (metadata) custom-field section.
+
+  Renders the dyn_* fields that apps.metadata.dynamic_forms.attach_dynamic_fields
+  appended to the form — country-catalog identity fields (Aadhaar / UDISE / Civil
+  registry ID) and tenant / platform custom-field recipes. WITHOUT this section
+  the inputs are never emitted → a browser never submits them →
+  save_dynamic_fields_from_form has nothing to persist (the M5 render leg the
+  save leg's tests could not catch because they hand-built the POST payload).
+
+  form.dynamic_field_names lists exactly the attached names, so only the dynamic
+  inputs render here; the static model fields are hand-rendered by the parent
+  template. Each field goes through the canonical components/form_field.html
+  renderer so label / required-marker / help-text / error / widget-class styling
+  matches the house grammar.
+{% endcomment %}
+{% if form.dynamic_field_names %}
+  <div class="col-12 mt-4">
+    <h5 class="form-section__title h6 border-bottom pb-2 mb-3">{% trans "Additional details" %}</h5>
+  </div>
+  {% for field in form %}
+    {% if field.name in form.dynamic_field_names %}
+      <div class="col-md-6">{% include "components/form_field.html" with field=field %}</div>
+    {% endif %}
+  {% endfor %}
+{% endif %}

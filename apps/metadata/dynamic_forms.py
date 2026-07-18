@@ -102,18 +102,29 @@ def attach_dynamic_fields(
     entity_type: str,
     instance: Any | None = None,
 ) -> None:
-    """Add tenant EAV fields to an existing ModelForm."""
+    """Add tenant EAV fields to an existing ModelForm.
+
+    Records the added field names on ``form.dynamic_field_names`` so the template
+    can render exactly the dynamic inputs (the static fields are hand-rendered by
+    the parent template). Without a template that emits these ``dyn_*`` inputs the
+    values are never submitted and ``save_dynamic_fields_from_form`` silently
+    persists nothing — see ``templates/metadata/_dynamic_fields_section.html``.
+    """
     from apps.metadata.services import get_dynamic_field_value
 
+    dynamic_field_names: list[str] = list(getattr(form, "dynamic_field_names", []) or [])
     for defn in definitions_for_entity(school=school, entity_type=entity_type):
         field_name = f"{_DYNAMIC_FIELD_PREFIX}{defn.field_key}"
         form.fields[field_name] = form_field_for_definition(defn)
+        if field_name not in dynamic_field_names:
+            dynamic_field_names.append(field_name)
         if instance is not None and instance.pk:
             initial = get_dynamic_field_value(
                 instance, defn.field_key, school=school or getattr(instance, "school", None)
             )
             if initial is not None:
                 form.fields[field_name].initial = initial
+    form.dynamic_field_names = dynamic_field_names
 
 
 def save_dynamic_fields_from_form(
