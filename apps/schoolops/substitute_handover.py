@@ -12,7 +12,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -67,6 +67,10 @@ class SubstituteCandidate:
     department_id: str = ""
     active_cover_count: int = 0
     priority: int = 0
+    # Set by ``rank_substitute_candidates`` against the cover's required
+    # department. ``False`` marks an out-of-department teacher who may only be
+    # contacted as an explicit override (no qualified substitute available).
+    qualified: bool = True
 
 
 @dataclass(frozen=True)
@@ -138,19 +142,32 @@ def rank_substitute_candidates(
     required_department_id: str = "",
 ) -> list[SubstituteCandidate]:
     unavailable = {str(value) for value in (unavailable_ids or set())}
-    ranked = [
+    required = str(required_department_id or "")
+    eligible = [
         candidate
         for candidate in candidates
         if candidate.teacher_id != str(absent_teacher_id)
         and candidate.teacher_id not in unavailable
         and candidate.phone
     ]
+    # Qualification is a HARD tier, not a tie-breaker. When the cover names a
+    # required department, a substitute whose department does not match is
+    # flagged ``qualified=False`` and ranked strictly below EVERY qualified
+    # candidate — so a higher-priority out-of-department teacher can never
+    # outrank an in-department one (the old code merely used it as the first
+    # sort key AND never received it in production, so it was inert). With no
+    # required department (e.g. the absent teacher has none on file) every
+    # candidate stays qualified and the ranking degrades to priority/load.
+    ranked = [
+        replace(
+            candidate,
+            qualified=(not required) or (candidate.department_id == required),
+        )
+        for candidate in eligible
+    ]
     ranked.sort(
         key=lambda candidate: (
-            0
-            if required_department_id
-            and candidate.department_id == str(required_department_id)
-            else 1,
+            0 if candidate.qualified else 1,
             -candidate.priority,
             candidate.active_cover_count,
             candidate.display_name.casefold(),
@@ -158,6 +175,21 @@ def rank_substitute_candidates(
         )
     )
     return ranked
+
+
+def select_qualified_or_override(
+    candidates: list[SubstituteCandidate],
+) -> list[SubstituteCandidate]:
+    """Turn the ranked list into the actual set of teachers to contact.
+
+    Returns ONLY qualified (in-department) candidates. Falls back to the full
+    ranked list — the explicit "override" tier — solely when no qualified
+    substitute exists, so a small school with nobody in the absent teacher's
+    department is not stranded. A qualified substitute is always preferred, and
+    an unqualified one is never contacted while a qualified one is available.
+    """
+    qualified = [candidate for candidate in candidates if candidate.qualified]
+    return qualified or list(candidates)
 
 
 def find_substitute_candidates(
@@ -170,6 +202,24 @@ def find_substitute_candidates(
 
     from apps.people.models import TeacherProfile
     from apps.schoolops.models import SubstituteCover
+
+    # The qualification a cover needs is the ABSENT teacher's department: a
+    # substitute who shares it can actually run that classroom's subjects. This
+    # is the real production input the matcher was missing — without it
+    # ``required_department_id`` stayed "" and the qualification tier was inert.
+    # If the absent teacher has no department on file we cannot infer a
+    # requirement, so every candidate stays eligible (no false exclusion).
+    required_department_id = ""
+    absent_department_id = (
+        TeacherProfile.objects.filter(
+            school=school,
+            user_id=absent_teacher_user_id,
+        )
+        .values_list("department_id", flat=True)
+        .first()
+    )
+    if absent_department_id:
+        required_department_id = str(absent_department_id)
 
     unavailable_ids = {
         str(value)
@@ -217,6 +267,7 @@ def find_substitute_candidates(
         absent_teacher_id=str(absent_teacher_user_id),
         candidates=candidates,
         unavailable_ids=unavailable_ids,
+        required_department_id=required_department_id,
     )
 
 
@@ -285,4 +336,5 @@ __all__ = [
     "build_packet",
     "find_substitute_candidates",
     "rank_substitute_candidates",
+    "select_qualified_or_override",
 ]

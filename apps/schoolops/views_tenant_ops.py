@@ -658,13 +658,20 @@ def ops_substitutes(request):
             from apps.schoolops.substitute_handover import (
                 broadcast_substitute_request,
                 find_substitute_candidates,
+                select_qualified_or_override,
             )
 
-            candidates = find_substitute_candidates(
+            ranked = find_substitute_candidates(
                 school=school,
                 absent_teacher_user_id=absent_pk,
                 work_date=wd,
             )
+            # Qualification is a real filter here: contact in-department
+            # (qualified) substitutes only. Out-of-department teachers are the
+            # override tier and are broadcast to solely when no qualified
+            # substitute exists, so a small school is never stranded.
+            candidates = select_qualified_or_override(ranked)
+            using_override = bool(candidates) and not candidates[0].qualified
             broker_results = broadcast_substitute_request(
                 school=school,
                 candidates=candidates,
@@ -672,11 +679,18 @@ def ops_substitutes(request):
                 period_label=(request.POST.get("period_label") or "").strip()[:80],
             )
             accepted = sum(1 for result in broker_results if result.accepted)
-            if broker_results:
+            if broker_results and using_override:
+                messages.warning(
+                    request,
+                    "No in-department substitute was available — request sent "
+                    f"to {accepted} of {len(broker_results)} out-of-department "
+                    "candidates (override). Confirm qualification before assigning.",
+                )
+            elif broker_results:
                 messages.success(
                     request,
                     f"Substitute request sent or queued for {accepted} of "
-                    f"{len(broker_results)} ranked candidates.",
+                    f"{len(broker_results)} qualified candidates.",
                 )
             else:
                 messages.warning(
