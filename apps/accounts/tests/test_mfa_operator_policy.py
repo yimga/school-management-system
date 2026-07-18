@@ -7,16 +7,21 @@ a platform switch and the operator config cascade.
 """
 from __future__ import annotations
 
-from unittest import mock
+from types import SimpleNamespace
 
 from django.test import SimpleTestCase, override_settings
 
 from apps.accounts.mfa_defaults import (
+    OPERATOR_MFA_SETTINGS_KEY,
     effective_required_roles,
     resolve_operator_mfa,
 )
 
-_CFG = "apps.platform_runtime.config_resolver.get_effective_config"
+
+def _school(**operator_mfa):
+    """A minimal school-like object carrying an operator-MFA settings blob."""
+    settings_blob = {OPERATOR_MFA_SETTINGS_KEY: operator_mfa} if operator_mfa else {}
+    return SimpleNamespace(settings=settings_blob)
 
 
 class EffectiveRequiredRolesTests(SimpleTestCase):
@@ -51,48 +56,36 @@ class ResolveOperatorMfaTests(SimpleTestCase):
         self.assertFalse(policy.require_all_staff)
         self.assertEqual(policy.required_roles, ())
 
+    def test_empty_when_school_has_no_operator_blob(self):
+        policy = resolve_operator_mfa(school=_school())
+        self.assertFalse(policy.require_all_staff)
+        self.assertEqual(policy.required_roles, ())
+
     @override_settings(MFA_OPERATOR_REQUIRE_ALL_STAFF="1")
     def test_platform_switch_forces_all_staff(self):
         policy = resolve_operator_mfa(school=None)
         self.assertTrue(policy.require_all_staff)
 
-    def test_per_tenant_roles_and_all_staff_from_config(self):
-        def fake_cfg(school, key, request=None, default=None):
-            return {
-                "mfa_operator_require_all_staff": True,
-                "mfa_operator_required_roles": ["HOD", "Registrar"],
-            }.get(key, default)
-
-        with mock.patch(_CFG, side_effect=fake_cfg):
-            policy = resolve_operator_mfa(school=object())
+    def test_per_tenant_roles_and_all_staff_from_settings(self):
+        policy = resolve_operator_mfa(
+            school=_school(require_all_staff=True, required_roles=["HOD", "Registrar"])
+        )
         self.assertTrue(policy.require_all_staff)
         self.assertEqual(policy.required_roles, ("HOD", "Registrar"))
 
-    def test_config_roles_as_csv_string(self):
-        def fake_cfg(school, key, request=None, default=None):
-            if key == "mfa_operator_required_roles":
-                return "HOD, Registrar"
-            return default
-
-        with mock.patch(_CFG, side_effect=fake_cfg):
-            policy = resolve_operator_mfa(school=object())
+    def test_roles_as_csv_string(self):
+        policy = resolve_operator_mfa(school=_school(required_roles="HOD, Registrar"))
         self.assertEqual(set(policy.required_roles), {"HOD", "Registrar"})
 
-    def test_fail_soft_on_config_error(self):
-        with mock.patch(_CFG, side_effect=RuntimeError("boom")):
-            policy = resolve_operator_mfa(school=object())
+    def test_fail_soft_on_broken_settings(self):
+        # A non-dict settings attribute must not raise — no-op policy.
+        policy = resolve_operator_mfa(school=SimpleNamespace(settings="oops"))
         self.assertFalse(policy.require_all_staff)
         self.assertEqual(policy.required_roles, ())
 
     def test_operator_policy_flows_into_effective_roles(self):
         # End-to-end: an operator-required role reaches the effective set even when
         # the tenant configured nothing.
-        def fake_cfg(school, key, request=None, default=None):
-            if key == "mfa_operator_required_roles":
-                return ["HOD"]
-            return default
-
-        with mock.patch(_CFG, side_effect=fake_cfg):
-            policy = resolve_operator_mfa(school=object())
+        policy = resolve_operator_mfa(school=_school(required_roles=["HOD"]))
         roles = effective_required_roles([], operator_required=policy.required_roles)
         self.assertIn("HOD", roles)

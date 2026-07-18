@@ -78,47 +78,62 @@ def role_requires_mfa(role: str | None, tenant_required: list[str] | tuple[str, 
 #: BELOW nothing but the baseline floor. A tenant can only ADD to it.
 OperatorMfaPolicy = namedtuple("OperatorMfaPolicy", ("require_all_staff", "required_roles"))
 
+#: Where the operator's per-tenant MFA policy is stored on the tenant row. A
+#: dedicated key under ``School.settings`` that NO tenant-facing form writes, so a
+#: tenant can never weaken it (and, being a union/OR in the resolver, could only
+#: tighten anyway). Written by the operator screen
+#: (apps/schools/super_views_mfa_policy.py), read here.
+OPERATOR_MFA_SETTINGS_KEY = "operator_mfa"
+
 
 def _truthy(value: object) -> bool:
+    if value is True:
+        return True
     return str(value or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def _split_roles(value: object) -> list[str]:
+    if isinstance(value, (list, tuple)):
+        return [str(r).strip() for r in value if str(r).strip()]
+    if isinstance(value, str) and value.strip():
+        return [part for part in value.replace(",", " ").split() if part]
+    return []
+
+
+def read_operator_mfa_settings(school) -> dict:
+    """The raw operator-MFA blob stored on a school (``{}`` when unset)."""
+    blob = getattr(school, "settings", None)
+    if not isinstance(blob, dict):
+        return {}
+    stored = blob.get(OPERATOR_MFA_SETTINGS_KEY)
+    return dict(stored) if isinstance(stored, dict) else {}
 
 
 def resolve_operator_mfa(school=None, *, request=None) -> "OperatorMfaPolicy":
     """The operator's MFA policy for a tenant (Operator + tenant, with floor).
 
-    Operators set this per-tenant WITHOUT a migration through the operator config
-    cascade (``RuntimeDefaults`` / ``School.settings['runtime_defaults']``): the
-    keys ``mfa_operator_require_all_staff`` and ``mfa_operator_required_roles``.
-    No tenant-facing form writes those keys, so a tenant cannot weaken them — and
-    because the resolver unions everything (see ``effective_required_roles``), a
-    tenant can only tighten. A platform-wide switch
-    ``settings.MFA_OPERATOR_REQUIRE_ALL_STAFF`` applies to every tenant.
+    Read migration-free from ``School.settings['operator_mfa']`` — a dedicated key
+    no tenant-facing form writes, so a tenant cannot weaken it; and because the
+    resolver unions everything (see ``effective_required_roles``), a tenant can
+    only tighten. A platform-wide switch ``settings.MFA_OPERATOR_REQUIRE_ALL_STAFF``
+    applies to every tenant. (This reads the tenant row directly rather than
+    ``get_effective_config`` because that resolver only surfaces DECLARED settings
+    fields — an arbitrary operator key would be silently dropped.)
 
-    Fail-soft: any lookup error yields an empty (no-op) policy, so a broken config
-    read never removes MFA that the baseline floor already requires.
+    Fail-soft: any lookup error yields an empty (no-op) policy, so a broken read
+    never removes MFA that the baseline floor already requires.
     """
     require_all_staff = _truthy(getattr(settings, "MFA_OPERATOR_REQUIRE_ALL_STAFF", ""))
     required_roles: list[str] = []
     if school is not None:
         try:
-            from apps.platform_runtime.config_resolver import get_effective_config
-
-            per_tenant_all = get_effective_config(
-                school, "mfa_operator_require_all_staff", request=request, default=None
-            )
-            if per_tenant_all is not None:
-                require_all_staff = require_all_staff or _truthy(per_tenant_all)
-
-            roles = get_effective_config(
-                school, "mfa_operator_required_roles", request=request, default=None
-            )
-            if isinstance(roles, (list, tuple)):
-                required_roles = [str(r) for r in roles if r]
-            elif isinstance(roles, str) and roles.strip():
-                required_roles = [
-                    part for part in roles.replace(",", " ").split() if part
-                ]
-        except Exception:  # noqa: BLE001 — a broken config read must never drop MFA
+            stored = read_operator_mfa_settings(school)
+            if stored.get("require_all_staff") is not None:
+                require_all_staff = require_all_staff or _truthy(
+                    stored.get("require_all_staff")
+                )
+            required_roles = _split_roles(stored.get("required_roles"))
+        except Exception:  # noqa: BLE001 — a broken read must never drop MFA
             pass
     return OperatorMfaPolicy(bool(require_all_staff), tuple(required_roles))
 
@@ -237,6 +252,8 @@ __all__ = [
     "effective_required_roles",
     "role_requires_mfa",
     "OperatorMfaPolicy",
+    "OPERATOR_MFA_SETTINGS_KEY",
+    "read_operator_mfa_settings",
     "resolve_operator_mfa",
     "MFA_MODE_STRICT",
     "MFA_MODE_GRACE",

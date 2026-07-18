@@ -23,6 +23,7 @@ from . import super_views_config
 from . import super_views_config_crud
 from . import super_views_enterprise_security
 from . import super_views_security_surface
+from . import super_views_mfa_policy
 from . import super_views_operator_team
 from . import super_views_superadmin
 from .super_views_founder_dashboard import super_founder_dashboard
@@ -282,6 +283,11 @@ urlpatterns = [
         "api/schools/<uuid:school_id>/lens/",
         require_super_access_with_host(super_views.api_school_lens_snapshot),
         name="api_school_lens_snapshot",
+    ),
+    path(
+        "security/schools/<uuid:school_id>/mfa-policy/",
+        require_super_access_with_host(super_views_mfa_policy.tenant_mfa_policy),
+        name="tenant_mfa_policy",
     ),
     path(
         "api/schools/<uuid:school_id>/requeue-provision/",
