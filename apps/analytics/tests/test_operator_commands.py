@@ -157,13 +157,22 @@ class CeleryTaskWrappersTests(TestCase):
             "compute_nightly_risk_task",
             "compute_nightly_grade_predictions_task",
             "build_student_embeddings_task",
-            "send_risk_digest_task",
             "check_at_risk_drift_watchdog",
         ):
             self.assertTrue(
                 hasattr(celery_tasks, attr),
                 f"celery_tasks.{attr} missing",
             )
+        # send_risk_digest_task now lives in its own module so autodiscovery
+        # (which re-exports the four safe wrappers from celery_tasks via tasks.py)
+        # cannot wake the outbound-email/LLM risk-digest task as a side effect.
+        # See apps/analytics/celery_tasks_risk_digest.py + verify_beat_task_registry
+        # KNOWN_DEAD_ENTRIES.
+        from apps.analytics import celery_tasks_risk_digest
+        self.assertTrue(
+            hasattr(celery_tasks_risk_digest, "send_risk_digest_task"),
+            "celery_tasks_risk_digest.send_risk_digest_task missing",
+        )
 
     def test_safe_call_swallows_exception(self):
         from apps.analytics.celery_tasks import _safe_call

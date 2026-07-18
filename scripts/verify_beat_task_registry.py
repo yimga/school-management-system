@@ -63,7 +63,30 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 # so setting the env var did nothing), boto3 is uncommented in
 # requirements_optional.txt, and render.yaml documents the durable-store options.
 # Removed from the baseline so the list can only SHRINK.
+#
+# RESOLVED 2026-07-17: the four analytics nightly COMPUTE beat entries
+# (`analytics-compute-nightly-risk`, `analytics-compute-nightly-grade-predictions`,
+# `analytics-build-student-embeddings`, `analytics-at-risk-drift-watchdog`) were
+# woken SURGICALLY by re-exporting ONLY those four wrappers from
+# apps/analytics/tasks.py (their @shared_tasks live in
+# apps/analytics/celery_tasks.py; verified via the live registry that no other
+# task woke -- see apps/analytics/tests/test_nightly_batch_task_registration.py).
+# They read data + write analytics rows via update_or_create (idempotent, no
+# outbound side effects; the LLM "explain" path is per-tenant entitlement-gated,
+# embeddings default to a LOCAL Ollama provider). The FIFTH analytics beat entry,
+# `analytics-send-risk-digest-daily`, is DEFERRED below -- its @shared_task lives
+# in apps/analytics/celery_tasks_risk_digest.py, imported nowhere.
 KNOWN_DEAD_ENTRIES: dict[str, str] = {
+    "analytics-send-risk-digest-daily":
+        "Deferred: analytics.send_risk_digest_all fans out over EVERY active "
+        "school and (a) runs an LLM narration invoke (ai_narrate_risk_digest -> "
+        "services.ai_helpers.invoke_with_request) per school BEFORE checking "
+        "whether that school configured any digest recipient -> unbounded LLM "
+        "spend even for non-opted-in schools, and (b) sends outbound EMAIL + "
+        "Slack to RiskDigestRecipient rows. Its @shared_task lives in "
+        "apps/analytics/celery_tasks_risk_digest.py (imported nowhere). Wake it "
+        "only after moving the recipient check before narration, then re-export "
+        "it from apps/analytics/tasks.py and drop this entry.",
     "integrations-refresh-oauth-tokens":
         "OAuth tokens are never refreshed -> tenant integrations silently expire. "
         "Waking it starts outbound calls to third-party identity providers.",

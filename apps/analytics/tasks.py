@@ -27,6 +27,44 @@ from apps.schools.celery_tasks import _run_with_tenant_context
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Surgical wake of the analytics nightly BATCH tasks (silent-no-op fix).
+#
+# config/celery.py calls a BARE app.autodiscover_tasks(), which imports ONLY
+# each installed app's tasks.py. The four nightly-batch @shared_tasks below live
+# in apps/analytics/celery_tasks.py (a module NOT named tasks.py), so without
+# this re-export their decorators never ran, they were never registered, and
+# their beat entries in config/settings.py — analytics-compute-nightly-risk,
+# analytics-compute-nightly-grade-predictions, analytics-build-student-embeddings
+# and analytics-at-risk-drift-watchdog — named UNREGISTERED tasks: silent no-ops
+# beat looked up, found nothing, and never fired. Importing them here runs the
+# decorators so the beat entries resolve. Same fix pattern as
+# apps/lifecycle/tasks.py (DR snapshot).
+#
+# SURGICAL: we import ONLY the four read/idempotent-write COMPUTE wrappers. We
+# deliberately do NOT import apps/analytics/celery_tasks_risk_digest.py, so
+# analytics.send_risk_digest_all stays UNREGISTERED — it sends outbound
+# email/Slack + per-school LLM narration and is DEFERRED in
+# scripts/verify_beat_task_registry.py::KNOWN_DEAD_ENTRIES until its recipient
+# check is moved before narration. Proven against the LIVE registry (wakes these
+# four and nothing else) in
+# apps/analytics/tests/test_nightly_batch_task_registration.py.
+from apps.analytics.celery_tasks import (  # noqa: F401
+    build_student_embeddings_task,
+    check_at_risk_drift_watchdog,
+    compute_nightly_grade_predictions_task,
+    compute_nightly_risk_task,
+)
+
+# Reference them so the re-export is not flagged unused; the import (which runs
+# the @shared_task decorators) is the load-bearing effect.
+_WOKEN_ANALYTICS_BATCH_TASKS = (
+    compute_nightly_risk_task,
+    compute_nightly_grade_predictions_task,
+    build_student_embeddings_task,
+    check_at_risk_drift_watchdog,
+)
+
 # §2.4: Typed tuples for deadline reminder and task run (no broad except).
 _ANALYTICS_DEADLINE_EMAIL_ERRORS = (
     OSError,

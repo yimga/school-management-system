@@ -7,6 +7,14 @@ names that survive command renames.
 Tasks are registered under the `analytics.*` namespace and never raise
 to the worker — failures are logged and the next scheduled run starts
 clean.
+
+NOTE: the risk-digest fan-out wrapper (`analytics.send_risk_digest_all`) does
+NOT live here. It sends outbound email/Slack and runs a per-school LLM
+narration, so it is deliberately isolated in `celery_tasks_risk_digest.py`
+(imported nowhere) and DEFERRED in
+`scripts/verify_beat_task_registry.py::KNOWN_DEAD_ENTRIES`. Keeping it out of
+this module means re-exporting these four wrappers from `tasks.py` cannot wake
+it as a side effect.
 """
 
 from __future__ import annotations
@@ -48,10 +56,9 @@ def build_student_embeddings_task() -> str:
     return _safe_call("build_student_embeddings")
 
 
-@shared_task(name="analytics.send_risk_digest_all")
-def send_risk_digest_task() -> str:
-    """Fan-out the digest across every active school."""
-    return _safe_call("send_risk_digest")
+# NOTE: analytics.send_risk_digest_all is intentionally defined in
+# celery_tasks_risk_digest.py (imported nowhere / deferred), NOT here — see the
+# module docstring. It sends outbound email/Slack + per-school LLM narration.
 
 
 @shared_task(name="analytics.check_at_risk_drift_watchdog")
