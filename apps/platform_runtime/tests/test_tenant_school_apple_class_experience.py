@@ -23,8 +23,8 @@ class TenantSchoolAppleClassExperienceTests(SimpleTestCase):
             "apple_class_quick_profile_drawer.html",
             "rmc_operational_center_frame.html",
             "without exposing platform-only actions",
-            "world_class_summary_strip.html",
-            "School readiness",
+            "tenant_option_a_strip.html",
+            "hide_nav_detail",
         ):
             with self.subTest(token=token):
                 self.assertIn(token, bundle)

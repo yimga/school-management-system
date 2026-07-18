@@ -366,6 +366,69 @@ MONEY_CENTER_NAV_GROUPS = _groups(
     },
 )
 
+PAYMENT_READINESS_NAV_GROUPS = _groups(
+    {
+        "key": "status",
+        "label": "Status",
+        "title": "Corridor honesty",
+        "body": "Ready, fallback-only, or needs setup — never fake live charges.",
+    },
+    {
+        "key": "gateway",
+        "label": "Gateway",
+        "title": "Rail health",
+        "body": "Metadata-only checks for CARD/BANK until PSP onboarding completes.",
+    },
+    {
+        "key": "next",
+        "label": "Next action",
+        "title": "One clear CTA",
+        "body": "Setup credentials or open Money Center without leaving tenant scope.",
+    },
+)
+
+THEME_EXPERIENCE_NAV_GROUPS = _groups(
+    {
+        "key": "palette",
+        "label": "Palette",
+        "title": "Brand colors live",
+        "body": "Header, sidebar, hero, buttons, and status must preview before publish.",
+    },
+    {
+        "key": "roles",
+        "label": "Roles",
+        "title": "Every portal surface",
+        "body": "Admin, teacher, parent, and student dashboards wear the same tokens.",
+    },
+    {
+        "key": "publish",
+        "label": "Publish",
+        "title": "Guarded apply",
+        "body": "Preview confirmation before high-impact theme publish.",
+    },
+)
+
+ONBOARDING_NAV_GROUPS = _groups(
+    {
+        "key": "progress",
+        "label": "Progress",
+        "title": "Activation checklist",
+        "body": "Evidence-backed steps from this school’s real records.",
+    },
+    {
+        "key": "import",
+        "label": "Import",
+        "title": "Roster and SIS",
+        "body": "Migration quality and handoff stay visible before launch.",
+    },
+    {
+        "key": "next",
+        "label": "Next",
+        "title": "One primary action",
+        "body": "Resume the next pending step without operator surfaces.",
+    },
+)
+
 MARKETPLACE_GOVERNANCE_NAV_GROUPS = _groups(
     {
         "key": "listings",
@@ -641,6 +704,43 @@ def money_center_frame_context() -> dict[str, Any]:
         ),
         "status_badge_text": "Payment readiness visible",
         "operational_nav_groups": MONEY_CENTER_NAV_GROUPS,
+    }
+
+
+def payment_readiness_frame_context() -> dict[str, Any]:
+    return {
+        "center_eyebrow": "Finance",
+        "center_title": "Payment Readiness Center",
+        "center_purpose": (
+            "Honest corridor status: metadata-only health checks — no live charges; "
+            "CARD/BANK stay external until PSP onboarding."
+        ),
+        "status_badge_text": "Payment posture",
+        "operational_nav_groups": PAYMENT_READINESS_NAV_GROUPS,
+    }
+
+
+def theme_experience_frame_context() -> dict[str, Any]:
+    return {
+        "center_eyebrow": "School brand",
+        "center_title": "Theme & Experience",
+        "center_purpose": (
+            "Pick palette, preview every role surface, then publish tenant brand tokens safely."
+        ),
+        "status_badge_text": "Tenant scoped",
+        "operational_nav_groups": THEME_EXPERIENCE_NAV_GROUPS,
+    }
+
+
+def onboarding_activation_frame_context() -> dict[str, Any]:
+    return {
+        "center_eyebrow": "School activation",
+        "center_title": "School activation checklist",
+        "center_purpose": (
+            "Signup-to-daily-ops path: blueprint, import, brand, readiness — one next action."
+        ),
+        "status_badge_text": "Tenant scoped",
+        "operational_nav_groups": ONBOARDING_NAV_GROUPS,
     }
 
 

@@ -1,0 +1,64 @@
+{% load i18n %}
+{% comment %}
+  Shared Option A command strip for tenant operational pages.
+  Replaces stacked nav-detail / prose walls with compact metrics (+ optional stepper).
+
+  Include params (all optional):
+    option_a_title, option_a_lede, option_a_aria
+    option_a_flow_title, option_a_flow_hint
+    option_a_show_stepper — truthy to nest world_class_guided_stepper
+    option_a_empty_label / option_a_empty_title / option_a_empty_body — empty metrics
+    operational_nav_groups — metric source (from frame context)
+{% endcomment %}
+<section
+  class="rmc-option-a rmc-bp-option-a"
+  data-rmc-option-a="1"
+  data-rmc-blueprint-option-a="1"
+  aria-label="{{ option_a_aria|default:_('Tenant command surface') }}"
+>
+  <div class="rmc-option-a__head rmc-bp-option-a__head">
+    <div>
+      <span class="rmc-option-a__eyebrow rmc-bp-option-a__eyebrow">{% trans "Approved interaction model" %}</span>
+      <h2 class="rmc-option-a__title rmc-bp-option-a__title">
+        {{ option_a_title|default:_("Full-width school workspace") }}
+      </h2>
+      <p class="rmc-option-a__lede rmc-bp-option-a__lede">
+        {{ option_a_lede|default:_("Open with the work, not a wall of text. Preview impact, clear blockers, then take the next tenant-safe action.") }}
+      </p>
+    </div>
+    <span class="rmc-option-a__tag rmc-bp-option-a__tag rmc-option-a__tag--good rmc-bp-option-a__tag--good">{% trans "Tenant only" %}</span>
+  </div>
+
+  <div class="rmc-option-a__metrics rmc-bp-option-a__metrics" role="list">
+    {% for group in operational_nav_groups %}
+    <article class="rmc-option-a__metric rmc-bp-option-a__metric" role="listitem" data-rmc-option-a-metric="{{ group.key }}">
+      <span class="rmc-option-a__metric-label rmc-bp-option-a__metric-label">{{ group.label }}</span>
+      <strong class="rmc-option-a__metric-title rmc-bp-option-a__metric-title">{{ group.title }}</strong>
+      <p class="rmc-option-a__metric-body rmc-bp-option-a__metric-body">{{ group.body }}</p>
+    </article>
+    {% empty %}
+    <article class="rmc-option-a__metric rmc-bp-option-a__metric" role="listitem">
+      <span class="rmc-option-a__metric-label rmc-bp-option-a__metric-label">{{ option_a_empty_label|default:_("Next") }}</span>
+      <strong class="rmc-option-a__metric-title rmc-bp-option-a__metric-title">{{ option_a_empty_title|default:_("School work visible") }}</strong>
+      <p class="rmc-option-a__metric-body rmc-bp-option-a__metric-body">{{ option_a_empty_body|default:_("Tenant-scoped actions only; blockers stay honest before apply.") }}</p>
+    </article>
+    {% endfor %}
+  </div>
+
+  {% if option_a_show_stepper %}
+  <div class="rmc-option-a__flow rmc-bp-option-a__flow">
+    <div class="rmc-option-a__flow-label rmc-bp-option-a__flow-label">
+      <strong>{{ option_a_flow_title|default:_("Governed path") }}</strong>
+      <span>{{ option_a_flow_hint|default:_("One path — without stacking the same steps twice.") }}</span>
+    </div>
+    {% include "components/world_class_guided_stepper.html" %}
+  </div>
+  {% elif option_a_flow_title %}
+  <div class="rmc-option-a__flow rmc-bp-option-a__flow">
+    <div class="rmc-option-a__flow-label rmc-bp-option-a__flow-label">
+      <strong>{{ option_a_flow_title }}</strong>
+      {% if option_a_flow_hint %}<span>{{ option_a_flow_hint }}</span>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</section>

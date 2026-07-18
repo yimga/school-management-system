@@ -10,14 +10,17 @@
   </div>
   <div class="rmc-django-mode-panel__body">
     <div class="rmc-django-preview-stage" data-rmc-django-preview-stage="1">
-      {% if has_absolute_url %}
-      <a class="rmc-django-preview-cta" href="{{ absolute_url }}" target="_blank" rel="noopener">
-        <span aria-hidden="true">↗</span> {% trans "Open live surface" %}
-      </a>
-      {% endif %}
-      <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="drawer">
-        <span aria-hidden="true">▣</span> {% trans "Open preview drawer" %}
-      </button>
+      {% include "admin/includes/admin_preview_card_stage.html" %}
+      <div class="rmc-django-preview-cta-row">
+        {% if has_absolute_url %}
+        <a class="rmc-django-preview-cta" href="{{ absolute_url }}" target="_blank" rel="noopener">
+          <span aria-hidden="true">↗</span> {% trans "Open live surface" %}
+        </a>
+        {% endif %}
+        <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="drawer">
+          <span aria-hidden="true">▣</span> {% trans "Open preview drawer" %}
+        </button>
+      </div>
       <p class="rmc-django-mode-panel__hint">
         {% if is_manager_host %}
           {% trans "Operator preview stays read-only. Prefer popout when the control rail is already dense." %}

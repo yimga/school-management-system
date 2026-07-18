@@ -1,19 +1,9 @@
 {% load i18n admin_urls admin_modify unfold %}
-{% comment %} Manager /admin/ change form: title + history / view-on-site (Unfold header tools are not mounted on manager host). {% endcomment %}
+{% comment %}
+  G9: operator toolbar only — title lives in workspace-head / command band (no duplicate H1).
+{% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-admin-changeform-pagehead mb-3 flex flex-wrap items-center justify-between gap-3" data-rmc-admin-changeform-head="1">
-  <div class="min-w-0">
-    <h1 class="text-lg font-semibold text-base-900 dark:text-base-100 mb-0 tracking-tight">
-      {% if add %}
-        {% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}
-      {% else %}
-        {% blocktrans with name=opts.verbose_name %}Change {{ name }}{% endblocktrans %}
-      {% endif %}
-    </h1>
-    {% if original and not add %}
-      <p class="text-xs text-base-500 dark:text-base-400 mb-0 mt-1 truncate">{{ original }}</p>
-    {% endif %}
-  </div>
+<div class="rmc-admin-changeform-pagehead rmc-admin-changeform-pagehead--toolbar-only mb-3 flex flex-wrap items-center justify-end gap-3" data-rmc-admin-changeform-head="1" data-rmc-admin-toolbar-only="1">
   <div class="object-tools flex flex-wrap items-center gap-2 shrink-0">
     {% if RMC_OPERATOR_PAIRED_LINKS %}
       {% for link in RMC_OPERATOR_PAIRED_LINKS %}

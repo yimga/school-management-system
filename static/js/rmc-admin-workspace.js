@@ -37,12 +37,23 @@
       "<strong>Live preview</strong>" +
       '<button type="button" class="rmc-mv-preview-drawer__close" data-rmc-django-preview-close aria-label="Close preview">&times;</button>' +
       "</div>" +
-      '<div class="rmc-django-preview-drawer__body">' +
-      "<p>Preview stays in a drawer so the form grid is never squeezed.</p>" +
-      '<p class="rmc-django-mode-panel__hint">Model-specific previews (theme, report card, registry) mount here when available.</p>' +
-      "</div>";
+      '<div class="rmc-django-preview-drawer__body" data-rmc-django-preview-drawer-body="1"></div>';
     document.body.appendChild(drawer);
     return drawer;
+  }
+
+  function mountPreviewStageInDrawer(drawer) {
+    var body = drawer.querySelector("[data-rmc-django-preview-drawer-body]");
+    if (!body) return;
+    var stage = document.querySelector("[data-rmc-django-preview-card]");
+    body.innerHTML = "";
+    if (stage) {
+      body.appendChild(stage.cloneNode(true));
+    } else {
+      body.innerHTML =
+        "<p>Preview stays in a drawer so the form grid is never squeezed.</p>" +
+        '<p class="rmc-django-mode-panel__hint">Model-specific previews (theme, report card, registry) mount here when available.</p>';
+    }
   }
 
   function openPreviewDrawer() {
@@ -54,6 +65,7 @@
       return;
     }
     var drawer = ensurePreviewDrawer();
+    mountPreviewStageInDrawer(drawer);
     drawer.removeAttribute("hidden");
   }
 

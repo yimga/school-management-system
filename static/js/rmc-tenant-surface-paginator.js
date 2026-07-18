@@ -209,6 +209,18 @@
   }
 
   function markOversizePanels(root) {
+    // Django admin: canvas/#cp-main-content owns vertical scroll — never stamp
+    // nested bounded zones that trap the wheel and hide rows below a short pane.
+    var body = document.body;
+    if (
+      body &&
+      (body.classList.contains("admin-premium-shell") ||
+        body.classList.contains("admin-manager-shell") ||
+        body.getAttribute("data-rmc-shell-root") === "django-admin" ||
+        document.querySelector('[data-rmc-shell-root="django-admin"]'))
+    ) {
+      return;
+    }
     Array.prototype.forEach.call(root.querySelectorAll(OVERSIZE_PANEL_SELECTOR), function (panel) {
       if (!isVisible(panel) || hasExcludedPreview(panel)) {
         return;

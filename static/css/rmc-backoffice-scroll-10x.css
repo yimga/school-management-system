@@ -1,7 +1,7 @@
 /**
  * Backoffice scroll affordance contract.
- * Loaded late on manager /super/ and /admin/ so the actual scroll root is
- * visible, stable, and protected from older shell overlays.
+ * Loaded late on manager /super/ and /admin/ (operator + tenant) so the actual
+ * scroll root is visible, stable, and protected from older shell overlays.
  */
 
 :root {
@@ -12,7 +12,8 @@
 }
 
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell,
-body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell {
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell,
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell {
   min-height: 0 !important;
   max-height: var(--rmc-iso-viewport-h, 100dvh) !important;
 }
@@ -32,13 +33,15 @@ body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas-bod
   -webkit-overflow-scrolling: touch;
 }
 
-/* /admin/: the canvas owns chrome; #cp-main-content is the page scroller. */
-body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page .rmc-app-shell__canvas {
+/* /admin/ (manager + tenant): canvas owns chrome; #cp-main-content is the page scroller. */
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page .rmc-app-shell__canvas,
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page .rmc-app-shell__canvas {
   min-height: 0 !important;
   overflow: hidden !important;
 }
 
-body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page #cp-main-content.cp-admin-canvas-main {
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page #cp-main-content.cp-admin-canvas-main,
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page #cp-main-content.cp-admin-canvas-main {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   height: 100% !important;
@@ -51,6 +54,7 @@ body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page #cp
 }
 
 body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page .cp-admin-page-body,
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page .rmc-tenant-admin-page-body,
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] .cp-page-body {
   width: 100%;
   max-width: none;
@@ -58,6 +62,7 @@ body.control-plane-shell[data-rmc-cp-scroll="canvas"] .cp-page-body {
 }
 
 body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page #content,
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page #content,
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] #cp-main-content {
   min-width: 0;
   max-width: none;
@@ -65,25 +70,29 @@ body.control-plane-shell[data-rmc-cp-scroll="canvas"] #cp-main-content {
 
 /* Sidebar and page scrollers use the same visible affordance. */
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] :is(.rmc-app-shell__canvas-body, .rmc-app-shell__sidebar, .cp-sidebar-inner),
-body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps) {
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps),
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .admin-sidebar-apps, #nav-sidebar-apps) {
   scrollbar-width: thin;
   scrollbar-color: var(--rmc-backoffice-scrollbar-thumb) var(--rmc-backoffice-scrollbar-track);
 }
 
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] :is(.rmc-app-shell__canvas-body, .rmc-app-shell__sidebar, .cp-sidebar-inner)::-webkit-scrollbar,
-body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar {
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar,
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar {
   width: var(--rmc-backoffice-scrollbar-size);
   height: var(--rmc-backoffice-scrollbar-size);
 }
 
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] :is(.rmc-app-shell__canvas-body, .rmc-app-shell__sidebar, .cp-sidebar-inner)::-webkit-scrollbar-track,
-body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar-track {
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar-track,
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar-track {
   background: var(--rmc-backoffice-scrollbar-track);
   border-radius: var(--radius-pill, 999px);
 }
 
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] :is(.rmc-app-shell__canvas-body, .rmc-app-shell__sidebar, .cp-sidebar-inner)::-webkit-scrollbar-thumb,
-body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar-thumb {
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar-thumb,
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar-thumb {
   min-height: 44px;
   background: var(--rmc-backoffice-scrollbar-thumb);
   border: 3px solid transparent;
@@ -92,7 +101,8 @@ body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-ad
 }
 
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] :is(.rmc-app-shell__canvas-body, .rmc-app-shell__sidebar, .cp-sidebar-inner)::-webkit-scrollbar-thumb:hover,
-body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar-thumb:hover {
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .cp-sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar-thumb:hover,
+body.admin-premium-shell[data-rmc-cp-scroll="canvas"] :is(#cp-main-content.cp-admin-canvas-main, .rmc-app-shell__sidebar, .admin-sidebar-apps, #nav-sidebar-apps)::-webkit-scrollbar-thumb:hover {
   background: var(--rmc-backoffice-scrollbar-thumb-hover);
   background-clip: padding-box;
 }

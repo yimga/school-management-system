@@ -45,6 +45,9 @@
         {% include "admin/includes/admin_changelist_header.html" %}
     {% endif %}
     <div class="{% if not is_popup %}rmc-admin-workspace rmc-django-workspace rmc-django-canvas{% endif %}"{% if not is_popup %} data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-changelist" data-rmc-django-workspace="change-list"{% endif %}>
+    {% if not is_popup %}
+        {% include "admin/includes/admin_workspace_metrics_strip.html" with surface="change-list" %}
+    {% endif %}
     <div id="content-main" class="cp-changelist-live rmc-django-table-panel" data-rmc-admin-changelist-live="1" data-rmc-admin-table-contract="native-table-scroll" data-rmc-django-table-panel="1" x-data="{ filterOpen: false }">
         {% include "unfold/helpers/popup_header.html" %}
 
@@ -114,6 +117,14 @@
                         {% endblock %}
                     </form>
 
+                    {% if not is_popup %}
+                    <div class="rmc-django-table-pagination" data-rmc-django-table-pagination="1">
+                        {% block pagination %}
+                            {% include "unfold/helpers/pagination.html" %}
+                        {% endblock %}
+                    </div>
+                    {% endif %}
+
                     {% if cl.model_admin.list_after_template and not is_popup %}
                         {% include cl.model_admin.list_after_template %}
                     {% endif %}
@@ -127,13 +138,12 @@
     </div>
     {% if not is_popup %}
         {% include "admin/includes/admin_changelist_rail.html" %}
+        {% include "admin/includes/admin_workspace_tools.html" with surface="change-list" %}
     {% endif %}
     </div>
 {% endblock %}
 
 {% block footer %}
-    {% block pagination %}
-        {% include "unfold/helpers/pagination.html" %}
-    {% endblock %}
+    {% comment %} G6: pagination lives inside the table panel, not the page footer. {% endcomment %}
     {{ block.super }}
 {% endblock %}

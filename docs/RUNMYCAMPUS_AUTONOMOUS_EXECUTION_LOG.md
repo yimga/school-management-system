@@ -1,5 +1,61 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Django admin parity-close G3–G9 (batch 1761 - 2026-07-17)
+
+**A. Scope:** Close remaining intelligent-revamp gaps G3/G4/G6/G7/G8/G9 after field-grid/save (1760) and scroll parity (1759).
+
+**B. Shipped:** Preview-card stage partial (mode + rail + drawer); shared index context rail on operator+tenant; workspace-head + metrics strip; table-panel pagination; 48px tools column; operator toolbar-only pageheads; cache `20260717-parity-close`; SW `sms-v4.05.134`.
+
+**C. Proof:** `audit_django_admin_canvas_contract.py` + platformwide + scroll + SW monotonic.
+
+**D. Honest:** G10 live Playwright `--strict` still needs healthy Django + login; not claimed done.
+
+**E. Files:** change_form/list, index_superadmin/tenant, new admin includes, canvas CSS, workspace JS, audits, SOT/log/gap report.
+
+**F. Next:** Run `verify_django_admin_canvas_live.py --strict` with local Django up, or continue tenant abrupt-end / exception program.
+
+## Slice — Django admin field-grid + form-panel save (batch 1760 - 2026-07-17)
+
+**A. Scope:** Close gap-analysis G1 (smart field grid) + G2 (save nested in form panel) vs intelligent-revamp preview.
+
+**B. Shipped:** `.form-rows` 12-col grid with half/wide `.form-row`; actions-slot moved inside `#content-main` with `data-rmc-django-actions-in-panel`; form-body flex column (no auto-fit fieldset fight); cache `20260717-field-grid-save`; SW `sms-v4.05.133`.
+
+**C. Proof:** `audit_django_admin_canvas_contract.py` + platformwide + scroll + SW version.
+
+**D. Honest:** G3 preview-card chrome and G8 operator index rail remain; live screenshots need running Django.
+
+**E. Files:** `change_form.html`, canvas contract CSS, `base_site.html` cache bust, audits, SOT/log.
+
+**F. Next:** Optional G3 preview stage or hard-refresh tenant/operator change-form to verify two-column fields + save under fields.
+
+## Slice — Django admin tenant scroll parity (batch 1759 - 2026-07-17)
+
+**A. Scope:** Fix tenant Django admin blank/unscrollable canvas (content hidden until click) to match intelligent-revamp scroll model.
+
+**B. Shipped:** Drop tenant `rmc-app-shell--fluid`; set `data-rmc-cp-scroll=canvas` + `cp-admin-canvas-main` for tenant; extend `rmc-backoffice-scroll-10x.css`; terminal overflow:visible; admin immediate reveal; skip bounded paginator zones; cache `20260717-tenant-scroll-parity`; SW `sms-v4.05.132`.
+
+**C. Proof:** `audit_django_admin_canvas_contract.py` + platformwide + scroll + SW version gates.
+
+**D. Honest:** Live hard-refresh on tenant `/admin/` still required after deploy; Playwright live screenshots need healthy DB.
+
+**E. Files:** `admin/base.html`, `admin/base_site.html`, canvas contract CSS, backoffice scroll CSS, `rmc-reveal.js`, surface paginator, audits, SOT/log.
+
+**F. Next:** Hard-refresh tenant admin index + changelist + change-form; confirm `#cp-main-content` scrolls and catalog is visible without click.
+
+## Slice — Tenant Option A rollout (batch 1758 - 2026-07-17)
+
+**A. Scope:** Push Option A command strip end-to-end across tenant operational siblings named in the design preview (packs, config, import, money, payment readiness, app catalog, onboarding, theme).
+
+**B. Shipped:** Shared `tenant_option_a_strip.html`; hide_nav_detail + strip on all listed surfaces; payment/theme/onboarding frame contexts; audit tokens; SW `sms-v4.05.131`.
+
+**C. Proof:** `audit_approved_html_implementation.py` PASS; governed UX + apple-class school experience SimpleTests; template compile.
+
+**D. Honest:** Live tenant hard-refresh still needed post-deploy.
+
+**E. Files:** option-a strip/CSS, pack/config/import/money/payment/catalog/onboarding/theme templates, operational_center_nav, payment readiness + theme + onboarding views, SOT/log.
+
+**F. Next:** Hard-refresh tenant setup/money/theme routes after deploy.
+
 ## Slice — Tenant blueprint Option A chrome (batch 1757 - 2026-07-17)
 
 **A. Scope:** Replace the stacked prose wall between School Blueprint Setup title and the blueprint workbench with Option A compact command chrome (design preview).

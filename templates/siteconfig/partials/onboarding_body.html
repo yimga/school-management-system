@@ -1,17 +1,10 @@
 {% load i18n static %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-3 cp-evidence-page rmc-command-workspace" data-rmc-command-workspace="school-activation-onboarding" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="school-activation-onboarding" data-cp-evidence-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-page="1" data-apple-class-migration-ux="1">
+<div class="container-fluid py-3 cp-evidence-page rmc-command-workspace" data-rmc-command-workspace="school-activation-onboarding" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="school-activation-onboarding" data-cp-evidence-surface="school-activation-onboarding" data-rmc-onboarding="school-activation" data-rmc-onboarding-page="1" data-apple-class-migration-ux="1" data-rmc-option-a-canvas="1">
   <h1 class="h3 mb-2">{% trans "School activation checklist" %}</h1>
   <p class="text-muted small mb-3">{% trans "Items below come from this tenant’s data. Links open real setup or evidence pages—no automated completion without underlying records." %}</p>
   <p class="small mb-3"><a href="{% url 'school_studio' %}" class="fw-medium" data-rmc-tenant-studio-launch-path="1">{% trans "Open School Studio launch hub" %}</a></p>
-  <div class="row g-3 mb-3" aria-label="{% trans 'Import readiness' %}">
-    <div class="col-lg-6">
-      {% include "components/apple_class_data_quality_meter.html" with meter_id="tenant-import-quality" title=_("Import Data Quality") value=onboarding.percent status=onboarding.import_quality_token status_label=onboarding.import_quality_label body=_("Use setup steps, migration wizard, and run history to preview, validate, quarantine issues, apply, audit, and preserve rollback posture.") %}
-    </div>
-    <div class="col-lg-6">
-      {% include "components/apple_class_visual_workflow_path.html" with path_id="tenant-import-flow" title=_("Import Flow") %}
-    </div>
-  </div>
+  {% include "components/tenant_option_a_strip.html" with option_a_title=_("Full-width activation workspace") option_a_lede=_("Open with the work, not a wall of text. Progress, import quality, and the next pending step stay compact.") option_a_aria=_("Activation command surface") option_a_flow_title=_("Lifecycle path") option_a_flow_hint=_("Blueprint → import → brand → readiness → daily ops — resume the next pending step.") %}
   {% if onboarding.persisted_last_step %}
   <p class="small text-muted mb-2" data-rmc-onboarding-last-step="1">{% blocktrans with key=onboarding.persisted_last_step %}Last recorded step: {{ key }}{% endblocktrans %}</p>
   {% endif %}

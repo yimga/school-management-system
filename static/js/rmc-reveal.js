@@ -36,7 +36,7 @@
   var SELECTOR = ".rmc-reveal:not(.is-revealed)";
   var STAGGER_PARENT_SELECTOR = ".rmc-reveal-stagger";
   var SCROLL_ROOT_SELECTORS =
-    "#cp-main-content, #main-content, main[role='main'], main";
+    "#cp-main-content, #main-content, .rmc-app-shell__canvas, [data-rmc-shell-canvas], main[role='main'], main";
 
   function prefersReducedMotion() {
     try {
@@ -170,6 +170,19 @@
   function init() {
     if (prefersReducedMotion()) {
       // Respect the user. CSS already strips the transition; just flip the class.
+      document.querySelectorAll(SELECTOR).forEach(revealNow);
+      return;
+    }
+    // Django admin: never leave chrome/content at opacity:0 waiting for IO.
+    // Tenant used to miss the scroll root (#cp-main-content vs canvas), which
+    // matched "blank until click then content appears".
+    var body = document.body;
+    if (
+      body &&
+      (body.classList.contains("admin-premium-shell") ||
+        body.classList.contains("admin-manager-shell") ||
+        body.getAttribute("data-rmc-shell-root") === "django-admin")
+    ) {
       document.querySelectorAll(SELECTOR).forEach(revealNow);
       return;
     }

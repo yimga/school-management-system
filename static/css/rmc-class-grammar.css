@@ -6630,3 +6630,29 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-mv-preview-open {
   cursor: pointer;
 }
+
+/* ── Django admin parity-close class hooks (batch 1761).
+   Real layout lives in rmc-admin-django-canvas-contract.css. */
+.rmc-django-workspace-head,
+.rmc-django-workspace-head__copy,
+.rmc-django-workspace-head__actions,
+.rmc-django-metrics,
+.rmc-django-metric,
+.rmc-django-head-action,
+.rmc-django-head-action--primary,
+.rmc-django-preview-card,
+.rmc-django-preview-nav,
+.rmc-django-preview-screen,
+.rmc-django-preview-line,
+.rmc-django-preview-cta-row,
+.rmc-django-tools,
+.rmc-django-tool,
+.rmc-django-table-pagination,
+.rmc-admin-changeform-pagehead--toolbar-only,
+.rmc-admin-changelist-pagehead--toolbar-only {
+  min-width: 0;
+}
+.rmc-django-tool.is-primary {
+  cursor: pointer;
+}
+

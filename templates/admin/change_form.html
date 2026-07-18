@@ -42,6 +42,7 @@
     {% comment %} v4.02.12: manager change forms become a two-pane workspace (field grid + sticky context rail). {% endcomment %}
     <div class="{% if not is_popup %}rmc-admin-workspace rmc-django-workspace rmc-django-canvas{% endif %}"{% if not is_popup %} data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-form" data-rmc-django-workspace="change-form" data-rmc-django-view-mode="form"{% endif %}>
     {% if not is_popup %}
+        {% include "admin/includes/admin_workspace_metrics_strip.html" with surface="change-form" %}
         <section class="rmc-django-command-band" data-rmc-django-command-band="change-form" aria-label="{% trans 'Admin form command surface' %}">
             <div class="rmc-django-command-band__copy">
                 <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% trans "Tenant backend" %}{% endif %}</span>
@@ -148,14 +149,18 @@
         {% endif %}
 
         {% block form_after %}{% endblock %}
+
+        {% if not is_popup %}
+        {% comment %} Preview contract: save row nests inside the form panel (not under the rail). {% endcomment %}
+        <div class="rmc-django-actions-slot" data-rmc-django-actions-slot="1" data-rmc-django-actions-in-panel="1">
+            {% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+        </div>
+        {% endif %}
     </div>
     {% if not is_popup %}
         {% include "admin/includes/admin_change_form_mode_panels.html" %}
         {% include "admin/includes/admin_change_form_rail.html" %}
-        {% comment %} Preview contract: static save row lives INSIDE the workbench, not in page footer. {% endcomment %}
-        <div class="rmc-django-actions-slot" data-rmc-django-actions-slot="1">
-            {% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
-        </div>
+        {% include "admin/includes/admin_workspace_tools.html" with surface="change-form" %}
     {% endif %}
     </div>
 {% endblock %}

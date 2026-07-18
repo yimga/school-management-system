@@ -6,6 +6,11 @@
 
 {% block body_extra_class %}theme-experience-full-width{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-blueprint-option-a.css' %}?v=20260717-option-a-rollout">
+{% endblock %}
+
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>

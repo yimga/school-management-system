@@ -188,37 +188,7 @@
       </section>
     </div>
 
-    <aside class="rmc-admin-context-rail rmc-django-side-panel" data-rmc-rail="1" data-rmc-admin-context-scope="tenant" data-rmc-django-side-panel="1">
-      <div class="rmc-rail-card">
-        <div class="rmc-rail-h">{% trans "Tenant boundary" %}</div>
-        <div class="rmc-rail-b">
-          <div class="rmc-rail-scope">
-            <strong>{% firstof SITE.site_name _("Tenant backend") %}</strong>
-            <span>{% trans "School configuration stays tenant-scoped. Guided changes use Config center; raw rows stay here." %}</span>
-          </div>
-        </div>
-      </div>
-      <div class="rmc-rail-card">
-        <div class="rmc-rail-h">{% trans "On this page" %}</div>
-        <div class="rmc-rail-b">
-          <nav class="rmc-onthispage" aria-label="{% trans 'Index sections' %}">
-            <a href="#rmc-tenant-admin-sec-hero"><span class="rmc-onthispage__n">1</span> {% trans "Guided paths" %}</a>
-            <a href="#rmc-tenant-admin-sec-catalog"><span class="rmc-onthispage__n">2</span> {% trans "Model catalog" %}</a>
-          </nav>
-        </div>
-      </div>
-      <div class="rmc-rail-card">
-        <div class="rmc-rail-h">{% trans "Quick actions" %}</div>
-        <div class="rmc-rail-b">
-          <div class="rmc-rail-actions">
-            <a href="{% url 'siteconfig:console_domains_hub' %}"><span aria-hidden="true">⚙</span> {% trans "Config center" %}</a>
-            <a href="{% url 'accounts:backend_dashboard' %}"><span aria-hidden="true">⌘</span> {% trans "Backend Console" %}</a>
-            <a href="{% url 'siteconfig:feature_control_panel' %}"><span aria-hidden="true">◎</span> {% trans "Feature control" %}</a>
-            <a href="#rmc-tenant-admin-sec-catalog"><span aria-hidden="true">↑</span> {% trans "Back to catalog" %}</a>
-          </div>
-        </div>
-      </div>
-    </aside>
+    {% include "admin/includes/admin_index_context_rail.html" %}
   </div>
 </div>
 {% endblock %}

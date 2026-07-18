@@ -46,6 +46,8 @@
     </div>
   </section>
 
+  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="operator">
+    <div class="rmc-admin-index-main">
   <section class="cp-hero" id="rmc-admin-sec-hero" data-rmc-section-anchor>
     <div class="cp-hero__eyebrow">{% trans "Platform Backoffice" %}</div>
     <h1 class="cp-hero__title">{% trans "Operator catalog & raw records" %}</h1>
@@ -177,5 +179,8 @@
   </section>
 
   {% include "admin/partials/admin_v1_index_surface_previews.html" %}
+    </div>
+    {% include "admin/includes/admin_index_context_rail.html" %}
+  </div>
 </div>
 {% endblock %}

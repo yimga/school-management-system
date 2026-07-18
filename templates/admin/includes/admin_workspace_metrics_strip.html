@@ -1,0 +1,45 @@
+{% load i18n admin_urls %}
+{% comment %}
+  G4: workspace-head + 5-up metrics strip inside the Django admin workbench.
+  surface: "change-form" | "change-list"
+{% endcomment %}
+<header class="rmc-django-workspace-head" data-rmc-django-workspace-head="1">
+  <div class="rmc-django-workspace-head__copy">
+    {% if surface == "change-list" %}
+      <h1>{{ cl.opts.verbose_name_plural|capfirst }}</h1>
+      <p>{% trans "Full-width records surface. Tables stay native; filters and context stay in the rail." %}</p>
+    {% else %}
+      <h1>
+        {% if add %}
+          {% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}
+        {% else %}
+          {% blocktrans with name=opts.verbose_name %}Change {{ name }}{% endblocktrans %}
+        {% endif %}
+      </h1>
+      <p>{% trans "Full-canvas form workbench: command band, smart field grid, contextual rail, and one clear save row." %}</p>
+    {% endif %}
+  </div>
+  <div class="rmc-django-workspace-head__actions" data-rmc-django-head-actions="1">
+    {% if surface == "change-list" and has_add_permission %}
+      {% url cl.opts|admin_urlname:"add" as add_url %}
+      {% if add_url %}
+      <a class="rmc-django-head-action rmc-django-head-action--primary" href="{% add_preserved_filters add_url is_popup to_field %}">{% blocktrans with name=cl.opts.verbose_name %}Add {{ name }}{% endblocktrans %}</a>
+      {% endif %}
+    {% elif surface != "change-list" and change and original %}
+      {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+      {% if history_url %}
+      <a class="rmc-django-head-action" href="{{ history_url }}">{% trans "History" %}</a>
+      {% endif %}
+      {% if has_absolute_url %}
+      <a class="rmc-django-head-action rmc-django-head-action--primary" href="{{ absolute_url }}" target="_blank" rel="noopener">{% trans "View on site" %}</a>
+      {% endif %}
+    {% endif %}
+  </div>
+</header>
+<div class="rmc-django-metrics" data-rmc-django-metrics="1" role="group" aria-label="{% trans 'Canvas readiness' %}">
+  <div class="rmc-django-metric is-good"><span>{% trans "Canvas" %}</span><b>100%</b></div>
+  <div class="rmc-django-metric is-good"><span>{% trans "Form cap" %}</span><b>{% trans "Removed" %}</b></div>
+  <div class="rmc-django-metric is-good"><span>{% trans "Table" %}</span><b>{% trans "Native" %}</b></div>
+  <div class="rmc-django-metric is-warn"><span>{% trans "Preview" %}</span><b>{% trans "Stage" %}</b></div>
+  <div class="rmc-django-metric is-good"><span>{% trans "Scope" %}</span><b>{% if is_manager_host %}{% trans "Operator" %}{% else %}{% trans "Tenant" %}{% endif %}</b></div>
+</div>

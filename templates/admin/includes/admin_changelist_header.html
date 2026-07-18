@@ -1,17 +1,9 @@
 {% load i18n admin_urls %}
-{% comment %} Manager /admin/ changelist: title + add action (Unfold header userlinks are not mounted on manager host). {% endcomment %}
+{% comment %}
+  G9: operator changelist toolbar only — title lives in workspace-head / command band.
+{% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-admin-changelist-pagehead mb-3 flex flex-wrap items-center justify-between gap-3" data-rmc-admin-changelist-head="1">
-  <div class="min-w-0">
-    <h1 class="text-lg font-semibold text-base-900 dark:text-base-100 mb-0 tracking-tight">
-      {{ cl.opts.verbose_name_plural|capfirst }}
-    </h1>
-    {% if cl.result_count is not None %}
-      <p class="text-xs text-base-500 dark:text-base-400 mb-0 mt-1">
-        {% blocktranslate count counter=cl.result_count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktranslate %}
-      </p>
-    {% endif %}
-  </div>
+<div class="rmc-admin-changelist-pagehead rmc-admin-changelist-pagehead--toolbar-only mb-3 flex flex-wrap items-center justify-end gap-3" data-rmc-admin-changelist-head="1" data-rmc-admin-toolbar-only="1">
   <div class="object-tools flex flex-wrap items-center gap-2 shrink-0">
     {% if RMC_OPERATOR_PAIRED_LINKS %}
       {% for link in RMC_OPERATOR_PAIRED_LINKS %}

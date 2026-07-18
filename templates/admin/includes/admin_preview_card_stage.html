@@ -1,0 +1,17 @@
+{% load i18n %}
+{% comment %}
+  Design-preview live preview stage (G3). RMC-prefixed classes avoid theme .preview-card collisions.
+{% endcomment %}
+<div class="rmc-django-preview-card" data-rmc-django-preview-card="1" aria-hidden="true">
+  <div class="rmc-django-preview-nav" data-rmc-django-preview-nav="1">
+    <b>{% trans "Logo" %}</b>
+    <span></span><span></span><span></span><span></span>
+  </div>
+  <div class="rmc-django-preview-screen" data-rmc-django-preview-screen="1">
+    <b>{% if is_manager_host %}{% trans "Operator admin preview" %}{% else %}{% trans "Tenant admin preview" %}{% endif %}</b>
+    <div class="rmc-django-preview-line" style="width: 78%;"></div>
+    <div class="rmc-django-preview-line" style="width: 58%;"></div>
+    <div class="rmc-django-preview-line" style="width: 86%;"></div>
+    <div class="rmc-django-preview-line" style="width: 44%;"></div>
+  </div>
+</div>

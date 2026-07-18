@@ -1,11 +1,12 @@
 {% extends "backend_base.html" %}
 {% block cp_workspace_header %}{% endblock %}
 {% block rmc_workspace_os_header %}{% endblock %}
-{% load static %}
-{% block title %}School Pack Setup{% endblock %}
+{% load i18n static %}
+{% block title %}{% trans "School Pack Setup" %}{% endblock %}
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-blueprint-option-a.css' %}?v=20260717-option-a-rollout">
 {% endblock %}
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -13,60 +14,71 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="page-shell container-fluid py-3" data-page-marker="rmc-tenant-pack-setup" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-apple-class-tenant-school-admin="1">
-  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" os_center_key="tenant_pack_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="/school/setup/packs/?simulate=1" primary_label="Simulate selected pack" secondary_url="/school/settings/" secondary_label="School configuration" %}
-  {% include "components/world_class_guided_stepper.html" %}
-  {% include "components/apple_class_visual_workflow_path.html" with path_id="tenant-pack-flow" title="Tenant Pack Flow" %}
-  {% if result %}<section class="panel"><h1>Result</h1><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p><p>{{ result.status }}</p></section>{% endif %}
+<main class="page-shell container-fluid py-3" data-page-marker="rmc-tenant-pack-setup" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-apple-class-tenant-school-admin="1" data-rmc-option-a-canvas="1">
+  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" hide_nav_detail="1" os_center_key="tenant_pack_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="/school/setup/packs/?simulate=1" primary_label=_("Simulate selected pack") secondary_url="/school/settings/" secondary_label=_("School configuration") %}
+  {% include "components/tenant_option_a_strip.html" with option_a_title=_("Full-width school pack workspace") option_a_lede=_("Open with the work, not a wall of text. Simulate impact, request approval when needed, then apply or roll back tenant-safe packs.") option_a_aria=_("Pack command surface") option_a_show_stepper="1" option_a_flow_title=_("Governed pack path") option_a_flow_hint=_("One path — simulate through rollback — without stacking the same steps twice.") %}
+
+  {% if result %}
+  <div class="rmc-bp-result {% if result.ok %}rmc-bp-result--ok{% else %}rmc-bp-result--warn{% endif %}" role="status">
+    {% if result.ok %}
+      <strong>{% if result.status %}{{ result.status }}{% else %}{% trans "Pack action completed" %}{% endif %}</strong>
+      <span>{% trans "Tenant-scoped pack changes stay inside this school only." %}</span>
+    {% else %}
+      <strong>{% trans "Could not finish pack action" %}</strong>
+      <span>{{ result.errors|join:", "|default:_("Resolve blockers and try again.") }}</span>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <section class="panel rmc-reveal">
-    <h2>Recommended packs</h2>
+    <h2>{% trans "Recommended packs" %}</h2>
     <div data-rmc-scroll-policy="paginate" class="grid">
       {% for pack in packs %}
         <article class="card rmc-wcx-surface rmc-reveal" data-world-class-tenant-card="1">
           <h3>{{ pack.name }}</h3>
           <p>{{ pack.pack_type }} - {{ pack.safety_level }}</p>
           <p>{{ pack.target_roles|join:", " }}</p>
-          <a href="?pack={{ pack.key }}&pack_type={{ pack.pack_type }}&preview=1">Preview</a>
-          <a href="?pack={{ pack.key }}&pack_type={{ pack.pack_type }}&simulate=1">Simulate</a>
+          <a href="?pack={{ pack.key }}&pack_type={{ pack.pack_type }}&preview=1">{% trans "Preview" %}</a>
+          <a href="?pack={{ pack.key }}&pack_type={{ pack.pack_type }}&simulate=1">{% trans "Simulate" %}</a>
         </article>
       {% endfor %}
     </div>
   </section>
   <section class="panel rmc-reveal">
-    <h2>Selected preview</h2>
-    {% include "components/world_class_readiness_meter.html" with title="Pack readiness" value="70" caption="Tenant-safe pack preview with approval and external blocker honesty." %}
-    <p>{{ preview.pack_name }} - risk {{ change_set.risk_level }} - approval required {{ change_set.requires_approval }}</p>
-    <p data-world-class-approval-state="visible">Approval state: {% if change_set.requires_approval %}request required{% else %}low-risk tenant apply available{% endif %}</p>
-    <p data-world-class-rollback-posture="tenant-visible">Rollback posture: installed packs can be deactivated or rolled back with confirmation.</p>
-    {% if change_set.external_blockers %}<p>This pack requires platform approval or external readiness: {{ change_set.external_blockers|join:", " }}</p>{% endif %}
+    <h2>{% trans "Selected preview" %}</h2>
+    {% include "components/world_class_readiness_meter.html" with title=_("Pack readiness") value="70" caption=_("Tenant-safe pack preview with approval and external blocker honesty.") %}
+    <p>{{ preview.pack_name }} - {% trans "risk" %} {{ change_set.risk_level }} - {% trans "approval required" %} {{ change_set.requires_approval }}</p>
+    <p data-world-class-approval-state="visible">{% trans "Approval state:" %} {% if change_set.requires_approval %}{% trans "request required" %}{% else %}{% trans "low-risk tenant apply available" %}{% endif %}</p>
+    <p data-world-class-rollback-posture="tenant-visible">{% trans "Rollback posture: installed packs can be deactivated or rolled back with confirmation." %}</p>
+    {% if change_set.external_blockers %}<p>{% trans "This pack requires platform approval or external readiness:" %} {{ change_set.external_blockers|join:", " }}</p>{% endif %}
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="pack" value="{{ selected_key }}">
       <input type="hidden" name="pack_type" value="{{ selected_pack_type }}">
       {% if change_set.requires_approval %}
         <input type="hidden" name="reason" value="Tenant setup approval request">
-        <button type="submit">Request approval</button>
+        <button type="submit">{% trans "Request approval" %}</button>
       {% else %}
-        <label><input type="checkbox" name="confirm" value="yes"> Confirm tenant-safe pack apply</label>
-        <button type="submit"{% if not change_set.can_apply %} disabled{% endif %}>Apply pack</button>
+        <label><input type="checkbox" name="confirm" value="yes"> {% trans "Confirm tenant-safe pack apply" %}</label>
+        <button type="submit"{% if not change_set.can_apply %} disabled{% endif %}>{% trans "Apply pack" %}</button>
       {% endif %}
     </form>
   </section>
   <section class="panel rmc-reveal">
-    <h2>Installed packs</h2>
+    <h2>{% trans "Installed packs" %}</h2>
     <ul>
       {% for row in installations %}
         <li>{{ row.pack_key }} - {{ row.status }}
           <form method="post">
             {% csrf_token %}
             <input type="hidden" name="installation_id" value="{{ row.id }}">
-            <label><input type="checkbox" name="confirm" value="yes"> Confirm</label>
-            <button type="submit" name="mode" value="deactivate">Deactivate</button>
-            <button type="submit" name="mode" value="rollback">Rollback</button>
+            <label><input type="checkbox" name="confirm" value="yes"> {% trans "Confirm" %}</label>
+            <button type="submit" name="mode" value="deactivate">{% trans "Deactivate" %}</button>
+            <button type="submit" name="mode" value="rollback">{% trans "Rollback" %}</button>
           </form>
         </li>
       {% empty %}
-        <li>No pack installations yet.</li>
+        <li>{% trans "No pack installations yet." %}</li>
       {% endfor %}
     </ul>
   </section>

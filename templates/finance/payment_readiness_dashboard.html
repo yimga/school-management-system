@@ -7,6 +7,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-blueprint-option-a.css' %}?v=20260717-option-a-rollout">
 {% endblock %}
 
 {% block content %}
@@ -15,15 +16,14 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div class="container-fluid px-3 px-lg-4 py-4" data-page-archetype="finance-payment-readiness-dashboard" data-rmc-os-center="payment_readiness" data-rmc-scroll-policy="paginate">
+<div class="container-fluid px-3 px-lg-4 py-4" data-page-archetype="finance-payment-readiness-dashboard" data-rmc-os-center="payment_readiness" data-rmc-scroll-policy="paginate" data-rmc-option-a-canvas="1">
   {% trans "Finance" as fin_eyebrow %}
   {% url 'finance:dashboard' as payment_money_url %}
   {% trans "Honest corridor status: metadata-only health checks — no live charges; CARD/BANK stay external until PSP onboarding." as pay_purpose %}
-  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" os_center_key="payment_readiness" center_eyebrow=fin_eyebrow center_title=_("Payment Readiness Center") center_purpose=pay_purpose status_badge_text=readiness_display_label status_badge_variant=status_badge_class primary_url=primary_cta_url primary_label=primary_cta_label secondary_url=payment_money_url secondary_label=_("Open Money Center") jump_a_id="payment-next-action" jump_a_label=_("Next action") jump_b_id="gateway-health" jump_b_label=_("Gateway health") jump_c_id="psp-matrix" jump_c_label=_("PSP matrix") %}
+  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" hide_nav_detail="1" os_center_key="payment_readiness" center_eyebrow=center_eyebrow|default:fin_eyebrow center_title=center_title|default:_("Payment Readiness Center") center_purpose=center_purpose|default:pay_purpose status_badge_text=status_badge_text|default:readiness_display_label status_badge_variant=status_badge_class primary_url=primary_cta_url primary_label=primary_cta_label secondary_url=payment_money_url secondary_label=_("Open Money Center") jump_a_id="payment-next-action" jump_a_label=_("Next action") jump_b_id="gateway-health" jump_b_label=_("Gateway health") jump_c_id="psp-matrix" jump_c_label=_("PSP matrix") nav_groups=operational_nav_groups %}
+  {% include "components/tenant_option_a_strip.html" with option_a_title=_("Full-width payment readiness workspace") option_a_lede=_("Open with the work, not a wall of text. Corridor status, gateway health, and the next CTA stay compact — never fake live charges.") option_a_aria=_("Payment readiness command surface") option_a_flow_title=_("Readiness path") option_a_flow_hint=_("Complete setup or return to Money Center when rails are external.") %}
   {% include "components/rmc_os_status_strip.html" with strip_items=os_strip_items %}
   {% if readiness.subhead %}<p class="text-muted small mb-3">{{ readiness.subhead }}</p>{% endif %}
-
-  {% include "components/world_class_summary_strip.html" with readiness=readiness_display_label readiness_label=_("Payment posture") risk=readiness.status risk_label=_("Gateway readiness") next_step=primary_cta_label next_step_label=_("Primary action") blockers=_("External PSP") blockers_label=_("No fake live charges") %}
 
   <div class="rmc-banner border-0 shadow-sm mb-4" id="payment-next-action" data-rmc-payment-next-action="1">
     <div class="fw-semibold mb-1">{% trans "Current status & next action" %}</div>

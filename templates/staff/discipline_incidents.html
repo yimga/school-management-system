@@ -76,10 +76,17 @@
                 {% endif %}
                 <button type="submit" name="new_status" value="completed" class="btn btn-outline-success btn-sm">{% trans "Complete" %}</button>
               </form>
-              {% else %}
+              {% elif not ra %}
               <span class="small text-secondary">—</span>
               {% endif %}
               {% endwith %}
+              {% if inc.status != "RESOLVED" %}
+              <form method="post" class="mt-1">{% csrf_token %}
+                <input type="hidden" name="action" value="resolve_incident">
+                <input type="hidden" name="incident_id" value="{{ inc.pk }}">
+                <button type="submit" class="btn btn-outline-success btn-sm">{% trans "Resolve incident" %}</button>
+              </form>
+              {% endif %}
                   </div>
                 </details></td>
           </tr>

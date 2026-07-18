@@ -29,6 +29,9 @@
     </div>
     <h1 class="h3 mb-2">{{ hub_title }}</h1>
     <p class="text-muted mb-2">{{ hub_subtitle }}</p>
+    {% if not operator_plane %}
+    {% include "components/tenant_option_a_strip.html" with option_a_title=_("Full-width theme & experience workspace") option_a_lede=_("Open with the work, not a wall of text. Palette, role portals, and guarded publish stay compact before you open the builder.") option_a_aria=_("Theme command surface") option_a_flow_title=_("Brand path") option_a_flow_hint=_("Preview header, sidebar, hero, and role dashboards — then publish tenant-safe tokens.") %}
+    {% endif %}
     <nav
       class="rmc-cp-compact__fold-nav d-flex flex-wrap align-items-center gap-2"
       aria-label="{% trans 'Jump to section' %}"

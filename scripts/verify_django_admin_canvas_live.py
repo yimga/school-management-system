@@ -136,9 +136,9 @@ def main() -> int:
         if rel.endswith("rmc-admin-workspace.js") and "data-rmc-django-view-mode" not in text:
             static_ok = False
             static_notes.append("workspace js missing view-mode wiring")
-        if rel.endswith(".css") and "2026-07-17 residual closure" not in text:
+        if rel.endswith(".css") and "2026-07-17 parity-close" not in text:
             static_ok = False
-            static_notes.append("css missing residual-closure block")
+            static_notes.append("css missing parity-close block")
 
     live, live_msg = _probe(args.base_url.rstrip("/") + "/admin/login/")
     pw = _try_playwright(args.base_url.rstrip("/"), args.username, args.password) if live else {

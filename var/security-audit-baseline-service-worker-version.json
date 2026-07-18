@@ -1,12 +1,12 @@
 {
   "date": "2026-07-17",
-  "generated_at": "2026-07-17T13:20:00+00:00",
+  "generated_at": "2026-07-17T16:30:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 130,
-  "raw": "sms-v4.05.130-tenant-blueprint-option-a-2026-07-17",
+  "patch": 134,
+  "raw": "sms-v4.05.134-django-admin-parity-close-2026-07-17",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "tenant-blueprint-option-a",
+  "slug": "django-admin-parity-close",
   "valid": true
 }

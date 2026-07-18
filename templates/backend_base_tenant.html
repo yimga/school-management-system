@@ -57,6 +57,7 @@ Staff theme: /backend uses same ThemePack as /admin. Operator/platform uses dark
   {% if SITE and SITE.header_bg_color %}--header-brand-bg: {{ SITE.header_bg_color }};{% endif %}
   {% if SITE and SITE.footer_bg_color %}--footer-bg: {{ SITE.footer_bg_color }};{% endif %}
   {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
+  {% if ADMIN_DASHBOARD_PALETTE_CSS_VARS %}{{ ADMIN_DASHBOARD_PALETTE_CSS_VARS }}{% endif %}
 }
 {% endwith %}
 {% endif %}

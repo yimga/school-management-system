@@ -1,0 +1,35 @@
+{% load i18n admin_urls %}
+{% comment %}
+  G7: 48px edge tools column (design-preview .tools). Workspace-local, not AI copilot.
+{% endcomment %}
+<aside class="rmc-django-tools" data-rmc-django-tools="1" aria-label="{% trans 'Workspace tools' %}">
+  {% if surface == "change-list" and has_add_permission %}
+    {% url cl.opts|admin_urlname:"add" as add_url %}
+    {% if add_url %}
+    <a class="rmc-django-tool is-primary" href="{% add_preserved_filters add_url is_popup to_field %}" title="{% blocktrans with name=cl.opts.verbose_name %}Add {{ name }}{% endblocktrans %}" aria-label="{% blocktrans with name=cl.opts.verbose_name %}Add {{ name }}{% endblocktrans %}">+</a>
+    {% endif %}
+  {% elif surface == "change-form" and has_add_permission and not add %}
+    {% url opts|admin_urlname:"add" as add_url %}
+    {% if add_url %}
+    <a class="rmc-django-tool is-primary" href="{% add_preserved_filters add_url is_popup to_field %}" title="{% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}" aria-label="{% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}">+</a>
+    {% else %}
+    <span class="rmc-django-tool is-primary" aria-hidden="true">+</span>
+    {% endif %}
+  {% else %}
+    <span class="rmc-django-tool is-primary" aria-hidden="true">+</span>
+  {% endif %}
+
+  {% if surface == "change-form" %}
+  <button type="button" class="rmc-django-tool" data-rmc-django-view-jump="preview" title="{% trans 'Preview mode' %}" aria-label="{% trans 'Preview mode' %}">◎</button>
+  {% else %}
+  <button type="button" class="rmc-django-tool" data-rmc-changelist-open-filters title="{% trans 'Filters' %}" aria-label="{% trans 'Filters' %}">⚡</button>
+  {% endif %}
+
+  <button type="button" class="rmc-django-tool" data-rmc-command-bar-trigger="1" title="{% trans 'Command palette' %}" aria-label="{% trans 'Command palette' %}">?</button>
+
+  {% if surface == "change-form" and has_absolute_url %}
+  <a class="rmc-django-tool" href="{{ absolute_url }}" target="_blank" rel="noopener" title="{% trans 'View on site' %}" aria-label="{% trans 'View on site' %}">↗</a>
+  {% else %}
+  <a class="rmc-django-tool" href="#content-main" title="{% trans 'Back to top' %}" aria-label="{% trans 'Back to top' %}">↑</a>
+  {% endif %}
+</aside>

@@ -1,9 +1,10 @@
 /**
- * Tenant Blueprint Setup — Option A command strip
+ * Tenant Option A command strip (blueprints + sibling operational pages).
  * Matches design preview: open with work, compact metrics, one flow path.
- * Semantic tokens only.
+ * Semantic tokens only. `.rmc-bp-option-a*` kept as aliases.
  */
 
+.rmc-option-a,
 .rmc-bp-option-a {
   display: grid;
   gap: 0.85rem;
@@ -18,6 +19,7 @@
   min-width: 0;
 }
 
+.rmc-option-a__head,
 .rmc-bp-option-a__head {
   display: flex;
   flex-wrap: wrap;
@@ -26,6 +28,7 @@
   gap: 0.75rem 1rem;
 }
 
+.rmc-option-a__eyebrow,
 .rmc-bp-option-a__eyebrow {
   display: block;
   color: var(--school-primary, var(--brand-primary));
@@ -35,6 +38,7 @@
   text-transform: uppercase;
 }
 
+.rmc-option-a__title,
 .rmc-bp-option-a__title {
   margin: 0.35rem 0 0;
   font-size: clamp(1.15rem, 2vw, 1.55rem);
@@ -42,6 +46,7 @@
   color: var(--text-primary);
 }
 
+.rmc-option-a__lede,
 .rmc-bp-option-a__lede {
   margin: 0.4rem 0 0;
   max-width: 68ch;
@@ -50,6 +55,7 @@
   line-height: 1.5;
 }
 
+.rmc-option-a__tag,
 .rmc-bp-option-a__tag {
   display: inline-flex;
   align-items: center;
@@ -63,18 +69,21 @@
   color: var(--text-primary);
 }
 
+.rmc-option-a__tag--good,
 .rmc-bp-option-a__tag--good {
   background: color-mix(in srgb, var(--brand-success, var(--rmc-wcx-success)) 16%, transparent);
   color: var(--text-success);
   border-color: color-mix(in srgb, var(--brand-success, var(--rmc-wcx-success)) 35%, var(--hairline));
 }
 
+.rmc-option-a__metrics,
 .rmc-bp-option-a__metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
 }
 
+.rmc-option-a__metric,
 .rmc-bp-option-a__metric {
   min-width: 0;
   min-height: 7.5rem;
@@ -87,6 +96,7 @@
   background: color-mix(in srgb, var(--surface-canvas) 55%, transparent);
 }
 
+.rmc-option-a__metric-label,
 .rmc-bp-option-a__metric-label {
   color: var(--text-muted, var(--text-secondary));
   font-size: 0.65rem;
@@ -95,12 +105,14 @@
   text-transform: uppercase;
 }
 
+.rmc-option-a__metric-title,
 .rmc-bp-option-a__metric-title {
   color: var(--text-primary);
   font-size: 1rem;
   line-height: 1.2;
 }
 
+.rmc-option-a__metric-body,
 .rmc-bp-option-a__metric-body {
   margin: 0;
   color: var(--text-secondary);
@@ -108,12 +120,14 @@
   line-height: 1.45;
 }
 
+.rmc-option-a__flow,
 .rmc-bp-option-a__flow {
   display: grid;
   gap: 0.45rem;
   min-width: 0;
 }
 
+.rmc-option-a__flow-label,
 .rmc-bp-option-a__flow-label {
   display: flex;
   flex-wrap: wrap;
@@ -121,16 +135,19 @@
   gap: 0.35rem 0.75rem;
 }
 
+.rmc-option-a__flow-label strong,
 .rmc-bp-option-a__flow-label strong {
   color: var(--text-primary);
   font-size: 0.85rem;
 }
 
+.rmc-option-a__flow-label span,
 .rmc-bp-option-a__flow-label span {
   color: var(--text-secondary);
   font-size: 0.78rem;
 }
 
+.rmc-option-a .rmc-wcx-stepper,
 .rmc-bp-option-a .rmc-wcx-stepper {
   margin: 0;
 }
@@ -164,10 +181,12 @@
 }
 
 @media (max-width: 900px) {
+  .rmc-option-a__metrics,
   .rmc-bp-option-a__metrics {
     grid-template-columns: 1fr;
   }
 
+  .rmc-option-a__metric,
   .rmc-bp-option-a__metric {
     min-height: 0;
   }

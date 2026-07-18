@@ -2,8 +2,9 @@
 {% load i18n %}
 {% include "admin/components/theme_preview_assets.html" %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="theme-experience-page container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-command-workspace="theme-experience">
+<div class="theme-experience-page container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-command-workspace="theme-experience" data-rmc-option-a-canvas="1">
   {% include "studio_os/components/page_header.html" with title=_("Theme & Experience") subtitle=_("These settings apply to Site Settings (Theme pack & Admin theme pack).") action_url=back_url action_text=_("Back to Site Settings") %}
+  {% include "components/tenant_option_a_strip.html" with option_a_title=_("Full-width Theme & Experience workspace") option_a_lede=_("Open with the work, not a wall of text. Palette choices must preview header, sidebar, hero, buttons, status, tables, and role dashboards before publish.") option_a_aria=_("Theme & Experience command surface") option_a_flow_title=_("Publish path") option_a_flow_hint=_("Import brand, preview every surface, confirm, then save — tenant scoped only.") operational_nav_groups=operational_nav_groups %}
 
   {% if preview_mode_active %}
   <div class="rmc-banner rmc-banner--info py-2 mb-2" role="status">
