@@ -84,6 +84,19 @@ class ResourceBooking(models.Model):
         choices=Status.choices,
         default=Status.CONFIRMED,
     )
+    enforce_exclusive = models.BooleanField(
+        default=True,
+        db_default=True,
+        help_text=(
+            "True when this booking must not overlap any other exclusive booking "
+            "on the same resource — the capacity=1 case, enforced by the partial "
+            "DB exclusion constraint below. Multi-capacity (capacity>1) bookings "
+            "are False: they are excluded from the DB overlap index and enforced "
+            "in the service layer under a resource row lock. Defaults True so any "
+            "row inserted outside the service layer is treated as exclusive — "
+            "failing safe against silent double-booking."
+        ),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -94,6 +107,12 @@ class ResourceBooking(models.Model):
             models.Index(fields=["school", "resource", "status"]),
         ]
         constraints = [
+            # Partial exclusion: only EXCLUSIVE (capacity=1) confirmed bookings are
+            # indexed, so no two overlap for the same (school, resource). Postgres
+            # cannot express "at most N overlapping" for N>1, so multi-capacity
+            # rows (enforce_exclusive=False) are deliberately excluded here and
+            # enforced concurrency-safely in booking_services.create_resource_booking
+            # under a select_for_update lock on the resource row.
             ExclusionConstraint(
                 name="exclude_overlapping_resource_bookings",
                 expressions=[
@@ -101,7 +120,7 @@ class ResourceBooking(models.Model):
                     (F("resource_id"), RangeOperators.EQUAL),
                     (F("time_range"), RangeOperators.OVERLAPS),
                 ],
-                condition=Q(status="confirmed"),
+                condition=Q(status="confirmed", enforce_exclusive=True),
             ),
         ]
 
