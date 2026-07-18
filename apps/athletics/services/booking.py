@@ -30,6 +30,42 @@ def _aware(dt: datetime) -> datetime:
     return dt
 
 
+def _range_bounds(value):
+    """Return ``(lower, upper)`` datetimes for a stored ``time_range``, backend-safe.
+
+    Postgres reads a ``DateTimeRangeField`` back as a Range object with datetime
+    ``.lower`` / ``.upper``. SQLite has no ``from_db_value`` for the field, so the
+    column round-trips as its canonical text ``'[lower,upper)'`` — a plain ``str``
+    whose ``.lower`` is the string METHOD (a truthy bound method, not ``None``),
+    so reading ``value.lower`` directly would sail past a ``None`` guard and then
+    crash in ``_aware`` on a non-datetime. Parse the literal there instead. Mirrors
+    ``apps.schoolops.booking_services._range_bounds``.
+    """
+    if value is None:
+        return (None, None)
+    if isinstance(value, str):
+        s = value.strip()
+        if not s or "empty" in s.lower():
+            return (None, None)
+        if s[0] in "[(" and s[-1] in ")]":
+            s = s[1:-1]
+        if "," not in s:
+            return (None, None)
+        lo_str, hi_str = s.split(",", 1)
+
+        def _parse(raw: str):
+            raw = raw.strip().strip('"')
+            if not raw:
+                return None
+            try:
+                return datetime.fromisoformat(raw)
+            except ValueError:
+                return None
+
+        return (_parse(lo_str), _parse(hi_str))
+    return (getattr(value, "lower", None), getattr(value, "upper", None))
+
+
 def overlapping_confirmed_count(*, school, venue, start: datetime, end: datetime) -> int:
     from apps.athletics.models import FixtureVenueBooking
 
@@ -44,8 +80,7 @@ def overlapping_confirmed_count(*, school, venue, start: datetime, end: datetime
         return qs.filter(time_range__overlap=(start, end)).count()
     overlap = 0
     for row in qs.iterator():
-        lower = row.time_range.lower
-        upper = row.time_range.upper
+        lower, upper = _range_bounds(row.time_range)
         if lower is None or upper is None:
             continue
         lower = _aware(lower)

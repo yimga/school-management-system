@@ -20,14 +20,17 @@ exclusion constraint. This mirrors the established ``schoolops`` booking tests.
 from __future__ import annotations
 
 import unittest
-from datetime import timedelta
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 
 from django.db import connection
+from django.test import SimpleTestCase
 from django.utils import timezone
 
 from apps.athletics.models import Fixture, FixtureVenueBooking
 from apps.athletics.services.booking import (
     BookingConflictError,
+    _range_bounds,
     book_fixture_venue,
     cancel_fixture_venue_booking,
 )
@@ -147,3 +150,45 @@ class VenueBookingPersistenceTests(BaseAthleticsTestCase):
             title="Match 2", start=self.now, end=self.now + timedelta(hours=2),
         )
         self.assertEqual(b2.status, FixtureVenueBooking.Status.CONFIRMED)
+
+
+class RangeBoundsParsingTests(SimpleTestCase):
+    """DB-free coverage of the SQLite-fallback range parser used by
+    ``overlapping_confirmed_count`` on the non-Postgres lane.
+
+    On SQLite a stored ``DateTimeRangeField`` round-trips as its canonical text
+    ``'[lower,upper)'`` — a ``str`` whose ``.lower`` is the string method, so the
+    pre-``_range_bounds`` code (``row.time_range.lower``) read a truthy bound
+    method past its ``None`` guard and then crashed in ``_aware``. This proves
+    the parser returns real ``datetime`` bounds (or a clean ``(None, None)``)
+    from every shape the field can present. Sibling parity with
+    ``apps.schoolops.booking_services._range_bounds``.
+    """
+
+    def test_parses_canonical_text_range_to_datetimes(self):
+        lower, upper = _range_bounds(
+            "[2026-01-01T10:00:00+00:00,2026-01-01T11:00:00+00:00)"
+        )
+        # The regression: bounds must be real datetimes, never the str.lower method.
+        self.assertIsInstance(lower, datetime)
+        self.assertIsInstance(upper, datetime)
+        self.assertEqual(
+            lower, datetime(2026, 1, 1, 10, 0, tzinfo=dt_timezone.utc)
+        )
+        self.assertEqual(
+            upper, datetime(2026, 1, 1, 11, 0, tzinfo=dt_timezone.utc)
+        )
+
+    def test_reads_range_object_lower_upper_attrs(self):
+        class _Range:
+            lower = datetime(2026, 1, 1, 9, 0, tzinfo=dt_timezone.utc)
+            upper = datetime(2026, 1, 1, 10, 0, tzinfo=dt_timezone.utc)
+
+        lower, upper = _range_bounds(_Range())
+        self.assertEqual(lower, _Range.lower)
+        self.assertEqual(upper, _Range.upper)
+
+    def test_none_and_empty_yield_no_bounds(self):
+        self.assertEqual(_range_bounds(None), (None, None))
+        self.assertEqual(_range_bounds("empty"), (None, None))
+        self.assertEqual(_range_bounds(""), (None, None))
