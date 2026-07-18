@@ -1617,6 +1617,48 @@ def backend_entity_console(request):
     return render(request, "accounts/entity_console.html", {})
 
 
+def _owner_onboarding_resume_name(request, user):
+    """URL name to resume a school owner's guided onboarding, or ``None``.
+
+    Returns a wizard step name only when the user is an active owner of the
+    resolved tenant school AND that school's guided onboarding was *started but
+    not completed* (``School.settings['owner_onboarding']`` present, not
+    ``completed``). Schools that never entered the wizard have empty state and are
+    left alone — this never force-routes an established owner, and the wizard's own
+    ``completed`` gate breaks any loop once they finish/skip. Fail-soft: any error
+    yields ``None`` so post-login routing is never blocked.
+    """
+    try:
+        school = getattr(request, "school", None)
+        if school is None or getattr(school, "pk", None) is None:
+            return None
+        from apps.schools.models import SchoolMembership
+
+        is_owner = SchoolMembership.objects.filter(
+            school=school,
+            user_id=getattr(user, "pk", None),
+            is_school_owner=True,
+            suspended_at__isnull=True,
+        ).exists()
+        if not is_owner:
+            return None
+        from apps.accounts.views_owner_onboarding import onboarding_state
+
+        state = onboarding_state(school)
+        if not state or state.get("completed"):
+            return None
+        # Steps 2-3 are @login_required tenant-host views; resume at the recorded
+        # step (default to the school step).
+        if state.get("step") == "done":
+            return "accounts:owner_onboarding_done"
+        return "accounts:owner_onboarding_school"
+    except Exception:  # noqa: BLE001 — a post-login resume must never break login
+        logging.getLogger(__name__).debug(
+            "owner onboarding resume check failed", exc_info=True
+        )
+        return None
+
+
 def redirect_view(request):
     """Central post-login redirect based on role.
 
@@ -1758,6 +1800,13 @@ def redirect_view(request):
         if dash_view == "WORKFLOW":
             return _redirect_with_params("portal:student_workflow")
         return _redirect_with_params("portal:student_portal_grades")
+
+    # Owner still mid-setup: resume the guided onboarding wizard instead of the
+    # bare dashboard, so an owner who abandoned setup is walked back through it on
+    # their next sign-in. Fail-soft (None when not applicable) — never blocks login.
+    onboarding_resume = _owner_onboarding_resume_name(request, user)
+    if onboarding_resume:
+        return _redirect_with_params(onboarding_resume)
 
     # Staff/backend: only after family/student/teacher hats are ruled out.
     if user.has_feature_permission("settings.manage"):
