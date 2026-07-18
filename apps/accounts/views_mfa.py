@@ -27,9 +27,19 @@ def _mark_mfa_verified_and_redirect(request, next_url: str):
         request.session["mfa_verified_until"] = until.isoformat()
     messages.success(request, _("MFA verification successful!"))
     request.session.pop("mfa_next", None)
-    if next_url:
-        return redirect(next_url)
-    return redirect("accounts:redirect")
+    response = redirect(next_url) if next_url else redirect("accounts:redirect")
+    if remember:
+        # Durable "trust this device": a signed cookie that survives a session
+        # reset (pin flush, re-login, expiry), so a trusted device isn't
+        # re-prompted for MFA within the trust window. Bound to the user's
+        # session-auth-hash, so a password change revokes it.
+        try:
+            from apps.accounts.mfa_device_trust import set_device_trust_cookie
+
+            set_device_trust_cookie(response, request.user, request)
+        except Exception:  # noqa: BLE001 — trust cookie is best-effort; MFA still succeeded
+            pass
+    return response
 
 
 def _mfa_template(request, name: str) -> str:

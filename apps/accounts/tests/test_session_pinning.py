@@ -5,8 +5,10 @@ Covers the six required scenarios:
 
 * first request records the pin
 * same (IP, UA) on a follow-up passes
-* different IP flushes the session and writes a CRITICAL audit
-* different UA flushes the session
+* different IP is TOLERATED — pinning is on the device (User-Agent), not the IP,
+  because a client IP legitimately rotates (cellular/NAT/IPv6) and flushing on it
+  logged mobile users out and re-triggered MFA
+* different UA flushes the session and writes a CRITICAL audit
 * allowlisted paths skip the check
 * disabled-via-setting passes
 """
@@ -98,34 +100,27 @@ class SessionPinningMiddlewareTests(TestCase):
             AuditLog.objects.filter(action=AuditLog.Action.ACCESS_DENIED).exists()
         )
 
-    def test_different_ip_kills_session_and_audits(self):
+    def test_different_ip_is_tolerated(self):
+        # An IP change alone (cellular tower handoff, office/CGNAT egress rotation,
+        # IPv6 privacy address) must NOT flush the session — that full logout +
+        # fresh MFA prompt was the "constantly asked for MFA" bug. Same device (UA)
+        # => the session survives, the pin is unchanged, and no audit fires.
         first = self._make_request(ip="1.2.3.4")
         self.middleware(first)
-        # Snapshot session contents before the second request
-        baseline = dict(first.session.items())
 
-        attacker = self._make_followup_request(
+        moved = self._make_followup_request(
             first.session, path="/portal/dashboard/", ip="9.9.9.9", ua=self.UA_CHROME
         )
-        response = self.middleware(attacker)
+        response = self.middleware(moved)
 
-        # Request continues (the auth removal is enforced downstream)
         self.assertEqual(response.status_code, 200)
-        # Session was flushed — pin keys gone
-        self.assertNotIn("_pin_ip", attacker.session)
-        self.assertNotIn("_pin_ua", attacker.session)
-        # Audit log written: CRITICAL ACCESS_DENIED with model_name="Session"
-        audits = AuditLog.objects.filter(
-            action=AuditLog.Action.ACCESS_DENIED,
-            sensitivity=AuditLog.Sensitivity.CRITICAL,
+        # Session intact — pin keys preserved (first IP retained as an audit ref).
+        self.assertEqual(moved.session["_pin_ip"], "1.2.3.4")
+        self.assertEqual(moved.session["_pin_ua"], _hash_user_agent(self.UA_CHROME))
+        # No pin-mismatch audit for a mere IP change.
+        self.assertFalse(
+            AuditLog.objects.filter(action=AuditLog.Action.ACCESS_DENIED).exists()
         )
-        self.assertEqual(audits.count(), 1)
-        audit = audits.first()
-        self.assertEqual(audit.model_name, "Session")
-        self.assertEqual(audit.user_id, self.user.pk)
-        self.assertIn("session-pin mismatch", audit.reason)
-        # Confirm baseline pin actually contained the original IP
-        self.assertEqual(baseline.get("_pin_ip"), "1.2.3.4")
 
     def test_different_ua_kills_session(self):
         first = self._make_request(ip="1.2.3.4", ua=self.UA_CHROME)

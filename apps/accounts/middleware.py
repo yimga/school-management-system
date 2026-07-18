@@ -870,6 +870,18 @@ class RequireMFAMiddleware:
             return True
         if request.session.get("mfa_verified"):
             return True
+        # Durable device trust: a signed "remember this device" cookie survives a
+        # session reset (pin flush, re-login, expiry) that would otherwise drop
+        # session["mfa_verified"] and re-prompt the user. Re-establish the session
+        # flag so the rest of this session skips the cookie check.
+        try:
+            from apps.accounts.mfa_device_trust import device_trust_valid
+
+            if device_trust_valid(request, getattr(request, "user", None)):
+                request.session["mfa_verified"] = True
+                return True
+        except Exception:  # noqa: BLE001 — trust check must never break the gate
+            pass
         until_raw = request.session.get("mfa_verified_until")
         if not until_raw:
             return False

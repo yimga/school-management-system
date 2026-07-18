@@ -161,17 +161,24 @@ class SessionPinningMiddleware:
         pinned_ua = session.get(self.SESSION_PIN_UA_KEY)
 
         if pinned_ip is None and pinned_ua is None:
-            # First-time-seen for this session.
+            # First-time-seen for this session. The IP is recorded for audit only.
             session[self.SESSION_PIN_IP_KEY] = ip
             session[self.SESSION_PIN_UA_KEY] = ua_hash
             return
 
-        if pinned_ip == ip and pinned_ua == ua_hash:
+        # Pin on the DEVICE (User-Agent), not the IP. A client IP legitimately
+        # changes many times a day — cellular tower handoffs, office/CGNAT egress
+        # rotation, IPv6 privacy addresses — and flushing the session on every such
+        # change logged mobile users out mid-work and forced a fresh MFA prompt
+        # ("constantly asked for MFA"). A User-Agent change is a far stronger
+        # session-token-theft signal, so that alone triggers the flush; the first
+        # IP is retained purely as an audit reference.
+        if pinned_ua == ua_hash:
             return
 
-        # Mismatch — possible session-token theft. Kill the session.
+        # User-Agent mismatch — possible session-token theft. Kill the session.
         logger.warning(
-            "SessionPinningMiddleware: pin mismatch for user_id=%s "
+            "SessionPinningMiddleware: UA pin mismatch for user_id=%s "
             "(pinned_ip=%s pinned_ua=%s observed_ip=%s observed_ua=%s) — flushing session",
             getattr(user, "pk", None),
             pinned_ip,

@@ -1460,11 +1460,27 @@ _session_inactivity_minutes = os.getenv("SESSION_INACTIVITY_TIMEOUT_MINUTES", ""
 if _session_inactivity_minutes.strip():
     SESSION_COOKIE_AGE = int(_session_inactivity_minutes) * 60
 else:
-    SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", "14400"))  # 4 hours
+    SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", "43200"))  # 12 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = (
     os.getenv("SESSION_EXPIRE_AT_BROWSER_CLOSE", "1") == "1"
 )
-SESSION_SAVE_EVERY_REQUEST = os.getenv("SESSION_SAVE_EVERY_REQUEST", "1") == "1"
+# Saving the session on EVERY request refreshes the inactivity window, but it also
+# rewrites the whole session blob each time — so a concurrent request that loaded
+# the session just before MFA verification can write its stale snapshot back and
+# silently wipe session["mfa_verified"], re-prompting the user for their MFA code
+# mid-session (the "constantly asked for MFA" bug). Default OFF so the MFA flag is
+# written only when the session is actually modified (verification, login, logout)
+# and can't be clobbered; the session then expires at an ABSOLUTE SESSION_COOKIE_AGE
+# (12h — a full working day) from sign-in rather than sliding with activity, and a
+# durable "trust this device" cookie (apps/accounts/mfa_device_trust.py) keeps MFA
+# from re-prompting across that window on trusted devices. A deploy that needs a
+# sliding *inactivity* window (shared-computer kiosks via
+# SESSION_INACTIVITY_TIMEOUT_MINUTES) keeps save-every-request ON, accepting the
+# small clobber window; anyone can force either mode with SESSION_SAVE_EVERY_REQUEST.
+_default_save_every_request = "1" if _session_inactivity_minutes.strip() else "0"
+SESSION_SAVE_EVERY_REQUEST = (
+    os.getenv("SESSION_SAVE_EVERY_REQUEST", _default_save_every_request) == "1"
+)
 
 # Marketing (Plan 4.11): demo tenant URL for "Try demo" CTA; analytics script URL for marketing pages
 # TENANT_EXAMPLE_SLUG: e.g. demo-school — used for example tenant links in marketing copy and, when
