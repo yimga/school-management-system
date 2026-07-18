@@ -22,6 +22,18 @@ def _teacher_may_refer(user) -> bool:
     return getattr(user, "has_feature_permission", lambda _: False)("discipline.refer")
 
 
+def _user_may_manage_discipline(user, school) -> bool:
+    """Canonical gate for discipline MANAGEMENT actions (resolving an incident).
+
+    Delegates to the additive RBAC resolver so the same tier that reaches the counselor
+    caseload (``@require_permission('discipline.manage')`` — DISCIPLINE_MASTER / CENSOR /
+    tenant-admin / superuser) can resolve, while a plain teacher who can only REFER cannot.
+    """
+    from apps.accounts.decorators import user_has_permission
+
+    return user_has_permission(user, school, ("discipline.manage",))
+
+
 def create_incident_from_fields(
     *,
     school_id: int,
@@ -184,4 +196,40 @@ def api_discipline_incidents(request: HttpRequest) -> JsonResponse:
             "queued_offline": bool(body.get("client_offline_id")),
         },
         status=201,
+    )
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_discipline_incident_resolve(
+    request: HttpRequest, incident_id: int
+) -> JsonResponse:
+    """Resolve a discipline incident — the RESOLVED-status product path.
+
+    An authorized discipline manager (``discipline.manage`` / tenant-admin / superuser)
+    marks an incident resolved; the FSM service completes any open restorative follow-ups
+    and stamps the resolver + timestamp. This clears the student from the counselor
+    caseload once no other incident keeps them there.
+    """
+    school = getattr(request, "school", None)
+    if school is None:
+        return JsonResponse({"ok": False, "error": "tenant_required"}, status=403)
+
+    if not _user_may_manage_discipline(request.user, school):
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+
+    incident = Incident.objects.filter(pk=incident_id, school=school).first()
+    if incident is None:
+        return JsonResponse({"ok": False, "error": "incident_not_found"}, status=404)
+
+    from apps.academics.discipline_services import resolve_incident
+
+    result = resolve_incident(incident=incident, resolved_by=request.user)
+    return JsonResponse(
+        {
+            "ok": True,
+            "incident_id": incident.pk,
+            "status": incident.status,
+            **result,
+        }
     )

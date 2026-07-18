@@ -1036,6 +1036,19 @@ class Incident(models.Model):
         blank=True,
         related_name="created_incidents",
     )
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Set when a discipline manager marks the incident RESOLVED.",
+    )
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="resolved_incidents",
+        help_text="User who resolved the incident (audit trail for the RESOLVED transition).",
+    )
 
     class Meta:
         ordering = ["-date", "-created_at"]

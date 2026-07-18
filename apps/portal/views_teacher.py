@@ -1110,6 +1110,24 @@ def discipline_incidents_list(request: HttpRequest):
                     upd.append("completed_at")
                 row.save(update_fields=upd)
                 messages.success(request, "Restorative action updated.")
+        elif action == "resolve_incident" and school is not None:
+            try:
+                incident_id = int(request.POST.get("incident_id") or 0)
+            except (TypeError, ValueError):
+                incident_id = 0
+            incident = Incident.objects.filter(school=school, pk=incident_id).first()
+            if not incident:
+                messages.error(request, "Incident not found.")
+            else:
+                from apps.academics.discipline_services import resolve_incident
+
+                outcome = resolve_incident(
+                    incident=incident, resolved_by=request.user
+                )
+                if outcome.get("already_resolved"):
+                    messages.info(request, "Incident was already resolved.")
+                else:
+                    messages.success(request, "Incident resolved.")
         return redirect("portal:discipline_incidents_list")
 
     incidents_qs = Incident.objects.select_related(
