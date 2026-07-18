@@ -1934,7 +1934,8 @@ def verify_signup(request: HttpRequest):
 def api_trial_school(request: HttpRequest):
     """
     W1-2: Self-service trial API. POST JSON: name, contact_email, country_code (optional).
-    Creates school with billing_type=FREE_TRIAL, trial_end_date=now+14d, enqueues provisioning.
+    Creates school with billing_type=FREE_TRIAL, trial_end_date=now+owner_free_trial_days()
+    (approved default 30d, env-tunable), enqueues provisioning.
     Returns 202 with school_id, job_id, message "We'll email when ready".
     """
     # Abuse defense: this is fully unauthenticated and creates a tenant + sends
@@ -1993,7 +1994,11 @@ def api_trial_school(request: HttpRequest):
                 region_code or country_code, timezone_hint="UTC"
             )
 
-    trial_end = (timezone.now() + timedelta(days=14)).date()
+    # Reverse-trial length (approved default 30 days; env-tunable). See
+    # apps/schools/plan_gating.py::owner_free_trial_days.
+    from apps.schools.plan_gating import owner_free_trial_days
+
+    trial_end = (timezone.now() + timedelta(days=owner_free_trial_days())).date()
     school = School.objects.create(
         name=name,
         slug=slug,

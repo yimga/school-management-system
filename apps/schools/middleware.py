@@ -1714,10 +1714,37 @@ def _school_has_capability(request, school, code: str) -> bool:
     return is_feature_enabled(school, code)
 
 
-def _feature_gate_403(request, feature_code: str):
-    """Return 403 response (JSON for API, HTML for browser)."""
-    from django.http import HttpResponseForbidden, JsonResponse
+def _plan_upgrade_url() -> str:
+    """Best-effort tenant upgrade/billing URL for the feature-gate CTA.
 
+    Tries the namespaced tenant billing routes first and falls back to a plain
+    path so the CTA always has a target. Each reverse is guarded (the route may
+    not be mounted on every host).
+    """
+    from django.urls import NoReverseMatch, reverse
+
+    for name in (
+        "accounts:owner_console_billing",
+        "siteconfig:billing_plan_readonly",
+        "siteconfig:group_console_upgrade",
+    ):
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            continue
+    return "/owner/billing/"
+
+
+def _feature_gate_403(request, feature_code: str):
+    """Return a 403 that routes to an upgrade path (JSON for API, HTML for browser).
+
+    The plan ceiling turns "not in your plan" into a real, self-serve upgrade
+    prompt instead of a dead-end — the tenant is not sent to an operator.
+    """
+    from django.http import HttpResponseForbidden, JsonResponse
+    from django.utils.html import escape
+
+    upgrade_url = _plan_upgrade_url()
     if (
         request.path.startswith("/api/")
         or (request.headers.get("Accept") or "").find("application/json") >= 0
@@ -1726,12 +1753,18 @@ def _feature_gate_403(request, feature_code: str):
             {
                 "error": "feature_not_available",
                 "feature": feature_code,
-                "detail": "This feature is not enabled for your plan.",
+                "detail": "This feature requires a higher plan.",
+                "upgrade_available": True,
+                "upgrade_url": upgrade_url,
             },
             status=403,
         )
+    safe_code = escape(feature_code)
+    safe_url = escape(upgrade_url)
     return HttpResponseForbidden(
-        f"<h1>403 Forbidden</h1><p>This feature ({feature_code}) is not enabled for your plan. Contact your administrator or upgrade.</p>"
+        f"<h1>403 Forbidden</h1>"
+        f"<p>The <strong>{safe_code}</strong> feature isn&rsquo;t included in your current plan.</p>"
+        f'<p><a href="{safe_url}">Upgrade your plan</a> to unlock it, or contact your administrator.</p>'
     )
 
 

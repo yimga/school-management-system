@@ -116,6 +116,30 @@ def is_feature_enabled(school, code: str) -> bool:
     normalized = (code or "").strip().lower()
     if not normalized:
         return False
+    # Plan ceiling — behind RMC_PLAN_GATING_ENFORCED (default OFF => this block is
+    # a no-op and resolution stays the historical pure union below). When ON, a
+    # genuinely plan-gated code (in a paid plan but NOT the free/default plan) is
+    # granted ONLY by an explicit plan/addon/feature/entitlement grant, so the
+    # module-manifest + policy union further down can no longer silently open a
+    # premium feature. Universal codes are not in the plan-gated set and fall
+    # through to the union unchanged. See apps/schools/plan_gating.py.
+    from apps.schools.plan_gating import (
+        in_active_trial,
+        is_plan_gated_code,
+        plan_ceiling_grants,
+        plan_gating_enforced,
+    )
+
+    if plan_gating_enforced():
+        # Reverse trial: full access during the active trial window. When it
+        # lapses (trial_end_date passed) this falls through and the ceiling
+        # binds -> automatic downgrade to the plan's features (data untouched;
+        # re-upgrading restores everything). This makes expiry gating work even
+        # if the billing beat never flips FREE_TRIAL -> REGULAR.
+        if in_active_trial(school):
+            return True
+        if is_plan_gated_code(normalized):
+            return plan_ceiling_grants(school, normalized)
     plan = getattr(school, "plan", None)
     if plan and getattr(plan, "included_features", None):
         included = [str(x).strip().lower() for x in plan.included_features if x]
