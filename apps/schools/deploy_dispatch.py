@@ -46,9 +46,17 @@ def dispatch_setup_email_for_slug(slug: str) -> dict:
     """Resend the owner-setup email to every ACTIVE owner of the school ``slug``.
 
     Fail-soft: returns a summary and NEVER raises, so a deploy migration can call
-    it without risk. ``{"slug", "found", "recipients", "sent"}``.
+    it without risk. ``{"slug", "found", "recipients", "sent", "configured"}``.
+    ``configured`` is the honest "can this deploy actually deliver mail?" flag
+    (``True`` / ``False`` / ``None`` if the preflight couldn't run).
     """
-    result = {"slug": slug, "found": False, "recipients": 0, "sent": 0}
+    result = {
+        "slug": slug,
+        "found": False,
+        "recipients": 0,
+        "sent": 0,
+        "configured": None,
+    }
     try:
         from apps.schools.models import School
         from apps.schools.welcome_email import send_welcome_email
@@ -57,6 +65,26 @@ def dispatch_setup_email_for_slug(slug: str) -> dict:
         if school is None:
             return result
         result["found"] = True
+
+        # Honest preflight: record + loudly log whether transactional mail is
+        # actually configured, so a deploy that "ran the dispatch" but delivered
+        # nothing (Brevo secrets empty) leaves a clear breadcrumb in the release
+        # log instead of a silent 0-sent. Never gates the attempt.
+        try:
+            from apps.schoolops.email_delivery import transactional_email_configured
+
+            result["configured"] = bool(transactional_email_configured(school=school))
+        except Exception:  # noqa: BLE001 — preflight is advisory, never fatal
+            result["configured"] = None
+        if result["configured"] is False:
+            logger.warning(
+                "deploy_dispatch: transactional email is NOT configured "
+                "(Brevo EMAIL_HOST_USER / EMAIL_HOST_PASSWORD empty) — the "
+                "setup email for slug=%s will be attempted but not delivered "
+                "until those secrets are set.",
+                slug,
+            )
+
         emails = _active_owner_emails(school)
         result["recipients"] = len(emails)
         for email in emails:

@@ -112,6 +112,27 @@ class Command(BaseCommand):
 
         self.stdout.write(f"{label}: {len(recipients)} recipient(s).")
 
+        # Honest preflight: if the platform's transactional mail isn't wired up
+        # (Brevo secrets empty), say so LOUDLY up front — otherwise every row
+        # below reads as a bland "skipped" and the operator is left guessing why
+        # nothing arrived. Advisory only; the send itself stays authoritative.
+        mail_ready = True
+        try:
+            from apps.schoolops.email_delivery import transactional_email_configured
+
+            mail_ready = transactional_email_configured(school=school)
+        except Exception:  # noqa: BLE001 — a preflight must never abort the command
+            mail_ready = True
+        if not dry_run and not mail_ready:
+            self.stdout.write(
+                self.style.WARNING(
+                    "  Transactional email is NOT configured "
+                    "(Brevo EMAIL_HOST_USER / EMAIL_HOST_PASSWORD are empty). "
+                    "Sends below will be attempted and audited but will NOT be "
+                    "delivered until those two secrets are set in the environment."
+                )
+            )
+
         from apps.schools.welcome_email import send_welcome_email
 
         sent = 0
@@ -127,10 +148,13 @@ class Command(BaseCommand):
                     "resend_owner_setup_email.sent school=%s", getattr(school, "pk", None)
                 )
             else:
+                reason = (
+                    "email not configured — set Brevo EMAIL_HOST_USER / EMAIL_HOST_PASSWORD"
+                    if not mail_ready
+                    else "send failed, or no matching owner account"
+                )
                 self.stdout.write(
-                    self.style.WARNING(
-                        f"  skipped -> {email} (mail not configured, or no such owner)"
-                    )
+                    self.style.WARNING(f"  skipped -> {email} ({reason})")
                 )
 
         if dry_run:

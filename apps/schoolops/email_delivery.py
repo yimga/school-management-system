@@ -437,6 +437,28 @@ def get_resolved_smtp_config(*, school=None) -> dict:
     return merged
 
 
+def transactional_email_configured(*, school=None) -> bool:
+    """Whether the platform can actually DELIVER a transactional email right now.
+
+    A lightweight, no-network preflight: the resolved SMTP config must carry a
+    host AND non-empty credentials. On RunMyCampus the Brevo secrets
+    (``EMAIL_HOST_USER`` / ``EMAIL_HOST_PASSWORD``) default to empty, so a send
+    silently fails auth and :func:`send_transactional` returns ``ok=False`` — a
+    "skipped" that reads like "no recipient" rather than "mail isn't set up".
+    Callers use this to tell an operator the truth up front. Does NOT open a
+    socket; use :func:`smtp_probe` for a live connection check.
+    """
+    try:
+        cfg = get_resolved_smtp_config(school=school)
+    except Exception:  # noqa: BLE001 — a preflight predicate must never raise
+        return False
+    return bool(
+        (cfg.get("host") or "").strip()
+        and (cfg.get("host_user") or "").strip()
+        and (cfg.get("host_password") or "").strip()
+    )
+
+
 def _load_tenant_school_override(school) -> dict | None:
     """Tenant BYO-SMTP from ``School.settings['email_delivery']`` when enabled."""
     if school is None:

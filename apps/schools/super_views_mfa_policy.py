@@ -17,7 +17,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
@@ -109,12 +109,19 @@ def tenant_mfa_policy(request, school_id):
             }
         )
 
+    # Back/Cancel returns to the tenant's 360 page — the operator surface this
+    # screen is linked from — falling back to the dashboard if that reverse
+    # ever fails.
+    try:
+        back_url = reverse("super:tenant_360", args=[str(school.pk)])
+    except NoReverseMatch:
+        back_url = reverse("super:dashboard")
     context = {
         "school": school,
         "require_all_staff": bool(stored.get("require_all_staff")),
         "role_rows": role_rows,
         "baseline_roles": baseline,
-        "back_url": reverse("super:dashboard"),
+        "back_url": back_url,
         "dashboard_url": reverse("super:dashboard"),
     }
     return render(request, "schools/super/tenant_mfa_policy.html", context)

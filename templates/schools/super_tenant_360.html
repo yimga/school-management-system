@@ -60,7 +60,10 @@
           <p class="mb-1"><strong>{% trans "Billing account" %}:</strong> {{ lifecycle.billing_account_status|default:"-" }}</p>
           <p class="mb-1"><strong>{% trans "Billing type" %}:</strong> {{ lifecycle.billing_type|default:"-" }}</p>
           <p class="mb-2"><strong>{% trans "Trial end" %}:</strong> {{ lifecycle.trial_end_date|format_date:"YYYY-MM-DD"|default:"-" }}</p>
-          <p class="mb-2"><a class="btn btn-sm btn-outline-primary py-0" href="{% url 'super:tenant_subscription_manage' school_id=school.id %}">{% trans "Manage subscription" %}</a></p>
+          <p class="mb-2 d-flex flex-wrap gap-2">
+            <a class="btn btn-sm btn-outline-primary py-0" href="{% url 'super:tenant_subscription_manage' school_id=school.id %}">{% trans "Manage subscription" %}</a>
+            <a class="btn btn-sm btn-outline-primary py-0" href="{% url 'super:tenant_mfa_policy' school_id=school.id %}">{% trans "MFA policy" %}</a>
+          </p>
           <p class="mb-1"><strong>{% trans "Blueprint" %}:</strong> {{ blueprint_code|default:"-" }}</p>
           <p class="mb-3"><strong>{% trans "Policy sections" %}:</strong> {{ policy_summary|default:"-" }}</p>
           <div class="d-flex flex-wrap gap-2">

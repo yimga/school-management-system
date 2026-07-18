@@ -106,3 +106,37 @@ class ResendOwnerSetupEmailTests(TestCase):
         ):
             out = self._run("--school", "gilead-tech")
         self.assertIn("skipped", out)
+
+    def test_loud_preflight_when_mail_not_configured(self):
+        # When the Brevo secrets are empty, the operator gets a clear up-front
+        # warning naming the two env vars — not a bare "skipped".
+        with mock.patch(
+            "apps.schools.welcome_email.send_welcome_email", return_value=False
+        ), mock.patch(
+            "apps.schoolops.email_delivery.transactional_email_configured",
+            return_value=False,
+        ):
+            out = self._run("--school", "gilead-tech")
+        self.assertIn("NOT configured", out)
+        self.assertIn("EMAIL_HOST_USER", out)
+        self.assertIn("set Brevo", out)
+
+    def test_no_preflight_warning_when_mail_configured(self):
+        with mock.patch(
+            "apps.schools.welcome_email.send_welcome_email", return_value=True
+        ), mock.patch(
+            "apps.schoolops.email_delivery.transactional_email_configured",
+            return_value=True,
+        ):
+            out = self._run("--school", "gilead-tech")
+        self.assertNotIn("NOT configured", out)
+        self.assertIn("sent/queued", out)
+
+    def test_dry_run_has_no_preflight_warning(self):
+        # Dry-run doesn't send, so it doesn't warn about delivery config.
+        with mock.patch(
+            "apps.schoolops.email_delivery.transactional_email_configured",
+            return_value=False,
+        ):
+            out = self._run("--school", "gilead-tech", "--dry-run")
+        self.assertNotIn("NOT configured", out)

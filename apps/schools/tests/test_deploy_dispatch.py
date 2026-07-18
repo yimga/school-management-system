@@ -81,6 +81,44 @@ class DispatchSetupEmailTests(TestCase):
         self.assertEqual(result["sent"], 0)
         self.assertTrue(result["found"])
 
+    def test_reports_configured_true(self):
+        school = _school("gilead-tech")
+        _owner(school)
+        with mock.patch(_SEND, return_value=True), mock.patch(
+            "apps.schoolops.email_delivery.transactional_email_configured",
+            return_value=True,
+        ):
+            result = dispatch_setup_email_for_slug("gilead-tech")
+        self.assertIs(result["configured"], True)
+        self.assertEqual(result["sent"], 1)
+
+    def test_reports_configured_false_and_still_attempts(self):
+        # Unconfigured mail must be reported honestly (configured=False) — but the
+        # send is still ATTEMPTED (the send layer is authoritative, and a correctly
+        # configured deploy must deliver). The loud WARNING log is emitted here too,
+        # but the test settings call logging.disable(CRITICAL), so we assert the
+        # observable contract (the flag) rather than the swallowed log record.
+        school = _school("gilead-tech")
+        _owner(school)
+        with mock.patch(_SEND, return_value=True) as send, mock.patch(
+            "apps.schoolops.email_delivery.transactional_email_configured",
+            return_value=False,
+        ):
+            result = dispatch_setup_email_for_slug("gilead-tech")
+        self.assertIs(result["configured"], False)
+        send.assert_called_once()
+
+    def test_configured_none_when_preflight_unavailable(self):
+        school = _school("gilead-tech")
+        _owner(school)
+        with mock.patch(_SEND, return_value=True), mock.patch(
+            "apps.schoolops.email_delivery.transactional_email_configured",
+            side_effect=RuntimeError("import blew up"),
+        ):
+            result = dispatch_setup_email_for_slug("gilead-tech")
+        self.assertIsNone(result["configured"])
+        self.assertEqual(result["sent"], 1)
+
 
 class MigrationDispatchNoopUnderTestsTests(TestCase):
     def test_migration_function_skips_under_running_tests(self):

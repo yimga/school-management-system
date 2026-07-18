@@ -67,6 +67,11 @@ class SuperMfaPolicyViewTests(TestCase):
         self.assertEqual(captured["school"], self.school)
         # At least one role row is a locked floor role (e.g. ADMIN).
         self.assertTrue(any(r["locked"] for r in captured["role_rows"]))
+        # Back/Cancel returns to the tenant-360 page this screen is linked from.
+        self.assertEqual(
+            captured["back_url"],
+            f"/super/tenants/{self.school.pk}/360/",
+        )
 
     def test_operator_post_writes_policy_and_excludes_floor(self):
         resp = tenant_mfa_policy(
