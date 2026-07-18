@@ -12,6 +12,8 @@ even for finance / super-admin roles — this module closes that gap.
 
 from __future__ import annotations
 
+from collections import namedtuple
+
 from django.conf import settings
 
 
@@ -31,14 +33,30 @@ BASELINE_REQUIRED_ROLES: tuple[str, ...] = (
 )
 
 
-def effective_required_roles(tenant_required: list[str] | tuple[str, ...] | None) -> set[str]:
-    """Return the union of baseline + tenant-configured + setting-driven roles.
+def effective_required_roles(
+    tenant_required: list[str] | tuple[str, ...] | None,
+    operator_required: list[str] | tuple[str, ...] | None = None,
+) -> set[str]:
+    """Return the union of baseline + operator + tenant + setting-driven roles.
+
+    The set is layered so it can only ever get STRICTER, never weaker:
+
+    * ``BASELINE_REQUIRED_ROLES`` — the platform floor (finance/admin/auditor …);
+      neither operator nor tenant can subtract from it.
+    * ``operator_required`` — an operator's per-tenant policy (see
+      ``resolve_operator_mfa``); a tenant can add to it but not remove it, because
+      this is a union.
+    * ``tenant_required`` — the tenant's own ``require_mfa_roles``.
+    * ``settings.MFA_REQUIRED_ROLES_EXTRA`` — a platform-wide operator lever.
 
     All entries are normalised to upper-case strings.
     """
     out: set[str] = set()
     for r in BASELINE_REQUIRED_ROLES:
         out.add(r.upper())
+    for r in operator_required or ():
+        if r:
+            out.add(str(r).strip().upper())
     for r in tenant_required or ():
         if r:
             out.add(str(r).strip().upper())
@@ -54,6 +72,55 @@ def role_requires_mfa(role: str | None, tenant_required: list[str] | tuple[str, 
     if not role:
         return False
     return str(role).strip().upper() in effective_required_roles(tenant_required)
+
+
+#: Operator-set MFA policy for a tenant — sits ABOVE the tenant's own settings and
+#: BELOW nothing but the baseline floor. A tenant can only ADD to it.
+OperatorMfaPolicy = namedtuple("OperatorMfaPolicy", ("require_all_staff", "required_roles"))
+
+
+def _truthy(value: object) -> bool:
+    return str(value or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def resolve_operator_mfa(school=None, *, request=None) -> "OperatorMfaPolicy":
+    """The operator's MFA policy for a tenant (Operator + tenant, with floor).
+
+    Operators set this per-tenant WITHOUT a migration through the operator config
+    cascade (``RuntimeDefaults`` / ``School.settings['runtime_defaults']``): the
+    keys ``mfa_operator_require_all_staff`` and ``mfa_operator_required_roles``.
+    No tenant-facing form writes those keys, so a tenant cannot weaken them — and
+    because the resolver unions everything (see ``effective_required_roles``), a
+    tenant can only tighten. A platform-wide switch
+    ``settings.MFA_OPERATOR_REQUIRE_ALL_STAFF`` applies to every tenant.
+
+    Fail-soft: any lookup error yields an empty (no-op) policy, so a broken config
+    read never removes MFA that the baseline floor already requires.
+    """
+    require_all_staff = _truthy(getattr(settings, "MFA_OPERATOR_REQUIRE_ALL_STAFF", ""))
+    required_roles: list[str] = []
+    if school is not None:
+        try:
+            from apps.platform_runtime.config_resolver import get_effective_config
+
+            per_tenant_all = get_effective_config(
+                school, "mfa_operator_require_all_staff", request=request, default=None
+            )
+            if per_tenant_all is not None:
+                require_all_staff = require_all_staff or _truthy(per_tenant_all)
+
+            roles = get_effective_config(
+                school, "mfa_operator_required_roles", request=request, default=None
+            )
+            if isinstance(roles, (list, tuple)):
+                required_roles = [str(r) for r in roles if r]
+            elif isinstance(roles, str) and roles.strip():
+                required_roles = [
+                    part for part in roles.replace(",", " ").split() if part
+                ]
+        except Exception:  # noqa: BLE001 — a broken config read must never drop MFA
+            pass
+    return OperatorMfaPolicy(bool(require_all_staff), tuple(required_roles))
 
 
 # ---------------------------------------------------------------------------
@@ -78,7 +145,6 @@ def role_requires_mfa(role: str | None, tenant_required: list[str] | tuple[str, 
 # ``resolve_mfa_enforcement`` below. Until that anchor lands, prefer "optional"
 # for a platform-wide default and reserve "grace" for new-tenant cohorts.
 
-from collections import namedtuple
 from datetime import timedelta
 
 from django.utils import timezone
@@ -170,6 +236,8 @@ __all__ = [
     "BASELINE_REQUIRED_ROLES",
     "effective_required_roles",
     "role_requires_mfa",
+    "OperatorMfaPolicy",
+    "resolve_operator_mfa",
     "MFA_MODE_STRICT",
     "MFA_MODE_GRACE",
     "MFA_MODE_OPTIONAL",

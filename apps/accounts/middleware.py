@@ -779,14 +779,24 @@ class RequireMFAMiddleware:
             from apps.accounts.mfa_defaults import (
                 effective_required_roles,
                 resolve_mfa_enforcement,
+                resolve_operator_mfa,
             )
 
+            # Operator + tenant, with floor: the operator's per-tenant policy is
+            # OR-ed into "all staff" and unioned into the required roles above the
+            # tenant's own settings; a tenant can only tighten, never weaken it,
+            # and neither can drop below the baseline floor.
+            operator_policy = resolve_operator_mfa(
+                getattr(request, "school", None), request=request
+            )
             role = get_user_role(user, getattr(request, "school", None))
             must_have_mfa = False
-            if require_all_staff and user.is_staff:
+            if (require_all_staff or operator_policy.require_all_staff) and user.is_staff:
                 must_have_mfa = True
             else:
-                required_normalized = effective_required_roles(required_roles)
+                required_normalized = effective_required_roles(
+                    required_roles, operator_required=operator_policy.required_roles
+                )
                 if role and str(role).strip().upper() in required_normalized:
                     must_have_mfa = True
 
