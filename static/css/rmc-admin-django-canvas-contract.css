@@ -2642,6 +2642,22 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
   gap: 0.65rem !important;
 }
 
+[data-rmc-shell-root="django-admin"] .rmc-django-preview-iframe-wrap {
+  width: 100%;
+  min-height: 18rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.5rem);
+  overflow: hidden;
+  background: var(--surface-bg);
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-preview-iframe-wrap iframe {
+  display: block;
+  width: 100%;
+  min-height: 18rem;
+  border: 0;
+}
+
 /* G6: pagination inside table panel */
 [data-rmc-shell-root="django-admin"] [data-rmc-django-table-pagination] {
   margin-top: 0.75rem !important;

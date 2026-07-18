@@ -83,7 +83,7 @@
 
 .rmc-lifecycle-journey__step.is-done .rmc-lifecycle-journey__check {
   background: var(--color-success, #22c55e);
-  color: #fff;
+  color: var(--surface-bg);
 }
 
 .rmc-lifecycle-journey__link {

@@ -18,6 +18,11 @@
   margin-bottom: 0.75rem;
 }
 
+.rmc-pressing-issues__header-text {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .rmc-pressing-issues__title {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -102,16 +107,16 @@
   color: var(--bs-danger, #dc2626);
 }
 .rmc-pressing-issues__metric--danger {
-  border-color: rgba(220, 38, 38, 0.2);
-  background: rgba(220, 38, 38, 0.03);
+  border-color: color-mix(in srgb, var(--bs-danger) 20%, transparent);
+  background: color-mix(in srgb, var(--bs-danger) 3%, transparent);
 }
 
 .rmc-pressing-issues__metric--warning .rmc-pressing-issues__metric-count {
   color: var(--bs-warning, #d97706);
 }
 .rmc-pressing-issues__metric--warning {
-  border-color: rgba(217, 119, 6, 0.2);
-  background: rgba(217, 119, 6, 0.03);
+  border-color: color-mix(in srgb, var(--bs-warning) 20%, transparent);
+  background: color-mix(in srgb, var(--bs-warning) 3%, transparent);
 }
 
 .rmc-pressing-issues__metric--info .rmc-pressing-issues__metric-count {
@@ -179,17 +184,17 @@
 }
 
 .rmc-pressing-issues__item-badge--danger {
-  background: rgba(220, 38, 38, 0.1);
+  background: color-mix(in srgb, var(--bs-danger) 10%, transparent);
   color: var(--bs-danger, #dc2626);
 }
 
 .rmc-pressing-issues__item-badge--warning {
-  background: rgba(217, 119, 6, 0.1);
+  background: color-mix(in srgb, var(--bs-warning) 10%, transparent);
   color: var(--bs-warning, #b45309);
 }
 
 .rmc-pressing-issues__item-badge--info {
-  background: rgba(79, 70, 229, 0.08);
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
   color: var(--brand-primary, #4f46e5);
 }
 
