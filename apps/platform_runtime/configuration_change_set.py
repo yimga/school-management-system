@@ -115,7 +115,21 @@ def generate_blueprint_change_set(
         "external_blockers": dependencies.get("blocked_by_external", []),
         "rollback_coverage": preview.get("rollback_plan", {}),
         "can_apply": can_apply,
-        "requires_approval": blueprint.platform_only or "destructive" in impact.get("impact_categories", []) or bool(dependencies.get("blocked_by_external")),
+        # Governance approval is required for cross-tenant / operator-owned blueprints
+        # (platform_only OR requires_platform_operator), genuinely destructive impact,
+        # or a declared apply-time external blocker. requires_platform_operator is
+        # checked explicitly here so an operator-network blueprint stays gated even
+        # when it declares no external_dependencies — the apply layer already refuses
+        # it (blueprint_apply.py), so the change-set must agree. A conditional go-live
+        # payment proof belongs in external_required_items (a go-live gate surfaced on
+        # the payment-readiness path), NOT external_dependencies, so it never forces
+        # approval on an otherwise self-service tenant blueprint apply.
+        "requires_approval": (
+            blueprint.platform_only
+            or blueprint.requires_platform_operator
+            or "destructive" in impact.get("impact_categories", [])
+            or bool(dependencies.get("blocked_by_external"))
+        ),
         "requires_confirmation": bool(preview.get("requires_confirmation")),
         "risk_level": risk_level,
         "dependency_blockers": blockers,

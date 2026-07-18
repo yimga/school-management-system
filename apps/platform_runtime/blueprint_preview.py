@@ -311,8 +311,8 @@ def preview_blueprint(
             blueprint_key=blueprint.key,
             school=school,
             actor=actor,
-            result="blocked" if conflicts else "ok",
-            payload={"can_apply": can_apply},
+            result="blocked" if result["conflicts"] else "ok",
+            payload={"can_apply": result["can_apply"]},
         )
         if event:
             result["audit_summary"]["last_audit_id"] = event.pk

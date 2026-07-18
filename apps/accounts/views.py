@@ -3412,6 +3412,12 @@ def backend_dashboard(request):
         context.setdefault("kpi_strip_cards", [])
     context["open_webui_url"] = getattr(settings, "OPEN_WEBUI_URL", None) or ""
     try:
+        from apps.dashboard.pressing_issues import build_tenant_pressing_issues
+
+        context["pressing_issues"] = build_tenant_pressing_issues(request)
+    except ACCOUNTS_SOFT_FAILURES:
+        context["pressing_issues"] = None
+    try:
         from apps.dashboard.services.insight_anomalies import (
             build_insight_anomaly_cards,
         )

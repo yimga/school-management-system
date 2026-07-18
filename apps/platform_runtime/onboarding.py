@@ -12,6 +12,20 @@ from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
+RUNTIME_TO_CATALOG_KEY: dict[str, str | None] = {
+    "academic_year": "calendar.academic_year",
+    "teachers": "people.teachers",
+    "students": "students.import",
+    "classes": "curriculum.classrooms",
+    "ccc": "brand.domain",
+    "data_migration": "students.import",
+    "guided_configuration": "brand.identity",
+    "departments": None,
+    "reports": None,
+    "marketplace": None,
+    "plan_entitlements": "finance.currency",
+}
+
 
 def onboarding_import_quality_display(percent: int) -> dict[str, str]:
     """Map checklist completion to data-quality meter token + label."""
@@ -256,11 +270,20 @@ def get_onboarding_steps(
         if r.get("key") in manual and not r.get("done"):
             r["done"] = True
             r["manually_completed"] = True
-        cat_entry = catalog.get(r.get("key") or "")
+        raw_key = r.get("key") or ""
+        mapped = RUNTIME_TO_CATALOG_KEY.get(raw_key, raw_key)
+        cat_entry = None
+        if mapped is not None:
+            cat_entry = catalog.get(mapped) or catalog.get(raw_key)
+        else:
+            cat_entry = catalog.get(raw_key)
         if cat_entry:
-            for cat_key in ("label", "description", "audience", "estimated_minutes", "deep_link"):
-                if cat_key in cat_entry and cat_key not in r:
-                    r[cat_key] = cat_entry[cat_key]
+            r["catalog_key"] = mapped if mapped is not None else raw_key
+            for field in ("label", "description", "audience", "estimated_minutes", "deep_link"):
+                if field in cat_entry and field not in r:
+                    r[field] = cat_entry[field]
+        else:
+            r["catalog_key"] = raw_key
         out.append(r)
     return out
 
@@ -279,6 +302,135 @@ def get_blueprint_recommended_onboarding_steps(
     except Exception:  # noqa: BLE001
         return []
     return steps_for_blueprint(blueprint_slug)
+
+
+def _resolve_step_link(step: dict[str, Any]) -> str:
+    """Prefer a real href; reverse catalog ``deep_link`` URL names when needed."""
+    link = str(step.get("link") or "").strip()
+    if link.startswith("/") or link.startswith("http://") or link.startswith("https://"):
+        return link
+    deep = str(step.get("deep_link") or "").strip()
+    candidate = deep or link
+    if not candidate:
+        return ""
+    if candidate.startswith("/") or candidate.startswith("http://") or candidate.startswith("https://"):
+        return candidate
+    return _reverse_tenant(candidate)
+
+
+def build_lifecycle_journey(
+    school,
+    user: Optional[Any] = None,
+    blueprint_slug: Optional[str] = None,
+) -> dict[str, Any]:
+    """Ordered journey merging blueprint catalog order with runtime completion.
+
+    Returns::
+
+        {
+            "title": str,
+            "percent": int,
+            "steps": [enriched ordered steps],
+            "next_action": {...} | None,
+            "blueprint_slug": str,
+        }
+    """
+    if school is None:
+        return {}
+
+    slug = blueprint_slug or ""
+    if not slug:
+        try:
+            from apps.platform_runtime.models import BlueprintInstallation
+
+            qs = BlueprintInstallation.objects.filter(school_id=school.id).exclude(
+                blueprint_key=""
+            )
+            inst = (
+                qs.filter(
+                    status__in=(
+                        BlueprintInstallation.Status.APPLIED,
+                        BlueprintInstallation.Status.PARTIALLY_APPLIED,
+                    )
+                )
+                .order_by("-updated_at", "-id")
+                .first()
+                or qs.order_by("-updated_at", "-id").first()
+            )
+            if inst is not None:
+                slug = (inst.blueprint_key or "").strip()
+        except Exception:  # noqa: BLE001
+            slug = ""
+    if not slug:
+        try:
+            settings = getattr(school, "settings", None) or {}
+            if isinstance(settings, dict):
+                slug = (
+                    str(settings.get("blueprint_key") or settings.get("blueprint_slug") or "")
+                    .strip()
+                )
+        except Exception:  # noqa: BLE001
+            slug = ""
+
+    runtime_steps = get_onboarding_steps(school, user=user)
+    runtime_by_key: dict[str, dict] = {}
+    runtime_by_catalog: dict[str, dict] = {}
+    for s in runtime_steps:
+        runtime_by_key[s.get("key", "")] = s
+        ck = s.get("catalog_key", "")
+        if ck:
+            runtime_by_catalog[ck] = s
+
+    blueprint_ordered = get_blueprint_recommended_onboarding_steps(slug or None)
+
+    merged: list[dict[str, Any]] = []
+    seen_runtime_keys: set[str] = set()
+
+    for bp_step in blueprint_ordered:
+        bp_key = bp_step.get("key", "")
+        matched = runtime_by_catalog.get(bp_key) or runtime_by_key.get(bp_key)
+        if matched:
+            entry = dict(matched)
+            entry.setdefault("catalog_key", bp_key)
+            for field in ("description", "audience", "estimated_minutes", "deep_link"):
+                if field in bp_step and field not in entry:
+                    entry[field] = bp_step[field]
+            merged.append(entry)
+            seen_runtime_keys.add(matched.get("key", ""))
+        else:
+            entry = dict(bp_step)
+            entry.setdefault("done", False)
+            merged.append(entry)
+
+    for s in runtime_steps:
+        if s.get("key", "") not in seen_runtime_keys:
+            merged.append(dict(s))
+
+    for s in merged:
+        href = _resolve_step_link(s)
+        if href:
+            s["link"] = href
+
+    total = len(merged)
+    done = sum(1 for s in merged if s.get("done"))
+    percent = int(round(100 * done / total)) if total else 0
+
+    next_action = None
+    for s in merged:
+        if not s.get("done") and (s.get("link") or "").strip():
+            next_action = {
+                "label": s.get("label", ""),
+                "url": s["link"],
+            }
+            break
+
+    return {
+        "title": _("Activation journey"),
+        "percent": percent,
+        "steps": merged,
+        "next_action": next_action,
+        "blueprint_slug": slug or "default",
+    }
 
 
 # Backward compatibility / existing imports

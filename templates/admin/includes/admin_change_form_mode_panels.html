@@ -6,26 +6,50 @@
 <section class="rmc-django-mode-panel rmc-django-mode-panel--preview" data-rmc-django-mode-panel="preview" hidden aria-label="{% trans 'Preview workspace' %}">
   <div class="rmc-django-mode-panel__head">
     <h2>{% trans "Live preview" %}</h2>
-    <p>{% trans "Preview opens as drawer, popout, or new tab when an inline pane would cramp the form." %}</p>
+    {% if rmc_admin_preview_url or has_absolute_url %}
+    <p>{% trans "Preview opens as drawer, popout, or new tab." %}</p>
+    {% else %}
+    <p>{% trans "No preview URL available for this object. Model-specific previews mount here when the object defines get_absolute_url." %}</p>
+    {% endif %}
   </div>
   <div class="rmc-django-mode-panel__body">
-    <div class="rmc-django-preview-stage" data-rmc-django-preview-stage="1">
+    <div class="rmc-django-preview-stage" data-rmc-django-preview-stage="1" data-rmc-admin-preview-url="{% if rmc_admin_preview_url %}{{ rmc_admin_preview_url }}{% elif has_absolute_url %}{{ absolute_url }}{% endif %}">
+      {% if rmc_admin_preview_url or has_absolute_url %}
+      <div class="rmc-django-preview-iframe-wrap" data-rmc-django-preview-iframe-mount="1">
+      </div>
+      {% else %}
       {% include "admin/includes/admin_preview_card_stage.html" %}
+      {% endif %}
       <div class="rmc-django-preview-cta-row">
-        {% if has_absolute_url %}
-        <a class="rmc-django-preview-cta" href="{{ absolute_url }}" target="_blank" rel="noopener">
-          <span aria-hidden="true">↗</span> {% trans "Open live surface" %}
-        </a>
-        {% endif %}
+        {% if rmc_admin_preview_url or has_absolute_url %}
+        <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="drawer">
+          <span aria-hidden="true">▣</span> {% trans "Drawer" %}
+        </button>
+        <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="popout">
+          <span aria-hidden="true">⧉</span> {% trans "Popout" %}
+        </button>
+        <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="tab">
+          <span aria-hidden="true">↗</span> {% trans "New tab" %}
+        </button>
+        {% else %}
         <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="drawer">
           <span aria-hidden="true">▣</span> {% trans "Open preview drawer" %}
         </button>
+        {% endif %}
       </div>
       <p class="rmc-django-mode-panel__hint">
-        {% if is_manager_host %}
-          {% trans "Operator preview stays read-only. Prefer popout when the control rail is already dense." %}
+        {% if rmc_admin_preview_url or has_absolute_url %}
+          {% if is_manager_host %}
+            {% trans "Operator preview stays read-only. Popout opens a separate window; new tab opens in the browser." %}
+          {% else %}
+            {% trans "Tenant preview stays school-scoped. Popout opens a separate window; new tab opens in the browser." %}
+          {% endif %}
         {% else %}
-          {% trans "Tenant preview stays school-scoped. Prefer popout when the control rail is already dense." %}
+          {% if is_manager_host %}
+            {% trans "Operator preview stays read-only. Prefer popout when the control rail is already dense." %}
+          {% else %}
+            {% trans "Tenant preview stays school-scoped. Prefer popout when the control rail is already dense." %}
+          {% endif %}
         {% endif %}
       </p>
     </div>

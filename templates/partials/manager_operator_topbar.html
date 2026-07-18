@@ -36,9 +36,9 @@
         <div class="rmc-platform-header__command d-none d-md-flex" id="cpNavbarContent">
           <div class="cp-header-search cp-topbar-search-wrap position-relative w-100">
             <label class="visually-hidden" for="cpSearchInput">{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans "Search models and records" %}{% else %}{% trans "Search schools and incidents" %}{% endif %}</label>
-            <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Search models, fields, records, audit events…' %}{% else %}{% trans 'Search schools, incidents…' %}{% endif %}" id="cpSearchInput" autocomplete="off">
-            <kbd class="cp-search-kbd" aria-hidden="true" data-rmc-hide-when-focused>{% trans "Ctrl K" %}</kbd>
-            <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" aria-label="{% trans 'Search results' %}"></div>
+            <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Search models, fields, records, audit events…' %}{% else %}{% trans 'Search schools, incidents…' %}{% endif %}" id="cpSearchInput" autocomplete="off" aria-haspopup="listbox">
+            <kbd class="cp-search-kbd" aria-hidden="true" data-rmc-hide-when-focused title="{% trans 'Press / to focus · ⌘K for commands' %}">/</kbd>
+            <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 top-100 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" role="listbox" aria-label="{% trans 'Search results' %}" aria-hidden="true"></div>
           </div>
         </div>
         {% endif %}
@@ -77,7 +77,8 @@
           {% endif %}
           {% endif %}
           <div class="cp-header-search cp-topbar-search-wrap position-relative d-md-none flex-grow-1 w-100">
-            <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1">
+            <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" id="cpSearchInputMobile" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1" aria-haspopup="listbox">
+            <div id="cpSearchResultsMobile" class="dropdown-menu position-absolute start-0 top-100 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" role="listbox" aria-label="{% trans 'Search results' %}" aria-hidden="true"></div>
           </div>
           {% if request.user.is_authenticated %}
             {% comment %} v4.00.25 — Traffic-light security shield.

@@ -568,12 +568,20 @@ def super_dashboard_v2(request):
     if current_request_month:
         cockpit_export_pdf_url = f"{cockpit_export_pdf_url}?month={current_request_month}"
 
+    try:
+        from apps.dashboard.pressing_issues import build_operator_pressing_issues
+
+        pressing_issues = build_operator_pressing_issues(request)
+    except CONTROL_PLANE_METRIC_FAILURES:
+        pressing_issues = None
+
     request.rmc_cp_globe_landing_minimal_chrome = True
     request.rmc_cp_globe_deck_v2 = True
     response = render(
         request,
         "schools/super_dashboard.html",
         {
+            "pressing_issues": pressing_issues,
             "schools": schools,
             "registry_page": registry_page,
             "registry_search": registry_search,

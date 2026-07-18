@@ -56,6 +56,46 @@
     }
   }
 
+  function resolvePreviewUrl() {
+    var stage = document.querySelector("[data-rmc-admin-preview-url]");
+    if (stage) {
+      var url = stage.getAttribute("data-rmc-admin-preview-url");
+      if (url && url.trim()) return url.trim();
+    }
+    var ws = document.querySelector("[data-rmc-django-workspace]");
+    if (ws) {
+      var wsUrl = ws.getAttribute("data-rmc-admin-preview-url");
+      if (wsUrl && wsUrl.trim()) return wsUrl.trim();
+    }
+    return "";
+  }
+
+  function mountIframeInDrawer(drawer, url) {
+    var body = drawer.querySelector("[data-rmc-django-preview-drawer-body]");
+    if (!body) return;
+    body.innerHTML = "";
+    var iframe = document.createElement("iframe");
+    iframe.src = url;
+    iframe.className = "rmc-admin-preview-iframe";
+    iframe.setAttribute("loading", "lazy");
+    iframe.setAttribute("title", "Live preview");
+    iframe.style.cssText = "width:100%;height:480px;border:0;border-radius:var(--radius-lg,0.5rem);";
+    body.appendChild(iframe);
+  }
+
+  function mountIframeInStage(url) {
+    var mount = document.querySelector("[data-rmc-django-preview-iframe-mount]");
+    if (!mount) return;
+    if (mount.querySelector("iframe")) return;
+    var iframe = document.createElement("iframe");
+    iframe.src = url;
+    iframe.className = "rmc-admin-preview-iframe";
+    iframe.setAttribute("loading", "lazy");
+    iframe.setAttribute("title", "Live preview");
+    iframe.style.cssText = "width:100%;height:480px;border:0;border-radius:var(--radius-lg,0.5rem);";
+    mount.appendChild(iframe);
+  }
+
   function openPreviewDrawer() {
     var existing = document.querySelector(".rmc-mv-preview-drawer:not([hidden])");
     if (existing) return;
@@ -65,8 +105,27 @@
       return;
     }
     var drawer = ensurePreviewDrawer();
-    mountPreviewStageInDrawer(drawer);
+    var url = resolvePreviewUrl();
+    if (url) {
+      mountIframeInDrawer(drawer, url);
+    } else {
+      mountPreviewStageInDrawer(drawer);
+    }
     drawer.removeAttribute("hidden");
+  }
+
+  function openPreviewPopout(url) {
+    var w = window.open(url, "rmc-admin-preview", "popup,width=1280,height=900");
+    if (!w || w.closed) {
+      openPreviewDrawer();
+    }
+  }
+
+  function openPreviewTab(url) {
+    var w = window.open(url, "_blank", "noopener");
+    if (!w || w.closed) {
+      openPreviewDrawer();
+    }
   }
 
   function closePreviewDrawer(drawer) {
@@ -101,7 +160,12 @@
       else panel.setAttribute("hidden", "");
     });
 
-    if (mode !== "preview") closePreviewDrawer();
+    if (mode === "preview") {
+      var pUrl = resolvePreviewUrl();
+      if (pUrl) mountIframeInStage(pUrl);
+    } else {
+      closePreviewDrawer();
+    }
   }
 
   function initViewToggle() {
@@ -143,7 +207,15 @@
       var openBtn = ev.target.closest("[data-rmc-django-preview-open]");
       if (openBtn) {
         ev.preventDefault();
-        openPreviewDrawer();
+        var mode = openBtn.getAttribute("data-rmc-django-preview-open") || "drawer";
+        var url = resolvePreviewUrl();
+        if (mode === "popout" && url) {
+          openPreviewPopout(url);
+        } else if (mode === "tab" && url) {
+          openPreviewTab(url);
+        } else {
+          openPreviewDrawer();
+        }
         return;
       }
       var closeBtn = ev.target.closest("[data-rmc-django-preview-close]");

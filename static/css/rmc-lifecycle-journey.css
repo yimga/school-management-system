@@ -1,0 +1,121 @@
+/* rmc-lifecycle-journey.css — compact journey navigator */
+
+.rmc-lifecycle-journey {
+  background: var(--surface-elevated, #fff);
+  border: 1px solid var(--hairline, var(--bs-border-color, #e2e8f0));
+  border-radius: var(--radius-lg, 0.5rem);
+  padding: 0.75rem 1rem;
+}
+
+.rmc-lifecycle-journey__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.rmc-lifecycle-journey__title {
+  font-size: var(--type-size-sm, 0.8125rem);
+  font-weight: 600;
+  color: var(--text-primary, var(--bs-body-color, #1e293b));
+}
+
+.rmc-lifecycle-journey__pct {
+  font-size: var(--type-size-sm, 0.8125rem);
+  font-weight: 700;
+  color: var(--text-brand, var(--bs-primary, #4f46e5));
+}
+
+.rmc-lifecycle-journey__bar {
+  height: 4px;
+  background: var(--surface-canvas, #e2e8f0);
+  border-radius: 2px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.rmc-lifecycle-journey__bar-fill {
+  display: block;
+  height: 100%;
+  width: var(--rmc-journey-pct, 0%);
+  background: var(--color-success, #22c55e);
+  border-radius: 2px;
+  transition: width var(--motion-duration-normal, 0.3s) var(--ease-out, ease-out);
+}
+
+.rmc-lifecycle-journey__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rmc-lifecycle-journey__step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--type-size-sm, 0.8125rem);
+  color: var(--text-secondary, #64748b);
+  padding: 0.25rem 0;
+}
+
+.rmc-lifecycle-journey__step.is-done {
+  color: var(--text-muted, #94a3b8);
+  text-decoration: line-through;
+  text-decoration-color: var(--hairline, #cbd5e1);
+}
+
+.rmc-lifecycle-journey__check {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background: var(--surface-canvas, #f1f5f9);
+  color: var(--text-secondary, #64748b);
+}
+
+.rmc-lifecycle-journey__step.is-done .rmc-lifecycle-journey__check {
+  background: var(--color-success, #22c55e);
+  color: #fff;
+}
+
+.rmc-lifecycle-journey__link {
+  color: var(--text-primary, var(--bs-body-color, #1e293b));
+  text-decoration: none;
+}
+
+.rmc-lifecycle-journey__link:hover {
+  text-decoration: underline;
+  color: var(--text-brand, var(--bs-primary, #4f46e5));
+}
+
+.rmc-lifecycle-journey__label {
+  color: inherit;
+}
+
+.rmc-lifecycle-journey__next {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--hairline, var(--bs-border-color, #e2e8f0));
+}
+
+.rmc-lifecycle-journey__next-link {
+  font-size: var(--type-size-sm, 0.8125rem);
+  font-weight: 500;
+  color: var(--text-brand, var(--bs-primary, #4f46e5));
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.rmc-lifecycle-journey__next-link:hover {
+  text-decoration: underline;
+}

@@ -184,18 +184,35 @@ class GlobalSearchAPI(View):
             )
 
         school = getattr(request, "school", None)
+        host_kind = getattr(request, "public_host_kind", None)
+        # Tenant global search must never run unscoped — school context is mandatory
+        # on non-manager hosts (isolation law). Manager uses manager_search_api instead.
+        if host_kind != "manager" and school is None:
+            return JsonResponse(
+                {
+                    "error": "School context required for tenant search.",
+                    "query": query,
+                    "count": 0,
+                    "results": [],
+                },
+                status=403,
+            )
         school_id = getattr(school, "id", None) if school else None
         # Read layer: OpenSearch when configured (non-negotiable integration point)
         want_story = request.GET.get("story") in ("1", "true", "yes")
         try:
             from apps.api.search_read_layer import search as search_read_layer
 
-            data = search_read_layer(
-                q=query,
-                search_type=search_type if search_type != "all" else None,
-                school_id=school_id,
-                limit=limit,
-            )
+            # Refuse OpenSearch without school_id on tenant surface (cross-tenant leak).
+            if school_id is None and host_kind != "manager":
+                data = None
+            else:
+                data = search_read_layer(
+                    q=query,
+                    search_type=search_type if search_type != "all" else None,
+                    school_id=school_id,
+                    limit=limit,
+                )
             if data is not None:
                 if want_story and school:
                     data = dict(data)
@@ -293,14 +310,14 @@ class GlobalSearchAPI(View):
             from apps.people.student_search import filter_students_by_search
 
             role = getattr(user, "role", None)
+            # Hard school scope: never query students without a tenant school.
+            if school is None:
+                return results
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            if school is not None:
-                base = filter_students_by_search(
-                    StudentProfile.objects.filter(is_active=True, school=school),
-                    query,
-                )
-            else:
-                base = StudentProfile.objects.filter(q_object, is_active=True)
+            base = filter_students_by_search(
+                StudentProfile.objects.filter(is_active=True, school=school),
+                query,
+            )
             if user.is_staff or user.is_superuser or role in self.ELEVATED_ROLES:
                 items = base[:limit]
             elif role == User.Role.TEACHER:
@@ -319,11 +336,7 @@ class GlobalSearchAPI(View):
                     .distinct()
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                 )
-                items = StudentProfile.objects.filter(
-                    q_object,
-                    is_active=True,
-                    classroom_id__in=classroom_ids,
-                )[:limit]
+                items = base.filter(classroom_id__in=classroom_ids)[:limit]
             elif role == User.Role.PARENT:
                 from apps.people.models import StudentGuardian
 
@@ -333,19 +346,13 @@ class GlobalSearchAPI(View):
                     can_view_results=True,
                 ).values_list("student_id", flat=True)
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-                items = StudentProfile.objects.filter(
-                    q_object,
-                    is_active=True,
-                    id__in=student_ids,
-                )[:limit]
+                items = base.filter(id__in=student_ids)[:limit]
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             elif role == User.Role.STUDENT:
                 try:
                     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                     StudentProfile._meta.get_field("user")
-                    items = StudentProfile.objects.filter(
-                        q_object, user=user, is_active=True
-                    )[:limit]
+                    items = base.filter(user=user)[:limit]
                 except FieldDoesNotExist:
                     return results
             else:
@@ -369,11 +376,13 @@ class GlobalSearchAPI(View):
             role = getattr(user, "role", None)
             if not (user.is_staff or user.is_superuser or role in self.ELEVATED_ROLES):
                 return results
+            if school is None:
+                return results
 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
-            base = TeacherProfile.objects.filter(q_object, user__is_active=True)
-            if school is not None:
-                base = base.filter(school=school)
+            base = TeacherProfile.objects.filter(
+                q_object, user__is_active=True, school=school
+            )
             items = base[:limit]
             for item in items:
                 results.append(
@@ -391,10 +400,10 @@ class GlobalSearchAPI(View):
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             from apps.academics.models import Classroom
 
+            if school is None:
+                return results
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            base = Classroom.objects.filter(q_object)
-            if school is not None:
-                base = base.filter(school=school)
+            base = Classroom.objects.filter(q_object, school=school)
             items = base[:limit]
             for item in items:
                 results.append(
@@ -413,9 +422,9 @@ class GlobalSearchAPI(View):
             from apps.academics.models import Subject
 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
-            base = Subject.objects.filter(q_object)
-            if school is not None:
-                base = base.filter(school=school)
+            if school is None:
+                return results
+            base = Subject.objects.filter(q_object, school=school)
             items = base[:limit]
             for item in items:
                 results.append(
@@ -435,10 +444,10 @@ class GlobalSearchAPI(View):
             from apps.finance.models import Invoice
 
             role = getattr(user, "role", None)
+            if school is None:
+                return results
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            base = Invoice.objects.filter(q_object)
-            if school is not None:
-                base = base.filter(school=school)
+            base = Invoice.objects.filter(q_object, school=school)
             if user.is_staff or user.is_superuser or role in self.FINANCE_ROLES:
                 items = base[:limit]
             elif role == User.Role.PARENT:

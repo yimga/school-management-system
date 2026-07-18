@@ -1,0 +1,58 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'css/rmc-pressing-issues.css' %}">
+{% if pressing_issues %}
+<section class="rmc-pressing-issues" data-rmc-pressing-scope="{{ pressing_issues.scope }}" aria-label="{{ pressing_issues.title }}">
+  <div class="rmc-pressing-issues__header">
+    <div class="rmc-pressing-issues__header-text">
+      <h3 class="rmc-pressing-issues__title">{{ pressing_issues.title }}</h3>
+      {% if pressing_issues.subtitle %}
+      <p class="rmc-pressing-issues__subtitle">{{ pressing_issues.subtitle }}</p>
+      {% endif %}
+    </div>
+    {% if pressing_issues.primary_cta.url %}
+    <a href="{{ pressing_issues.primary_cta.url }}" class="rmc-pressing-issues__cta">
+      {{ pressing_issues.primary_cta.label }}
+      <i class="bi bi-arrow-right" aria-hidden="true"></i>
+    </a>
+    {% endif %}
+  </div>
+
+  {% if pressing_issues.metrics %}
+  <div class="rmc-pressing-issues__metrics" role="list" aria-label="{% trans 'Key metrics' %}">
+    {% for m in pressing_issues.metrics %}
+    {% if m.url %}
+    <a href="{{ m.url }}" class="rmc-pressing-issues__metric rmc-pressing-issues__metric--{{ m.tone }}" role="listitem" {% if m.hint %}title="{{ m.hint }}"{% endif %}>
+      <span class="rmc-pressing-issues__metric-count">{{ m.count }}</span>
+      <span class="rmc-pressing-issues__metric-label">{{ m.label }}</span>
+    </a>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if pressing_issues.items %}
+  <ul class="rmc-pressing-issues__list" aria-label="{% trans 'Pressing items' %}">
+    {% for item in pressing_issues.items %}
+    {% if item.url %}
+    <li class="rmc-pressing-issues__item rmc-pressing-issues__item--{{ item.tone }}">
+      <a href="{{ item.url }}" class="rmc-pressing-issues__item-link">
+        <span class="rmc-pressing-issues__item-title">{{ item.title }}</span>
+        {% if item.badge %}
+        <span class="rmc-pressing-issues__item-badge rmc-pressing-issues__item-badge--{{ item.tone }}">{{ item.badge }}</span>
+        {% endif %}
+        {% if item.meta %}
+        <span class="rmc-pressing-issues__item-meta">{{ item.meta }}</span>
+        {% endif %}
+      </a>
+    </li>
+    {% endif %}
+    {% endfor %}
+  </ul>
+  {% elif pressing_issues.show_empty %}
+  <div class="rmc-pressing-issues__empty rmc-empty">
+    <i class="bi bi-check-circle" aria-hidden="true"></i>
+    <p>{{ pressing_issues.empty_message }}</p>
+  </div>
+  {% endif %}
+</section>
+{% endif %}

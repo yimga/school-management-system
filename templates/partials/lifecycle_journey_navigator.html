@@ -1,0 +1,41 @@
+{% load i18n %}
+{% comment %}
+  Lifecycle journey navigator — compact ordered step list.
+  Expects `lifecycle_journey` dict with keys: title, percent, steps, next_action.
+  Optional `compact` variable trims to first 4 incomplete steps.
+{% endcomment %}
+{% if lifecycle_journey and lifecycle_journey.steps %}
+<nav class="rmc-lifecycle-journey" data-rmc-lifecycle-journey="1" aria-label="{% trans 'Activation journey' %}">
+  <div class="rmc-lifecycle-journey__head">
+    <strong class="rmc-lifecycle-journey__title">{{ lifecycle_journey.title }}</strong>
+    <span class="rmc-lifecycle-journey__pct">{{ lifecycle_journey.percent }}%</span>
+  </div>
+  <div class="rmc-lifecycle-journey__bar" role="progressbar" aria-valuenow="{{ lifecycle_journey.percent }}" aria-valuemin="0" aria-valuemax="100" style="--rmc-journey-pct: {{ lifecycle_journey.percent }}%;">
+    <span class="rmc-lifecycle-journey__bar-fill" aria-hidden="true"></span>
+  </div>
+  <ol class="rmc-lifecycle-journey__steps">
+    {% for step in lifecycle_journey.steps %}
+    {% if compact and not step.done and forloop.counter0 >= 4 %}
+    {% elif compact and step.done %}
+    {% else %}
+    <li class="rmc-lifecycle-journey__step {% if step.done %}is-done{% endif %}">
+      <span class="rmc-lifecycle-journey__check" aria-hidden="true">{% if step.done %}&#10003;{% else %}{{ forloop.counter }}{% endif %}</span>
+      {% if step.link or step.deep_link %}
+      <a href="{{ step.link|default:step.deep_link }}" class="rmc-lifecycle-journey__link">{{ step.label }}</a>
+      {% else %}
+      <span class="rmc-lifecycle-journey__label">{{ step.label }}</span>
+      {% endif %}
+    </li>
+    {% endif %}
+    {% endfor %}
+  </ol>
+  {% if lifecycle_journey.next_action and lifecycle_journey.next_action.url %}
+  <div class="rmc-lifecycle-journey__next">
+    <a href="{{ lifecycle_journey.next_action.url }}" class="rmc-lifecycle-journey__next-link">
+      <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
+      {% trans "Next" %}: {{ lifecycle_journey.next_action.label }}
+    </a>
+  </div>
+  {% endif %}
+</nav>
+{% endif %}

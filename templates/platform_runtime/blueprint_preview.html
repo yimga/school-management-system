@@ -17,7 +17,7 @@
   </header>
   <div data-rmc-scroll-policy="paginate" class="row g-3 mb-3 rmc-reveal-stagger">
     <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Tenant" %}</div><strong>{{ preview.tenant_name|default:preview.tenant }}</strong></div></div></div>
-    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Can apply" %}</div><strong>{{ preview.can_apply|yesno:"yes,no" }}</strong></div></div></div>
+    <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Apply status" %}</div><strong>{% if preview.can_apply %}<span class="text-success">{% trans "Ready to apply" %}</span>{% else %}<span class="text-danger">{% trans "Blocked" %}</span>{% endif %}</strong></div></div></div>
     <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "Confirmation" %}</div><strong>{{ preview.requires_confirmation|yesno:"required,not required" }}</strong></div></div></div>
     <div class="col-md-3 rmc-reveal"><div class="card border-0 shadow-sm"><div class="card-body"><div class="small text-muted">{% trans "External blockers" %}</div><strong>{{ preview.external_required|length }}</strong></div></div></div>
   </div>
@@ -28,7 +28,7 @@
     </tbody></table></div>
   </div></div>
   <div class="row g-3 rmc-reveal-stagger">
-    <div class="col-lg-6 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "Conflicts" %}</h2><ul class="small mb-0">{% for item in preview.conflicts %}<li>{{ item.code }}: {{ item.message }}</li>{% empty %}<li>{% trans "none" %}</li>{% endfor %}</ul></div></div></div>
+    <div class="col-lg-6 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% if preview.can_apply %}{% trans "Conflicts" %}{% else %}{% trans "Resolve blockers before apply" %}{% endif %}</h2><ul class="small mb-0">{% for item in preview.conflicts %}<li>{{ item.code }}: {{ item.message }}</li>{% empty %}<li>{% trans "none" %}</li>{% endfor %}</ul></div></div></div>
     <div class="col-lg-6 rmc-reveal"><div class="card border-0 shadow-sm h-100"><div class="card-body"><h2 class="h6">{% trans "External required" %}</h2><ul class="small mb-0">{% for item in preview.external_required %}<li>{{ item }}</li>{% empty %}<li>{% trans "none" %}</li>{% endfor %}</ul></div></div></div>
   </div>
   <div class="mt-3 d-flex gap-2">

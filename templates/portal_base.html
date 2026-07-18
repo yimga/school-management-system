@@ -303,8 +303,8 @@
         <div class="tp-actions topbar-actions d-flex align-items-center gap-3 ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, time & controls' %}">
           {% if request.user.is_authenticated %}
             {% if SHOW_HEADER_SEARCH %}
-            <!-- Global Search Bar (Ctrl+K) - searches students, teachers, invoices, etc. -->
-            <div class="topbar-search search-bar-wrapper header-search-container">
+            <!-- Header typeahead — under-input results. ⌘K opens Spotlight (#rmc-cmdk), not this panel. -->
+            <div class="topbar-search search-bar-wrapper header-search-container position-relative">
               <label for="headerSearchInput" class="visually-hidden">{% trans "Global search" %}</label>
               <input 
                 type="search" 
@@ -313,9 +313,10 @@
                 id="headerSearchInput"
                 name="q"
                 autocomplete="off"
+                aria-haspopup="listbox"
               />
-              <span class="topbar-search-kbd" aria-hidden="true">Ctrl+K</span>
-              <div id="headerSearchResults" class="header-search-dropdown header-search-dropdown--hidden" role="region" aria-label="{% trans 'Search results' %}" aria-live="polite"></div>
+              <span class="topbar-search-kbd" aria-hidden="true" title="{% trans 'Press / to focus search · ⌘K for commands' %}">/</span>
+              <div id="headerSearchResults" class="header-search-dropdown header-search-dropdown--hidden" role="listbox" aria-label="{% trans 'Search results' %}" aria-live="polite"></div>
             </div>
             {% endif %}
 
@@ -604,6 +605,9 @@
     {% block react_libs %}{% endblock %}
 
     {% block extra_js %}{% endblock %}
+    {% if PREVIEW_MODE_ENABLED or request.session.preview_mode_enabled %}
+    <script src="{% static 'js/rmc-theme-preview-loaded.js' %}" defer></script>
+    {% endif %}
     {% block extrajs %}{% endblock %}
 
     {% comment %}

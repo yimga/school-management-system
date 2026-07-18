@@ -54,23 +54,48 @@ body {
   outline-offset: 2px;
 }
 
+.header-search-container,
+.topbar-search.header-search-container {
+  position: relative;
+  overflow: visible;
+  z-index: 1060;
+}
+
 .header-search-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
-  margin-top: 4px;
-  max-height: 320px;
+  width: 100%;
+  min-width: min(100%, 280px);
+  max-width: min(420px, calc(100vw - 1.5rem));
+  max-height: min(320px, 45vh);
+  overflow-x: hidden;
   overflow-y: auto;
   background: var(--admin-content-surface, var(--portal-card-bg, rgba(26, 22, 18, 0.96)));
   border-radius: 8px;
   box-shadow: 0 8px 24px var(--portal-search-dropdown-shadow, rgba(0,0,0,0.2));
   border: 1px solid var(--admin-content-border, rgba(168, 160, 146, 0.35));
-  z-index: 1050;
+  /* Below sticky header chrome (~1030) peers; above page content; never competes with cmdk (2080). */
+  z-index: 1060;
+  /* Never cover the search input itself — panel is strictly under the field. */
+  inset: auto;
 }
 
 .header-search-dropdown--hidden {
-  display: none;
+  display: none !important;
+}
+
+.header-search-dropdown .search-result-item.is-active {
+  background: color-mix(in srgb, var(--brand-primary, var(--color-indigo-500)) 22%, transparent);
+  color: var(--header-brand-fg, var(--color-base-0));
+}
+
+@media (max-width: 576px) {
+  .header-search-dropdown {
+    max-height: min(240px, 40vh);
+    max-width: calc(100vw - 1rem);
+  }
 }
 
 .topbar-icon-badge {

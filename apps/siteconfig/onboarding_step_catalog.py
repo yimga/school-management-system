@@ -36,7 +36,7 @@ ONBOARDING_STEPS: dict[str, dict] = {
         "audience": "admin",
         "required": True,
         "estimated_minutes": 4,
-        "deep_link": "siteconfig:theme_colors_page",
+        "deep_link": "siteconfig:theme_colors",
         "check_hint": "has-logo-and-primary-color",
     },
     "brand.contact_info": {
@@ -149,7 +149,7 @@ ONBOARDING_STEPS: dict[str, dict] = {
         "audience": "admin",
         "required": True,
         "estimated_minutes": 15,
-        "deep_link": "migration_cloud:bundle_list",
+        "deep_link": "accounts:import_hub",
         "check_hint": "has-at-least-one-student",
     },
     "students.guardian_links": {
@@ -349,6 +349,25 @@ STEPS_BY_BLUEPRINT_PACK: dict[str, list[str]] = {
 }
 
 
+# Map installable blueprint keys (blueprint_contract) → STEPS_BY_BLUEPRINT_PACK keys.
+BLUEPRINT_KEY_TO_STEPS_PACK: dict[str, str] = {
+    "private-primary-school": "primary-school",
+    "private-secondary-school": "secondary-school",
+    "international-school": "international-school",
+    "cameroon-gce-school": "secondary-school",
+    "bilingual-school": "secondary-school",
+    "boarding-school": "secondary-school",
+    "multi-campus-network": "default",
+    "low-connectivity-school": "primary-school",
+    "ib-world-school": "ib-world-school",
+    "early-learning": "early-learning",
+    "primary-school": "primary-school",
+    "secondary-school": "secondary-school",
+    "tertiary-university": "tertiary-university",
+    "technical-vocational": "technical-vocational",
+}
+
+
 def list_step_keys() -> list[str]:
     return sorted(ONBOARDING_STEPS.keys())
 
@@ -357,13 +376,27 @@ def get_step(key: str) -> dict | None:
     return ONBOARDING_STEPS.get(key)
 
 
+def resolve_blueprint_steps_pack(slug: str | None) -> str:
+    """Normalize a blueprint/install key to a STEPS_BY_BLUEPRINT_PACK key."""
+    raw = (slug or "").strip()
+    if not raw:
+        return "default"
+    if raw in STEPS_BY_BLUEPRINT_PACK:
+        return raw
+    mapped = BLUEPRINT_KEY_TO_STEPS_PACK.get(raw, "")
+    if mapped and mapped in STEPS_BY_BLUEPRINT_PACK:
+        return mapped
+    return "default"
+
+
 def steps_for_blueprint(slug: str | None) -> list[dict]:
     """Return ordered list of step dicts (with key) for a blueprint slug.
 
     Falls back to the universal ``default`` order if ``slug`` is None
-    or not in the per-blueprint map.
+    or not in the per-blueprint map (after alias resolution).
     """
-    key_list = STEPS_BY_BLUEPRINT_PACK.get(slug or "", STEPS_BY_BLUEPRINT_PACK["default"])
+    pack = resolve_blueprint_steps_pack(slug)
+    key_list = STEPS_BY_BLUEPRINT_PACK.get(pack, STEPS_BY_BLUEPRINT_PACK["default"])
     out = []
     for k in key_list:
         body = ONBOARDING_STEPS.get(k)

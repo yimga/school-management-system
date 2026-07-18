@@ -2940,14 +2940,23 @@ a.card:hover {
 .footprint-card,
 .cp-footprint-card,
 .cp-stack-card,
-.cp-table-card,
-.cp-search-results-panel {
+.cp-table-card {
   background: var(--admin-content-bg);
   border-radius: var(--token-radius-md);
   padding: 18px 20px;
   box-shadow: var(--apple-elev-1);
   border: none;
   transition: box-shadow var(--dur-base) var(--ease-apple), transform var(--dur-base) var(--ease-apple);
+}
+/* Typeahead panel is a dropdown, not a content card — keep compact under-input chrome. */
+.cp-search-results-panel {
+  background: var(--surface-popover, var(--admin-content-bg, var(--surface-elevated)));
+  border-radius: var(--token-radius-md, 8px);
+  padding: 0.35rem 0;
+  box-shadow: var(--apple-elev-2, var(--elev-2, 0 8px 24px rgba(0, 0, 0, 0.18)));
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(125, 152, 187, 0.22));
+  transition: none;
+  transform: none;
 }
 .content-card[data-interactive="1"]:hover,
 .overview-card[data-interactive="1"]:hover,

@@ -42,6 +42,7 @@ backend-shell dashboard-page-backend
    onboarding (gated on show_setup_landing). Token-only; tenant brand + theme flip clean. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-setup-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-backend-admin-bento.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-lifecycle-journey.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-post-setup-cockpit.css' %}">
 <script src="{% static 'js/rmc-school-readiness-cache.js' %}" defer></script>
 <script src="{% static 'js/rmc-setup-surface-readiness.js' %}" defer></script>
@@ -218,6 +219,12 @@ backend-shell dashboard-page-backend
   {% include "partials/luxury_major_audit_contract.html" with eyebrow=_("School operators") title=_("School Command Center") subtitle=_("What is happening, what needs attention, and your next step — without hunting through cards.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
   <!-- rmc-ux-above-fold-end -->
 
+  {% if pressing_issues %}
+  {% include "partials/pressing_issues_pane.html" %}
+  {% endif %}
+  {% if lifecycle_journey and lifecycle_journey.steps %}
+  {% include "partials/lifecycle_journey_navigator.html" %}
+  {% endif %}
   <section id="section-attention" data-rmc-section-anchor class="mb-3" data-rmc-intelligent-insights="backend" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       {% comment %} Pass 8 UX consistency: was <h1 class="h6">; the luxury_major_audit_contract partial
@@ -566,7 +573,7 @@ backend-shell dashboard-page-backend
                     <button type="button" class="backend-role-home-command js-open-backend-command ds-btn text-start" aria-label="{% trans 'Open command palette (primary navigation)' %}">
                       <span class="backend-role-home-command-copy">
                         <strong>{% trans "Command center" %}</strong>
-                        <span class="backend-role-home-command-hint">{{ role_home.search_hint }} <kbd class="ms-1">Ctrl+K</kbd></span>
+                        <span class="backend-role-home-command-hint">{{ role_home.search_hint }} <kbd class="ms-1">⌘K</kbd></span>
                       </span>
                       <span class="rmc-badge">{% trans "Palette" %}</span>
                     </button>
@@ -591,7 +598,7 @@ backend-shell dashboard-page-backend
                 <button type="button" class="backend-role-home-command js-open-backend-command ds-btn" aria-label="{% trans 'Open command palette (primary navigation)' %}">
                   <span class="backend-role-home-command-copy">
                     <strong>{% trans "Command center" %}</strong>
-                    <span class="backend-role-home-command-hint">{{ role_home.search_hint }} <kbd class="ms-1">Ctrl+K</kbd></span>
+                    <span class="backend-role-home-command-hint">{{ role_home.search_hint }} <kbd class="ms-1">⌘K</kbd></span>
                   </span>
                   <span class="rmc-badge rmc-badge--brand">{% trans "Primary" %}</span>
                 </button>
@@ -1025,7 +1032,7 @@ backend-shell dashboard-page-backend
                   <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
                 </a>
               </div>
-              <strong>{{ item.value }}</strong>
+              <a href="{{ item.url }}" class="text-decoration-none"><strong>{{ item.value }}</strong></a>
             </div>
             {% endfor %}
             <div class="backend-ops-item {% if ops_watch_finance_requests > 0 %}is-warn{% endif %}" data-ops-key="finance_requests">
@@ -1035,7 +1042,7 @@ backend-shell dashboard-page-backend
                   <i class="bi bi-wallet2 me-1"></i>{% trans "Finance requests" %}
                 </a>
               </div>
-              <strong>{{ ops_watch_finance_requests|default:0 }}</strong>
+              <a href="{{ finance_request_link }}" class="text-decoration-none"><strong>{{ ops_watch_finance_requests|default:0 }}</strong></a>
             </div>
           </div>
         </div>

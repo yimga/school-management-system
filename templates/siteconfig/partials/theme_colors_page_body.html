@@ -1,6 +1,7 @@
 {% load static %}
 {% load i18n %}
 {% include "admin/components/theme_preview_assets.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-live-preview-contract.css' %}">
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="theme-experience-page container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-command-workspace="theme-experience" data-rmc-option-a-canvas="1">
   {% include "studio_os/components/page_header.html" with title=_("Theme & Experience") subtitle=_("These settings apply to Site Settings (Theme pack & Admin theme pack).") action_url=back_url action_text=_("Back to Site Settings") %}
@@ -28,7 +29,7 @@
     </div>
   </div>
 
-  <form method="post" id="theme-colors-form">
+  <form method="post" id="theme-colors-form" data-rmc-preview-rendered="0">
     {% csrf_token %}
     <input type="hidden" name="preview_confirmed" id="theme-preview-confirmed" value="0">
     <div class="card border theme-state-strip mb-2">
@@ -194,10 +195,10 @@
               </div>
               <div class="col-12">
                 <div class="form-check mb-0">
-                  <input type="checkbox" id="theme-confirm-publish" class="form-check-input" name="confirm_publish_checkbox">
+                  <input type="checkbox" id="theme-confirm-publish" class="form-check-input" name="confirm_publish_checkbox" disabled aria-describedby="theme-preview-evidence-status">
                   <label class="form-check-label" for="theme-confirm-publish">{% trans "I've previewed and want to publish (required for high-impact changes)" %}</label>
                 </div>
-                <small class="text-muted d-block mt-1">{% trans "Tick after using Live preview, then Save." %}</small>
+                <small id="theme-preview-evidence-status" class="text-muted d-block mt-1">{% trans "Open Live preview and verify before confirming." %}</small>
               </div>
               <div class="col-12">
                 <small class="text-muted">
@@ -240,8 +241,42 @@
           </div>
         </div>
         {% comment %} Small screen preview: centered, fits column, no spill {% endcomment %}
-        <div class="theme-experience-preview-wrap mt-1">
+        <div class="theme-experience-preview-wrap mt-1"
+             id="theme-live-preview-contract"
+             data-rmc-live-preview-contract="1"
+             data-rmc-preview-evidence="0"
+             data-preview-timeout-ms="8000"
+             data-preview-min-inline-width="720">
           {% include "admin/components/theme_preview_section.html" %}
+          <div class="rmc-live-preview-contract__fallbacks mt-2" data-rmc-preview-fallbacks hidden>
+            <span class="small text-muted">{% trans "Preview recovery" %}</span>
+            <button type="button" class="btn btn-sm btn-primary" data-rmc-preview-open-best>{% trans "Open preview theater" %}</button>
+            <button type="button" class="btn btn-sm btn-outline-primary" data-rmc-preview-retry>{% trans "Retry inline" %}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-preview-modal>{% trans "Modal preview" %}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-preview-popout>{% trans "Popout" %}</button>
+            <a class="btn btn-sm btn-outline-secondary" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true" data-rmc-preview-new-tab>{% trans "Open in new tab" %}</a>
+          </div>
+          <div class="rmc-live-preview-contract__frame mt-2 d-none d-md-block" data-rmc-preview-frame-shell>
+            <iframe title="{% trans 'Theme live preview frame' %}"
+                    data-rmc-preview-frame
+                    loading="lazy"
+                    referrerpolicy="same-origin"
+                    class="w-100 border rounded"
+                    style="min-height: 280px; background: var(--surface-canvas, #fff);"></iframe>
+          </div>
+        </div>
+        <div class="modal fade" id="theme-live-preview-modal" tabindex="-1" aria-labelledby="theme-live-preview-modal-title" aria-hidden="true">
+          <div class="modal-dialog modal-fullscreen-lg-down modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h2 class="modal-title h5" id="theme-live-preview-modal-title">{% trans "Live preview" %}</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+              </div>
+              <div class="modal-body p-0">
+                <iframe class="rmc-live-preview-modal-frame w-100" style="min-height: 70vh; border: 0;" data-rmc-live-preview-modal-frame title="{% trans 'Modal live preview' %}" loading="lazy" referrerpolicy="same-origin"></iframe>
+              </div>
+            </div>
+          </div>
         </div>
         {% comment %} Page ends here: Back, Live preview, Save (right after Ephemeral note) {% endcomment %}
         <div class="theme-experience-actions mt-1 pt-1 border-top">
@@ -279,6 +314,9 @@
   "trans_preview_failed": "{% trans "Preview failed" %}",
   "trans_preview_opened_in_new_tab": "{% trans "Preview opened in new tab" %}",
   "trans_preview_failed_2": "{% trans "Preview failed" %}",
+  "trans_preview_popup_blocked": "{% trans "Popup blocked — use a fallback preview below." %}",
+  "trans_preview_evidence_ok": "{% trans "Preview verified — you can confirm publish." %}",
+  "trans_preview_evidence_needed": "{% trans "Open Live preview and verify before confirming." %}",
   "trans_contrast_pass": "{% trans "Contrast safety: pass" %}",
   "trans_contrast_needs_attention": "{% trans "Contrast safety: needs attention" %}",
   "trans_source_saved_values": "{% trans "Source: saved values" %}",

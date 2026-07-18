@@ -56,6 +56,11 @@ class BlueprintContract:
     implementation_checklist: tuple[str, ...]
     local_first_manifest: dict[str, Any] = field(default_factory=dict)
     integrations: tuple[str, ...] = ()
+    # Apply-time HARD blockers only. A non-empty external_dependencies (via the
+    # blocked_by_external fallback in pack_dependency_graph) forces governance
+    # approval AND sets can_apply=False. Do NOT put a conditional go-live payment
+    # proof here — that is a capability gate, not an apply blocker; use
+    # external_required_items instead (see below).
     external_dependencies: tuple[str, ...] = ()
     requires_packs: tuple[str, ...] = ()
     requires_modules: tuple[str, ...] = ()
@@ -79,6 +84,10 @@ class BlueprintContract:
     route_links: tuple[str, ...] = ()
     proof_links: tuple[str, ...] = ()
     psp_status: str = "not_applicable"
+    # Go-live capability gates (e.g. live PSP / settlement proof for collecting
+    # real payments). These are surfaced as external_required warnings + on the
+    # payment-readiness path and DO NOT block applying the blueprint's config —
+    # they never force governance approval. Put PSP/settlement proofs here.
     external_required_items: tuple[str, ...] = ()
     composition_role: str = "base"
     compatible_blueprints: tuple[str, ...] = ()
@@ -319,7 +328,6 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         billing_defaults=_billing("regional-cm-school-os", psp="external_required"),
         offline_defaults=_offline("high", "low_connectivity_assessment_entry"),
         implementation_checklist=("Confirm GCE forms", "Map subject groups", "Validate grading scale", "Review exam audit", "Set manual payment fallback"),
-        external_dependencies=("Regional PSP corridor proof",),
         external_required_items=("live_payment_collection",),
         psp_status="external_required",
         composition_role="regional_overlay",
@@ -404,7 +412,6 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         billing_defaults=_billing("international-school-os", psp="external_required"),
         offline_defaults=_offline("standard", "portal_and_document_cache"),
         implementation_checklist=("Select curriculum profile", "Configure documents", "Review retention policy", "Preview transcript", "Verify payment dependencies"),
-        external_dependencies=("Regional PSP and settlement proof",),
         external_required_items=("multi_currency_live_collection",),
         psp_status="external_required",
         compatible_blueprints=("bilingual-school", "low-connectivity-school"),
@@ -434,7 +441,6 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         billing_defaults=_billing("network-school-os", psp="external_required"),
         offline_defaults=_offline("standard", "campus_local_queues"),
         implementation_checklist=("Confirm campus list", "Review delegated roles", "Map shared policies", "Preview campus rollout", "Verify billing dependencies"),
-        external_dependencies=("Settlement and PSP corridor proof for network billing",),
         external_required_items=("network_live_settlement",),
         requires_platform_operator=True,
         tenant_safe=False,
@@ -465,8 +471,7 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         billing_defaults=_billing("offline-school-os", psp="external_required"),
         offline_defaults=_offline("high", "attendance_marks_reports_payments"),
         implementation_checklist=("Enable offline queue", "Assign sync owner", "Configure conflict rules", "Test marks offline", "Review manual payment audit"),
-        external_dependencies=("PSP proof if live collection is needed",),
-        external_required_items=("live_payment_collection"),
+        external_required_items=("live_payment_collection",),
         psp_status="external_required",
         composition_role="offline_overlay",
         compatible_blueprints=("private-primary-school", "private-secondary-school", "cameroon-gce-school", "boarding-school", "international-school"),

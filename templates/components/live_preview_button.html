@@ -1,0 +1,10 @@
+{% load i18n %}
+{# Shared live-preview action control — popup-aware surfaces should wire their own confirm gate. #}
+<button type="button"
+        class="btn {{ btn_class|default:'btn-outline-primary btn-sm' }}"
+        id="{{ button_id|default:'theme-colors-live-preview' }}"
+        {% if disabled %}disabled{% endif %}
+        data-rmc-live-preview-trigger="1">
+  <span class="material-symbols-outlined" style="vertical-align: middle; font-size: var(--type-size-body);" aria-hidden="true">visibility</span>
+  {% firstof label _("Live preview") %}
+</button>

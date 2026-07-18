@@ -95,3 +95,30 @@ class SearchApiTenantScopeTests(TestCase):
         self.assertEqual(len(out), 1)
         self.assertIn("story", out[0])
         self.assertIn("academic_line", out[0]["story"])
+
+    def test_subject_search_without_school_returns_empty(self):
+        """Isolation law: unscoped tenant search must not leak cross-school rows."""
+        results = self.search_api._search_type(
+            self.search_api.SEARCH_CONFIG["subject"],
+            query="Math",
+            limit=10,
+            user=self.user,
+            school=None,
+        )
+        self.assertEqual(results, [])
+
+    def test_get_rejects_tenant_host_without_school(self):
+        import json
+
+        from django.test import RequestFactory
+
+        factory = RequestFactory()
+        request = factory.get("/api/search/", {"q": "Math"})
+        request.user = self.user
+        request.school = None
+        request.public_host_kind = "tenant"
+        response = self.search_api.get(request)
+        self.assertEqual(response.status_code, 403)
+        payload = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(payload.get("count"), 0)
+        self.assertEqual(payload.get("results"), [])

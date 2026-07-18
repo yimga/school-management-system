@@ -1816,8 +1816,25 @@ def theme_colors_page(request):
                 "true",
                 "on",
             )
+            guard_bypassed = False
             if theme_settings.get("skip_theme_publish_guard", False):
                 preview_confirmed = True
+                guard_bypassed = True
+                logger.info(
+                    "theme_publish_guard_bypassed",
+                    extra={
+                        "actor": (
+                            request.user.get_username()
+                            if getattr(request, "user", None)
+                            and request.user.is_authenticated
+                            else "system"
+                        ),
+                        "path": request.path,
+                        "school_id": getattr(
+                            getattr(request, "school", None), "id", None
+                        ),
+                    },
+                )
 
             changed_labels = []
             for field_name in changed_fields:
@@ -1883,6 +1900,7 @@ def theme_colors_page(request):
                     "governed_count": len(governed_changes),
                     "governed_fields": governed_labels,
                     "preview_confirmed": bool(preview_confirmed),
+                    "guard_bypassed": bool(guard_bypassed),
                 }
                 request.session.modified = True
                 if changed_fields and governed_changes:
@@ -2017,8 +2035,23 @@ def perform_theme_experience_publish(request):
         if str(previous_value) != str(next_value):
             changed_fields.append(field_name)
     preview_confirmed = request.POST.get("preview_confirmed") in ("1", "true", "on")
+    guard_bypassed = False
     if theme_settings.get("skip_theme_publish_guard", False):
         preview_confirmed = True
+        guard_bypassed = True
+        logger.info(
+            "theme_publish_guard_bypassed",
+            extra={
+                "actor": (
+                    request.user.get_username()
+                    if getattr(request, "user", None) and request.user.is_authenticated
+                    else "system"
+                ),
+                "path": request.path,
+                "school_id": getattr(getattr(request, "school", None), "id", None),
+                "surface": "studio_htmx",
+            },
+        )
     governed_changes = [n for n in changed_fields if n in THEME_PUBLISH_GUARDED_FIELDS]
     if governed_changes and not preview_confirmed:
         labels = []
@@ -2082,6 +2115,7 @@ def perform_theme_experience_publish(request):
         "governed_count": len(governed_changes),
         "governed_fields": governed_labels,
         "preview_confirmed": bool(preview_confirmed),
+        "guard_bypassed": bool(guard_bypassed),
     }
     request.session.modified = True
     from apps.schools.control_plane import user_can_access_studio_on_request

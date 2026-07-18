@@ -1183,10 +1183,29 @@ body.control-plane-shell .cp-navbar.cp-navbar--surface {
 .cp-topbar-search-input {
   min-width: 0;
 }
-#cpSearchResults.cp-search-results-panel--sized {
-  min-width: min(100vw - 2rem, 320px);
-  max-height: 70vh;
+#cpSearchResults.cp-search-results-panel--sized,
+#cpSearchResultsAdmin.cp-search-results-panel--sized,
+.cp-search-results-panel.cp-search-results-panel--sized {
+  /* Anchored under the search field — never a near-fullscreen sheet. */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: auto;
+  inset: auto auto auto 0;
+  min-width: min(100%, 280px);
+  width: max(100%, min(360px, calc(100vw - 2rem)));
+  max-width: min(420px, calc(100vw - 1.5rem));
+  max-height: min(360px, 45vh);
+  overflow-x: hidden;
   overflow-y: auto;
+  margin-top: 0.25rem;
+  padding: 0.35rem 0 !important;
+  z-index: 2020;
+}
+
+.cp-search-results-panel .cp-search-result-item.is-active,
+.cp-search-results-panel .dropdown-item.is-active {
+  background: rgba(255, 255, 255, 0.1); /* off-token-allow: white-overlay */
 }
 .cp-sidebar-inner.cp-sidebar-inner--surface {
   background: var(--cp-panel-bg, rgba(8, 16, 30, 0.78));

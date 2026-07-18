@@ -265,21 +265,39 @@
 
     if (form) {
       form.addEventListener('input', updateDraftState);
-      form.addEventListener('change', function() {
+      form.addEventListener('change', function(e) {
         updateDraftState();
         writeActiveLabel('theme-active-site-pack', 'id_theme_pack');
         writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
         updatePackParityNote();
+        // Any form edit invalidates prior preview evidence (except the confirm checkbox itself).
+        var t = e && e.target;
+        if (t && t.id === 'theme-confirm-publish') return;
+        form.setAttribute('data-rmc-preview-rendered', '0');
         var previewConfirmedField = document.getElementById('theme-preview-confirmed');
         if (previewConfirmedField) previewConfirmedField.value = '0';
         var confirmCheck = document.getElementById('theme-confirm-publish');
-        if (confirmCheck && previewConfirmedField) previewConfirmedField.value = confirmCheck.checked ? '1' : '0';
+        if (confirmCheck) {
+          confirmCheck.checked = false;
+          confirmCheck.disabled = true;
+        }
+        var status = document.getElementById('theme-preview-evidence-status');
+        if (status) {
+          status.textContent = ((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_preview_evidence_needed"]) || 'Open Live preview and verify before confirming.';
+          status.classList.add('text-muted');
+          status.classList.remove('text-success');
+        }
       });
       form.addEventListener('submit', function() {
         setSource(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_source_saving_current_form_values"]));
         var confirmCheck = document.getElementById('theme-confirm-publish');
         var previewConfirmedField = document.getElementById('theme-preview-confirmed');
-        if (confirmCheck && previewConfirmedField && confirmCheck.checked) previewConfirmedField.value = '1';
+        var evidenced = form.getAttribute('data-rmc-preview-rendered') === '1';
+        if (confirmCheck && previewConfirmedField && confirmCheck.checked && evidenced) {
+          previewConfirmedField.value = '1';
+        } else if (previewConfirmedField) {
+          previewConfirmedField.value = '0';
+        }
       });
     }
 
@@ -300,10 +318,157 @@
 
     var confirmCheck = document.getElementById('theme-confirm-publish');
     var previewConfirmedField = document.getElementById('theme-preview-confirmed');
+    var previewRendered = false;
+    var lastPreviewUrl = '';
+    var pageData = function () {
+      return window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {};
+    };
+
+    function setPreviewEvidence(ok, detail) {
+      previewRendered = !!ok;
+      if (form) form.setAttribute('data-rmc-preview-rendered', ok ? '1' : '0');
+      var status = document.getElementById('theme-preview-evidence-status');
+      if (status) {
+        status.textContent = ok
+          ? (pageData()["trans_preview_evidence_ok"] || 'Preview verified — you can confirm publish.')
+          : (pageData()["trans_preview_evidence_needed"] || 'Open Live preview and verify before confirming.');
+        status.classList.toggle('text-success', !!ok);
+        status.classList.toggle('text-muted', !ok);
+      }
+      if (confirmCheck) {
+        if (!ok) {
+          confirmCheck.checked = false;
+          confirmCheck.disabled = true;
+          if (previewConfirmedField) previewConfirmedField.value = '0';
+        } else {
+          confirmCheck.disabled = false;
+        }
+      }
+      var root = document.getElementById('theme-live-preview-contract');
+      if (root) root.setAttribute('data-rmc-preview-evidence', ok ? '1' : '0');
+      if (detail && typeof window.showToast === 'function' && ok) {
+        /* toast handled by caller */
+      }
+    }
+
+    function showFallbackPanel(url) {
+      var panel = document.querySelector('#theme-live-preview-contract [data-rmc-preview-fallbacks]');
+      var newTab = document.querySelector('#theme-live-preview-contract [data-rmc-preview-new-tab]');
+      var frame = document.querySelector('#theme-live-preview-contract iframe[data-rmc-preview-frame]');
+      if (panel) panel.hidden = false;
+      if (newTab && url) {
+        newTab.href = url;
+        newTab.removeAttribute('aria-disabled');
+      }
+      if (frame && url) {
+        frame.dataset.loaded = '0';
+        frame.src = url;
+        frame.addEventListener('load', function onLoad() {
+          frame.dataset.loaded = '1';
+          setPreviewEvidence(true);
+          frame.removeEventListener('load', onLoad);
+        });
+      }
+      var root = document.getElementById('theme-live-preview-contract');
+      if (root) root.setAttribute('data-rmc-preview-state', 'fallback');
+    }
+
+    function openPreviewUrl(url) {
+      if (!url) return false;
+      lastPreviewUrl = url;
+      var popup = null;
+      try {
+        popup = window.open(url, '_blank', 'noopener,noreferrer');
+      } catch (e) {
+        popup = null;
+      }
+      var blocked = !popup || popup.closed || typeof popup.closed === 'undefined';
+      if (blocked) {
+        showFallbackPanel(url);
+        if (typeof window.showToast === 'function') {
+          window.showToast(
+            pageData()["trans_preview_popup_blocked"] || 'Popup blocked — use a fallback preview below.',
+            'warning',
+            4000
+          );
+        }
+        return false;
+      }
+      // Popup opened: enable confirm after a short settle (user can see the tab).
+      window.setTimeout(function () {
+        try {
+          if (popup && !popup.closed) setPreviewEvidence(true);
+          else showFallbackPanel(url);
+        } catch (e2) {
+          // Cross-origin closed check may throw — treat open as evidence.
+          setPreviewEvidence(true);
+        }
+      }, 400);
+      return true;
+    }
+
     if (confirmCheck && previewConfirmedField) {
+      confirmCheck.disabled = true;
       confirmCheck.addEventListener('change', function() {
-        previewConfirmedField.value = confirmCheck.checked ? '1' : '0';
+        if (confirmCheck.checked && !previewRendered) {
+          confirmCheck.checked = false;
+          previewConfirmedField.value = '0';
+          if (typeof window.showToast === 'function') {
+            window.showToast(
+              pageData()["trans_preview_evidence_needed"] || 'Open Live preview and verify before confirming.',
+              'warning',
+              3500
+            );
+          }
+          return;
+        }
+        previewConfirmedField.value = confirmCheck.checked && previewRendered ? '1' : '0';
       });
+    }
+
+    window.addEventListener('message', function (event) {
+      if (!event || event.origin !== window.location.origin) return;
+      var data = event.data;
+      if (data === 'rmc-preview-loaded' || (data && data.type === 'rmc-preview-loaded')) {
+        setPreviewEvidence(true);
+      }
+    });
+
+    var fallbackRoot = document.getElementById('theme-live-preview-contract');
+    if (fallbackRoot) {
+      var modalBtn = fallbackRoot.querySelector('[data-rmc-preview-modal]');
+      var popoutBtn = fallbackRoot.querySelector('[data-rmc-preview-popout]');
+      var retryBtn = fallbackRoot.querySelector('[data-rmc-preview-retry]');
+      var openBest = fallbackRoot.querySelector('[data-rmc-preview-open-best]');
+      function openModalPreview(url) {
+        var modal = document.getElementById('theme-live-preview-modal');
+        var modalFrame = modal && modal.querySelector('[data-rmc-live-preview-modal-frame]');
+        if (modalFrame && url) modalFrame.src = url;
+        if (modal && window.bootstrap && window.bootstrap.Modal) {
+          window.bootstrap.Modal.getOrCreateInstance(modal).show();
+          setPreviewEvidence(true);
+          return;
+        }
+        openPreviewUrl(url);
+      }
+      function wireOpen(el, mode) {
+        if (!el) return;
+        el.addEventListener('click', function () {
+          var url = lastPreviewUrl || (el.getAttribute('href') && el.getAttribute('href') !== '#' ? el.getAttribute('href') : '');
+          if (!url) return;
+          if (mode === 'modal') openModalPreview(url);
+          else if (mode === 'popout') {
+            var w = window.open(url, 'rmc-theme-preview', 'popup,width=1280,height=900,noopener,noreferrer');
+            if (!w) showFallbackPanel(url);
+            else setPreviewEvidence(true);
+          } else if (mode === 'retry') showFallbackPanel(url);
+          else openPreviewUrl(url);
+        });
+      }
+      wireOpen(modalBtn, 'modal');
+      wireOpen(popoutBtn, 'popout');
+      wireOpen(retryBtn, 'retry');
+      wireOpen(openBest, 'best');
     }
 
     document.addEventListener('theme-pack-selected', function(event) {
@@ -314,6 +479,8 @@
       writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
       updatePackParityNote();
       updateDraftState();
+      // Draft changed — require a fresh preview before confirm.
+      setPreviewEvidence(false);
     });
 
     document.addEventListener('theme-studio:applied', function(event) {
@@ -328,6 +495,7 @@
         setSource(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_source_manual_edit"]));
       }
       updateDraftState();
+      setPreviewEvidence(false);
     });
 
     var remediateBtn = document.getElementById('theme-contrast-auto-remediate');
@@ -344,25 +512,73 @@
         fd.append('preview_section', 'theme-experience');
         var keepEl = document.getElementById('theme-colors-preview-keep');
         if (keepEl && keepEl.checked) fd.append('preview_keep', '1');
-        var previewConfirmedField = document.getElementById('theme-preview-confirmed');
-        if (previewConfirmedField) previewConfirmedField.value = '1';
+        // Do NOT set preview_confirmed here — confirmation requires visual proof.
+        if (previewConfirmedField) previewConfirmedField.value = '0';
+        if (confirmCheck) {
+          confirmCheck.checked = false;
+          confirmCheck.disabled = true;
+        }
+        previewRendered = false;
         var csrf = form.querySelector('input[name="csrfmiddlewaretoken"]');
-        var url = ((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["url_siteconfig_preview_from_form"]);
+        var url = pageData()["url_siteconfig_preview_from_form"];
         fetch(url, { method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf ? csrf.value : '', 'Accept': 'application/json' }, credentials: 'same-origin' })
           .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
           .then(function(res) {
             if (!res.ok) {
-              var msg = (res.data.errors && res.data.errors.length) ? res.data.errors.join(' ') : ((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_preview_failed"]);
+              var msg = (res.data.errors && res.data.errors.length) ? res.data.errors.join(' ') : (pageData()["trans_preview_failed"]);
               if (typeof window.showToast === 'function') window.showToast(msg, 'error', 4000);
               return;
             }
-            if (res.data.redirect_url) window.open(res.data.redirect_url, '_blank', 'noopener');
-            if (typeof window.showToast === 'function') window.showToast(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_preview_opened_in_new_tab"]), 'success', 2000);
+            var redirectUrl = res.data && res.data.redirect_url;
+            if (!redirectUrl) {
+              if (typeof window.showToast === 'function') window.showToast(pageData()["trans_preview_failed"] || 'Preview failed', 'error', 4000);
+              return;
+            }
+            var opened = openPreviewUrl(redirectUrl);
+            if (opened && typeof window.showToast === 'function') {
+              window.showToast(pageData()["trans_preview_opened_in_new_tab"] || 'Preview opened in new tab', 'success', 2000);
+            }
+            // Always also refresh inline mock so the on-page surface reflects draft colors.
+            var inline = document.querySelector('.theme-preview-section');
+            if (inline) inline.setAttribute('data-rmc-preview-activated', '1');
           })
           .catch(function() {
-            if (typeof window.showToast === 'function') window.showToast(((window.__RMC_PAGE_DATA__["siteconfig__partials__theme_colors_page_body-1"] || {})["trans_preview_failed_2"]), 'error', 3000);
+            if (typeof window.showToast === 'function') window.showToast(pageData()["trans_preview_failed_2"] || 'Preview failed', 'error', 3000);
           });
       });
+    }
+
+    // Form submit: only emit preview_confirmed when checkbox + evidence both hold.
+    if (form && previewConfirmedField) {
+      form.addEventListener('submit', function () {
+        if (confirmCheck && confirmCheck.checked && previewRendered) {
+          previewConfirmedField.value = '1';
+        } else if (!(pageData()["skip_theme_publish_guard"] === '1')) {
+          previewConfirmedField.value = '0';
+        }
+      });
+    }
+
+    setPreviewEvidence(false);
+
+    // If publish guard is intentionally skipped, allow confirm without preview evidence.
+    var skipGuard = document.getElementById('id_skip_theme_publish_guard');
+    function syncSkipGuard() {
+      if (skipGuard && skipGuard.checked) {
+        if (confirmCheck) confirmCheck.disabled = false;
+        if (form) form.setAttribute('data-rmc-preview-rendered', '1');
+        previewRendered = true;
+        var status = document.getElementById('theme-preview-evidence-status');
+        if (status) {
+          status.textContent = pageData()["trans_preview_evidence_ok"] || 'Preview verified — you can confirm publish.';
+          status.classList.add('text-success');
+          status.classList.remove('text-muted');
+        }
+      }
+    }
+    if (skipGuard) {
+      skipGuard.addEventListener('change', syncSkipGuard);
+      syncSkipGuard();
     }
   });
 })();

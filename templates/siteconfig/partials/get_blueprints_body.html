@@ -65,7 +65,7 @@
             {% if selected_tenant_preview.can_apply %}
               <span class="rmc-badge rmc-badge--success">{% trans "Ready" %}</span>
             {% else %}
-              <span class="rmc-badge rmc-badge--warning">{% trans "Needs review" %}</span>
+              <span class="rmc-badge rmc-badge--danger">{% trans "Blocked" %}</span>
             {% endif %}
           </div>
         </div>
@@ -77,7 +77,7 @@
         </div>
         {% if selected_tenant_preview.conflicts %}
         <div class="alert alert-warning small" role="alert">
-          <strong>{% trans "Blockers" %}</strong>
+          <strong>{% trans "Resolve blockers before apply" %}</strong>
           <ul class="mb-0 mt-1">
             {% for conflict in selected_tenant_preview.conflicts %}
               <li>{{ conflict.message|default:conflict.code }}</li>
@@ -119,9 +119,15 @@
           </table>
         </div>
         <div class="d-flex flex-wrap gap-2 mt-3">
+          {% if selected_tenant_preview.can_apply %}
           <a class="btn btn-primary" href="{{ tenant_blueprint_setup_url }}" data-rmc-blueprint-apply-action>
-            {% if selected_tenant_preview.can_apply %}{% trans "Continue to Apply" %}{% else %}{% trans "Continue to Request approval" %}{% endif %}
+            {% trans "Continue to Apply" %}
           </a>
+          {% else %}
+          <a class="btn btn-outline-secondary" href="{{ tenant_blueprint_setup_url }}" data-rmc-blueprint-apply-action>
+            {% trans "Review blockers" %}
+          </a>
+          {% endif %}
           <a class="btn btn-outline-secondary" href="?blueprint={{ selected_tenant_blueprint.key }}&preview=1">{% trans "Refresh preview" %}</a>
         </div>
         {% else %}

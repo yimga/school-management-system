@@ -39,12 +39,21 @@ def lifecycle_readiness(request):
         from .wind_down import is_wind_down_mode
 
         unified = resolve_unified_lifecycle(school)
-        return {
+        ctx = {
             "lifecycle_readiness": readiness.to_dict(),
             "lifecycle_concierge_enabled": needs_concierge(school),
             "unified_lifecycle": unified,
             "wind_down_mode": is_wind_down_mode(school),
         }
+        try:
+            from apps.platform_runtime.onboarding import build_lifecycle_journey
+
+            journey = build_lifecycle_journey(school)
+            if journey:
+                ctx["lifecycle_journey"] = journey
+        except Exception:  # noqa: BLE001
+            pass
+        return ctx
     except Exception as exc:  # noqa: BLE001
         logger.warning(
             "lifecycle.context_processor.failed err=%s",

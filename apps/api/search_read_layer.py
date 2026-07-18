@@ -39,6 +39,9 @@ def search(
         return None
     if not _opensearch_available():
         return None
+    # Never run an unscoped OpenSearch query — missing school_id would hit all tenants.
+    if school_id is None:
+        return None
     try:
         return _search_opensearch(
             q, search_type=search_type, school_id=school_id, limit=limit

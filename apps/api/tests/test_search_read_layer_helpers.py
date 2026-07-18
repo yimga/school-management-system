@@ -18,4 +18,19 @@ class SearchReadLayerHelperTests(SimpleTestCase):
                     "apps.api.search_read_layer._search_opensearch",
                     side_effect=RuntimeError("down"),
                 ):
-                    self.assertIsNone(search_read_layer.search("term"))
+                    self.assertIsNone(search_read_layer.search("term", school_id=1))
+
+    @override_settings(OPENSEARCH_DSN="https://search.example.test")
+    def test_search_refuses_unscoped_opensearch(self):
+        """Missing school_id must never hit the shared index."""
+        with patch(
+            "apps.api.search_read_layer.OPENSEARCH_DSN", "https://search.example.test"
+        ):
+            with patch(
+                "apps.api.search_read_layer._opensearch_available", return_value=True
+            ):
+                with patch(
+                    "apps.api.search_read_layer._search_opensearch"
+                ) as mock_search:
+                    self.assertIsNone(search_read_layer.search("term", school_id=None))
+                    mock_search.assert_not_called()
