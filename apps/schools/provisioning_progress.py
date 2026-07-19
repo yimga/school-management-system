@@ -94,7 +94,12 @@ def _build_extended_steps(
 ) -> list[dict[str, Any]]:
     wf_map = {s.get("key"): s.get("state") for s in workflow_steps}
     events = _success_provisioning_events(school)
-    if getattr(school, "is_active", False):
+    # Only a school whose portal is GENUINELY ready (Phase A marker, or is_active
+    # with a workspace that is not PROVABLY absent) earns the terminal events. A
+    # husk — is_active default-True but no tenant tables — must never self-report
+    # done, or the owner poll shows "100% / your campus is ready" while every
+    # tenant request 500s.
+    if resolve_portal_ready(school):
         events.add("COMPLETED")
         events.add("PORTAL_READY")
 
@@ -469,7 +474,10 @@ def _progress_while_run_not_yet_visible(school) -> dict[str, Any]:
     Fallback when polling races the first ``begin_run`` commit or the job
     just started — never emit a fake steady 5%.
     """
-    if getattr(school, "is_active", False):
+    # Probe-backed readiness, not raw is_active: a husk (is_active but no tenant
+    # workspace) must not short-circuit to "succeeded / 100%". A legacy or
+    # genuinely-ready active school (workspace present or unknowable) still does.
+    if resolve_portal_ready(school):
         steps = _default_steps()
         for step in steps:
             step["state"] = "done"
@@ -634,7 +642,10 @@ def _phase_descriptor(flags: dict[str, Any], status: str) -> tuple[str, str]:
         return "failed", str(_("Setup paused — it needs a quick bit of attention."))
     if status == "succeeded" or flags.get("phase_b_complete"):
         return "done", str(_("Your campus is ready."))
-    if flags.get("portal_ready") or flags.get("phase_a_complete"):
+    # Key on portal_ready (probe-backed) only — NOT phase_a_complete, which is
+    # inferred from is_active and is therefore True for a husk. A husk falls
+    # through to "provisioning / Preparing your campus workspace…", honestly.
+    if flags.get("portal_ready"):
         return "seeding", str(_("Your portal is ready — finishing setup (classes, subjects, sample data)…"))
     if status == "running":
         return "provisioning", str(_("Preparing your campus workspace…"))

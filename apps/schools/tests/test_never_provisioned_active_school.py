@@ -127,10 +127,32 @@ class NeverProvisionedActiveSchoolTests(TestCase):
         self.assertIn(str(self.school.id), requeued_ids)
 
     def test_do_provision_actually_drives_the_husk(self):
-        """_do_provision bails on is_active unless needs_resume says otherwise."""
+        """_do_provision bails on is_active unless needs_resume says otherwise.
+
+        The workspace probe is PROVABLY absent at husk-detection (so the drive
+        doesn't early-return as 'settled') and then unknowable (``None``) once the
+        drive is under way — exactly what a real repair looks like: schema-mode
+        detection fires 'absent', then this SQLite/RLS test backend has no schema
+        to find, so the Phase A positive post-condition (G4) sees ``None`` (not a
+        hard ``False``) and correctly activates. A probe stuck at ``False`` forever
+        would mean the repair never created the schema, and G4 rightly refuses to
+        activate that — which is a different contract, covered by the guard's own
+        unit test.
+        """
         from apps.schools.tasks import provision_school_sync
 
-        with _probe(False):
+        calls = {"n": 0}
+
+        def _repairing_probe(school, **kwargs):
+            calls["n"] += 1
+            # First read = husk-detection -> provably absent; afterwards unknowable
+            # (the real answer on a non-schema-mode backend), so activation proceeds.
+            return False if calls["n"] == 1 else None
+
+        with patch(
+            "apps.schools.tenant_workspace.tenant_workspace_exists",
+            side_effect=_repairing_probe,
+        ):
             provision_school_sync(str(self.school.id), contact_email="o@husk.test")
 
         self.school.refresh_from_db()

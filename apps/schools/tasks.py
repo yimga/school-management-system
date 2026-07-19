@@ -75,6 +75,24 @@ def _activate_portal_phase_a(
 ) -> None:
     """Phase A terminus — portal login enabled; Phase B seed may continue async."""
     pulse(wf_run, "activate")
+    # Positive post-condition: never flip is_active on a schema-less tenant. The
+    # workspace probe is tri-state — only a PROVABLE absence (False) blocks; an
+    # unknowable answer (None, e.g. RLS/SQLite) proceeds so local/test runs aren't
+    # gated. This catches the silent-no-op migrate (django_migrations recorded the
+    # migration applied but tables never physically landed), which would otherwise
+    # activate a tenant that 500s on every request. Raising here fails the run
+    # cleanly (school stays inactive + resumable), same posture as the earlier
+    # schema-less-client abort.
+    try:
+        from apps.schools.tenant_workspace import tenant_workspace_exists
+
+        if tenant_workspace_exists(school) is False:
+            raise RuntimeError(
+                f"refusing to activate schema-less tenant {school_id}: tenant "
+                "workspace has no tables (migrate may have been a no-op)"
+            )
+    except ImportError:
+        pass
     _merge_provisioning_settings(school, phase_a_complete=True)
     school.is_active = True
     school.save(update_fields=["is_active", "settings", "updated_at"])
@@ -2074,6 +2092,22 @@ def _do_provision_tracked(
                 school_id,
                 exc_info=True,
             )
+
+        # Completion-side mirror of the Phase A post-condition: if the tenant
+        # workspace is PROVABLY absent at completion (unreachable after a
+        # successful seed — the seeds wrote to those tables — but the same guard),
+        # record it as a failed step so we never mark a schema-less tenant
+        # "complete". Unknowable (None, RLS/SQLite) and present (True) both pass.
+        try:
+            from apps.schools.tenant_workspace import tenant_workspace_exists
+
+            if (
+                tenant_workspace_exists(school) is False
+                and "workspace_absent_at_completion" not in phase_b_failed_steps
+            ):
+                phase_b_failed_steps.append("workspace_absent_at_completion")
+        except ImportError:
+            pass
 
         if phase_b_failed_steps:
             # A critical step failed. Do NOT mark complete — record the failure and
