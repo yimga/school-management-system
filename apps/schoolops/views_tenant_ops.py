@@ -27,6 +27,7 @@ from apps.schools.mixins import require_feature, require_school
 from apps.schools.models import is_feature_enabled
 
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from services.post_delete_navigation import redirect_after_save
 
@@ -39,6 +40,7 @@ from django.utils.dateparse import parse_date, parse_datetime
 from apps.schoolops.models import (
     BookableResource,
     CanteenMeal,
+    HostelRoom,
     InventoryItem,
     LibraryItem,
     PosSaleLine,
@@ -277,17 +279,30 @@ def ops_inventory(request):
                 messages.error(request, "Select a valid inventory line to check out.")
             else:
                 try:
+                    from apps.people.models import StudentProfile
                     from apps.schoolops.inventory_services import (
                         InventoryMovementError,
                         checkout_inventory,
                     )
 
+                    student = None
+                    sid_raw = (request.POST.get("checkout_student_id") or "").strip()
+                    if sid_raw.isdigit():
+                        student = StudentProfile.objects.filter(
+                            pk=int(sid_raw), school=school
+                        ).first()
+                        if student is None:
+                            messages.error(
+                                request, "Student not found in this school."
+                            )
+                            return _ops_save_redirect(request, "accounts:ops_inventory")
                     checkout_inventory(
                         school=school,
                         item=InventoryItem.objects.get(pk=int(pk_raw), school=school),
                         quantity=(request.POST.get("checkout_quantity") or "0").strip(),
                         recorded_by=request.user,
                         checked_out_to=(request.POST.get("checked_out_to") or "").strip()[:255],
+                        student=student,
                     )
                     item = InventoryItem.objects.get(pk=int(pk_raw), school=school)
                     messages.success(
@@ -347,6 +362,7 @@ def ops_inventory(request):
                     item = InventoryItem.objects.get(pk=int(pk_raw), school=school)
                     qty = (request.POST.get("stock_quantity") or "0").strip()
                     note = (request.POST.get("stock_notes") or "").strip()
+                    reason = (request.POST.get("stock_reason") or "").strip()
                     if movement == "return":
                         return_inventory(
                             school=school, item=item, quantity=qty,
@@ -360,9 +376,15 @@ def ops_inventory(request):
                         )
                         verb = "consumed from"
                     else:
+                        if not reason and not note:
+                            messages.error(
+                                request,
+                                "Provide a loss reason (or notes) when recording a loss.",
+                            )
+                            return _ops_save_redirect(request, "accounts:ops_inventory")
                         record_inventory_loss(
                             school=school, item=item, quantity=qty,
-                            recorded_by=request.user, notes=note,
+                            recorded_by=request.user, reason=reason, notes=note,
                         )
                         verb = "recorded as loss from"
                     item.refresh_from_db()
@@ -643,11 +665,37 @@ def ops_substitutes(request):
                         work_date=wd,
                         period_label=(request.POST.get("period_label") or "").strip()[:80],
                     )
-                    messages.success(
-                        request,
-                        f"Market shift opened ({shift.shift_id[:8]}…). "
-                        "Teachers can claim from the open shifts list.",
-                    )
+                    if shift.notify_accepted:
+                        if shift.notify_used_override:
+                            messages.warning(
+                                request,
+                                f"Market shift opened ({shift.shift_id[:8]}…). "
+                                f"No in-department substitute — notified "
+                                f"{shift.notify_accepted} of {shift.notify_attempted} "
+                                "override candidates. Teachers can claim from the list.",
+                            )
+                        else:
+                            messages.success(
+                                request,
+                                f"Market shift opened ({shift.shift_id[:8]}…). "
+                                f"Notified {shift.notify_accepted} of "
+                                f"{shift.notify_attempted} ranked substitutes. "
+                                "They can claim from the open shifts list.",
+                            )
+                    elif shift.notify_attempted:
+                        messages.warning(
+                            request,
+                            f"Market shift opened ({shift.shift_id[:8]}…). "
+                            "Ranked substitutes were contacted but none accepted "
+                            "delivery — check SMS/WhatsApp configuration.",
+                        )
+                    else:
+                        messages.success(
+                            request,
+                            f"Market shift opened ({shift.shift_id[:8]}…). "
+                            "No phone-reachable substitutes to notify — "
+                            "teachers can still claim from the open shifts list.",
+                        )
                     return _ops_save_redirect(request, "accounts:ops_substitutes")
                 except ShiftAlreadyBooked:
                     messages.error(
@@ -813,7 +861,7 @@ def ops_facilities(request):
         if action == "create_resource":
             name = (request.POST.get("resource_name") or "").strip()
             if not name:
-                messages.error(request, "Resource name is required.")
+                messages.error(request, _("Resource name is required."))
             else:
                 try:
                     capacity = max(1, int(request.POST.get("resource_capacity") or 1))
@@ -823,16 +871,43 @@ def ops_facilities(request):
                 allowed = {c.value for c in BookableResource.ResourceType}
                 if rtype not in allowed:
                     rtype = BookableResource.ResourceType.ROOM
+                hostel_room = None
+                hostel_raw = (request.POST.get("hostel_room_id") or "").strip()
+                if hostel_raw:
+                    try:
+                        hostel_pk = int(hostel_raw)
+                    except (TypeError, ValueError):
+                        hostel_pk = 0
+                    hostel_room = (
+                        HostelRoom.objects.filter(
+                            pk=hostel_pk,
+                            hostel__school=school,
+                        )
+                        .select_related("hostel")
+                        .first()
+                    )
+                    if hostel_room is None:
+                        messages.error(
+                            request,
+                            _("Select a hostel room from this school."),
+                        )
+                        return _ops_save_redirect(request, "accounts:ops_facilities")
+                    if not (request.POST.get("resource_capacity") or "").strip():
+                        capacity = max(1, int(hostel_room.capacity or 1))
                 try:
                     BookableResource.objects.create(
                         school=school,
                         name=name[:120],
                         resource_type=rtype,
                         capacity=capacity,
+                        hostel_room=hostel_room,
                     )
-                    messages.success(request, "Bookable resource added.")
+                    messages.success(request, _("Bookable resource added."))
                 except IntegrityError:
-                    messages.error(request, "A resource with that name already exists.")
+                    messages.error(
+                        request,
+                        _("A resource with that name already exists."),
+                    )
             return _ops_save_redirect(request, "accounts:ops_facilities")
         if action == "book_resource":
             try:
@@ -848,7 +923,10 @@ def ops_facilities(request):
             start = parse_datetime(start_raw) if start_raw else None
             end = parse_datetime(end_raw) if end_raw else None
             if not resource or not start or not end:
-                messages.error(request, "Resource and start/end times are required.")
+                messages.error(
+                    request,
+                    _("Resource and start/end times are required."),
+                )
             else:
                 try:
                     create_resource_booking(
@@ -859,11 +937,11 @@ def ops_facilities(request):
                         start=start,
                         end=end,
                     )
-                    messages.success(request, "Booking confirmed.")
+                    messages.success(request, _("Booking confirmed."))
                 except BookingConflictError:
                     messages.error(
                         request,
-                        "That time slot conflicts with an existing booking.",
+                        _("That time slot conflicts with an existing booking."),
                     )
                 except ValueError as exc:
                     messages.error(request, str(exc))
@@ -875,10 +953,10 @@ def ops_facilities(request):
                 bid = 0
             booking = ResourceBooking.objects.filter(school=school, pk=bid).first()
             if not booking:
-                messages.error(request, "Booking not found.")
+                messages.error(request, _("Booking not found."))
             else:
                 cancel_resource_booking(booking=booking)
-                messages.success(request, "Booking cancelled.")
+                messages.success(request, _("Booking cancelled."))
             return _ops_save_redirect(request, "accounts:ops_facilities")
         if action == "set_status":
             try:
@@ -933,6 +1011,11 @@ def ops_facilities(request):
         .select_related("resource", "booked_by")
         .order_by("-created_at")[:100]
     )
+    hostel_rooms = list(
+        HostelRoom.objects.filter(hostel__school=school)
+        .select_related("hostel")
+        .order_by("hostel__name", "name")[:200]
+    )
     return render(
         request,
         "schoolops/ops_facilities.html",
@@ -943,6 +1026,7 @@ def ops_facilities(request):
             "resources": resources,
             "resource_type_choices": BookableResource.ResourceType,
             "bookings": bookings,
+            "hostel_rooms": hostel_rooms,
             "hub_url": reverse("accounts:ops_hub"),
         },
     )

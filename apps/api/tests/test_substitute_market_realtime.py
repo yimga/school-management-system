@@ -262,3 +262,35 @@ class SubstituteMarketRealtimeFanoutTests(TransactionTestCase):
             consumer.resolve_room_group_name(),
             tenant_sync_room_name("notifications_sync", scope),
         )
+
+
+class SubstituteMarketBrowserClientWiringTests(TransactionTestCase):
+    """Metric 12 residual — browser client must bind the live WS path.
+
+    Producer + consumer were already proven; without a page-scoped JS client the
+    ops hub still only refreshed on full navigation. These checks lock the asset
+    + template contract (path-scoped, no Django render required).
+    """
+
+    def test_browser_client_targets_substitute_market_ws_path(self):
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parents[3]
+        js = (root / "static" / "js" / "rmc-substitute-market.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('/ws/substitute-market/', js)
+        self.assertIn("substitute_shift", js)
+        self.assertIn("shift.open", js)
+        self.assertIn("shift.claimed", js)
+        self.assertIn("data-rmc-substitute-market", js)
+
+    def test_ops_substitutes_template_loads_browser_client(self):
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parents[3]
+        tpl = (
+            root / "templates" / "schoolops" / "ops_substitutes.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("data-rmc-substitute-market", tpl)
+        self.assertIn("rmc-substitute-market.js", tpl)

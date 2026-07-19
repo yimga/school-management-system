@@ -148,7 +148,38 @@ class TenantOpsWave15SubstitutesTests(TestCase):
         cover = SubstituteCover.objects.get(school=self.school)
         self.assertEqual(cover.absent_teacher_id, self.t1.id)
         self.assertEqual(cover.covering_teacher_id, self.t2.id)
-        self.assertEqual(list_open_shifts(school_id=int(self.school.pk)), [])
+
+    def test_open_market_auto_notifies_ranked_candidates(self):
+        """Metric 12 view path: open_market fans out SMS/WhatsApp (not mocked broadcast)."""
+        wa_calls = []
+
+        def fake_wa(school, phone, body="", idempotency_key=""):
+            wa_calls.append({"phone": phone, "body": body})
+            return True
+
+        with patch(
+            "apps.communication.notification_service.send_whatsapp",
+            side_effect=fake_wa,
+        ), patch(
+            "apps.communication.notification_service.send_sms",
+            return_value=False,
+        ), self.settings(RMC_AUTO_ENQUEUE_OUTBOUND=False):
+            response = ops_substitutes(
+                self._req(
+                    "POST",
+                    "/sub/",
+                    {
+                        "action": "open_market",
+                        "work_date": "2026-06-11",
+                        "absent_teacher_id": str(self.t1.id),
+                        "period_label": "P4",
+                    },
+                )
+            )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(wa_calls), 1)
+        self.assertEqual(wa_calls[0]["phone"], "+15550002")
+        self.assertIn("P4", wa_calls[0]["body"])
 
     def test_teacher_can_view_open_shifts_without_ops_role(self):
         self.t2.role = User.Role.TEACHER

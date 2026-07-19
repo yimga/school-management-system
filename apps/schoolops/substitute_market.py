@@ -99,6 +99,11 @@ class OpenShift:
     status: str = "open"
     claimed_by_id: int | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    # Metric 12: ranked-candidate notify fired when the shift opens (0 if none /
+    # notify disabled / broker soft-failed). Surfaced to the ops UI message.
+    notify_attempted: int = 0
+    notify_accepted: int = 0
+    notify_used_override: bool = False
 
 
 def _lock_key(*, school_id: int, work_date: date, period_label: str) -> str:
@@ -168,8 +173,18 @@ def open_shift(
     work_date: date,
     period_label: str = "",
     publish_fn: Callable[[dict[str, Any]], None] | None = None,
+    notify: bool = True,
+    send_whatsapp_fn=None,
+    send_sms_fn=None,
 ) -> OpenShift:
-    """Open a substitute shift; fails fast when slot lock cannot be acquired."""
+    """Open a substitute shift; fails fast when slot lock cannot be acquired.
+
+    Metric 12 DoD: opening a market shift also ranks available substitutes and
+    broadcasts WhatsApp/SMS to the qualified tier (or override when none), so
+    ops do not need a separate "Find and broadcast" click after open. Notify is
+    best-effort — broker failures never roll back the open shift / WS event.
+    Inject ``send_*_fn`` in tests; production uses the communication service.
+    """
     school_id = int(getattr(school, "pk"))
     if not acquire_shift_slot_lock(school_id=school_id, work_date=work_date, period_label=period_label):
         raise ShiftAlreadyBooked("substitute slot already locked or booked")
@@ -195,7 +210,11 @@ def open_shift(
     )
     _append_open_shift(school_id, shift.shift_id)
 
-    from apps.schoolops.substitute_handover import find_substitute_candidates
+    from apps.schoolops.substitute_handover import (
+        broadcast_substitute_request,
+        find_substitute_candidates,
+        select_qualified_or_override,
+    )
     import hashlib
 
     def _hash(value: str) -> str:
@@ -224,12 +243,47 @@ def open_shift(
         payload=payload,
         publish_fn=publish_fn,
     )
+
+    notify_attempted = 0
+    notify_accepted = 0
+    notify_used_override = False
+    if notify and candidates:
+        selected = select_qualified_or_override(candidates)
+        if selected:
+            notify_used_override = not selected[0].qualified
+            try:
+                broker_results = broadcast_substitute_request(
+                    school=school,
+                    candidates=selected,
+                    work_date=work_date,
+                    period_label=period_label,
+                    send_whatsapp_fn=send_whatsapp_fn,
+                    send_sms_fn=send_sms_fn,
+                )
+                notify_attempted = len(broker_results)
+                notify_accepted = sum(1 for result in broker_results if result.accepted)
+            except Exception:  # noqa: BLE001 — notify must never unwind an open shift
+                logger.warning(
+                    "substitute_market.notify_failed shift=%s school=%s",
+                    shift.shift_id,
+                    school_id,
+                    exc_info=True,
+                )
+
+    shift.notify_attempted = notify_attempted
+    shift.notify_accepted = notify_accepted
+    shift.notify_used_override = notify_used_override
+
     logger.info(
-        "substitute_market.open shift=%s school=%s absent=%s candidates=%s",
+        "substitute_market.open shift=%s school=%s absent=%s candidates=%s "
+        "notify_accepted=%s/%s override=%s",
         shift.shift_id,
         school_id,
         absent_teacher_id,
         len(candidates),
+        notify_accepted,
+        notify_attempted,
+        notify_used_override,
     )
     return shift
 

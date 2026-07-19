@@ -45,6 +45,9 @@
             </div>
             <div class="col-md-3"><label class="form-label small">{% trans "Quantity" %}</label><input class="form-control" type="number" name="checkout_quantity" value="1" min="1"></div>
             <div class="col-md-4"><label class="form-label small">{% trans "Checked out to" %}</label><input class="form-control" name="checked_out_to" maxlength="255" placeholder="{% trans 'Name or reference' %}"></div>
+            <div class="col-md-4"><label class="form-label small">{% trans "Student ID (optional)" %}</label>
+              <input class="form-control" type="number" name="checkout_student_id" inputmode="numeric" placeholder="{% trans 'Links to family issued-items' %}">
+            </div>
             <div class="col-12"><button type="submit" class="btn btn-outline-primary">{% trans "Check out" %}</button></div>
           </form>
         </div>
@@ -97,6 +100,12 @@
               </select>
             </div>
             <div class="col-md-2"><label class="form-label small">{% trans "Quantity" %}</label><input class="form-control" type="number" name="stock_quantity" value="1" min="1"></div>
+            <div class="col-12"><label class="form-label small">{% trans "Notes" %}</label>
+              <textarea class="form-control" name="stock_notes" rows="2" maxlength="255" placeholder="{% trans 'Optional notes for the ledger' %}"></textarea>
+            </div>
+            <div class="col-12"><label class="form-label small">{% trans "Loss reason" %}</label>
+              <input class="form-control" type="text" name="stock_reason" maxlength="120" placeholder="{% trans 'Required when recording a loss (e.g. water damage)' %}">
+            </div>
             <div class="col-md-2"><button type="submit" class="btn btn-outline-primary">{% trans "Record" %}</button></div>
           </form>
         </div>

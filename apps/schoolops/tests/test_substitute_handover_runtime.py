@@ -90,6 +90,63 @@ class SubstituteHandoverRuntimeTests(SimpleTestCase):
         )
         self.assertEqual([candidate.teacher_id for candidate in ranked], ["3", "2", "4"])
 
+    def test_radius_tier_ranks_nearby_above_far_same_department(self) -> None:
+        # Campus Yaoundé-ish; nearby ~1 km, far ~40 km (outside 25 km default).
+        campus_lat, campus_lng = 3.8480, 11.5021
+        nearby = SubstituteCandidate(
+            "near",
+            "Nearby",
+            "+1",
+            "math",
+            0,
+            0,
+            home_lat=3.8500,
+            home_lng=11.5050,
+        )
+        far = SubstituteCandidate(
+            "far",
+            "Far",
+            "+2",
+            "math",
+            0,
+            99,  # higher priority must NOT beat radius
+            home_lat=4.1000,
+            home_lng=11.7000,
+        )
+        ranked = rank_substitute_candidates(
+            absent_teacher_id="absent",
+            candidates=[far, nearby],
+            required_department_id="math",
+            campus_lat=campus_lat,
+            campus_lng=campus_lng,
+            max_radius_km=25.0,
+        )
+        self.assertEqual(ranked[0].teacher_id, "near")
+        self.assertTrue(ranked[0].within_radius)
+        self.assertFalse(ranked[1].within_radius)
+        self.assertIsNotNone(ranked[0].distance_km)
+        self.assertLess(ranked[0].distance_km, ranked[1].distance_km)
+
+    def test_select_prefers_within_radius_when_qualified_exist(self) -> None:
+        from apps.schoolops.substitute_handover import select_qualified_or_override
+
+        near = SubstituteCandidate(
+            "near", "N", "+1", "math", home_lat=3.85, home_lng=11.50
+        )
+        far = SubstituteCandidate(
+            "far", "F", "+2", "math", priority=99, home_lat=4.10, home_lng=11.70
+        )
+        ranked = rank_substitute_candidates(
+            absent_teacher_id="x",
+            candidates=[far, near],
+            required_department_id="math",
+            campus_lat=3.8480,
+            campus_lng=11.5021,
+            max_radius_km=25.0,
+        )
+        targets = select_qualified_or_override(ranked)
+        self.assertEqual([c.teacher_id for c in targets], ["near"])
+
     def test_broadcast_falls_back_to_sms(self) -> None:
         calls = []
 

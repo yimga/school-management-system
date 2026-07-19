@@ -69,6 +69,39 @@ class InventoryCheckoutTransferTests(TestCase):
         self.assertEqual(mv.quantity_after, 7)
         self.assertIn("Coach Lee", mv.notes)
 
+    def test_checkout_with_student_creates_resource_return(self):
+        from apps.academics.models import AcademicYear
+        from apps.people.models import StudentProfile, StudentResourceReturn
+
+        year = AcademicYear.objects.create(
+            name="Y1",
+            start_date="2025-01-01",
+            end_date="2025-12-31",
+            school=self.school,
+            is_active=True,
+        )
+        student = StudentProfile.objects.create(
+            first_name="Pat",
+            last_name="Lee",
+            date_of_birth="2012-01-01",
+            student_code=f"S{uuid.uuid4().hex[:6]}",
+            school=self.school,
+            academic_year=year,
+        )
+        checkout_inventory(
+            school=self.school,
+            item=self.item,
+            quantity=1,
+            recorded_by=self.user,
+            checked_out_to="Pat Lee",
+            student=student,
+            academic_year=year,
+        )
+        row = StudentResourceReturn.objects.get(
+            student=student, academic_year=year, item_label="Laptops"
+        )
+        self.assertIsNone(row.returned_at)
+
     def test_checkout_insufficient_rejected(self):
         with self.assertRaises(InventoryMovementError):
             checkout_inventory(school=self.school, item=self.item, quantity=50)
@@ -245,13 +278,43 @@ class InventoryCheckoutTransferTests(TestCase):
         resp = ops_inventory(self._req({
             "intent": "stock_event", "movement": "loss",
             "stock_item_id": str(self.item.pk), "stock_quantity": "1",
+            "stock_reason": "Water damage",
         }))
         self.assertEqual(resp.status_code, 302)
         self.item.refresh_from_db()
         self.assertEqual(self.item.quantity, 9)
-        self.assertTrue(InventoryMovement.objects.filter(
+        row = InventoryMovement.objects.filter(
             item=self.item, movement_type=InventoryMovement.MovementType.LOSS,
-        ).exists())
+        ).first()
+        self.assertIsNotNone(row)
+        self.assertIn("Water damage", row.notes)
+
+    def test_loss_via_view_requires_reason_or_notes(self):
+        ops_inventory(self._req({
+            "intent": "stock_event", "movement": "loss",
+            "stock_item_id": str(self.item.pk), "stock_quantity": "1",
+        }))
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 10)
+        self.assertFalse(InventoryMovement.objects.filter(item=self.item).exists())
+
+    def test_consume_exact_stock_to_zero(self):
+        consume_inventory(school=self.school, item=self.item, quantity=10)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.quantity, 0)
+
+    def test_consume_notes_round_trip_via_view(self):
+        resp = ops_inventory(self._req({
+            "intent": "stock_event", "movement": "consume",
+            "stock_item_id": str(self.item.pk), "stock_quantity": "2",
+            "stock_notes": "Science lab week",
+        }))
+        self.assertEqual(resp.status_code, 302)
+        row = InventoryMovement.objects.filter(
+            item=self.item, movement_type=InventoryMovement.MovementType.CONSUME,
+        ).first()
+        self.assertIsNotNone(row)
+        self.assertEqual(row.notes, "Science lab week")
 
     def test_stock_event_invalid_movement_creates_nothing(self):
         # An unknown movement value must not touch stock or write a ledger row.

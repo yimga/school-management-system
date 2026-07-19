@@ -95,6 +95,7 @@ class SubstituteMarketTests(TestCase):
             absent_teacher_id=self.absent.pk,
             work_date=self.work_date,
             publish_fn=lambda _payload: None,
+            notify=False,
         )
         with self.assertRaises(ShiftAlreadyBooked):
             open_shift(
@@ -102,6 +103,7 @@ class SubstituteMarketTests(TestCase):
                 absent_teacher_id=self.absent.pk,
                 work_date=self.work_date,
                 publish_fn=lambda _payload: None,
+                notify=False,
             )
 
     def test_open_shift_publishes_with_candidate_count(self):
@@ -112,10 +114,55 @@ class SubstituteMarketTests(TestCase):
             absent_teacher_id=self.absent.pk,
             work_date=self.work_date,
             publish_fn=published.append,
+            notify=False,  # isolate WS payload assertion from broker side-effects
         )
         self.assertEqual(shift.status, "open")
         self.assertEqual(len(published), 1)
         self.assertGreaterEqual(published[0].get("candidate_count", 0), 1)
+
+    def test_open_shift_auto_notifies_ranked_substitutes(self):
+        """Metric 12: opening a market shift MUST broadcast — no second click."""
+        wa_calls = []
+        sms_calls = []
+
+        def wa(school, phone, body="", idempotency_key=""):
+            wa_calls.append({"phone": phone, "body": body, "key": idempotency_key})
+            return True
+
+        def sms(phone, body, school=None, idempotency_key=""):
+            sms_calls.append({"phone": phone, "body": body})
+            return True
+
+        shift = open_shift(
+            school=self.school,
+            absent_teacher_id=self.absent.pk,
+            work_date=self.work_date,
+            period_label="P1",
+            publish_fn=lambda _payload: None,
+            send_whatsapp_fn=wa,
+            send_sms_fn=sms,
+        )
+        self.assertGreaterEqual(shift.notify_attempted, 1)
+        self.assertGreaterEqual(shift.notify_accepted, 1)
+        self.assertFalse(shift.notify_used_override)
+        # Highest-priority in-department sub (sub_a) must be among contacted phones.
+        contacted = {c["phone"] for c in wa_calls}
+        self.assertIn("+237600000002", contacted)
+        self.assertTrue(any("P1" in c["body"] or "cover" in c["body"].lower() for c in wa_calls))
+        self.assertEqual(sms_calls, [], "WhatsApp accepted — SMS fallback must not fire")
+
+    def test_open_shift_notify_false_skips_broker(self):
+        wa_calls = []
+        shift = open_shift(
+            school=self.school,
+            absent_teacher_id=self.absent.pk,
+            work_date=self.work_date,
+            publish_fn=lambda _payload: None,
+            notify=False,
+            send_whatsapp_fn=lambda *a, **k: wa_calls.append(1) or True,
+        )
+        self.assertEqual(shift.notify_attempted, 0)
+        self.assertEqual(wa_calls, [])
 
     def test_find_substitute_candidates_ranks_by_priority(self):
         ranked = find_substitute_candidates(
@@ -135,6 +182,7 @@ class SubstituteMarketTests(TestCase):
             work_date=self.work_date,
             period_label="Period 2",
             publish_fn=lambda _payload: None,
+            notify=False,
         )
         cover_id = claim_shift(
             school=self.school,
@@ -256,3 +304,91 @@ class SubstituteQualificationFilterTests(TestCase):
         target_ids = {c.teacher_id for c in targets}
         self.assertIn(str(self.unqualified_sub.pk), target_ids)
         self.assertTrue(all(not c.qualified for c in targets))
+
+
+class SubstituteRadiusMatchTests(TestCase):
+    """Metric 12 — radius is a real tier on the production find path."""
+
+    def setUp(self):
+        cache.clear()
+        self.school = School.objects.create(
+            name="Radius School",
+            slug="radius-school",
+            subdomain="radius-school",
+            is_active=True,
+        )
+        self.math = Department.objects.create(
+            school=self.school, name="Math", code="MATH-R"
+        )
+        self.absent = User.objects.create_user(
+            username="absent_radius",
+            password="testpass123",
+            role=User.Role.TEACHER,
+        )
+        self.near = User.objects.create_user(
+            username="near_sub",
+            password="testpass123",
+            role=User.Role.TEACHER,
+        )
+        self.far = User.objects.create_user(
+            username="far_sub",
+            password="testpass123",
+            role=User.Role.TEACHER,
+        )
+        TeacherProfile.objects.create(
+            school=self.school,
+            user=self.absent,
+            department=self.math,
+            is_active=True,
+            phone="+237600000100",
+        )
+        TeacherProfile.objects.create(
+            school=self.school,
+            user=self.near,
+            department=self.math,
+            is_active=True,
+            phone="+237600000101",
+            custom_attributes={
+                "substitute_priority": 0,
+                "home_latitude": 3.8500,
+                "home_longitude": 11.5050,
+            },
+        )
+        TeacherProfile.objects.create(
+            school=self.school,
+            user=self.far,
+            department=self.math,
+            is_active=True,
+            phone="+237600000102",
+            custom_attributes={
+                "substitute_priority": 99,
+                "home_latitude": 4.1000,
+                "home_longitude": 11.7000,
+            },
+        )
+        self.work_date = date(2026, 7, 18)
+
+    def test_prod_path_ranks_within_radius_above_far_higher_priority(self):
+        from unittest.mock import patch
+
+        with (
+            patch(
+                "apps.schoolops.substitute_handover.resolve_campus_coords",
+                return_value=(3.8480, 11.5021),
+            ),
+            patch(
+                "apps.schoolops.substitute_handover.resolve_substitute_radius_km",
+                return_value=25.0,
+            ),
+        ):
+            ranked = find_substitute_candidates(
+                school=self.school,
+                absent_teacher_user_id=self.absent.pk,
+                work_date=self.work_date,
+            )
+        by_id = {c.teacher_id: c for c in ranked}
+        self.assertEqual(ranked[0].teacher_id, str(self.near.pk))
+        self.assertTrue(by_id[str(self.near.pk)].within_radius)
+        self.assertFalse(by_id[str(self.far.pk)].within_radius)
+        targets = select_qualified_or_override(ranked)
+        self.assertEqual({c.teacher_id for c in targets}, {str(self.near.pk)})

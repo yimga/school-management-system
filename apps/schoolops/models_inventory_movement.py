@@ -1,12 +1,19 @@
-"""Inventory movement ledger (metric 14)."""
+"""Inventory movement ledger (metric 14).
+
+Append-only by design: quantity history is an audit trail. Mutations go through
+``record_inventory_movement`` which creates new rows; ORM update/delete is refused.
+"""
 
 from __future__ import annotations
 
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.db import models
 
+from apps.platform_runtime.append_only import AppendOnlyManager, AppendOnlyModelMixin
 
-class InventoryMovement(models.Model):
+
+class InventoryMovement(AppendOnlyModelMixin, models.Model):
     class MovementType(models.TextChoices):
         CHECKOUT = "checkout", "Checkout"
         RETURN = "return", "Return"
@@ -44,6 +51,8 @@ class InventoryMovement(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    objects = AppendOnlyManager()
+
     class Meta:
         app_label = "schoolops"
         ordering = ["-created_at"]
@@ -53,3 +62,10 @@ class InventoryMovement(models.Model):
 
     def __str__(self) -> str:
         return f"{self.item_id} {self.movement_type} {self.quantity_delta:+d}"
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise PermissionDenied(
+                "InventoryMovement records are append-only and cannot be updated."
+            )
+        return super().save(*args, **kwargs)

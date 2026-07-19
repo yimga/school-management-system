@@ -69,12 +69,17 @@ def checkout_inventory(
     recorded_by: Any | None = None,
     checked_out_to: str = "",
     notes: str = "",
+    student: Any | None = None,
+    academic_year: Any | None = None,
 ) -> Any:
     """Check ``quantity`` units of ``item`` out to a person.
 
     Records a single CHECKOUT movement with a negative delta. Insufficient
     stock is rejected by :func:`record_inventory_movement` (quantity-below-zero
     guard), which raises :class:`InventoryMovementError`.
+
+    When ``student`` is provided (family-facing path), also upserts an
+    outstanding ``StudentResourceReturn`` so parents can see issued items.
     """
     from apps.schoolops.models_inventory_movement import InventoryMovement
 
@@ -83,7 +88,7 @@ def checkout_inventory(
     note = (notes or "").strip() or (
         f"Checked out to {who}" if who else "Checkout"
     )
-    return record_inventory_movement(
+    movement = record_inventory_movement(
         school=school,
         item=item,
         movement_type=InventoryMovement.MovementType.CHECKOUT,
@@ -91,6 +96,21 @@ def checkout_inventory(
         recorded_by=recorded_by,
         notes=note,
     )
+    if student is not None:
+        year = academic_year or getattr(student, "academic_year", None)
+        if year is not None and getattr(student, "school_id", None) == getattr(
+            school, "pk", None
+        ):
+            from apps.people.models import StudentResourceReturn
+
+            label = (getattr(item, "name", None) or who or "Issued item")[:120]
+            StudentResourceReturn.objects.get_or_create(
+                student=student,
+                academic_year=year,
+                item_label=label,
+                defaults={"notes": note[:500]},
+            )
+    return movement
 
 
 def transfer_inventory(

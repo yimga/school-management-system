@@ -55,3 +55,24 @@ class InventoryMovementTests(TestCase):
             )
         self.item.refresh_from_db()
         self.assertEqual(self.item.quantity, 10)
+
+    def test_ledger_rows_are_append_only(self):
+        from django.core.exceptions import PermissionDenied
+
+        from apps.platform_runtime.append_only import AppendOnlyDeleteError
+
+        movement = record_inventory_movement(
+            school=self.school,
+            item=self.item,
+            movement_type=InventoryMovement.MovementType.ADJUST,
+            quantity_delta=1,
+            recorded_by=self.user,
+        )
+        movement.notes = "tamper"
+        with self.assertRaises(PermissionDenied):
+            movement.save()
+        with self.assertRaises(AppendOnlyDeleteError):
+            movement.delete()
+        with self.assertRaises(AppendOnlyDeleteError):
+            InventoryMovement.objects.filter(pk=movement.pk).delete()
+        self.assertTrue(InventoryMovement.objects.filter(pk=movement.pk).exists())

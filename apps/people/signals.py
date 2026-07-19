@@ -88,6 +88,26 @@ def emit_attendance_recorded_teacher(sender, instance, created, **kwargs):
         logger.debug("emit attendance.recorded (teacher) skipped: %s", e)
 
 
+@receiver(post_save, sender=TeacherAttendance)
+def open_substitute_market_on_teacher_absence(sender, instance, created, **kwargs):
+    """Metric 12 — ABSENT attendance auto-opens the substitute market + notify."""
+    status = getattr(instance, "status", "") or ""
+    if status != TeacherAttendance.Status.ABSENT:
+        return
+    if not created:
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and "status" not in update_fields:
+            return
+    try:
+        from apps.schoolops.absence_auto_open import (
+            maybe_open_market_for_teacher_absence,
+        )
+
+        maybe_open_market_for_teacher_absence(instance)
+    except Exception as e:  # noqa: BLE001 — attendance path must stay intact
+        logger.debug("substitute absence auto-open skipped: %s", e)
+
+
 @receiver(post_save, sender=StudentProfile)
 def emit_student_created_event(sender, instance, created, **kwargs):
     """Emit domain event when a student profile is created (service-layer contract). Path-to-10: also emit platform event catalog."""
