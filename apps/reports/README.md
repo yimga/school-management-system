@@ -77,17 +77,14 @@ This app declares **no Celery tasks** — scheduled delivery runs through the
   says the tenant's partial-payment threshold is met. This is deliberate: partial
   payers were previously blocked from their own report cards forever. Do not
   "simplify" this back to a pure balance check.
-- **KNOWN GAP — certificates fall back to English for 14 of 20 languages.**
-  `settings.LANGUAGES` ships 20 locales; `CertificateLocalizer.CERTIFICATE_STRINGS`
-  has hand-written packs for exactly **6** (`en`, `fr`, `sw`, `yo`, `pid`, `ha`).
-  Every other locale renders an English certificate. This is real and unfixed —
-  closing it needs human translation of certificate *legal* text, not machine
-  output. What changed is that the fallback is no longer silent: the localizer
-  now exposes `rendered_language` (the pack actually used) and
-  `localization_fallback` (True when it differs from the request), logs a warning,
-  and `missing_certificate_languages()` makes the gap assertable. A caller that must
-  not ship a document mislabelled as the parent's language should check
-  `localization_fallback`. Do not paper this over by machine-translating the pack.
+- **Certificate localization — 20/20 packs wired.**
+  `CertificateLocalizer.CERTIFICATE_STRINGS` has a hand-authored pack for every
+  `settings.LANGUAGES` / `SUPPORTED_LANGUAGES` code (proved by
+  `LanguageConsistencyTestCase.test_supported_languages_coverage` +
+  `test_no_fallback_for_supported_locales`). Unknown codes still fall back to
+  English with `rendered_language` / `localization_fallback` + a warning log;
+  `missing_certificate_languages()` must stay empty — if a new locale is added
+  to the switcher without a pack, that helper and the coverage test go red.
 - **`TermPublishStatus.classroom = NULL` means whole-school**, not "unset". The
   `unique_together` is `(academic_year, term, classroom)`, so the school-wide row and
   a per-class row coexist. Read the NULL case explicitly.

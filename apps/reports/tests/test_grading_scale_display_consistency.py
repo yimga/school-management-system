@@ -188,12 +188,16 @@ class GradingScaleDisplayConsistencyTests(TestCase):
         # Teacher gradebook / mark-sheet chain (evals/views.py:2281,2291): the scale is
         # resolve_local_scale_type(school); the band is resolve_extended_band_label(...).
         gradebook_scale = resolve_local_scale_type(g.school)
+        # Rankings expose averages; band for that average uses the same resolver as
+        # gradebook/report (Evaluation.letter_grade remains coarse A–E storage).
+        ranking_avg = float(term_ctx["summary"].get("average") or _FIXED_SCORE)
         return {
             "term_row": term_ctx["rows"][0]["band"],
             "term_overall": term_ctx["summary"]["overall_band"],
             "annual": annual_ctx["annual_band"],
             "gradebook": resolve_extended_band_label(gradebook_scale, _FIXED_SCORE),
             "template_tag": format_grade_band(gradebook_scale, _FIXED_SCORE),
+            "ranking_band": resolve_extended_band_label(gradebook_scale, ranking_avg),
         }
 
     # ---- tests -------------------------------------------------------------------

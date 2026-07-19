@@ -1,0 +1,134 @@
+{# Standalone achievement certificate — language + dir from CertificateLocalizer. #}
+{# template-compile-allow: standalone document (no extends); used by render + e2e fixtures #}
+<!DOCTYPE html>
+<html lang="{{ language }}" dir="{{ html_dir|default:'ltr' }}" data-rmc-certificate="1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <style>
+    :root {
+      --cert-ink: #0f172a;
+      --cert-muted: #64748b;
+      --cert-line: #e2e8f0;
+      --cert-surface: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--cert-surface);
+      color: var(--cert-ink);
+      font-family: "Segoe UI", "Noto Sans", "Noto Naskh Arabic", "Noto Sans Hebrew",
+        "Noto Sans Arabic", system-ui, sans-serif;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .rmc-certificate {
+      width: min(40rem, 100%);
+      border: 1px solid var(--cert-line);
+      border-radius: 1rem;
+      padding: 2rem 1.75rem;
+      text-align: center;
+    }
+    .rmc-certificate__eyebrow {
+      margin: 0 0 0.75rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cert-muted);
+    }
+    .rmc-certificate__title {
+      margin: 0 0 1rem;
+      font-size: clamp(1.35rem, 3vw, 1.85rem);
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .rmc-certificate__lead,
+    .rmc-certificate__meta,
+    .rmc-certificate__footer {
+      margin: 0.5rem 0;
+      color: var(--cert-muted);
+      font-size: 0.95rem;
+    }
+    .rmc-certificate__student {
+      margin: 0.75rem 0 1rem;
+      font-size: 1.35rem;
+      font-weight: 650;
+      color: var(--cert-ink);
+    }
+    .rmc-certificate__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1rem;
+      margin: 1.25rem 0;
+      text-align: start;
+    }
+    .rmc-certificate__grid dt {
+      margin: 0;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--cert-muted);
+    }
+    .rmc-certificate__grid dd {
+      margin: 0.15rem 0 0;
+      font-weight: 600;
+    }
+    .rmc-certificate__promo {
+      display: inline-block;
+      margin-top: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--cert-line);
+      font-size: 0.8rem;
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+  <article class="rmc-certificate" data-rmc-cert-lang="{{ language }}" data-rmc-cert-dir="{{ html_dir }}">
+    {% if school_name %}
+    <p class="rmc-certificate__eyebrow">{{ school_name }}</p>
+    {% endif %}
+    <h1 class="rmc-certificate__title" data-rmc-cert-title="1">{{ title }}</h1>
+    <p class="rmc-certificate__lead">{{ strings.to_certify }}</p>
+    <p class="rmc-certificate__student" data-rmc-cert-student="1">{{ student }}</p>
+    <p class="rmc-certificate__lead">{{ strings.has_completed }}</p>
+    <dl class="rmc-certificate__grid">
+      <div>
+        <dt>{{ strings.academic_year }}</dt>
+        <dd>{{ academic_year }}</dd>
+      </div>
+      <div>
+        <dt>{{ strings.grade }}</dt>
+        <dd>{{ grade_letter }}</dd>
+      </div>
+      <div>
+        <dt>{{ strings.average }}</dt>
+        <dd>{{ average }}</dd>
+      </div>
+      <div>
+        <dt>{{ strings.rank }}</dt>
+        <dd>{{ rank }}</dd>
+      </div>
+    </dl>
+    <p class="rmc-certificate__meta">{{ strings.remarks }}: {{ performance_comment }}</p>
+    <p class="rmc-certificate__promo" data-rmc-cert-promo="1">
+      {% if promotion_status == "PROMOTED" or promotion_status == strings.promotion %}
+        {{ strings.promotion }}
+      {% else %}
+        {{ strings.demotion }}
+      {% endif %}
+    </p>
+    <p class="rmc-certificate__footer">
+      {{ strings.date }}: {{ date_issued }} · {{ strings.principal }} / {{ strings.signature }}
+    </p>
+  </article>
+</body>
+</html>

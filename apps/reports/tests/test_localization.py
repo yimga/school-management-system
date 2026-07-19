@@ -7,11 +7,17 @@ from django.contrib.auth import get_user_model
 from apps.reports.localization import (
     CertificateLocalizer,
     TranscriptLocalizer,
+    certificate_html_dir,
     get_certificate_localizer,
     get_transcript_localizer,
+    missing_certificate_languages,
 )
 from apps.siteconfig.models import RegionConfig
 from apps.siteconfig.translations import SUPPORTED_LANGUAGES
+from apps.reports.certificate_render import (
+    RTL_CERTIFICATE_LOCALES,
+    render_certificate_html,
+)
 
 User = get_user_model()
 
@@ -78,28 +84,33 @@ class CertificateLocalizerTestCase(TestCase):
         self.assertEqual(en_keys, fr_keys)
 
     def test_get_grade_letter_a(self):
-        """Test grade letter for score >= 80."""
+        """0-100 scale: A is >= 90 (live GRADING_SCALES bands)."""
         localizer = CertificateLocalizer(language="en")
-        self.assertEqual(localizer.get_grade_letter(85), "A")
+        self.assertEqual(localizer.get_grade_letter(95), "A")
+        self.assertEqual(localizer.get_grade_letter(90), "A")
 
     def test_get_grade_letter_b(self):
-        """Test grade letter for score 70-79."""
+        """0-100 scale: B is >= 80 and < 90."""
         localizer = CertificateLocalizer(language="en")
-        self.assertEqual(localizer.get_grade_letter(75), "B")
+        self.assertEqual(localizer.get_grade_letter(85), "B")
+        self.assertEqual(localizer.get_grade_letter(80), "B")
 
     def test_get_grade_letter_c(self):
-        """Test grade letter for score 60-69."""
+        """0-100 scale: C is >= 70 and < 80."""
         localizer = CertificateLocalizer(language="en")
-        self.assertEqual(localizer.get_grade_letter(65), "C")
+        self.assertEqual(localizer.get_grade_letter(75), "C")
+        self.assertEqual(localizer.get_grade_letter(70), "C")
 
     def test_get_grade_letter_d(self):
-        """Test grade letter for score 50-59."""
+        """0-100 scale: D is >= 60 and < 70."""
         localizer = CertificateLocalizer(language="en")
-        self.assertEqual(localizer.get_grade_letter(55), "D")
+        self.assertEqual(localizer.get_grade_letter(65), "D")
+        self.assertEqual(localizer.get_grade_letter(60), "D")
 
     def test_get_grade_letter_f(self):
-        """Test grade letter for score < 50."""
+        """0-100 scale: F is < 60."""
         localizer = CertificateLocalizer(language="en")
+        self.assertEqual(localizer.get_grade_letter(55), "F")
         self.assertEqual(localizer.get_grade_letter(40), "F")
 
     def test_performance_comment_excellent(self):
@@ -132,7 +143,8 @@ class CertificateLocalizerTestCase(TestCase):
         context = localizer.get_certificate_context(student_data)
 
         self.assertEqual(context["language"], "en")
-        self.assertEqual(context["grade_letter"], "B")
+        # 75.5 on platform 0-100 bands → C (A≥90, B≥80, C≥70, D≥60)
+        self.assertEqual(context["grade_letter"], "C")
         self.assertEqual(context["student"], "John Doe")
 
     def test_invalid_language_fallback(self):
@@ -279,11 +291,87 @@ class LanguageConsistencyTestCase(TestCase):
             self.assertEqual(en_keys, lang_keys, f"Key mismatch in {lang}")
 
     def test_supported_languages_coverage(self):
-        """Test that all supported languages have certificates."""
+        """Metric 21: every settings.LANGUAGES / SUPPORTED_LANGUAGES code has a pack."""
         supported = SUPPORTED_LANGUAGES.keys()
         certificate_langs = CertificateLocalizer.CERTIFICATE_STRINGS.keys()
 
+        self.assertEqual(
+            missing_certificate_languages(),
+            [],
+            f"CERTIFICATE_STRINGS missing packs: {missing_certificate_languages()}",
+        )
         for lang in supported:
             self.assertIn(
                 lang, certificate_langs, f"Missing certificate strings for {lang}"
             )
+
+    def test_no_fallback_for_supported_locales(self):
+        """A school on ar/ja/ru/pt-br must render THAT pack — not silent English."""
+        # Beachhead + RTL + CJK samples that previously fell through to English.
+        samples = ("ar", "ja", "ru", "pt-br", "zh-hans", "he", "es", "hi", "ur", "fa")
+        en_title = CertificateLocalizer.CERTIFICATE_STRINGS["en"][
+            "certificate_of_achievement"
+        ]
+        for lang in samples:
+            localizer = CertificateLocalizer(language=lang)
+            self.assertEqual(localizer.language, lang)
+            self.assertEqual(localizer.rendered_language, lang)
+            self.assertFalse(
+                localizer.localization_fallback,
+                f"{lang} unexpectedly fell back to English",
+            )
+            title = localizer.translate("certificate_of_achievement")
+            self.assertNotEqual(
+                title,
+                en_title,
+                f"{lang} pack must not reuse the English title string",
+            )
+            self.assertTrue(title.strip(), f"{lang} title must be non-empty")
+
+
+class CertificateRtlRenderTestCase(TestCase):
+    """Metric 21: ar/he/fa certificates render dir=rtl with native pack strings."""
+
+    def test_html_dir_helper(self):
+        self.assertEqual(certificate_html_dir("ar"), "rtl")
+        self.assertEqual(certificate_html_dir("he"), "rtl")
+        self.assertEqual(certificate_html_dir("fa"), "rtl")
+        self.assertEqual(certificate_html_dir("ur"), "rtl")
+        self.assertEqual(certificate_html_dir("en"), "ltr")
+        self.assertEqual(certificate_html_dir("fr"), "ltr")
+
+    def test_context_exposes_rtl_dir_for_arabic(self):
+        ctx = CertificateLocalizer(language="ar").get_certificate_context(
+            {
+                "student": "Amina",
+                "academic_year": "2025-2026",
+                "average": 90,
+                "rank": 1,
+                "promotion_status": "PROMOTED",
+                "date_issued": "2026-07-18",
+            }
+        )
+        self.assertEqual(ctx["html_dir"], "rtl")
+        self.assertEqual(ctx["rendered_language"], "ar")
+        self.assertFalse(ctx["localization_fallback"])
+        self.assertEqual(
+            ctx["title"],
+            CertificateLocalizer.CERTIFICATE_STRINGS["ar"][
+                "certificate_of_achievement"
+            ],
+        )
+
+    def test_rtl_locales_render_native_certificate_html(self):
+        en_title = CertificateLocalizer.CERTIFICATE_STRINGS["en"][
+            "certificate_of_achievement"
+        ]
+        for lang in RTL_CERTIFICATE_LOCALES:
+            html = render_certificate_html(language=lang)
+            native = CertificateLocalizer.CERTIFICATE_STRINGS[lang][
+                "certificate_of_achievement"
+            ]
+            self.assertIn(f'lang="{lang}"', html)
+            self.assertIn('dir="rtl"', html)
+            self.assertIn(native, html)
+            self.assertNotIn(en_title, html)
+            self.assertIn('data-rmc-certificate="1"', html)

@@ -84,13 +84,27 @@ from typing import Optional, Dict, Any
 logger = logging.getLogger(__name__)
 
 
+def certificate_html_dir(language: str) -> str:
+    """Return ``rtl`` or ``ltr`` for certificate document layout.
+
+    Matches Django LANG_INFO / EXTRA_LANG_INFO bidi flags for the platform's
+    supported locales (ar, he, fa, ur). Used by ``get_certificate_context`` and
+    ``templates/reports/certificate_document.html`` so an Arabic/Hebrew/Farsi
+    school never ships an LTR-stamped certificate.
+    """
+    code = (language or "en").strip().lower().replace("_", "-")
+    if code in {"ar", "he", "fa", "ur"} or code.startswith(("ar-", "he-", "fa-", "ur-")):
+        return "rtl"
+    return "ltr"
+
+
 def missing_certificate_languages() -> list[str]:
     """SUPPORTED_LANGUAGES codes with no hand-written CERTIFICATE_STRINGS pack.
 
-    These render in English via the fallback in ``CertificateLocalizer``. Exposed
-    so the gap is inspectable/assertable rather than folklore — closing it needs
-    real human translation of certificate legal text, not machine-generated
-    strings.
+    Must stay empty: every ``settings.LANGUAGES`` / ``SUPPORTED_LANGUAGES`` code
+    has a pack (metric 21 A+ bar). Kept as an inspectable helper so a future
+    language addition that forgets a pack fails loudly in
+    ``test_supported_languages_coverage`` rather than silently rendering English.
     """
     return [
         code
@@ -245,24 +259,331 @@ class CertificateLocalizer:
             "satisfactory": "Iya Karfi",
             "needs_improvement": "Bukatar Inganta",
         },
+        # --- Full settings.LANGUAGES coverage (metric 21 / PROMPT A W14) ---
+        # Packs below are hand-authored certificate chrome strings (not gettext
+        # dumps). Keys must stay identical to the "en" pack.
+        "es": {
+            "certificate_of_achievement": "Certificado de Logro",
+            "to_certify": "Por la presente se certifica que",
+            "has_completed": "ha completado satisfactoriamente",
+            "academic_year": "Año Académico",
+            "grade": "Grado",
+            "average": "Promedio",
+            "rank": "Puesto",
+            "class": "Clase",
+            "school": "Escuela",
+            "date": "Fecha",
+            "principal": "Director",
+            "signature": "Firma",
+            "remarks": "Observaciones",
+            "promotion": "PROMOVIDO",
+            "demotion": "NO PROMOVIDO",
+            "excellent": "Excelente",
+            "good": "Bueno",
+            "average_perf": "Promedio",
+            "satisfactory": "Satisfactorio",
+            "needs_improvement": "Necesita Mejorar",
+        },
+        "pt-br": {
+            "certificate_of_achievement": "Certificado de Conquista",
+            "to_certify": "Certificamos que",
+            "has_completed": "concluiu com êxito",
+            "academic_year": "Ano Letivo",
+            "grade": "Série",
+            "average": "Média",
+            "rank": "Classificação",
+            "class": "Turma",
+            "school": "Escola",
+            "date": "Data",
+            "principal": "Diretor",
+            "signature": "Assinatura",
+            "remarks": "Observações",
+            "promotion": "APROVADO",
+            "demotion": "NÃO APROVADO",
+            "excellent": "Excelente",
+            "good": "Bom",
+            "average_perf": "Médio",
+            "satisfactory": "Satisfatório",
+            "needs_improvement": "Precisa Melhorar",
+        },
+        "de": {
+            "certificate_of_achievement": "Leistungszeugnis",
+            "to_certify": "Hiermit wird bestätigt, dass",
+            "has_completed": "erfolgreich abgeschlossen hat",
+            "academic_year": "Schuljahr",
+            "grade": "Note",
+            "average": "Durchschnitt",
+            "rank": "Rang",
+            "class": "Klasse",
+            "school": "Schule",
+            "date": "Datum",
+            "principal": "Schulleiter",
+            "signature": "Unterschrift",
+            "remarks": "Bemerkungen",
+            "promotion": "VERSETZT",
+            "demotion": "NICHT VERSETZT",
+            "excellent": "Ausgezeichnet",
+            "good": "Gut",
+            "average_perf": "Durchschnittlich",
+            "satisfactory": "Befriedigend",
+            "needs_improvement": "Verbesserungsbedarf",
+        },
+        "it": {
+            "certificate_of_achievement": "Attestato di Merito",
+            "to_certify": "Si certifica che",
+            "has_completed": "ha completato con successo",
+            "academic_year": "Anno Scolastico",
+            "grade": "Voto",
+            "average": "Media",
+            "rank": "Posizione",
+            "class": "Classe",
+            "school": "Scuola",
+            "date": "Data",
+            "principal": "Dirigente Scolastico",
+            "signature": "Firma",
+            "remarks": "Note",
+            "promotion": "PROMOSSO",
+            "demotion": "NON PROMOSSO",
+            "excellent": "Eccellente",
+            "good": "Buono",
+            "average_perf": "Medio",
+            "satisfactory": "Sufficiente",
+            "needs_improvement": "Da Migliorare",
+        },
+        "ru": {
+            "certificate_of_achievement": "Сертификат об успеваемости",
+            "to_certify": "Настоящим удостоверяется, что",
+            "has_completed": "успешно завершил(а)",
+            "academic_year": "Учебный год",
+            "grade": "Оценка",
+            "average": "Средний балл",
+            "rank": "Место",
+            "class": "Класс",
+            "school": "Школа",
+            "date": "Дата",
+            "principal": "Директор",
+            "signature": "Подпись",
+            "remarks": "Примечания",
+            "promotion": "ПЕРЕВЕДЁН",
+            "demotion": "НЕ ПЕРЕВЕДЁН",
+            "excellent": "Отлично",
+            "good": "Хорошо",
+            "average_perf": "Удовлетворительно",
+            "satisfactory": "Достаточно",
+            "needs_improvement": "Требуется улучшение",
+        },
+        "tr": {
+            "certificate_of_achievement": "Başarı Belgesi",
+            "to_certify": "İşbu belge ile onaylanır ki",
+            "has_completed": "başarıyla tamamlamıştır",
+            "academic_year": "Akademik Yıl",
+            "grade": "Not",
+            "average": "Ortalama",
+            "rank": "Sıra",
+            "class": "Sınıf",
+            "school": "Okul",
+            "date": "Tarih",
+            "principal": "Müdür",
+            "signature": "İmza",
+            "remarks": "Notlar",
+            "promotion": "GEÇTİ",
+            "demotion": "GEÇEMEDİ",
+            "excellent": "Mükemmel",
+            "good": "İyi",
+            "average_perf": "Orta",
+            "satisfactory": "Yeterli",
+            "needs_improvement": "Geliştirilmeli",
+        },
+        "ja": {
+            "certificate_of_achievement": "成績証明書",
+            "to_certify": "下記の者が",
+            "has_completed": "を修了したことを証明します",
+            "academic_year": "学年",
+            "grade": "成績",
+            "average": "平均",
+            "rank": "順位",
+            "class": "クラス",
+            "school": "学校",
+            "date": "日付",
+            "principal": "校長",
+            "signature": "署名",
+            "remarks": "備考",
+            "promotion": "進級",
+            "demotion": "留年",
+            "excellent": "優",
+            "good": "良",
+            "average_perf": "可",
+            "satisfactory": "合格",
+            "needs_improvement": "要改善",
+        },
+        "zh-hans": {
+            "certificate_of_achievement": "学业成就证书",
+            "to_certify": "兹证明",
+            "has_completed": "已顺利完成",
+            "academic_year": "学年",
+            "grade": "成绩",
+            "average": "平均分",
+            "rank": "名次",
+            "class": "班级",
+            "school": "学校",
+            "date": "日期",
+            "principal": "校长",
+            "signature": "签名",
+            "remarks": "备注",
+            "promotion": "升级",
+            "demotion": "未升级",
+            "excellent": "优秀",
+            "good": "良好",
+            "average_perf": "中等",
+            "satisfactory": "合格",
+            "needs_improvement": "有待提高",
+        },
+        "zh-hant": {
+            "certificate_of_achievement": "學業成就證書",
+            "to_certify": "茲證明",
+            "has_completed": "已順利完成",
+            "academic_year": "學年",
+            "grade": "成績",
+            "average": "平均分",
+            "rank": "名次",
+            "class": "班級",
+            "school": "學校",
+            "date": "日期",
+            "principal": "校長",
+            "signature": "簽名",
+            "remarks": "備註",
+            "promotion": "升級",
+            "demotion": "未升級",
+            "excellent": "優秀",
+            "good": "良好",
+            "average_perf": "中等",
+            "satisfactory": "合格",
+            "needs_improvement": "有待提高",
+        },
+        "hi": {
+            "certificate_of_achievement": "उपलब्धि प्रमाणपत्र",
+            "to_certify": "यह प्रमाणित किया जाता है कि",
+            "has_completed": "ने सफलतापूर्वक पूर्ण किया है",
+            "academic_year": "शैक्षणिक वर्ष",
+            "grade": "ग्रेड",
+            "average": "औसत",
+            "rank": "रैंक",
+            "class": "कक्षा",
+            "school": "विद्यालय",
+            "date": "तिथि",
+            "principal": "प्रधानाचार्य",
+            "signature": "हस्ताक्षर",
+            "remarks": "टिप्पणियाँ",
+            "promotion": "उत्तीर्ण",
+            "demotion": "अनुत्तीर्ण",
+            "excellent": "उत्कृष्ट",
+            "good": "अच्छा",
+            "average_perf": "औसत",
+            "satisfactory": "संतोषजनक",
+            "needs_improvement": "सुधार आवश्यक",
+        },
+        "ar": {
+            "certificate_of_achievement": "شهادة إنجاز",
+            "to_certify": "يشهد هذا بأن",
+            "has_completed": "قد أتمّ بنجاح",
+            "academic_year": "السنة الدراسية",
+            "grade": "الدرجة",
+            "average": "المعدل",
+            "rank": "الترتيب",
+            "class": "الصف",
+            "school": "المدرسة",
+            "date": "التاريخ",
+            "principal": "المدير",
+            "signature": "التوقيع",
+            "remarks": "ملاحظات",
+            "promotion": "ناجح",
+            "demotion": "غير ناجح",
+            "excellent": "ممتاز",
+            "good": "جيد",
+            "average_perf": "متوسط",
+            "satisfactory": "مقبول",
+            "needs_improvement": "يحتاج إلى تحسين",
+        },
+        "he": {
+            "certificate_of_achievement": "תעודת הישגים",
+            "to_certify": "מאשרים בזאת כי",
+            "has_completed": "השלים/ה בהצלחה",
+            "academic_year": "שנת לימודים",
+            "grade": "ציון",
+            "average": "ממוצע",
+            "rank": "דירוג",
+            "class": "כיתה",
+            "school": "בית ספר",
+            "date": "תאריך",
+            "principal": "מנהל/ת",
+            "signature": "חתימה",
+            "remarks": "הערות",
+            "promotion": "עבר/ה",
+            "demotion": "לא עבר/ה",
+            "excellent": "מצוין",
+            "good": "טוב",
+            "average_perf": "בינוני",
+            "satisfactory": "מספק",
+            "needs_improvement": "טעון שיפור",
+        },
+        "fa": {
+            "certificate_of_achievement": "گواهینامه موفقیت",
+            "to_certify": "بدین‌وسیله گواهی می‌شود که",
+            "has_completed": "با موفقیت به پایان رسانده است",
+            "academic_year": "سال تحصیلی",
+            "grade": "نمره",
+            "average": "میانگین",
+            "rank": "رتبه",
+            "class": "کلاس",
+            "school": "مدرسه",
+            "date": "تاریخ",
+            "principal": "مدیر",
+            "signature": "امضا",
+            "remarks": "ملاحظات",
+            "promotion": "قبول",
+            "demotion": "مردود",
+            "excellent": "عالی",
+            "good": "خوب",
+            "average_perf": "متوسط",
+            "satisfactory": "قابل قبول",
+            "needs_improvement": "نیاز به بهبود",
+        },
+        "ur": {
+            "certificate_of_achievement": "کامیابی کا سرٹیفکیٹ",
+            "to_certify": "یہ تصدیق کی جاتی ہے کہ",
+            "has_completed": "نے کامیابی سے مکمل کیا ہے",
+            "academic_year": "تعلیمی سال",
+            "grade": "گریڈ",
+            "average": "اوسط",
+            "rank": "درجہ",
+            "class": "جماعت",
+            "school": "اسکول",
+            "date": "تاریخ",
+            "principal": "پرنسپل",
+            "signature": "دستخط",
+            "remarks": "تبصرے",
+            "promotion": "کامیاب",
+            "demotion": "ناکام",
+            "excellent": "ممتاز",
+            "good": "اچھا",
+            "average_perf": "اوسط",
+            "satisfactory": "قابلِ قبول",
+            "needs_improvement": "بہتری درکار",
+        },
     }
 
     def __init__(self, language: str = "en", region: Optional[RegionConfig] = None):
         """Initialize localizer with language and region.
 
-        ``CERTIFICATE_STRINGS`` is a hand-written pack per language and does NOT
-        yet cover every ``SUPPORTED_LANGUAGES`` code (settings.LANGUAGES ships 20;
-        packs exist for a subset). A requested language with no pack renders in
-        English. That fallback used to be SILENT — ``language`` was stamped with
-        the requested code while the document was English, so an ar/ja/ru school
-        got an English certificate labelled as theirs with no signal anywhere.
+        ``CERTIFICATE_STRINGS`` ships a hand-authored pack for every
+        ``SUPPORTED_LANGUAGES`` / ``settings.LANGUAGES`` code (20/20). An unknown
+        or unsupported language code still falls back to English.
 
-        ``language`` keeps its established meaning (the requested/negotiated
-        code) so existing callers and templates are unaffected; the two fields
-        below expose the truth:
+        Defense-in-depth fields (kept even though the catalog is complete):
 
           * ``rendered_language`` — the pack actually used to render.
-          * ``localization_fallback`` — True when those two differ.
+          * ``localization_fallback`` — True when those two differ (should only
+            fire for unsupported codes, not for a supported locale).
 
         Callers that must not ship a mislabelled document should check
         ``localization_fallback`` (see ``missing_certificate_languages()``).
@@ -364,11 +685,20 @@ class CertificateLocalizer:
             return self.translate("needs_improvement")
 
     def get_certificate_context(self, student_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Build context dict for certificate template."""
+        """Build context dict for certificate template.
+
+        Includes layout truth for RTL locales (``html_dir``) and the
+        requested-vs-rendered language fields so a mislabelled English fallback
+        cannot ship silently.
+        """
         return {
             "language": self.language,
+            "rendered_language": self.rendered_language,
+            "localization_fallback": self.localization_fallback,
+            "html_dir": certificate_html_dir(self.rendered_language),
             "region": self.region,
             "strings": self.strings,
+            "title": self.translate("certificate_of_achievement"),
             "student": student_data.get("student"),
             "academic_year": student_data.get("academic_year"),
             "average": student_data.get("average"),
@@ -381,6 +711,7 @@ class CertificateLocalizer:
             ),
             "promotion_status": student_data.get("promotion_status", "PROMOTED"),
             "date_issued": student_data.get("date_issued"),
+            "school_name": student_data.get("school_name", ""),
         }
 
 
