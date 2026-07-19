@@ -167,7 +167,7 @@ jobs:
 
       - name: Postgres booking exclusion proof
 
-        run: python scripts/verify_postgres_booking_ci_proof.py
+        run: python scripts/verify_postgres_booking_ci_proof.py --run-tests
 
 
 

@@ -39,7 +39,7 @@ class ResourceBookingModuleSmokeTests(TestCase):
 
 
 @requires_postgres
-@tag("tenants_rls")
+@tag("tenants_rls", "postgres_booking")
 class ResourceBookingServiceTests(TestCase):
     def setUp(self):
         self.school = School.objects.create(
@@ -157,10 +157,14 @@ class ResourceBookingServiceTests(TestCase):
 
 
 @requires_postgres
-@tag("tenants_rls")
+@tag("tenants_rls", "postgres_booking")
 @skipUnlessDBFeature("supports_table_check_constraints")
 class ResourceBookingPostgresExclusionTests(TestCase):
-    """Requires Postgres + btree_gist for ExclusionConstraint enforcement."""
+    """Requires Postgres + btree_gist for ExclusionConstraint enforcement.
+
+    SQLite lane: skipped via ``requires_postgres``. Capacity/service gates that
+    are backend-agnostic live in ``ResourceBookingCapacityGateTests`` (no PG tag).
+    """
 
     def setUp(self):
         self.school = School.objects.create(
@@ -226,6 +230,7 @@ class ResourceBookingPostgresExclusionTests(TestCase):
                 )
 
 
+@tag("sqlite_ok", "booking_capacity_gate")
 class ResourceBookingCapacityGateTests(TestCase):
     """SQLite-runnable proof of the service-layer capacity gate + row lock.
 
@@ -236,6 +241,9 @@ class ResourceBookingCapacityGateTests(TestCase):
     ORM write path is Postgres-only, so here we seed confirmed rows via the same
     raw-insert the academics integration suite uses and exercise the capacity
     DECISION + the concurrency lock — both backend-agnostic.
+
+    Do not add ``@requires_postgres`` or ``postgres_booking`` here — this class
+    is the SQLite CI proof path for #10 capacity gates.
     """
 
     def setUp(self):
