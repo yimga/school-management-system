@@ -30,3 +30,55 @@
 ## Related
 
 - Single execution source: [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md)
+
+---
+
+## Independent Store Classification (#28 / #22)
+
+### What "independent store" means
+
+A DR backup is only meaningful if the backup destination survives the failure
+of the primary. Three tiers of independence:
+
+| Tier | Description | Repo-provable? |
+|------|-------------|---------------|
+| **Ephemeral dual_dir** | Local filesystem directory; `DR_BACKUP_DUAL_DIR` env var | YES (CI can write + read) |
+| **Independent volume** | Network-attached volume or managed DB snapshot (Render) | NO — requires cloud infra |
+| **Cross-region S3** | S3 bucket in a different AWS region / GCS multi-region | NO — requires cloud infra |
+
+### Environment variables for independent-store configuration
+
+```env
+# Ephemeral (CI / local dev) — proves the write path works
+DR_BACKUP_DUAL_DIR=/tmp/rmc-dr-drill/
+
+# Independent volume (production)
+DR_BACKUP_S3_BUCKET=rmc-dr-backups-us-east-2
+DR_BACKUP_S3_REGION=us-east-2
+DR_BACKUP_S3_PREFIX=tenant-snapshots/
+
+# Render-managed (production alternative)
+RENDER_API_KEY=rnd_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+RENDER_POSTGRES_SERVICE_ID=srv-xxxxxxxxxxxxxx
+```
+
+### Verification
+
+```bash
+# Repo-contained proof (apply-local queries the configured DB)
+python scripts/restore_drill.py --apply-local --json
+
+# Independent-store classification
+python scripts/verify_dr_independent_store.py
+
+# Full cloud drill (EXTERNAL — requires Render API key)
+python scripts/restore_drill.py --backup-ts 2026-07-19T12:00:00Z --apply
+```
+
+### What remains EXTERNAL
+
+- **S3/volume backup writes**: Require `DR_BACKUP_S3_BUCKET` + AWS credentials
+- **Render point-in-time restore**: Requires `RENDER_API_KEY` + side DB binding
+- **Cross-region failover**: Cloud infrastructure decision, documented in
+  `var/dr-drill-schedule.json` field `cross_region_failover_allowed`
+- **Production restore verification**: Real tenant data recovery into a side instance
