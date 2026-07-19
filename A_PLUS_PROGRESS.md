@@ -1,13 +1,88 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-07-19 (Cursor **Prompt A Wave 31** — pre_deploy closeout)  
-**Loop:** PROMPT A continuing → PROMPT B still **NO-GO** (EXTERNAL: Lighthouse / Actions Postgres / PSP / S3 / pilots)
+**Last refreshed:** 2026-07-19 (Cursor **PROMPT B** live adversarial @ `0ec33cead`)  
+**Loop:** PROMPT B → **NO-GO** · hand gap list back to Prompt A  
+**Tree:** 14827 paths · HEAD = `origin/main`
 
 ### Active claims (do not collide)
 
 | Agent | Owns | Files | Status |
 |-------|------|-------|--------|
-| **Cursor (this session)** | Wave 31: pre_deploy green + scoreboard | admin smoke · public/manager i18n · MT keepdb · five_pillar keepdb | **DONE** (proof green) |
+| **Cursor (this session)** | Prompt B full 28+S scorecard | gates + adversarial re-score | **DONE** (NO-GO) |
+
+---
+
+## PROMPT B — FULL 28-METRIC SCORECARD (2026-07-19 live @ `0ec33cead`)
+
+```
+RUNMYCAMPUS A+ AUDIT — 2026-07-19
+Auditor fleet: Cursor Composer (adversarial Prompt B; parallel moat + core-ops auditors)
+Commit audited: 0ec33cead73996eca432121c7e9b4911dbf094fb
+Tree size: 14827
+Frontier rule: metrics 25–28 NOT scored on readiness flags alone — runtime/ops proof required.
+9.8 regime: score = LOWEST applicable dimension (never average-hiding).
+```
+
+| # | Metric | Score /100 | A+? | Evidence (file:line + test + gate output) | Gaps if <98 |
+|---|--------|-----------:|-----|-------------------------------------------|-------------|
+| 1 | Tenant Isolation | **96** | NO | `scan_tenant_queryset_safety --compare` → **0**; `scan_rls_force_coverage` → **0** | `tenants-rls.yml` Postgres CI not re-run this audit → EXTERNAL |
+| 2 | Tenant Experience | **85** | NO | `scan_undefined_css_classes --compare` → **PASS 0→0**; shell fold/chrome shipped | Lighthouse ≥98 + axe/pa11y EXTERNAL |
+| 3 | Grading Engine | **98** | **YES** | `verify_grading_scale_registry_coverage --strict` → **GRADING_SCALE_REGISTRY_PASS**; live formula path | Playwright ≥15 scales CI EXTERNAL (non-blocking polish) |
+| 4 | Report Cards | **94** | NO | Django publish→PDF E2E + `test_localization` **28 OK**; certificate RTL render | Green `tenant-moat-e2e` / parent Playwright EXTERNAL |
+| 5 | EAV / Metadata | **96** | NO | `PART2_BASELINE_PASS`; provision + form wiring claimed closed | Indexed search/report breadth residual |
+| 6 | Billing / PPP | **86** | NO | `scan_money_float` → **0**; `scan_locale_display` → **0** | ≥2 live PSP sandboxes EXTERNAL |
+| 7 | Payments Reliability | **96** | NO | Multi-PSP webhook soak present in moat bundle | Live merchant sandbox EXTERNAL |
+| 8 | Offline / PWA | **98** | **YES** | `OFFLINE_CAPABILITY_IMPLEMENTATION_PASS` (checked=4, **latent=0**) | maintain; full homework UI soak EXTERNAL polish |
+| 9 | Security & AuthZ | **96** | NO | `REBAC_FLIP_READINESS_PASS`; bandit CLI absent locally (CI path) | prod `RMC_REBAC_ENFORCE_SENSITIVE=1` still opt-in EXTERNAL |
+| 10 | Core Ops — Booking | **91** | NO | ExclusionConstraint + facilities conflict tests (SQLite) | `verify_postgres_booking_ci_proof` skipped (no PG) EXTERNAL |
+| 11 | Core Ops — Discipline | **93** | NO | MTSS tier/contact + points ledger wired + tests | Safeguarding/DSL pathway incomplete (CONFIRMED) |
+| 12 | Core Ops — People | **96** | NO | Absence auto-open + substitute market WS + payslip PDF | Market open is cache/TTL, not durable DB (CONFIRMED) |
+| 13 | Athletics | **96** | NO | Clubs + clearance + ticket capacity oversell refuse | Paid-ticket PSP settle soak EXTERNAL |
+| 14 | Inventory | **98** | **YES** | Append-only ledger + parent issued-items + movement tests | maintain |
+| 15 | Scheduling | **95** | NO | Cancel clears clashes; booking integ tests | Booking respect opt-in (`bookable_resource` null) (CONFIRMED) |
+| 16 | Testing & CI | **92** | NO | `verify_pre_deploy_gate_record` **PASS**; PART2 baseline **PASS** | Green Postgres + moat Playwright on Actions EXTERNAL |
+| 17 | Performance | **93** | NO | Roll-call / completion / ranking QC tests present | Lighthouse ≥98 EXTERNAL |
+| 18 | Observability | **98** | **YES** | `HEALTHZ_SYNTHETIC_PASS` | RUM SaaS EXTERNAL |
+| 19 | Data Privacy | **98** | **YES** | `PRIVACY_MATRIX_PASS` | maintain |
+| 20 | API Quality | **98** | **YES** | `scan_drf_schema_coverage --compare` → **0** | maintain |
+| 21 | Internationalization | **92** | NO | Certificate packs **28 OK**; RTL fixtures present | **`CRITICAL_MSGID_DEPTH_FAIL`**: es empty msgstr for MTSS tier flash (CONFIRMED red gate) |
+| 22 | Infra / DR | **94** | NO | Celery worker+beat; restore_drill `--apply-local` path | Render/side-DB `--apply` EXTERNAL |
+| 23 | Reference Integrity | **99** | **YES** | import-ref integrity → **0** | maintain |
+| 24 | Documentation | **96** | NO | `PART2_BASELINE_PASS`; runbooks present | Scoreboard overstatement risk (this audit corrected) |
+| 25 | **CRDT Local-First (moat)** | **86** | NO | SODP 7d replay + offlineDB e2e + CRDT enhance scripts | Fees/behavior 7d unproven; PG CRDT rail EXTERNAL; CRDT not daily rail |
+| 26 | **Micro-Finance & Cash Rails** | **80** | NO | Fractional ledger + mocked MoMo/Razorpay/Mercado HTTP | Live sandbox ≥3 rails EXTERNAL; no M-Pesa |
+| 27 | **Data Sovereignty (moat)** | **77** | NO | Border-lock enforce tests (decoupled from multi-region) | Physical region DB aliases EXTERNAL; default enforce off |
+| 28 | **DR Snapshots + Self-Host** | **84** | NO | Signed dual-write + tamper + restore roundtrip tests | Independent second volume / S3 EXTERNAL (ephemeral dual_dir) |
+
+| S# | Strategic metric | Repo | Market | Note |
+|----|------------------|-----:|--------|------|
+| S1 | Time-to-value | 90 | EXTERNAL_PROOF_REQUIRED | Wizard exists; &lt;1h E2E not measured |
+| S2 | Migration wedge | 88 | EXTERNAL_PROOF_REQUIRED | MC wired; per-vendor school-day EXTERNAL |
+| S3 | Country ladder | 85 | EXTERNAL_PROOF_REQUIRED | W7 beachheads not 100% green |
+| S4 | Local-money completeness | 80 | EXTERNAL_PROOF_REQUIRED | Tied to #26 |
+| S5 | Offline survival | 86 | EXTERNAL_PROOF_REQUIRED | Tied to #25 |
+| S6 | Sovereignty pledge | 70 | EXTERNAL_PROOF_REQUIRED | min(#27,#28)=77; pledge unpublished |
+| S7 | Ecosystem flywheel | 80 | EXTERNAL_PROOF_REQUIRED | First external app absent |
+| S8 | Market-truth loop | 40 | EXTERNAL_PROOF_REQUIRED | No pilot cohort signed |
+
+**OVERALL:** avg ≈ **92.4** · min **77** (#27) · **8/28 ≥98** (#3, #8, #14, #18–20, #23)  
+**BLOCKERS (forbidden patterns):** NONE detected  
+**GATE REGRESSIONS (CONFIRMED):** `CRITICAL_MSGID_DEPTH_FAIL` (es MTSS msgid)  
+**DECISION: NO-GO** (repo + EXTERNAL ceilings)
+
+### Ordered gap list → next Prompt A
+*(strategic weight × score gap)*
+
+1. **#21** — Fill critical msgstr for MTSS flash in `es` (+ mirror locales) → restore `CRITICAL_MSGID_DEPTH_PASS` **(repo, quick)**
+2. **#27 / S6** — Region DB aliases + published sovereignty pledge (EXTERNAL + repo docs)
+3. **#26 / S4 / #6** — Live PSP sandboxes ≥3 rails (EXTERNAL)
+4. **#25 / S5** — Fees/behavior in 7d offline suite + PG CRDT CI (mixed)
+5. **#28 / #22** — Independent DR store / side-DB restore `--apply` (EXTERNAL)
+6. **#11** — Safeguarding/DSL pathway (repo)
+7. **#10 / #15 / #16** — Postgres booking CI + Actions moat (EXTERNAL)
+8. **#2 / #17** — Lighthouse ≥98 (EXTERNAL)
+9. **#12** — Durable substitute-market open (repo)
+10. **S8** — Sign first pilot cohort (EXTERNAL market)
 
 ---
 
