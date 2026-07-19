@@ -55789,8 +55789,7 @@ msgid "Registration recorded."
 msgstr "Inscripción registrada."
 
 msgid "MTSS tier updated to %(tier)s (%(count)s open incident(s))."
-msgstr ""
-"Nivel MTSS actualizado a %(tier)s (%(count)s incidente(s) abierto(s))."
+msgstr "Nivel MTSS actualizado a %(tier)s (%(count)s incidente(s) abierto(s))."
 
 msgid "%(app)s · %(model)s"
 msgstr ""

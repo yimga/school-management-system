@@ -53,7 +53,13 @@ def _unescape_po(s: str) -> str:
 
 
 def _parse_po_entries(text: str) -> dict[str, str]:
-    """Map msgid -> msgstr for simple (non-plural) single-line entries."""
+    """Map msgid -> msgstr for simple (non-plural) entries.
+
+    Accepts both single-line ``msgstr "…"`` and gettext multi-line form::
+
+        msgstr ""
+        "continued…"
+    """
     entries: dict[str, str] = {}
     blocks = re.split(r"\n\n+", text)
     for block in blocks:
@@ -63,10 +69,20 @@ def _parse_po_entries(text: str) -> dict[str, str]:
         msgid = _unescape_po(mid.group(1))
         if msgid == "":
             continue
-        mstr = re.search(r'^msgstr "(.*)"\s*$', block, re.M)
-        if not mstr:
-            continue
-        entries[msgid] = _unescape_po(mstr.group(1))
+        chunks: list[str] | None = None
+        for line in block.splitlines():
+            if chunks is None:
+                opened = re.match(r'^msgstr "(.*)"\s*$', line)
+                if opened:
+                    chunks = [opened.group(1)]
+                continue
+            cont = re.match(r'^"(.*)"\s*$', line)
+            if cont:
+                chunks.append(cont.group(1))
+            else:
+                break
+        if chunks is not None:
+            entries[msgid] = _unescape_po("".join(chunks))
     return entries
 
 
