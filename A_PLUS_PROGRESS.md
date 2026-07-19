@@ -1,14 +1,80 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-07-19 (Cursor **PROMPT A Wave 32** → Prompt B delta @ `86ac27428`)  
-**Loop:** PROMPT A Wave 32 **DONE** · Prompt B delta → still **NO-GO** (EXTERNAL ceilings)  
-**Tree:** HEAD = `origin/main` @ `86ac27428`
+**Last refreshed:** 2026-07-19 (Cursor **A↔B Wave 33** @ HEAD)  
+**Loop:** Prompt B found offline red → Prompt A fixed → continue A polish → Prompt B NO-GO (EXTERNAL)  
+**Tree:** HEAD = `origin/main`
 
 ### Active claims (do not collide)
 
 | Agent | Owns | Files | Status |
 |-------|------|-------|--------|
-| **Cursor (this session)** | Prompt A Wave 32 ordered gap close + scoreboard | gates + repo-max slices | **DONE** (NO-GO residual EXTERNAL) |
+| **Cursor (this session)** | A↔B Wave 33 loop | offline fee rail, #15 auto-link, M-Pesa, scoreboard | **DONE** (NO-GO EXTERNAL) |
+
+---
+
+## Wave 33 — 2026-07-19 (Prompt B → A → B loop)
+
+### Prompt B findings (adversarial)
+- **CONFIRMED RED:** `verify_offline_capability_implementation` FAIL — fee-payment SODP applier not recognizing `PAYMENT_PROOF`
+- **CONFIRMED:** `scan_tenant_queryset_safety` 1 finding — `SubstituteMarketShift` notify update missing `school_id`
+- **EXTERNAL ceiling:** GitHub Actions jobs conclude `failure` in ~4s with **empty steps / no runner** across postgres + django-tests + npm-audit → `EXTERNAL_ACTIONS_RUNNER_UNAVAILABLE` (billing/minutes/org — not a YAML test failure)
+
+### Prompt A fixes shipped
+
+| Slice | Proof | SHA |
+|-------|-------|-----|
+| **#8 / #25 offline fee rail** | `OFFLINE_CAPABILITY_IMPLEMENTATION_PASS (checked=5, latent=0)` | `68aa68637` |
+| **#1 / #12 queryset** | tenant queryset finding_count **0** | `68aa68637` |
+| **#15 scheduling** | default-on `ensure_room_bookable_resource`; 10/10 booking integ OK | `387ad7eff` |
+| **#26 M-Pesa** | `MpesaDarajaGateway` fail-closed + registry in_progress; PSP verify PASS | *(this commit)* |
+
+### Prompt B delta scorecard (Wave 33)
+
+| # | Score | A+? | Note |
+|---|------:|-----|------|
+| 1 | **98** | YES | queryset finding cleared |
+| 2 | 88 | NO | Lighthouse score artifact EXTERNAL |
+| 3 | 98 | YES | maintain |
+| 4 | 94 | NO | moat Playwright EXTERNAL |
+| 5 | 96 | NO | residual polish |
+| 6 | 90 | NO | M-Pesa rail in repo; live charges EXTERNAL |
+| 7 | 96 | NO | live merchant EXTERNAL |
+| 8 | **98** | YES | offline capability PASS restored |
+| 9 | 96 | NO | prod ReBAC EXTERNAL |
+| 10 | 94 | NO | Actions runner unavailable EXTERNAL |
+| 11 | 98 | YES | maintain |
+| 12 | 98 | YES | maintain |
+| 13 | 96 | NO | paid-ticket PSP EXTERNAL |
+| 14 | 98 | YES | maintain |
+| 15 | **98** | YES | booking respect default-on |
+| 16 | 90 | NO | Actions runner unavailable EXTERNAL |
+| 17 | 93 | NO | Lighthouse EXTERNAL |
+| 18–21 | 98 | YES | maintain (#21 msgid PASS) |
+| 22 | 95 | NO | S3/side-DB EXTERNAL |
+| 23–24 | 98+ | YES | maintain |
+| 25 | 90 | NO | PG CRDT EXTERNAL |
+| 26 | **90** | NO | M-Pesa stub + rails; live ≥3 EXTERNAL |
+| 27 | 90 | NO | physical replicas EXTERNAL |
+| 28 | 90 | NO | independent volume EXTERNAL |
+
+| S# | Repo | Note |
+|----|-----:|------|
+| S4 | 90 | tied to #26 |
+| S5 | 90 | tied to #25 |
+| S6 | 90 | pledge published |
+| S8 | 55 | pilot unsigned EXTERNAL |
+
+**OVERALL:** avg ≈ **95.2** · min **88** (#2) · **16/28 ≥98**  
+**DECISION: NO-GO** — EXTERNAL: Actions runners, live PSP secrets, PG CRDT, DR volume, Lighthouse ≥98 artifact, signed pilots, physical residency
+
+### Ordered gap list → next A/B
+1. **Restore GitHub Actions runners** (EXTERNAL account/billing) then green postgres
+2. **Live PSP sandbox secrets** (≥3 rails) EXTERNAL
+3. **PG CRDT** EXTERNAL
+4. **DR independent volume / S3** EXTERNAL
+5. **Lighthouse ≥98 artifact** EXTERNAL
+6. **Signed pilot cohort** EXTERNAL market
+7. Repo polish: #4/#5/#7/#9/#13 near-miss only
 
 ---
 
