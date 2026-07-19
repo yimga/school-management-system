@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "cohort_id": "S8-beachhead-2026",
+  "entries": [],
+  "metadata": {
+    "created_at": "2026-07-19",
+    "last_updated": "2026-07-19",
+    "selection_criteria_version": "1.0",
+    "playbook_path": "docs/PILOT_COHORT_PLAYBOOK.md",
+    "status_values": ["candidate", "qualified", "signed", "provisioned", "active", "churned", "graduated"]
+  }
+}
