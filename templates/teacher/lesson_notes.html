@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Lesson Notes" %}{% endblock %}
 
@@ -21,9 +21,27 @@
       <h5 class="mb-0">{% trans "Upload lesson plan" %}</h5>
     </div>
     <div class="card-body">
-      <form method="post" enctype="multipart/form-data">
+      {# CRDT: draft title mirrors via rmcCRDT LWW (policy_registry lesson_plan). #}
+      <form method="post" enctype="multipart/form-data" data-rmc-crdt-entity="lesson_plan">
         {% csrf_token %}
-        {{ form.as_p }}
+        <p>
+          <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+          <input type="text" name="{{ form.title.name }}" id="{{ form.title.id_for_label }}"
+                 value="{{ form.title.value|default_if_none:'' }}"
+                 class="form-control" data-rmc-crdt-key="draft-title"
+                 maxlength="{{ form.title.field.max_length }}">
+          {% for error in form.title.errors %}<span class="text-danger small">{{ error }}</span>{% endfor %}
+        </p>
+        <p>
+          <label for="{{ form.week_start_date.id_for_label }}">{{ form.week_start_date.label }}</label>
+          {{ form.week_start_date }}
+          {% for error in form.week_start_date.errors %}<span class="text-danger small">{{ error }}</span>{% endfor %}
+        </p>
+        <p>
+          <label for="{{ form.file.id_for_label }}">{{ form.file.label }}</label>
+          {{ form.file }}
+          {% for error in form.file.errors %}<span class="text-danger small">{{ error }}</span>{% endfor %}
+        </p>
         <button type="submit" class="btn btn-primary">{% trans "Upload" %}</button>
       </form>
     </div>
@@ -63,4 +81,5 @@
     </div>
   </div>
 </div>
+<script src="{% static 'js/_pages/rmc-lesson-plan-crdt-enhance.js' %}" defer></script>
 {% endblock %}
