@@ -48,7 +48,9 @@ from apps.academics.scheduling import (
     ScheduleEntry,
     TimeSlot,
     _slot_occurrences,
+    ensure_room_bookable_resource,
     find_schedule_booking_conflicts,
+    link_schedule_rooms_to_bookable_resources,
 )
 from apps.accounts.models import Permission, User
 from apps.schoolops.booking_services import create_resource_booking
@@ -296,7 +298,7 @@ class TimetableBookingCrossCheckTests(_BookingScenarioMixin, TestCase):
         self.assertEqual(sc.schedule.status, "PUBLISHED")
 
     def test_publish_succeeds_for_unlinked_room_backcompat(self):
-        # Room NOT linked to a resource — even an overlapping booking is ignored.
+        # Booking on a DIFFERENT resource (not the room's auto-linked one) is ignored.
         sc = self._scenario(link_room=False)
         resource = BookableResource.objects.create(
             school=self.school, name=f"Unlinked-{sc.uid}", capacity=1
@@ -315,6 +317,40 @@ class TimetableBookingCrossCheckTests(_BookingScenarioMixin, TestCase):
         self.assertEqual(resp.status_code, 302)
         sc.schedule.refresh_from_db()
         self.assertEqual(sc.schedule.status, "PUBLISHED")
+
+    def test_auto_link_refuses_publish_when_booking_hits_room_resource(self):
+        """Metric #15 default-on: unlinked room gets a BookableResource and then blocks."""
+        sc = self._scenario(link_room=False)
+        self.assertIsNone(sc.room.bookable_resource_id)
+        linked = link_schedule_rooms_to_bookable_resources(sc.schedule)
+        self.assertEqual(linked, 1)
+        sc.room.refresh_from_db()
+        self.assertIsNotNone(sc.room.bookable_resource_id)
+        occ_start, occ_end = self._first_occurrence()
+        self._confirmed_booking(
+            resource=sc.room.bookable_resource,
+            start=occ_start + timedelta(minutes=30),
+            end=occ_end + timedelta(minutes=30),
+            title="Board meeting",
+        )
+        conflicts = find_schedule_booking_conflicts(sc.schedule)
+        self.assertEqual(len(conflicts), 1)
+        resp = self._client().post(
+            self._url("academics:timetable_publish", schedule_id=sc.schedule.id)
+        )
+        self.assertEqual(resp.status_code, 302)
+        sc.schedule.refresh_from_db()
+        self.assertEqual(sc.schedule.status, "DRAFT")
+
+    def test_auto_link_can_be_disabled_per_school(self):
+        self.school.settings = {
+            **(self.school.settings or {}),
+            "scheduling": {"auto_link_bookable_resources": False},
+        }
+        self.school.save(update_fields=["settings"])
+        sc = self._scenario(link_room=False)
+        self.assertIsNone(ensure_room_bookable_resource(sc.room, self.school))
+        self.assertEqual(link_schedule_rooms_to_bookable_resources(sc.schedule), 0)
 
     # -- review clash panel names the conflict -----------------------------
 

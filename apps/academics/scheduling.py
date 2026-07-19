@@ -51,10 +51,11 @@ class Room(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # Metric-15 (part B): links this academic Room to the schoolops booking system
     # (Metric #10 BookableResource) so a scheduled class and an ad-hoc room booking
-    # cannot occupy the same room at the same wall-clock time. Nullable + optional so
-    # unlinked rooms keep their prior behaviour (no cross-check). ``db_constraint=False``
-    # keeps this a soft cross-app link (same convention as academics <-> people/schools
-    # FKs in ``models_tenant_runtime.py``) so the two apps stay independently migratable.
+    # cannot occupy the same room at the same wall-clock time. Auto-linked at
+    # generate/publish via ``ensure_room_bookable_resource`` (opt out with
+    # school.settings["scheduling"]["auto_link_bookable_resources"]=False).
+    # ``db_constraint=False`` keeps a soft cross-app link so the two apps stay
+    # independently migratable.
     bookable_resource = models.ForeignKey(
         "schoolops.BookableResource",
         on_delete=models.SET_NULL,
@@ -63,9 +64,9 @@ class Room(models.Model):
         db_constraint=False,
         related_name="academics_rooms",
         help_text=(
-            "Optional link to the schoolops BookableResource this room maps to. When "
-            "set, timetable generation AND publish cross-check scheduled classes "
-            "against confirmed ad-hoc bookings of the resource."
+            "Link to the schoolops BookableResource this room maps to. Auto-created "
+            "on timetable generate/publish unless the school opts out; when set, "
+            "scheduled classes cross-check against confirmed ad-hoc bookings."
         ),
     )
 
@@ -426,8 +427,9 @@ class TimetableGenerator:
         if busy:
             return False
         term = getattr(schedule, "term", None) or self.term
+        school = getattr(getattr(schedule, "academic_year", None), "school", None)
         return not room_timeslot_conflicts_with_confirmed_bookings(
-            room, time_slot, term
+            room, time_slot, term, school=school
         )
 
     def find_suitable_room(
@@ -840,14 +842,86 @@ def _slot_occurrences(term_start, term_end, day_of_week, start_time, end_time):
         day += timedelta(days=7)
 
 
-def room_timeslot_conflicts_with_confirmed_bookings(room, time_slot, term) -> bool:
+def ensure_room_bookable_resource(room, school) -> Optional[object]:
+    """Metric #15: default-on booking respect — create+link a BookableResource.
+
+    Rooms historically left ``bookable_resource`` null (opt-in). That let confirmed
+    ad-hoc bookings silently collide with timetable slots. When a school is known,
+    provision a matching schoolops resource and attach it so generator + publish
+    cross-checks always run. Idempotent; returns the linked resource or None when
+    school is missing / auto-link disabled on the school.
+    """
+    if room is None or school is None:
+        return None
+    existing = getattr(room, "bookable_resource", None)
+    if existing is not None:
+        return existing
+    school_settings = getattr(school, "settings", None) or {}
+    scheduling = school_settings.get("scheduling") if isinstance(school_settings, dict) else None
+    if isinstance(scheduling, dict) and scheduling.get("auto_link_bookable_resources") is False:
+        return None
+    from apps.schoolops.models import BookableResource
+
+    type_map = {
+        "CLASSROOM": BookableResource.ResourceType.ROOM,
+        "LAB": BookableResource.ResourceType.LAB,
+        "COMPUTER_LAB": BookableResource.ResourceType.LAB,
+        "AUDITORIUM": BookableResource.ResourceType.HALL,
+        "GYM": BookableResource.ResourceType.HALL,
+        "LIBRARY": BookableResource.ResourceType.ROOM,
+    }
+    resource_type = type_map.get(getattr(room, "room_type", ""), BookableResource.ResourceType.ROOM)
+    resource, _created = BookableResource.objects.get_or_create(
+        school=school,
+        name=str(room.name)[:120],
+        defaults={
+            "resource_type": resource_type,
+            "capacity": 1,
+            "is_active": True,
+        },
+    )
+    room.bookable_resource = resource
+    room.save(update_fields=["bookable_resource"])
+    return resource
+
+
+def link_schedule_rooms_to_bookable_resources(schedule) -> int:
+    """Ensure every room on ``schedule`` has a BookableResource for booking respect.
+
+    Returns the number of rooms newly linked.
+    """
+    school = getattr(getattr(schedule, "academic_year", None), "school", None)
+    if school is None:
+        return 0
+    linked = 0
+    # tenant-isolation-allow: scoped-via-parent-schedule-which-is-school-scoped
+    rooms = (
+        Room.objects.filter(
+            scheduleentry__schedule=schedule,
+            scheduleentry__is_cancelled=False,
+            bookable_resource__isnull=True,
+        )
+        .distinct()
+    )
+    for room in rooms:
+        before = room.bookable_resource_id
+        ensure_room_bookable_resource(room, school)
+        room.refresh_from_db(fields=["bookable_resource"])
+        if before is None and room.bookable_resource_id is not None:
+            linked += 1
+    return linked
+
+
+def room_timeslot_conflicts_with_confirmed_bookings(room, time_slot, term, school=None) -> bool:
     """True when placing ``room`` at weekly ``time_slot`` for ``term`` would overlap
     a CONFIRMED schoolops booking on the room's linked ``BookableResource``.
 
     Used by the timetable generator (solver-time #10 respect) so DRAFT schedules
-    are not emitted into known booking clashes. Rooms without
-    ``bookable_resource`` never conflict here (publish-time back-compat).
+    are not emitted into known booking clashes. When ``school`` is provided,
+    unlinked rooms are auto-linked first (metric #15 default-on).
     """
+    if school is not None and getattr(room, "bookable_resource", None) is None:
+        ensure_room_bookable_resource(room, school)
     resource = getattr(room, "bookable_resource", None)
     if resource is None:
         return False
@@ -895,6 +969,9 @@ def find_schedule_booking_conflicts(schedule) -> List[Dict]:
     if term_start is None or term_end is None:
         # Cannot expand a weekly slot into concrete datetimes without term bounds.
         return []
+
+    # Metric #15: default-on booking respect — link rooms before conflict scan.
+    link_schedule_rooms_to_bookable_resources(schedule)
 
     entries = list(
         # tenant-isolation-allow: scoped-via-parent-schedule-which-is-school-scoped
