@@ -144,6 +144,55 @@ def _activate_portal_phase_a(
         status="SUCCESS",
         message="Portal activated — optional setup may continue in background.",
     )
+    # Ownerless-activation guard: resolve_provisioning_contact_email can come back
+    # empty (an operator create_school with no email AND no SignupVerification), so
+    # the admin_user step skips ensure_admin_user_for_school and the tenant goes
+    # live with NO owner membership — is_active=True, workspace present, but nobody
+    # can log in as owner and there is no setup link to reveal. Don't block
+    # activation (the operator can assign an owner out of band via the identity
+    # console), but flag the state LOUDLY instead of letting it read silently
+    # "ready". Query the membership rather than trusting the passed admin_user: a
+    # prior drive may have created the owner, or this one's may be suspended.
+    try:
+        from .models import SchoolMembership
+
+        has_owner = SchoolMembership.objects.filter(  # tenant-isolation-allow: provision-owner-presence-check-school-scoped
+            school=school, is_school_owner=True, suspended_at__isnull=True
+        ).exists()
+        prov_settings = (getattr(school, "settings", None) or {}).get("provisioning") or {}
+        was_flagged = bool(prov_settings.get("needs_owner"))
+        if not has_owner:
+            _merge_provisioning_settings(school, needs_owner=True)
+            school.save(update_fields=["settings", "updated_at"])
+            logger.warning(
+                "Provisioned school %s activated with NO active owner — assign an "
+                "owner via the operator identity console to enable login.",
+                school_id,
+            )
+            _record_school_event(
+                school,
+                event_type="PROVISION_NO_OWNER",
+                status="WARNING",
+                message=(
+                    "Tenant activated with no owner. Assign an owner to enable "
+                    "login (there is no setup link without an owner)."
+                ),
+            )
+        elif was_flagged:
+            # A prior ownerless drive has since gained an owner — clear the flag.
+            _merge_provisioning_settings(school, needs_owner=False)
+            school.save(update_fields=["settings", "updated_at"])
+    except (
+        ImportError,
+        DatabaseError,
+        IntegrityError,
+        AttributeError,
+        TypeError,
+        ValueError,
+    ):
+        logger.debug(
+            "ownerless-activation guard skipped for %s", school_id, exc_info=True
+        )
     try:
         from apps.lifecycle.unified_lifecycle import record_unified_transition
 
