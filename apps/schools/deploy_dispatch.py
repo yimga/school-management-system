@@ -157,37 +157,6 @@ def dispatch_setup_email_for_slug(slug: str) -> dict:
             result["recipients"],
             result["sent"],
         )
-    except Exception as ex:  # noqa: BLE001 — a deploy must never fail on an email dispatch
+    except Exception:  # noqa: BLE001 — a deploy must never fail on an email dispatch
         logger.warning("deploy_dispatch failed for slug=%s", slug, exc_info=True)
-        # #region agent log
-        try:
-            import json
-            import time
-            from pathlib import Path
-
-            from django.db import connection as _conn
-
-            payload = {
-                "sessionId": "537138",
-                "runId": "pre-fix",
-                "hypothesisId": "A",
-                "location": "deploy_dispatch.dispatch_setup_email_for_slug",
-                "message": "dispatch_outer_except",
-                "data": {
-                    "slug": slug,
-                    "exc_type": type(ex).__name__,
-                    "exc": str(ex)[:300],
-                    "needs_rollback": bool(getattr(_conn, "needs_rollback", False)),
-                    "in_atomic_block": bool(getattr(_conn, "in_atomic_block", False)),
-                    "vendor": getattr(_conn, "vendor", None),
-                },
-                "timestamp": int(time.time() * 1000),
-            }
-            logger.warning("DEBUG537138 %s", json.dumps(payload, default=str))
-            Path("debug-537138.log").open("a", encoding="utf-8").write(
-                json.dumps(payload, default=str) + "\n"
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        # #endregion
     return result
