@@ -168,6 +168,10 @@
           {% csrf_token %}
           <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Resend owner setup email" %}</button>
         </form>
+        <form method="post" action="{% url 'super:reveal_owner_setup_link' school.id %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-secondary" title="{% trans 'Show the owner claim link to deliver out of band when email is not landing' %}">{% trans "Copy owner setup link" %}</button>
+        </form>
       </div>
     </div>
   </div>

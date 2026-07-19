@@ -1,0 +1,31 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Owner setup link" %}: {{ school.name }}{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid px-3 py-3">
+  <h1 class="h4 mb-1">{% trans "Owner setup link" %}</h1>
+  <p class="text-muted mb-3">{{ school.name }} <span class="text-muted">({{ school.slug }})</span></p>
+
+  <div class="alert alert-warning" role="alert">
+    <strong>{% trans "This is a credential." %}</strong>
+    {% blocktrans %}Anyone who opens a link below can set that owner's password. Deliver it over a channel you trust (a verified phone number or a confirmed alternate address), never paste it into a shared ticket or log, and don't store it. Each link is the same one the welcome email carries and stops working once the owner sets a password.{% endblocktrans %}
+  </div>
+
+  {% for link in links %}
+  <div class="card shadow-sm mb-2">
+    <div class="card-body">
+      <div class="small text-muted mb-1">
+        {% trans "Owner" %}:
+        <strong>{% if link.email %}{{ link.email }}{% else %}{% trans "(no email on file)" %}{% endif %}</strong>
+      </div>
+      <label class="form-label small" for="setup-link-{{ forloop.counter }}">{% trans "One-time claim link" %}</label>
+      <input id="setup-link-{{ forloop.counter }}" class="form-control form-control-sm" type="text" readonly value="{{ link.url }}" onfocus="this.select();">
+    </div>
+  </div>
+  {% endfor %}
+
+  <a class="btn btn-sm btn-outline-secondary mt-2" href="{% url 'super:tenant_360' school.id %}">{% trans "Back to tenant 360" %}</a>
+</div>
+{% endblock %}

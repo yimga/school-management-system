@@ -298,6 +298,13 @@ urlpatterns = [
         name="resend_owner_setup_email",
     ),
     path(
+        "schools/<uuid:school_id>/reveal-owner-setup-link/",
+        require_super_access_with_host(
+            super_views_owner_email.reveal_owner_setup_link_view
+        ),
+        name="reveal_owner_setup_link",
+    ),
+    path(
         "api/schools/<uuid:school_id>/requeue-provision/",
         require_super_access_with_host(super_views.api_school_requeue_provision),
         name="api_school_requeue_provision",
