@@ -5,11 +5,22 @@ during the release ``migrate``. Test-skipped and fully fail-soft — a deploy mu
 never fail on an email. Delivery still needs the Brevo mail secrets in prod; when
 absent the send layer no-ops. The manual ``manage.py resend_owner_setup_email``
 remains the reliable path. Real logic lives in apps/schools/deploy_dispatch.py.
+
+Important (Postgres): ``deploy_dispatch`` is fail-soft and may swallow a DB error
+after the connection is already marked ``needs_rollback``. That aborts the outer
+migration atomic block and makes ``record_applied`` raise
+``TransactionManagementError``. The email work MUST run inside a savepoint that
+we roll back whenever the connection is broken, so migrate can still record this
+node and continue.
 """
 from __future__ import annotations
 
+import logging
+
 from django.conf import settings
 from django.db import migrations
+
+logger = logging.getLogger("schools.deploy_dispatch")
 
 
 def _dispatch(apps, schema_editor):
@@ -19,90 +30,44 @@ def _dispatch(apps, schema_editor):
     # `School` lives in the shared/public schema; under django-tenants only the
     # public run should dispatch (belt-and-suspenders against a per-tenant re-run).
     connection = getattr(schema_editor, "connection", None)
-    schema = getattr(connection, "schema_name", None)
-    # #region agent log
-    def _agent_log(hypothesis_id, message, data):
-        import json
-        import logging
-        import time
-        from pathlib import Path
-
-        payload = {
-            "sessionId": "537138",
-            "runId": "pre-fix",
-            "hypothesisId": hypothesis_id,
-            "location": "schools.0078._dispatch",
-            "message": message,
-            "data": data,
-            "timestamp": int(time.time() * 1000),
-        }
-        logging.getLogger("schools.deploy_dispatch").warning(
-            "DEBUG537138 %s", json.dumps(payload, default=str)
-        )
-        try:
-            Path("debug-537138.log").open("a", encoding="utf-8").write(
-                json.dumps(payload, default=str) + "\n"
-            )
-        except Exception:  # noqa: BLE001
-            pass
-
-    # #endregion
-    # #region agent log
-    _agent_log(
-        "A",
-        "0078_enter",
-        {
-            "schema": schema,
-            "vendor": getattr(connection, "vendor", None),
-            "needs_rollback_before": bool(
-                getattr(connection, "needs_rollback", False)
-            ),
-            "in_atomic_block": bool(getattr(connection, "in_atomic_block", False)),
-        },
-    )
-    # #endregion
-    if schema is not None and schema != "public":
-        # #region agent log
-        _agent_log("D", "0078_skip_non_public", {"schema": schema})
-        # #endregion
+    if connection is None:
         return
+    schema = getattr(connection, "schema_name", None)
+    if schema is not None and schema != "public":
+        return
+
+    sid = connection.savepoint()
     try:
         from apps.schools.deploy_dispatch import (
             GILEAD_TECH_SLUG,
             dispatch_setup_email_for_slug,
         )
 
-        result = dispatch_setup_email_for_slug(GILEAD_TECH_SLUG)
-        # #region agent log
-        _agent_log(
-            "A",
-            "0078_after_dispatch",
-            {
-                "result": result,
-                "needs_rollback_after": bool(
-                    getattr(connection, "needs_rollback", False)
-                ),
-                "in_atomic_block": bool(
-                    getattr(connection, "in_atomic_block", False)
-                ),
-            },
-        )
-        # #endregion
-    except Exception as ex:  # noqa: BLE001 — a deploy must never fail on an email dispatch
-        # #region agent log
-        _agent_log(
-            "A",
-            "0078_swallowed_exception",
-            {
-                "exc_type": type(ex).__name__,
-                "exc": str(ex)[:300],
-                "needs_rollback": bool(
-                    getattr(connection, "needs_rollback", False)
-                ),
-            },
-        )
-        # #endregion
-        pass
+        dispatch_setup_email_for_slug(GILEAD_TECH_SLUG)
+    except Exception:  # noqa: BLE001 — a deploy must never fail on an email dispatch
+        logger.warning("schools.0078 dispatch raised; rolling back savepoint", exc_info=True)
+    finally:
+        # If any query inside the savepoint failed (even when deploy_dispatch
+        # swallowed the Python exception), restore a clean outer transaction
+        # so django_migrations.record_applied can run.
+        if getattr(connection, "needs_rollback", False):
+            logger.warning(
+                "schools.0078: connection needs_rollback after dispatch — "
+                "savepoint_rollback so migrate can record the migration"
+            )
+            connection.savepoint_rollback(sid)
+        else:
+            try:
+                connection.savepoint_commit(sid)
+            except Exception:  # noqa: BLE001
+                logger.warning(
+                    "schools.0078: savepoint_commit failed; rolling back",
+                    exc_info=True,
+                )
+                try:
+                    connection.savepoint_rollback(sid)
+                except Exception:  # noqa: BLE001
+                    pass
 
 
 class Migration(migrations.Migration):
