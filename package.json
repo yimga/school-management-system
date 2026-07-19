@@ -40,6 +40,7 @@
     "lighthouse": "npx @lhci/cli@0.13.x autorun --config=lighthouserc.js",
     "lighthouse:tenant": "node scripts/run_lighthouse_tenant.mjs",
     "lighthouse:tenant:strict": "node scripts/run_lighthouse_tenant.mjs",
+    "lighthouse:a-plus": "node scripts/run_lighthouse_a_plus.mjs",
     "vendor:dexie": "node -e \"require('fs').mkdirSync('static/js/vendor',{recursive:true})\" && npx copyfiles -f node_modules/dexie/dist/dexie.min.js static/js/vendor/",
     "vendor:tesseract": "python scripts/vendor_tesseract_ocr.py",
     "smoke:tesseract-browser": "node scripts/smoke_tesseract_browser_ocr.mjs",
