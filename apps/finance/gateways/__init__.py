@@ -8,6 +8,7 @@ from .registry import get_gateway, get_platform_fee, register_gateway
 
 # Register built-in gateways (import side-effect calls registry.register_gateway)
 from . import mtn_momo  # noqa: F401
+from . import mpesa_daraja  # noqa: F401
 from . import orange_money  # noqa: F401
 from . import stripe  # noqa: F401
 from . import paystack  # noqa: F401

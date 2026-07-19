@@ -126,11 +126,16 @@ PSP_REGISTER: tuple[PSPRow, ...] = (
         psp_slug="mpesa-daraja",
         label="M-Pesa (Safaricom Daraja)",
         region="africa",
-        adapter_status="planned",
+        adapter_status="in_progress",
         capabilities=frozenset({"mobile_money", "payouts", "webhooks"}),
-        settlement_currencies=("KES",),
+        settlement_currencies=("KES", "TZS", "UGX"),
+        proof_model="finance.Payment",
+        proof_route_name="finance:payment_readiness_setup",
         docs_url="https://developer.safaricom.co.ke/",
-        notes="Direct mobile-money rail for Kenya. STK Push for fee collection.",
+        notes=(
+            "Gateway: apps.finance.gateways.mpesa_daraja.MpesaDarajaGateway. "
+            "STK Push fail-closed; Daraja partner certification remains EXTERNAL."
+        ),
     ),
     PSPRow(
         psp_slug="adyen",

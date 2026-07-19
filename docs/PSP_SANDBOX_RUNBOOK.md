@@ -26,7 +26,8 @@ PaymentRailAdapter (Protocol)
   ├── Razorpay adapter    (in_progress — sandbox scaffold)
   ├── Mercado Pago adapter(in_progress — sandbox scaffold)
   ├── dLocal adapter      (in_progress — sandbox scaffold)
-  └── ... (planned: M-Pesa Daraja, Adyen, PayPal, Orange Money)
+  ├── M-Pesa Daraja       (in_progress — STK Push fail-closed gateway)
+  └── ... (planned: Adyen, PayPal)
 ```
 
 All adapters implement:
@@ -108,6 +109,22 @@ MERCADO_PAGO_SANDBOX_MODE=true
 
 **Sandbox test endpoint:** `POST /v1/payments` with test card `5031 7557 3453 0604`
 **Webhook test:** MercadoPago dashboard → Webhooks → Configure + test
+
+### 6. M-Pesa Daraja (East Africa — KES, TZS, UGX)
+
+```env
+MPESA_CONSUMER_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MPESA_CONSUMER_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MPESA_SHORTCODE=174379
+MPESA_PASSKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+MPESA_CALLBACK_URL=https://your-host.example/webhooks/mpesa/
+MPESA_BASE_URL=https://sandbox.safaricom.co.ke
+MPESA_SANDBOX_MODE=true
+```
+
+**Gateway module:** `apps/finance/gateways/mpesa_daraja.py` (`MpesaDarajaGateway`)
+**Sandbox test endpoint:** `POST /mpesa/stkpush/v1/processrequest` after OAuth
+**Webhook test:** STK callback `Body.stkCallback.ResultCode=0`
 
 ---
 

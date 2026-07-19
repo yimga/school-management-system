@@ -32,6 +32,7 @@ from decimal import Decimal
 from django.test import SimpleTestCase
 
 from apps.finance.gateways.flutterwave import FlutterwaveGateway
+from apps.finance.gateways.mpesa_daraja import MpesaDarajaGateway
 from apps.finance.gateways.mtn_momo import MTNMoMoGateway
 from apps.finance.gateways.paystack import PaystackGateway
 
@@ -131,6 +132,44 @@ class MtnMomoFailClosedTests(SimpleTestCase):
         result = gw.initiate(amount=Decimal("100"), currency="XAF", reference="r")
         self.assertFalse(result.success)
         self.assertEqual(result.raw_response.get("status"), "not_configured")
+
+
+class MpesaDarajaFailClosedTests(SimpleTestCase):
+    _LIVE = {
+        "consumer_key": "ck-live",
+        "consumer_secret": "cs-live",
+        "shortcode": "174379",
+        "passkey": "passkey-live",
+    }
+
+    def test_live_configured_without_payer_phone_fails_closed(self):
+        gw = MpesaDarajaGateway(None, config=dict(self._LIVE))
+        result = gw.initiate(
+            amount=Decimal("500"), currency="KES", reference="ref-no-phone"
+        )
+        self.assertFalse(result.success)
+        self.assertIsNone(result.transaction_id)
+
+    def test_stub_only_still_succeeds(self):
+        gw = MpesaDarajaGateway(None, config=dict(self._LIVE, stub_only=True))
+        result = gw.initiate(
+            amount=Decimal("500"), currency="KES", reference="ref-stub"
+        )
+        self.assertTrue(result.success)
+
+    def test_unconfigured_still_fails_closed(self):
+        gw = MpesaDarajaGateway(None, config={})
+        result = gw.initiate(amount=Decimal("100"), currency="KES", reference="r")
+        self.assertFalse(result.success)
+        self.assertEqual(result.raw_response.get("status"), "not_configured")
+
+    def test_unsupported_currency_fails_closed(self):
+        gw = MpesaDarajaGateway(None, config=dict(self._LIVE, stub_only=True))
+        result = gw.initiate(
+            amount=Decimal("10"), currency="USD", reference="ref-usd"
+        )
+        self.assertFalse(result.success)
+        self.assertEqual(result.raw_response.get("status"), "unsupported_currency")
 
 
 class RazorpayFailClosedTests(SimpleTestCase):

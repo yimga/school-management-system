@@ -43,6 +43,7 @@ _PSP_SECRET_ENVS = {
     "flutterwave": "FLUTTERWAVE_SECRET_KEY",
     "razorpay": "RAZORPAY_KEY_ID",
     "mtn_momo": "MTN_MOMO_SUBSCRIPTION_KEY",
+    "mpesa_daraja": "MPESA_CONSUMER_KEY",
     "mercado_pago": "MERCADO_PAGO_ACCESS_TOKEN",
     "stripe": "STRIPE_SECRET_KEY",
 }
