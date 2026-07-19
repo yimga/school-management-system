@@ -204,7 +204,6 @@ def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]
     Returns None if reports/evals data is unavailable.
     """
     try:
-        from django.apps import apps
 
         if not app_installed("reports"):
             return None

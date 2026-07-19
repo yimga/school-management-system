@@ -123,7 +123,7 @@ class SetupStudioServiceTests(TestCase):
         self.assertGreaterEqual(payload["progress_percent"], 0)
         self.assertEqual(payload["recommended_next"]["key"], "plan_choice")
         self.assertTrue(payload["blueprint_rankings"])
-        self.assertEqual(len(payload["data_path_choices"]), 3)
+        self.assertEqual(len(payload["data_path_choices"]), 4)
         self.assertEqual(
             payload["recommended_blueprint"]["title"], "Cameroon launch baseline"
         )

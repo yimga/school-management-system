@@ -20,7 +20,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from django.template.loader import get_template
-from django.test import RequestFactory, SimpleTestCase, override_settings
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -296,9 +296,11 @@ class OverviewNextRealmStaticContractTests(SimpleTestCase):
             )
 
 
-class OverviewNextRealmRenderTests(SimpleTestCase):
+class OverviewNextRealmRenderTests(TestCase):
     """Render the cockpit_signal_strip partial with mocked context and
     assert the visual contract holds."""
+
+    databases = {"default"}
 
     def setUp(self) -> None:
         self.factory = RequestFactory()

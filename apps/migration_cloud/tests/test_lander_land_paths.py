@@ -18,7 +18,6 @@ values persist:
 
 from __future__ import annotations
 
-from datetime import date
 
 from django.test import TestCase
 

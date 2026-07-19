@@ -23,7 +23,7 @@ from apps.academics.models import SubjectAssignment
 from apps.academics.services import get_active_year_and_term
 
 from apps.evals.models import Evaluation
-from apps.evals.services import completion_for_assignment
+from apps.evals.services import completion_for_assignment, completion_for_assignments_bulk
 from apps.finance.models import Invoice, PaymentReminder, ReferralReward
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.accounts.permissions import _guardian_finance_qs
@@ -1434,10 +1434,16 @@ def _analytics_insights(students, year, term, *, school=None):
 
 
 def _assignment_completion_spotlight(assignments, term) -> List[dict]:
+    subject_assignments = [
+        assignment.subject_assignment
+        for assignment in assignments
+        if getattr(assignment, "subject_assignment", None) is not None
+    ]
+    stats_by_sa = completion_for_assignments_bulk(subject_assignments, term)
     spotlight = []
     for assignment in assignments:
         sa = assignment.subject_assignment
-        stats = completion_for_assignment(sa, term)
+        stats = stats_by_sa.get(sa.pk) or completion_for_assignment(sa, term)
         spotlight.append(
             {
                 "label": f"{sa.subject.name} \u2013 {sa.classroom.name}",

@@ -11,7 +11,7 @@
   </div>
   {% if dh_ring_label %}
   <div class="rmc-dh-ring" style="--rmc-dh-ring-pct:{{ dh_ring_pct|default:0 }}"
-       role="img" aria-label="{{ dh_ring_aria|default:dh_ring_label }}">
+       role="img" aria-label="{% firstof dh_ring_aria dh_ring_label %}">
     <span>{{ dh_ring_label }}</span>
   </div>
   {% endif %}

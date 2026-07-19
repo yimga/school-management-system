@@ -8,7 +8,6 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 
-from django.conf import settings
 from apps.accounts.decorators import require_permission
 from django.db import models
 from django.db.models import Sum

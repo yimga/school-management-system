@@ -26,7 +26,8 @@ solver behind `generate_timetable_with_solver` — the one the Celery task, the
 `solve_timetable` command, and the REST endpoint actually execute — is the
 Django-model CSP generator `apps.academics.scheduling.TimetableGenerator.generate_schedule`.
 The CP-SAT code is dormant-by-default rather than dead: it activates only if an
-operator installs `ortools` themselves.
+operator installs `ortools` themselves via
+`pip install -r requirements_optional.txt` (or `pip install ortools`).
 
 The second recurring pattern is **new capability without new migrations**. The
 lesson/homework kernel, the JSON workflow config, and proximity attendance all
@@ -80,12 +81,12 @@ The 15 that matter most, of 46 declared. This table is not exhaustive.
   fallback for `scheduling_solver` — its JSON-console view was retired when the
   product converged on the generate/review/publish flow. Fixing a timetable bug in
   the wrong module is the single easiest mistake to make in this app.
-- **Regenerating a timetable must delete ALL schedules for the term, draft AND
-  published.** The DB uniqueness constraints key on (term, teacher/room, time_slot)
-  with condition `is_cancelled=False` and are **status-agnostic**, so a surviving
-  `PUBLISHED` schedule's entries raise `IntegrityError` (a live 500) the moment the
-  generator re-places the same slot. Regenerate means replace the term's timetable
-  (`e159560a8`).
+- **Regenerating a timetable deletes DRAFT schedules only — never the live
+  PUBLISHED plan.** Per-plan uniqueness (migration 0066) lets a replacement draft
+  coexist with the published timetable; families keep seeing the live plan until
+  an operator reviews and publishes. Replace-on-live is `Schedule.publish()`, which
+  demotes the prior published plan. Do not resurrect the old "delete everything
+  for the term" workaround — that destroyed production timetables mid-day.
 - **`Attendance.school` is backfilled in `save()`, and that is the only chokepoint.**
   Several create paths (teacher roll-call, mobile sync, REST record) omit `school`,
   so `save()` derives it from the student, falling back to the classroom. A row with

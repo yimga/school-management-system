@@ -57,7 +57,7 @@ class CountryEavCatalogTests(TestCase):
             is_active=True,
         )
         stats = seed_country_eav_definitions(school=school, country_code="IN")
-        self.assertGreater(stats["created"], 0)
+        self.assertGreater(stats["created"] + stats["updated"], 0)
 
 
 class SubstituteMarketLockTests(TestCase):

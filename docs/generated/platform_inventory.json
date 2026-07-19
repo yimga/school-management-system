@@ -1,23 +1,23 @@
 {
   "baseline_counts": {
-    "allow_any": 173,
-    "csrf_exempt": 701,
-    "cursor_execute": 414,
-    "except_exception": 2609,
+    "allow_any": 161,
+    "csrf_exempt": 755,
+    "cursor_execute": 606,
+    "except_exception": 3271,
     "get_solo": 213,
-    "gilead": 16847,
-    "gilead_files": 237,
-    "html_files": 1667,
-    "management_commands": 299,
-    "markdown_files": 1612,
-    "migration_files": 1004,
-    "print_calls": 4418,
-    "python_files": 6427,
-    "site_settings": 2470
+    "gilead": 17103,
+    "gilead_files": 254,
+    "html_files": 2001,
+    "management_commands": 342,
+    "markdown_files": 1832,
+    "migration_files": 1185,
+    "print_calls": 5128,
+    "python_files": 7711,
+    "site_settings": 2505
   },
   "doc_drift": {
-    "actual_installed_app_count": 54,
-    "documented_app_count": 54,
+    "actual_installed_app_count": 55,
+    "documented_app_count": 55,
     "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
@@ -28,24 +28,24 @@
       "path": "apps/siteconfig/_seed_country_localization.py"
     },
     {
-      "bytes": 208363,
-      "lines": 5127,
+      "bytes": 254532,
+      "lines": 6335,
       "path": "apps/siteconfig/forms_cockpit.py"
     },
     {
-      "bytes": 178821,
-      "lines": 3673,
+      "bytes": 213312,
+      "lines": 4239,
       "path": "config/settings.py"
     },
     {
-      "bytes": 167786,
-      "lines": 4175,
-      "path": "apps/schools/marketing_views.py"
+      "bytes": 191001,
+      "lines": 4711,
+      "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 150650,
-      "lines": 3754,
-      "path": "apps/accounts/views.py"
+      "bytes": 169135,
+      "lines": 4207,
+      "path": "apps/schools/marketing_views.py"
     },
     {
       "bytes": 147039,
@@ -58,28 +58,28 @@
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
+      "bytes": 140257,
+      "lines": 3618,
+      "path": "apps/evals/views.py"
+    },
+    {
       "bytes": 139254,
       "lines": 3418,
       "path": "apps/api/oneroster_results.py"
     },
     {
-      "bytes": 132498,
-      "lines": 3447,
-      "path": "apps/evals/views.py"
-    },
-    {
-      "bytes": 119916,
-      "lines": 2905,
-      "path": "apps/api/views_v1.py"
-    },
-    {
-      "bytes": 114910,
-      "lines": 2696,
+      "bytes": 126469,
+      "lines": 2921,
       "path": "apps/migration_cloud/views.py"
     },
     {
-      "bytes": 110777,
-      "lines": 3129,
+      "bytes": 123722,
+      "lines": 3006,
+      "path": "apps/api/views_v1.py"
+    },
+    {
+      "bytes": 120762,
+      "lines": 3337,
       "path": "apps/finance/models.py"
     }
   ],
@@ -131,6 +131,11 @@
     },
     {
       "app": "accounts",
+      "command": "check_rebac_enforcement_readiness",
+      "path": "apps/accounts/management/commands/check_rebac_enforcement_readiness.py"
+    },
+    {
+      "app": "accounts",
       "command": "check_roles",
       "path": "apps/accounts/management/commands/check_roles.py"
     },
@@ -166,8 +171,18 @@
     },
     {
       "app": "accounts",
+      "command": "promote_superadmin",
+      "path": "apps/accounts/management/commands/promote_superadmin.py"
+    },
+    {
+      "app": "accounts",
       "command": "refresh_saml_idp_metadata",
       "path": "apps/accounts/management/commands/refresh_saml_idp_metadata.py"
+    },
+    {
+      "app": "accounts",
+      "command": "reset_user_mfa",
+      "path": "apps/accounts/management/commands/reset_user_mfa.py"
     },
     {
       "app": "accounts",
@@ -375,6 +390,11 @@
       "path": "apps/analytics/management/commands/verify_pgvector_index.py"
     },
     {
+      "app": "athletics",
+      "command": "seed_athletics_catalog",
+      "path": "apps/athletics/management/commands/seed_athletics_catalog.py"
+    },
+    {
       "app": "automation",
       "command": "migration_legacy_data_audit",
       "path": "apps/automation/management/commands/migration_legacy_data_audit.py"
@@ -391,8 +411,28 @@
     },
     {
       "app": "billing",
+      "command": "backfill_platform_invoices",
+      "path": "apps/billing/management/commands/backfill_platform_invoices.py"
+    },
+    {
+      "app": "billing",
       "command": "import_platform_billing_snapshot",
       "path": "apps/billing/management/commands/import_platform_billing_snapshot.py"
+    },
+    {
+      "app": "billing",
+      "command": "preview_platform_subscription_prices",
+      "path": "apps/billing/management/commands/preview_platform_subscription_prices.py"
+    },
+    {
+      "app": "billing",
+      "command": "record_platform_payment",
+      "path": "apps/billing/management/commands/record_platform_payment.py"
+    },
+    {
+      "app": "billing",
+      "command": "run_billing_cron",
+      "path": "apps/billing/management/commands/run_billing_cron.py"
     },
     {
       "app": "billing",
@@ -403,6 +443,21 @@
       "app": "billing",
       "command": "run_revenue_share_payouts",
       "path": "apps/billing/management/commands/run_revenue_share_payouts.py"
+    },
+    {
+      "app": "billing",
+      "command": "seed_country_billing_profiles",
+      "path": "apps/billing/management/commands/seed_country_billing_profiles.py"
+    },
+    {
+      "app": "billing",
+      "command": "seed_subscription_catalog",
+      "path": "apps/billing/management/commands/seed_subscription_catalog.py"
+    },
+    {
+      "app": "billing",
+      "command": "send_renewal_reminders",
+      "path": "apps/billing/management/commands/send_renewal_reminders.py"
     },
     {
       "app": "communication",
@@ -550,6 +605,11 @@
       "path": "apps/customersuccess/management/commands/promote_helpcenter_ledger_to_first_class.py"
     },
     {
+      "app": "customersuccess",
+      "command": "recompute_benchmark_cohorts",
+      "path": "apps/customersuccess/management/commands/recompute_benchmark_cohorts.py"
+    },
+    {
       "app": "evals",
       "command": "grade_import_template",
       "path": "apps/evals/management/commands/grade_import_template.py"
@@ -650,6 +710,11 @@
       "path": "apps/finance/management/commands/verify_bank_deposits.py"
     },
     {
+      "app": "finance",
+      "command": "verify_fiscal_einvoice_adapters",
+      "path": "apps/finance/management/commands/verify_fiscal_einvoice_adapters.py"
+    },
+    {
       "app": "governance",
       "command": "backfill_organizations_from_hierarchy",
       "path": "apps/governance/management/commands/backfill_organizations_from_hierarchy.py"
@@ -723,6 +788,11 @@
       "app": "marketplace",
       "command": "seed_marketplace_apps",
       "path": "apps/marketplace/management/commands/seed_marketplace_apps.py"
+    },
+    {
+      "app": "marketplace",
+      "command": "seed_marketplace_publisher_e2e_fixtures",
+      "path": "apps/marketplace/management/commands/seed_marketplace_publisher_e2e_fixtures.py"
     },
     {
       "app": "marketplace",
@@ -831,6 +901,11 @@
     },
     {
       "app": "observability",
+      "command": "emit_prometheus_alert_rules",
+      "path": "apps/observability/management/commands/emit_prometheus_alert_rules.py"
+    },
+    {
+      "app": "observability",
       "command": "summarize_feedback_loop",
       "path": "apps/observability/management/commands/summarize_feedback_loop.py"
     },
@@ -886,6 +961,11 @@
     },
     {
       "app": "people",
+      "command": "backfill_passport_links",
+      "path": "apps/people/management/commands/backfill_passport_links.py"
+    },
+    {
+      "app": "people",
       "command": "check_badge_expiry_alerts",
       "path": "apps/people/management/commands/check_badge_expiry_alerts.py"
     },
@@ -936,6 +1016,16 @@
     },
     {
       "app": "platform_runtime",
+      "command": "health_autopilot_sweep",
+      "path": "apps/platform_runtime/management/commands/health_autopilot_sweep.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "monitor_scheduled_job_health",
+      "path": "apps/platform_runtime/management/commands/monitor_scheduled_job_health.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "platform_inventory",
       "path": "apps/platform_runtime/management/commands/platform_inventory.py"
     },
@@ -958,6 +1048,11 @@
       "app": "platform_runtime",
       "command": "replay_platform_event",
       "path": "apps/platform_runtime/management/commands/replay_platform_event.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "run_periodic_jobs",
+      "path": "apps/platform_runtime/management/commands/run_periodic_jobs.py"
     },
     {
       "app": "platform_runtime",
@@ -1003,6 +1098,11 @@
       "app": "platform_runtime",
       "command": "verify_platform_readiness",
       "path": "apps/platform_runtime/management/commands/verify_platform_readiness.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "verify_workflow_recovery",
+      "path": "apps/platform_runtime/management/commands/verify_workflow_recovery.py"
     },
     {
       "app": "policies",
@@ -1136,6 +1236,11 @@
     },
     {
       "app": "reports",
+      "command": "seed_report_card_e2e",
+      "path": "apps/reports/management/commands/seed_report_card_e2e.py"
+    },
+    {
+      "app": "reports",
       "command": "send_scheduled_reports",
       "path": "apps/reports/management/commands/send_scheduled_reports.py"
     },
@@ -1155,6 +1260,11 @@
       "path": "apps/schoolops/management/commands/test_email_health.py"
     },
     {
+      "app": "schoolops",
+      "command": "verify_email_dns",
+      "path": "apps/schoolops/management/commands/verify_email_dns.py"
+    },
+    {
       "app": "schools",
       "command": "activate_pending_signup_schools",
       "path": "apps/schools/management/commands/activate_pending_signup_schools.py"
@@ -1163,6 +1273,11 @@
       "app": "schools",
       "command": "align_tenant_config",
       "path": "apps/schools/management/commands/align_tenant_config.py"
+    },
+    {
+      "app": "schools",
+      "command": "audit_school_owners",
+      "path": "apps/schools/management/commands/audit_school_owners.py"
     },
     {
       "app": "schools",
@@ -1176,8 +1291,38 @@
     },
     {
       "app": "schools",
+      "command": "create_school",
+      "path": "apps/schools/management/commands/create_school.py"
+    },
+    {
+      "app": "schools",
+      "command": "detect_tenant_table_drift",
+      "path": "apps/schools/management/commands/detect_tenant_table_drift.py"
+    },
+    {
+      "app": "schools",
+      "command": "e2e_lifecycle",
+      "path": "apps/schools/management/commands/e2e_lifecycle.py"
+    },
+    {
+      "app": "schools",
       "command": "ensure_demo_environment",
       "path": "apps/schools/management/commands/ensure_demo_environment.py"
+    },
+    {
+      "app": "schools",
+      "command": "ensure_developer_sandbox_tenant",
+      "path": "apps/schools/management/commands/ensure_developer_sandbox_tenant.py"
+    },
+    {
+      "app": "schools",
+      "command": "ensure_founding_tenant",
+      "path": "apps/schools/management/commands/ensure_founding_tenant.py"
+    },
+    {
+      "app": "schools",
+      "command": "heal_tenant_schema_drift",
+      "path": "apps/schools/management/commands/heal_tenant_schema_drift.py"
     },
     {
       "app": "schools",
@@ -1196,8 +1341,18 @@
     },
     {
       "app": "schools",
+      "command": "mint_recurring_donation_pledges",
+      "path": "apps/schools/management/commands/mint_recurring_donation_pledges.py"
+    },
+    {
+      "app": "schools",
       "command": "phase_i_gap_analysis",
       "path": "apps/schools/management/commands/phase_i_gap_analysis.py"
+    },
+    {
+      "app": "schools",
+      "command": "resend_owner_setup_email",
+      "path": "apps/schools/management/commands/resend_owner_setup_email.py"
     },
     {
       "app": "schools",
@@ -1211,6 +1366,21 @@
     },
     {
       "app": "schools",
+      "command": "seed_provisioning_golive_e2e",
+      "path": "apps/schools/management/commands/seed_provisioning_golive_e2e.py"
+    },
+    {
+      "app": "schools",
+      "command": "seed_signup_e2e_fixtures",
+      "path": "apps/schools/management/commands/seed_signup_e2e_fixtures.py"
+    },
+    {
+      "app": "schools",
+      "command": "snapshot_plan_gated_grants",
+      "path": "apps/schools/management/commands/snapshot_plan_gated_grants.py"
+    },
+    {
+      "app": "schools",
       "command": "tenant_health_check",
       "path": "apps/schools/management/commands/tenant_health_check.py"
     },
@@ -1218,6 +1388,16 @@
       "app": "schools",
       "command": "tenant_wind_down",
       "path": "apps/schools/management/commands/tenant_wind_down.py"
+    },
+    {
+      "app": "schools",
+      "command": "triage_signup_school",
+      "path": "apps/schools/management/commands/triage_signup_school.py"
+    },
+    {
+      "app": "schools",
+      "command": "unstick_provisions",
+      "path": "apps/schools/management/commands/unstick_provisions.py"
     },
     {
       "app": "schools",
@@ -1246,6 +1426,11 @@
     },
     {
       "app": "schools",
+      "command": "verify_tenant_provisioning",
+      "path": "apps/schools/management/commands/verify_tenant_provisioning.py"
+    },
+    {
+      "app": "schools",
       "command": "verify_tenant_rls",
       "path": "apps/schools/management/commands/verify_tenant_rls.py"
     },
@@ -1253,6 +1438,11 @@
       "app": "security",
       "command": "verify_csp_readiness",
       "path": "apps/security/management/commands/verify_csp_readiness.py"
+    },
+    {
+      "app": "setup_studio",
+      "command": "seed_operational_wizard_kernels",
+      "path": "apps/setup_studio/management/commands/seed_operational_wizard_kernels.py"
     },
     {
       "app": "setup_studio",
@@ -1271,8 +1461,28 @@
     },
     {
       "app": "siteconfig",
+      "command": "assign_default_dashboard_packs",
+      "path": "apps/siteconfig/management/commands/assign_default_dashboard_packs.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "audit_nav_sidebar_filter_header",
+      "path": "apps/siteconfig/management/commands/audit_nav_sidebar_filter_header.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "audit_tenant_models",
       "path": "apps/siteconfig/management/commands/audit_tenant_models.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "audit_tenant_operator_boundary",
+      "path": "apps/siteconfig/management/commands/audit_tenant_operator_boundary.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "audit_workspace_edge_fit",
+      "path": "apps/siteconfig/management/commands/audit_workspace_edge_fit.py"
     },
     {
       "app": "siteconfig",
@@ -1456,6 +1666,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "seed_country_multipliers",
+      "path": "apps/siteconfig/management/commands/seed_country_multipliers.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "seed_country_profiles",
       "path": "apps/siteconfig/management/commands/seed_country_profiles.py"
     },
@@ -1611,23 +1826,24 @@
         "parent_communications",
         "platform_marketing",
         "platform_observability",
+        "platform_runtime",
         "portal_office_wopi",
         "schoolops_email_delivery",
         "security_observability",
         "setup_studio"
       ],
-      "reviewed_endpoints": 112,
-      "reviewed_files": 37
+      "reviewed_endpoints": 113,
+      "reviewed_files": 38
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 112,
-    "cursor_execute_apps_config_py_excl_migrations": 45,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 113,
+    "cursor_execute_apps_config_py_excl_migrations": 58,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 4231,
-    "site_settings_refs_apps_py_excl_migrations": 214,
-    "site_settings_refs_apps_py_excl_migrations_tests": 161
+    "print_calls_scripts_py": 4915,
+    "site_settings_refs_apps_py_excl_migrations": 217,
+    "site_settings_refs_apps_py_excl_migrations_tests": 158
   },
   "site_settings_fields": [
     {

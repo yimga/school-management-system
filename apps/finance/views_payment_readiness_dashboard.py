@@ -6,7 +6,6 @@ Requires ``request.school`` from tenant middleware so snapshots stay school-scop
 
 from __future__ import annotations
 
-from django.conf import settings
 from apps.accounts.decorators import require_permission
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render

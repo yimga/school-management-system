@@ -18,7 +18,7 @@
           <p class="tp-mission__sub">{% trans "Configure readiness, branding, data import, and go-live from the dashboard surface." %}</p>
         </div>
         <div class="tp-mission__cta">
-          <a href="{{ activation_studio_url|default:primary_action_url }}" class="tp-mission__go btn btn-sm" data-rmc-activation-next-action="school-studio">
+          <a href="{% firstof activation_studio_url primary_action_url '#' %}" class="tp-mission__go btn btn-sm" data-rmc-activation-next-action="school-studio">
             <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
             {% trans "Do it now" %}
           </a>

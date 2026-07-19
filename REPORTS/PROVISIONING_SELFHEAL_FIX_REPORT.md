@@ -283,7 +283,7 @@ set. Proven fails-first.
 
 ### 10.4 A live tenant with NO schema is invisible to every healer — OPEN
 
-`gilead-school` (created 2026-02-22) is `is_active=True` with **no schema, no provisioning
+A legacy default-tenant seed row (created 2026-02-22) is `is_active=True` with **no schema, no provisioning
 settings, no workflow runs, and no provisioning events** — provisioning was never dispatched
 for it. No recovery path can see it: no FAILED run (auto-requeue sweep skips), no
 heartbeat-dead run (the watchdog skips), and `reconcile_half_provisioned_tenants` requires

@@ -1646,9 +1646,7 @@ def _do_provision_tracked(
             # the year with NO active term. That is not cosmetic: the teacher
             # marks-entry surface resolves the current term and 403s without one,
             # so grade entry is dead for the year — created by the repair.
-            if not Term.objects.filter(
-                school=school, academic_year=ay, is_active=True
-            ).exists():
+            if not Term.objects.filter(school=school, academic_year=ay, is_active=True).exists():
                 first_term = (
                     Term.objects.filter(school=school, academic_year=ay)
                     .order_by("position", "start_date", "id")
@@ -1759,7 +1757,7 @@ def _do_provision_tracked(
 
         # Optional: seed default subjects. Subject name is unique per school (school_id, name).
         #
-        # Deliberately NOT gated on ``if not Subject.objects.filter(school).exists()``.
+        # Deliberately NOT gated on "any subjects already exist for this school".
         # That gate made the seed all-or-nothing: a drive killed partway (the
         # tenant_schema migrate is the usual casualty) leaves, say, 3 of 15 subjects
         # written, and every subsequent resume then sees "subjects exist" and skips —
@@ -1888,11 +1886,18 @@ def _do_provision_tracked(
                 school=school,
                 country_code=getattr(school, "country_code", None),
             )
+            _eav_ok = bool(eav_result.get("ok", True))
+            if not _eav_ok:
+                phase_b_failed_steps.append("eav_catalog")
             _record_school_event(
                 school,
                 event_type="EAV_CATALOG_READY",
-                status="SUCCESS",
-                message="Country identity field catalog provisioned.",
+                status="SUCCESS" if _eav_ok else "FAILED",
+                message=(
+                    "Country identity field catalog provisioned."
+                    if _eav_ok
+                    else "Country identity field catalog failed to persist."
+                ),
                 payload=eav_result,
             )
         except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
@@ -2360,10 +2365,10 @@ def reconcile_half_provisioned_tenants(
     # filter above cannot see it (no marker to match) and NO other healer covers
     # it: the watchdog sweep keys off a WorkflowRun, and a husk has none.
     #
-    # This is not a hypothetical class with one unlucky member — the migration
-    # ``schools/0012_seed_default_gilead_school`` MANUFACTURES one on every
-    # deployment (a single-tenant-era leftover that seeds ``gilead-school``
-    # active-but-unprovisioned), so every database the platform has ever created
+    # This is not a hypothetical class with one unlucky member — schools
+    # migration ``0012`` (legacy default-tenant seed) MANUFACTURES one on every
+    # deployment (a single-tenant-era leftover that seeds an active-but-
+    # unprovisioned school), so every database the platform has ever created
     # carries one. It is a get_or_create, so deleting the row is not a fix either;
     # provisioning it is.
     #

@@ -19,18 +19,49 @@
     <div class="card shadow-sm">
       <div class="card-body">
         <h1 class="h4 mb-3">{% trans "Right to Erasure" %}</h1>
-        <p class="text-muted">{% blocktrans with t=student_sg_lc %}Submit a request to erase a {{ t }}'s personal data (GDPR Art. 17). An administrator will process the request.{% endblocktrans %}</p>
+        <p class="text-muted">{% blocktrans %}Submit a request to erase personal data (GDPR Art. 17) for a student, staff member, or guardian. An administrator will process the request.{% endblocktrans %}</p>
         <form method="post" action="" id="compliance-erasure-form" data-draft-key="compliance_erasure_{{ school.id }}" data-draft-max-age-hours="72" data-draft-pending-label="{% trans 'Unsynced erasure request' %}"
               data-rmc-offline-form="field_capture"
               data-rmc-offline-workflow="compliance_erasure_request"
               data-offline-hint="{% trans 'Erasure request details stay on this device until you reconnect and sync.' %}">
           {% csrf_token %}
           <div class="mb-3">
+            <label class="form-label" for="subject_kind">{% trans "Subject kind" %}</label>
+            <select class="form-select" id="subject_kind" name="subject_kind" required>
+              <option value="student" selected>{% blocktrans with t=student_sg %}{{ t }}{% endblocktrans %}</option>
+              <option value="staff">{% trans "Staff" %}</option>
+              <option value="guardian">{% trans "Guardian" %}</option>
+            </select>
+          </div>
+          <div class="mb-3" data-rmc-erasure-field="student">
             <label class="form-label" for="student_id">{% blocktrans with t=student_sg %}{{ t }} ID{% endblocktrans %}</label>
-            <input type="number" class="form-control" id="student_id" name="student_id" required inputmode="numeric" autocomplete="off" aria-required="true" placeholder="{% trans 'e.g. 123' %}">
+            <input type="number" class="form-control" id="student_id" name="student_id" inputmode="numeric" autocomplete="off" placeholder="{% trans 'e.g. 123' %}">
+          </div>
+          <div class="mb-3" data-rmc-erasure-field="staff" hidden>
+            <label class="form-label" for="staff_user_id">{% trans "Staff user ID" %}</label>
+            <input type="number" class="form-control" id="staff_user_id" name="staff_user_id" inputmode="numeric" autocomplete="off" placeholder="{% trans 'Linked user ID' %}">
+          </div>
+          <div class="mb-3" data-rmc-erasure-field="guardian" hidden>
+            <label class="form-label" for="guardian_user_id">{% trans "Guardian user ID" %}</label>
+            <input type="number" class="form-control" id="guardian_user_id" name="guardian_user_id" inputmode="numeric" autocomplete="off" placeholder="{% trans 'Linked user ID' %}">
           </div>
           <button type="submit" class="btn btn-primary">{% trans "Submit request" %}</button>
         </form>
+        <script nonce="{{ csp_nonce }}">
+        (function () {
+          var sel = document.getElementById("subject_kind");
+          if (!sel) return;
+          function sync() {
+            var kind = sel.value || "student";
+            document.querySelectorAll("[data-rmc-erasure-field]").forEach(function (el) {
+              var show = el.getAttribute("data-rmc-erasure-field") === kind;
+              el.hidden = !show;
+            });
+          }
+          sel.addEventListener("change", sync);
+          sync();
+        })();
+        </script>
       </div>
     </div>
   </div>

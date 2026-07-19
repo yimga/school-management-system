@@ -3,6 +3,8 @@
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 
 from apps.accounts.views_tenant_observability import tenant_activity_log
@@ -10,6 +12,12 @@ from apps.platform_runtime.events import emit_platform_event
 from apps.schools.models import School
 
 User = get_user_model()
+
+
+def _attach_session(request):
+    SessionMiddleware(lambda _req: HttpResponse()).process_request(request)
+    request.session.save()
+    return request
 
 
 class TenantActivityLogViewTests(TestCase):
@@ -37,6 +45,7 @@ class TenantActivityLogViewTests(TestCase):
         req = self.factory.get("/backend/activity-log/")
         req.user = self.admin
         req.school = self.school
+        _attach_session(req)
         resp = tenant_activity_log(req)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "student_created")
@@ -53,5 +62,6 @@ class TenantActivityLogViewTests(TestCase):
         req = self.factory.get("/")
         req.user = t
         req.school = self.school
+        _attach_session(req)
         resp = tenant_activity_log(req)
         self.assertEqual(resp.status_code, 403)

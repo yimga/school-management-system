@@ -282,6 +282,21 @@ class RegionalMiddlewareUnresolvedTests(PlainTestCase):
         mw, request = self._mw_request(_school(region="eu_central"))
         self.assertEqual(mw(request), "OK")
 
+    @override_settings(DATA_RESIDENCY_ENFORCE=True, ENABLE_MULTI_REGION=False)
+    @patch("apps.compliance.cross_border_export._audit_residency_violation")
+    def test_foreign_promise_refused_even_when_multi_region_off(self, audit_mock):
+        """Default-store adjudication must not require ENABLE_MULTI_REGION."""
+        mw, request = self._mw_request(_school(region="eu_central"))
+        with self.assertRaises(ResidencyViolation) as ctx:
+            mw(request)
+        self.assertEqual(ctx.exception.target_region, "global")
+        audit_mock.assert_called_once()
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=False, ENABLE_MULTI_REGION=False)
+    def test_multi_region_off_soft_when_enforce_off(self):
+        mw, request = self._mw_request(_school(region="eu_central"))
+        self.assertEqual(mw(request), "OK")
+
 
 class DataResidencyMiddlewareFailClosedTests(PlainTestCase):
     """The alignment middleware: blank binding adjudicated; crashes fail closed."""

@@ -91,7 +91,7 @@ class ResendOwnerSetupEmailTests(TestCase):
         self.assertEqual(called, {"founder@example.com"})
 
     def test_no_active_owner_warns_and_sends_nothing(self):
-        school = _school("orphan")
+        _school("orphan")
         with mock.patch(
             "apps.schools.welcome_email.send_welcome_email", return_value=True
         ) as send:

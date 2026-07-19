@@ -30,8 +30,8 @@ import uuid
 from datetime import date, datetime, time, timedelta
 from types import SimpleNamespace
 
-from django.db import IntegrityError, connection, transaction
-from django.test import Client, TestCase, override_settings, tag
+from django.db import connection
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -352,44 +352,134 @@ class TimetableBookingCrossCheckTests(_BookingScenarioMixin, TestCase):
         self.assertEqual(occs[0][1].time(), _SLOT_END)
 
 
-@requires_postgres
-@tag("tenants_rls")
-class TimetableBookingConstraintPostgresTests(_BookingScenarioMixin, TestCase):
-    """The btree_gist ExclusionConstraint guards the linked resource itself."""
+@override_settings(ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _HOST])
+class TimetableGeneratorBookingAvoidanceTests(_BookingScenarioMixin, TestCase):
+    """Metric 15 solver-time: generate_schedule must not draft into confirmed bookings."""
 
     def setUp(self):
         self.school = School.objects.create(
-            name="PG TT Booking",
-            slug=f"pgtt-{uuid.uuid4().hex[:8]}",
-            subdomain=f"pgtt-{uuid.uuid4().hex[:8]}",
+            name="TT Gen Booking School",
+            slug=f"ttgen-{uuid.uuid4().hex[:8]}",
+            subdomain=f"ttgen-{uuid.uuid4().hex[:8]}",
             is_active=True,
         )
 
-    def test_db_exclusion_blocks_second_overlapping_booking_on_linked_resource(self):
-        sc = self._scenario(link_room=True)
-        occ_start, occ_end = self._first_occurrence()
-        # First confirmed booking for the concrete class occurrence.
-        create_resource_booking(
-            school=self.school,
-            resource=sc.resource,
-            booked_by=None,
-            title="Class hold",
-            start=_aware(occ_start),
-            end=_aware(occ_end),
+    def test_generator_skips_room_slot_blocked_by_confirmed_booking(self):
+        """Only one room, linked + booked for Monday P1 → no entry on that room+slot."""
+        from apps.academics.models import Specialty, SubjectAssignment
+        from apps.academics.scheduling import (
+            TimetableGenerator,
+            room_timeslot_conflicts_with_confirmed_bookings,
         )
-        # A second overlapping confirmed insert on the SAME resource must be
-        # rejected by the exclusion constraint (bypass the service pre-check by
-        # inserting through the ORM directly).
-        with self.assertRaises(IntegrityError):
-            with transaction.atomic():
-                ResourceBooking.objects.create(
-                    school=self.school,
-                    resource=sc.resource,
-                    booked_by=None,
-                    title="Overlapping",
-                    time_range=(
-                        _aware(occ_start + timedelta(minutes=30)),
-                        _aware(occ_end + timedelta(minutes=30)),
-                    ),
-                    status=ResourceBooking.Status.CONFIRMED,
-                )
+
+        sc = self._scenario(link_room=True)
+        # Wipe the hand-built entry — we want the GENERATOR to place (or skip).
+        sc.entry.delete()
+        ScheduleEntry.objects.filter(schedule=sc.schedule).delete()
+        sc.schedule.delete()
+
+        occ_start, occ_end = self._first_occurrence()
+        self._confirmed_booking(
+            resource=sc.resource,
+            start=occ_start,
+            end=occ_end,
+            title="External exam hold",
+        )
+        self.assertTrue(
+            room_timeslot_conflicts_with_confirmed_bookings(
+                sc.room, sc.slot, sc.term
+            )
+        )
+
+        specialty = Specialty.objects.create(
+            school=self.school,
+            department=Department.objects.get(pk=sc.classroom.department_id),
+            name=f"Spec-{sc.uid}",
+            code=f"S{sc.uid}",
+        )
+        assignment = SubjectAssignment.objects.create(
+            school=self.school,
+            academic_year=sc.year,
+            term=sc.term,
+            classroom=sc.classroom,
+            specialty=specialty,
+            subject=sc.subject,
+        )
+        assignment.teachers.add(sc.teacher)
+
+        # Ensure the only active slot is the booked Monday P1 (isolate the case).
+        TimeSlot.objects.exclude(pk=sc.slot.pk).update(is_active=False)
+        sc.slot.is_active = True
+        sc.slot.save(update_fields=["is_active"])
+
+        schedule = TimetableGenerator(sc.year, sc.term).generate_schedule(
+            created_by=sc.teacher
+        )
+        # Must not place the class into the booked room+slot.
+        clash_entries = ScheduleEntry.objects.filter(
+            schedule=schedule,
+            room=sc.room,
+            time_slot=sc.slot,
+            is_cancelled=False,
+        )
+        self.assertFalse(
+            clash_entries.exists(),
+            "generator must not draft a class into a confirmed booking slot",
+        )
+        self.assertEqual(find_schedule_booking_conflicts(schedule), [])
+
+    def test_generator_prefers_free_room_over_booked_linked_room(self):
+        """Booked linked room + free alternate → generator uses the free room."""
+        from apps.academics.models import Specialty, SubjectAssignment
+        from apps.academics.scheduling import TimetableGenerator
+
+        sc = self._scenario(link_room=True)
+        sc.entry.delete()
+        ScheduleEntry.objects.filter(schedule=sc.schedule).delete()
+        sc.schedule.delete()
+
+        free_room = Room.objects.create(
+            name=f"Free-{sc.uid}",
+            room_type="CLASSROOM",
+            capacity=40,
+            bookable_resource=None,
+        )
+        occ_start, occ_end = self._first_occurrence()
+        self._confirmed_booking(
+            resource=sc.resource,
+            start=occ_start,
+            end=occ_end,
+            title="Board meeting",
+        )
+
+        specialty = Specialty.objects.create(
+            school=self.school,
+            department=Department.objects.get(pk=sc.classroom.department_id),
+            name=f"Spec2-{sc.uid}",
+            code=f"T{sc.uid}",
+        )
+        assignment = SubjectAssignment.objects.create(
+            school=self.school,
+            academic_year=sc.year,
+            term=sc.term,
+            classroom=sc.classroom,
+            specialty=specialty,
+            subject=sc.subject,
+        )
+        assignment.teachers.add(sc.teacher)
+
+        TimeSlot.objects.exclude(pk=sc.slot.pk).update(is_active=False)
+        sc.slot.is_active = True
+        sc.slot.save(update_fields=["is_active"])
+
+        schedule = TimetableGenerator(sc.year, sc.term).generate_schedule(
+            created_by=sc.teacher
+        )
+        entries = list(
+            ScheduleEntry.objects.filter(schedule=schedule, is_cancelled=False)
+        )
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0].room_id, free_room.pk)
+        self.assertNotEqual(entries[0].room_id, sc.room.pk)
+        self.assertEqual(find_schedule_booking_conflicts(schedule), [])
+

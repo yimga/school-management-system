@@ -41,6 +41,9 @@ REGION_CENTROIDS: dict[str, dict[str, float]] = {
     "Other": {"lat": 0.0, "lng": 0.0, "altitude": 1.02},
 }
 
+# Fallback bucket key for unmapped ISO countries (matches REGION_* dict keys).
+REGION_OTHER = "Other"
+
 # Lab parity (globe-void-ai-lab core fix #1): equatorial fill-frame default when fleet is empty.
 DEFAULT_GLOBE_CAMERA: dict[str, float] = {"lat": 8.0, "lng": -5.0, "altitude": 1.02}
 GLOBE_FILL_ALTITUDE = 1.02
@@ -605,7 +608,7 @@ def _build_expansion_targets(markers: list[dict[str, Any]]) -> list[dict[str, An
             populated.add(region)
     targets: list[dict[str, Any]] = []
     for region, centroid in REGION_CENTROIDS.items():
-        if region in populated or region == "Other":
+        if region in populated or region == REGION_OTHER:
             continue
         targets.append({
             "lat": centroid["lat"],

@@ -354,6 +354,17 @@
       "replay_protection": "tenant_scoped_run_ids",
       "verdict": "keep_with_hardening"
     },
+    "apps/platform_runtime/views_internal_cron.py": {
+      "audit_logging": "implemented",
+      "auth_model": "shared_secret_internal_cron_token_bearer_or_x_cron_key",
+      "expected_count": 1,
+      "last_reviewed": "2026-07-18",
+      "notes": "Machine cron trigger for external schedulers (GitHub Actions / Render); CSRF exempt like RUM ingest. Disabled (404) when INTERNAL_CRON_TOKEN unset/short; constant-time compare; IP rate limit; converges on periodic registry locks.",
+      "owner": "platform_runtime",
+      "rate_limiting": "implemented",
+      "replay_protection": "per_job_lock_in_periodic_registry",
+      "verdict": "keep_with_hardening"
+    },
     "apps/platform_runtime/views_newsletter.py": {
       "audit_logging": "implemented",
       "auth_model": "public_form_post_and_rfc8058_one_click_token",
@@ -454,7 +465,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-06-08T11:20:08.946642+00:00",
+  "generated_at": "2026-07-19T03:14:00.153202+00:00",
   "raw_sql": {
     "apps/accounts/legacy_hashes/key_rotation.py": {
       "expected_count": 1,
@@ -491,6 +502,11 @@
       "last_reviewed": "2026-06-08",
       "reason": "Append-only audit purge bypasses ORM delete() guard via parameterized PK IN DELETE inside atomic transaction after archive signature verification."
     },
+    "apps/finance/schema_repair.py": {
+      "expected_count": 2,
+      "last_reviewed": "2026-07-18",
+      "reason": "Offline payment index repair: CREATE INDEX IF NOT EXISTS with quote_name identifiers during controlled startup repair."
+    },
     "apps/migration_cloud/intake/access_intake.py": {
       "expected_count": 1,
       "last_reviewed": "2026-05-27",
@@ -517,9 +533,9 @@
       "reason": "Section 2.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only."
     },
     "apps/people/schema_repair.py": {
-      "expected_count": 3,
-      "last_reviewed": "2026-05-27",
-      "reason": "Schema repair DDL/backfill adds and enforces one timestamp column using quoted identifiers during controlled startup repair."
+      "expected_count": 6,
+      "last_reviewed": "2026-07-18",
+      "reason": "Schema repair DDL/backfill for people tables: quoted identifiers, controlled startup repair (column add/backfill/enforce)."
     },
     "apps/platform_runtime/sqlite_pragmas.py": {
       "expected_count": 4,
@@ -535,6 +551,21 @@
       "expected_count": 6,
       "last_reviewed": "2026-05-27",
       "reason": "Staff-run portal KB pgvector migration performs extension/vector DDL, batch backfill, index creation, and dimension detection."
+    },
+    "apps/schoolops/schema_repair.py": {
+      "expected_count": 3,
+      "last_reviewed": "2026-07-18",
+      "reason": "Schoolops schema repair DDL/backfill using quoted identifiers during controlled startup repair."
+    },
+    "apps/schools/management/commands/e2e_lifecycle.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-07-18",
+      "reason": "Staff/dev e2e lifecycle command uses a single catalog/probe execute for tenant workspace verification; not a production request path."
+    },
+    "apps/schools/onboarding_service.py": {
+      "expected_count": 2,
+      "last_reviewed": "2026-07-18",
+      "reason": "Onboarding provisioning probes/repairs schema readiness with bounded catalog SQL; no user-supplied identifiers."
     },
     "apps/schools/repositories/health_repository.py": {
       "expected_count": 3,
@@ -556,6 +587,16 @@
       "last_reviewed": "2026-05-27",
       "reason": "RLS readiness preflight verifies PostgreSQL GUC support and pg_policies catalog state; read-only except SET/RESET session variable."
     },
+    "apps/schools/tasks.py": {
+      "expected_count": 2,
+      "last_reviewed": "2026-07-18",
+      "reason": "Celery provisioning healers probe tenant schema table presence via catalog SQL; no user input."
+    },
+    "apps/schools/tenant_workspace.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-07-18",
+      "reason": "Workspace existence probe: SELECT 1 FROM information_schema/sqlite_master for schema table presence; no user input."
+    },
     "apps/siteconfig/repositories/database_recovery_repository.py": {
       "expected_count": 1,
       "last_reviewed": "2026-04-24",
@@ -575,7 +616,7 @@
   },
   "summary": {
     "allow_any_files": 4,
-    "csrf_exempt_files": 37,
-    "raw_sql_files": 22
+    "csrf_exempt_files": 38,
+    "raw_sql_files": 28
   }
 }

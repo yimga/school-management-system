@@ -126,7 +126,7 @@ def run_subscription_dunning_reminders(
     Safe to call from a management command, Celery beat, or smoke; ``dry_run=True``
     reports the would-publish shape without emitting events.
     """
-    from apps.billing.models import BillingAccount, TenantSubscription
+    from apps.billing.models import TenantSubscription
     from apps.billing.services import platform_account_balance
     from apps.platform_runtime.event_bus import publish_event
     from apps.platform_runtime.reactivation_engine import (

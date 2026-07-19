@@ -12,8 +12,8 @@ per-student rows; this kernel adds the missing one-call convenience:
   list. Pure-function; no DB writes. The caller then funnels through
   ``apply_attendance_rows(...)``.
 - ``apply_attendance_rows(classroom_id, date, rows, ...)`` — single write
-  path. Uses ``Attendance.objects.update_or_create()`` per row so the kernel
-  is idempotent and re-runs over an already-marked day are no-ops.
+  path. Uses a **constant-query** bulk upsert (prefetch + ``bulk_create`` /
+  ``bulk_update``) so re-runs and large classes do not O(n) round-trip.
 
 No new model; the existing ``apps.academics.models.Attendance`` is the
 storage. Tenant isolation is enforced because ``Classroom`` (and through it
@@ -110,6 +110,7 @@ def mark_whole_class(
     school_id: int | None = None,
     actor_user_id: int | None = None,
     db_runner=None,
+    emit_signals: bool = True,
 ) -> BulkAttendanceResult:
     """Mark every active student in ``classroom_id`` with ``default_status``.
 
@@ -120,6 +121,8 @@ def mark_whole_class(
 
     ``db_runner`` is a thin seam so tests can inject a fake "fetch students +
     upsert rows" without spinning up the full ORM stack.
+    ``emit_signals`` defaults True so guardian/platform post_save side effects
+    still run; query-count proofs may pass False to isolate the upsert SQL.
     """
     status = normalize_status(default_status)
     exceptions_map = {int(k): normalize_status(v) for k, v in (exceptions or {}).items()}
@@ -132,6 +135,7 @@ def mark_whole_class(
         exceptions=exceptions_map,
         school_id=school_id,
         actor_user_id=actor_user_id,
+        emit_signals=emit_signals,
     )
 
 
@@ -142,6 +146,7 @@ def apply_attendance_rows(
     rows: Iterable[AttendanceRow],
     school_id: int | None = None,
     db_runner=None,
+    emit_signals: bool = True,
 ) -> BulkAttendanceResult:
     """Apply an explicit list of rows (typically from CSV upload)."""
     runner = db_runner or _default_apply_runner
@@ -150,7 +155,132 @@ def apply_attendance_rows(
         date_value=date_value,
         rows=list(rows),
         school_id=school_id,
+        emit_signals=emit_signals,
     )
+
+
+def apply_student_status_map(
+    *,
+    classroom_id: int,
+    date_value: date_type,
+    school_id,
+    statuses: Mapping[int, str],
+    remarks: Mapping[int, str] | None = None,
+    emit_signals: bool = True,
+) -> BulkAttendanceResult:
+    """Portal roll-call write path — constant-query upsert by student_id."""
+    rows = [
+        AttendanceRow(
+            student_id=int(sid),
+            status=normalize_status(status),
+            remarks=(remarks or {}).get(int(sid), "")[:255],
+        )
+        for sid, status in (statuses or {}).items()
+    ]
+    return apply_attendance_rows(
+        classroom_id=classroom_id,
+        date_value=date_value,
+        rows=rows,
+        school_id=school_id,
+        emit_signals=emit_signals,
+    )
+
+
+def _emit_attendance_saved(instances: list, *, created: bool) -> None:
+    """bulk_create/bulk_update skip model signals — re-emit post_save for side effects."""
+    if not instances:
+        return
+    from django.db.models.signals import post_save
+
+    from apps.academics.models import Attendance  # type: ignore
+
+    for instance in instances:
+        post_save.send(
+            sender=Attendance,
+            instance=instance,
+            created=created,
+            raw=False,
+            using=instance._state.db,
+            update_fields=None,
+        )
+
+
+def _bulk_upsert_attendance(
+    *,
+    classroom,
+    date_value: date_type,
+    school_id,
+    specs: list[tuple[object, str, str]],
+    emit_signals: bool = True,
+) -> BulkAttendanceResult:
+    """Prefetch + bulk_create/bulk_update — query count independent of class size."""
+    from django.utils import timezone
+
+    from apps.academics.models import Attendance  # type: ignore
+
+    result = BulkAttendanceResult(student_count=len(specs))
+    if not specs:
+        return result
+
+    student_ids = [int(getattr(s, "pk")) for s, _st, _rm in specs]
+    # tenant-isolation-allow: bulk-attendance-upsert-confined-to-classroom-school
+    existing = {
+        int(a.student_id): a
+        for a in Attendance.objects.filter(
+            classroom=classroom,
+            date=date_value,
+            student_id__in=student_ids,
+        )
+    }
+
+    to_create: list = []
+    to_update: list = []
+    now = timezone.now()
+    for student, status, remarks in specs:
+        sid = int(student.pk)
+        row = existing.get(sid)
+        if row is None:
+            to_create.append(
+                Attendance(
+                    student=student,
+                    classroom=classroom,
+                    date=date_value,
+                    status=status,
+                    remarks=remarks or "",
+                    school_id=school_id,
+                )
+            )
+            continue
+        changed = False
+        if row.status != status:
+            row.status = status
+            changed = True
+        if (row.remarks or "") != (remarks or ""):
+            row.remarks = remarks or ""
+            changed = True
+        if row.school_id is None and school_id is not None:
+            row.school_id = school_id
+            changed = True
+        if changed:
+            row.updated_at = now
+            to_update.append(row)
+        else:
+            result.skipped += 1
+
+    if to_create:
+        Attendance.objects.bulk_create(to_create)
+        result.created = len(to_create)
+        if emit_signals:
+            _emit_attendance_saved(to_create, created=True)
+    if to_update:
+        Attendance.objects.bulk_update(
+            to_update,
+            ["status", "remarks", "school_id", "updated_at"],
+        )
+        result.updated = len(to_update)
+        if emit_signals:
+            _emit_attendance_saved(to_update, created=False)
+    return result
 
 
 def _default_db_runner(
@@ -161,11 +291,12 @@ def _default_db_runner(
     exceptions: Mapping[int, str],
     school_id: int | None,
     actor_user_id: int | None,
+    emit_signals: bool = True,
 ) -> BulkAttendanceResult:
     """Real Django runner — kept thin so the kernel stays test-friendly."""
     # Lazy imports so SimpleTestCase tests that inject a fake runner don't
     # need to bring up the Django ORM.
-    from apps.academics.models import Attendance, Classroom  # type: ignore
+    from apps.academics.models import Classroom  # type: ignore
     from apps.people.models import StudentProfile  # type: ignore
 
     if school_id is None:
@@ -182,24 +313,19 @@ def _default_db_runner(
     students = list(
         StudentProfile.objects.filter(
             classroom=classroom, school_id=school_id,
-        ).only("id"),
+        ).only("id", "school_id"),
     )
-
-    result = BulkAttendanceResult(student_count=len(students))
-    for student in students:
-        chosen = exceptions.get(student.id, default_status)
-        # tenant-isolation-allow: bulk-attendance-upsert-confined-to-classroom-school
-        _, created = Attendance.objects.update_or_create(
-            student=student,
-            classroom=classroom,
-            date=date_value,
-            defaults={"status": chosen, "school_id": school_id},
-        )
-        if created:
-            result.created += 1
-        else:
-            result.updated += 1
-    return result
+    specs = [
+        (student, exceptions.get(student.id, default_status), "")
+        for student in students
+    ]
+    return _bulk_upsert_attendance(
+        classroom=classroom,
+        date_value=date_value,
+        school_id=school_id,
+        specs=specs,
+        emit_signals=emit_signals,
+    )
 
 
 def _default_apply_runner(
@@ -208,8 +334,9 @@ def _default_apply_runner(
     date_value: date_type,
     rows: list[AttendanceRow],
     school_id: int | None,
+    emit_signals: bool = True,
 ) -> BulkAttendanceResult:
-    from apps.academics.models import Attendance, Classroom  # type: ignore
+    from apps.academics.models import Classroom  # type: ignore
     from apps.people.models import StudentProfile  # type: ignore
 
     if school_id is None:
@@ -229,37 +356,45 @@ def _default_apply_runner(
     # a non-existent ``external_id`` field and raised FieldError (500) on every apply.
     id_fields = ("student_code", "admission_number", "exam_candidate_number")
     # tenant-isolation-allow: bulk-attendance-student-lookup-confined-to-classroom-school
-    students_by_ext: dict[str, StudentProfile] = {}
+    students_by_ext: dict[str, object] = {}
+    students_by_id: dict[int, object] = {}
     for s in StudentProfile.objects.filter(
         classroom=classroom, school_id=school_id,
-    ).only("id", *id_fields):
+    ).only("id", "school_id", *id_fields):
+        students_by_id[int(s.pk)] = s
         for fld in id_fields:
             val = getattr(s, fld, None)
             if val:
                 students_by_ext[str(val)] = s
-    result.student_count = len({s.pk for s in students_by_ext.values()})
+    result.student_count = len(students_by_id)
 
+    specs: list[tuple[object, str, str]] = []
     for row in rows:
-        student = students_by_ext.get(row.student_external_id)
+        student = None
+        if row.student_id is not None:
+            student = students_by_id.get(int(row.student_id))
+        if student is None and row.student_external_id:
+            student = students_by_ext.get(row.student_external_id)
         if student is None:
             result.skipped += 1
             result.errors.append(
-                {"student_external_id": row.student_external_id, "reason": "not_in_classroom"},
+                {
+                    "student_id": row.student_id,
+                    "student_external_id": row.student_external_id,
+                    "reason": "not_in_classroom",
+                },
             )
             continue
-        # tenant-isolation-allow: bulk-attendance-csv-upsert-confined-to-classroom
-        _, created = Attendance.objects.update_or_create(
-            student=student,
-            classroom=classroom,
-            date=date_value,
-            defaults={
-                "status": row.status,
-                "remarks": row.remarks,
-                "school_id": school_id,
-            },
-        )
-        if created:
-            result.created += 1
-        else:
-            result.updated += 1
+        specs.append((student, row.status, row.remarks or ""))
+
+    upsert = _bulk_upsert_attendance(
+        classroom=classroom,
+        date_value=date_value,
+        school_id=school_id,
+        specs=specs,
+        emit_signals=emit_signals,
+    )
+    result.created = upsert.created
+    result.updated = upsert.updated
+    result.skipped += upsert.skipped
     return result

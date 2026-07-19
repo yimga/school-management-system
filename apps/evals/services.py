@@ -56,52 +56,127 @@ def student_term_subject_scores(student: StudentProfile, term: Term) -> List[flo
 def student_term_average(student: StudentProfile, term: Term) -> float:
     # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     evals = Evaluation.objects.filter(student=student, term=term).select_related(
-        "subject_assignment"
+        "subject_assignment",
+        "subject_assignment__classroom",
+        "academic_year",
+        "term",
     )
+    return _coefficient_weighted_average(list(evals))
+
+
+def _coefficient_weighted_average(
+    evals: list,
+    *,
+    weights_cache: dict | None = None,
+    formula_cache: dict | None = None,
+) -> float:
+    """Coefficient-weighted mean of evaluation totals (shared by single + bulk paths)."""
+    from apps.evals.grade_computation import (
+        _resolve_formula_text,
+        compute_evaluation_total_score,
+    )
+    from apps.evals.models import AssessmentWeights
+
+    if not evals:
+        return 0.0
+    weights_cache = weights_cache if weights_cache is not None else {}
+    formula_cache = formula_cache if formula_cache is not None else {}
 
     total_weighted = 0.0
     total_coef = 0.0
     for e in evals:
-        coef = float(e.subject_assignment.coefficient or 1)
-        score = float(e.total_score)
+        sa = getattr(e, "subject_assignment", None)
+        coef = float(getattr(sa, "coefficient", None) or 1)
+        classroom = getattr(sa, "classroom", None) if sa is not None else None
+        year = getattr(e, "academic_year", None)
+        term_obj = getattr(e, "term", None)
+        wkey = (
+            getattr(year, "pk", None),
+            getattr(classroom, "pk", None),
+            getattr(term_obj, "pk", None) or getattr(e, "term_id", None),
+        )
+        if wkey not in weights_cache:
+            weights_cache[wkey] = AssessmentWeights.get_for(year, classroom, term_obj)
+        weights = weights_cache[wkey]
+        school = getattr(classroom, "school", None) if classroom is not None else None
+        if school is None:
+            school = getattr(e, "school", None)
+        skey = getattr(school, "pk", None)
+        if skey not in formula_cache:
+            formula_cache[skey] = _resolve_formula_text(weights, school)
+        score = float(
+            compute_evaluation_total_score(
+                e, weights=weights, formula_text=formula_cache[skey]
+            )
+        )
         total_weighted += score * coef
         total_coef += coef
-
     return (total_weighted / total_coef) if total_coef else 0.0
-# tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
+
+
+def _bulk_term_averages_for_students(
+    students: list[StudentProfile], term: Term
+) -> dict[int, float]:
+    """One Evaluation query for the whole student set; memoized weights/formula."""
+    if not students:
+        return {}
+    student_ids = [s.pk for s in students]
+    # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
+    evals = list(
+        Evaluation.objects.filter(student_id__in=student_ids, term=term).select_related(
+            "subject_assignment",
+            "subject_assignment__classroom",
+            "subject_assignment__classroom__school",
+            "academic_year",
+            "term",
+            "student",
+        )
+    )
+    by_student: dict[int, list] = {sid: [] for sid in student_ids}
+    for e in evals:
+        sid = getattr(e, "student_id", None)
+        if sid in by_student:
+            by_student[sid].append(e)
+
+    weights_cache: dict = {}
+    formula_cache: dict = {}
+    return {
+        sid: _coefficient_weighted_average(
+            rows, weights_cache=weights_cache, formula_cache=formula_cache
+        )
+        for sid, rows in by_student.items()
+    }
 
 
 # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
 def classroom_term_rankings(classroom: Classroom, term: Term) -> List[StudentAggregate]:
-    students = StudentProfile.objects.filter(
-        classroom=classroom, is_active=True
-    ).select_related("classroom")
-    aggregates: List[StudentAggregate] = []
-
-    for s in students:
-        aggregates.append(
-            StudentAggregate(
-                student=s, term=term, scores=[student_term_average(s, term)]
-            )
-        )
-
+    students = list(
+        StudentProfile.objects.filter(
+            classroom=classroom, is_active=True
+        ).select_related("classroom")
+    )
+    averages = _bulk_term_averages_for_students(students, term)
+    aggregates: List[StudentAggregate] = [
+        StudentAggregate(student=s, term=term, scores=[averages.get(s.pk, 0.0)])
+        for s in students
+    ]
     aggregates.sort(key=lambda a: a.average, reverse=True)
     # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     return aggregates
+
 
 # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
 
 def school_term_rankings(term: Term) -> List[StudentAggregate]:
     # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
-    students = StudentProfile.objects.filter(is_active=True).select_related("classroom")
-    aggregates: List[StudentAggregate] = []
-    for s in students:
-        aggregates.append(
-            StudentAggregate(
-                student=s, term=term, scores=[student_term_average(s, term)]
-            )
-        )
-
+    students = list(
+        StudentProfile.objects.filter(is_active=True).select_related("classroom")
+    )
+    averages = _bulk_term_averages_for_students(students, term)
+    aggregates: List[StudentAggregate] = [
+        StudentAggregate(student=s, term=term, scores=[averages.get(s.pk, 0.0)])
+        for s in students
+    ]
     aggregates.sort(key=lambda a: a.average, reverse=True)
     return aggregates
 
@@ -172,6 +247,74 @@ def completion_for_assignment(subject_assignment, term) -> CompletionStats:
         pending=pending,
         completion_pct=pct,
     )
+
+
+def completion_for_assignments_bulk(
+    subject_assignments, term
+) -> dict[int, CompletionStats]:
+    """Bulk completion stats — O(1) queries vs O(n) for ``completion_for_assignment``.
+
+    Used by the teacher-dashboard spotlight (Metric #17). Keys are subject
+    assignment primary keys.
+    """
+    from django.db.models import Count
+
+    assignments = list(subject_assignments or [])
+    if not assignments:
+        return {}
+
+    classroom_ids = {
+        getattr(sa, "classroom_id", None) or getattr(getattr(sa, "classroom", None), "pk", None)
+        for sa in assignments
+    }
+    classroom_ids.discard(None)
+    sa_ids = [sa.pk for sa in assignments if getattr(sa, "pk", None) is not None]
+
+    # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
+    totals_by_classroom: dict[int, int] = {}
+    if classroom_ids:
+        for row in (
+            StudentProfile.objects.filter(classroom_id__in=classroom_ids)
+            .values("classroom_id")
+            .annotate(n=Count("id"))
+        ):
+            totals_by_classroom[int(row["classroom_id"])] = int(row["n"])
+
+    completed_by_sa: dict[int, int] = {}
+    if sa_ids:
+        # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
+        for row in (
+            Evaluation.objects.filter(subject_assignment_id__in=sa_ids, term=term)
+            .exclude(
+                seq1_score__isnull=True,
+                seq2_score__isnull=True,
+                exam_score__isnull=True,
+                mock_score__isnull=True,
+                practical_score__isnull=True,
+                test1__isnull=True,
+                test2__isnull=True,
+            )
+            .values("subject_assignment_id")
+            .annotate(n=Count("id"))
+        ):
+            completed_by_sa[int(row["subject_assignment_id"])] = int(row["n"])
+
+    out: dict[int, CompletionStats] = {}
+    for sa in assignments:
+        cid = getattr(sa, "classroom_id", None) or getattr(
+            getattr(sa, "classroom", None), "pk", None
+        )
+        total = totals_by_classroom.get(int(cid), 0) if cid is not None else 0
+        completed = completed_by_sa.get(int(sa.pk), 0)
+        pending = max(total - completed, 0)
+        pct = round((completed / total) * 100, 2) if total > 0 else 0.0
+        out[int(sa.pk)] = CompletionStats(
+            total=total,
+            completed=completed,
+            pending=pending,
+            completion_pct=pct,
+        )
+    return out
 
 
 def ews_students_needing_attention(

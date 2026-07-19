@@ -118,27 +118,26 @@ def data_portability_export(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def erasure_request_view(request):
-    """Right to Erasure request (GDPR Art. 17)."""
+    """Right to Erasure request (GDPR Art. 17) for student / staff / guardian."""
     school = getattr(request, "school", None)
     if not school:
         messages.warning(request, "Select your school.")
         return redirect("portal:home")
     if request.method == "POST":
-        student_id = (request.POST.get("student_id") or "").strip()
-        if not student_id:
-            messages.error(request, "Student ID required.")
-            return redirect("compliance:erasure_request")
-        try:
-            sid = int(student_id)
-        except (TypeError, ValueError):
-            messages.error(request, "Invalid student ID.")
-            return redirect("compliance:erasure_request")
-        from apps.people.models import StudentProfile
+        from datetime import timedelta
 
-        student = StudentProfile.objects.filter(school=school, pk=sid).first()
-        if not student:
-            messages.error(request, "Student not found.")
+        from django.conf import settings
+        from django.utils import timezone
+
+        from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
+
+        from .models import EraseRequest
+
+        subject_kind = (request.POST.get("subject_kind") or "student").strip().lower()
+        if subject_kind not in {"student", "staff", "guardian"}:
+            messages.error(request, "Invalid subject kind.")
             return redirect("compliance:erasure_request")
+
         execute_now = (request.POST.get("execute_now") or "").strip() in {
             "1",
             "true",
@@ -152,24 +151,88 @@ def erasure_request_view(request):
             "yes",
         }
 
+        subject_user_id = None
+        reason_tag = subject_kind
+        student_pk = None
+
+        if subject_kind == "student":
+            student_id = (request.POST.get("student_id") or "").strip()
+            if not student_id:
+                messages.error(request, "Student ID required.")
+                return redirect("compliance:erasure_request")
+            try:
+                sid = int(student_id)
+            except (TypeError, ValueError):
+                messages.error(request, "Invalid student ID.")
+                return redirect("compliance:erasure_request")
+            student = StudentProfile.objects.filter(school=school, pk=sid).first()
+            if not student:
+                messages.error(request, "Student not found.")
+                return redirect("compliance:erasure_request")
+            student_pk = sid
+            subject_user_id = student.user_id
+            reason_tag = "student_id=%s" % sid
+        elif subject_kind == "staff":
+            raw = (request.POST.get("staff_user_id") or "").strip()
+            if not raw:
+                messages.error(request, "Staff user ID required.")
+                return redirect("compliance:erasure_request")
+            try:
+                uid = int(raw)
+            except (TypeError, ValueError):
+                messages.error(request, "Invalid staff user ID.")
+                return redirect("compliance:erasure_request")
+            if not TeacherProfile.objects.filter(school=school, user_id=uid).exists():
+                messages.error(request, "Staff member not found in this school.")
+                return redirect("compliance:erasure_request")
+            subject_user_id = uid
+            reason_tag = "staff_user_id=%s" % uid
+        else:
+            raw = (request.POST.get("guardian_user_id") or "").strip()
+            if not raw:
+                messages.error(request, "Guardian user ID required.")
+                return redirect("compliance:erasure_request")
+            try:
+                uid = int(raw)
+            except (TypeError, ValueError):
+                messages.error(request, "Invalid guardian user ID.")
+                return redirect("compliance:erasure_request")
+            if not StudentGuardian.objects.filter(
+                guardian_user_id=uid, student__school=school
+            ).exists():
+                messages.error(request, "Guardian not found in this school.")
+                return redirect("compliance:erasure_request")
+            subject_user_id = uid
+            reason_tag = "guardian_user_id=%s" % uid
+
         if execute_now:
             if not (request.user.is_staff or request.user.is_superuser):
                 messages.error(request, "Only staff users can execute erasure now.")
                 return redirect("compliance:erasure_request")
-            from .gdpr_services import gdpr_scrub_student
+            if subject_kind == "student":
+                from .gdpr_services import gdpr_scrub_student
 
-            result = gdpr_scrub_student(
-                school.id,
-                sid,
-                dry_run=dry_run,
-                requested_by_user_id=request.user.id,
-            )
+                result = gdpr_scrub_student(
+                    school.id,
+                    student_pk,
+                    dry_run=dry_run,
+                    requested_by_user_id=request.user.id,
+                )
+            else:
+                from .dsar_subjects import scrub_user_subject
+
+                result = scrub_user_subject(
+                    school.id,
+                    subject_user_id,
+                    dry_run=dry_run,
+                    requested_by_user_id=request.user.id,
+                )
             if result.get("ok") or result.get("dry_run"):
                 if dry_run:
                     messages.success(
                         request,
                         "GDPR erasure dry-run completed: %s"
-                        % result.get("would_anonymize", {}),
+                        % result.get("would_anonymize", result),
                     )
                 else:
                     messages.success(request, "GDPR erasure/anonymization completed.")
@@ -179,31 +242,16 @@ def erasure_request_view(request):
                 )
             return redirect("compliance:erasure_request")
 
-        # Feed the erasure fulfillment + SLA pipeline. Previously this path only
-        # wrote an audit log and told the user "an administrator will process it"
-        # — but NO EraseRequest was ever created, so the existing
-        # fulfill_pending_erasure / process_erase_requests / mark_sla_breaches
-        # machinery was never fed and the right-to-be-forgotten request silently
-        # vanished. fulfill_pending_erasure keys on subject_user_id -> Student,
-        # so it needs the student's linked User; a student with no account can't
-        # be queued and falls back to the audit log + an honest message.
-        from django.conf import settings
-        from django.utils import timezone
-
         erase_request_id = None
         sla_days = int(getattr(settings, "COMPLIANCE_ERASURE_SLA_DAYS", 30))
-        if student.user_id:
+        if subject_user_id:
             try:
-                from datetime import timedelta
-
-                from .models import EraseRequest
-
                 er = EraseRequest.objects.create(
                     school=school,
                     requested_by=request.user,
-                    subject_user_id=student.user_id,
+                    subject_user_id=subject_user_id,
                     status=EraseRequest.Status.PENDING,
-                    reason="GDPR Art. 17 erasure request (student_id=%s)" % sid,
+                    reason="GDPR Art. 17 erasure request (%s)" % reason_tag,
                     due_at=timezone.now() + timedelta(days=sla_days),
                 )
                 erase_request_id = er.pk
@@ -211,7 +259,7 @@ def erasure_request_view(request):
                 log_view_exception(
                     request,
                     "GDPR EraseRequest create failed",
-                    extra={"student_id": sid},
+                    extra={"subject_kind": subject_kind, "reason_tag": reason_tag},
                 )
         try:
             from .models import ComplianceAuditLog
@@ -221,13 +269,15 @@ def erasure_request_view(request):
                 ComplianceAuditLog.objects.create(
                     region=region,
                     action_type="policy_enforced",
-                    description="Erasure request submitted for student_id=%s (GDPR Art. 17)"
-                    % sid,
+                    description="Erasure request submitted for %s (GDPR Art. 17)"
+                    % reason_tag,
                     details={
-                        "student_id": sid,
+                        "subject_kind": subject_kind,
+                        "reason_tag": reason_tag,
                         "school_id": school.id,
                         "requested_by": request.user.id,
                         "erase_request_id": erase_request_id,
+                        "subject_user_id": subject_user_id,
                     },
                     user=request.user,
                     severity="high",
@@ -236,7 +286,7 @@ def erasure_request_view(request):
             log_view_exception(
                 request,
                 "GDPR erasure request audit log create failed",
-                extra={"student_id": sid},
+                extra={"subject_kind": subject_kind},
             )
         if erase_request_id:
             messages.success(
@@ -244,11 +294,16 @@ def erasure_request_view(request):
                 "Erasure request created and queued for processing (due within %s days)."
                 % sla_days,
             )
-        else:
+        elif subject_kind == "student":
             messages.success(
                 request,
                 "Erasure request logged. This student has no linked account, so an "
                 "administrator will process it manually.",
+            )
+        else:
+            messages.error(
+                request,
+                "Could not queue erasure — subject has no processable user account.",
             )
         return redirect("compliance:erasure_request")
     return render(request, "compliance/erasure_request.html", {"school": school})

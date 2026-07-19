@@ -47,9 +47,10 @@ class GradingScaleRecommendationDBTests(TestCase):
             list_grading_scales,
         )
 
-        school = self._school(country_code="US")  # american → gpa_4_0 → "gpa_4"
+        school = self._school(country_code="US")  # american → us_letter → "letter"
         rec = _recommended_grading_scale_value(school)
         self.assertTrue(rec)  # a recommendation resolved
+        self.assertEqual(rec, "letter")
         opts = list_grading_scales(request=None, school=school)
         self.assertEqual(opts[0]["value"], rec)  # recommended sorts first
         self.assertTrue(opts[0]["metadata"].get("recommended"))

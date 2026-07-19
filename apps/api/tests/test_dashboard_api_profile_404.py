@@ -20,6 +20,10 @@ class DashboardAPIProfile404Tests(TestCase):
         u.role = User.Role.TEACHER
         u.save(update_fields=["role"])
         self.client.force_login(u)
+        # Login bootstrap may auto-stub TeacherProfile; API must 404 without a real profile.
+        from apps.people.models import TeacherProfile
+
+        TeacherProfile.objects.filter(user=u).delete()
         url = reverse("api:teacher-dashboard")
         r = self.client.get(url)
         self.assertEqual(r.status_code, 404)

@@ -72,6 +72,61 @@ def _bola_test_count() -> int:
     )
 
 
+def _ensure_pillar_quick_db() -> Path:
+    """File-backed keepdb for pillar proof tests; repair WAL-truncated copies on Windows."""
+    import sqlite3
+
+    tdir = ROOT / ".django_test_dbs"
+    tdir.mkdir(parents=True, exist_ok=True)
+    dest = tdir / "pillar_quick.sqlite3"
+    seeds = (
+        tdir / "pre_deploy_gate.sqlite3",
+        tdir / "rmc_sqlite_test_runner.sqlite3",
+        tdir / "admin_ui_isolated_19768.sqlite3",
+    )
+
+    def _ok(path: Path) -> bool:
+        if not path.is_file() or path.stat().st_size < 1_000_000:
+            return False
+        try:
+            conn = sqlite3.connect(str(path))
+            try:
+                row = conn.execute("PRAGMA integrity_check").fetchone()
+                return bool(row and row[0] == "ok")
+            finally:
+                conn.close()
+        except sqlite3.Error:
+            return False
+
+    if _ok(dest):
+        return dest
+
+    for side in (Path(f"{dest}-wal"), Path(f"{dest}-shm")):
+        if side.exists():
+            side.unlink()
+    if dest.exists():
+        dest.unlink()
+
+    src = next((p for p in seeds if _ok(p)), None)
+    if src is None:
+        # Cold path: let Django migrate into an empty file on first run.
+        dest.touch()
+        return dest
+
+    src_conn = sqlite3.connect(str(src))
+    try:
+        src_conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        dst_conn = sqlite3.connect(str(dest))
+        try:
+            with dst_conn:
+                src_conn.backup(dst_conn)
+        finally:
+            dst_conn.close()
+    finally:
+        src_conn.close()
+    return dest
+
+
 def main() -> int:
     global ROOT, GENERATED
     parser = argparse.ArgumentParser(description=__doc__)
@@ -438,9 +493,10 @@ def main() -> int:
     add("Google", "search_adoption_lint", "Hot list views use search helpers", code == 0, tail or "ok")
 
     if args.run_tests:
+        pillar_db = _ensure_pillar_quick_db()
         test_env = {
             **os.environ,
-            "DJANGO_TEST_DB_FILE": str(ROOT / ".django_test_dbs" / "pillar_quick.sqlite3"),
+            "DJANGO_TEST_DB_FILE": str(pillar_db),
         }
         code, tail = _run(
             [
@@ -472,6 +528,7 @@ def main() -> int:
                 "apps.portal.tests.test_document_search",
                 "payment.tests.test_webhook_ingress",
                 "--verbosity=1",
+                "--keepdb",
             ],
             timeout=900,
             env=test_env,

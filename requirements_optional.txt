@@ -33,3 +33,10 @@ django-storages[s3]>=1.14  # pulls boto3
 # also install this file (or add boto3 to the build) on the WORKER service, which
 # is where the capture task runs. See docs/DR_SELF_HOST_RESTORE_RUNBOOK.md §2.
 boto3>=1.34
+
+# Academics CP-SAT timetable solver (metric 15). Intentionally NOT in
+# requirements.txt — the production path is TimetableGenerator (CSP). Installing
+# ortools activates ``apps.academics.scheduling_solver._solve_with_ortools`` for
+# operators who want the optional CP-SAT backend (see apps/academics/README.md).
+# ~100 MB install footprint; binary wheels for CPython 3.10–3.12.
+ortools>=9.10.4067

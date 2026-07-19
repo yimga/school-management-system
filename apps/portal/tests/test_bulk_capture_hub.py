@@ -3,6 +3,8 @@
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 
 from apps.accounts.models import User
@@ -11,6 +13,12 @@ from apps.people.models import TeacherProfile
 from apps.schools.models import School
 
 UserModel = get_user_model()
+
+
+def _attach_session(request):
+    SessionMiddleware(lambda _req: HttpResponse()).process_request(request)
+    request.session.save()
+    return request
 
 
 class TeacherBulkCaptureHubTests(TestCase):
@@ -32,6 +40,8 @@ class TeacherBulkCaptureHubTests(TestCase):
     def test_hub_renders(self):
         req = self.factory.get("/portal/teacher/bulk-capture/")
         req.user = self.teacher
+        req.school = self.school
+        _attach_session(req)
         resp = teacher_bulk_capture_hub(req)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Bulk capture")

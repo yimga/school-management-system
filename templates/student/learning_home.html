@@ -26,6 +26,7 @@
 {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="student" %}
 
 {% phase8_dashboard_declaration "student/learning_home.html" %}
+<span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 {% comment %} v4.04 (2026-06-23) tenant 100X: the premium .rmc-dh student home is the single
    primary role-home surface — it always renders rich content (the previous role-home
    skipped all content when tp_v3_role_home was true). Honest: presents only the data

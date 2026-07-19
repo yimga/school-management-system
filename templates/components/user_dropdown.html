@@ -100,7 +100,7 @@
           {% if SHOW_ROLE_SWITCHER and EFFECTIVE_PORTAL_ROLE %}
             {% blocktrans with role=EFFECTIVE_PORTAL_ROLE %}Viewing as {{ role }}{% endblocktrans %}
           {% else %}
-            {{ request.user.get_role_display|default:nav_role|default:_("Member") }}
+            {{ request.user.get_role_display|default:nav_role|default:_("Member") }}{# default-fallback-allow: nav_role bound by enclosing with #}
           {% endif %}
         </div>
       </li>

@@ -115,7 +115,7 @@ def provision_teaching_grid_for_school(
     if school is None:
         return {"created_assignments": 0, "skipped": "no_school"}
 
-    from apps.academics.models import Classroom, Specialty, Subject, SubjectAssignment, Term
+    from apps.academics.models import Classroom, Subject, SubjectAssignment, Term
 
     year = academic_year
     if year is None:

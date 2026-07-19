@@ -152,15 +152,17 @@ def main(argv: list[str] | None = None) -> int:
     ):
         errors.append("authenticated-shell-manager.js missing unified search endpoint wiring.")
 
-    studio_text = _read(studio_shell)
-    studio_markers = (
-        "studio-command-palette-btn",
-        "studio-cmd-palette",
-        "studio-cmd-filter",
-    )
-    for marker in studio_markers:
-        if marker not in studio_text:
-            errors.append(f"studio_os/shell.html missing Studio command palette marker: {marker}")
+    studio_text = _read_with_includes(studio_shell, templates_root)
+    if "studio_os/partials/studio_command_pill.html" not in _read(studio_shell):
+        errors.append(
+            "studio_os/shell.html missing Studio command pill include "
+            "(studio_os/partials/studio_command_pill.html)."
+        )
+    if "data-rmc-cmdk-trigger" not in studio_text or "studio-cmd-pill" not in studio_text:
+        errors.append(
+            "studio_os/shell.html missing unified ⌘K Studio command pill markers "
+            "(data-rmc-cmdk-trigger / studio-cmd-pill via includes)."
+        )
 
     if "Ctrl+K" not in studio_text and "ctrlKey" not in studio_text:
         errors.append("studio_os/shell.html missing Ctrl+K command palette trigger contract.")

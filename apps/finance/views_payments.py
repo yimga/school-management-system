@@ -15,7 +15,6 @@ import uuid
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
-from django.conf import settings
 from django.contrib import messages
 from apps.accounts.decorators import require_permission
 from django.db import transaction

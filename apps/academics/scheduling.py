@@ -64,8 +64,8 @@ class Room(models.Model):
         related_name="academics_rooms",
         help_text=(
             "Optional link to the schoolops BookableResource this room maps to. When "
-            "set, publishing a timetable cross-checks scheduled classes against "
-            "confirmed ad-hoc bookings of the resource."
+            "set, timetable generation AND publish cross-check scheduled classes "
+            "against confirmed ad-hoc bookings of the resource."
         ),
     )
 
@@ -412,10 +412,23 @@ class TimetableGenerator:
             return True  # Assume available if not specified
 
     def check_room_availability(self, room, time_slot, schedule) -> bool:
-        """Check if room is available"""
-        return not ScheduleEntry.objects.filter(
+        """Check if room is free of other schedule entries AND confirmed bookings.
+
+        Metric 15 (solver-time #10 link): when ``room.bookable_resource`` is set,
+        a CONFIRMED ``schoolops.ResourceBooking`` that overlaps any concrete
+        occurrence of this weekly slot across the schedule's term makes the room
+        unavailable for placement — so the generator never drafts a clash that
+        publish would later refuse.
+        """
+        busy = ScheduleEntry.objects.filter(
             schedule=schedule, room=room, time_slot=time_slot, is_cancelled=False
         ).exists()
+        if busy:
+            return False
+        term = getattr(schedule, "term", None) or self.term
+        return not room_timeslot_conflicts_with_confirmed_bookings(
+            room, time_slot, term
+        )
 
     def find_suitable_room(
         self, classroom, subject, time_slot, schedule
@@ -426,10 +439,10 @@ class TimetableGenerator:
             classroom.students.count() if hasattr(classroom, "students") else 30
         )
 
-        # Find rooms with sufficient capacity
+        # Find rooms with sufficient capacity (prefetch booking link for #10 check)
         suitable_rooms = Room.objects.filter(
             is_available=True, capacity__gte=student_count
-        ).order_by("capacity")
+        ).select_related("bookable_resource").order_by("capacity")
 
         # Check availability
         for room in suitable_rooms:
@@ -720,17 +733,19 @@ ScheduleGenerator = TimetableGenerator
 # collide: a scheduled class and a confirmed ad-hoc booking cannot own the same
 # room at the same real time.
 #
-# ``find_schedule_booking_conflicts`` expands each linked entry's weekly slot into
-# the concrete occurrences across the term (one per ISO week: from term.start_date
-# to term.end_date, on the slot's day-of-week, at the slot's start/end time), then
-# checks each occurrence for overlap against the resource's CONFIRMED bookings.
-# This is a plain half-open interval overlap (``start < other_end and end >
-# other_start``) computed in Python — no btree_gist / range operators — so it runs
-# identically on SQLite and Postgres. On SQLite ``DateTimeRangeField`` has no
-# ``from_db_value`` and round-trips as its canonical text ``'[lower,upper)'``, so
-# ``_booking_bounds`` parses that text; on Postgres the value is a ``Range`` whose
-# ``.lower``/``.upper`` are datetimes. Expansion is O(term_weeks) per linked entry
-# (weekly stride), independent of term length.
+# Two enforcement layers:
+#   1. Solver-time — ``TimetableGenerator.check_room_availability`` calls
+#      ``room_timeslot_conflicts_with_confirmed_bookings`` so DRAFT schedules are
+#      never placed into a known booking clash.
+#   2. Publish-time — ``find_schedule_booking_conflicts`` refuses publish if any
+#      entry still overlaps (defense-in-depth for hand-edited drafts).
+#
+# Both expand each linked entry's weekly slot into concrete occurrences across
+# the term and use half-open interval overlap in Python — no btree_gist / range
+# operators — so they run identically on SQLite and Postgres. On SQLite
+# ``DateTimeRangeField`` has no ``from_db_value`` and round-trips as its canonical
+# text ``'[lower,upper)'``, so ``_booking_bounds`` parses that text; on Postgres
+# the value is a ``Range`` whose ``.lower``/``.upper`` are datetimes.
 # ---------------------------------------------------------------------------
 
 _CONFIRMED_STATUS = "confirmed"
@@ -823,6 +838,43 @@ def _slot_occurrences(term_start, term_end, day_of_week, start_time, end_time):
             datetime.combine(day, end_time),
         )
         day += timedelta(days=7)
+
+
+def room_timeslot_conflicts_with_confirmed_bookings(room, time_slot, term) -> bool:
+    """True when placing ``room`` at weekly ``time_slot`` for ``term`` would overlap
+    a CONFIRMED schoolops booking on the room's linked ``BookableResource``.
+
+    Used by the timetable generator (solver-time #10 respect) so DRAFT schedules
+    are not emitted into known booking clashes. Rooms without
+    ``bookable_resource`` never conflict here (publish-time back-compat).
+    """
+    resource = getattr(room, "bookable_resource", None)
+    if resource is None:
+        return False
+    term_start = getattr(term, "start_date", None)
+    term_end = getattr(term, "end_date", None)
+    if term_start is None or term_end is None:
+        return False
+    if time_slot is None:
+        return False
+
+    booking_intervals = _confirmed_booking_intervals(resource)
+    if not booking_intervals:
+        return False
+
+    for occ_start, occ_end in _slot_occurrences(
+        term_start,
+        term_end,
+        time_slot.day_of_week,
+        time_slot.start_time,
+        time_slot.end_time,
+    ):
+        occ_start = _aware(occ_start)
+        occ_end = _aware(occ_end)
+        for lower, upper, _title, _booking_id in booking_intervals:
+            if occ_start < upper and occ_end > lower:
+                return True
+    return False
 
 
 def find_schedule_booking_conflicts(schedule) -> List[Dict]:

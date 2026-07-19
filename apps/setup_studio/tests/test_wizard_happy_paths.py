@@ -23,6 +23,7 @@ from __future__ import annotations
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
+from apps.academics.models import AcademicYear
 from apps.schools.models import School
 from apps.setup_studio import wizard_engine, wizard_state_resolver
 
@@ -38,6 +39,12 @@ except ImportError:  # pragma: no cover - older interpreters
     import sre_constants as _sre_constants  # type: ignore[no-redef]
 
 _MAX_STEPS = 50
+# Wizards whose writers persist to first-class models instead of school.settings JSON.
+_DB_PERSISTED_WIZARD_ASSERTIONS = {
+    "academic_year_setup": lambda school: AcademicYear.objects.filter(
+        school=school
+    ).exists(),
+}
 # Several wizards are USER-scoped (a teacher/parent/student runs them for
 # themselves) and persist to per-user buckets keyed by the actor's id
 # (e.g. role_wizards.<actor>, student_course_requests.<actor>). Walking them
@@ -372,7 +379,14 @@ class WizardHappyPathTests(TestCase):
 
                 self.school.refresh_from_db()
                 after = self.school.settings or {}
-                self.assertTrue(
-                    after,
-                    f"{wizard_key}: completed wizard wrote nothing to school.settings",
-                )
+                db_assert = _DB_PERSISTED_WIZARD_ASSERTIONS.get(wizard_key)
+                if db_assert is not None:
+                    self.assertTrue(
+                        db_assert(self.school),
+                        f"{wizard_key}: completed wizard wrote no DB side effect",
+                    )
+                else:
+                    self.assertTrue(
+                        after,
+                        f"{wizard_key}: completed wizard wrote nothing to school.settings",
+                    )

@@ -15,9 +15,17 @@ from apps.marketplace.models import (
     PublisherOrganization,
 )
 from apps.schools.models import School
+from apps.schools.tests.manager_client import login_manager_control_plane
 
 
-@override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+@override_settings(
+    ALLOWED_HOSTS=["*"],
+    DEBUG=False,
+    SECURE_SSL_REDIRECT=False,
+    SESSION_COOKIE_SECURE=False,
+    CSRF_COOKIE_SECURE=False,
+    OPERATOR_MFA_REQUIRED_ON_MANAGER=False,
+)
 class TenantInstallImpactPreviewTests(TestCase):
     def setUp(self):
         self.school = School.objects.create(
@@ -148,7 +156,7 @@ class TenantInstallImpactPreviewTests(TestCase):
             is_active=True,
         )
         c = Client()
-        c.force_login(self.superuser)
+        login_manager_control_plane(c, self.superuser, password="pw")
         before = PolicyBundle.objects.filter(school=self.school).count()
         r = c.post(
             reverse("super:blueprint_marketplace"),

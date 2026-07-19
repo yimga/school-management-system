@@ -432,6 +432,7 @@ _SCALE_TYPE_TO_WIZARD_VALUE = {
     "percentage": "percentage",
     "gpa_4_0": "gpa_4",
     "letter_a_e": "letter",
+    "us_letter": "letter",
 }
 
 

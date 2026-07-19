@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from django.conf import settings
 from django.contrib import messages
 from apps.accounts.decorators import require_permission
 from apps.accounts.step_up import require_step_up

@@ -76,6 +76,17 @@ def _env_truthy(name: str) -> bool:
     return os.getenv(name, "").strip().lower() in ("1", "true", "yes")
 
 
+def _env_enabled_default_on(name: str) -> bool:
+    """Platform-health beats default ON; opt out with 0/false/no/off."""
+    raw = os.getenv(name, "1").strip().lower()
+    if raw in ("0", "false", "no", "off"):
+        return False
+    if raw in ("", "1", "true", "yes", "on"):
+        return True
+    # Unknown values: stay on (fail-open for monitoring, not payments).
+    return True
+
+
 def _parse_bounded_int_env(
     name: str, default: int, *, min_v: int, max_v: int
 ) -> int:
@@ -100,10 +111,10 @@ def _ensure_db_connection() -> None:
 @shared_task(name="platform_runtime.operator_visibility_heartbeat")
 def operator_visibility_heartbeat() -> str:
     """
-    Opt-in daily beat (ENABLE_OPERATOR_VISIBILITY_HEARTBEAT_BEAT=1): write AutomationExecutionLog
-    so operators can confirm Celery + DB path from platform admin.
+    Default-on daily beat: write AutomationExecutionLog so operators can confirm
+    Celery + DB path from platform admin. Opt out with ENABLE_*=0/false/no.
     """
-    if not _env_truthy("ENABLE_OPERATOR_VISIBILITY_HEARTBEAT_BEAT"):
+    if not _env_enabled_default_on("ENABLE_OPERATOR_VISIBILITY_HEARTBEAT_BEAT"):
         return "skipped"
     from apps.automation.models import AutomationExecutionLog
 
@@ -123,9 +134,10 @@ def operator_visibility_heartbeat() -> str:
 @shared_task(name="platform_runtime.database_connectivity_heartbeat")
 def database_connectivity_heartbeat() -> str:
     """
-    Opt-in daily beat (ENABLE_DATABASE_CONNECTIVITY_HEARTBEAT_BEAT=1): ensure_connection + log outcome.
+    Default-on daily beat: ensure_connection + log outcome.
+    Opt out with ENABLE_DATABASE_CONNECTIVITY_HEARTBEAT_BEAT=0/false/no.
     """
-    if not _env_truthy("ENABLE_DATABASE_CONNECTIVITY_HEARTBEAT_BEAT"):
+    if not _env_enabled_default_on("ENABLE_DATABASE_CONNECTIVITY_HEARTBEAT_BEAT"):
         return "skipped"
     from apps.automation.models import AutomationExecutionLog
 
@@ -154,10 +166,10 @@ def database_connectivity_heartbeat() -> str:
 @shared_task(name="platform_runtime.automation_failure_trend_signal")
 def automation_failure_trend_signal() -> str:
     """
-    Opt-in daily beat (ENABLE_AUTOMATION_FAILURE_TREND_BEAT=1): summarize failure trend and
-    write an operator-visible signal log.
+    Default-on daily beat: summarize failure trend and write an operator-visible
+    signal log. Opt out with ENABLE_AUTOMATION_FAILURE_TREND_BEAT=0/false/no.
     """
-    if not _env_truthy("ENABLE_AUTOMATION_FAILURE_TREND_BEAT"):
+    if not _env_enabled_default_on("ENABLE_AUTOMATION_FAILURE_TREND_BEAT"):
         return "skipped"
     from datetime import timedelta
 
@@ -270,7 +282,7 @@ def process_offline_queues_due(
 
 @shared_task(name="platform_runtime.tenant_reactivation_sweep")
 def tenant_reactivation_sweep_task() -> dict:
-    """v4.00.98 Phase 4 â€” daily reactivation sweep entrypoint for Celery beat.
+    """v4.00.98 Phase 4 — daily reactivation sweep entrypoint for Celery beat.
 
     Mirrors `manage.py run_tenant_reactivation_sweep --apply`. Never raises;
     captures the engine summary so beat can record the outcome.
@@ -285,7 +297,7 @@ def tenant_reactivation_sweep_task() -> dict:
 
 @shared_task(name="platform_runtime.signup_verification_stale_sweep")
 def signup_verification_stale_sweep_task() -> dict:
-    """v4.00.98 Phase 5 â€” fire operator alert + tenant reminder when a
+    """v4.00.98 Phase 5 — fire operator alert + tenant reminder when a
     signup verification email has been unclicked for >24h. Best-effort."""
     try:
         from datetime import timedelta as _td
@@ -333,7 +345,7 @@ def signup_verification_stale_sweep_task() -> dict:
 
 @shared_task(name="platform_runtime.workflow_stuck_alert_sweep")
 def workflow_stuck_alert_sweep_task() -> dict:
-    """v4.00.98 Phase 6 â€” find RUNNING WorkflowRun rows past their expected
+    """v4.00.98 Phase 6 — find RUNNING WorkflowRun rows past their expected
     heartbeat window and publish workflow.run.stuck. Cool-down handled by
     the email matrix (60 min per (event_type, recipient))."""
     try:
@@ -347,7 +359,7 @@ def workflow_stuck_alert_sweep_task() -> dict:
 
         now = _tz.now()
         # Scan only rows where status=running AND last_heartbeat is at least
-        # 1.5 Ã— the smallest reasonable expected duration ago.
+        # 1.5 × the smallest reasonable expected duration ago.
         candidates = list(
             # tenant-isolation-allow: platform-workflow-stuck-no-tenant-scope
             WorkflowRun.objects.filter(
@@ -440,7 +452,7 @@ def scheduled_job_health_monitor_task() -> dict:
     The in-process scheduler (``apps.platform_runtime.periodic``) runs this same
     monitor off ``/health/`` while there is no Celery broker, then stands down the
     moment a real worker + beat are provisioned. Without this beat entry, that
-    hand-off would SILENCE the watchdog â€” so it is registered here too, keeping it
+    hand-off would SILENCE the watchdog — so it is registered here too, keeping it
     alive in every execution mode.
     """
     try:
@@ -459,7 +471,7 @@ def _run_school_is_settled(run) -> bool:
     Reuses the provisioning watchdog's single definition of "settled" (portal
     ready AND Phase B complete) rather than re-deriving it here, so the sweep and
     the watchdog can never disagree about whether a school still needs work.
-    Fails OPEN (False) â€” an unknown school is treated as still needing the
+    Fails OPEN (False) — an unknown school is treated as still needing the
     remediation it would have got before this guard existed.
     """
     try:
@@ -470,7 +482,7 @@ def _run_school_is_settled(run) -> bool:
         if school is None:
             return False
         return bool(_school_is_settled(school))
-    except Exception:  # noqa: BLE001 â€” the guard must never break the sweep
+    except Exception:  # noqa: BLE001 — the guard must never break the sweep
         logger.debug(
             "settled-check failed for run=%s; treating as not settled",
             getattr(run, "pk", None),
@@ -698,7 +710,7 @@ def _resolve_stale_provisioned_run(
 
 @shared_task(name="platform_runtime.workflow_failed_provision_auto_requeue_sweep")
 def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
-    """Batch 1737 â€” zero-fail: auto-requeue failed/stuck tenant_school_provision runs."""
+    """Batch 1737 — zero-fail: auto-requeue failed/stuck tenant_school_provision runs."""
     try:
         from apps.platform_runtime.models import WorkflowRun
         from apps.platform_runtime.workflow_autopilot import try_auto_apply_on_failure
@@ -712,7 +724,7 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
             WorkflowRun.objects.filter(
                 workflow_key="tenant_school_provision",
                 status__in=("failed", "stuck", "cancelled"),
-            ).order_by("-started_at")[:100]  # WorkflowRun has no `updated_at`; -updated_at raised FieldError (swallowed) â†’ sweep was a no-op
+            ).order_by("-started_at")[:100]  # WorkflowRun has no `updated_at`; -updated_at raised FieldError (swallowed) → sweep was a no-op
         )
         remediated = 0
         requeued = 0
@@ -723,11 +735,11 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
                 # A run can be FAILED while its school is fully provisioned: the
                 # drive is killed AFTER the work lands but BEFORE finalize_run
                 # writes "succeeded", so the row stays failed forever while the
-                # tenant is live (observed in prod â€” schools with 322 tables /
+                # tenant is live (observed in prod — schools with 322 tables /
                 # 1196 applied migrations / phase A+B complete still carrying a
                 # FAILED tenant_schema run). Requeuing those re-drives a finished
                 # tenant, and because the requeue never clears the old row it
-                # would be re-picked on EVERY tick â€” an unbounded migrate storm.
+                # would be re-picked on EVERY tick — an unbounded migrate storm.
                 # Mark the stale row cancelled so it leaves the candidate set,
                 # and never re-drive a settled school.
                 if _run_school_is_settled(run):

@@ -107,15 +107,17 @@ def timetable_generate(request):
         )
         return redirect("accounts:ops_timetabling")
 
-    # Fresh slate: drop ALL prior schedules for this term (draft AND published) so
-    # regeneration is idempotent and never collides with the term-wide DB uniqueness
-    # constraints. Those constraints key on (term, teacher/room, time_slot) with
-    # condition is_cancelled=False and are STATUS-AGNOSTIC — so a surviving PUBLISHED
-    # schedule's entries would raise IntegrityError (500) the moment the generator
-    # re-places the same slot. Regenerate = replace the term's timetable.
+    # Mint a new DRAFT beside any live PUBLISHED plan. Per-plan uniqueness
+    # (migration 0066) lets drafts coexist with published; replace-on-live
+    # happens at publish via Schedule.publish() demotion — not here.
+    # Stale drafts for this term are cleared so regenerate stays idempotent
+    # without destroying the timetable families currently depend on.
     # tenant-isolation-allow: scoped-via-academic-year-school-fk-graph
     Schedule.objects.filter(
-        academic_year=year, term=term, academic_year__school=school
+        academic_year=year,
+        term=term,
+        academic_year__school=school,
+        status="DRAFT",
     ).delete()
 
     generator = TimetableGenerator(year, term)
@@ -244,4 +246,35 @@ def timetable_publish(request, schedule_id):
     messages.success(
         request, _("Timetable published. Teachers now see it in their portal.")
     )
+    return redirect("academics:timetable_review", schedule_id=schedule.id)
+
+
+@login_required
+@require_school
+@require_POST
+@require_permission(_TIMETABLE_PERMISSION)
+def timetable_cancel_entry(request, schedule_id, entry_id):
+    """POST: cancel a draft placement so operators can clear hard clashes."""
+    school = request.school
+    # tenant-isolation-allow: scoped-via-academic-year-school-fk-graph
+    schedule = get_object_or_404(
+        Schedule.objects.select_related("academic_year", "term"),
+        pk=schedule_id,
+        academic_year__school=school,
+    )
+    if schedule.status == "PUBLISHED":
+        messages.error(request, _("Published timetables cannot cancel placements here."))
+        return redirect("academics:timetable_review", schedule_id=schedule.id)
+
+    # tenant-isolation-allow: scoped-via-parent-schedule-which-is-school-scoped
+    entry = get_object_or_404(
+        ScheduleEntry.objects.filter(schedule=schedule),
+        pk=entry_id,
+    )
+    if entry.is_cancelled:
+        messages.info(request, _("That placement is already cancelled."))
+    else:
+        entry.is_cancelled = True
+        entry.save(update_fields=["is_cancelled"])
+        messages.success(request, _("Placement removed from the draft."))
     return redirect("academics:timetable_review", schedule_id=schedule.id)

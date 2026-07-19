@@ -11,13 +11,23 @@ from apps.evals.grading_formula_engine import (
 )
 from apps.platform_runtime.structured_logging import log_exception_with_context
 
-# ScaleType / AssessmentWeights.grading_scale → PRESET_GRADING_FORMULAS key.
+# ScaleType → PRESET_GRADING_FORMULAS key (every GradingScale.ScaleType must appear).
 _SCALE_TYPE_TO_PRESET_KEY: dict[str, str] = {
     "numeric_0_20": "francophone_0_20",
+    "french_0_20": "francophone_0_20",
     "gpa_4_0": "us_gpa_4",
     "waec_letter": "waec_aggregate",
-    "percentage": "waec_aggregate",
-    "letter_a_e": "uk_gcse_points",
+    "percentage": "percentage_mean",
+    "letter_a_e": "percentage_mean",
+    "pass_fail": "percentage_mean",
+    "qualitative_pd": "percentage_mean",
+    "standard_score_t": "percentage_mean",
+    "uk_gcse_9_1": "uk_gcse_points",
+    "us_letter": "percentage_mean",
+    "cbse_10": "percentage_mean",
+    "ib_1_7": "ib_1_7_mean",
+    "german_1_6": "german_1_6_mean",
+    "numeric_1_5": "numeric_1_5_mean",
 }
 
 
@@ -95,8 +105,17 @@ def weighted_average_total(evaluation: Any, weights: Any) -> float:
     return round(total / total_w, 2)
 
 
-def compute_evaluation_total_score(evaluation: Any, weights: Any | None = None) -> float:
-    """Compute total_score for an Evaluation — formula engine when configured."""
+def compute_evaluation_total_score(
+    evaluation: Any,
+    weights: Any | None = None,
+    *,
+    formula_text: str | None = None,
+) -> float:
+    """Compute total_score for an Evaluation — formula engine when configured.
+
+    Pass ``weights=`` and/or ``formula_text=`` from a bulk ranking path to avoid
+    per-evaluation ``AssessmentWeights.get_for`` / ``GradingScale`` queries.
+    """
     from apps.evals.models import AssessmentWeights
 
     if weights is None:
@@ -116,7 +135,8 @@ def compute_evaluation_total_score(evaluation: Any, weights: Any | None = None) 
     if school is None:
         school = getattr(evaluation, "school", None)
 
-    formula_text = _resolve_formula_text(weights, school)
+    if formula_text is None:
+        formula_text = _resolve_formula_text(weights, school)
     if not formula_text:
         return weighted_average_total(evaluation, weights)
 

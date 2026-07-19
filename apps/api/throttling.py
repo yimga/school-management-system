@@ -90,7 +90,11 @@ SCOPE_HEADER = "X-RateLimit-Scope"
 
 def _key_digest(key: str) -> str:
     """Opaque, PII-free fingerprint of a cache key for log lines."""
-    return hashlib.sha1((key or "").encode("utf-8", "replace")).hexdigest()[:12]
+    # Log fingerprint only — not auth/crypto material.
+    return hashlib.sha1(
+        (key or "").encode("utf-8", "replace"),
+        usedforsecurity=False,
+    ).hexdigest()[:12]
 
 
 def _tenant_bucket(request) -> str:

@@ -4,7 +4,6 @@ Operator-facing payment readiness checklist (global corridors + campus policy).
 
 from __future__ import annotations
 
-from django.conf import settings
 from apps.accounts.decorators import require_permission
 from apps.accounts.step_up import require_step_up
 from django.http import HttpRequest, HttpResponseForbidden

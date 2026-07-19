@@ -7,11 +7,11 @@ from apps.automation.models import AutomationExecutionLog
 
 
 class HealthHeartbeatTaskTests(TestCase):
-    def test_operator_heartbeat_skipped_without_env(self):
+    def test_operator_heartbeat_skipped_when_explicitly_disabled(self):
         from apps.platform_runtime.tasks import operator_visibility_heartbeat
 
         with patch.dict(
-            os.environ, {"ENABLE_OPERATOR_VISIBILITY_HEARTBEAT_BEAT": ""}, clear=False
+            os.environ, {"ENABLE_OPERATOR_VISIBILITY_HEARTBEAT_BEAT": "0"}, clear=False
         ):
             out = operator_visibility_heartbeat()
         self.assertEqual(out, "skipped")
@@ -27,11 +27,19 @@ class HealthHeartbeatTaskTests(TestCase):
         self.assertEqual(log.status, AutomationExecutionLog.Status.SUCCESS)
         self.assertTrue(log.execution_summary.get("ok"))
 
-    def test_db_heartbeat_skipped_without_env(self):
+    def test_operator_heartbeat_runs_by_default(self):
+        from apps.platform_runtime.tasks import operator_visibility_heartbeat
+
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("ENABLE_OPERATOR_VISIBILITY_HEARTBEAT_BEAT", None)
+            out = operator_visibility_heartbeat()
+        self.assertEqual(out, "ok")
+
+    def test_db_heartbeat_skipped_when_explicitly_disabled(self):
         from apps.platform_runtime.tasks import database_connectivity_heartbeat
 
         with patch.dict(
-            os.environ, {"ENABLE_DATABASE_CONNECTIVITY_HEARTBEAT_BEAT": ""}, clear=False
+            os.environ, {"ENABLE_DATABASE_CONNECTIVITY_HEARTBEAT_BEAT": "0"}, clear=False
         ):
             out = database_connectivity_heartbeat()
         self.assertEqual(out, "skipped")
@@ -61,11 +69,11 @@ class HealthHeartbeatTaskTests(TestCase):
         )
         self.assertEqual(log.status, AutomationExecutionLog.Status.FAILED)
 
-    def test_failure_trend_skipped_without_env(self):
+    def test_failure_trend_skipped_when_explicitly_disabled(self):
         from apps.platform_runtime.tasks import automation_failure_trend_signal
 
         with patch.dict(
-            os.environ, {"ENABLE_AUTOMATION_FAILURE_TREND_BEAT": ""}, clear=False
+            os.environ, {"ENABLE_AUTOMATION_FAILURE_TREND_BEAT": "0"}, clear=False
         ):
             out = automation_failure_trend_signal()
         self.assertEqual(out, "skipped")
@@ -143,3 +151,12 @@ class HealthHeartbeatTaskTests(TestCase):
         )
         self.assertEqual(log.execution_summary.get("lookback_hours"), 24)
         self.assertEqual(log.execution_summary.get("max_failures"), 10)
+
+    def test_health_beats_are_on_celery_schedule_by_default(self):
+        """Metric 22 — three secret-free health beats must not be dead-by-deferral."""
+        from django.conf import settings
+
+        keys = set(getattr(settings, "CELERY_BEAT_SCHEDULE", {}) or {})
+        self.assertIn("operator-visibility-heartbeat-daily", keys)
+        self.assertIn("database-connectivity-heartbeat-daily", keys)
+        self.assertIn("automation-failure-trend-daily", keys)

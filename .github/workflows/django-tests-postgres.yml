@@ -203,6 +203,8 @@ jobs:
             apps.evals.tests.test_query_counts_rankings \
             apps.academics.tests.test_query_counts_homework_gradebook \
             apps.finance.tests.test_query_counts_family_billing \
+            apps.portal.tests.test_query_counts_teacher_completion \
+            apps.portal.tests.test_query_counts_attendance_rollcall \
             apps.compliance.tests.test_data_residency_border_lock \
 
             --settings=config.settings \

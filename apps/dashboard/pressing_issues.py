@@ -11,12 +11,10 @@ Each returns a dict consumed by ``partials/pressing_issues_pane.html``.
 from __future__ import annotations
 
 import logging
-from datetime import timedelta
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import DatabaseError, OperationalError
 from django.urls import NoReverseMatch, reverse
-from django.utils import timezone
 from django.utils.translation import gettext as _
 
 logger = logging.getLogger(__name__)
@@ -94,7 +92,6 @@ def _tone_for_count(count: int, warn_at: int = 1, danger_at: int = 5) -> str:
 
 def build_operator_pressing_issues(request) -> dict:
     """Fleet-wide pressing items for manager/operator dashboards."""
-    now = timezone.now()
     metrics: list[dict] = []
     items: list[dict] = []
 

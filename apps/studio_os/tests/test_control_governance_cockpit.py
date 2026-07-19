@@ -23,6 +23,8 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
+from apps.schools.tests.manager_client import bind_manager_session
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OWNED_PARTIALS = [
@@ -64,6 +66,10 @@ class ControlGovernanceCockpitTests(TestCase):
     def setUp(self):
         self.client = Client(HTTP_HOST="manager.runmycampus.com")
 
+    def _login_operator(self):
+        self.client.login(username="ctl_cockpit_op", password="x" * 12)
+        bind_manager_session(self.client)
+
     # ---- 1. Operator can reach control mode and cockpit markers render ----
 
     def test_control_mode_renders_for_operator(self):
@@ -76,7 +82,7 @@ class ControlGovernanceCockpitTests(TestCase):
         FeatureControlAudit.objects.create(
             user=self.operator, action="save", changes={}
         )
-        self.client.login(username="ctl_cockpit_op", password="x" * 12)
+        self._login_operator()
         url = reverse("studio_os:control", urlconf="config.manager_urls")
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200, msg=resp.content[:400])
@@ -103,7 +109,7 @@ class ControlGovernanceCockpitTests(TestCase):
 
     def test_audit_list_empty_state_is_honest(self):
         """With no audit entries, render the honest empty state copy."""
-        self.client.login(username="ctl_cockpit_op", password="x" * 12)
+        self._login_operator()
         url = reverse("studio_os:control", urlconf="config.manager_urls")
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
@@ -150,7 +156,7 @@ class ControlGovernanceCockpitTests(TestCase):
     # ---- 4. PII hygiene — no raw email/slug rendered in audit rows ----
 
     def test_audit_rows_do_not_render_user_email_or_slug(self):
-        self.client.login(username="ctl_cockpit_op", password="x" * 12)
+        self._login_operator()
         url = reverse("studio_os:control", urlconf="config.manager_urls")
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
@@ -258,7 +264,7 @@ class ControlGovernanceCockpitTests(TestCase):
     # ---- 8. Honest empty state for risk monitor ----
 
     def test_risk_monitor_has_honest_empty_state_when_no_data(self):
-        self.client.login(username="ctl_cockpit_op", password="x" * 12)
+        self._login_operator()
         url = reverse("studio_os:control", urlconf="config.manager_urls")
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)

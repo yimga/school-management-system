@@ -2449,12 +2449,21 @@ def class_ranking_view(request: HttpRequest):
         )
         stats = get_class_stats(selected_classroom, year_obj, term_obj)
 
+        from apps.evals.grading_provisioning import resolve_local_scale_type
+        from apps.evals.models import resolve_extended_band_label
+
+        school_for_scale = getattr(selected_classroom, "school", None) or getattr(
+            request, "school", None
+        )
+        ranking_scale = resolve_local_scale_type(school_for_scale)
+
         # Build rows from ranking entries (rank already included)
         rows = [
             {
                 "rank": entry.rank,
                 "student": entry.student,
                 "average": entry.average,
+                "band": resolve_extended_band_label(ranking_scale, entry.average) or "",
                 "is_tied": entry.is_tied,
                 "tied_count": entry.tied_count,
                 "percentile": entry.percentile,

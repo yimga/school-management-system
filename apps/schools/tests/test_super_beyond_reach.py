@@ -7,9 +7,17 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 
 from apps.accounts.models import User
+from apps.schools.tests.manager_client import login_manager_control_plane
 
 
-@override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+@override_settings(
+    ALLOWED_HOSTS=["*"],
+    DEBUG=False,
+    SECURE_SSL_REDIRECT=False,
+    SESSION_COOKIE_SECURE=False,
+    CSRF_COOKIE_SECURE=False,
+    OPERATOR_MFA_REQUIRED_ON_MANAGER=False,
+)
 class SuperBeyondReachToolsTests(TestCase):
     host = "manager.runmycampus.com"
 
@@ -25,7 +33,7 @@ class SuperBeyondReachToolsTests(TestCase):
         )
         self.env.start()
         u = User.objects.create_superuser("br-super", "br@example.com", "x")
-        self.client.force_login(u)
+        login_manager_control_plane(self.client, u, password="x")
 
     def tearDown(self):
         self.env.stop()

@@ -29,7 +29,7 @@
           {% if academic_years_setup_evidence_url %}
           <a href="{{ academic_years_setup_evidence_url }}" class="btn btn-sm btn-outline-primary">{% trans "Academic years (setup)" %}</a>
           {% endif %}
-          <a href="{% url 'admin:academics_classroom_change' classroom.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Advanced/Admin: classroom row" %}</a>
+          <a href="{% url 'tenant_admin:academics_classroom_change' classroom.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Advanced/Admin: classroom row" %}</a>
         </div>
       </div>
     </div>

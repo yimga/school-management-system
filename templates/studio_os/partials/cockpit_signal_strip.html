@@ -20,9 +20,9 @@
   Stylesheet contract:
     - Top-level cockpit chrome from static/css/studio-os-cockpit.css
       (coordinator-owned) provides the .rmc-cockpit__signal grid area.
-    - This partial uses the .rmc-overview-signal-* grammar from
-      static/css/studio-overview-cockpit.css (agent-owned, loaded
-      from this partial via {% static %} link below).
+    - This partial uses the .rmc-overview-signal-* grammar from the
+      agent-owned overview cockpit stylesheet (loaded via {% static %}
+      link below).
 
   v3.54.0 (2026-05-21): Overview next-realm cockpit — refactor
   from 3 decorative pulses to a true mission-signal tile strip.
@@ -51,37 +51,37 @@
 
     {% comment %} ---- Tile 3: Pending launches ---- {% endcomment %}
     {% with pending_launches=overview_signals.pending_launches %}
-    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="pending-launches"{% if pending_launches is None %} data-state="unknown"{% endif %}{% if pending_launches and pending_launches > 0 %} data-tone="warning"{% endif %}>
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="pending-launches"{% if pending_launches is None or pending_launches == "" %} data-state="unknown"{% endif %}{% if pending_launches and pending_launches > 0 %} data-tone="warning"{% endif %}>
       <span class="rmc-overview-signal-tile__label">{% trans "Pending launches" %}</span>
-      <span class="rmc-overview-signal-tile__value">{% if pending_launches is not None %}{{ pending_launches }}{% else %}—{% endif %}</span>
+      <span class="rmc-overview-signal-tile__value">{% if pending_launches is not None and pending_launches != "" %}{{ pending_launches }}{% else %}—{% endif %}</span>
       <span class="rmc-overview-signal-tile__hint">{% trans "Tenants waiting to go live." %}</span>
     </div>
     {% endwith %}
 
     {% comment %} ---- Tile 4: Draft experiences ---- {% endcomment %}
     {% with draft_experiences=overview_signals.draft_experiences %}
-    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="draft-experiences"{% if draft_experiences is None %} data-state="unknown"{% endif %}>
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="draft-experiences"{% if draft_experiences is None or draft_experiences == "" %} data-state="unknown"{% endif %}>
       <span class="rmc-overview-signal-tile__label">{% trans "Draft experiences" %}</span>
-      <span class="rmc-overview-signal-tile__value">{% if draft_experiences is not None %}{{ draft_experiences }}{% else %}—{% endif %}</span>
+      <span class="rmc-overview-signal-tile__value">{% if draft_experiences is not None and draft_experiences != "" %}{{ draft_experiences }}{% else %}—{% endif %}</span>
       <span class="rmc-overview-signal-tile__hint">{% trans "Theme & layout edits not yet published." %}</span>
     </div>
     {% endwith %}
 
     {% comment %} ---- Tile 5: Active automations ---- {% endcomment %}
     {% with active_automations=overview_signals.active_automations %}
-    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="active-automations"{% if active_automations is None %} data-state="unknown"{% endif %}>
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="active-automations"{% if active_automations is None or active_automations == "" %} data-state="unknown"{% endif %}>
       <span class="rmc-overview-signal-tile__label">{% trans "Active automations" %}</span>
-      <span class="rmc-overview-signal-tile__value">{% if active_automations is not None %}{{ active_automations }}{% else %}—{% endif %}</span>
+      <span class="rmc-overview-signal-tile__value">{% if active_automations is not None and active_automations != "" %}{{ active_automations }}{% else %}—{% endif %}</span>
       <span class="rmc-overview-signal-tile__hint">{% trans "Workflows currently running." %}</span>
     </div>
     {% endwith %}
 
     {% comment %} ---- Tile 6: Output / launch readiness ---- {% endcomment %}
     {% with output_readiness=overview_signals.output_readiness_pct %}
-    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="readiness"{% if output_readiness is None and not launch_ready %} data-state="unknown"{% endif %}{% if launch_ready %} data-tone="success"{% elif output_readiness and output_readiness < 60 %} data-tone="warning"{% endif %}>
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="readiness"{% if not launch_ready %}{% if output_readiness is None or output_readiness == "" %} data-state="unknown"{% endif %}{% endif %}{% if launch_ready %} data-tone="success"{% elif output_readiness and output_readiness < 60 %} data-tone="warning"{% endif %}>
       <span class="rmc-overview-signal-tile__label">{% trans "Launch readiness" %}</span>
       <span class="rmc-overview-signal-tile__value" title="{% with hs_text=launch_health_summary|health_summary_text %}{% if hs_text %}{{ hs_text }}{% endif %}{% endwith %}">
-        {% if output_readiness is not None %}{{ output_readiness }}%{% elif launch_ready %}{% trans "Ready" %}{% else %}—{% endif %}
+        {% if output_readiness is not None and output_readiness != "" %}{{ output_readiness }}%{% elif launch_ready %}{% trans "Ready" %}{% else %}—{% endif %}
       </span>
       {% with hs_text=launch_health_summary|health_summary_text %}
       {% if hs_text %}
@@ -95,9 +95,9 @@
 
     {% comment %} ---- Tile 7: Open blockers ---- {% endcomment %}
     {% with open_blockers=overview_signals.open_blockers %}
-    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="blockers"{% if open_blockers is None %} data-state="unknown"{% endif %}{% if open_blockers and open_blockers > 0 %} data-tone="risk"{% endif %}>
+    <div class="rmc-overview-signal-tile" data-rmc-overview-tile="blockers"{% if open_blockers is None or open_blockers == "" %} data-state="unknown"{% endif %}{% if open_blockers and open_blockers > 0 %} data-tone="risk"{% endif %}>
       <span class="rmc-overview-signal-tile__label">{% trans "Open blockers" %}</span>
-      <span class="rmc-overview-signal-tile__value">{% if open_blockers is not None %}{{ open_blockers }}{% else %}—{% endif %}</span>
+      <span class="rmc-overview-signal-tile__value">{% if open_blockers is not None and open_blockers != "" %}{{ open_blockers }}{% else %}—{% endif %}</span>
       <span class="rmc-overview-signal-tile__hint">{% trans "Items blocking launch or rollout." %}</span>
     </div>
     {% endwith %}

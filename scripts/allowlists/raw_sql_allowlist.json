@@ -1,41 +1,6 @@
 {
-  "manifest_last_reviewed": "2026-06-08",
+  "manifest_last_reviewed": "2026-07-18",
   "files": {
-    "apps/compliance/audit_retention.py": {
-      "expected_count": 1,
-      "reason": "Append-only audit purge bypasses ORM delete() guard via parameterized PK IN DELETE inside atomic transaction after archive signature verification.",
-      "last_reviewed": "2026-06-08"
-    },
-    "apps/people/repositories/audit_repository.py": {
-      "expected_count": 5,
-      "reason": "Section 2.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only.",
-      "last_reviewed": "2026-04-24"
-    },
-    "apps/schools/repositories/health_repository.py": {
-      "expected_count": 3,
-      "reason": "Section 2.4 Tenant health PG catalog plus count_table_rows for tenant_health_check; schema filtering is done inline without SET search_path leakage; staff-only; tested.",
-      "last_reviewed": "2026-04-24"
-    },
-    "apps/schools/repositories/rls_repository.py": {
-      "expected_count": 1,
-      "reason": "Section 2.4 RLS verification: single SELECT on pg_class and pg_namespace for verify_tenant_rls.",
-      "last_reviewed": "2026-04-24"
-    },
-    "apps/schools/repositories/rls_context_repository.py": {
-      "expected_count": 4,
-      "reason": "Section 2.4 RLS session SET/RESET for app.current_school_id and app.rls_bypass; no ORM; consumed from schools/rls_context.",
-      "last_reviewed": "2026-04-24"
-    },
-    "apps/siteconfig/repositories/rls_session_repository.py": {
-      "expected_count": 1,
-      "reason": "Section 2.4 Read-only PostgreSQL GUC app.current_school_id via current_setting(..., true) for tenant cache prefix; no ORM equivalent; consumed from cache_utils.",
-      "last_reviewed": "2026-04-24"
-    },
-    "apps/siteconfig/repositories/database_recovery_repository.py": {
-      "expected_count": 1,
-      "reason": "Section 2.4 SQLite PRAGMA integrity_check for recover_database command; staff-only.",
-      "last_reviewed": "2026-04-24"
-    },
     "apps/accounts/legacy_hashes/key_rotation.py": {
       "expected_count": 1,
       "reason": "Operational key-rotation helper builds a field update for selected encrypted columns only; tenant-wide operation is explicitly audited and limited to ops key rotation.",
@@ -66,6 +31,16 @@
       "reason": "Vector similarity query uses pgvector distance operator with parameterized query and bounded result limit.",
       "last_reviewed": "2026-05-27"
     },
+    "apps/compliance/audit_retention.py": {
+      "expected_count": 1,
+      "reason": "Append-only audit purge bypasses ORM delete() guard via parameterized PK IN DELETE inside atomic transaction after archive signature verification.",
+      "last_reviewed": "2026-06-08"
+    },
+    "apps/finance/schema_repair.py": {
+      "expected_count": 2,
+      "reason": "Offline payment index repair: CREATE INDEX IF NOT EXISTS with quote_name identifiers during controlled startup repair.",
+      "last_reviewed": "2026-07-18"
+    },
     "apps/migration_cloud/intake/access_intake.py": {
       "expected_count": 1,
       "reason": "Offline Microsoft Access intake reads a selected table through the pyodbc cursor API after source-file validation; not Django database SQL.",
@@ -86,10 +61,20 @@
       "reason": "Audit-chain repair path rewrites hash linkage for a verified event row during operator verification; append-only exception is explicit and logged.",
       "last_reviewed": "2026-05-27"
     },
+    "apps/people/repositories/audit_repository.py": {
+      "expected_count": 5,
+      "reason": "Section 2.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only.",
+      "last_reviewed": "2026-04-24"
+    },
     "apps/people/schema_repair.py": {
-      "expected_count": 3,
-      "reason": "Schema repair DDL/backfill adds and enforces one timestamp column using quoted identifiers during controlled startup repair.",
-      "last_reviewed": "2026-05-27"
+      "expected_count": 6,
+      "reason": "Schema repair DDL/backfill for people tables: quoted identifiers, controlled startup repair (column add/backfill/enforce).",
+      "last_reviewed": "2026-07-18"
+    },
+    "apps/platform_runtime/sqlite_pragmas.py": {
+      "expected_count": 4,
+      "reason": "SQLite connection_created hook sets PRAGMA journal_mode=WAL, synchronous=NORMAL, busy_timeout, and foreign_keys on file-backed dev/test DBs only; no user input; reduces runserver lock contention.",
+      "last_reviewed": "2026-06-07"
     },
     "apps/portal/kb_pgvector.py": {
       "expected_count": 2,
@@ -101,15 +86,60 @@
       "reason": "Staff-run portal KB pgvector migration performs extension/vector DDL, batch backfill, index creation, and dimension detection.",
       "last_reviewed": "2026-05-27"
     },
-    "apps/platform_runtime/sqlite_pragmas.py": {
+    "apps/schoolops/schema_repair.py": {
+      "expected_count": 3,
+      "reason": "Schoolops schema repair DDL/backfill using quoted identifiers during controlled startup repair.",
+      "last_reviewed": "2026-07-18"
+    },
+    "apps/schools/management/commands/e2e_lifecycle.py": {
+      "expected_count": 1,
+      "reason": "Staff/dev e2e lifecycle command uses a single catalog/probe execute for tenant workspace verification; not a production request path.",
+      "last_reviewed": "2026-07-18"
+    },
+    "apps/schools/onboarding_service.py": {
+      "expected_count": 2,
+      "reason": "Onboarding provisioning probes/repairs schema readiness with bounded catalog SQL; no user-supplied identifiers.",
+      "last_reviewed": "2026-07-18"
+    },
+    "apps/schools/repositories/health_repository.py": {
+      "expected_count": 3,
+      "reason": "Section 2.4 Tenant health PG catalog plus count_table_rows for tenant_health_check; schema filtering is done inline without SET search_path leakage; staff-only; tested.",
+      "last_reviewed": "2026-04-24"
+    },
+    "apps/schools/repositories/rls_context_repository.py": {
       "expected_count": 4,
-      "reason": "SQLite connection_created hook sets PRAGMA journal_mode=WAL, synchronous=NORMAL, busy_timeout, and foreign_keys on file-backed dev/test DBs only; no user input; reduces runserver lock contention.",
-      "last_reviewed": "2026-06-07"
+      "reason": "Section 2.4 RLS session SET/RESET for app.current_school_id and app.rls_bypass; no ORM; consumed from schools/rls_context.",
+      "last_reviewed": "2026-04-24"
+    },
+    "apps/schools/repositories/rls_repository.py": {
+      "expected_count": 1,
+      "reason": "Section 2.4 RLS verification: single SELECT on pg_class and pg_namespace for verify_tenant_rls.",
+      "last_reviewed": "2026-04-24"
     },
     "apps/schools/rls_readiness.py": {
       "expected_count": 3,
       "reason": "RLS readiness preflight verifies PostgreSQL GUC support and pg_policies catalog state; read-only except SET/RESET session variable.",
       "last_reviewed": "2026-05-27"
+    },
+    "apps/schools/tasks.py": {
+      "expected_count": 2,
+      "reason": "Celery provisioning healers probe tenant schema table presence via catalog SQL; no user input.",
+      "last_reviewed": "2026-07-18"
+    },
+    "apps/schools/tenant_workspace.py": {
+      "expected_count": 1,
+      "reason": "Workspace existence probe: SELECT 1 FROM information_schema/sqlite_master for schema table presence; no user input.",
+      "last_reviewed": "2026-07-18"
+    },
+    "apps/siteconfig/repositories/database_recovery_repository.py": {
+      "expected_count": 1,
+      "reason": "Section 2.4 SQLite PRAGMA integrity_check for recover_database command; staff-only.",
+      "last_reviewed": "2026-04-24"
+    },
+    "apps/siteconfig/repositories/rls_session_repository.py": {
+      "expected_count": 1,
+      "reason": "Section 2.4 Read-only PostgreSQL GUC app.current_school_id via current_setting(..., true) for tenant cache prefix; no ORM equivalent; consumed from cache_utils.",
+      "last_reviewed": "2026-04-24"
     }
   }
 }

@@ -101,7 +101,16 @@ def check_shell_css() -> list[str]:
             + (" ..." if len(table_dark_hits) > 8 else "")
         )
     marketing_base = _read(REPO_ROOT / "templates/marketing/base_marketing.html")
-    if 'data-mkt-edition="editorial"' not in marketing_base:
+    # Accept static editorial OR the threshold-era toggle that defaults to editorial.
+    has_mkt_edition = (
+        'data-mkt-edition="editorial"' in marketing_base
+        or (
+            "data-mkt-edition=" in marketing_base
+            and "editorial" in marketing_base
+            and "threshold-era" in marketing_base
+        )
+    )
+    if not has_mkt_edition:
         errors.append("marketing/base_marketing.html must set data-mkt-edition=editorial (schoolhouse palette)")
     has_editorial_tokens = (
         "tokens-schoolhouse.css" in marketing_base

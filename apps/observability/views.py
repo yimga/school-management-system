@@ -368,11 +368,16 @@ def _check_cache_liveness() -> dict:
 
 
 def _check_celery_broker_liveness() -> dict:
-    """Best-effort Celery broker reachability for /healthz/. Never throws and
-    never FAILS the probe: /healthz is the liveness signal, so a transient
-    broker outage must not trigger web-tier restarts while DB + app are healthy.
-    Operators read this field for readiness/alerting (a dead broker = silent
-    task backlog). Bounded connect timeout so a down broker can't hang the probe."""
+    """Best-effort Celery broker reachability for /healthz/. Never throws.
+
+    When ``CELERY_BROKER_URL`` is empty (eager mode), report ``unavailable`` —
+    not ``degraded`` — so Wave 16 strict-deps logic does not 503 local/CI.
+    When a broker URL is configured and the connect fails, report ``degraded``
+    (healthz may 503 — see ``_healthz_configured_deps_failed``).
+    """
+    broker = (getattr(settings, "CELERY_BROKER_URL", "") or "").strip()
+    if not broker:
+        return {"status": "unavailable", "detail": "broker not configured (eager mode)"}
     try:
         from config.celery import app as celery_app
 
@@ -387,6 +392,33 @@ def _check_celery_broker_liveness() -> dict:
         return {"status": "ok"}
     except Exception as exc:  # noqa: BLE001 - liveness check must never crash the probe
         return {"status": "degraded", "error": str(exc)[:120]}
+
+
+def _redis_cache_configured() -> bool:
+    """True when production Redis (or RedisCache) is the active cache backend."""
+    redis_url = (getattr(settings, "REDIS_URL", None) or os.getenv("REDIS_URL", "") or "").strip()
+    if redis_url:
+        return True
+    try:
+        default_cache = (getattr(settings, "CACHES", {}) or {}).get("default") or {}
+        backend = str(default_cache.get("BACKEND") or "")
+        return "redis" in backend.lower()
+    except Exception:  # noqa: BLE001 - settings shape must not crash healthz
+        return False
+
+
+def _healthz_configured_deps_failed(cache_result: dict, broker_result: dict) -> bool:
+    """Fail /healthz only when a *configured* dependency reports degraded.
+
+    LocMem cache + eager Celery stay soft-OK so CI/local remain green.
+    Queue-depth alone never flips HTTP status (alert signal, not hard fail).
+    """
+    if cache_result.get("status") == "degraded" and _redis_cache_configured():
+        return True
+    broker = (getattr(settings, "CELERY_BROKER_URL", "") or "").strip()
+    if broker and broker_result.get("status") == "degraded":
+        return True
+    return False
 
 
 # Queue-depth alert threshold. A configured-but-deep backlog is "degraded"
@@ -508,23 +540,24 @@ def healthz(request):
         )
         return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
-    # Cache (Redis) + Celery broker (liveness + queue depth) are best-effort: a
-    # degraded result is reported but does NOT fail the healthz (liveness)
-    # response. The queue-depth probe surfaces task backlog (a silent worker
-    # outage) as a structured sub-field without ever turning /healthz into a 500.
+    # Cache + broker: Wave 16 strict-deps — when Redis / CELERY_BROKER_URL are
+    # configured, degraded → HTTP 503. Unconfigured (LocMem / eager) stay soft.
+    # Queue-depth remains alert-only (never flips the top-level status alone).
     cache_result = _check_cache_liveness()
     broker_result = _check_celery_broker_liveness()
     queue_depth_result = _check_celery_queue_depth()
 
-    return JsonResponse(
-        {
-            "status": "ok",
-            "database": "ok",
-            "cache": cache_result.get("status", "unknown"),
-            "celery_broker": broker_result.get("status", "unknown"),
-            "celery_queue_depth": queue_depth_result,
-        }
-    )
+    payload = {
+        "status": "ok",
+        "database": "ok",
+        "cache": cache_result.get("status", "unknown"),
+        "celery_broker": broker_result.get("status", "unknown"),
+        "celery_queue_depth": queue_depth_result,
+    }
+    if _healthz_configured_deps_failed(cache_result, broker_result):
+        payload["status"] = "error"
+        return JsonResponse(payload, status=503)
+    return JsonResponse(payload)
 
 
 @require_POST

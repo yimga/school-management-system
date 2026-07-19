@@ -50,4 +50,7 @@ class AiCopilotContextTests(TestCase):
 
         self.assertNotIn("openai-secret-should-not-render", rendered)
         self.assertNotIn("OPENAI_API_KEY", rendered)
-        self.assertIn("AI_BACKEND_ENABLED", rendered)
+        # Safe flags live in AI_CHROME_CONFIG (JSON island / JS), not as raw template literals.
+        features = (context.get("AI_CHROME_CONFIG") or {}).get("features") or {}
+        self.assertIn("backend_enabled", features)
+        self.assertIn("components__ai_copilot-1.js", rendered)

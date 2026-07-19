@@ -1,8 +1,11 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 {% comment %}Tenant-facing activation dashboard alias — embeds zero-friction strip for completion audit.{% endcomment %}
-{% block content %}
-<div class="container-fluid py-3" data-rmc-page-fold-nav="required">
+
+{% block cp_title %}{% trans "Setup activation" %}{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% include "components/rmc_page_explain_strip.html" %}
   <h1 class="h4 mb-3">{% trans "Setup activation" %}</h1>
   {% include "setup_studio/partials/zero_friction_cta_strip.html" %}

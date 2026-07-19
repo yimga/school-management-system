@@ -118,9 +118,15 @@ def evaluate_grading_formula(
 
 
 # Preset formulas stored as plain text (wizard / GradingScale metadata).
+# Keys cover every GradingScale.ScaleType via grade_computation._SCALE_TYPE_TO_PRESET_KEY
+# so the live path is polymorphic without requiring hand-authored formula_text.
 PRESET_GRADING_FORMULAS: dict[str, str] = {
     "francophone_0_20": "min(20, max(0, (exam * 0.6 + coursework * 0.4)))",
     "uk_gcse_points": "round(exam * 0.5 + coursework * 0.5)",
     "us_gpa_4": "min(4.0, max(0.0, (exam / 25.0) * 4.0))",
     "waec_aggregate": "round((exam + coursework) / 2)",
+    "percentage_mean": "round((exam + coursework) / 2)",
+    "numeric_1_5_mean": "min(5, max(1, round((exam + coursework) / 40)))",
+    "ib_1_7_mean": "min(7, max(1, round((exam + coursework) / 200 * 7)))",
+    "german_1_6_mean": "min(6, max(1, round(7 - (exam + coursework) / 40)))",
 }

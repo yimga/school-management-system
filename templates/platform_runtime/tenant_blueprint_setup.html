@@ -112,7 +112,7 @@
           <strong>{% trans "Review before publish:" %}</strong>
           <ul class="mb-0 mt-1 ps-3">
             {% for warning in preview.warnings %}
-              <li>{{ warning.message|default:warning }}</li>
+              <li>{{ warning.message|default:warning }}</li>{# default-fallback-allow: warning is for-loop row #}
             {% endfor %}
           </ul>
         </div>

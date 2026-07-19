@@ -8,7 +8,6 @@ while the admin tier still passes and an unrelated role is still refused.
 The logic tests are ``SimpleTestCase`` (no DB) using a fake user; one ``TestCase`` proves the
 end-to-end AccessRole grant path with a real seeded Permission.
 """
-from types import SimpleNamespace
 
 from django.core.exceptions import PermissionDenied
 from django.template import Context, Template

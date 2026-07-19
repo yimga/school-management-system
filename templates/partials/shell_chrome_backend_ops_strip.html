@@ -60,7 +60,7 @@
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}" data-ops-link="finance-console">{% trans "Finance" %}</a>
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'requests:dashboard' %}" data-ops-link="requests-console">{% trans "Requests" %}</a>
     {% if action_perms and action_perms.admin_panel %}
-    {% url 'admin:portal_pendingguardianinvite_changelist' as guardian_invites_admin_url %}{% comment %} Advanced admin fallback target for Invites (admin). {% endcomment %}
+    {% url 'tenant_admin:portal_pendingguardianinvite_changelist' as guardian_invites_admin_url %}{% comment %} Advanced admin fallback target for Invites (tenant admin). {% endcomment %}
     {% if guardian_invites_admin_url %}
     <a class="btn btn-sm btn-outline-secondary" href="{{ guardian_invites_admin_url }}" data-ops-link="admin-invites">{% trans "Invites (admin)" %}</a>
     {% endif %}

@@ -86,13 +86,19 @@ def seed_country_eav_definitions(
     school: Any,
     country_code: str | None = None,
     dry_run: bool = False,
-) -> dict[str, int]:
-    """Upsert ``DynamicFieldDefinition`` rows for a tenant's country."""
+) -> dict[str, Any]:
+    """Upsert ``DynamicFieldDefinition`` rows for a tenant's country.
+
+    Returns an honesty payload: ``ok`` is False only when the country has catalog
+    entries but none were created/updated (unexpected empty seed). Blank country
+    or countries outside the catalog are ``ok=True`` with an explicit ``reason``.
+    """
     from apps.metadata.models import DynamicFieldDefinition
 
     cc = (country_code or getattr(school, "country_code", None) or "").strip().upper()
+    entries = catalog_entries_for_country(cc)
     created = updated = skipped = 0
-    for row in catalog_entries_for_country(cc):
+    for row in entries:
         defaults = {
             "label": row["label"],
             "data_type": row.get("data_type", "string"),
@@ -115,7 +121,25 @@ def seed_country_eav_definitions(
             created += 1
         else:
             updated += 1
-    return {"created": created, "updated": updated, "skipped": skipped, "country": cc}
+
+    result: dict[str, Any] = {
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "country": cc,
+        "expected": len(entries),
+    }
+    if not cc:
+        result["ok"] = True
+        result["reason"] = "no_country_code"
+    elif not entries:
+        result["ok"] = True
+        result["reason"] = "no_catalog_entries"
+    else:
+        result["ok"] = (created + updated + skipped) > 0
+        if not result["ok"]:
+            result["reason"] = "catalog_entries_not_persisted"
+    return result
 
 
 def seed_platform_eav_baseline(*, dry_run: bool = False) -> dict[str, int]:

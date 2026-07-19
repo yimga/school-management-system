@@ -39,6 +39,22 @@ class FrontierMoatRuntimeProofTests(TestCase):
         after_len = len(json.loads(log_path.read_text(encoding="utf-8")))
         self.assertGreaterEqual(after_len, before_len)
 
+    def test_restore_drill_apply_local_passes_checklist(self):
+        """Metric #22 — repo-contained APPLY-LOCAL (no Render side-DB)."""
+        repo = Path(__file__).resolve().parents[3]
+        script = repo / "scripts" / "restore_drill.py"
+        proc = subprocess.run(
+            [sys.executable, str(script), "--apply-local"],
+            cwd=repo,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr or proc.stdout)
+        self.assertIn("APPLY-LOCAL", proc.stdout)
+        self.assertIn("platform_runtime_offlineaction", proc.stdout)
+        self.assertNotIn("[fail]", proc.stdout)
+
     def test_tenant_student_query_isolation_by_school(self):
         """Cross-tenant read denial at ORM layer (metric 27 partial proof)."""
         school_a = School.objects.create(

@@ -123,3 +123,92 @@ class TuitionPppTests(TestCase):
             invoice=invoices[0], description="Tuition"
         )
         self.assertEqual(tuition_line.amount, Decimal("1000.00"))
+
+
+class TuitionPppNigeriaSoakTests(TestCase):
+    """Metric #6 — tuition PPP soak for NG (0.35×) alongside IN coverage."""
+
+    def setUp(self):
+        CountryRegistry.objects.get_or_create(code="NG", defaults={"name": "Nigeria"})
+        seed_country_multipliers(country_codes=["NG"])
+        self.school = School.objects.create(
+            name="PPP NG School",
+            slug="ppp-ng-school",
+            subdomain="ppp-ng-school",
+            country_code="NG",
+            is_active=True,
+            settings={"finance_apply_ppp_to_tuition": True},
+        )
+        self.profile = ComplianceProfile.objects.create(
+            name="NG Finance",
+            country_code="NG",
+            currency_code="NGN",
+            is_active=True,
+        )
+        self.year = AcademicYear.objects.create(
+            school=self.school,
+            name="2025-2026",
+            start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30),
+            is_active=True,
+        )
+        Term.objects.create(
+            school=self.school,
+            academic_year=self.year,
+            name="Term 1",
+            start_date=date(2025, 9, 1),
+            end_date=date(2025, 12, 15),
+            position=1,
+            is_active=True,
+        )
+        department = Department.objects.create(
+            school=self.school, name="Science", code="SCI"
+        )
+        specialty = Specialty.objects.create(
+            school=self.school, department=department, name="General", code="GEN"
+        )
+        self.classroom = Classroom.objects.create(
+            school=self.school,
+            academic_year=self.year,
+            department=department,
+            name="10A",
+            code="10A",
+        )
+        self.plan = FeePlan.objects.create(
+            school=self.school,
+            academic_year=self.year,
+            classroom=self.classroom,
+            specialty=specialty,
+            name="Annual tuition",
+        )
+        FeeItem.objects.create(
+            plan=self.plan,
+            name="Tuition",
+            amount=Decimal("1000.00"),
+            item_type=FeeItem.ItemType.TUITION,
+        )
+        FeeItem.objects.create(
+            plan=self.plan,
+            name="PTA levy",
+            amount=Decimal("50.00"),
+            item_type=FeeItem.ItemType.PTA,
+        )
+        StudentProfile.objects.create(
+            school=self.school,
+            first_name="Ada",
+            last_name="Okafor",
+            student_code="NG-001",
+            academic_year=self.year,
+            classroom=self.classroom,
+            specialty=specialty,
+            is_active=True,
+        )
+
+    def test_nigeria_tuition_scales_at_point_three_five(self):
+        invoices = create_fee_invoices(plan=self.plan, profile=self.profile)
+        self.assertEqual(len(invoices), 1)
+        lines = list(InvoiceLine.objects.filter(invoice=invoices[0]).order_by("description"))
+        tuition_line = next(l for l in lines if l.description == "Tuition")
+        pta_line = next(l for l in lines if l.description == "PTA levy")
+        self.assertEqual(tuition_line.amount, Decimal("350.00"))
+        self.assertEqual(pta_line.amount, Decimal("50.00"))

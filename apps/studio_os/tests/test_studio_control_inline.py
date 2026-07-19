@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
+from apps.schools.tests.manager_client import bind_manager_session
+
 
 @override_settings(
     ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"]
@@ -24,6 +26,7 @@ class StudioControlInlineTests(TestCase):
     def setUp(self):
         self.client = Client(HTTP_HOST="manager.runmycampus.com")
         self.client.login(username="studio_control_inline", password="x" * 8)
+        bind_manager_session(self.client)
 
     def test_control_mode_inlines_feature_panel_without_duplicate_h1(self):
         url = reverse("studio_os:control", urlconf="config.manager_urls")

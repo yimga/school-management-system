@@ -964,7 +964,24 @@ class MigrationCloudApplyView(LoginRequiredMixin, View):
     def post(self, request, bundle_id: int, shell: str = "super"):
         from django.http import Http404
 
+        from apps.accounts.decorators import user_is_tenant_admin
+
         from .orchestrator import apply_bundle
+
+        # Role gate: LoginRequired alone admitted any membership (S2 residual).
+        # Portal → tenant-admin tier for the request school; operator shell →
+        # staff/superuser (control-plane) before any live or dry-run apply.
+        # Return JSON 403 (do not raise) — ``@safe_500`` would otherwise turn
+        # PermissionDenied into an opaque internal_error envelope.
+        if shell == "portal":
+            school = getattr(request, "school", None) or getattr(request, "tenant", None)
+            if not user_is_tenant_admin(request.user, school):
+                return JsonResponse({"error": "forbidden"}, status=403)
+        elif not (
+            getattr(request.user, "is_staff", False)
+            or getattr(request.user, "is_superuser", False)
+        ):
+            return JsonResponse({"error": "forbidden"}, status=403)
 
         # Tenant scope before a LIVE apply — a portal caller must never apply
         # another tenant's bundle (cross-tenant IDOR closed here + on the DRF

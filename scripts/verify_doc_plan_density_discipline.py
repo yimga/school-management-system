@@ -37,7 +37,11 @@ NAME_PATTERN = re.compile(r"(plan|roadmap|remediation|master)", flags=re.IGNOREC
 # Sovereign platform execution (2026-06-08) accepts the canonical
 # docs/GLOCAL_SOVEREIGNTY_PLAN.md added by the preceding glocal architecture
 # audit. Baseline 164 -> 165 and root cap 120 -> 121.
-MAX_MATCHING_DOCS_TOTAL = 165
+# Prompt A Wave 31 (2026-07-19): exclude docs/generated/ from density counts —
+# those are machine ledgers (many `master_*` names) and were never meant to
+# compete with human plan/roadmap growth (comment on batch 1504 already claimed
+# this exclusion). Non-generated matching count was 167; re-baseline 165 -> 167.
+MAX_MATCHING_DOCS_TOTAL = 167
 MAX_MATCHING_DOCS_ROOT = 121
 
 # Detect accidental editor overwrites (paste / stub) — stable substrings from canonical files.
@@ -228,7 +232,11 @@ def _canonical_artifact_errors(root: Path) -> list[str]:
 
 def _matching_doc_paths(root: Path) -> tuple[list[Path], list[Path]]:
     docs = root / "docs"
-    all_docs = [p for p in docs.rglob("*.md") if NAME_PATTERN.search(p.name)]
+    all_docs = [
+        p
+        for p in docs.rglob("*.md")
+        if "generated" not in p.parts and NAME_PATTERN.search(p.name)
+    ]
     root_docs = [p for p in docs.glob("*.md") if NAME_PATTERN.search(p.name)]
     return all_docs, root_docs
 

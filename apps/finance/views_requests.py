@@ -4,7 +4,6 @@ Finance notifications and requests inbox views (§6.15 app-by-app split — subd
 
 from __future__ import annotations
 
-from django.conf import settings
 from django.contrib import messages
 from apps.accounts.decorators import require_permission
 from django.db import models

@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-07-16T01:40:04.420532+00:00",
+  "generated_at": "2026-07-19T01:45:45.335090+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
-  "row_count": 1700,
-  "views_indexed": 2820,
+  "row_count": 1710,
+  "views_indexed": 2834,
   "summary": {
-    "login_gated": 1327,
-    "role_gated": 79,
-    "permission_gated": 169,
+    "login_gated": 1332,
+    "role_gated": 80,
+    "permission_gated": 172,
     "has_inline_auth_check": 74,
     "auth_mixin_gated": 124,
     "rbac_allow_reason": 183,
     "candidate_anonymous": 0,
     "public_surface": 196,
-    "unresolved": 181
+    "unresolved": 186
   },
   "rows": [
     {
@@ -91,6 +91,31 @@
     {
       "url_pattern": "timetable/<int:schedule_id>/publish/",
       "view_symbol": "views_timetable.timetable_publish",
+      "urls_file": "apps/academics/urls.py",
+      "view_file": "apps/academics/views_timetable.py",
+      "kind": "func",
+      "decorators": [
+        "login_required",
+        "require_school",
+        "require_POST",
+        "require_permission(_TIMETABLE_PERMISSION)"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": true,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "timetable/<int:schedule_id>/entries/<int:entry_id>/cancel/",
+      "view_symbol": "views_timetable.timetable_cancel_entry",
       "urls_file": "apps/academics/urls.py",
       "view_file": "apps/academics/views_timetable.py",
       "kind": "func",
@@ -5090,10 +5115,10 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/analytics/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
-        "require_permission('payroll.view', 'payroll.manage')"
+        "require_permission('finance.view', 'finance.manage')"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -13385,6 +13410,26 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "memberships/<int:membership_id>/record-clearance/",
+      "view_symbol": "views.coach_record_clearance",
+      "urls_file": "apps/athletics/urls.py",
+      "view_file": null,
+      "kind": null,
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": true,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "my-team/",
       "view_symbol": "views.family_my_team",
       "urls_file": "apps/athletics/urls.py",
@@ -13427,6 +13472,86 @@
     {
       "url_pattern": "admin/fixtures/",
       "view_symbol": "views.admin_fixtures",
+      "urls_file": "apps/athletics/urls.py",
+      "view_file": null,
+      "kind": null,
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": true,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "admin/clubs/",
+      "view_symbol": "views.admin_clubs",
+      "urls_file": "apps/athletics/urls.py",
+      "view_file": null,
+      "kind": null,
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": true,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "admin/clubs/<int:club_id>/",
+      "view_symbol": "views.admin_club_detail",
+      "urls_file": "apps/athletics/urls.py",
+      "view_file": null,
+      "kind": null,
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": true,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "admin/clubs/<int:club_id>/enroll/",
+      "view_symbol": "views.admin_club_enroll",
+      "urls_file": "apps/athletics/urls.py",
+      "view_file": null,
+      "kind": null,
+      "decorators": [],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": true,
+      "login_gated": false,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "admin/club-memberships/<int:membership_id>/withdraw/",
+      "view_symbol": "views.admin_club_withdraw",
       "urls_file": "apps/athletics/urls.py",
       "view_file": null,
       "kind": null,
@@ -16222,10 +16347,10 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/finance/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
-        "require_permission('payroll.view', 'payroll.manage')"
+        "require_permission('finance.view', 'finance.manage')"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -20111,7 +20236,7 @@
       "decorators": [],
       "drf_permission_classes": [],
       "bases": [
-        "LoginRequiredMixin",
+        "_TenantAdminWriteRequiredMixin",
         "View"
       ],
       "roles_required": [],
@@ -20134,7 +20259,7 @@
       "decorators": [],
       "drf_permission_classes": [],
       "bases": [
-        "LoginRequiredMixin",
+        "_TenantAdminWriteRequiredMixin",
         "View"
       ],
       "roles_required": [],
@@ -20180,7 +20305,7 @@
       "decorators": [],
       "drf_permission_classes": [],
       "bases": [
-        "LoginRequiredMixin",
+        "_TenantAdminWriteRequiredMixin",
         "View"
       ],
       "roles_required": [],
@@ -20203,7 +20328,7 @@
       "decorators": [],
       "drf_permission_classes": [],
       "bases": [
-        "LoginRequiredMixin",
+        "_TenantAdminWriteRequiredMixin",
         "View"
       ],
       "roles_required": [],
@@ -20767,10 +20892,10 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/payroll/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/finance/views_dashboard.py",
       "kind": "func",
       "decorators": [
-        "require_permission('payroll.view', 'payroll.manage')"
+        "require_permission('finance.view', 'finance.manage')"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -20852,6 +20977,52 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "runs/<int:run_id>/review/",
+      "view_symbol": "review_run",
+      "urls_file": "apps/payroll/urls.py",
+      "view_file": "apps/payroll/views.py",
+      "kind": "func",
+      "decorators": [
+        "require_permission('payroll.manage')",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": true,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "runs/<int:run_id>/approve/",
+      "view_symbol": "approve_run",
+      "urls_file": "apps/payroll/urls.py",
+      "view_file": "apps/payroll/views.py",
+      "kind": "func",
+      "decorators": [
+        "require_permission('payroll.manage')",
+        "require_POST"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": true,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "runs/<int:run_id>/mark-paid/",
       "view_symbol": "mark_run_paid",
       "urls_file": "apps/payroll/urls.py",
@@ -20900,6 +21071,28 @@
     {
       "url_pattern": "employee/payslips/",
       "view_symbol": "employee_payslips",
+      "urls_file": "apps/payroll/urls.py",
+      "view_file": "apps/payroll/views.py",
+      "kind": "func",
+      "decorators": [
+        "login_required"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": false,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
+      "url_pattern": "payslips/<int:payslip_id>/pdf/",
+      "view_symbol": "payslip_pdf",
       "urls_file": "apps/payroll/urls.py",
       "view_file": "apps/payroll/views.py",
       "kind": "func",
@@ -23214,6 +23407,31 @@
       "candidate_anonymous": false
     },
     {
+      "url_pattern": "parent/issued-items/",
+      "view_symbol": "parent_issued_items",
+      "urls_file": "apps/portal/urls.py",
+      "view_file": "apps/portal/views_parent.py",
+      "kind": "func",
+      "decorators": [
+        "parent_portal_required",
+        "role_required(User.Role.PARENT)"
+      ],
+      "drf_permission_classes": [],
+      "bases": [],
+      "roles_required": [
+        "User.Role.PARENT"
+      ],
+      "rbac_allow_reason": null,
+      "unresolved": false,
+      "login_gated": true,
+      "role_gated": true,
+      "permission_gated": false,
+      "has_inline_auth_check": false,
+      "auth_mixin_gated": false,
+      "public_surface": false,
+      "candidate_anonymous": false
+    },
+    {
       "url_pattern": "parent/child/<int:student_id>/id/",
       "view_symbol": "child_digital_id",
       "urls_file": "apps/portal/urls.py",
@@ -24636,7 +24854,7 @@
         "login_required",
         "require_school",
         "require_permission('discipline.manage')",
-        "require_http_methods(['GET'])"
+        "require_http_methods(['GET', 'POST'])"
       ],
       "drf_permission_classes": [],
       "bases": [],

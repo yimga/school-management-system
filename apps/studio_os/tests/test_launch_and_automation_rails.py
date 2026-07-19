@@ -9,6 +9,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission
+from apps.schools.tests.manager_client import login_manager_control_plane
 from apps.security.embed_frame_middleware import EmbedSameOriginFrameMiddleware
 
 User = get_user_model()
@@ -141,6 +142,8 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
 
     def test_guided_onboarding_embed_allows_same_origin_framing(self):
         """Launch Studio iframe must not get X-Frame-Options: DENY (browser refused to connect)."""
+        from django.contrib.sessions.middleware import SessionMiddleware
+        from django.http import HttpResponse
         from django.test import RequestFactory
 
         from apps.schools.models import School
@@ -156,6 +159,8 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
         )
         req.user = self.user
         req.school = school
+        SessionMiddleware(lambda _req: HttpResponse()).process_request(req)
+        req.session.save()
         from apps.customersuccess.views_tenant import guided_onboarding_view
 
         response = guided_onboarding_view(req)
@@ -200,15 +205,24 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
     @override_settings(
         MULTI_TENANT_BASE_DOMAIN="example.test",
         ALLOWED_HOSTS=["manager.example.test", "example.test", "testserver", "localhost", "127.0.0.1"],
+        ROOT_URLCONF="config.manager_urls",
     )
     def test_launch_infrastructure_pane_carries_request_apply_confirm_for_operator(self):
         """Operator host: 'Request platform apply' confirms before invoking platform action."""
-        self.client.force_login(self.user)
-        url = reverse("studio_os:launch") + "?pane=infrastructure"
+        self.user.is_superuser = True
+        self.user.save(update_fields=["is_superuser"])
+        client = self.client_class(HTTP_HOST="manager.example.test")
+        login_manager_control_plane(
+            client,
+            self.user,
+            password="password",
+            host="manager.example.test",
+        )
+        url = reverse("studio_os:launch", urlconf="config.manager_urls") + "?pane=infrastructure"
         # manager.example.test only classifies as the manager host when example.test
         # is the canonical base domain (public_host_kind matches manager.<base>),
         # and must be in ALLOWED_HOSTS — both set via override_settings above.
-        response = self.client.get(url, HTTP_HOST="manager.example.test")
+        response = client.get(url)
         self.assertEqual(response.status_code, 200)
         # JS hooks always present (preview is read-only)
         self.assertContains(response, 'id="studio-infra-preview-btn"')

@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import json
 
-from django.conf import settings
 from apps.accounts.decorators import require_permission
 from django.http import HttpRequest
 from django.shortcuts import render

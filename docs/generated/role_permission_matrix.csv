@@ -3,6 +3,7 @@ workflow/<str:workflow_key>/,views_workflow.WorkflowWizardView.as_view,apps/acad
 timetable/generate/,views_timetable.timetable_generate,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_POST | require_permission(_TIMETABLE_PERMISSION),,,,1,0,1,0,0,,0,0,0
 timetable/<int:schedule_id>/review/,views_timetable.timetable_review,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_permission(_TIMETABLE_PERMISSION),,,,1,0,1,0,0,,0,0,0
 timetable/<int:schedule_id>/publish/,views_timetable.timetable_publish,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_POST | require_permission(_TIMETABLE_PERMISSION),,,,1,0,1,0,0,,0,0,0
+timetable/<int:schedule_id>/entries/<int:entry_id>/cancel/,views_timetable.timetable_cancel_entry,apps/academics/urls.py,apps/academics/views_timetable.py,func,login_required | require_school | require_POST | require_permission(_TIMETABLE_PERMISSION),,,,1,0,1,0,0,,0,0,0
 teacher/syllabi/,views_syllabus.teacher_syllabus_hub,apps/academics/urls.py,apps/academics/views_syllabus.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 teacher/syllabi/<int:subject_assignment_id>/builder/,views_syllabus.syllabus_builder,apps/academics/urls.py,apps/academics/views_syllabus.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 teacher/syllabi/<int:subject_assignment_id>/upload/,views_syllabus.syllabus_upload,apps/academics/urls.py,apps/academics/views_syllabus.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -217,7 +218,7 @@ decision/revenue/,decision_revenue_dashboard,apps/analytics/urls.py,apps/analyti
 decision/engagement/,decision_engagement_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
 decision/risk/,decision_risk_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
 decision/founder/,decision_founder_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
-,dashboard,apps/analytics/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
+,dashboard,apps/analytics/urls.py,apps/finance/views_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
 master-sheet/,master_sheet,apps/analytics/urls.py,apps/analytics/views.py,func,require_permission('analytics.manage'),,,,1,0,1,0,0,,0,0,0
 deadlines/,grading_deadlines,apps/analytics/urls.py,apps/analytics/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
 strategic/,strategic_report,apps/analytics/urls.py,apps/analytics/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -580,9 +581,14 @@ teams/<int:team_id>/members/add/,views.coach_add_member,apps/athletics/urls.py,,
 fixtures/<int:fixture_id>/result/,views.coach_record_result,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 fixtures/<int:fixture_id>/cancel/,views.coach_cancel_fixture,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 memberships/<int:membership_id>/request-consent/,views.coach_request_consent,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
+memberships/<int:membership_id>/record-clearance/,views.coach_record_clearance,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 my-team/,views.family_my_team,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 admin/seasons/,views.admin_seasons,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 admin/fixtures/,views.admin_fixtures,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
+admin/clubs/,views.admin_clubs,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
+admin/clubs/<int:club_id>/,views.admin_club_detail,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
+admin/clubs/<int:club_id>/enroll/,views.admin_club_enroll,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
+admin/club-memberships/<int:membership_id>/withdraw/,views.admin_club_withdraw,apps/athletics/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 outcomes/,views.outcomes_console,apps/automation/urls.py,apps/automation/views.py,func,login_required | user_passes_test(_staff_required),,,,1,0,0,0,0,,0,0,0
 workflow-template-gallery/,views_workflow_gallery.workflow_template_gallery,apps/automation/urls.py,apps/automation/views_workflow_gallery.py,func,login_required | user_passes_test(_staff_required),,,,1,0,0,0,0,,0,0,0
 workflow-template-gallery/<slug:template_id>/dry-run/,views_workflow_gallery.workflow_template_dry_run,apps/automation/urls.py,apps/automation/views_workflow_gallery.py,func,login_required | user_passes_test(_staff_required),,,,1,0,0,0,0,,0,0,0
@@ -703,7 +709,7 @@ super/feedback/<int:pk>/action/,views.operator_feedback_action,apps/feedback/url
 super/feature/<int:pk>/roadmap/,views.add_to_roadmap,apps/feedback/urls.py,apps/feedback/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
 help/,views.help_center,apps/feedback/urls.py,apps/feedback/views.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
 release-notes/,views.release_notes_public,apps/feedback/urls.py,apps/feedback/views.py,func,,,,,1,0,0,0,0,intentionally public — filters is_public=True at QS level,0,0,0
-,dashboard,apps/finance/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
+,dashboard,apps/finance/urls.py,apps/finance/views_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
 payment-setup/,payment_readiness_setup,apps/finance/urls.py,apps/finance/views_payment_setup.py,func,require_permission('finance.manage') | require_step_up,,,,1,0,1,0,0,,0,0,0
 integration-credentials/,marketplace_integration_credentials,apps/finance/urls.py,apps/finance/views_marketplace_integration_credentials.py,func,"require_permission('finance.manage') | require_step_up | require_http_methods(['GET', 'POST'])",,,,1,0,1,0,0,,0,0,0
 payment-readiness/,payment_readiness_dashboard,apps/finance/urls.py,apps/finance/views_payment_readiness_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
@@ -873,11 +879,11 @@ smoke/history/,views_smoke_history.SmokeRunHistoryView.as_view,apps/migration_cl
 connectors/operator/,views_connectors.MigrationCloudConnectorOperatorView.as_view,apps/migration_cloud/urls.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | TemplateView,,1,0,0,0,1,,0,0,0
 ,views_connectors.MigrationCloudConnectorHomeView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | TemplateView,,1,0,0,0,1,,0,0,0
 connect/,views_connectors.MigrationCloudConnectorConnectView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,csrf_protect,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
-upload/,views_tenant_upload.TenantMigrationUploadView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
-bundle/<int:bundle_id>/review/,views_tenant_upload.TenantMigrationReviewView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
+upload/,views_tenant_upload.TenantMigrationUploadView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,_TenantAdminWriteRequiredMixin | View,,1,0,0,0,1,,0,0,0
+bundle/<int:bundle_id>/review/,views_tenant_upload.TenantMigrationReviewView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,_TenantAdminWriteRequiredMixin | View,,1,0,0,0,1,,0,0,0
 bundle/<int:bundle_id>/progress/,views_tenant_upload.TenantMigrationProgressView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
-bundle/<int:bundle_id>/apply/,views_tenant_upload.TenantMigrationApplyView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
-bundle/<int:bundle_id>/repair/,views_tenant_upload.TenantMigrationRepairView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
+bundle/<int:bundle_id>/apply/,views_tenant_upload.TenantMigrationApplyView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,_TenantAdminWriteRequiredMixin | View,,1,0,0,0,1,,0,0,0
+bundle/<int:bundle_id>/repair/,views_tenant_upload.TenantMigrationRepairView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,_TenantAdminWriteRequiredMixin | View,,1,0,0,0,1,,0,0,0
 <uuid:connection_id>/discover/,views_connectors.MigrationCloudConnectorDiscoverView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
 <uuid:connection_id>/discover/<uuid:run_id>/mapping/,views_connectors.MigrationCloudConnectorMappingView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
 <uuid:connection_id>/discover/<uuid:run_id>/validate/,views_connectors.MigrationCloudConnectorValidateView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
@@ -902,13 +908,16 @@ api/runs/<int:run_id>/events/,api.run_events,apps/orchestration/urls.py,,,,,,,0,
 api/runs/<int:run_id>/cancel/,api.run_cancel,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 api/runs/<int:run_id>/retry/,api.run_retry,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 api/slo/,api.slo_snapshot,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
-,dashboard,apps/payroll/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
+,dashboard,apps/payroll/urls.py,apps/finance/views_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
 runs/create/,create_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage'),,,,1,0,1,0,0,,0,0,0
 runs/<int:run_id>/,run_detail,apps/payroll/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
 runs/<int:run_id>/generate/,generate_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage'),,,,1,0,1,0,0,,0,0,0
+runs/<int:run_id>/review/,review_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage') | require_POST,,,,1,0,1,0,0,,0,0,0
+runs/<int:run_id>/approve/,approve_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage') | require_POST,,,,1,0,1,0,0,,0,0,0
 runs/<int:run_id>/mark-paid/,mark_run_paid,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage') | require_POST,,,,1,0,1,0,0,,0,0,0
 runs/<int:run_id>/disbursement.csv,export_disbursement,apps/payroll/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage') | require_GET",,,,1,0,1,0,0,,0,0,0
 employee/payslips/,employee_payslips,apps/payroll/urls.py,apps/payroll/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
+payslips/<int:payslip_id>/pdf/,payslip_pdf,apps/payroll/urls.py,apps/payroll/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 employee/leave/,employee_leave,apps/payroll/urls.py,apps/payroll/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 lifecycle/,tenant_lifecycle_dashboard,apps/platform_runtime/urls.py,apps/platform_runtime/views_tenant_lifecycle.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 implementation/,implementation_command_center,apps/platform_runtime/urls.py,apps/platform_runtime/views_operational_center.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -1006,6 +1015,7 @@ teacher/feed/,teacher_feed,apps/portal/urls.py,apps/portal/views_teacher.py,func
 proud-campus/,proud_campus_feed,apps/portal/urls.py,apps/social_media/views.py,func,"login_required | role_required(User.Role.ADMIN, User.Role.IT_ADMIN, User.Role.LEADERSHIP, User.Role.TEACHER)",,,"User.Role.ADMIN,User.Role.IT_ADMIN,User.Role.LEADERSHIP,User.Role.TEACHER",1,1,0,0,0,,0,0,0
 parent/contact-school/,parent_contact_school,apps/portal/urls.py,apps/portal/views_contact_requests.py,func,parent_portal_required | role_required(User.Role.PARENT),,,User.Role.PARENT,1,1,0,0,0,,0,0,0
 parent/medal-case/,parent_medal_case,apps/portal/urls.py,apps/portal/views_parent.py,func,parent_portal_required,,,,1,0,0,0,0,inline-auth (login redirect inside view),0,0,0
+parent/issued-items/,parent_issued_items,apps/portal/urls.py,apps/portal/views_parent.py,func,parent_portal_required | role_required(User.Role.PARENT),,,User.Role.PARENT,1,1,0,0,0,,0,0,0
 parent/child/<int:student_id>/id/,child_digital_id,apps/portal/urls.py,apps/portal/views_parent.py,func,parent_portal_required | role_required(User.Role.PARENT) | login_required,,,User.Role.PARENT,1,1,0,0,0,,0,0,0
 teacher/my-id/,my_digital_id,apps/portal/urls.py,apps/portal/views.py,func,teacher_portal_required | role_required(User.Role.TEACHER) | login_required,,,User.Role.TEACHER,1,1,0,0,0,,0,0,0
 badge/verify/,badge_verify,apps/portal/urls.py,apps/portal/views.py,func,never_cache,,,,1,0,0,0,0,public badge-verifier — anyone with the badge URL can verify authenticity,0,0,0
@@ -1066,7 +1076,7 @@ attendance/teacher/,record_teacher_attendance,apps/portal/urls.py,apps/portal/vi
 attendance/seating-chart/,seating_chart_view,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 staff/contact-requests/,staff_contact_request_list,apps/portal/urls.py,apps/portal/views_contact_requests.py,func,tenant_admin_required,,,,1,0,0,0,0,,0,0,0
 staff/discipline/incidents/,discipline_incidents_list,apps/portal/urls.py,apps/portal/views_teacher.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
-staff/discipline/caseload/,counselor_caseload,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required | require_school | require_permission('discipline.manage') | require_http_methods(['GET']),,,,1,0,1,0,0,,0,0,0
+staff/discipline/caseload/,counselor_caseload,apps/portal/urls.py,apps/portal/views_teacher.py,func,"login_required | require_school | require_permission('discipline.manage') | require_http_methods(['GET', 'POST'])",,,,1,0,1,0,0,,0,0,0
 teacher/cahier/,cahier_list,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required | teacher_portal_required | role_required(User.Role.TEACHER),,,User.Role.TEACHER,1,1,0,0,0,,0,0,0
 staff/cahier/verify/,cahier_verify_list,apps/portal/urls.py,apps/portal/views_teacher.py,func,login_required,,,,1,0,0,0,0,,0,0,0
 staff/cahier/visa/<int:entry_id>/,cahier_visa,apps/portal/urls.py,apps/portal/views_teacher.py,func,require_POST | login_required,,,,1,0,0,0,0,,0,0,0

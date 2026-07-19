@@ -87,13 +87,15 @@
         </div>
       {% endif %}
 
+      {% trans "Band" as band_label %}
       <div class="table-responsive">
-        <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Class ranking by average score" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Class ranking by average score" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-6col="1">
           <thead>
             <tr>
-              <th scope="col" style="width: 80px;">Rank</th>
-              <th scope="col">Student</th>
+              <th scope="col" style="width: 80px;">{% trans "Rank" %}</th>
+              <th scope="col">{% trans "Student" %}</th>
               <th scope="col" class="text-end">{{ score_label }}</th>
+              <th scope="col">{{ band_label }}</th>
             </tr>
           </thead>
           <tbody>
@@ -102,13 +104,14 @@
                   tabindex="0"
                   data-rmc-row-title="{{ r.student }}"
                   data-rmc-row-subtitle="{% trans 'Rank' %} {{ r.rank }}"
-                  data-rmc-row-meta='{"{{ score_label|escapejs }}":"{{ r.average|format_number:2|escapejs }}"}'>
+                  data-rmc-row-meta='{"{{ score_label|escapejs }}":"{{ r.average|format_number:2|escapejs }}","{{ band_label|escapejs }}":"{{ r.band|escapejs }}"}'>
                 <td><span class="badge bg-dark">{{ r.rank }}</span></td>
                 <td>{{ r.student }}</td>
                 <td class="text-end">{{ r.average|format_number:2 }}</td>
+                <td>{% if r.band %}<span class="badge text-bg-secondary">{{ r.band }}</span>{% else %}—{% endif %}</td>
               </tr>
             {% empty %}
-              <tr><td colspan="3" class="text-muted">No marks found for this selection. <a href="{% url 'evals:evaluation_admin' %}">Create evaluations</a> or change the filters above.</td></tr>
+              <tr><td colspan="4" class="text-muted">{% trans "No marks found for this selection." %} <a href="{% url 'evals:evaluation_admin' %}">{% trans "Create evaluations" %}</a> {% trans "or change the filters above." %}</td></tr>
             {% endfor %}
           </tbody>
         </table>

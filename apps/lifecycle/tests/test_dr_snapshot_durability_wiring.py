@@ -20,8 +20,10 @@ from pathlib import Path
 from django.test import SimpleTestCase, override_settings
 
 from apps.lifecycle.tenant_dr_snapshot import (
+    _assert_or_warn_snapshot_durability,
     _maybe_upload_object_storage,
     _snapshot_roots,
+    snapshot_durability_status,
 )
 
 
@@ -52,6 +54,51 @@ class SnapshotRootOverrideTests(SimpleTestCase):
             primary, secondary = _snapshot_roots()
         self.assertTrue(primary.as_posix().endswith("var/tenant_snapshots/primary"))
         self.assertTrue(secondary.as_posix().endswith("var/tenant_snapshots/secondary"))
+
+    def test_default_layout_is_ephemeral_dual_dir(self):
+        """Metric #28 — same-device primary/secondary is not independent durability."""
+        with override_settings(
+            TENANT_SNAPSHOT_PRIMARY_DIR="",
+            TENANT_SNAPSHOT_SECONDARY_DIR="",
+            TENANT_SNAPSHOT_S3_BUCKET="",
+        ):
+            status = snapshot_durability_status()
+        self.assertEqual(status["class"], "ephemeral_dual_dir")
+        self.assertFalse(status["independent"])
+        self.assertTrue(status["same_device"])
+
+    def test_s3_bucket_marks_object_storage_independent(self):
+        with override_settings(
+            TENANT_SNAPSHOT_PRIMARY_DIR="",
+            TENANT_SNAPSHOT_SECONDARY_DIR="",
+            TENANT_SNAPSHOT_S3_BUCKET="dr-bucket",
+        ):
+            status = snapshot_durability_status()
+        self.assertEqual(status["class"], "object_storage")
+        self.assertTrue(status["independent"])
+
+    def test_require_independent_raises_on_ephemeral(self):
+        with override_settings(
+            TENANT_SNAPSHOT_PRIMARY_DIR="",
+            TENANT_SNAPSHOT_SECONDARY_DIR="",
+            TENANT_SNAPSHOT_S3_BUCKET="",
+            TENANT_SNAPSHOT_REQUIRE_INDEPENDENT_STORES=True,
+        ):
+            primary, secondary = _snapshot_roots()
+            with self.assertRaises(RuntimeError) as ctx:
+                _assert_or_warn_snapshot_durability(primary, secondary)
+        self.assertIn("ephemeral_dual_dir", str(ctx.exception))
+
+    def test_require_independent_allows_when_s3_configured(self):
+        with override_settings(
+            TENANT_SNAPSHOT_PRIMARY_DIR="",
+            TENANT_SNAPSHOT_SECONDARY_DIR="",
+            TENANT_SNAPSHOT_S3_BUCKET="dr-bucket",
+            TENANT_SNAPSHOT_REQUIRE_INDEPENDENT_STORES=True,
+        ):
+            primary, secondary = _snapshot_roots()
+            status = _assert_or_warn_snapshot_durability(primary, secondary)
+        self.assertEqual(status["class"], "object_storage")
 
 
 class S3WiringTests(SimpleTestCase):

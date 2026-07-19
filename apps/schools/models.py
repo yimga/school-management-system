@@ -861,6 +861,16 @@ class School(models.Model):
                 self.hierarchy_path = str(self.parent_school_id)
         else:
             self.hierarchy_path = ""
+        # Capture prior country before persist for EAV reseed (Metric #5).
+        _prev_country_code = ""
+        if self.pk:
+            _prev_country_code = (
+                School.objects.filter(pk=self.pk)
+                .values_list("country_code", flat=True)
+                .first()
+                or ""
+            )
+            _prev_country_code = str(_prev_country_code).strip().upper()
         # Local-first: a school created with a country but no region (admin / import
         # / API paths that skip the signup + provisioning flow) would otherwise fall
         # back to a generic pack. Link the matching RegionConfig when one already
@@ -884,6 +894,22 @@ class School(models.Model):
                         exc_info=True,
                     )
         super().save(*args, **kwargs)
+        # Metric #5: country change reseeds the identity EAV catalog (idempotent).
+        _update_fields = kwargs.get("update_fields")
+        if _update_fields is not None and "country_code" not in _update_fields:
+            return
+        new_cc = (self.country_code or "").strip().upper()
+        if not new_cc or new_cc == _prev_country_code:
+            return
+        try:
+            from apps.metadata.country_eav_catalog import seed_country_eav_definitions
+
+            seed_country_eav_definitions(school=self, country_code=new_cc)
+        except Exception:  # noqa: BLE001 — catalog reseed must never break a save
+            logger.debug(
+                "schools.School.save country EAV reseed skipped",
+                exc_info=True,
+            )
 
     def has_feature(self, code: str) -> bool:
         """Return True if the school has the given feature/module enabled. Phase D: considers plan + addons."""

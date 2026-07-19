@@ -154,3 +154,42 @@ class SchoolEventsTests(TestCase):
         self.assertEqual(self.tier.sold_quantity, 2)
         self.assertEqual(registration.quantity, 2)
         self.assertEqual(registration.amount_due, Decimal("50.00"))
+
+    def test_registration_refuses_oversell(self):
+        self._login_verified()
+        self.tier.capacity = 2
+        self.tier.sold_quantity = 2
+        self.tier.save(update_fields=["capacity", "sold_quantity"])
+        response = self.client.post(
+            reverse(
+                "school_events:register_for_event",
+                kwargs={"slug": self.event.slug},
+                urlconf="config.tenant_urls",
+            ),
+            {"ticket_tier_id": self.tier.pk, "quantity": 1},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.tier.refresh_from_db()
+        self.assertEqual(self.tier.sold_quantity, 2)
+        self.assertFalse(
+            EventRegistration.objects.filter(
+                event=self.event, purchaser=self.user
+            ).exists()
+        )
+
+    def test_registration_exact_capacity_then_sold_out(self):
+        from apps.school_events.services import TicketCapacityError, register_for_tier
+
+        self.tier.capacity = 1
+        self.tier.sold_quantity = 0
+        self.tier.save(update_fields=["capacity", "sold_quantity"])
+        register_for_tier(
+            event=self.event, tier=self.tier, purchaser=self.user, quantity=1
+        )
+        self.tier.refresh_from_db()
+        self.assertEqual(self.tier.sold_quantity, 1)
+        self.assertEqual(self.tier.remaining_capacity, 0)
+        with self.assertRaises(TicketCapacityError):
+            register_for_tier(
+                event=self.event, tier=self.tier, purchaser=self.user, quantity=1
+            )

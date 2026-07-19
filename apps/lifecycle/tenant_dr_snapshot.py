@@ -371,6 +371,65 @@ def _snapshot_roots() -> tuple[Path, Path]:
     return primary, secondary
 
 
+def _paths_share_device(primary: Path, secondary: Path) -> bool:
+    """True when both paths live on the same filesystem device (one failure domain)."""
+    try:
+        return primary.resolve().stat().st_dev == secondary.resolve().stat().st_dev
+    except OSError:
+        # If either path cannot be stated, treat as shared (fail-honest).
+        return True
+
+
+def snapshot_durability_status(
+    primary: Path | None = None,
+    secondary: Path | None = None,
+) -> dict[str, Any]:
+    """Classify snapshot durability for ops honesty (Metric #28).
+
+    Classes:
+      * ``object_storage`` — ``TENANT_SNAPSHOT_S3_BUCKET`` is set (off-box third leg)
+      * ``split_volume`` — local primary/secondary on different ``st_dev``
+      * ``ephemeral_dual_dir`` — two dirs on the same device (default layout)
+    """
+    if primary is None or secondary is None:
+        primary, secondary = _snapshot_roots()
+    bucket = (getattr(settings, "TENANT_SNAPSHOT_S3_BUCKET", None) or "").strip()
+    if bucket:
+        cls = "object_storage"
+    elif not _paths_share_device(primary, secondary):
+        cls = "split_volume"
+    else:
+        cls = "ephemeral_dual_dir"
+    return {
+        "class": cls,
+        "independent": cls != "ephemeral_dual_dir",
+        "primary": str(primary),
+        "secondary": str(secondary),
+        "s3_bucket": bucket or None,
+        "same_device": _paths_share_device(primary, secondary),
+    }
+
+
+def _assert_or_warn_snapshot_durability(primary: Path, secondary: Path) -> dict[str, Any]:
+    """Warn (or raise when required) when dual dirs share one ephemeral disk."""
+    status = snapshot_durability_status(primary, secondary)
+    if status["independent"]:
+        return status
+    msg = (
+        "tenant_snapshot_durability_ephemeral primary=%s secondary=%s — "
+        "both stores share one device; set TENANT_SNAPSHOT_SECONDARY_DIR on a "
+        "separate volume or TENANT_SNAPSHOT_S3_BUCKET for an independent store"
+    )
+    logger.warning(msg, status["primary"], status["secondary"])
+    if bool(getattr(settings, "TENANT_SNAPSHOT_REQUIRE_INDEPENDENT_STORES", False)):
+        raise RuntimeError(
+            "TENANT_SNAPSHOT_REQUIRE_INDEPENDENT_STORES=1 but snapshot stores are "
+            f"ephemeral_dual_dir (primary={status['primary']}, "
+            f"secondary={status['secondary']})"
+        )
+    return status
+
+
 def _serialize_rows(queryset) -> list[dict[str, Any]]:
     """Serialize a queryset to plain JSON-safe dicts via Django's ``json`` serializer.
 
@@ -520,6 +579,7 @@ def capture_daily_snapshot(school, *, snapshot_date: date | None = None) -> dict
     sig = sign_payload(stored, school_id=str(school.pk))
 
     primary_root, secondary_root = _snapshot_roots()
+    _assert_or_warn_snapshot_durability(primary_root, secondary_root)
     fname = f"{getattr(school, 'slug', school.pk)}_{day.isoformat()}.json.gz"
     primary_path = primary_root / fname
     secondary_path = secondary_root / fname

@@ -162,7 +162,9 @@ module.exports = defineConfig({
     },
     {
       name: 'offline-indexeddb-chromium',
-      testMatch: ['**/offline-multiday-indexeddb.spec.js'],
+      testMatch: [
+        '**/offline-multiday-indexeddb.spec.js',
+      ],
       timeout: 60000,
       use: {
         channel: 'chromium',
@@ -172,14 +174,8 @@ module.exports = defineConfig({
           args: ['--proxy-server=direct://', '--proxy-bypass-list=*'],
         },
       },
-      webServer: {
-        command: 'node scripts/serve_offline_e2e_fixture.mjs',
-        cwd: __dirname,
-        env: { ...process.env, OFFLINE_E2E_PORT: _offlineE2ePort },
-        url: `http://127.0.0.1:${_offlineE2ePort}/offline-indexeddb-boot.html`,
-        reuseExistingServer: !process.env.CI,
-        timeout: 30000,
-      },
+      // NOTE: Playwright only honors top-level `webServer`. Prefer
+      // `npm run test:e2e:offline-multiday` → playwright.offline-indexeddb.config.js.
     },
     {
       name: 'offline-sync-chromium',

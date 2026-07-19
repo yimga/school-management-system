@@ -17,10 +17,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-#: The tenant this deploy dispatch targets. Kept as a constant so it's obvious and
-#: greppable; a future dispatch for another school reuses the generic function.
-GILEAD_TECH_SLUG = "gilead-tech"
-
 
 def _active_owner_emails(school) -> list[str]:
     from apps.schools.models import SchoolMembership

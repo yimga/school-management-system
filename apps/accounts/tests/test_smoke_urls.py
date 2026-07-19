@@ -5,7 +5,7 @@ even when the DB is missing or broken.
 """
 
 from django.test import SimpleTestCase
-from django.urls import reverse
+from django.urls import clear_url_caches, reverse, set_urlconf
 
 
 class SmokeUrlResolutionTests(SimpleTestCase):
@@ -27,7 +27,17 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         self.assertEqual(reverse("status"), "/status/")
 
     def test_admin_index(self):
-        self.assertEqual(reverse("admin:index"), "/admin/")
+        """Root urlconf host-dispatches /admin/; tenant + manager still expose admin:index."""
+        self.assertEqual(reverse("admin_host_dispatch"), "/admin/")
+        for urlconf in ("config.tenant_urls", "config.manager_urls"):
+            with self.subTest(urlconf=urlconf):
+                clear_url_caches()
+                set_urlconf(urlconf)
+                try:
+                    self.assertEqual(reverse("admin:index"), "/admin/")
+                finally:
+                    clear_url_caches()
+                    set_urlconf(None)
 
     def test_accounts_login(self):
         self.assertEqual(reverse("accounts:login"), "/authentication/login/")
@@ -112,7 +122,8 @@ class SmokeUrlResolutionTests(SimpleTestCase):
     def test_six_critical_paths_resolve(self):
         """Plan Phase 0: all six critical URLs must resolve."""
         critical = [
-            ("admin:index", "/admin/"),
+            # Root config.urls: host-aware dispatch (admin:index is on tenant/manager only).
+            ("admin_host_dispatch", "/admin/"),
             ("accounts:login", "/authentication/login/"),
             ("portal:parent_dashboard", "/portal/parent/"),
             ("evals:teacher_dashboard", "/evals/teacher/"),

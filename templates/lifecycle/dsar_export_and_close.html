@@ -67,11 +67,11 @@
       <label class="form-label small">{% trans "Reason (optional, 200 chars)" %}</label>
       <input type="text" name="reason" maxlength="200" class="form-control form-control-sm" placeholder="{% trans 'Migrating to a different platform' %}">
     </div>
+    {% endif %}
     <div class="mb-2">
       <label class="form-label small">{% trans "To confirm, type your school slug:" %} <code>{{ school.slug }}</code></label>
       <input type="text" name="confirm" required class="form-control form-control-sm" autocomplete="off" autocapitalize="off">
     </div>
-    {% endif %}{# /if not operator_only — confirmation fields are tenant-owner only #}
     <div class="d-flex gap-2">
       <button type="submit" class="btn btn-sm btn-danger">{% if operator_only %}{% trans "Export and submit request" %}{% else %}{% trans "Export and close" %}{% endif %}</button>
       <a href="{% url 'tenant_gdpr_data_export' %}" class="btn btn-sm btn-outline-secondary">{% trans "Cancel" %}</a>

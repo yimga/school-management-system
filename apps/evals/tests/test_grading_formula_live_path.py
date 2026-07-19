@@ -171,3 +171,54 @@ class GradingFormulaLivePathTests(TestCase):
         )
         evaluation.refresh_from_db()
         self.assertEqual(evaluation.letter_grade, "A")
+
+    def test_waec_preset_key_drives_total_without_formula_text(self):
+        """Polymorphic path: scale_type alone selects PRESET_GRADING_FORMULAS."""
+        from apps.evals.grade_computation import _SCALE_TYPE_TO_PRESET_KEY
+
+        GradingScale.objects.create(
+            school=self.school,
+            code="waec-default",
+            name="WAEC",
+            scale_type="waec_letter",
+            config={},  # no formula_text — must resolve via preset map
+            is_default=True,
+            is_active=True,
+        )
+        AssessmentWeights.objects.create(
+            school=self.school,
+            academic_year=self.year,
+            term=self.term,
+            classroom=self.classroom,
+            seq1_weight=20,
+            seq2_weight=20,
+            exam_weight=60,
+            grading_scale="waec_letter",
+            score_scale=100,
+        )
+        evaluation = Evaluation.objects.create(
+            academic_year=self.year,
+            term=self.term,
+            subject_assignment=self.assignment,
+            student=self.student,
+            teacher=self.teacher,
+            school=self.school,
+            seq1_score=Decimal("40"),
+            seq2_score=Decimal("40"),
+            exam_score=Decimal("80"),
+        )
+        evaluation.refresh_from_db()
+        # waec_aggregate: round((exam + coursework) / 2) = round((80+80)/2) = 80
+        weighted_mean = round((40 * 20 + 40 * 20 + 80 * 60) / 100, 2)  # 64.0
+        self.assertEqual(_SCALE_TYPE_TO_PRESET_KEY["waec_letter"], "waec_aggregate")
+        self.assertEqual(evaluation.total_score, 80.0)
+        self.assertNotEqual(evaluation.total_score, weighted_mean)
+
+    def test_every_scale_type_maps_to_a_preset(self):
+        from apps.evals.grade_computation import _SCALE_TYPE_TO_PRESET_KEY
+        from apps.evals.models import GradingScale
+
+        for scale_type, _label in GradingScale.ScaleType.choices:
+            preset = _SCALE_TYPE_TO_PRESET_KEY.get(scale_type)
+            self.assertTrue(preset, msg=f"missing preset map for {scale_type}")
+            self.assertIn(preset, PRESET_GRADING_FORMULAS)

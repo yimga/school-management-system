@@ -25,7 +25,7 @@
         </div>
         <div class="card-footer bg-transparent border-0 d-flex flex-wrap gap-2">
           <a href="{% url 'accounts:backend_classroom_list' %}" class="btn btn-sm btn-primary">{% trans_term "Classrooms" key="classroom" plural=True %}</a>
-          <a href="{% url 'admin:people_teacherprofile_change' teacher.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Advanced/Admin: teacher row" %}</a>
+          <a href="{% url 'tenant_admin:people_teacherprofile_change' teacher.pk %}" class="btn btn-sm btn-outline-secondary">{% trans "Advanced/Admin: teacher row" %}</a>
         </div>
       </div>
     </div>

@@ -2,7 +2,6 @@
 Phase D: Tests for Plan model, is_feature_enabled (plan + addons), and Feature Gatekeeper middleware.
 """
 
-import json
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase, RequestFactory, tag

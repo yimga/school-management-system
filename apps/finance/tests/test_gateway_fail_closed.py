@@ -131,3 +131,82 @@ class MtnMomoFailClosedTests(SimpleTestCase):
         result = gw.initiate(amount=Decimal("100"), currency="XAF", reference="r")
         self.assertFalse(result.success)
         self.assertEqual(result.raw_response.get("status"), "not_configured")
+
+
+class RazorpayFailClosedTests(SimpleTestCase):
+    """UPI rail: live keys must never fabricate success without HTTP."""
+
+    def test_unconfigured_fails(self):
+        from apps.finance.gateways.razorpay import RazorpayGateway
+
+        gw = RazorpayGateway(None, config={})
+        result = gw.initiate(amount=Decimal("100"), currency="INR", reference="r")
+        self.assertFalse(result.success)
+        self.assertEqual(result.raw_response.get("status"), "not_configured")
+
+    def test_stub_only_still_succeeds(self):
+        from apps.finance.gateways.razorpay import RazorpayGateway
+
+        gw = RazorpayGateway(
+            None,
+            config={"key_id": "rzp_test", "key_secret": "secret", "stub_only": True},
+        )
+        result = gw.initiate(amount=Decimal("100"), currency="INR", reference="stub")
+        self.assertTrue(result.success)
+        self.assertTrue(str(result.transaction_id or "").startswith("razorpay_"))
+
+    def test_live_http_error_fails_closed(self):
+        from unittest.mock import patch
+
+        from apps.finance.gateways.razorpay import RazorpayGateway
+
+        gw = RazorpayGateway(
+            None, config={"key_id": "rzp_live", "key_secret": "sk_live"}
+        )
+        with patch(
+            "apps.finance.gateways.razorpay.http_post_json",
+            return_value=(401, {"error": {"description": "auth"}}),
+        ):
+            result = gw.initiate(
+                amount=Decimal("250.00"), currency="INR", reference="ref-fail"
+            )
+        self.assertFalse(result.success)
+        self.assertIsNone(result.transaction_id)
+
+
+class MercadoPagoFailClosedTests(SimpleTestCase):
+    """Pix / LATAM rail: live token must never fabricate success without HTTP."""
+
+    def test_unconfigured_fails(self):
+        from apps.finance.gateways.mercado_pago import MercadoPagoGateway
+
+        gw = MercadoPagoGateway(None, config={})
+        result = gw.initiate(amount=Decimal("50"), currency="BRL", reference="r")
+        self.assertFalse(result.success)
+        self.assertEqual(result.raw_response.get("status"), "not_configured")
+
+    def test_stub_only_still_succeeds(self):
+        from apps.finance.gateways.mercado_pago import MercadoPagoGateway
+
+        gw = MercadoPagoGateway(
+            None, config={"access_token": "APP_USR-x", "stub_only": True}
+        )
+        result = gw.initiate(amount=Decimal("50"), currency="BRL", reference="stub")
+        self.assertTrue(result.success)
+        self.assertTrue(str(result.transaction_id or "").startswith("mp_"))
+
+    def test_live_http_error_fails_closed(self):
+        from unittest.mock import patch
+
+        from apps.finance.gateways.mercado_pago import MercadoPagoGateway
+
+        gw = MercadoPagoGateway(None, config={"access_token": "APP_USR-live"})
+        with patch(
+            "apps.finance.gateways.mercado_pago.http_post_json",
+            return_value=(500, {"message": "boom"}),
+        ):
+            result = gw.initiate(
+                amount=Decimal("80.00"), currency="BRL", reference="ref-fail"
+            )
+        self.assertFalse(result.success)
+        self.assertIsNone(result.transaction_id)

@@ -44,11 +44,11 @@
       {% if hard_violations_total > 0 %}
         <div class="rmc-banner rmc-banner--error" role="alert">
           <strong>{% blocktrans count counter=hard_violations_total %}{{ counter }} hard clash to resolve.{% plural %}{{ counter }} hard clashes to resolve.{% endblocktrans %}</strong>
-          {% trans "Publishing is blocked until every clash is cleared. Regenerate to rebuild a conflict-free draft." %}
+          {% trans "Publishing is blocked until every clash is cleared. Remove a conflicting placement below, or regenerate." %}
         </div>
         <ul class="list-group mt-2">
           {% for c in conflicts %}
-            <li class="list-group-item d-flex justify-content-between align-items-start">
+            <li class="list-group-item d-flex flex-wrap justify-content-between align-items-start gap-2">
               <span>
                 {% if c.type == "TEACHER_CONFLICT" %}
                   <span class="badge bg-danger me-1">{% trans "Teacher" %}</span>
@@ -56,10 +56,19 @@
                 {% elif c.type == "ROOM_CONFLICT" %}
                   <span class="badge bg-danger me-1">{% trans "Room" %}</span>
                   {% blocktrans with where=c.room slot=c.time_slot %}{{ where }} is double-booked at {{ slot }}.{% endblocktrans %}
+                {% elif c.type == "CLASSROOM_CONFLICT" %}
+                  <span class="badge bg-danger me-1">{% trans "Class" %}</span>
+                  {% blocktrans with who=c.classroom slot=c.time_slot %}{{ who }} is double-booked at {{ slot }}.{% endblocktrans %}
                 {% else %}
                   {{ c.type }} — {{ c.time_slot }}
                 {% endif %}
               </span>
+              {% if not is_published and c.entries %}
+              <form method="post" action="{% url 'academics:timetable_cancel_entry' schedule.id c.entries.0 %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Remove placement" %}</button>
+              </form>
+              {% endif %}
             </li>
           {% endfor %}
         </ul>
@@ -110,6 +119,12 @@
                       <div class="small mb-1">
                         <strong>{{ e.classroom.name }}</strong> · {{ e.subject.name }}<br>
                         <span class="text-muted">{{ e.teacher.get_full_name|default:e.teacher.username }} · {{ e.room.name }}</span>
+                        {% if not is_published %}
+                        <form method="post" action="{% url 'academics:timetable_cancel_entry' schedule.id e.id %}" class="d-inline">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">{% trans "Remove" %}</button>
+                        </form>
+                        {% endif %}
                       </div>
                     {% empty %}
                       <span class="text-muted">—</span>

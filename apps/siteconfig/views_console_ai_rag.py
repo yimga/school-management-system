@@ -27,7 +27,6 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from django.contrib.admin.views.decorators import staff_member_required
 from apps.schools.control_plane import require_control_plane_access
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_protect

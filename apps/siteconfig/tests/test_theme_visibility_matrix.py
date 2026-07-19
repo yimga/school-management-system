@@ -212,5 +212,6 @@ class ThemeVisibilityMatrixTests(SimpleTestCase):
         t = get_template("admin/schools/school/waive_subscription_form.html")
         self.assertIsNotNone(t)
         content = get_template_content("admin/schools/school/waive_subscription_form.html")
-        self.assertIn('class="module"', content)
+        # Premium guided workspace (replaces legacy Django admin `class="module"`).
+        self.assertIn("rmc-admin-workspace", content)
         self.assertIn("admin/base_site.html", content)

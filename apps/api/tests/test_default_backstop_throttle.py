@@ -14,7 +14,7 @@ anonymous callers, and it must not loosen the tighter scoped budgets.
 
 from __future__ import annotations
 
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import RequestFactory, TestCase
 
 from apps.api.throttling import (
     API_BACKSTOP_ANON_RATE,

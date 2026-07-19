@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 
 
-from django.contrib.admin.views.decorators import staff_member_required
 from apps.schools.control_plane import require_control_plane_access
 from django.http import JsonResponse
 from django.shortcuts import render

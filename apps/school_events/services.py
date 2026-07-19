@@ -1,8 +1,14 @@
-from django.db import models
-from django.db.models import Count, Sum
+from decimal import Decimal
+
+from django.db import models, transaction
+from django.db.models import Count, F, Sum
 from django.utils import timezone
 
-from apps.school_events.models import SchoolEvent
+from apps.school_events.models import EventRegistration, EventTicketTier, SchoolEvent
+
+
+class TicketCapacityError(Exception):
+    """Raised when a registration would exceed tier remaining capacity."""
 
 
 def upcoming_public_events_for_school(school, *, limit: int = 15) -> list[dict]:
@@ -61,3 +67,49 @@ def event_operations_snapshot(school) -> dict:
         "sponsor_commitments": totals.get("sponsor_commitment_count") or 0,
         "sponsorship_total": totals.get("sponsorship_total") or 0,
     }
+
+
+@transaction.atomic
+def register_for_tier(
+    *,
+    event: SchoolEvent,
+    tier: EventTicketTier,
+    purchaser,
+    quantity: int = 1,
+) -> EventRegistration:
+    """Create a registration and increment sold qty with capacity enforcement.
+
+    Tiers with ``capacity <= 0`` are treated as sold out (no unlimited bypass).
+    Paid tiers land ``RESERVED``; free tiers land ``CONFIRMED``.
+    """
+    qty = max(int(quantity or 1), 1)
+    # Lock the tier row so concurrent posts cannot oversell.
+    locked = EventTicketTier.objects.select_for_update().get(pk=tier.pk)
+    if locked.event_id != event.pk or not locked.is_active:
+        raise TicketCapacityError("Ticket tier is not available.")
+    remaining = locked.remaining_capacity
+    if remaining < qty:
+        raise TicketCapacityError(
+            f"Only {remaining} ticket(s) remaining for this tier."
+        )
+    total_due = Decimal(str(locked.price or 0)) * qty
+    status = (
+        EventRegistration.Status.CONFIRMED
+        if total_due <= 0
+        else EventRegistration.Status.RESERVED
+    )
+    registration = EventRegistration.objects.create(
+        event=event,
+        ticket_tier=locked,
+        purchaser=purchaser,
+        attendee_name=purchaser.get_full_name() or purchaser.username,
+        attendee_email=getattr(purchaser, "email", "") or "",
+        quantity=qty,
+        amount_due=total_due,
+        amount_paid=Decimal("0.00"),
+        status=status,
+    )
+    EventTicketTier.objects.filter(pk=locked.pk).update(
+        sold_quantity=F("sold_quantity") + qty
+    )
+    return registration

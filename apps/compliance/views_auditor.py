@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-from django.contrib.admin.views.decorators import staff_member_required
 from apps.schools.control_plane import require_control_plane_access
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render

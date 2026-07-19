@@ -92,7 +92,8 @@ def _school_automation_rows(school) -> list[dict]:
 def _tenant_template_rows(school) -> list[dict]:
     rows: list[dict] = []
     try:
-        from apps.siteconfig.models_workflow import TenantWorkflow
+        # Bounded-context owner surface (lint_siteconfig_legacy_imports).
+        from apps.runtime_blueprints.models import TenantWorkflow
 
         last = _last_runs(
             "apps.siteconfig.models_workflow.WorkflowRunLog",

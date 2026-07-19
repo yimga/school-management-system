@@ -531,7 +531,7 @@ backend-shell dashboard-page-backend
 
         {% if backend_module_visibility.welcome %}
         <div class="backend-v2-welcome" data-widget-id="backend-v2-welcome">
-          <div class="backend-role-home">
+          <div class="backend-role-home backend-role-home-panel" data-rmc-backend-role-home-panel="1">
             {% if first_login_tour_show %}
             {% include "partials/onboarding_what_next.html" %}
             {% endif %}

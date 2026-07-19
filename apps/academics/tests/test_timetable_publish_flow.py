@@ -48,7 +48,17 @@ _TENANT_URLCONF = "config.tenant_urls"
 class _TimetableGraphMixin:
     """Builds a realistic, conflict-solvable academic graph for one school."""
 
-    def build_graph(self, school, uid, *, subject_names=("Math", "English", "Science")):
+    def build_graph(
+        self,
+        school,
+        uid,
+        *,
+        subject_names=("Math", "English", "Science"),
+        classroom_codes=("A", "B"),
+        days=4,
+        period_hours=(8, 10),
+        room_count=4,
+    ):
         year = AcademicYear.objects.create(
             school=school,
             name=f"2025/2026-{uid}",
@@ -77,7 +87,7 @@ class _TimetableGraphMixin:
                 name=f"Form {n}",
                 code=f"F{n}-{uid}",
             )
-            for n in ("A", "B")
+            for n in classroom_codes
         ]
         # One shared teacher per subject (taught in both classrooms) so the
         # generator must actively spread each teacher across distinct slots.
@@ -111,12 +121,12 @@ class _TimetableGraphMixin:
             Room.objects.create(
                 name=f"Room {i}-{uid}", room_type="CLASSROOM", capacity=40
             )
-            for i in range(4)
+            for i in range(room_count)
         ]
-        # 4 days x 2 periods = 8 active slots — ample for 6 demands.
+        # Default: 4 days x 2 periods = 8 active slots — ample for 6 demands.
         slots = []
-        for d in range(4):
-            for start_h in (8, 10):
+        for d in range(days):
+            for start_h in period_hours:
                 slot, _created = TimeSlot.objects.get_or_create(
                     day_of_week=d,
                     start_time=time(start_h, 0),
@@ -176,6 +186,50 @@ class TimetableGeneratorRealisticTests(_TimetableGraphMixin, TestCase):
             metrics["hard_violations_total"],
             0,
             f"expected a conflict-free schedule, got {metrics['hard_violations']}",
+        )
+
+
+class TimetableGeneratorLoadFixtureTests(_TimetableGraphMixin, TestCase):
+    """Metric 15 residual — solver stays conflict-free under a larger fixture.
+
+    4 cohorts × 5 subjects = 20 demands, 5 days × 4 periods = 20 slots, 8 rooms.
+    Shared teachers still force real slot spreading (not a trivial 1:1 map).
+    """
+
+    def setUp(self):
+        self.uid = uuid.uuid4().hex[:8]
+        self.school = School.objects.create(
+            name=f"Load School {self.uid}",
+            slug=f"load-{self.uid}",
+            subdomain=f"load-{self.uid}",
+            is_active=True,
+        )
+        self.admin = User.objects.create_user(
+            username=f"load_admin_{self.uid}",
+            password="Test1234",
+            role=User.Role.ADMIN,
+        )
+        self.graph = self.build_graph(
+            self.school,
+            self.uid,
+            subject_names=("Math", "English", "Science", "History", "French"),
+            classroom_codes=("A", "B", "C", "D"),
+            days=5,
+            period_hours=(8, 10, 12, 14),
+            room_count=8,
+        )
+
+    def test_load_fixture_places_all_demands_conflict_free(self):
+        self.assertEqual(len(self.graph["assignments"]), 20)
+        self.assertGreaterEqual(len(self.graph["slots"]), 20)
+        generator = TimetableGenerator(self.graph["year"], self.graph["term"])
+        schedule = generator.generate_schedule(created_by=self.admin)
+        self.assertEqual(schedule.entries.count(), 20)
+        metrics = evaluate_schedule(schedule)
+        self.assertEqual(
+            metrics["hard_violations_total"],
+            0,
+            f"load fixture hard violations: {metrics['hard_violations']}",
         )
 
 
@@ -276,6 +330,46 @@ class TimetablePublishFlowViewTests(_TimetableGraphMixin, TestCase):
         schedule.refresh_from_db()
         self.assertEqual(schedule.status, "DRAFT", "publish must be refused on clash")
         self.assertIsNone(schedule.published_at)
+
+    def test_cancel_entry_clears_hard_clash(self):
+        admin = self._member(role=User.Role.ADMIN)
+        schedule = Schedule.objects.create(
+            name="CancelClash",
+            academic_year=self.graph["year"],
+            term=self.graph["term"],
+            status="DRAFT",
+            created_by=admin,
+        )
+        cohort = self.graph["classrooms"][0]
+        slot = self.graph["slots"][0]
+        first = ScheduleEntry.objects.create(
+            schedule=schedule,
+            classroom=cohort,
+            subject=self.graph["subjects"][0],
+            teacher=self.graph["teachers"][self.graph["subjects"][0].id],
+            room=self.graph["rooms"][0],
+            time_slot=slot,
+        )
+        ScheduleEntry.objects.create(
+            schedule=schedule,
+            classroom=cohort,
+            subject=self.graph["subjects"][1],
+            teacher=self.graph["teachers"][self.graph["subjects"][1].id],
+            room=self.graph["rooms"][1],
+            time_slot=slot,
+        )
+        self.assertGreater(evaluate_schedule(schedule)["hard_violations_total"], 0)
+        resp = self._client(admin).post(
+            self._url(
+                "academics:timetable_cancel_entry",
+                schedule_id=schedule.id,
+                entry_id=first.id,
+            )
+        )
+        self.assertEqual(resp.status_code, 302)
+        first.refresh_from_db()
+        self.assertTrue(first.is_cancelled)
+        self.assertEqual(evaluate_schedule(schedule)["hard_violations_total"], 0)
 
     def test_publish_succeeds_for_clean_schedule(self):
         admin = self._member(role=User.Role.ADMIN)

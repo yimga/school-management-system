@@ -167,7 +167,7 @@ KNOWN_GAPS = {
         "NO-OP: soft-log only unless DATA_RESIDENCY_ENFORCE, which render.yaml does not set. "
         "Wire it alongside the flag flip it belongs to, not before.",
     "apps.platform_runtime.middleware_regional_db.RegionalDatabaseMiddleware":
-        "NO-OP: ENABLE_MULTI_REGION=False. M27 region replicas are external anyway.",
+        "ALIAS-NO-OP when ENABLE_MULTI_REGION=False; residency enforce still runs if DATA_RESIDENCY_ENFORCE. M27 physical replicas EXTERNAL.",
     "apps.api.middleware_edge_fallback.EdgeSWRFallbackMiddleware":
         "NO-OP: RMC_EDGE_FALLBACK_ENABLED unset in render.yaml.",
 }

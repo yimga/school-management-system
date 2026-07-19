@@ -1,12 +1,16 @@
-from decimal import Decimal
-
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from apps.school_events.models import EventRegistration, EventTicketTier, SchoolEvent
-from apps.school_events.services import event_operations_snapshot
+from apps.school_events.models import EventTicketTier, SchoolEvent
+from apps.school_events.services import (
+    TicketCapacityError,
+    event_operations_snapshot,
+    register_for_tier,
+)
 
 
 def _current_school(request):
@@ -65,27 +69,21 @@ def register_for_event(request, slug):
         return HttpResponseForbidden("Ticketing is not enabled for this event.")
 
     ticket_tier_id = request.POST.get("ticket_tier_id")
-    quantity = max(int(request.POST.get("quantity", 1) or 1), 1)
+    try:
+        quantity = max(int(request.POST.get("quantity", 1) or 1), 1)
+    except (TypeError, ValueError):
+        quantity = 1
     tier = get_object_or_404(
         EventTicketTier, event=event, pk=ticket_tier_id, is_active=True
     )
-    total_due = Decimal(str(tier.price or 0)) * quantity
-    status = (
-        EventRegistration.Status.CONFIRMED
-        if total_due <= 0
-        else EventRegistration.Status.RESERVED
-    )
-    EventRegistration.objects.create(
-        event=event,
-        ticket_tier=tier,
-        purchaser=request.user,
-        attendee_name=request.user.get_full_name() or request.user.username,
-        attendee_email=request.user.email or "",
-        quantity=quantity,
-        amount_due=total_due,
-        amount_paid=Decimal("0.00"),
-        status=status,
-    )
-    tier.sold_quantity += quantity
-    tier.save(update_fields=["sold_quantity", "updated_at"])
+    try:
+        register_for_tier(
+            event=event,
+            tier=tier,
+            purchaser=request.user,
+            quantity=quantity,
+        )
+        messages.success(request, _("Registration recorded."))
+    except TicketCapacityError as exc:
+        messages.error(request, str(exc))
     return redirect("school_events:event_detail", slug=event.slug)

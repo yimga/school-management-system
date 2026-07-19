@@ -4,7 +4,8 @@ Phase 9 (+ v2.90): OR-tools timetabling solver.
 DEPLOYMENT REALITY — READ THIS FIRST
 ------------------------------------
 ``ortools`` is NOT a declared dependency of this project (it is intentionally
-absent from ``requirements.txt``), so in every deployed environment
+absent from ``requirements.txt``; the opt-in pin lives in
+``requirements_optional.txt``), so in every deployed environment
 ``_ortools_available()`` returns ``False`` and the CP-SAT path
 (``_solve_with_ortools``) DOES NOT RUN. The real, wired production solver for
 ``generate_timetable_with_solver`` is the Django-model CSP generator
@@ -13,14 +14,14 @@ what the Celery task, the ``solve_timetable`` management command, and the v1
 REST endpoint actually execute today.
 
 The CP-SAT code below is kept as a real, ready implementation that activates
-ONLY if an operator deliberately installs ``ortools`` into their own
-environment. It is dormant-by-default, not dead theater: when ortools is
-absent ``generate_timetable_with_solver`` transparently and intentionally uses
-``TimetableGenerator``. (Note: ``apps.academics.timetable_solver`` is a
-SEPARATE, standalone in-memory backtracking solver kept for its unit tests;
-its JSON-console view was retired when the in-product timetable surface
-converged onto the persisting Stack-A generate/review/publish flow. It is NOT
-the fallback for this module.)
+ONLY if an operator deliberately installs ``ortools`` (for example
+``pip install -r requirements_optional.txt``). It is dormant-by-default, not
+dead theater: when ortools is absent ``generate_timetable_with_solver``
+transparently and intentionally uses ``TimetableGenerator``. (Note:
+``apps.academics.timetable_solver`` is a SEPARATE, standalone in-memory
+backtracking solver kept for its unit tests; its JSON-console view was retired
+when the in-product timetable surface converged onto the persisting Stack-A
+generate/review/publish flow. It is NOT the fallback for this module.)
 
 Constraint set the CP-SAT model enforces WHEN ortools is installed (hard,
 fail-if-violated):

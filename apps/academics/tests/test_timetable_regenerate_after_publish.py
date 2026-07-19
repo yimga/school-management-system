@@ -1,22 +1,10 @@
-"""Regression: regenerating a timetable after one is PUBLISHED must not crash.
+"""Regression: regenerating a timetable after one is PUBLISHED must not crash
+AND must not destroy the live published plan.
 
-The generate view's "fresh slate" cleanup used to delete only status="DRAFT"
-schedules. But the term-wide ScheduleEntry unique constraints
-(uniq_schedentry_{teacher,room}_slot_termwide) key on (term, teacher/room,
-time_slot) with condition is_cancelled=False and are STATUS-AGNOSTIC — so a
-surviving PUBLISHED schedule's entries collided with the regenerated ones,
-raising IntegrityError: a 500 that permanently blocked regenerating a term's
-timetable in-product. The cleanup now clears schedules of every status.
-
-UPDATE (2026-07-16): the delete-everything cleanup treated the symptom. The
-constraints themselves were scoped wrong — keyed on ``term`` when bookings live
-in a ``Schedule`` and a term legitimately holds many (drafts, candidates, the
-published plan). That forced this trade: destroy the live timetable to make room
-for an unreviewed draft, and give up ``compare_schedules`` entirely. Migration
-0066 rescopes the uniques to the PLAN, so a draft may now coexist with the
-published plan it is meant to replace. The cleanup below is kept — a regenerate
-that replaces the term's plans is still reasonable product behaviour — but it is
-no longer load-bearing for correctness. See ScheduleEntry.Meta.
+The generate view's cleanup used to delete every schedule for the term
+(draft AND published). Migration 0066 rescopes uniqueness to the plan, so a
+draft may coexist with the published timetable — regenerate now clears DRAFT
+rows only; publish demotes rivals via ``Schedule.publish()``.
 """
 
 from __future__ import annotations
@@ -48,30 +36,31 @@ class RegenerateAfterPublishTests(_TimetableGraphMixin, TestCase):
         )
         self.graph = self.build_graph(self.school, self.uid)
 
-    def _delete_all_for_term(self):
-        # Mirrors the FIXED views_timetable.timetable_generate "fresh slate" cleanup.
+    def _delete_drafts_for_term(self):
+        # Mirrors views_timetable.timetable_generate draft-only cleanup.
         Schedule.objects.filter(
             academic_year=self.graph["year"],
             term=self.graph["term"],
             academic_year__school=self.school,
+            status="DRAFT",
         ).delete()
 
-    def test_regenerate_after_publish_succeeds(self):
+    def test_regenerate_after_publish_preserves_published(self):
         gen = TimetableGenerator(self.graph["year"], self.graph["term"])
         first = gen.generate_schedule(created_by=self.admin)
         first.publish()
         self.assertEqual(first.status, "PUBLISHED")
         self.assertGreater(first.entries.count(), 0)
 
-        # Regenerate: clear ALL schedules for the term (the fix), then generate
-        # again — the previously-published entries no longer exist to collide on
-        # the status-agnostic term-wide unique constraints.
-        self._delete_all_for_term()
+        # Regenerate clears drafts only — the live published plan stays.
+        self._delete_drafts_for_term()
         second = gen.generate_schedule(created_by=self.admin)
         self.assertEqual(second.status, "DRAFT")
         self.assertGreater(second.entries.count(), 0)
-        # The published schedule was replaced, not left dangling.
-        self.assertFalse(Schedule.objects.filter(pk=first.pk).exists())
+        first.refresh_from_db()
+        self.assertEqual(first.status, "PUBLISHED")
+        self.assertTrue(Schedule.objects.filter(pk=first.pk).exists())
+        self.assertNotEqual(first.pk, second.pk)
 
     def test_a_draft_may_now_coexist_with_the_published_plan(self):
         """The inverse of what this test used to assert — deliberately.

@@ -42,7 +42,6 @@ function before this file.
 from __future__ import annotations
 
 from datetime import date
-from decimal import Decimal
 
 from django.test import TestCase
 

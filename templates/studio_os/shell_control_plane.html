@@ -8,6 +8,20 @@
 {% include "studio_os/partials/shell_extrastyle.html" %}
 <link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
 <link rel="stylesheet" href="{% static 'css/studio-focus-layout.css' %}">
+{% comment %} Manager path uses this shell instead of modes/*.html — keep mode cockpit CSS here. {% endcomment %}
+{% if not current_mode %}
+<link rel="stylesheet" href="{% static 'css/studio-overview-cockpit.css' %}">
+{% elif current_mode == "control" %}
+<link rel="stylesheet" href="{% static 'css/studio-control-cockpit.css' %}">
+{% elif current_mode == "launch" %}
+<link rel="stylesheet" href="{% static 'css/studio-launch-cockpit.css' %}">
+{% elif current_mode == "output" %}
+<link rel="stylesheet" href="{% static 'css/studio-output-cockpit.css' %}">
+{% elif current_mode == "automation" %}
+<link rel="stylesheet" href="{% static 'css/studio-automation-cockpit.css' %}">
+{% elif current_mode == "experience" %}
+<link rel="stylesheet" href="{% static 'css/studio-experience-mode.css' %}">
+{% endif %}
 {% endblock %}
 
 {% block cp_layout_attrs %}data-rmc-studio-focus="1"{% endblock %}

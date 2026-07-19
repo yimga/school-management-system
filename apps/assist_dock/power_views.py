@@ -18,7 +18,6 @@ from __future__ import annotations
 import json
 import logging
 
-from django.contrib.admin.views.decorators import staff_member_required
 from apps.schools.control_plane import require_control_plane_access
 from services.http_auth_guards import login_required_api as login_required
 from django.http import HttpResponseBadRequest, JsonResponse

@@ -18,7 +18,6 @@ import logging
 from datetime import timedelta
 from urllib.parse import urlencode
 
-from django.contrib.admin.views.decorators import staff_member_required
 from apps.schools.control_plane import require_control_plane_access
 from django.shortcuts import redirect, render
 from django.urls import reverse

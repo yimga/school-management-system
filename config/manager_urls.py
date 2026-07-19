@@ -632,6 +632,11 @@ urlpatterns = [
     # Language switcher (Django i18n) — must exist on every host urlconf or the
     # platform-wide "Translate this page" form + error-page links raise NoReverseMatch.
     path("i18n/setlang/", __import__("django.views.i18n", fromlist=["set_language"]).set_language, name="set_language"),
+    path(
+        "i18n/setlang/persist/",
+        __import__("apps.accounts.views_i18n", fromlist=["set_language_persist"]).set_language_persist,
+        name="set_language_persist",
+    ),
     path("", manager_home, name="home"),
     path("", manager_home, name="manager_home"),
     # Universal command bar (v3.53.0): mirror of config.urls path so the

@@ -55,7 +55,7 @@ Source-of-truth: `config/settings.py` lines 117, 251-296, 633-707, 1448-1505.
 - `Cross-Origin-Opener-Policy: same-origin`.
 - `Cross-Origin-Resource-Policy: same-site`.
 - `X-Content-Type-Options: nosniff`.
-- **Content-Security-Policy**: served by `apps.security.csp_middleware.ContentSecurityPolicyMiddleware`. Currently report-only (`CSP_ENFORCE=0`); violations posted to `/security/csp-report/` for tuning. Flip to enforce mode after the inline-style/script footprint is closed (tracked separately).
+- **Content-Security-Policy**: served by `apps.security.csp_middleware.ContentSecurityPolicyMiddleware`. **Enforce mode by default** (`CSP_ENFORCE=1`); set `CSP_ENFORCE=0` to fall back to Report-Only. Per-request nonces are emitted on both `script-src` and `style-src`. Violations post to `/security/csp-report/`. `/admin/`, `/static/`, and `/media/` bypass CSP.
 
 ### Authentication
 - Password hashing: **Argon2** (`argon2-cffi>=23.1.0`) — preferred over PBKDF2 for new accounts; PBKDF2 fallback verifies legacy hashes and rehashes to Argon2 on next login.

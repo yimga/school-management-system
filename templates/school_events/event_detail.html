@@ -1,9 +1,7 @@
 {% extends "backend_base.html" %}
-{% load region_format %}
-
-{% load region_format %}
+{% load i18n region_format %}
 {% block title %}{{ event.title }}{% endblock %}
-{% block backend_title %}Event Detail{% endblock %}
+{% block backend_title %}{% trans "Event Detail" %}{% endblock %}
 
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -12,7 +10,7 @@
 {% include "components/next_action_strip.html" %}
 
 <div class="container-fluid py-2">
-  <a href="{% url 'school_events:event_hub' %}" class="btn btn-outline-secondary btn-sm mb-3">Back to events</a>
+  <a href="{% url 'school_events:event_hub' %}" class="btn btn-outline-secondary btn-sm mb-3">{% trans "Back to events" %}</a>
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
@@ -22,32 +20,36 @@
           <div class="text-muted">{{ event.start_at|format_date:"YYYY-MM-DD" }} {{ event.start_at|time:"H:i" }}{% if event.end_at %} to {{ event.end_at|format_date:"YYYY-MM-DD" }} {{ event.end_at|time:"H:i" }}{% endif %}{% if event.venue %} | {{ event.venue.name }}{% endif %}</div>
         </div>
         <div class="text-end">
-          {% if event.sponsorship_enabled %}<div class="small text-muted">Fundraising goal</div><div class="h5">{{ event.fundraising_goal|format_currency }}</div>{% endif %}
+          {% if event.sponsorship_enabled %}<div class="small text-muted">{% trans "Fundraising goal" %}</div><div class="h5">{{ event.fundraising_goal|format_currency }}</div>{% endif %}
         </div>
       </div>
       {% if event.description %}<p>{{ event.description }}</p>{% endif %}
 
       <div class="row g-4">
         <div class="col-12 col-lg-6">
-          <h2 class="h5">Ticket tiers</h2>
+          <h2 class="h5">{% trans "Ticket tiers" %}</h2>
           <ul class="list-group">
             {% for tier in event.ticket_tiers.all %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <div>
                 <strong>{{ tier.name }}</strong>
-                <div class="small text-muted">{{ tier.currency_code }} {{ tier.price|floatformat:2 }} | Remaining {{ tier.remaining_capacity }}</div>
+                <div class="small text-muted">{{ tier.currency_code }} {{ tier.price|floatformat:2 }} | {% blocktrans with n=tier.remaining_capacity %}Remaining {{ n }}{% endblocktrans %}</div>
               </div>
               {% if event.ticketing_enabled %}
-              <form method="post" action="{% url 'school_events:register_for_event' slug=event.slug %}" class="d-flex gap-2">
-                {% csrf_token %}
-                <input type="hidden" name="ticket_tier_id" value="{{ tier.id }}">
-                <input type="number" name="quantity" min="1" value="1" class="form-control form-control-sm" style="width: 80px;">
-                <button type="submit" class="btn btn-primary btn-sm">Reserve</button>
-              </form>
+                {% if tier.remaining_capacity > 0 %}
+                <form method="post" action="{% url 'school_events:register_for_event' slug=event.slug %}" class="d-flex gap-2">
+                  {% csrf_token %}
+                  <input type="hidden" name="ticket_tier_id" value="{{ tier.id }}">
+                  <input type="number" name="quantity" min="1" max="{{ tier.remaining_capacity }}" value="1" class="form-control form-control-sm" style="width: 80px;"><!-- inline-style-allow: compact-qty-input-width -->
+                  <button type="submit" class="btn btn-primary btn-sm">{% trans "Reserve" %}</button>
+                </form>
+                {% else %}
+                <span class="badge text-bg-secondary">{% trans "Sold out" %}</span>
+                {% endif %}
               {% endif %}
             </li>
             {% empty %}
-            <li class="list-group-item text-muted">No ticket tiers configured.</li>
+            <li class="list-group-item text-muted">{% trans "No ticket tiers configured." %}</li>
             {% endfor %}
           </ul>
         </div>

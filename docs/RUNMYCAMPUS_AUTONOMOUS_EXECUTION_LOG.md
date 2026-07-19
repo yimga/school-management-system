@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Prompt A Wave 31 pre_deploy closeout (batch 1768 - 2026-07-19)
+
+**A. Scope:** Clear Wave 30 residual: `pre_deploy` tail red (admin UI smoke urlconf, UX public routes, MT suite, release readiness / six-pillar timeouts on Windows SQLite).
+
+**B. Shipped:** Admin smoke explicit `urlconf=` reverses; `set_language_persist` on `public_urls` + `manager_urls`; UX markers (`backend-role-home-panel`, Migration cloud i18n); MT wizard `?legacy=1` + session + keepdb-safe `CountryRegistry` get_or_create; celery Term.filter same-line `school=` + comment false-positive fix; five_pillar `--keepdb` + `_ensure_pillar_quick_db` integrity/backup seed; refreshed `docs/generated/pre_deploy_gate_run.txt` + `A_PLUS_PROGRESS` Wave 31 / Prompt B delta.
+
+**C. Proof:** Phase checks 45 OK; UX completion passed; MT 36 OK; ruff F401/F841 PASS; CSS compare 0→0; celery scoping compare 0; inventory check 0; six-pillar `--write --run-tests` 10/10; release readiness A/B/C/D DONE (106+4 pytest); `verify_pre_deploy_gate_record` PASS (4255 bytes).
+
+**D. Honest:** Full monolithic `pre_deploy_gate.sh` wall-to-wall not re-run this session (orphan SQLite contention); Wave 31 re-proved the previously red tail + release readiness. Remaining A+ ≥98 gaps are EXTERNAL (Lighthouse, Actions Postgres, PSP, S3, pilots).
+
+**E. Files:** `test_admin_ui_smoke.py`, `public_urls.py`, `manager_urls.py`, backend/migrate templates, `test_tenant_isolation_and_provisioning.py`, `apps/schools/tasks.py`, `verify_five_pillar_platform_completion.py`, `pre_deploy_gate_run.txt`, `A_PLUS_PROGRESS.md`.
+
+**F. Next:** EXTERNAL-gated only for true A+ GO; commit when asked.
+
 ## Slice — Intrusive fluff burn (Migration Cloud rmc-lede + residuals) (batch 1767 - 2026-07-19)
 
 **A. Scope:** User demanded another intrusive audit that catches all fluff and implements approved Core vs Context fingertip education — including the batch 1766 Migration Cloud `rmc-lede` residual — across ALL operator/tenant surfaces.

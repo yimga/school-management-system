@@ -20,12 +20,18 @@ generator keeps the surface useful on hosts where OR-Tools is not
 installed.
 
 Exit code 0 on success, 1 when no schedule could be produced.
+
+``--dry-run`` runs the solver inside ``transaction.atomic()`` and marks
+the transaction for rollback so no Schedule/ScheduleEntry rows persist.
+(A bare ``savepoint()`` outside ``atomic()`` is a no-op under autocommit
+and historically left dry-run writes committed.)
 """
 
 from __future__ import annotations
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 
 from apps.academics.scheduling_solver import (
     _ortools_available,
@@ -59,38 +65,34 @@ class Command(BaseCommand):
                 "OR-Tools not installed — falling back to CSP-style TimetableGenerator."
             ))
 
-        from django.db import transaction
-
-        savepoint = transaction.savepoint() if opts.get("dry_run") else None
+        dry_run = bool(opts.get("dry_run"))
         try:
-            schedule = generate_timetable_with_solver(
-                academic_year=year,
-                term=term,
-                created_by=created_by,
-                use_ortools=use_ortools,
-            )
+            with transaction.atomic():
+                schedule = generate_timetable_with_solver(
+                    academic_year=year,
+                    term=term,
+                    created_by=created_by,
+                    use_ortools=use_ortools,
+                )
+                if schedule is None:
+                    self.stderr.write(self.style.ERROR(
+                        "Solver produced no schedule (no rooms / time slots / demands)."
+                    ))
+                    raise SystemExit(1)
+
+                entry_count = getattr(schedule, "entries", None)
+                entry_count = entry_count.count() if entry_count is not None else "?"
+                suffix = " (dry-run, rolled back)" if dry_run else ""
+                self.stdout.write(self.style.SUCCESS(
+                    f"schedule #{getattr(schedule, 'pk', '?')} entries={entry_count}"
+                    f" solver={'ortools' if use_ortools and _ortools_available() else 'csp'}{suffix}"
+                ))
+                if dry_run:
+                    transaction.set_rollback(True)
+        except SystemExit:
+            raise
         except Exception as exc:  # noqa: BLE001 — surface every failure mode
-            if savepoint:
-                transaction.savepoint_rollback(savepoint)
             raise CommandError(f"solve_timetable failed: {exc}") from exc
-
-        if schedule is None:
-            self.stderr.write(self.style.ERROR(
-                "Solver produced no schedule (no rooms / time slots / demands)."
-            ))
-            if savepoint:
-                transaction.savepoint_rollback(savepoint)
-            raise SystemExit(1)
-
-        entry_count = getattr(schedule, "entries", None)
-        entry_count = entry_count.count() if entry_count is not None else "?"
-        suffix = " (dry-run, rolled back)" if savepoint else ""
-        self.stdout.write(self.style.SUCCESS(
-            f"schedule #{getattr(schedule, 'pk', '?')} entries={entry_count}"
-            f" solver={'ortools' if use_ortools and _ortools_available() else 'csp'}{suffix}"
-        ))
-        if savepoint:
-            transaction.savepoint_rollback(savepoint)
 
     def _resolve_year(self, year_id: str):
         from django.apps import apps as django_apps

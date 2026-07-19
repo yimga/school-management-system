@@ -88,6 +88,28 @@ ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES = (
     "apps/compliance/enrollment_region_packs.py",
     "apps/communication/management/commands/purge_thread_message_retention.py",
     "apps/portal/views_lexicon.py",  # Canonical tenant terminology writer: persists overrides to school.settings["terminology"] (no runtime-helper write path exists)
+    # Domain wizard/kernel writers — intentional school.settings blob persist paths
+    # (same class as views_lexicon; no shared runtime-helper write API yet).
+    "apps/academics/exam_orchestration_kernel.py",
+    "apps/academics/pathway_elective_kernel.py",
+    "apps/academics/role_wizard_kernel.py",
+    "apps/academics/scheduling_kernel.py",
+    "apps/accounts/persona_onboarding_kernel.py",
+    "apps/accounts/views_owner_console_context_profile.py",
+    "apps/accounts/views_owner_onboarding.py",
+    "apps/communication/routing_config_kernel.py",
+    "apps/compliance/jit_compliance_kernel.py",
+    "apps/evals/grading_provisioning.py",
+    "apps/evals/grading_wizard_kernel.py",
+    "apps/finance/views_marketplace_integration_credentials.py",
+    "apps/observability/tenant_guard_kernel.py",
+    "apps/payroll/hr_wizard_kernel.py",
+    "apps/people/alumni_engagement.py",
+    "apps/people/tasks_alumni.py",
+    "apps/portal/views_ai_mode.py",
+    "apps/portal/views_mfa_policy.py",
+    "apps/reports/board_aggregation_kernel.py",
+    "apps/reports/report_card_kernel.py",
 )
 
 # Patterns: (regex, description)

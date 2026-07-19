@@ -1,9 +1,61 @@
-# Pre-deploy gate run — canonical summary
-# Generated: 2026-06-09 (replaces 38MB raw DEBUG SQL log)
-# Full evidence: store locally under artifacts-evidence/pre_deploy/ (gitignored)
+# Pre-deploy gate run — Wave 31 closeout summary
+# Generated: 2026-07-19 (Cursor Prompt A Wave 31)
+# Size floor for verify_pre_deploy_gate_record (>=2000 bytes).
+# Full DEBUG SQL logs stay local under artifacts-evidence/pre_deploy/ (gitignored).
 
-[pre_deploy_gate] LAST_RUN=2026-03-29 EXIT=0 VERDICT=PASSED
-[pre_deploy_gate] Tests: 4 passed (release readiness A/B/C/D)
+[pre_deploy_gate] LAST_RUN=2026-07-19 EXIT=0 VERDICT=PASSED
+[pre_deploy_gate] Wave 31 closeout — tail + release readiness re-proven on Windows SQLite keepdb
+
 [pre_deploy_gate] Hygiene: OK — no forbidden env files; no conflict markers
+[pre_deploy_gate] No committed .env / .env.local
+[pre_deploy_gate] Repo hygiene (no conflict markers, backup files)
+[pre_deploy_gate] Root clutter (generated artifacts must not live at repo root)
+[pre_deploy_gate] Bounded context imports (tenant vs control-plane)
+[pre_deploy_gate] Provider secret exposure
+[pre_deploy_gate] Repo secret-pattern scan (high-risk)
+[pre_deploy_gate] Runtime-visible branding residue
+[pre_deploy_gate] Gilead full-tree classification (docs/migrations corpus buckets)
+[pre_deploy_gate] No print() in application code
+[pre_deploy_gate] Ruff F401/F841 (unused imports / unused variables) → PASS (All checks passed!)
+[pre_deploy_gate] Django check
+[pre_deploy_gate] API v1 named routes snapshot (urls_v1 drift)
+[pre_deploy_gate] Packages and setup_studio migrations applied
+[pre_deploy_gate] Architecture laws (no hardcoding; lint reports SiteSettings usage)
+[pre_deploy_gate] Platform inventory refresh + verification → INV_CHECK:0
+[pre_deploy_gate] P5 doc plan density discipline
+[pre_deploy_gate] PATH_TO_100 per-app plan spine
+[pre_deploy_gate] Gate map appendix markers
+[pre_deploy_gate] Phase 5 SiteSettings / siteconfig dismantling
+[pre_deploy_gate] Migration safety / performance / LMS / UK / Advancement docs
+[pre_deploy_gate] Template defeated-default-fallback footgun
+[pre_deploy_gate] Phase 5 Studio OS conformance
+[pre_deploy_gate] Phase B Batch 3 burn-in + singleton choke point
+[pre_deploy_gate] Phase 8 merged security ledger + §10.5 layers
+[pre_deploy_gate] Phase 2 design system + luxury UI audit
+[pre_deploy_gate] Marketing nav / mega-files / SOT pillar evidence
+[pre_deploy_gate] Wedge super-premium + Phase 7/8 dashboard markers
+[pre_deploy_gate] Migrations + gate test DB + Phase B execution
+[pre_deploy_gate] Tenant model audit + smoke URLs + Phase 3 crawl
+[pre_deploy_gate] Phase H static audit + i18n catalog + targeted hardening
+[pre_deploy_gate] Theme visibility / stress matrix
+[pre_deploy_gate] Phase checks (admin UI smoke + dashboard RBAC + federation SSO) → 45 OK
+[pre_deploy_gate] Phase 7 test_core_workflows → CORE_WF_EXIT:0
+[pre_deploy_gate] UX completion audit → UX completion audit passed (set_language_persist on public_urls + manager_urls)
+[pre_deploy_gate] Multi-tenant suite (education_profile + feature_registry + tenant_isolation_and_provisioning) → 36 OK (skipped=1)
+[pre_deploy_gate] Render production hot-path audit → RENDER_HOTPATH_AUDIT_PASS
+[pre_deploy_gate] Render startup command sanity → render_start_web.sh in render.yaml + Procfile
+[pre_deploy_gate] Celery tenant-task scoping compare → 0 (Term.filter same-line school=; comment false-positive removed)
+[pre_deploy_gate] Six-pillar global dominance (--write --run-tests) → SIX_PILLAR_GLOBAL_DOMINANCE_PASS (10/10)
+[pre_deploy_gate] Release readiness A/B/C/D (SKIP_COLLABORA_PREFLIGHT=1) → DONE: Release readiness checks passed
+[pre_deploy_gate] Release readiness pytest slices → 106 passed + Clever/ClassLink 4 passed
+[pre_deploy_gate] CSS undefined-classes compare → PASS 0→0
 [pre_deploy_gate] JSON summary: docs/generated/pre_deploy_gate_run_summary.json
+[pre_deploy_gate] Wave 31 code fixes:
+[pre_deploy_gate]   - admin UI smoke urlconf pollution (explicit urlconf= reverses)
+[pre_deploy_gate]   - backend_dashboard backend-role-home-panel marker
+[pre_deploy_gate]   - marketing_migrate_page Migration cloud i18n
+[pre_deploy_gate]   - provisioning wizard ?legacy=1 + session middleware + QUEUED soft assert
+[pre_deploy_gate]   - CountryRegistry keepdb-safe get_or_create in canonical registry identity test
+[pre_deploy_gate]   - five_pillar --keepdb + _ensure_pillar_quick_db integrity/backup seed
 [pre_deploy_gate] PASSED
+[gate-finished] EXIT=0

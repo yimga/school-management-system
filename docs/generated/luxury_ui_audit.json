@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-07-17T16:16:41.051441+00:00",
-  "high_impact_templates_total": 272,
+  "generated_at": "2026-07-19T09:30:06.282547+00:00",
+  "high_impact_templates_total": 273,
   "inline_styles": {
-    "count": 48,
-    "needs_review_count": 48,
+    "count": 49,
+    "needs_review_count": 49,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -63,6 +63,7 @@
       "templates/reports/annual_report.html",
       "templates/reports/annual_report_cameroon.html",
       "templates/reports/annual_report_cameroon_modern.html",
+      "templates/reports/certificate_document.html",
       "templates/reports/evaluation_grid.html",
       "templates/reports/regulatory_export.html",
       "templates/reports/term_report.html",
@@ -841,8 +842,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 48,
-      "needs_review_count": 48,
+      "count": 49,
+      "needs_review_count": 49,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -851,6 +852,7 @@
         "templates/reports/annual_report.html",
         "templates/reports/annual_report_cameroon.html",
         "templates/reports/annual_report_cameroon_modern.html",
+        "templates/reports/certificate_document.html",
         "templates/reports/evaluation_grid.html",
         "templates/reports/regulatory_export.html",
         "templates/reports/term_report.html",

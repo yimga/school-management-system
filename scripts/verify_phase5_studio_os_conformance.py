@@ -157,8 +157,22 @@ def main(argv: list[str] | None = None) -> int:
     for label in ("Experience", "Automation", "Outputs", "Launch", "Control"):
         if label not in shell_text:
             errors.append(f"shell_main_content.html missing Studio mode label: {label}")
-    if "studio-command-palette-btn" not in shell_text or "studio-cmd-palette" not in shell_text:
-        errors.append("shell_main_content.html missing Studio command palette contract.")
+    # B1 (2026-06-22): studio-local #studio-cmd-palette retired; unified ⌘K via
+    # studio_command_pill.html (data-rmc-cmdk-trigger). Keep include + pill markers.
+    if "studio_os/partials/studio_command_pill.html" not in shell_text:
+        errors.append(
+            "shell_main_content.html missing Studio command pill include "
+            "(studio_os/partials/studio_command_pill.html)."
+        )
+    pill_path = (
+        root / "templates" / "studio_os" / "partials" / "studio_command_pill.html"
+    )
+    pill_text = _read(pill_path) if pill_path.is_file() else ""
+    if "data-rmc-cmdk-trigger" not in pill_text or "studio-cmd-pill" not in pill_text:
+        errors.append(
+            "studio_command_pill.html missing unified ⌘K trigger contract "
+            "(data-rmc-cmdk-trigger + studio-cmd-pill)."
+        )
 
     for marker in (
         "output_pane == 'dependency'",

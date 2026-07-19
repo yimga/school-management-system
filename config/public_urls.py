@@ -130,6 +130,13 @@ urlpatterns = [
     # Language switcher (Django i18n) — must exist on every host urlconf or the
     # platform-wide "Translate this page" form + error-page links raise NoReverseMatch.
     path("i18n/setlang/", __import__("django.views.i18n", fromlist=["set_language"]).set_language, name="set_language"),
+    # Persisting wrapper used by marketing + portal language switchers
+    # (templates/marketing/components/_language_switcher.html).
+    path(
+        "i18n/setlang/persist/",
+        __import__("apps.accounts.views_i18n", fromlist=["set_language_persist"]).set_language_persist,
+        name="set_language_persist",
+    ),
     path("", home, name="home"),
     # Alias for tooling/checklists that expect marketing_home (same view as home).
     path("", home, name="marketing_home"),

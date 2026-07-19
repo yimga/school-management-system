@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 
-from django.conf import settings
 from django.contrib import messages
 from apps.accounts.decorators import require_permission
 from django.contrib.auth.decorators import login_required

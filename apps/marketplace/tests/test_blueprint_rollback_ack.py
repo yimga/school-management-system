@@ -10,9 +10,17 @@ from apps.accounts.models import User
 from apps.policies.models import PolicyBundle, TenantBlueprint
 from apps.platform_runtime.models import PlatformEventLog
 from apps.schools.models import School
+from apps.schools.tests.manager_client import login_manager_control_plane
 
 
-@override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+@override_settings(
+    ALLOWED_HOSTS=["*"],
+    DEBUG=False,
+    SECURE_SSL_REDIRECT=False,
+    SESSION_COOKIE_SECURE=False,
+    CSRF_COOKIE_SECURE=False,
+    OPERATOR_MFA_REQUIRED_ON_MANAGER=False,
+)
 class BlueprintRollbackAckTests(TestCase):
     def setUp(self):
         self.school = School.objects.create(
@@ -44,7 +52,7 @@ class BlueprintRollbackAckTests(TestCase):
 
     def _post_rollback(self, **extra):
         c = Client()
-        c.force_login(self.superuser)
+        login_manager_control_plane(c, self.superuser, password="pw")
         data = {
             "action": "rollback",
             "school_id": str(self.school.pk),

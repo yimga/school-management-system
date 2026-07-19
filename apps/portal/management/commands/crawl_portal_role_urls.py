@@ -124,7 +124,7 @@ class Command(BaseCommand):
                 "teacher profile for probe user).\n"
             )
 
-        ensure_portal_smoke_probe_feature_permissions(users_by_role)
+        ensure_portal_smoke_probe_feature_permissions(users_by_role, school=school)
 
         for seed in PORTAL_ROLE_SMOKE_SEEDS:
             url_name = seed["url_name"]

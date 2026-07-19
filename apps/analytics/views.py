@@ -5,7 +5,6 @@ from decimal import Decimal, InvalidOperation
 import json
 import logging
 
-from django.conf import settings
 from django.db import DatabaseError
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required

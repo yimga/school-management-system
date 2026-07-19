@@ -1149,6 +1149,12 @@ TENANT_SNAPSHOT_PRIMARY_DIR = (
 TENANT_SNAPSHOT_SECONDARY_DIR = (
     os.getenv("TENANT_SNAPSHOT_SECONDARY_DIR", "") or ""
 ).strip()
+# When True, capture_daily_snapshot raises if both local roots share one device
+# AND no S3 bucket is configured (Metric #28 honesty). Default off so local/CI
+# dual-dir layout stays green; flip in prod once a real second store is mounted.
+TENANT_SNAPSHOT_REQUIRE_INDEPENDENT_STORES = (
+    os.getenv("TENANT_SNAPSHOT_REQUIRE_INDEPENDENT_STORES", "0") or ""
+).strip().lower() in ("1", "true", "yes")
 
 # Part F 16.4 / 16.6: Global edge and testing matrix (docs/architecture/global_edge_and_testing_matrix.md)
 EDGE_REGION_HEADER = os.getenv("EDGE_REGION_HEADER", "HTTP_X_REGION")
@@ -2802,31 +2808,25 @@ if os.getenv("ENABLE_AI_KNOWLEDGE_INDEX_BEAT", "").strip().lower() in ("1", "tru
     }
 
 # Platform health: operator-visible Celery+DB ticks (non-migration).
-if os.getenv("ENABLE_OPERATOR_VISIBILITY_HEARTBEAT_BEAT", "").strip().lower() in (
-    "1",
-    "true",
-    "yes",
-):
+# Default ON (Metric 22) — secret-free monitoring. Opt out with ENABLE_*=0/false/no.
+def _beat_enabled_default_on(env_name: str) -> bool:
+    raw = os.getenv(env_name, "1").strip().lower()
+    return raw not in ("0", "false", "no", "off")
+
+
+if _beat_enabled_default_on("ENABLE_OPERATOR_VISIBILITY_HEARTBEAT_BEAT"):
     CELERY_BEAT_SCHEDULE["operator-visibility-heartbeat-daily"] = {
         "task": "platform_runtime.operator_visibility_heartbeat",
         "schedule": 86400.0,
         "options": {"expires": 600},
     }
-if os.getenv("ENABLE_DATABASE_CONNECTIVITY_HEARTBEAT_BEAT", "").strip().lower() in (
-    "1",
-    "true",
-    "yes",
-):
+if _beat_enabled_default_on("ENABLE_DATABASE_CONNECTIVITY_HEARTBEAT_BEAT"):
     CELERY_BEAT_SCHEDULE["database-connectivity-heartbeat-daily"] = {
         "task": "platform_runtime.database_connectivity_heartbeat",
         "schedule": 86400.0,
         "options": {"expires": 300},
     }
-if os.getenv("ENABLE_AUTOMATION_FAILURE_TREND_BEAT", "").strip().lower() in (
-    "1",
-    "true",
-    "yes",
-):
+if _beat_enabled_default_on("ENABLE_AUTOMATION_FAILURE_TREND_BEAT"):
     CELERY_BEAT_SCHEDULE["automation-failure-trend-daily"] = {
         "task": "platform_runtime.automation_failure_trend_signal",
         "schedule": 86400.0,
@@ -3057,6 +3057,12 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    # URL namespaces ``api_v1`` / ``api_v2`` (path-mounted under /api/v1/, /api/v2/).
+    # NamespaceVersioning populates ``request.version`` from the include namespace
+    # so version-aware serializers/views can branch without re-parsing the path.
+    "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
+    "DEFAULT_VERSION": "api_v1",
+    "ALLOWED_VERSIONS": ("api", "api_v1", "api_v2"),
     # Pass 12: cursor pagination is opaque (clients can't skip pages or guess IDs)
     # and stable under inserts — better default for our high-write tenant tables.
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.CursorPagination",

@@ -4,7 +4,6 @@ Bursar queue for offline payment intents (SFDP 1425).
 
 from __future__ import annotations
 
-from django.conf import settings
 from django.contrib import messages
 from apps.accounts.decorators import require_permission
 from django.core.paginator import Paginator

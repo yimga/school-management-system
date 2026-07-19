@@ -344,6 +344,27 @@
 .rmc-readiness-train__slo--progress { color: var(--brand-primary); }
 .rmc-readiness-train__slo--warn { color: var(--brand-warning, var(--text-primary)); }
 
+/* S1 time-to-value chip (signup → operating), sibling to provisioning SLO */
+.rmc-readiness-train__ttv {
+  font-size: var(--type-size-micro, 0.7rem);
+  font-weight: 650;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-lg, 0.5rem);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+}
+.rmc-readiness-train__ttv.is-within-slo {
+  color: var(--brand-accent, var(--text-primary));
+  border-color: color-mix(in oklab, var(--brand-accent, var(--hairline)) 40%, var(--hairline));
+}
+.rmc-readiness-train__ttv.is-over-slo {
+  color: var(--brand-warning, var(--text-primary));
+}
+.rmc-readiness-train__ttv-flag {
+  margin-inline-start: 0.25rem;
+  font-weight: 500;
+}
+
 .rmc-readiness-train__meter {
   height: 0.5rem;
   border-radius: 999px;

@@ -138,24 +138,32 @@ Current honest state from the prior audit (your floor — push every one of thes
 
 **Already strong (protect, don't regress):** Tenant RLS isolation (real `FORCE` RLS + parameterized GUC + Postgres CI). Test/CI rigor (~10k tests, 237 gates, meta-gate). Offline two-rail (SODP+WAL). i18n breadth (20 locales). Security baseline (MFA, Argon2, CSP/HSTS, RBAC+ReBAC).
 
-**Overstated / partial / absent (THE WORK — fix to A+ end-to-end):**
-- **Grading:** registry of ~9 scales is real & wired, but the "polymorphic any-country formula engine" (`apps/evals/grading_formula_engine.py`) is **called only from tests** — not in the grade path (`apps/evals/signals.py` / `validators.py` use threshold columns). UK GCSE 9–1, IB 1–7, German 1–6, CBSE, etc. are not first-class.
-- **Report cards:** grades compute (`apps/reports/services.py`) but there is **no UI to render, approve, PDF, or distribute** a report card. **Core function gap.**
-- **EAV/metadata:** real storage (`apps/metadata/models.py`) but **no dynamic form rendering** (`apps/people/forms_backend.py` is a static ModelForm), **no report/search wiring**, and the country identity catalog (`apps/metadata/country_eav_catalog.py`) is **not auto-seeded at signup**. The siteconfig form bridge is a **no-op**.
-- **Billing/PPP:** engine real (`apps/billing/regional_pricing.py`) but `CountryMultiplier` **ships empty (no seed)** → defaults to 1×/USD; **PPP never scales tuition** (subscriptions only); local PSP gateways (Paystack/Flutterwave/MoMo/etc. in `apps/finance/gateways/`) are **config-gated stubs with no live HTTP** (only Stripe is live).
-- **Booking:** **zero** double-booking prevention — no `ExclusionConstraint`/`EXCLUDE USING`/gist anywhere. Blueprint promised gist exclusion.
-- **Discipline:** single `Incident` flag model — no points ledger, routing, or restorative tracking.
-- **Substitute marketplace:** manual `SubstituteCover` FK only — no auto-matching.
-- **Athletics/sports, inventory movement ledger:** absent/thin.
-- **Offline homework:** producer exists, **applier is a no-op + no UI surface** (latent).
-- **Security:** **no login rate-limiting / lockout** (`django-ratelimit` is already a dependency); ReBAC enforcement is opt-in (`RMC_REBAC_ENFORCE_SENSITIVE=0`); no `bandit`/SAST in CI.
-- **Infra:** **Celery runs eager/inline in prod** (`render.yaml` worker commented out) — no retries/durability; **main test suite runs on SQLite**, not Postgres.
+**Reconciled baseline (Wave 16 — 2026-07-18): closed vs still-open.**
+Do not re-litigate CLOSED rows as absent. Score residual work only.
 
-**Frontier moat (metrics 25–28) — verified current state (push to A+ end-to-end, not scaffolding):**
-- **CRDT/offline (25):** real CRDT modules exist (`apps/sync_engine/crdt.py`, `crdt_wallet.py`, `crdt_wire_protocol.py`, `conflict_resolver.py`, `views_crdt.py`, `verify_crdt_convergence`/`verify_sync_semantics` commands + tests) — but it is the **legacy** sync rail (WAL supersedes it) and **multi-day (5–7d) full-app offline read+write is NOT proven**. Make multi-day CRDT (or WAL-equivalent) the live, tested path.
-- **Micro-finance (26):** real `apps/finance/payment_plans.py`, `advanced_payments.py`, `wallet_payment`, `split_billing`, `family_billing_aggregator`, `regional_payment_profiles.json`, `country_readiness_register.py` — but local rails are **config-gated stubs (no live HTTP)** and **fractional/cash micro-ledger is absent**. Make ≥3 local rails live + build the fractional sub-ledger.
-- **Sovereignty (27):** governance/compliance scaffolding (`compliance/cross_border_export.py`, `governance/turbo/sovereignty_trust_score.py`, `residency-readiness.yml`) exists — but there is **no `DATABASE_ROUTERS`/multi-region storage routing** (single Postgres). Enforce residency at the data layer, not just policy.
-- **DR (28):** on-demand encrypted offboarding export + purge (`apps/lifecycle/models_purge.py`, `purge_operations.py`) exist — but **no daily automated immutable signed snapshot pipeline and no self-host runtime**. Build the daily pipeline + restore-proof + self-host runbook.
+**CLOSED (wired + proven — protect):**
+- **Grading formula path:** `grading_formula_engine` is called from live `apps/evals/grade_computation.py` (not tests-only). Scale registry coverage gate green; band/Playwright breadth still EXTERNAL/minor.
+- **Report cards:** render → approve → PDF (WeasyPrint) → parent portal download + E2E seeds exist (`apps/reports/`). Playwright teacher/parent soak remains CI/EXTERNAL.
+- **Booking:** `ExclusionConstraint` / gist present on resource booking models; Postgres double-book proof stays EXTERNAL.
+- **Discipline:** points ledger + restorative actions + counselor/MTSS paths real.
+- **Substitute marketplace:** auto-match + notify + WS client + absence auto-open wired (#12 A+).
+- **Athletics + inventory:** clubs/clearance + movement ledger (checkout/transfer/consume/loss) + append-only guard + family issued-items (`StudentResourceReturn` ↔ parent portal).
+- **EAV/metadata:** country catalog auto-seed at provision Phase B (IN/AE/CM proven) + fail-honesty; `School.save` country-change reseed; `StudentCreateForm`/`TeacherCreateForm` attach `dyn_*` fields (`test_dynamic_forms_runtime`).
+- **CERTIFICATE_STRINGS:** **20/20** locales (`test_localization`); msgstr depth for newly synced msgids remains.
+- **Login lockout / bandit / RBAC matrix:** rate-limit+lockout, SAST in CI, `candidate_anonymous=0` — ReBAC **enforce** still operator opt-in.
+- **Celery worker+beat:** scheduled in prod path; health beats default-ON (opt-out).
+- **Micro-finance partial:** fractional ledger + Razorpay/Mercado **live HTTP + fail-closed**; merchant sandbox secrets EXTERNAL.
+- **Sovereignty partial:** border-lock enforce **decoupled** from `ENABLE_MULTI_REGION`; physical region DB aliases EXTERNAL.
+- **DR partial:** daily signed snapshot dual-write + durability class honesty; real second volume/S3 EXTERNAL.
+
+**STILL OPEN (THE WORK):**
+- **EAV residual:** indexed search/report breadth for every country field remains PARTIAL polish (core form+provision+reseed CLOSED above).
+- **Billing/PPP:** CountryMultiplier / PPP opt-in paths exist; live multi-PSP sandbox charges + tuition PPP soak EXTERNAL/partial.
+- **Offline homework:** applier real on SODP/WAL; homework UI surface still latent per offline capability gate.
+- **Security residual:** `RMC_REBAC_ENFORCE_SENSITIVE=1` still operator-gated after flip-readiness gate.
+- **Infra residual:** Postgres CI + moat Playwright on GitHub Actions budget; restore-drill `--apply` ops proof.
+- **CRDT/offline (25):** lesson-plan browser Client callers wired; multi-day full-app CRDT convergence on Postgres + green moat CI still EXTERNAL/partial.
+- **Docs honesty:** Part 2 must stay reconciled with `A_PLUS_PROGRESS.md` (this section).
 
 ## PART 3 — THE A+ RUBRIC (every metric must reach ≥98 / A+)
 
@@ -183,7 +191,7 @@ Each metric is scored /100. **A+ = ≥98.** A metric is ≥98 only when **all** 
 | 18 | **Observability** | Structured logs (no PII), Sentry wired, Prometheus metrics, `/healthz` covers DB+cache+Celery+queue depth; error-budget/SLO doc; tracing on critical flows. |
 | 19 | **Data Privacy / Compliance** | FERPA/GDPR/COPPA mapping doc; DSAR export+erase end-to-end (already partial — complete it); data-residency switch honored; consent + retention policies enforced in code with tests. |
 | 20 | **API Quality** | DRF schema coverage gate=0; versioned, paginated, rate-limited, documented (OpenAPI), auth-gated; contract tests; deprecation policy. |
-| 21 | **Internationalization** | All 20 locales compile + no missing critical msgids on key flows; **`apps/reports/localization.py::CERTIFICATE_STRINGS` covers all 20 `settings.LANGUAGES` codes (today 6/20 — a school on `ar` gets a certificate stamped `language="ar"` rendered in English; `test_supported_languages_coverage` is the gate and stays RED until real translations land)**; RTL verified (Arabic/Hebrew/Farsi) via Playwright; locale number/date/currency formatting correct; pseudo-locale QA. |
+| 21 | **Internationalization** | All 20 locales compile + no missing critical msgids on key flows; **`apps/reports/localization.py::CERTIFICATE_STRINGS` covers all 20 `settings.LANGUAGES` codes (today 20/20 — gate green; residual is native msgstr depth for newly synced non-en msgids)**; RTL verified (Arabic/Hebrew/Farsi) via Playwright; locale number/date/currency formatting correct; pseudo-locale QA. |
 | 22 | **Infra / Reliability / DR** | Real Celery **worker+beat** in prod (retries+durability); backups + restore runbook tested; migration safety gate; graceful degradation when Redis/Celery down; documented capacity headroom. |
 | 23 | **Reference Integrity (no silent 500s)** | All integrity gates 0: import / get_model / url-name / template-ref / static-ref / settings-key / field-ref / relation-path. |
 | 24 | **Documentation & Runbooks** | Architecture, per-app READMEs current, runbooks for deploy/rollback/incident/offboarding; **no doc overstates delivered surface** (audited). |

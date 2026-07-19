@@ -41,7 +41,7 @@ from apps.academics.lms_services import (
     submit_assignment,
 )
 from apps.academics.models import AcademicYear, Classroom, Department, Subject, Term
-from apps.academics.models_lms import LMSAssignment, LMSSubmission
+from apps.academics.models_lms import LMSAssignment
 from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.schools.models import School

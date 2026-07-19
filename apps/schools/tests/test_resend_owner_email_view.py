@@ -14,7 +14,6 @@ from django.contrib.messages import get_messages
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
-from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.schools.models import School, SchoolMembership

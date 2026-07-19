@@ -47,14 +47,17 @@ _DEFAULT_DIRECTIVES: dict[str, tuple[str, ...]] = {
 def _build_policy(nonce: str = "") -> str:
     """Compose the CSP header value from settings overrides.
 
-    When ``nonce`` is supplied it is added to ``script-src`` as ``'nonce-<n>'``
-    so inline ``<script nonce="{{ csp_nonce }}">`` blocks are allowed WITHOUT
-    weakening the policy with ``'unsafe-inline'``. ``'self'`` is preserved, so
-    same-origin external scripts keep working — the nonce is strictly additive.
+    When ``nonce`` is supplied it is added to ``script-src`` AND ``style-src``
+    as ``'nonce-<n>'`` so inline ``<script nonce>`` / ``<style nonce>`` blocks
+    are allowed WITHOUT weakening the policy with ``'unsafe-inline'``. ``'self'``
+    is preserved, so same-origin external assets keep working — the nonce is
+    strictly additive.
     """
     directives = {k: list(v) for k, v in _DEFAULT_DIRECTIVES.items()}
     if nonce:
-        directives["script-src"].append(f"'nonce-{nonce}'")
+        token = f"'nonce-{nonce}'"
+        directives["script-src"].append(token)
+        directives["style-src"].append(token)
 
     # Cloudflare Turnstile (login bot-challenge) loads an external script AND
     # renders inside an iframe — allow its origin in script-src + frame-src,

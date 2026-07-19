@@ -5,7 +5,6 @@ Re-exported from views.py for URL wiring.
 
 from decimal import Decimal
 
-from django.conf import settings
 from django.contrib import messages
 from apps.accounts.decorators import require_permission
 from django.http import HttpRequest, HttpResponseForbidden

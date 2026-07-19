@@ -49,15 +49,35 @@ def portal_crawl_unresolved_host_message(*, host: str) -> str:
     )
 
 
-def ensure_portal_smoke_probe_feature_permissions(users_by_role: dict) -> None:
+def ensure_portal_smoke_probe_feature_permissions(
+    users_by_role: dict, *, school: "School | None" = None
+) -> None:
     """
-    Grant feature permissions required by ``PORTAL_ROLE_SMOKE_SEEDS`` for synthetic probe users.
+    Grant feature permissions + tenant membership for synthetic portal smoke probe users.
 
     ``accounts:backend_dashboard`` uses ``@permission_required("settings.manage")`` (feature
     permission code), not only ``is_staff``; principals without that code would hit the login
     redirect and fail gate crawls.
+
+    ``TenantHostMembershipMiddleware`` requires a ``SchoolMembership`` for non-superuser
+    authenticated hits on a tenant host — without it crawls bounce to the public login URL.
     """
     from apps.accounts.models import Permission, User
+    from apps.schools.models import SchoolMembership
+
+    if school is not None:
+        for role, user in users_by_role.items():
+            if user is None:
+                continue
+            role_value = getattr(role, "value", role) or "ADMIN"
+            membership, created = SchoolMembership.objects.get_or_create(
+                user=user,
+                school=school,
+                defaults={"role": str(role_value), "is_primary": True},
+            )
+            if not created and membership.role != str(role_value):
+                membership.role = str(role_value)
+                membership.save(update_fields=["role"])
 
     perm, _ = Permission.objects.get_or_create(
         code="settings.manage",

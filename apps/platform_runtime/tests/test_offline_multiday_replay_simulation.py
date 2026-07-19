@@ -177,3 +177,97 @@ class OfflineMultidayReplaySimulationTests(TestCase):
         self.assertGreaterEqual(result.get("synced", 0), 1)
         action.refresh_from_db()
         self.assertEqual(action.status, OfflineAction.Status.SYNCED)
+
+    def test_seven_day_offline_homework_and_notes_replay(self):
+        """Homework + narrative notes accumulate offline for a week, then sync."""
+        from apps.academics.lesson_homework_kernel import (
+            PUBLISHED,
+            advance_homework_stage,
+            create_homework,
+            store_homework,
+        )
+        from apps.people.models import StudentNote
+
+        hw = create_homework(
+            school_id=self.school.pk,
+            teacher_user_id=self.user.pk,
+            classroom_id=self.classroom.pk,
+            subject="Math",
+            title="Week pack",
+            instructions="Daily practice.",
+            assigned_student_ids=[self.student.pk],
+            due_date=None,
+        )
+        hw = advance_homework_stage(
+            homework=hw, target_stage=PUBLISHED, actor_user_id=self.user.pk
+        )
+        self.school.settings = store_homework(
+            school_settings=dict(self.school.settings or {}),
+            homework=hw,
+        )
+        self.school.save(update_fields=["settings", "updated_at"])
+
+        base = timezone.now() - timedelta(days=7)
+        action_ids: list[int] = []
+        for day_offset in range(7):
+            note_action = enqueue_offline_action(
+                user_id=self.user.pk,
+                school_id=self.school.pk,
+                action_type=OfflineAction.ActionType.NOTES_REPORT,
+                payload={
+                    "student_id": self.student.pk,
+                    "body": f"Day {day_offset} counselor note",
+                    "title": f"Note {day_offset}",
+                    "client_offline_id": f"md-note-{day_offset}-{self.school.pk}",
+                },
+                idempotency_key=f"md-note-{day_offset}-{self.school.pk}",
+            )
+            OfflineAction.objects.filter(pk=note_action.pk).update(
+                created_at=base + timedelta(days=day_offset, hours=9),
+            )
+            action_ids.append(note_action.pk)
+
+        hw_action = enqueue_offline_action(
+            user_id=self.user.pk,
+            school_id=self.school.pk,
+            action_type=OfflineAction.ActionType.HOMEWORK_SUBMISSION,
+            payload={
+                "homework_id": hw.homework_id,
+                "student_id": self.student.pk,
+                "submission_text": "Completed offline after 7 days of notes",
+            },
+            idempotency_key=f"md-hw-{self.school.pk}",
+        )
+        OfflineAction.objects.filter(pk=hw_action.pk).update(
+            created_at=base + timedelta(days=6, hours=18),
+        )
+        action_ids.append(hw_action.pk)
+
+        first = process_offline_queue(
+            school_id=self.school.pk,
+            user_id=self.user.pk,
+            limit=50,
+        )
+        self.assertGreaterEqual(first.get("synced", 0), 8)
+        self.assertEqual(
+            OfflineAction.objects.filter(
+                pk__in=action_ids,
+                status=OfflineAction.Status.SYNCED,
+            ).count(),
+            8,
+        )
+        self.assertEqual(
+            StudentNote.objects.filter(
+                school_id=self.school.pk,
+                student_id=self.student.pk,
+            ).count(),
+            7,
+        )
+        self.school.refresh_from_db()
+        subs = (
+            (self.school.settings or {})
+            .get("academics", {})
+            .get("homework_submissions", {})
+            .get(hw.homework_id, {})
+        )
+        self.assertIn(str(self.student.pk), subs)

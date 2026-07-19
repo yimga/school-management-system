@@ -33,7 +33,6 @@ from apps.finance.models import (
     Invoice,
     InvoiceLine,
     Payment,
-    PaymentMethodCode,
     WebhookLog,
 )
 from apps.people.models import StudentProfile

@@ -1,3 +1,4 @@
+import re
 import unittest
 import uuid
 from datetime import date
@@ -9,8 +10,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.utils import OperationalError
 from django.test import RequestFactory
-from django.test import TestCase
-from django.urls import reverse, set_urlconf
+from django.test import TestCase, override_settings
+from django.urls import get_urlconf, reverse, set_urlconf
 from django.utils import timezone
 
 from apps.accounts.models import Permission
@@ -51,11 +52,54 @@ from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
 from apps.siteconfig.models_platform_catalog import TenantAdmissionNumberPolicy
 from apps.siteconfig.models_tooling import UserPreference
 from apps.siteconfig.tests.test_admin import _admin_request_with_session_and_messages
-from config.admin import tenant_admin_site
+from config.admin import platform_admin_site, tenant_admin_site
 
 
 User = get_user_model()
 _TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
+
+_FORM_BEFORE_BLOCK = re.compile(
+    r"\{%\s*block\s+form_before\s*%\}(.*?)\{%\s*endblock\s*%\}",
+    re.DOTALL,
+)
+
+_SMOKE_MARKETPLACE_MANIFEST = {
+    "scopes": [],
+    "widgets": [],
+    "events_consumed": [],
+    "events_emitted": [],
+}
+
+
+def _form_before_block_is_empty_placeholder(text: str) -> bool:
+    """True when ``form_before`` is only the child-template placeholder (no CP escape content)."""
+    match = _FORM_BEFORE_BLOCK.search(text)
+    if not match:
+        return False
+    return not match.group(1).strip()
+
+
+_MANAGER_URLCONF = "config.manager_urls"
+_TENANT_URLCONF = "config.tenant_urls"
+_MANAGER_HOST = "manager.runmycampus.com"
+_TENANT_BASE_DOMAIN = "runmycampus.com"
+
+
+def _reverse_super(name, *args, **kwargs):
+    kwargs.setdefault("urlconf", _MANAGER_URLCONF)
+    return reverse(name, *args, **kwargs)
+
+
+def _reverse_tenant_admin(name, *args, **kwargs):
+    """Reverse under tenant_urls — Client middleware can leave thread-local on config.urls (no admin)."""
+    kwargs.setdefault("urlconf", _TENANT_URLCONF)
+    return reverse(name, *args, **kwargs)
+
+
+def _reverse_platform_admin(name, *args, **kwargs):
+    """Reverse under manager_urls — same middleware urlconf pollution hazard as tenant."""
+    kwargs.setdefault("urlconf", _MANAGER_URLCONF)
+    return reverse(name, *args, **kwargs)
 
 
 class _SidebarLinkParser(HTMLParser):
@@ -75,7 +119,18 @@ class _SidebarLinkParser(HTMLParser):
             self.links.append(href)
 
 
+@override_settings(
+    ROOT_URLCONF=_TENANT_URLCONF,
+    ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", _MANAGER_HOST],
+    MULTI_TENANT_BASE_DOMAIN=_TENANT_BASE_DOMAIN,
+)
 class AdminUiSmokeTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.site = get_platform_site_settings_record(create=True)
+        cls.smoke_school = cls._create_smoke_school(slug_suffix="client")
+        cls._tenant_host = f"{cls.smoke_school.subdomain}.{_TENANT_BASE_DOMAIN}"
+
     def _client_get_or_skip_stale_workflow_schema(self, path):
         """Avoid hard failures when a reused SQLite test DB predates WorkflowTemplate.certified (0135+)."""
         try:
@@ -90,56 +145,105 @@ class AdminUiSmokeTests(TestCase):
             raise
 
     def setUp(self):
-        self.site = get_platform_site_settings_record(create=True)
         self.factory = RequestFactory()
-        # Keep admin smoke assertions on the public/local admin path.
-        # Tenant hosts redirect /admin/* to the backend console, while local
-        # development may render the platform shell directly.
-        self.client.defaults["HTTP_HOST"] = "localhost"
+        self.client.defaults["HTTP_HOST"] = self._tenant_host
+        self._prev_urlconf = get_urlconf()
+        set_urlconf(_TENANT_URLCONF)
         self.superuser = User.objects.create_superuser(
-            username="admin-ui-super",
-            email="admin-ui-super@example.com",
+            username=f"admin-ui-super-{uuid.uuid4().hex[:8]}",
+            email=f"admin-ui-super-{uuid.uuid4().hex[:8]}@example.com",
             password="password",
         )
 
-    def test_admin_quick_access_links_are_resolvable(self):
+    def tearDown(self):
+        set_urlconf(self._prev_urlconf)
+        super().tearDown()
+
+    def _platform_change_form_body(self, model, pk) -> str:
+        """Render a platform-admin change form via RequestFactory (avoids manager Client auth redirects)."""
+        model_admin = platform_admin_site._registry[model]
+        path = _reverse_platform_admin(
+            f"admin:{model._meta.app_label}_{model._meta.model_name}_change",
+            args=[pk],
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "manager"
+        request.urlconf = _MANAGER_URLCONF
+        set_urlconf(_MANAGER_URLCONF)
+        try:
+            response = model_admin.change_view(request, str(pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            return response.content.decode("utf-8", errors="ignore")
+        finally:
+            set_urlconf(_TENANT_URLCONF)
+
+    def _login_tenant_admin_client(self):
+        self.client.defaults["HTTP_HOST"] = self._tenant_host
+        set_urlconf(_TENANT_URLCONF)
         self.client.force_login(self.superuser)
-        response = self.client.get(reverse("admin:index"))
+        set_urlconf(_TENANT_URLCONF)
+
+    def _smoke_marketplace_app(self, **overrides) -> MarketplaceApp:
+        base = {
+            "slug": overrides.pop("slug", f"p3-smoke-app-{uuid.uuid4().hex[:8]}"),
+            "name": overrides.pop("name", "P3 smoke marketplace app"),
+            "version": overrides.pop("version", "1.0.0"),
+            "manifest": overrides.pop("manifest", _SMOKE_MARKETPLACE_MANIFEST),
+            "is_intentionally_free": overrides.pop("is_intentionally_free", True),
+        }
+        base.update(overrides)
+        return MarketplaceApp.objects.create(**base)
+
+    def test_admin_quick_access_links_are_resolvable(self):
+        self._login_tenant_admin_client()
+        response = self.client.get(_reverse_tenant_admin("admin:index"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "admin-sidebar-quick-access")
         content = response.content.decode("utf-8", errors="ignore")
 
-        platform_quick_link = reverse("super:dashboard")
-        tenant_quick_link = reverse("accounts:backend_dashboard")
+        platform_quick_link = _reverse_super("super:dashboard")
+        tenant_quick_link = reverse(
+            "accounts:backend_dashboard", urlconf=_TENANT_URLCONF
+        )
 
         if platform_quick_link in content:
             self.assertContains(response, platform_quick_link)
             self.assertContains(response, "Control plane")
             quick_paths = [
-                reverse("admin:index"),
+                _reverse_tenant_admin("admin:index"),
                 platform_quick_link,
-                reverse("super:site_settings_edit", kwargs={"pk": self.site.pk}),
-                reverse("super:regions_list"),
-                reverse("admin:integrations_marketplace_integration_changelist"),
-                reverse("siteconfig:feature_control_panel"),
-                reverse("siteconfig:theme_colors"),
-                reverse("studio_os:output"),
-                reverse("super:blueprint_marketplace"),
-                reverse("manager_help"),
+                _reverse_super("super:site_settings_edit", kwargs={"pk": self.site.pk}),
+                _reverse_super("super:regions_list"),
+                _reverse_tenant_admin(
+                    "admin:integrations_marketplace_integration_changelist"
+                ),
+                reverse("siteconfig:feature_control_panel", urlconf=_TENANT_URLCONF),
+                reverse("siteconfig:theme_colors", urlconf=_TENANT_URLCONF),
+                reverse("studio_os:output", urlconf=_TENANT_URLCONF),
+                _reverse_super("super:blueprint_marketplace"),
+                reverse("manager_help", urlconf=_MANAGER_URLCONF),
             ]
         else:
             self.assertContains(response, tenant_quick_link)
             self.assertContains(response, "Backend Console")
             quick_paths = [
-                reverse("admin:index"),
-                reverse("admin:siteconfig_sitesettings_change", args=[self.site.pk]),
-                reverse("super:regions_list"),
-                reverse("admin:integrations_marketplace_integration_changelist"),
-                reverse("siteconfig:feature_control_panel"),
-                reverse("siteconfig:theme_colors"),
-                reverse("studio_os:output"),
-                reverse("kb:kb_home"),
-                reverse("portal:document_library_manage"),
+                _reverse_tenant_admin("admin:index"),
+                _reverse_tenant_admin(
+                    "admin:siteconfig_sitesettings_change", args=[self.site.pk]
+                ),
+                _reverse_super("super:regions_list"),
+                _reverse_tenant_admin(
+                    "admin:integrations_marketplace_integration_changelist"
+                ),
+                reverse("siteconfig:feature_control_panel", urlconf=_TENANT_URLCONF),
+                reverse("siteconfig:theme_colors", urlconf=_TENANT_URLCONF),
+                reverse("studio_os:output", urlconf=_TENANT_URLCONF),
+                reverse("kb:kb_home", urlconf=_TENANT_URLCONF),
+                reverse("portal:document_library_manage", urlconf=_TENANT_URLCONF),
                 tenant_quick_link,
             ]
 
@@ -194,8 +298,8 @@ class AdminUiSmokeTests(TestCase):
         )
 
     def test_admin_sidebar_child_links_are_resolvable(self):
-        self.client.force_login(self.superuser)
-        response = self.client.get(reverse("admin:index"))
+        self._login_tenant_admin_client()
+        response = self.client.get(_reverse_tenant_admin("admin:index"))
         self.assertEqual(response.status_code, 200)
 
         parser = _SidebarLinkParser()
@@ -226,18 +330,20 @@ class AdminUiSmokeTests(TestCase):
         )
 
         quick_paths = {
-            reverse("admin:index"),
-            reverse("super:dashboard"),
-            reverse("super:platform_operator_hub"),
-            reverse("super:site_settings_edit", kwargs={"pk": self.site.pk}),
-            reverse("super:regions_list"),
-            reverse("admin:integrations_marketplace_integration_changelist"),
-            reverse("siteconfig:feature_control_panel"),
-            reverse("siteconfig:theme_colors"),
-            reverse("studio_os:output"),
-            reverse("kb:kb_home"),
-            reverse("portal:document_library_manage"),
-            reverse("accounts:backend_dashboard"),
+            _reverse_tenant_admin("admin:index"),
+            _reverse_super("super:dashboard"),
+            _reverse_super("super:platform_operator_hub"),
+            _reverse_super("super:site_settings_edit", kwargs={"pk": self.site.pk}),
+            _reverse_super("super:regions_list"),
+            _reverse_tenant_admin(
+                "admin:integrations_marketplace_integration_changelist"
+            ),
+            reverse("siteconfig:feature_control_panel", urlconf=_TENANT_URLCONF),
+            reverse("siteconfig:theme_colors", urlconf=_TENANT_URLCONF),
+            reverse("studio_os:output", urlconf=_TENANT_URLCONF),
+            reverse("kb:kb_home", urlconf=_TENANT_URLCONF),
+            reverse("portal:document_library_manage", urlconf=_TENANT_URLCONF),
+            reverse("accounts:backend_dashboard", urlconf=_TENANT_URLCONF),
         }
         child_paths = [
             path
@@ -257,10 +363,10 @@ class AdminUiSmokeTests(TestCase):
         self.assertFalse(failures, msg=f"Broken sidebar links detected: {failures}")
 
     def test_admin_dashboard_legacy_path_redirects_to_index(self):
-        self.client.force_login(self.superuser)
+        self._login_tenant_admin_client()
         response = self.client.get("/admin/dashboard/", follow=False)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("admin:index"))
+        self.assertEqual(response.url, _reverse_tenant_admin("admin:index"))
 
     def test_sitesettings_change_form_links_to_control_plane_surfaces(self):
         """P3: admin tenant settings row is not the only story — escape hatch points to product shells."""
@@ -301,6 +407,7 @@ class AdminUiSmokeTests(TestCase):
                 )
         finally:
             set_urlconf(None)
+
     def test_reportcardstyle_change_form_links_to_control_plane_surfaces(self):
         """P3: ReportCardStyle admin links to report builder + Output studio + config hub (tenant-safe URLs)."""
         style = ReportCardStyle.objects.create(
@@ -963,6 +1070,10 @@ class AdminUiSmokeTests(TestCase):
             set_urlconf(None)
 
     def _smoke_school(self, *, slug_suffix: str) -> School:
+        return self._create_smoke_school(slug_suffix=slug_suffix)
+
+    @staticmethod
+    def _create_smoke_school(*, slug_suffix: str) -> School:
         region = TenantRegionConfig.objects.create(
             code=f"P3{uuid.uuid4().hex[:8].upper()}",
             name=f"Admin smoke region {slug_suffix}",
@@ -1299,62 +1410,46 @@ class AdminUiSmokeTests(TestCase):
     def test_runtimedefaults_change_form_links_to_control_plane_surfaces(self):
         """P3: platform RuntimeDefaults admin links to super operator shells (batch 28 #338)."""
         rd = RuntimeDefaults.get_singleton()
-        self.client.force_login(self.superuser)
-        path = reverse("admin:platform_runtime_runtimedefaults_change", args=[rd.pk])
-        response = self.client.get(path)
-        self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8", errors="ignore")
+        body = self._platform_change_form_body(RuntimeDefaults, rd.pk)
         self.assertIn("runtime-defaults-cp-escape-heading", body)
         for expect_path in (
-            reverse("super:dashboard"),
-            reverse("super:schools_list"),
-            reverse("super:usage"),
+            _reverse_super("super:dashboard"),
+            _reverse_super("super:schools_list"),
+            _reverse_super("super:usage"),
         ):
             self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
 
     def test_marketplaceapp_change_form_links_to_control_plane_surfaces(self):
         """P3: platform MarketplaceApp admin links to super operator shells (batch 29 #353)."""
-        app = MarketplaceApp.objects.create(
+        app = self._smoke_marketplace_app(
             slug="p3-marketplace-app-smoke",
             name="P3 Marketplace App smoke",
-            version="1.0.0",
         )
-        self.client.force_login(self.superuser)
-        path = reverse("admin:integrations_marketplace_marketplaceapp_change", args=[app.pk])
-        response = self.client.get(path)
-        self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8", errors="ignore")
+        body = self._platform_change_form_body(MarketplaceApp, app.pk)
         self.assertIn("marketplace-app-cp-escape-heading", body)
         for expect_path in (
-            reverse("super:dashboard"),
-            reverse("super:schools_list"),
-            reverse("super:usage"),
+            _reverse_super("super:dashboard"),
+            _reverse_super("super:schools_list"),
+            _reverse_super("super:usage"),
         ):
             self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
 
     def test_marketplacelisting_change_form_links_to_control_plane_surfaces(self):
         """P3: platform MarketplaceListing admin links to super operator shells (batch 31 #383)."""
-        app = MarketplaceApp.objects.create(
+        app = self._smoke_marketplace_app(
             slug="p3-marketplace-listing-smoke",
             name="P3 Marketplace Listing smoke",
-            version="1.0.0",
         )
         listing = MarketplaceListing.objects.create(
             app=app,
             status=MarketplaceListing.Status.DRAFT,
         )
-        self.client.force_login(self.superuser)
-        path = reverse(
-            "admin:integrations_marketplace_marketplacelisting_change", args=[listing.pk]
-        )
-        response = self.client.get(path)
-        self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8", errors="ignore")
+        body = self._platform_change_form_body(MarketplaceListing, listing.pk)
         self.assertIn("marketplace-listing-cp-escape-heading", body)
         for expect_path in (
-            reverse("super:dashboard"),
-            reverse("super:schools_list"),
-            reverse("super:usage"),
+            _reverse_super("super:dashboard"),
+            _reverse_super("super:schools_list"),
+            _reverse_super("super:usage"),
         ):
             self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
 
@@ -1383,18 +1478,12 @@ class AdminUiSmokeTests(TestCase):
             service_name="P3 smoke service integration",
             service_type=ServiceIntegration.ServiceType.LTI,
         )
-        self.client.force_login(self.superuser)
-        path = reverse(
-            "admin:integrations_marketplace_serviceintegration_change", args=[si.pk]
-        )
-        response = self.client.get(path)
-        self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8", errors="ignore")
+        body = self._platform_change_form_body(ServiceIntegration, si.pk)
         self.assertIn("service-integration-cp-escape-heading", body)
         for expect_path in (
-            reverse("super:dashboard"),
-            reverse("super:schools_list"),
-            reverse("super:usage"),
+            _reverse_super("super:dashboard"),
+            _reverse_super("super:schools_list"),
+            _reverse_super("super:usage"),
         ):
             self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
 
@@ -1418,10 +1507,9 @@ class AdminUiSmokeTests(TestCase):
             default_region=region,
             settings={},
         )
-        app = MarketplaceApp.objects.create(
+        app = self._smoke_marketplace_app(
             slug="p3-scope-smoke-app",
             name="P3 Scope smoke app",
-            version="1.0.0",
         )
         scope = AppScope.objects.create(
             app=app, scope_code="read:grades", description="Read grades"
@@ -1436,19 +1524,13 @@ class AdminUiSmokeTests(TestCase):
             scope=scope,
             status=ScopeGrant.GrantStatus.GRANTED,
         )
-        self.client.force_login(self.superuser)
-        path = reverse(
-            "admin:integrations_marketplace_scopegrant_change", args=[grant.pk]
-        )
-        response = self.client.get(path)
-        self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8", errors="ignore")
+        body = self._platform_change_form_body(ScopeGrant, grant.pk)
         self.assertIn("scope-grant-cp-escape-heading", body)
         for expect_path in (
-            reverse("super:platform_operator_hub"),
-            reverse("super:dashboard"),
-            reverse("super:schools_list"),
-            reverse("super:usage"),
+            _reverse_super("super:platform_operator_hub"),
+            _reverse_super("super:dashboard"),
+            _reverse_super("super:schools_list"),
+            _reverse_super("super:usage"),
         ):
             self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
 
@@ -1472,30 +1554,23 @@ class AdminUiSmokeTests(TestCase):
             default_region=region,
             settings={},
         )
-        app = MarketplaceApp.objects.create(
+        app = self._smoke_marketplace_app(
             slug="p3-appinst-smoke-app",
             name="P3 AppInstallation smoke app",
-            version="1.0.0",
         )
         inst = AppInstallation.objects.create(
             school=school,
             app=app,
             status=AppInstallation.Status.ACTIVE,
         )
-        self.client.force_login(self.superuser)
-        path = reverse(
-            "admin:integrations_marketplace_appinstallation_change", args=[inst.pk]
-        )
-        response = self.client.get(path)
-        self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8", errors="ignore")
+        body = self._platform_change_form_body(AppInstallation, inst.pk)
         self.assertIn("app-installation-cp-escape-heading", body)
         for expect_path in (
-            reverse("super:platform_operator_hub"),
-            reverse("super:dashboard"),
-            reverse("super:schools_list"),
-            reverse("super:migration_cloud"),
-            reverse("super:usage"),
+            _reverse_super("super:platform_operator_hub"),
+            _reverse_super("super:dashboard"),
+            _reverse_super("super:schools_list"),
+            _reverse_super("super:migration_cloud"),
+            _reverse_super("super:usage"),
         ):
             self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
 
@@ -1506,16 +1581,12 @@ class AdminUiSmokeTests(TestCase):
             dry_run=True,
             status=MigrationRun.Status.PENDING,
         )
-        self.client.force_login(self.superuser)
-        path = reverse("admin:automation_migrationrun_change", args=[run.pk])
-        response = self.client.get(path)
-        self.assertEqual(response.status_code, 200)
-        body = response.content.decode("utf-8", errors="ignore")
+        body = self._platform_change_form_body(MigrationRun, run.pk)
         self.assertIn("automation-migration-run-cp-escape-heading", body)
         for expect_path in (
-            reverse("super:dashboard"),
-            reverse("super:migration_cloud"),
-            reverse("super:runtime_truth_hub"),
+            _reverse_super("super:dashboard"),
+            _reverse_super("super:migration_cloud"),
+            _reverse_super("super:runtime_truth_hub"),
             reverse("siteconfig:tenant_runtime_configuration_hub"),
         ):
             self.assertIn(expect_path, body, msg=f"missing CP link {expect_path}")
@@ -1524,10 +1595,15 @@ class AdminUiSmokeTests(TestCase):
         """Batch 23 #263: tenant ``change_form`` templates that define ``form_before`` keep P3 escape hatch hints."""
         base = Path(settings.BASE_DIR) / "templates" / "admin"
         for path in sorted(base.rglob("change_form.html")):
+            rel = path.relative_to(settings.BASE_DIR).as_posix()
+            # Base Unfold change_form only declares the empty ``form_before`` hook for children.
+            if rel == "templates/admin/change_form.html":
+                continue
             text = path.read_text(encoding="utf-8", errors="replace")
             if "{% block form_before %}" not in text:
                 continue
-            rel = path.relative_to(settings.BASE_DIR).as_posix()
+            if _form_before_block_is_empty_placeholder(text):
+                continue
             self.assertTrue(
                 "cp-escape-heading" in text
                 or "console_domains_hub" in text

@@ -74,8 +74,8 @@ registry that middleware reads, not a surface users visit.
   one-statement data loss event. Dropping a schema is an explicit, deliberate
   operator act. Do not "fix" the asymmetry.
 - **`ensure_tenant_schemas` exists because `auto_create_schema` has a hole.**
-  When a `Client` is created *inside a migration* (as `0003_ensure_gilead_tenant_domain`
-  does), django-tenants' auto-create hook may not fire, and the later
+  When a `Client` is created *inside a migration* (as customers migration
+  `0003` — legacy default-tenant domain ensure — does), django-tenants' auto-create hook may not fire, and the later
   `migrate_schemas --tenant` dies with `"no schema has been selected to create in"`.
   The command's ordering contract is therefore: `migrate_schemas --shared` →
   `ensure_tenant_schemas` → `migrate_schemas --tenant`. Creating a Client in a

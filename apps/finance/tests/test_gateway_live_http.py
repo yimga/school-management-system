@@ -203,3 +203,47 @@ class GatewayLiveHttpTests(SimpleTestCase):
         post.assert_not_called()
         self.assertTrue(result.success)
         self.assertTrue(str(result.transaction_id or "").startswith("paystack_"))
+
+    def test_razorpay_order_live_http(self):
+        from apps.finance.gateways.razorpay import RazorpayGateway
+
+        gw = RazorpayGateway(
+            _School(), {"key_id": "rzp_test", "key_secret": "rzp_secret"}
+        )
+        with patch(
+            "apps.finance.gateways.razorpay.http_post_json",
+            return_value=(
+                200,
+                {"id": "order_ABC", "status": "created", "amount": 10000, "currency": "INR"},
+            ),
+        ) as post:
+            result = gw.initiate(Decimal("100.00"), "INR", "upi-ref-1")
+        post.assert_called_once()
+        self.assertTrue(result.success)
+        self.assertEqual(result.transaction_id, "order_ABC")
+        self.assertIn("live HTTP", result.message)
+
+    def test_mercado_pago_preference_live_http(self):
+        from apps.finance.gateways.mercado_pago import MercadoPagoGateway
+
+        gw = MercadoPagoGateway(_School(), {"access_token": "APP_USR-test"})
+        with patch(
+            "apps.finance.gateways.mercado_pago.http_post_json",
+            return_value=(
+                201,
+                {
+                    "id": "pref-xyz",
+                    "init_point": "https://www.mercadopago.com/checkout/v1/redirect?pref_id=pref-xyz",
+                },
+            ),
+        ) as post:
+            result = gw.initiate(
+                Decimal("75.50"),
+                "BRL",
+                "pix-ref-1",
+                payer_email="parent@school.test",
+            )
+        post.assert_called_once()
+        self.assertTrue(result.success)
+        self.assertEqual(result.transaction_id, "pref-xyz")
+        self.assertIn("init_point", result.raw_response or {})

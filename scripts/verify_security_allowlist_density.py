@@ -38,12 +38,15 @@ ROOT = Path(__file__).resolve().parent.parent
 # 35->39). Both are classified growth, not silent expansion.
 # 2026-06-08: batch 1644 closeout — vite.worldGlobe.config.ts (world-globe Vite bundle SOT;
 # mirrors vite.analytics.config.ts / vite.lux.config.ts; 39->40; 40->41 vite.social.config.ts).
+# 2026-07-18 Prompt A Wave 31 — classify internal cron CSRF (37->38); schema-repair +
+# tenant-workspace/onboarding/e2e raw SQL surfaces (22->28); sync tracked_root cap to
+# already-committed A+ root docs (41->44; allowlist was 44 at HEAD, density lagging).
 MAX_COUNTS: dict[str, tuple[str, int]] = {
-    "raw_sql_allowlist.json": ("files", 22),
-    "csrf_exempt_allowlist.json": ("files", 37),
+    "raw_sql_allowlist.json": ("files", 28),
+    "csrf_exempt_allowlist.json": ("files", 38),
     "allow_any_allowlist.json": ("files", 4),
     "broad_except_allowlist.json": ("allowed_counts", 189),
-    "tracked_root_allowlist.json": ("allowed", 41),
+    "tracked_root_allowlist.json": ("allowed", 44),
 }
 
 _CLASSIFICATION_LINTS: tuple[tuple[str, str], ...] = (

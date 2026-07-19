@@ -26,6 +26,11 @@ urlpatterns = [
         views_timetable.timetable_publish,
         name="timetable_publish",
     ),
+    path(
+        "timetable/<int:schedule_id>/entries/<int:entry_id>/cancel/",
+        views_timetable.timetable_cancel_entry,
+        name="timetable_cancel_entry",
+    ),
     # v4.00.13: CA-mark input UI for certification candidates.
     path(
         "certification/ca-marks/<int:candidate_id>/",

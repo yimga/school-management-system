@@ -99,6 +99,11 @@ class CspMiddlewareTests(SimpleTestCase):
         policy = _build_policy(nonce="abc123")
         self.assertIn("script-src 'self' 'nonce-abc123'", policy)
 
+    def test_nonce_appears_in_style_src_when_provided(self):
+        """Inline <style nonce> must be authorized — was dead under script-only nonce."""
+        policy = _build_policy(nonce="abc123")
+        self.assertIn("style-src 'self' 'nonce-abc123'", policy)
+
     @override_settings(CSP_ENFORCE=True)
     def test_middleware_sets_request_nonce_and_header_token(self):
         mw = ContentSecurityPolicyMiddleware(_get_response)

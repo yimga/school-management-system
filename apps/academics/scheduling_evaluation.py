@@ -29,8 +29,10 @@ from typing import Any
 
 
 def _entries(schedule) -> list:
+    # Cancelled placements are tombstones — exclude from clash / quality metrics
+    # so Remove-on-clash actually clears hard violations for the publish gate.
     return list(
-        schedule.entries.select_related(
+        schedule.entries.filter(is_cancelled=False).select_related(
             "teacher", "classroom", "subject", "room", "time_slot"
         )
     )

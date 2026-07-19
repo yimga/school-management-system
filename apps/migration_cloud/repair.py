@@ -146,14 +146,12 @@ def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:
 
     # 2. Only a failed apply, or an applied-with-open-issues one, is repairable.
     if status == BundleStatus.FAILED:
-        repairable = True
         reason = (
             "The last import failed part-way. Retrying is safe: records that "
             "already imported are updated in place, never duplicated, and the "
             "records that failed get another attempt."
         )
     elif status == BundleStatus.APPLIED and _has_unresolved_issues(bundle):
-        repairable = True
         reason = (
             "Some records were held for review or didn't fully land. Retrying "
             "re-attempts just those, without duplicating what already imported."

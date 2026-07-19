@@ -292,6 +292,34 @@ class MiddlewareBorderLockTests(PlainTestCase):
         finally:
             ddr.clear_request_db_alias()
 
+    @override_settings(DATA_RESIDENCY_ENFORCE=True, ENABLE_MULTI_REGION=False)
+    @patch("apps.compliance.cross_border_export._audit_residency_violation")
+    def test_border_lock_runs_when_multi_region_off(self, _audit_mock):
+        """Metric #27 — enforce is independent of ENABLE_MULTI_REGION alias routing."""
+        from apps.platform_runtime.middleware_regional_db import (
+            RegionalDatabaseMiddleware,
+        )
+        from apps.platform_runtime import dynamic_db_routing as ddr
+
+        request = SimpleNamespace(school=_school(region="eu_central"))
+        ddr.set_request_db_alias("us_east")
+        try:
+            mw = RegionalDatabaseMiddleware(lambda r: "OK")
+            with self.assertRaises(ResidencyViolation):
+                mw(request)
+        finally:
+            ddr.clear_request_db_alias()
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=False, ENABLE_MULTI_REGION=False)
+    def test_multi_region_off_and_enforce_off_passes(self):
+        from apps.platform_runtime.middleware_regional_db import (
+            RegionalDatabaseMiddleware,
+        )
+
+        mw = RegionalDatabaseMiddleware(lambda r: "OK")
+        request = SimpleNamespace(school=_school(region="eu_central"))
+        self.assertEqual(mw(request), "OK")
+
 
 class AuditTrailWriteTests(TestCase):
     """DB-TOUCHING: proves the block writes a real ACCESS_DENIED AuditLog row.

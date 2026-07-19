@@ -2,7 +2,7 @@ import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import RequestFactory, SimpleTestCase
+from django.test import RequestFactory, SimpleTestCase, override_settings
 
 from apps.portal.views_ai_gateway import (
     _redact_audit_meta,
@@ -373,21 +373,23 @@ class AIGatewaySmokeTests(SimpleTestCase):
         self.assertEqual(payload["recommendations"][0]["title"], "Admissions Booster")
         self.assertEqual(payload["rationale"], "High fit")
 
+    @override_settings(AI_ENGINE_ROOM_SUPPORT=False)
+    @patch("apps.portal.help_governance.ai_help_enabled_for_request", return_value=True)
     @patch("apps.portal.views_ai_gateway._gateway_response")
     @patch("apps.portal.views_ai_gateway.get_embedding_for_text")
     @patch("apps.portal.views_ai_gateway.get_prompt_template")
-    @patch("apps.portal.views_ai_gateway._check_rate_limit")
+    @patch("apps.portal.views_ai_gateway._gateway_rate_limit", return_value=None)
     @patch("apps.portal.views_ai_gateway._log_gateway_audit")
     def test_support_assistant_returns_503_when_gateway_is_unavailable(
         self,
         mock_audit,
-        mock_rate_limit,
+        _mock_rate_limit,
         mock_prompt_template,
         mock_embedding,
         mock_gateway_response,
+        _mock_ai_help,
     ):
         mock_audit.return_value = None
-        mock_rate_limit.return_value = (True, 0)
         mock_prompt_template.return_value = "Support answer"
         mock_embedding.return_value = None
         mock_gateway_response.return_value = (

@@ -86,6 +86,9 @@ class BackendSidebarItemsTests(TestCase):
             email="super1@example.com",
             password="test",
         )
+        # Default User.role is PARENT; staff admin nav requires a staff hat.
+        self.superuser.role = User.Role.ADMIN
+        self.superuser.save(update_fields=["role"])
 
     def _items_for_path(self, path, user=None):
         request = self.factory.get(path)

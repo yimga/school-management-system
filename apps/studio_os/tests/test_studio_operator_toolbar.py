@@ -7,6 +7,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.schools.models import School
+from apps.schools.tests.manager_client import bind_manager_session, _manager_session_store
 from apps.studio_os.services import get_studio_mode_hero_context, get_studio_operator_toolbar
 
 
@@ -25,11 +26,12 @@ def _manager_session(client) -> SessionStore:
 
 
 def _set_manager_session_school_id(client, school_id: str) -> None:
-    store = _manager_session(client)
+    bind_manager_session(client)
+    store = _manager_session_store(client)
     store["school_id"] = school_id
+    store.modified = True
     store.save()
-    cookie_name = getattr(settings, "MANAGER_SESSION_COOKIE_NAME", "rmc_manager_sessionid")
-    client.cookies[cookie_name] = store.session_key
+    bind_manager_session(client)
 
 
 @override_settings(
@@ -59,6 +61,7 @@ class StudioOperatorToolbarTests(TestCase):
     def setUp(self):
         self.client = Client(HTTP_HOST="manager.runmycampus.com")
         self.client.login(username="studio_toolbar_op", password="x" * 8)
+        bind_manager_session(self.client)
 
     def test_set_operator_school_sets_session(self):
         url = reverse("studio_os:set_operator_school", urlconf="config.manager_urls")
@@ -92,10 +95,28 @@ class StudioOperatorToolbarTests(TestCase):
         self.assertIn("Guided onboarding", body)
 
     def test_live_preview_when_session_school(self):
+        from django.contrib.sessions.middleware import SessionMiddleware
+        from django.http import HttpResponse
+        from django.test import RequestFactory
+
         _set_manager_session_school_id(self.client, str(self.school.pk))
-        request = self.client.get("/studio/experience/").wsgi_request
-        request.urlconf = "config.manager_urls"
-        toolbar = get_studio_operator_toolbar(request, current_mode="experience")
+        store = _manager_session_store(self.client)
+        req = RequestFactory().get(
+            "/studio/experience/",
+            HTTP_HOST="manager.runmycampus.com",
+        )
+        req.user = self.user
+        req.public_host_kind = "manager"
+        req.urlconf = "config.manager_urls"
+        SessionMiddleware(lambda _req: HttpResponse()).process_request(req)
+        for key, value in store.items():
+            req.session[key] = value
+        req.session.save()
+        cookie_name = getattr(
+            settings, "MANAGER_SESSION_COOKIE_NAME", "rmc_manager_sessionid"
+        )
+        req.COOKIES[cookie_name] = store.session_key
+        toolbar = get_studio_operator_toolbar(req, current_mode="experience")
         self.assertIsNotNone(toolbar)
         assert toolbar is not None
         self.assertIsNotNone(toolbar.get("live_preview"))

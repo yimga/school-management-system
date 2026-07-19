@@ -2,7 +2,7 @@
 
 RunMyCampus observability stack — what's wired, how to wire what's missing, and
 how to debug production incidents end-to-end.
-Last reviewed: 2026-05-11.
+Last reviewed: 2026-07-18.
 
 ---
 
@@ -18,11 +18,11 @@ Last reviewed: 2026-05-11.
 | Performance traces | Sentry traces (5% sample) | Wired | `SENTRY_TRACES_SAMPLE_RATE=0.05` |
 | Profiling | Sentry profiles (0% sample) | Disabled by default | `SENTRY_PROFILES_SAMPLE_RATE=0.0` |
 | Log shipping | OpenSearch DSN slot | Plumbed, not used | `OPENSEARCH_DSN` env in `settings_registry.py:329` |
-| Real-user monitoring | — | **Missing** | — |
-| Synthetic monitoring | — | **Missing** | — |
+| Real-user monitoring | — | **EXTERNAL** (Sentry Session Replay / third-party RUM) | — |
+| Synthetic monitoring | Repo probe + EXTERNAL Pingdom/etc. | **Partial** | `scripts/verify_healthz_synthetic.py` (local); live URL synthetics EXTERNAL |
 | APM dashboards | Sentry Performance only | Partial | — |
 | Alerting | Sentry rules | Partial | — |
-| SLO definitions | — | **Missing** | — |
+| SLO definitions | In-code registry | **Wired** | `apps/observability/slo.py` + `scripts/verify_slo_registry.py` |
 
 Every Sentry event carries `school_id` (via `SentryTenantTagMiddleware`), `request_id`,
 and `user_id` (when authenticated). Logs emit the same triple so log → Sentry pivot is
@@ -58,9 +58,9 @@ Custom per-feature counters live in `apps/observability/metrics.py` and grow ad-
 1. **Expose `/metrics/` on a separate port behind allowlist**. Currently the metrics endpoint may or may not be reachable from the Render runtime (verify). Production Prometheus scrapers need a stable endpoint.
 2. **Sentry alert rules in code, not console.** Today rules are presumably set in the Sentry UI; commit `sentry/alerts.yml` and apply via Sentry CLI so they're reproducible.
 3. **Service Worker error sink.** Service worker exceptions (sync queue failures, replay 4xx drops) currently log to `console.error` and disappear. Forward to Sentry-Browser via `static/js/service-worker.js` → `Sentry.captureException`.
-4. **Celery instrumentation.** `sentry_sdk.integrations.celery.CeleryIntegration` exists but is not wired in the `sentry_sdk.init()` call at `settings.py:1457`. Add it. Without it, every background-task crash is invisible.
+4. **Celery instrumentation.** **DONE** — `CeleryIntegration` is appended in `config/settings.py` `sentry_sdk.init()` (lazy import; skipped only if celery integration package missing).
 5. **Database slow-query log → Sentry.** Configure `LOGGING` to emit Django's slow-query handler at WARNING; Sentry captures WARNING+.
-6. **Health endpoint** (`/healthz/`, `/readyz/`) — verify exists; if not, wire a dependency-aware version (Postgres ping + Redis ping + storage ping) for Render's health checks.
+6. **Health endpoint** (`/healthz/`) — **DONE** for DB (hard fail) + cache/broker/queue-depth probes. Wave 16: when Redis/`CELERY_BROKER_URL` are configured, cache/broker **degraded** returns **503** (strict deps); LocMem/eager stay soft-OK. Render LB still uses `/health/` (no DB).
 
 ### Pass 7 — competitive parity
 
@@ -94,9 +94,10 @@ Custom per-feature counters live in `apps/observability/metrics.py` and grow ad-
 2. Check `celery-flower` (if deployed) or `django-celery-results.TaskResult` for the task id.
 3. Audit log: search for the trigger request_id.
 
-## 6. SLO targets (proposed)
+## 6. SLO targets
 
-These are aspirational until the SLO-in-code work lands.
+Canonical definitions live in `apps/observability/slo.py` (gate: `verify_slo_registry.py`).
+Table below is the human-readable summary; edit the Python registry first.
 
 | Service | Availability | P95 latency | Burn-rate alert |
 |---|---|---|---|

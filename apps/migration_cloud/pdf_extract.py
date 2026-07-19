@@ -35,7 +35,7 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from typing import IO, Any
+from typing import Any
 
 logger = logging.getLogger(__name__)
 

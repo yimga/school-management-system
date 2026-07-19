@@ -1,5 +1,5 @@
 {
-  "manifest_last_reviewed": "2026-06-02",
+  "manifest_last_reviewed": "2026-07-18",
   "files": {
     "apps/accounts/views_saml.py": {
       "expected_count": 1,
@@ -75,7 +75,7 @@
       "replay_protection": "provider_signature_and_message_sid_manual_review_required",
       "rate_limiting": "manual_review_required",
       "audit_logging": "pii_minimized_hashed_phone_structured_logs",
-      "notes": "Two endpoints (inbound MO + status callback): SMS providers POST without browser CSRF. Every request is verified by _signature_ok() — a valid Twilio X-Twilio-Signature HMAC-SHA1 (constant-time compare) wins, else a valid Africa's Talking shared secret (AT has no request-signing scheme); bad signature -> 403, never 5xx.",
+      "notes": "Two endpoints (inbound MO + status callback): SMS providers POST without browser CSRF. Every request is verified by _signature_ok() \u2014 a valid Twilio X-Twilio-Signature HMAC-SHA1 (constant-time compare) wins, else a valid Africa's Talking shared secret (AT has no request-signing scheme); bad signature -> 403, never 5xx.",
       "last_reviewed": "2026-06-04"
     },
     "apps/finance/views_payments.py": {
@@ -287,6 +287,17 @@
       "notes": "Event catalog, wedge playbook, RUM web vitals summary (staff), upcoming deadlines (N28), package-impact internal JSON.",
       "last_reviewed": "2026-03-28"
     },
+    "apps/platform_runtime/views_internal_cron.py": {
+      "expected_count": 1,
+      "owner": "platform_runtime",
+      "verdict": "keep_with_hardening",
+      "auth_model": "shared_secret_internal_cron_token_bearer_or_x_cron_key",
+      "replay_protection": "per_job_lock_in_periodic_registry",
+      "rate_limiting": "implemented",
+      "audit_logging": "implemented",
+      "notes": "Machine cron trigger for external schedulers (GitHub Actions / Render); CSRF exempt like RUM ingest. Disabled (404) when INTERNAL_CRON_TOKEN unset/short; constant-time compare; IP rate limit; converges on periodic registry locks.",
+      "last_reviewed": "2026-07-18"
+    },
     "apps/platform_runtime/views_newsletter.py": {
       "expected_count": 2,
       "owner": "platform_marketing",
@@ -295,7 +306,7 @@
       "replay_protection": "not_applicable",
       "rate_limiting": "manual_review_required",
       "audit_logging": "implemented",
-      "notes": "Two endpoints: (1) public newsletter subscribe POST from marketing/portal without browser CSRF (double opt-in service handles abuse); (2) RFC 8058 one-click List-Unsubscribe-Post — mail clients POST without a CSRF token and the opaque per-recipient token in the URL is the authenticator.",
+      "notes": "Two endpoints: (1) public newsletter subscribe POST from marketing/portal without browser CSRF (double opt-in service handles abuse); (2) RFC 8058 one-click List-Unsubscribe-Post \u2014 mail clients POST without a CSRF token and the opaque per-recipient token in the URL is the authenticator.",
       "last_reviewed": "2026-06-04"
     },
     "apps/platform_runtime/views_rum.py": {

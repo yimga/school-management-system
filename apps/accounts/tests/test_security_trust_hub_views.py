@@ -3,6 +3,8 @@
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 
 from apps.accounts.views_trust_hub import security_trust_hub, tenant_impersonation_audit
@@ -10,6 +12,12 @@ from apps.siteconfig.models import ImpersonationLog
 from apps.schools.models import School
 
 User = get_user_model()
+
+
+def _attach_session(request):
+    SessionMiddleware(lambda _req: HttpResponse()).process_request(request)
+    request.session.save()
+    return request
 
 
 class SecurityTrustHubTests(TestCase):
@@ -28,13 +36,13 @@ class SecurityTrustHubTests(TestCase):
         self.factory = RequestFactory()
 
     def test_hub_requires_school(self):
-        req = self.factory.get("/authentication/backend/security-trust/")
+        req = _attach_session(self.factory.get("/authentication/backend/security-trust/"))
         req.user = self.admin
         resp = security_trust_hub(req)
         self.assertEqual(resp.status_code, 403)
 
     def test_hub_ok_for_admin_with_school(self):
-        req = self.factory.get("/authentication/backend/security-trust/")
+        req = _attach_session(self.factory.get("/authentication/backend/security-trust/"))
         req.user = self.admin
         req.school = self.school
         resp = security_trust_hub(req)
@@ -50,7 +58,9 @@ class SecurityTrustHubTests(TestCase):
             password="x",
             role=User.Role.TEACHER,
         )
-        req = self.factory.get("/authentication/backend/security-trust/impersonation/")
+        req = _attach_session(
+            self.factory.get("/authentication/backend/security-trust/impersonation/")
+        )
         req.user = t
         req.school = self.school
         resp = tenant_impersonation_audit(req)
@@ -63,7 +73,9 @@ class SecurityTrustHubTests(TestCase):
             action=ImpersonationLog.Action.SWITCH,
             reason="test",
         )
-        req = self.factory.get("/authentication/backend/security-trust/impersonation/")
+        req = _attach_session(
+            self.factory.get("/authentication/backend/security-trust/impersonation/")
+        )
         req.user = self.admin
         req.school = self.school
         resp = tenant_impersonation_audit(req)

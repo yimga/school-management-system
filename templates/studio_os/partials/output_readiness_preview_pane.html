@@ -36,22 +36,19 @@ coordinator-task to wire output_readiness_summary as a single SOT.
       </p>
     </div>
     {% if summary %}
-      <span class="rmc-output-cockpit__service-state"
-            data-state="online"
+      <span class="rmc-output-cockpit__service-state" data-state="online"
             title="{% trans 'Readiness service is reporting live counts.' %}">
         <span class="visually-hidden">{% trans "Service status:" %}</span>
         {% trans "Live" %}
       </span>
     {% elif packs_total %}
-      <span class="rmc-output-cockpit__service-state"
-            data-state="online"
+      <span class="rmc-output-cockpit__service-state" data-state="online"
             title="{% trans 'Counts derived from the active report pack graph.' %}">
         <span class="visually-hidden">{% trans "Service status:" %}</span>
         {% trans "Derived" %}
       </span>
     {% else %}
-      <span class="rmc-output-cockpit__service-state"
-            data-state="offline"
+      <span class="rmc-output-cockpit__service-state" data-state="offline"
             title="{% trans 'Readiness service unavailable — no honest counts to show.' %}">
         <span class="visually-hidden">{% trans "Service status:" %}</span>
         {% trans "Readiness service offline" %}

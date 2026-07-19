@@ -26,7 +26,7 @@ from io import StringIO
 from unittest import mock
 
 from django.core.management import CommandError, call_command
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from apps.accounts.models import User
 
@@ -230,3 +230,61 @@ class SolverRealityTests(TestCase):
 
         with self.assertRaises(ImportError):
             _solve_with_ortools(object(), object(), None)
+
+
+class SolveTimetableDryRunPersistenceTests(TestCase):
+    """Metric 15 — --dry-run must not leave Schedule rows committed."""
+
+    def test_dry_run_rolls_back_persisted_schedule(self):
+        from apps.academics.scheduling import Schedule
+        from apps.academics.tests.test_timetable_publish_flow import _TimetableGraphMixin
+        from apps.schools.models import School
+
+        mixin = _TimetableGraphMixin()
+        uid = "dryrun1"
+        school = School.objects.create(
+            name=f"DryRun School {uid}",
+            slug=f"dryrun-{uid}",
+            subdomain=f"dryrun-{uid}",
+            is_active=True,
+        )
+        graph = mixin.build_graph(school, uid)
+        actor = User.objects.create_user(
+            username=f"dryrun_actor_{uid}",
+            password="password123",
+        )
+        before = Schedule.objects.filter(
+            academic_year=graph["year"], term=graph["term"]
+        ).count()
+        out = StringIO()
+        call_command(
+            "solve_timetable",
+            "--year",
+            str(graph["year"].pk),
+            "--term",
+            str(graph["term"].pk),
+            "--created-by",
+            str(actor.pk),
+            "--no-ortools",
+            "--dry-run",
+            stdout=out,
+            stderr=StringIO(),
+        )
+        self.assertIn("dry-run, rolled back", out.getvalue())
+        after = Schedule.objects.filter(
+            academic_year=graph["year"], term=graph["term"]
+        ).count()
+        self.assertEqual(after, before)
+
+
+class OrtoolsOptionalInstallContractTests(SimpleTestCase):
+    """Metric 15 — CP-SAT is opt-in via requirements_optional, not core deps."""
+
+    def test_ortools_pinned_only_in_optional_requirements(self):
+        from pathlib import Path
+
+        root = Path(__file__).resolve().parents[3]
+        optional = (root / "requirements_optional.txt").read_text(encoding="utf-8")
+        core = (root / "requirements.txt").read_text(encoding="utf-8")
+        self.assertRegex(optional, r"(?m)^ortools>=")
+        self.assertNotRegex(core, r"(?m)^ortools")

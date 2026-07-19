@@ -13,7 +13,6 @@ import json
 import logging
 import time
 
-from django.contrib.admin.views.decorators import staff_member_required
 from apps.schools.control_plane import require_control_plane_access
 from django.http import JsonResponse
 from services.http_auth_guards import login_required_api as login_required

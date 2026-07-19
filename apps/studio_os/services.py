@@ -428,6 +428,35 @@ def get_studio_overview_deck(
     }
 
 
+def _operator_session_school_id(request: Any) -> str:
+    """Read manager-host preview school_id from request.session or the isolated cookie store."""
+    session = getattr(request, "session", None)
+    if session is not None:
+        sid = str(session.get("school_id") or "").strip()
+        if sid:
+            return sid
+    try:
+        from django.conf import settings
+        from django.contrib.sessions.backends.db import SessionStore
+
+        from apps.schools.host_routing import public_host_kind
+
+        host = (getattr(request, "META", None) or {}).get("HTTP_HOST", "")
+        if public_host_kind(str(host or "").strip().lower()) != "manager":
+            return ""
+        cookie_name = getattr(
+            settings, "MANAGER_SESSION_COOKIE_NAME", "rmc_manager_sessionid"
+        )
+        session_key = str((getattr(request, "COOKIES", None) or {}).get(cookie_name) or "").strip()
+        if not session_key:
+            return ""
+        store = SessionStore(session_key=session_key)
+        store.load()
+        return str(store.get("school_id") or "").strip()
+    except _STUDIO_SOFT_FAILURES:
+        return ""
+
+
 def get_studio_operator_toolbar(request: Any, *, current_mode: str | None = None) -> dict[str, Any] | None:
     """
     Manager Studio toolbar: in-shell tenant switcher + live preview strip (session school_id).
@@ -463,7 +492,7 @@ def get_studio_operator_toolbar(request: Any, *, current_mode: str | None = None
 
     school = getattr(request, "school", None)
     if school is None:
-        session_sid = (getattr(request, "session", None) or {}).get("school_id")
+        session_sid = _operator_session_school_id(request)
         if session_sid:
             try:
                 school = School.objects.filter(pk=session_sid, is_active=True).first()

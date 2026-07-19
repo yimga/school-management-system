@@ -12,6 +12,24 @@
     {% if slo.label %}
     <span class="rmc-readiness-train__slo rmc-readiness-train__slo--{{ slo.tone|default:'unknown' }}" data-rmc-readiness-slo="1">{{ slo.label }}</span>
     {% endif %}
+    {% if slo.time_to_value_seconds is not None %}
+    {# S1 repo-side TTV clock (PROMPT S): created_at → launched_at, surfaced next to provisioning SLO #}
+    {% widthratio slo.time_to_value_seconds 60 1 as ttv_minutes %}
+    <span
+      class="rmc-readiness-train__ttv{% if slo.within_ttv_slo %} is-within-slo{% else %} is-over-slo{% endif %}"
+      data-rmc-readiness-ttv="1"
+      data-ttv-seconds="{{ slo.time_to_value_seconds }}"
+      data-within-slo="{% if slo.within_ttv_slo %}1{% else %}0{% endif %}"
+      title="{% blocktrans with mins=slo.ttv_slo_minutes %}Target: under {{ mins }} minutes from signup to operating{% endblocktrans %}"
+    >
+      {% blocktrans with mins=ttv_minutes %}TTV {{ mins }} min{% endblocktrans %}
+      {% if slo.within_ttv_slo %}
+        <span class="visually-hidden">{% trans "within one-hour SLO" %}</span>
+      {% else %}
+        <span class="rmc-readiness-train__ttv-flag">{% trans "over SLO" %}</span>
+      {% endif %}
+    </span>
+    {% endif %}
   </div>
   <div class="rmc-readiness-train__meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ readiness.meter_percent|default:0 }}" data-rmc-readiness-meter="1">
     <i style="width: {{ readiness.meter_percent|default:0 }}%"></i>

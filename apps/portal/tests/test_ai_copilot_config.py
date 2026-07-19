@@ -38,4 +38,8 @@ class AiCopilotConfigTests(SimpleTestCase):
             provider_status["providers"]["ollama"]["exposure"],
             "local",
         )
-        self.assertEqual(list(provider_status["providers"].keys()), ["ollama"])
+        # Local Ollama must be present; cloud providers may also appear when
+        # LITELLM_* / deployment posture is configured in the operator env.
+        self.assertIn("ollama", provider_status["providers"])
+        self.assertNotIn("openai-secret-should-not-render", str(payload))
+        self.assertNotIn("api_key", str(provider_status).lower())

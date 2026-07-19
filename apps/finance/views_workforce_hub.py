@@ -4,7 +4,6 @@ Workforce & money command center (HR + payroll + finance ops) — batch 1511.
 
 from __future__ import annotations
 
-from django.conf import settings
 from apps.accounts.decorators import require_permission
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import render
