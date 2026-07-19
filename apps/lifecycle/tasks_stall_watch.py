@@ -8,12 +8,18 @@ schools that look stuck:
 Emits a structured-log warning + (optionally) emails the platform
 ops mailbox. Never crashes the worker — best-effort observability.
 
-Wire into Celery beat (NOT auto-registered to keep the wave focused):
+This watches a DIFFERENT population than the provision watchdog: the watchdog
+heals schools whose PROVISIONING died mid-drive (heartbeat-staleness). This one
+flags schools that provisioned fine but whose OWNER never engaged with setup —
+an activation/adoption signal the watchdog has no visibility into.
 
-    CELERY_BEAT_SCHEDULE['lifecycle-stall-watch'] = {
-        'task': 'apps.lifecycle.tasks_stall_watch.detect_stalled_onboarding',
-        'schedule': crontab(hour=8, minute=30),  # 08:30 UTC daily
-    }
+WIRED (2026-07-19): registered as ``@shared_task`` below and surgically
+re-exported from ``apps/lifecycle/tasks.py`` so ``config/celery.py``'s bare
+``autodiscover_tasks()`` (which imports only ``<app>/tasks.py``) actually
+registers it — otherwise the ``lifecycle-stall-watch`` beat entry would name an
+unregistered task and be a SILENT no-op (the exact class
+``scripts/verify_beat_task_registry.py`` guards). Beat entry:
+``lifecycle-stall-watch`` @ 08:30 UTC daily in ``config/settings.py``.
 """
 
 from __future__ import annotations
@@ -21,6 +27,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
+from celery import shared_task
 from django.conf import settings
 from django.utils import timezone
 
@@ -40,11 +47,15 @@ def _platform_ops_email() -> str:
     return (getattr(settings, "TENANT_OFFBOARDING_PLATFORM_EMAILS", "") or "").split(",")[0].strip()
 
 
+@shared_task(name="lifecycle.detect_stalled_onboarding", ignore_result=True)
 def detect_stalled_onboarding(*, dry_run: bool = False) -> dict:
     """Walk onboarding progress and return a summary dict.
 
     When dry_run=True (default in tests), no emails are sent — only
-    structured-log warnings.
+    structured-log warnings. Beat calls it with no args, so the scheduled run
+    uses dry_run=False and emails the ops mailbox when stalls are found. Still
+    directly callable (``detect_stalled_onboarding(dry_run=True)``) — a
+    ``@shared_task`` forwards a plain call straight to the wrapped function.
     """
     from apps.schools.models import School
 

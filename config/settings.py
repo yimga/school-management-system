@@ -2506,6 +2506,20 @@ CELERY_BEAT_SCHEDULE = {
         ),
         "options": {"queue": "default", "expires": 7200},
     },
+    # Daily onboarding stall-watch (08:30 UTC). Registered task lives in
+    # apps/lifecycle/tasks_stall_watch.py and is surgically re-exported from
+    # apps/lifecycle/tasks.py so bare autodiscover_tasks() registers it (else
+    # this entry would be a silent no-op; see scripts/verify_beat_task_registry.py).
+    # Read-only alerter over onboarding progress — no writes, no tenant data.
+    "lifecycle-stall-watch": {
+        "task": "lifecycle.detect_stalled_onboarding",
+        "schedule": (
+            _celery_crontab(hour=8, minute=30)
+            if _celery_crontab is not None
+            else 86400.0
+        ),
+        "options": {"queue": "default", "expires": 3600},
+    },
     # v3.34.0 Agent 5 — weekly upstream watch for django-cryptography
     # Django-5 compatibility. Mondays 05:00 UTC. The script ALWAYS exits
     # 0 (it's a watch, not a gate); the task layer parses the audit JSON

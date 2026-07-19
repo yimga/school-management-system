@@ -152,7 +152,13 @@ class StallWatchTests(TestCase):
             name="Stalled School",
             slug="stalled-school",
             subdomain="stalled-school",
-            is_active=False,
+            # A stalled-onboarding school is LIVE: is_active defaults True and
+            # nothing flips a never-finished school to False. The detector filters
+            # school__is_active=True (its prior is_active=False matched the wrong,
+            # offboarded population). This fixture was stale against that fix and
+            # was excluded by the correct filter — see the newer
+            # tests/test_stall_watch_active_school_filter.py.
+            is_active=True,
         )
         # Backdate the created_at to simulate an old onboarding.
         School.objects.filter(pk=school.pk).update(created_at=old)
