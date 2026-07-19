@@ -150,7 +150,15 @@ def _upsert_org(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any], 
     with _PROCESS_LOCK:
         obj, created = School.objects.get_or_create(  # tenant-isolation-allow: roster-write-platform-scope
             slug=identifier,
-            defaults={"name": name or identifier, "subdomain": identifier},
+            # is_active=False so a newly-minted org is never a live husk (active
+            # row, no schema/seed/owner). It is provisioned into usability below.
+            # get_or_create ignores defaults on an existing row, so re-syncing a
+            # live tenant never deactivates it.
+            defaults={
+                "name": name or identifier,
+                "subdomain": identifier,
+                "is_active": False,
+            },
         )
         changed = False
         if name and obj.name != name:
@@ -158,6 +166,12 @@ def _upsert_org(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any], 
             changed = True
         if changed:
             obj.save(update_fields=["name"])
+    if created:
+        # Reuse the importer's best-effort, on_commit-safe enqueue (local import
+        # avoids import-time coupling between the two OneRoster modules).
+        from apps.api.oneroster_csv_importer import _enqueue_provision_for_new_org
+
+        _enqueue_provision_for_new_org(obj.pk)
     payload = {
         "org": {
             "sourcedId": str(obj.pk),

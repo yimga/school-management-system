@@ -89,6 +89,37 @@ def _classify_skips(rows: list[dict[str, str]]) -> tuple[list[dict[str, str]], l
 
 
 @transaction.atomic
+def _enqueue_provision_for_new_org(school_pk) -> None:
+    """Route a newly-minted OneRoster org through the real provisioning pipeline.
+
+    A School created by a roster sync would otherwise be an active-but-empty husk
+    (no tenant schema / seed / owner): it reads "ready" to every healer and 500s
+    on use. So new orgs are created ``is_active=False`` (a normal pre-provision
+    state, invisible to "ready" reporting) and handed to provisioning here.
+
+    Best-effort + on_commit: a queue hiccup must never fail the roster import, and
+    the worker must never race a School row that isn't committed yet. The dispatch
+    prefers async (``.delay``) and sync-falls-back only in a no-Celery topology.
+    Called only for orgs this import CREATED — never for an existing live tenant.
+    """
+    sid = str(school_pk)
+
+    def _kick() -> None:
+        try:
+            from apps.schools.tasks import dispatch_provision_school
+
+            dispatch_provision_school(sid)
+        except Exception:  # noqa: BLE001 — provisioning enqueue is best-effort
+            logger.warning(
+                "oneroster: provision enqueue failed for new org %s", sid, exc_info=True
+            )
+
+    try:
+        transaction.on_commit(_kick)
+    except Exception:  # noqa: BLE001 — on_commit only fires in a transaction
+        _kick()
+
+
 def _apply_orgs(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
     try:
         from apps.schools.models import School
@@ -108,7 +139,10 @@ def _apply_orgs(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
         # Re-key on slug to align with RMC's tenant identifier; subdomain
         # is NOT NULL UNIQUE on School, so seed it from the slug.
         slug = identifier.lower()[:64]
-        defaults = {"name": name, "subdomain": slug}
+        # is_active=False so a freshly-minted org is never a live husk; it becomes
+        # usable via provisioning (enqueued below). get_or_create ignores defaults
+        # on an existing row, so a live org is never deactivated by a re-sync.
+        defaults = {"name": name, "subdomain": slug, "is_active": False}
         try:
             obj, created = School.objects.get_or_create(slug=slug, defaults={**defaults})  # tenant-isolation-allow: roster-import-platform-scope
             changed = False
@@ -117,6 +151,8 @@ def _apply_orgs(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
                 changed = True
             if changed:
                 obj.save(update_fields=["name"])
+            if created:
+                _enqueue_provision_for_new_org(obj.pk)
             written += 1
         except Exception as exc:  # noqa: BLE001
             logger.warning("oneroster import: org upsert failed sid=%s err=%s", sid, exc)
