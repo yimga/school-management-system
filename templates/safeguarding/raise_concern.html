@@ -1,0 +1,38 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Raise safeguarding concern" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Raise safeguarding concern" %}{% endblock %}
+{% block backend_page %}
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <p class="small mb-3">
+    {% if is_dsl %}<a href="{{ inbox_url }}">{% trans "← DSL inbox" %}</a>{% endif %}
+  </p>
+  <section class="mb-4" aria-labelledby="sg-raise-heading">
+    <h1 class="h5" id="sg-raise-heading">{% trans "Report a concern" %}</h1>
+    <p class="text-secondary small">{% trans "Submit confidential safeguarding information to the Designated Safeguarding Lead. Contact details in the narrative are redacted automatically." %}</p>
+    <form method="post" class="row g-3">{% csrf_token %}
+      <div class="col-md-6">
+        <label class="form-label" for="category_key">{% trans "Category" %}</label>
+        <select class="form-select" name="category_key" id="category_key" required>
+          <option value="">{% trans "Select…" %}</option>
+          {% for cat in categories %}
+          <option value="{{ cat.key }}">{{ cat.label }}{% if cat.is_urgent %} ({% trans "urgent" %}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="student_id">{% trans "Student id (optional)" %}</label>
+        <input class="form-control" type="number" name="student_id" id="student_id" min="1">
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="narrative">{% trans "Narrative" %}</label>
+        <textarea class="form-control" name="narrative" id="narrative" rows="6" required minlength="10"
+                  placeholder="{% trans 'Describe what you observed (min. 10 characters).' %}"></textarea>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">{% trans "Submit to DSL" %}</button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

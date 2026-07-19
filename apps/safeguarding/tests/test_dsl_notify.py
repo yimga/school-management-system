@@ -18,7 +18,10 @@ class DeepLinkTests(SimpleTestCase):
     def test_build_deep_link_uses_concern_id(self) -> None:
         url = build_concern_deep_link("abc123")
         self.assertIn("abc123", url)
-        self.assertTrue(url.startswith("/school/"))
+        self.assertTrue(
+            "/safeguarding/" in url,
+            msg=f"expected safeguarding path, got {url!r}",
+        )
 
     def test_blank_concern_id_raises(self) -> None:
         with self.assertRaises(ValueError):

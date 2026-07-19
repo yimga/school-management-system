@@ -1442,11 +1442,17 @@ def build_portal_sidebar_items(request, site):
                 _inbox = _sg_bucket.get("dsl_inbox") if isinstance(_sg_bucket, dict) else None
                 if isinstance(_inbox, list) and _inbox:
                     _badge_count = count_urgent_unacknowledged(_inbox)
+                    try:
+                        from django.urls import reverse
+
+                        _sg_url = reverse("accounts:safeguarding_inbox")
+                    except Exception:  # noqa: BLE001
+                        _sg_url = "/authentication/backend/safeguarding/"
                     items.append(
                         {
                             "id": "safeguarding_inbox",
                             "label": "Safeguarding",
-                            "url": "/school/studio/workflow-center/safeguarding/",
+                            "url": _sg_url,
                             "icon": "bi-shield-exclamation",
                             # Urgent child-protection alerts (urgent badge) — day-to-day, not config.
                             "section": "Workflows & Approvals",

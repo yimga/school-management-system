@@ -383,7 +383,7 @@ _REGISTRY: dict[tuple[str, str], tuple[SmartLink, ...]] = {
     (STATE_DSL_CONCERN_OPEN, PERSONA_TENANT_ADMIN): (
         SmartLink(
             label="Open safeguarding concern",
-            href="/school/studio/workflow-center/?filter=safeguarding",
+            href="/authentication/backend/safeguarding/",
             icon="bi-shield-exclamation",
             severity="danger",
             helper_text="DSL action required within KCSIE 2026 SLA.",

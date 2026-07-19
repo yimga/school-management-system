@@ -800,11 +800,13 @@ def write_safeguarding_categories(*, school, wizard_key, step_key, payload, acto
 
 
 def write_safeguarding_routing(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.safeguarding.wizard_config_kernel import apply_legal_routing
+    apply_legal_routing(school=school, payload=payload)
 
 
 def write_safeguarding_stakeholders(*, school, wizard_key, step_key, payload, actor_user_id):
-    _default_cockpit_writer(school=school, wizard_key=wizard_key, step_key=step_key, payload=payload, actor_user_id=actor_user_id)
+    from apps.safeguarding.wizard_config_kernel import apply_stakeholder_pipeline
+    apply_stakeholder_pipeline(school=school, payload=payload)
 
 
 def write_safeguarding_anchor(*, school, wizard_key, step_key, payload, actor_user_id):

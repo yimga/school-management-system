@@ -199,6 +199,11 @@ from apps.schoolops.views_tenant_ops import (
     ops_facilities,
     ops_pos,
 )
+from apps.safeguarding.views import (
+    safeguarding_concern_detail,
+    safeguarding_inbox,
+    safeguarding_raise,
+)
 from apps.schoolops.views_substitute_handover import substitute_handover_create
 from apps.schoolops.views_lost_belongings import (
     lost_belongings_mint,
@@ -494,6 +499,21 @@ urlpatterns = [
         "backend/ops/substitutes/",
         ops_substitutes,
         name="ops_substitutes",
+    ),
+    path(
+        "backend/safeguarding/",
+        safeguarding_inbox,
+        name="safeguarding_inbox",
+    ),
+    path(
+        "backend/safeguarding/raise/",
+        safeguarding_raise,
+        name="safeguarding_raise",
+    ),
+    path(
+        "backend/safeguarding/<str:concern_id>/",
+        safeguarding_concern_detail,
+        name="safeguarding_concern_detail",
     ),
     path(
         "backend/ops/substitutes/handover/",

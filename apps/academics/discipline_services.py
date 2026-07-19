@@ -78,11 +78,30 @@ def process_incident_routing(*, incident: Any, recorded_by: Any | None = None) -
             },
         )
 
+    safeguarding_concern_id = None
+    if severity == Incident.Severity.HIGH:
+        try:
+            from apps.safeguarding.services import maybe_open_concern_from_discipline_incident
+
+            sg = maybe_open_concern_from_discipline_incident(
+                school=school,
+                incident=incident,
+                recorded_by=recorded_by,
+            )
+            safeguarding_concern_id = getattr(sg, "concern_id", None)
+        except Exception:  # noqa: BLE001 — discipline path must stay load-bearing
+            logger.warning(
+                "discipline_safeguarding_bridge_failed incident_id=%s",
+                getattr(incident, "pk", None),
+                exc_info=True,
+            )
+
     return {
         "points_added": delta,
         "total_points": total,
         "escalated": escalated,
         "restorative_action_id": getattr(restorative, "pk", None),
+        "safeguarding_concern_id": safeguarding_concern_id,
     }
 
 

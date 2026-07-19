@@ -1,0 +1,47 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Safeguarding concern" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Safeguarding concern" %}{% endblock %}
+{% block backend_page %}
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <p class="small mb-3"><a href="{{ inbox_url }}">{% trans "← DSL inbox" %}</a></p>
+
+  <section class="mb-4" aria-labelledby="sg-detail-heading">
+    <h1 class="h5" id="sg-detail-heading">{% trans "Concern" %} {{ concern.concern_id|slice:":8" }}</h1>
+    <dl class="row small mb-3">
+      <dt class="col-sm-3">{% trans "Stage" %}</dt><dd class="col-sm-9">{{ concern.stage }}</dd>
+      <dt class="col-sm-3">{% trans "Category" %}</dt><dd class="col-sm-9">{{ concern.category_key }}{% if concern.is_urgent %} · {% trans "urgent" %}{% endif %}</dd>
+      <dt class="col-sm-3">{% trans "Updated" %}</dt><dd class="col-sm-9">{{ concern.updated_at }}</dd>
+    </dl>
+    <h2 class="h6">{% trans "Narrative" %}</h2>
+    <p class="border rounded p-3 small">{{ concern.narrative }}</p>
+  </section>
+
+  {% if is_dsl %}
+  <section class="mb-4" aria-labelledby="sg-triage-heading">
+    <h2 class="h6" id="sg-triage-heading">{% trans "DSL triage" %}</h2>
+    <form method="post" class="row g-2">{% csrf_token %}
+      <div class="col-md-4">
+        <label class="form-label" for="target_stage">{% trans "Advance to" %}</label>
+        <select class="form-select" name="target_stage" id="target_stage" required>
+          {% for stage in transition_choices %}
+          <option value="{{ stage }}">{{ stage }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="note">{% trans "Note" %}</label>
+        <input class="form-control" name="note" id="note" maxlength="240">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="referral_reference">{% trans "External referral ref" %}</label>
+        <input class="form-control" name="referral_reference" id="referral_reference" maxlength="120">
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">{% trans "Update concern" %}</button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

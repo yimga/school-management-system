@@ -90,12 +90,21 @@ def _new_entry_id() -> str:
 def build_concern_deep_link(concern_id: str) -> str:
     """Build the URL a DSL clicks to open the concern.
 
-    Pure-Python: returns a path string. The actual URL routing is wired
-    in the Django URLconf; this just preserves the path contract.
+    Prefers the named Django route ``accounts:safeguarding_concern_detail``;
+    falls back to the stable backend path when reverse is unavailable
+    (e.g. SimpleTestCase without URLConf).
     """
     if not concern_id:
         raise ValueError("concern_id required")
-    return f"/school/studio/workflow-center/safeguarding/{concern_id}/"
+    try:
+        from django.urls import reverse
+
+        return reverse(
+            "accounts:safeguarding_concern_detail",
+            kwargs={"concern_id": concern_id},
+        )
+    except Exception:  # noqa: BLE001 — NoReverseMatch / AppRegistryNotReady
+        return f"/authentication/backend/safeguarding/{concern_id}/"
 
 
 def notify_dsl_of_concern(

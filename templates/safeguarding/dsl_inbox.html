@@ -1,0 +1,49 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Safeguarding inbox" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "DSL safeguarding inbox" %}{% endblock %}
+{% block backend_page %}
+<div class="container-fluid py-2"
+     data-rmc-page-fold-nav="required"
+     data-rmc-section-nav="auto"
+     data-rmc-scroll-policy="paginate"
+     data-page-critical-read="1">
+  <p class="small mb-3"><a href="{{ raise_url }}">{% trans "← Raise a concern" %}</a></p>
+
+  <section class="mb-4" aria-labelledby="sg-inbox-heading">
+    <h1 class="h5" id="sg-inbox-heading">{% trans "Unacknowledged concerns" %}</h1>
+    {% if not inbox %}
+    <p class="text-secondary small mb-0">{% trans "No open DSL inbox items." %}</p>
+    {% else %}
+    <ul class="list-unstyled">
+      {% for row in inbox %}
+      <li class="mb-2">
+        <a href="{% url 'accounts:safeguarding_concern_detail' concern_id=row.concern_id %}">
+          {% if row.is_urgent %}<span class="badge text-bg-danger">{% trans "Urgent" %}</span>{% endif %}
+          {{ row.category_label|default:row.category_key }}
+          <span class="text-secondary small">{{ row.created_at_iso }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+
+  <section class="mb-4" aria-labelledby="sg-open-heading">
+    <h2 class="h6" id="sg-open-heading">{% trans "Open concerns" %}</h2>
+    {% if not open_concerns %}
+    <p class="text-secondary small mb-0">{% trans "No open concerns on the ledger." %}</p>
+    {% else %}
+    <ul class="list-unstyled">
+      {% for c in open_concerns %}
+      <li class="mb-2">
+        <a href="{% url 'accounts:safeguarding_concern_detail' concern_id=c.concern_id %}">
+          {{ c.category_key }} — {{ c.stage }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
