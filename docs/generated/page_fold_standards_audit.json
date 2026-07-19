@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19T10:15:40.957971+00:00",
+  "generated_at": "2026-07-19T11:25:36.236844+00:00",
   "pass": true,
   "rows": [
     {
@@ -229,6 +229,30 @@
       "description": "Marketing voice configure uses fieldset accordion compression",
       "status": "PASS",
       "proof": "siteconfig/super/marketing_voice_configure.html"
+    },
+    {
+      "check_id": "tenant_app_catalog_fold_nav",
+      "description": "Tenant app catalog marks page-fold nav + section nav",
+      "status": "PASS",
+      "proof": "marketplace/tenant_app_catalog.html"
+    },
+    {
+      "check_id": "migration_intake_new_fold_nav",
+      "description": "Migration intake marks page-fold nav",
+      "status": "PASS",
+      "proof": "migration_cloud/intake_new.html"
+    },
+    {
+      "check_id": "support_ticket_detail_fold_nav",
+      "description": "Support ticket detail marks page-fold nav",
+      "status": "PASS",
+      "proof": "schools/super_support_ticket_detail.html"
+    },
+    {
+      "check_id": "migration_intake_start_fieldset_accordion",
+      "description": "Customer migration intake uses fieldset accordion",
+      "status": "PASS",
+      "proof": "migration_cloud/customer/intake_start.html"
     }
   ]
 }

@@ -17,7 +17,7 @@
 {% comment %} semantic-btn-allow: multi-state-support-ticket save-ai-triage-promote-incident-each-distinct-form {% endcomment %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#support-ticket-detail-main">{% trans "Skip to ticket content" %}</a>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div id="support-ticket-detail-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+<div id="support-ticket-detail-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="auto" data-page-critical-read="1">
   {% phase8_dashboard_declaration "schools/super_support_ticket_detail.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="support_ticket_detail" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">

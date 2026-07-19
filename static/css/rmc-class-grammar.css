@@ -5887,10 +5887,14 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-sb-frequent__label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rmc-sb-frequent__tag { color: var(--brand-primary, currentColor); font-size: 0.72rem; flex: none; }
 
-/* Density — per-user (localStorage) over cascade default (data-rmc-sidebar-density). */
+/* Density — per-user (localStorage) over cascade default (data-rmc-sidebar-density).
+   Compact / Cozy / Roomy map to compact|comfortable|spacious. */
 [data-rmc-density="compact"] .cp-sidebar__item,
 [data-rmc-density="compact"] .nav-pill,
 [data-rmc-density="compact"] .rmc-sb-frequent__item { padding-block: 4px; }
+[data-rmc-density="comfortable"] .cp-sidebar__item,
+[data-rmc-density="comfortable"] .nav-pill,
+[data-rmc-density="comfortable"] .rmc-sb-frequent__item { padding-block: 7px; }
 [data-rmc-density="spacious"] .cp-sidebar__item,
 [data-rmc-density="spacious"] .nav-pill,
 [data-rmc-density="spacious"] .rmc-sb-frequent__item { padding-block: 11px; }

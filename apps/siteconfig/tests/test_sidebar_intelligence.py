@@ -84,6 +84,9 @@ class SidebarIntelligenceWiringTests(SimpleTestCase):
         self.assertIn("rmc-sb-filter", js)        # type-to-filter
         self.assertIn("rmc-sb-frequent", js)       # adaptive band
         self.assertIn("data-rmc-density", js)      # density
+        self.assertIn("DENSITY_LABELS", js)
+        self.assertIn('"Cozy"', js)
+        self.assertIn('"Roomy"', js)
         self.assertIn('addEventListener("keydown"', js)  # keyboard handling
         self.assertIn('"/"', js)                   # "/" focuses the filter
 
@@ -91,6 +94,17 @@ class SidebarIntelligenceWiringTests(SimpleTestCase):
         css = _read("static/css/rmc-class-grammar.css")
         for cls in (".rmc-sb-filter", ".rmc-sb-frequent", ".rmc-sb-mark", ".rmc-sb-cursor"):
             self.assertIn(cls, css, cls)
+
+    def test_density_css_covers_compact_cozy_roomy(self):
+        css = _read("static/css/rmc-class-grammar.css")
+        for val in (
+            '[data-rmc-density="compact"]',
+            '[data-rmc-density="comfortable"]',
+            '[data-rmc-density="spacious"]',
+        ):
+            self.assertIn(val, css, val)
+        tokens = _read("static/css/design-tokens.css")
+        self.assertIn('html[data-rmc-density="comfortable"]', tokens)
 
 
 class SidebarLiveBadgeContractTests(SimpleTestCase):

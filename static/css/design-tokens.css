@@ -3694,6 +3694,12 @@ html[data-rmc-density="compact"] {
   --density-card-gap: 0.65rem;
   --density-form-row-gap: 0.55rem;
 }
+html[data-rmc-density="comfortable"] {
+  --density-row-padding-y: 0.65rem;
+  --density-card-padding: clamp(0.875rem, 1vw + 0.5rem, 1.25rem);
+  --density-card-gap: 1rem;
+  --density-form-row-gap: 0.85rem;
+}
 html[data-rmc-density="spacious"] {
   --density-row-padding-y: 0.95rem;
   --density-card-padding: 1.5rem;

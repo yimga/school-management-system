@@ -30,6 +30,7 @@
   var FREQUENT_MAX = 4;
   var FREQUENT_MIN_HITS = 2;
   var DENSITIES = ["compact", "comfortable", "spacious"];
+  var DENSITY_LABELS = { compact: "Compact", comfortable: "Cozy", spacious: "Roomy" };
 
   function readJSON(key) {
     try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch (e) { return {}; }
@@ -158,7 +159,7 @@
       b.type = "button";
       b.className = "rmc-sb-prefs__seg-btn";
       b.setAttribute("data-density", d);
-      b.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+      b.textContent = DENSITY_LABELS[d] || d;
       b.addEventListener("click", function () {
         root.setAttribute("data-rmc-density", d);
         var p = readJSON(PREFS_KEY); p.density = d; writeJSON(PREFS_KEY, p);
@@ -277,7 +278,7 @@
       b.type = "button";
       b.className = "rmc-sb-prefs__seg-btn";
       b.setAttribute("data-density", d);
-      b.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+      b.textContent = DENSITY_LABELS[d] || d;
       b.addEventListener("click", function () {
         root.setAttribute("data-rmc-density", d);
         var p = readJSON(PREFS_KEY); p.density = d; writeJSON(PREFS_KEY, p);

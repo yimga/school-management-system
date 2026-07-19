@@ -109,3 +109,25 @@ class PageFoldStandardsTests(SimpleTestCase):
         ).read_text(encoding="utf-8")
         self.assertIn('data-rmc-fieldset-accordion="1"', text)
         self.assertIn('data-rmc-page-fold-nav="required"', text)
+
+    def test_tenant_app_catalog_fold_nav(self):
+        text = Path("templates/marketplace/tenant_app_catalog.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('data-rmc-page-fold-nav="required"', text)
+        self.assertIn('data-rmc-section-nav="auto"', text)
+
+    def test_migration_and_support_fold_residuals(self):
+        intake = Path("templates/migration_cloud/intake_new.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('data-rmc-page-fold-nav="required"', intake)
+        ticket = Path(
+            "templates/schools/super_support_ticket_detail.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn('data-rmc-page-fold-nav="required"', ticket)
+        start = Path(
+            "templates/migration_cloud/customer/intake_start.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn('data-rmc-fieldset-accordion="1"', start)
+        self.assertIn('data-rmc-page-fold-nav="required"', start)

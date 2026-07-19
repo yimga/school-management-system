@@ -257,6 +257,40 @@ def main() -> int:
         "siteconfig/super/marketing_voice_configure.html",
     )
 
+    catalog = _read("templates/marketplace/tenant_app_catalog.html")
+    add(
+        "tenant_app_catalog_fold_nav",
+        "Tenant app catalog marks page-fold nav + section nav",
+        'data-rmc-page-fold-nav="required"' in catalog
+        and 'data-rmc-section-nav="auto"' in catalog,
+        "marketplace/tenant_app_catalog.html",
+    )
+
+    intake_new = _read("templates/migration_cloud/intake_new.html")
+    add(
+        "migration_intake_new_fold_nav",
+        "Migration intake marks page-fold nav",
+        'data-rmc-page-fold-nav="required"' in intake_new,
+        "migration_cloud/intake_new.html",
+    )
+
+    support_ticket = _read("templates/schools/super_support_ticket_detail.html")
+    add(
+        "support_ticket_detail_fold_nav",
+        "Support ticket detail marks page-fold nav",
+        'data-rmc-page-fold-nav="required"' in support_ticket,
+        "schools/super_support_ticket_detail.html",
+    )
+
+    intake_start = _read("templates/migration_cloud/customer/intake_start.html")
+    add(
+        "migration_intake_start_fieldset_accordion",
+        "Customer migration intake uses fieldset accordion",
+        'data-rmc-fieldset-accordion="1"' in intake_start
+        and 'data-rmc-page-fold-nav="required"' in intake_start,
+        "migration_cloud/customer/intake_start.html",
+    )
+
     failed = [r for r in rows if r.status == "FAIL"]
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
