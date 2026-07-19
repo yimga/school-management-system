@@ -476,9 +476,7 @@
             {% include "components/demo_guided_hints.html" %}
             {% endif %}
             {% include "partials/shell_chrome_django_messages_tenant_portal.html" %}
-            {% if not tp_v3_tenant_shell %}
             {% include "components/rmc_page_explain_strip.html" %}
-            {% endif %}
             {% comment %} v4.02.10: incident banner in Tools tray context stack. {% endcomment %}
             {% if not tp_v3_tenant_shell %}
             {% include "partials/shell_chrome_security_posture_banner.html" %}

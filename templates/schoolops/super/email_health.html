@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 {% block page_title %}{{ page_title|default:"Email delivery health" }}{% endblock %}
 
@@ -22,12 +22,14 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--operator-email-health" id="main" data-rmc-scroll-policy="paginate">
+<main class="rmc-page rmc-page--operator-email-health" id="main" data-rmc-scroll-policy="paginate" data-rmc-core-context="1">
   <header class="rmc-page__header">
-    <h1 class="rmc-h1">{% trans "Email delivery health" %}</h1>
-    <p class="rmc-lede">
-      {% blocktrans with hours=stats.window_hours %}Last {{ hours }} hours of platform email sends, current SMTP configuration, and a synchronous probe. Auto-refreshes every {{ refresh_seconds }} seconds.{% endblocktrans %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Email delivery health" %}</h1>
+      {% blocktrans with hours=stats.window_hours asvar page_tip_1 %}Last {{ hours }} hours of platform email sends, current SMTP configuration, and a synchronous probe. Auto-refreshes every {{ refresh_seconds }} seconds.{% endblocktrans %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
     <p class="mb-0"><a class="cp-btn cp-btn--ghost" href="{% url 'super:signup_verifications' %}">→ {% trans "Signup verifications (resend / regenerate)" %}</a></p>
     <meta http-equiv="refresh" content="{{ refresh_seconds|default:60 }}">
   </header>

@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 
 {% block page_title %}{% trans "LMS diag-action retention preview" %}{% endblock %}
 
@@ -12,12 +12,14 @@
 <main class="rmc-page rmc-page--lms-diag-retention-preview" id="main">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "Diag-action retention preview" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Forecasts what the next LMSDiagActionAudit retention sweep would purge — without actually deleting anything. Reuses the same cutoff math the Celery beat uses, so preview and real-sweep semantics stay identical." %}
+    <details class="rmc-help-details mb-2" data-rmc-core-context="1">
+      <summary class="small fw-semibold">{% trans "About this page" %}</summary>
+      <div class="small text-muted pt-1">{% trans "Forecasts what the next LMSDiagActionAudit retention sweep would purge — without actually deleting anything. Reuses the same cutoff math the Celery beat uses, so preview and real-sweep semantics stay identical." %}
       <small style="display:block;color:var(--text-secondary);margin-top:4px;">
         {% trans "generated_at" %}: <code>{{ generated_at }}</code>
-      </small>
-    </p>
+      </small></div>
+    </details>
+    
   </header>
 
   <section role="alert" style="margin-bottom:14px;padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">

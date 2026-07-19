@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 
 <!-- Audit residual closeout — operator delivery-receipt dashboard for SMS / WhatsApp / push. NEVER renders raw recipients (only the hashed recipient_hash). Cross-tenant by design (operator incident response). Auto-refreshes every 60s. -->
 
@@ -16,12 +16,14 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page" data-rmc-scroll-policy="paginate" id="main">
+<main class="rmc-page" data-rmc-scroll-policy="paginate" id="main" data-rmc-core-context="1">
   <header class="rmc-page__header">
-    <h1 class="rmc-h1">{% trans "Message delivery receipts" %}</h1>
-    <p class="rmc-lede">
-      {% trans "SMS / WhatsApp / push delivery outcomes reported by providers. Recipients shown as SHA-256 hashes — never raw numbers. Auto-refreshes every 60 seconds." %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Message delivery receipts" %}</h1>
+      {% trans "SMS / WhatsApp / push delivery outcomes reported by providers. Recipients shown as SHA-256 hashes — never raw numbers. Auto-refreshes every 60 seconds." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
   </header>
 
   {% if load_error %}

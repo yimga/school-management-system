@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — MAA v2.0 promotion status" }}{% endblock %}
 
@@ -12,10 +12,12 @@
 <main class="rmc-page rmc-page--maa-v2-promotion" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "MAA v2.0 promotion status" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Operator dashboard for the Migration Authorization Agreement v2.0 promotion path. Read-only — the flip itself is an out-of-band procedure." %}
-      <a class="rmc-link" href="/{{ checklist_doc_path }}">{% trans "Promotion checklist" %}</a>
-    </p>
+    <details class="rmc-help-details mb-2" data-rmc-core-context="1">
+      <summary class="small fw-semibold">{% trans "About this page" %}</summary>
+      <div class="small text-muted pt-1">{% trans "Operator dashboard for the Migration Authorization Agreement v2.0 promotion path. Read-only — the flip itself is an out-of-band procedure." %}
+      <a class="rmc-link" href="/{{ checklist_doc_path }}">{% trans "Promotion checklist" %}</a></div>
+    </details>
+    
   </header>
 
   <!-- ── Panel 1 — readiness (pre-flight verifier) ───────────────────────── -->

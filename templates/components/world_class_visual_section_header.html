@@ -1,10 +1,12 @@
-{% load i18n %}
-<header class="rmc-wcx-section-header" data-world-class-section-header="1">
+{% load i18n rmc_explain_tags %}
+<header class="rmc-wcx-section-header rmc-wcx-section-header--compact" data-world-class-section-header="1" data-rmc-core-context="1">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div>
+  <div class="rmc-wcx-section-header__copy">
     <div class="rmc-wcx-section__eyebrow">{{ eyebrow|default:_("Guided workspace") }}</div>
-    <h2 class="h4 mb-1">{{ title }}</h2>
-    <p class="small text-muted mb-0">{{ purpose }}</p>
+    <h2 class="h4 mb-0">
+      <span class="truncate">{{ title }}</span>
+      {% if purpose %}{% rmc_info_tag title=title body=purpose surface=section_surface|default:"tenant" placement="bottom" %}{% endif %}
+    </h2>
   </div>
-  {% if action_url and action_label %}<a class="btn btn-outline-primary btn-sm" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
+  {% if action_url and action_label %}<a class="btn btn-outline-primary btn-sm truncate" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
 </header>

@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 <!-- v3.38.0 Agent 4 — Migration Cloud operator health dashboard. Six panels in a 3-col grid for incident response: 1. Webhook deliveries (last 24h, by status) 2. MAA signs (last 7d, by version) 3. Companion uploads (last 24h, count + bytes per HASHED tenant) 4. Active Companion keypairs (per HASHED tenant) 5. Pending legacy hash sunsets (single count) 6. Zero-tolerance scanner baselines (8 rows) Hard contract: this template NEVER renders raw tenant slugs (only the 12-hex sha256 prefix the view computed), and NEVER renders signature bytes / MAA body / private key material. Auto-refreshes every 60s via meta refresh so an operator can keep it open. -->
 
@@ -16,13 +16,15 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--migration-cloud-health" data-rmc-scroll-policy="paginate" id="main">
+<main class="rmc-page rmc-page--migration-cloud-health" data-rmc-scroll-policy="paginate" id="main" data-rmc-core-context="1">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
-    <h1 class="rmc-h1">{% trans "Migration Cloud — operator health" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Real-time platform status. Tenant identifiers shown as 12-hex SHA-256 prefixes — never plaintext slugs. Auto-refreshes every 60 seconds." %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Migration Cloud — operator health" %}</h1>
+      {% trans "Real-time platform status. Tenant identifiers shown as 12-hex SHA-256 prefixes — never plaintext slugs. Auto-refreshes every 60 seconds." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
   </header>
 
   <div class="rmc-grid rmc-grid--3col rmc-grid--migration-cloud-health">

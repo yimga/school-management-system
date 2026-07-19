@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 
 <!-- v3.40.0 Agent 14 — "Run Smoke Now" operator form. Renders a small CSRF-protected POST form that dispatches an on-demand Migration Cloud smoke run via Celery. Defaults to the synthetic-tenant slug + powerschool + dry-run. No inline <style> blocks. All classes are project design tokens (rmc-*). -->
 
@@ -11,15 +11,17 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--operator-smoke-trigger w-100 max-w-none mx-auto" id="main">
+<main class="rmc-page rmc-page--operator-smoke-trigger w-100 max-w-none mx-auto" id="main" data-rmc-core-context="1">
   <header class="rmc-page__header">
     {% if command_center_url %}
       <a class="rmc-back" href="{{ command_center_url }}">{% trans "← Back to Command Center" %}</a>
     {% endif %}
-    <h1 class="rmc-h1">{% trans "Run Migration Cloud smoke now" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Kick off an on-demand smoke run against a synthetic tenant. Dry-run by default. The result will appear on the smoke history page once the worker finishes (typically under a minute)." %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Run Migration Cloud smoke now" %}</h1>
+      {% trans "Kick off an on-demand smoke run against a synthetic tenant. Dry-run by default. The result will appear on the smoke history page once the worker finishes (typically under a minute)." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
   </header>
 
   {% if messages %}

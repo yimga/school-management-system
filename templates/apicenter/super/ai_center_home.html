@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 {% block page_title %}{{ page_title }}{% endblock %}
 {% block cp_shell_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -7,11 +7,15 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page" id="main" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated">
+<main class="rmc-page" id="main" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated" data-rmc-core-context="1">
   {% include "apicenter/super/ai_center_nav.html" %}
   <header class="rmc-page__header">
-    <h1 class="rmc-h1">{% trans "AI Center" %}</h1>
-    <p class="rmc-lede">{% trans "Governed platform intelligence — permission-filtered, evidence-backed, zero-hallucination." %}</p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "AI Center" %}</h1>
+      {% trans "Governed platform intelligence — permission-filtered, evidence-backed, zero-hallucination." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
   </header>
   <div class="rmc-metric-grid">
     <div class="rmc-metric-card">

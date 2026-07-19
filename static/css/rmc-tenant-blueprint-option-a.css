@@ -191,3 +191,30 @@
     min-height: 0;
   }
 }
+
+.rmc-option-a__head-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: grid;
+  gap: 0.25rem;
+}
+.rmc-option-a__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+.rmc-option-a__metric-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  max-width: 100%;
+}
+.rmc-option-a__lede,
+.rmc-bp-option-a__lede {
+  display: none !important; /* Core vs Context: education moved into info tags */
+}
+

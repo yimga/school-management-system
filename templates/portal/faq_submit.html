@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
-{% load i18n static %}
+{% load i18n static rmc_explain_tags %}
 
-{% block title %}Submit a Question - FAQ{% endblock %}
+{% block title %}{% trans "Submit a Question - FAQ" %}{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -126,34 +126,32 @@
         </div>
 
         <aside class="rmc-page-horizon__aside">
-            <!-- Info Box -->
-            <div class="rmc-banner rmc-banner--info" role="alert">
-                <h6 class="alert-heading">
-                    <i class="bi bi-info-circle"></i> What happens next?
-                </h6>
-                <ul class="small mb-0">
-                    <li>Your submission will be reviewed by our team</li>
-                    <li>You'll earn <strong>5 points</strong> for every approved question</li>
-                    <li>Featured questions may earn bonus points</li>
-                    <li>See your contributions on your <a href="{% url 'kb:user_contributions' %}">dashboard</a></li>
+            <details class="rmc-help-details mb-3" data-rmc-core-context="1" open>
+                <summary class="small fw-semibold">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i> {% trans "What happens next?" %}
+                    {% trans "Review timeline, points for approved questions, and where to track contributions." as faq_next_tip %}
+                    {% rmc_info_tag title=_("FAQ submission") body=faq_next_tip surface="tenant" %}
+                </summary>
+                <ul class="small mb-0 mt-2">
+                    <li>{% trans "Your submission will be reviewed by our team" %}</li>
+                    <li>{% blocktrans %}You'll earn <strong>5 points</strong> for every approved question{% endblocktrans %}</li>
+                    <li>{% trans "Featured questions may earn bonus points" %}</li>
+                    <li>{% url 'kb:user_contributions' as faq_contrib_url %}{% blocktrans %}See your contributions on your{% endblocktrans %} <a href="{{ faq_contrib_url }}">{% trans "dashboard" %}</a></li>
                 </ul>
-            </div>
+            </details>
 
-            <!-- Guidelines -->
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6>
-                        <i class="bi bi-check2-circle text-success"></i> Guidelines for Quality Questions
-                    </h6>
-                    <ul class="small mb-0">
-                        <li><strong>Be specific:</strong> Clear, detailed questions get better answers</li>
-                        <li><strong>Be helpful:</strong> Think about what would help other users</li>
-                        <li><strong>Avoid duplicates:</strong> Search before submitting</li>
-                        <li><strong>Use clear language:</strong> Easy to read and understand</li>
-                        <li><strong>Format nicely:</strong> Use paragraphs and lists</li>
-                    </ul>
-                </div>
-            </div>
+            <details class="rmc-help-details" data-rmc-core-context="1">
+                <summary class="small fw-semibold">
+                    <i class="bi bi-check2-circle text-success" aria-hidden="true"></i> {% trans "Guidelines for quality questions" %}
+                </summary>
+                <ul class="small mb-0 mt-2">
+                    <li><strong>{% trans "Be specific:" %}</strong> {% trans "Clear, detailed questions get better answers" %}</li>
+                    <li><strong>{% trans "Be helpful:" %}</strong> {% trans "Think about what would help other users" %}</li>
+                    <li><strong>{% trans "Avoid duplicates:" %}</strong> {% trans "Search before submitting" %}</li>
+                    <li><strong>{% trans "Use clear language:" %}</strong> {% trans "Easy to read and understand" %}</li>
+                    <li><strong>{% trans "Format nicely:" %}</strong> {% trans "Use paragraphs and lists" %}</li>
+                </ul>
+            </details>
         </aside>
     </div>
 </div>

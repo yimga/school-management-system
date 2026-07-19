@@ -408,10 +408,10 @@
     {% endif %}
   </section>
 
-  <section class="proof-split rmc-reveal">
-    <div id="section-install-flow" class="proof-panel">
-      <h2 class="proof-panel-title">{% trans "What changed in the install flow" %}</h2>
-      <div class="proof-flow">
+  <section class="proof-split rmc-reveal" data-rmc-core-context="1">
+    <details class="proof-panel" id="section-install-flow" data-rmc-scroll-policy="paginate">
+      <summary class="proof-panel-title">{% trans "What changed in the install flow" %}</summary>
+      <div class="proof-flow mt-2">
         <div class="proof-step">
           <span class="proof-step-order">1</span>
           <h3>{% trans "Trust first" %}</h3>
@@ -428,16 +428,16 @@
           <p>{% trans "Activation is a separate decision after the school confirms the app is ready." %}</p>
         </div>
       </div>
-    </div>
-    <div id="section-rollback" class="proof-panel">
-      <h2 class="proof-panel-title">{% trans "Rollback expectations" %}</h2>
-      <ul class="proof-bullet-list">
+    </details>
+    <details class="proof-panel" id="section-rollback" data-rmc-scroll-policy="paginate">
+      <summary class="proof-panel-title">{% trans "Rollback expectations" %}</summary>
+      <ul class="proof-bullet-list mt-2">
         <li>{% trans "Sandbox install keeps new capabilities out of live navigation until you activate." %}</li>
         <li>{% trans "Pending scope grants remain visible so sensitive access is not hidden." %}</li>
         <li>{% trans "Installed apps page gives the team one place to activate or uninstall." %}</li>
         <li>{% trans "Uninstall from Installed apps at any time; no long-term lock-in." %}</li>
       </ul>
-    </div>
+    </details>
   </section>
 
   <section id="section-interop-hub" class="proof-panel mt-4 rmc-reveal" data-phase9-ecosystem-hub>

@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n static glocal_tags %}
+{% load i18n static glocal_tags rmc_explain_tags %}
 
 {% block page_title %}{{ page_title|default:"Meal plan low-balance analytics" }}{% endblock %}
 
@@ -19,10 +19,12 @@
 
 <main class="rmc-page rmc-page--operator-meal-plan-analytics" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
-    <h1 class="rmc-h1">{% trans "Meal plan low-balance analytics" %}</h1>
-    <p class="rmc-lede">
-      {% blocktrans with days=window_days %}Rolling {{ days }}-day view of low-balance notification events per tenant, with cooldown-effectiveness and per-locale breakdowns. Staff-only.{% endblocktrans %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Meal plan low-balance analytics" %}</h1>
+      {% blocktrans with days=window_days asvar page_tip_1 %}Rolling {{ days }}-day view of low-balance notification events per tenant, with cooldown-effectiveness and per-locale breakdowns. Staff-only.{% endblocktrans %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
   </header>
 
   <section class="rmc-card rmc-card--metric-row" aria-label="{% trans 'Headline metrics' %}">
@@ -47,7 +49,11 @@
 
   <section class="rmc-card chart-container" aria-labelledby="meal-plan-viz-heading">
     <h2 id="meal-plan-viz-heading" class="rmc-h2">{% trans "Operational KPI visualization" %}</h2>
-    <p class="rmc-lede">{% trans "Platform-wide meal-plan notification trends (deterministic seed preview)." %}</p>
+    {% trans "Platform-wide meal-plan notification trends (deterministic seed preview)." as page_tip_2 %}
+    <details class="rmc-help-details mb-2" data-rmc-core-context="1">
+      <summary class="small fw-semibold">{% trans "About this page" %}</summary>
+      <div class="small text-muted pt-1">{{ page_tip_2 }}</div>
+    </details>
     {% include "partials/rmc_analytics_viz_mount.html" with tenant_id="platform-meal-ops" min_height="20rem" %}
   </section>
 

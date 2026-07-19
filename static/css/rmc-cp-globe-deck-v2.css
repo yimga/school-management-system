@@ -564,7 +564,19 @@
 .rmc-globe-deck-v2__fleet-status {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
+  overflow: visible;
+  min-width: 0;
+}
+
+.rmc-globe-deck-v2__pulse-line {
+  margin: 0 0 6px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .rmc-globe-deck-v2__status-chip {
@@ -574,6 +586,13 @@
   border-radius: 999px;
   border: 1px solid var(--hairline);
   cursor: pointer;
+  background: transparent;
+  color: inherit;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .rmc-globe-deck-v2__status-chip.on {

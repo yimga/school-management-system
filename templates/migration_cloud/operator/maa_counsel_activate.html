@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 <!-- v3.40.0 Agent 15 — operator-side MAA v2.0 counsel-activate UI. Three sections: current state, v2.0 verbatim body, and the activation form. Form values are NEVER logged; the v2.0 body content is rendered for operator review only and is NOT echoed back into hidden form fields. No inline <style> blocks (project zero-tolerance gate enforces this). -->
 
@@ -11,12 +11,14 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--maa-counsel-activate" id="main">
+<main class="rmc-page rmc-page--maa-counsel-activate" id="main" data-rmc-core-context="1">
   <header class="rmc-page__header">
-    <h1 class="rmc-h1">{% trans "MAA v2.0 — counsel-activate" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Flip the platform-wide MAA default from v1.0 to v2.0 after counsel has signed the v2.0 PDF. Activation is single-direction (no auto-rollback). NEVER perform this without the counsel-signoff PDF on file." %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "MAA v2.0 — counsel-activate" %}</h1>
+      {% trans "Flip the platform-wide MAA default from v1.0 to v2.0 after counsel has signed the v2.0 PDF. Activation is single-direction (no auto-rollback). NEVER perform this without the counsel-signoff PDF on file." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
     <p class="rmc-page__header-actions">
       <a class="rmc-link" href="{{ back_url }}">{% trans "← Back to Command Center" %}</a>
     </p>

@@ -28,8 +28,19 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260718-page-aware-a2z" not in base_site:
-        errors.append("Django canvas contract link must use the page-aware-a2z cache bust for deployment visibility")
+    if "?v=20260719-fluff-burn" not in base_site:
+        errors.append("Django canvas contract link must use the core-context-info cache bust for deployment visibility")
+    if "rmc_tour_bootstrap.html" not in base_site and "rmc-info-tag.js" not in base_site:
+        errors.append("admin/base_site.html must load rmc-info-tag JS (via rmc_tour_bootstrap)")
+    metrics = (ROOT / "templates/admin/includes/admin_workspace_metrics_strip.html").read_text(encoding="utf-8")
+    for banned in ("Canvas", "Form cap", "100%", "Save</span><b>{% trans \"Static\""):
+        if banned in metrics:
+            errors.append(f"admin metrics strip still contains fluff token: {banned}")
+            break
+    if "rmc-django-metrics--compact" not in metrics:
+        errors.append("admin metrics strip must use compact honest metrics")
+    if "rmc_info_tag" not in metrics:
+        errors.append("admin metrics strip must educate via rmc_info_tag")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
     if contract_link in base_site and "rmc_theme_experience_dual_plane_styles.html" in base_site:

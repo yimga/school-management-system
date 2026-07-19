@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 
 <!-- v3.40.0 Agent 13 — DSAR runbook operator view. This template: * Renders the last 30 DSAR runs from var/dsar-runs/*.json. * Displays the current var/dsar-last-run.txt pointer. * Provides a POST form to record a new DSAR run. Privacy: notes content is rendered ONLY because the staff operator who submitted it is the same staff operator viewing it. The notes column is truncated server-side to 120 chars as defense-in-depth. The request_id is NEVER rendered — only its sha256[:12] prefix. -->
 
@@ -11,13 +11,15 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--operator-dsar-runbook" id="main">
+<main class="rmc-page rmc-page--operator-dsar-runbook" id="main" data-rmc-core-context="1">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
-    <h1 class="rmc-h1">{% trans "DSAR runbook" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Record completed Data Subject Access Requests. The command-center DSAR card reads the latest run timestamp from var/dsar-last-run.txt." %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "DSAR runbook" %}</h1>
+      {% trans "Record completed Data Subject Access Requests. The command-center DSAR card reads the latest run timestamp from var/dsar-last-run.txt." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
     {% if last_run_pointer %}
       <p class="rmc-meta">{% trans "Latest recorded run:" %} <code>{{ last_run_pointer }}</code></p>
     {% else %}

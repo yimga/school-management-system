@@ -187,17 +187,31 @@
         <span id="rmc-world-globe-chrome-caption-text">{% if lwm_fleet and lwm_fleet.pulse_events and lwm_fleet.pulse_events.0.text %}{{ lwm_fleet.pulse_events.0.text }}{% else %}{% trans "School now live" %}{% endif %}</span>
       </div>
       {% if lwm_features.glass_dock != False %}
-      <div class="lx-world__chrome-rail-dock" id="rmc-world-globe-chrome-dock-host"></div>
+      <div class="lx-world__chrome-rail-dock" id="rmc-world-globe-chrome-dock-host">
+        <div class="lx-world__glass-dock lx-world__glass-dock--in-chrome" id="rmc-world-globe-glass-dock" data-rmc-globe-glass-dock="1">
+          <span class="lx-world__glass-dock-metric" id="rmc-world-globe-dock-metric">{{ cockpit.live_world_map.schools_live|default:"—" }} {% trans "schools live" %}</span>
+          <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
+          <div class="lx-world__glass-dock-chips" id="rmc-world-globe-dock-regions" data-rmc-scroll-policy="discovery">
+            {% for row in cockpit.live_world_map.regional_breakdown %}
+            <button type="button" class="lx-world__glass-dock-chip" data-rmc-region="{{ row.label }}" data-rmc-fly-lat="{{ row.fly_lat|default:'' }}" data-rmc-fly-lng="{{ row.fly_lng|default:'' }}">{{ row.label }} {{ row.count }}</button>
+            {% endfor %}
+          </div>
+          <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
+          <div class="lx-world__glass-dock-chips lx-world__glass-dock-chips--status">
+            <button type="button" class="lx-world__glass-dock-chip on" data-rmc-status-filter="active">{% trans "Active" %}</button>
+            <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="suspended">{% trans "Suspended" %}</button>
+            <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="frozen">{% trans "Frozen" %}</button>
+          </div>
+        </div>
+      </div>
       {% endif %}
       <div class="lx-world__chrome-rail-whisper lx-world__void-zone lx-world__void-zone--ai" id="rmc-world-globe-chrome-whisper">
         <b>{% trans "D · Fleet whisper" %}</b>
         <span id="rmc-world-globe-chrome-whisper-text">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% else %}{% trans "Fleet healthy · pan to explore pins" %}{% endif %}</span>
       </div>
     </div>
-    {% endif %}
-    {% endif %}
-    {% if lwm_layout != 'hero' and lwm_features.glass_dock != False %}
-    <div class="lx-world__glass-dock{% if lwm_features.chrome_rail != False %} lx-world__glass-dock--chrome-rail{% endif %}" id="rmc-world-globe-glass-dock">
+    {% elif lwm_features.glass_dock != False %}
+    <div class="lx-world__glass-dock" id="rmc-world-globe-glass-dock" data-rmc-globe-glass-dock="1">
       <span class="lx-world__glass-dock-metric" id="rmc-world-globe-dock-metric">{{ cockpit.live_world_map.schools_live|default:"—" }} {% trans "schools live" %}</span>
       <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
       <div class="lx-world__glass-dock-chips" id="rmc-world-globe-dock-regions" data-rmc-scroll-policy="discovery">
@@ -213,6 +227,7 @@
       </div>
     </div>
     {% endif %}
+    {% endif %}
     {% if lwm_features.constellation_mode != False %}
     <div class="lx-world__hq-pin" id="rmc-world-globe-hq-pin" title="{% trans 'RunMyCampus HQ' %}" aria-hidden="true" hidden></div>
     <div class="lx-world__icon-rail" id="rmc-world-globe-icon-rail" role="group" aria-label="{% trans 'Globe layers' %}">
@@ -226,8 +241,38 @@
   </div>
 
   {% if lwm_layout == 'hero' %}
-  {% if lwm_features.glass_dock != False %}
-  <div class="lx-world__glass-dock lx-world__glass-dock--stacked{% if lwm_features.chrome_rail != False %} lx-world__glass-dock--chrome-rail{% endif %}" id="rmc-world-globe-glass-dock-stacked" data-rmc-globe-glass-dock="1">
+  {% if lwm_features.chrome_rail != False %}
+  <div class="lx-world__chrome-rail lx-world__chrome-rail--stacked{% if rmc_cp_globe_landing_minimal_chrome %} lx-world__chrome-rail--globe-landing-hidden{% endif %}" id="rmc-world-globe-chrome-rail-stacked" data-rmc-globe-chrome-rail="1">
+    <div class="lx-world__chrome-rail-caption lx-world__void-zone lx-world__void-zone--data" id="rmc-world-globe-chrome-caption-stacked">
+      <b>{% trans "C · Caption" %}</b>
+      <span id="rmc-world-globe-chrome-caption-text-stacked">{% if lwm_fleet and lwm_fleet.pulse_events and lwm_fleet.pulse_events.0.text %}{{ lwm_fleet.pulse_events.0.text }}{% else %}{% trans "School now live" %}{% endif %}</span>
+    </div>
+    {% if lwm_features.glass_dock != False %}
+    <div class="lx-world__chrome-rail-dock" id="rmc-world-globe-chrome-dock-host-stacked">
+      <div class="lx-world__glass-dock lx-world__glass-dock--stacked lx-world__glass-dock--in-chrome" id="rmc-world-globe-glass-dock-stacked" data-rmc-globe-glass-dock="1">
+        <span class="lx-world__glass-dock-metric" id="rmc-world-globe-dock-metric-stacked">{{ cockpit.live_world_map.schools_live|default:"—" }} {% trans "schools live" %}</span>
+        <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
+        <div class="lx-world__glass-dock-chips" id="rmc-world-globe-dock-regions-stacked" data-rmc-scroll-policy="discovery">
+          {% for row in cockpit.live_world_map.regional_breakdown %}
+          <button type="button" class="lx-world__glass-dock-chip" data-rmc-region="{{ row.label }}" data-rmc-fly-lat="{{ row.fly_lat|default:'' }}" data-rmc-fly-lng="{{ row.fly_lng|default:'' }}">{{ row.label }} {{ row.count }}</button>
+          {% endfor %}
+        </div>
+        <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
+        <div class="lx-world__glass-dock-chips lx-world__glass-dock-chips--status">
+          <button type="button" class="lx-world__glass-dock-chip on" data-rmc-status-filter="active">{% trans "Active" %}</button>
+          <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="suspended">{% trans "Suspended" %}</button>
+          <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="frozen">{% trans "Frozen" %}</button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="lx-world__chrome-rail-whisper lx-world__void-zone lx-world__void-zone--ai" id="rmc-world-globe-chrome-whisper-stacked">
+      <b>{% trans "D · Fleet whisper" %}</b>
+      <span id="rmc-world-globe-chrome-whisper-text-stacked">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% else %}{% trans "Fleet healthy · pan to explore pins" %}{% endif %}</span>
+    </div>
+  </div>
+  {% elif lwm_features.glass_dock != False %}
+  <div class="lx-world__glass-dock lx-world__glass-dock--stacked" id="rmc-world-globe-glass-dock-stacked" data-rmc-globe-glass-dock="1">
     <span class="lx-world__glass-dock-metric" id="rmc-world-globe-dock-metric-stacked">{{ cockpit.live_world_map.schools_live|default:"—" }} {% trans "schools live" %}</span>
     <span class="lx-world__glass-dock-sep" aria-hidden="true"></span>
     <div class="lx-world__glass-dock-chips" id="rmc-world-globe-dock-regions-stacked" data-rmc-scroll-policy="discovery">
@@ -240,21 +285,6 @@
       <button type="button" class="lx-world__glass-dock-chip on" data-rmc-status-filter="active">{% trans "Active" %}</button>
       <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="suspended">{% trans "Suspended" %}</button>
       <button type="button" class="lx-world__glass-dock-chip" data-rmc-status-filter="frozen">{% trans "Frozen" %}</button>
-    </div>
-  </div>
-  {% endif %}
-  {% if lwm_features.chrome_rail != False %}
-  <div class="lx-world__chrome-rail lx-world__chrome-rail--stacked{% if rmc_cp_globe_landing_minimal_chrome %} lx-world__chrome-rail--globe-landing-hidden{% endif %}" id="rmc-world-globe-chrome-rail-stacked" data-rmc-globe-chrome-rail="1">
-    <div class="lx-world__chrome-rail-caption lx-world__void-zone lx-world__void-zone--data" id="rmc-world-globe-chrome-caption-stacked">
-      <b>{% trans "C · Caption" %}</b>
-      <span id="rmc-world-globe-chrome-caption-text-stacked">{% if lwm_fleet and lwm_fleet.pulse_events and lwm_fleet.pulse_events.0.text %}{{ lwm_fleet.pulse_events.0.text }}{% else %}{% trans "School now live" %}{% endif %}</span>
-    </div>
-    {% if lwm_features.glass_dock != False %}
-    <div class="lx-world__chrome-rail-dock" id="rmc-world-globe-chrome-dock-host-stacked"></div>
-    {% endif %}
-    <div class="lx-world__chrome-rail-whisper lx-world__void-zone lx-world__void-zone--ai" id="rmc-world-globe-chrome-whisper-stacked">
-      <b>{% trans "D · Fleet whisper" %}</b>
-      <span id="rmc-world-globe-chrome-whisper-text-stacked">{% if lwm_fleet and lwm_fleet.whisper_line %}{{ lwm_fleet.whisper_line }}{% else %}{% trans "Fleet healthy · pan to explore pins" %}{% endif %}</span>
     </div>
   </div>
   {% endif %}

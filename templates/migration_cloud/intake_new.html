@@ -1,5 +1,5 @@
 {% extends mc_base|default:"control_plane_base.html" %}
-{% load i18n static %}
+{% load i18n static rmc_explain_tags %}
 
 {% block cp_title %}{{ page_title }}{% endblock %}
 {% block cp_page_archetype %}operational-workbench{% endblock %}
@@ -15,7 +15,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--migration-cloud-intake rmc-intake-v2" id="main" data-mc-intake-v2 data-rmc-page-fold-nav="required" data-rmc-section-nav="auto" data-rmc-scroll-policy="paginate">
+<main class="rmc-page rmc-page--migration-cloud-intake rmc-intake-v2" id="main" data-mc-intake-v2 data-rmc-page-fold-nav="required" data-rmc-section-nav="auto" data-rmc-scroll-policy="paginate" data-rmc-core-context="1">
   <header class="rmc-page__header rmc-intake-hero" data-mc-intake-command-center>
     <div data-rmc-scroll-policy="paginate" class="rmc-intake-hero__visual" aria-hidden="true">
       <div class="rmc-intake-hero__orb">
@@ -25,10 +25,12 @@
     <div class="rmc-intake-hero__copy">
       <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:console' %}{% else %}{% url 'migration_cloud_super:console' %}{% endif %}"
          class="rmc-back">{% trans "Back to all migrations" %}</a>
+      <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
       <h1 class="rmc-h1">{% trans "Start a new migration" %}</h1>
-      <p class="rmc-lede">
-        {% trans "Land the export, fingerprint every artifact, map fields into the canonical model, and put guardrails in place before anyone can apply data to a tenant." %}
-      </p>
+      {% trans "Land the export, fingerprint every artifact, map fields into the canonical model, and put guardrails in place before anyone can apply data to a tenant." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="migration-cloud" placement="bottom" %}
+    </div>
+      
     </div>
     <div class="rmc-intake-hero__metrics" aria-label="{% trans 'Migration intake capabilities' %}">
       <div class="rmc-intake-metric">

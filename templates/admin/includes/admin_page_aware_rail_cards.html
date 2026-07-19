@@ -1,32 +1,39 @@
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 {% comment %}
-  Page-aware rail body: this-object / this-list facts, live pulse, guided paths.
-  Included via {% admin_page_aware_rail surface=... %}.
+  Page-aware rail: facts + pulse. Education via ⓘ — no duplicate manifesto prose.
 {% endcomment %}
 {% if rail %}
 <div class="rmc-rail-card" data-rmc-django-rail-page="1">
-  <div class="rmc-rail-h">{{ rail.boundary_title }}</div>
+  <div class="rmc-rail-h">
+    {{ rail.boundary_title }}
+    {% if rail.boundary_hint %}
+    {% rmc_info_tag title=rail.boundary_title body=rail.boundary_hint surface="django-admin" placement="left" %}
+    {% endif %}
+  </div>
   <div class="rmc-rail-b">
     <div class="rmc-rail-scope">
-      <strong>{{ rail.boundary_strong }}</strong>
-      <span>{{ rail.boundary_hint }}</span>
+      <strong class="truncate">{{ rail.boundary_strong }}</strong>
     </div>
   </div>
 </div>
 
 <div class="rmc-rail-card" data-rmc-django-rail-this-page="1">
-  <div class="rmc-rail-h">{% if rail.surface == "change-list" %}{% trans "This list" %}{% elif rail.surface == "index" %}{% trans "This catalog" %}{% elif rail.surface == "app-index" %}{% trans "This app" %}{% elif rail.surface == "guided" %}{% trans "This action" %}{% else %}{% trans "This record" %}{% endif %}</div>
+  <div class="rmc-rail-h">
+    {% if rail.surface == "change-list" %}{% trans "This list" %}{% elif rail.surface == "index" %}{% trans "This catalog" %}{% elif rail.surface == "app-index" %}{% trans "This app" %}{% elif rail.surface == "guided" %}{% trans "This action" %}{% else %}{% trans "This record" %}{% endif %}
+    {% if rail.page_lede %}
+    {% rmc_info_tag title=rail.page_title body=rail.page_lede surface="django-admin" placement="left" %}
+    {% endif %}
+  </div>
   <div class="rmc-rail-b">
     <div class="rmc-rail-scope">
-      <strong>{{ rail.page_title }}</strong>
-      <span>{{ rail.page_lede }}</span>
+      <strong class="wrap">{{ rail.page_title }}</strong>
     </div>
     {% if rail.facts %}
     <dl class="rmc-django-rail-facts" data-rmc-django-rail-facts="1">
       {% for fact in rail.facts %}
       <div class="rmc-django-rail-fact">
-        <dt>{{ fact.label }}</dt>
-        <dd>{{ fact.value }}</dd>
+        <dt class="truncate">{{ fact.label }}</dt>
+        <dd class="wrap">{{ fact.value }}</dd>
       </div>
       {% endfor %}
     </dl>
@@ -34,7 +41,7 @@
     {% if rail.links %}
     <nav class="rmc-django-rail-links" aria-label="{% trans 'Page links' %}">
       {% for link in rail.links %}
-      <a href="{{ link.url }}"{% if link.external %} target="_blank" rel="noopener"{% endif %}>{{ link.label }}</a>
+      <a class="truncate" href="{{ link.url }}"{% if link.external %} target="_blank" rel="noopener"{% endif %}>{{ link.label }}</a>
       {% endfor %}
     </nav>
     {% endif %}
@@ -61,7 +68,6 @@
         <dd data-rmc-pulse="dirty">{% trans "Clean" %}</dd>
       </div>
     </dl>
-    <p class="rmc-django-rail-pulse-hint" data-rmc-pulse-hint>{% trans "Updates as you move through this form." %}</p>
   </div>
 </div>
 {% endif %}
@@ -72,7 +78,7 @@
   <div class="rmc-rail-b">
     <nav class="rmc-django-rail-links" aria-label="{% trans 'Related outcomes' %}">
       {% for link in rail.guided %}
-      <a href="{{ link.url }}">{{ link.label }}</a>
+      <a class="truncate" href="{{ link.url }}">{{ link.label }}</a>
       {% endfor %}
     </nav>
   </div>

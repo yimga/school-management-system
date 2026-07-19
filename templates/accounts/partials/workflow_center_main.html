@@ -1,26 +1,30 @@
-{% load i18n terminology_tags %}
-{% comment %} Shared main body: Workflow Center (full backend page + Studio embed). {% endcomment %}
-{% comment %} Wave 13 (v3.62.17): badge counters use {% term %} so FR sees "Salles de classe" / {% endcomment %}
-{% comment %} "Élèves" / "Enseignants" and IN-HI sees "कक्षाएं" / "विद्यार्थी" / "शिक्षक". {% endcomment %}
+{% load i18n terminology_tags rmc_explain_tags %}
+{% comment %} Shared main body: Workflow Center — Core vs Context compact. {% endcomment %}
 {% term "classroom" plural=True capitalize=True as classroom_pl %}
 {% term "student" plural=True capitalize=True as student_pl %}
 {% term "teacher" plural=True capitalize=True as teacher_pl %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-2" data-rmc-command-workspace="workflow-center" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" id="workflow-main">
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
+<div class="container-fluid py-2" data-rmc-command-workspace="workflow-center" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-core-context="1" id="workflow-main">
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle="" action_url=action_url action_text=action_text %}
+  {% if page_subtitle %}
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <span class="visually-hidden">{{ page_subtitle }}</span>
+    {% rmc_info_tag title=page_title body=page_subtitle surface="workflow" placement="bottom" %}
+    <span class="small text-muted truncate">{% trans "Open any step — no rigid sequence." %}</span>
+  </div>
+  {% endif %}
 
   <div class="workflow-command-layout">
     <div class="workflow-command-layout__main">
-  <section class="workflow-hero mt-3" aria-labelledby="workflow-hero-desc">
-    <p id="workflow-hero-desc" class="small text-muted mb-0">{% trans "Fits general and technical education worldwide (GCE, BAC, BEPC, CAP, GCSE, A-Level, K–12, etc.); use the steps that match your subsystem—no rigid sequence." %}</p>
-    {% if workflow_progress %}
+  {% if workflow_progress %}
+  <section class="workflow-hero workflow-hero--compact mt-2" aria-label="{% trans 'Workflow counts' %}">
     <div class="workflow-progress-summary">
       <span class="rmc-badge rmc-badge--brand">{{ classroom_pl }}: {{ workflow_progress.classrooms|default:0 }}</span>
       <span class="rmc-badge rmc-badge--success">{{ student_pl }}: {{ workflow_progress.students|default:0 }}</span>
       <span class="rmc-badge rmc-badge--info">{{ teacher_pl }}: {{ workflow_progress.teachers|default:0 }}</span>
     </div>
-    {% endif %}
   </section>
+  {% endif %}
 
   {% include "accounts/partials/workflow_center_builder_strip.html" %}
 
@@ -44,23 +48,21 @@
       <article class="workflow-card" id="step-{{ step.step_key }}" aria-labelledby="step-title-{{ step.step_key }}">
         <div class="card-body">
           <div class="workflow-step-meta">{% trans "Step" %} {{ step.step_index }} {% trans "of" %} {{ step.total_steps }}</div>
-          <h3 id="step-title-{{ step.step_key }}" class="workflow-title d-flex align-items-center h6 mb-0">
+          <h3 id="step-title-{{ step.step_key }}" class="workflow-title d-flex align-items-center h6 mb-0 gap-1">
             <i class="bi {{ step.icon|default:'bi-circle' }} workflow-step-icon" aria-hidden="true"></i>
-            {{ step.title }}
+            <span class="truncate">{{ step.title }}</span>
+            {% if step.tip %}{% rmc_info_tag title=step.title body=step.tip surface="workflow" %}{% endif %}
           </h3>
-          <div class="workflow-subtitle">{{ step.subtitle }}</div>
+          {% if step.subtitle %}<div class="workflow-subtitle wrap">{{ step.subtitle }}</div>{% endif %}
           {% if step.progress_label %}
           <div class="workflow-progress-label">{{ step.progress_label }}</div>
-          {% endif %}
-          {% if step.tip %}
-          <div class="workflow-tip"><i class="bi bi-lightbulb me-1"></i>{{ step.tip }}</div>
           {% endif %}
           <div class="workflow-links">
             {% for link in step.links %}
               {% if link.primary %}
-              <a class="btn btn-sm btn-primary" href="{{ link.url }}">{{ link.label }}</a>
+              <a class="btn btn-sm btn-primary truncate" href="{{ link.url }}">{{ link.label }}</a>
               {% else %}
-              <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}">{{ link.label }}</a>
+              <a class="btn btn-sm btn-outline-primary truncate" href="{{ link.url }}">{{ link.label }}</a>
               {% endif %}
             {% endfor %}
           </div>
@@ -70,6 +72,9 @@
   </div>
     </div>
     <aside class="workflow-command-layout__side" aria-label="{% trans 'Workflow status and navigation' %}">
+      {% if workflow_help %}
+      {% include "components/workflow_help_panel.html" with help=workflow_help %}
+      {% endif %}
       <section class="rmc-command-panel">
         <div class="rmc-command-panel__body">
           <h2 class="h6 mb-2">{% trans "Workflow status" %}</h2>
@@ -90,11 +95,6 @@
           <p class="mb-2">
             <span class="rmc-badge{% if migration_status.bundle.applied %} rmc-badge--success{% elif migration_status.bundle.needs_attention %} rmc-badge--danger{% elif migration_status.bundle.detecting %} rmc-badge--info{% endif %}">{{ migration_status.bundle.status_label }}</span>
           </p>
-          {% if migration_status.bundle.detecting %}
-          <p class="small text-muted mb-2">{% trans "Auto-detecting your files — open to watch live progress." %}</p>
-          {% elif migration_status.bundle.needs_attention %}
-          <p class="small text-muted mb-2">{% trans "This import didn't finish. Open it to repair — a safe retry that never duplicates records." %}</p>
-          {% endif %}
           <div class="d-grid gap-2">
             {% if migration_status.bundle.review_url %}
             <a class="btn btn-sm btn-outline-primary" href="{{ migration_status.bundle.review_url }}"><i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>{% trans "Review / import" %}</a>
@@ -102,7 +102,6 @@
             <a class="btn btn-sm btn-link p-0" href="{{ migration_status.upload_url }}">{% trans "Upload more data" %}</a>
           </div>
           {% else %}
-          <p class="small text-muted mb-2">{% trans "Bring students, staff, grades and finance from your old system — drop a spreadsheet or export and we auto-detect it." %}</p>
           <a class="btn btn-sm btn-primary" href="{{ migration_status.upload_url }}"><i class="bi bi-cloud-arrow-up me-1" aria-hidden="true"></i>{% trans "Import school data" %}</a>
           {% endif %}
         </div>
@@ -114,7 +113,7 @@
           <h2 class="h6 mb-2">{% trans "Jump to step" %}</h2>
           <div class="workflow-quick-jump d-grid gap-2">
             {% for step in steps %}
-              <a href="#step-{{ step.step_key }}" class="text-decoration-none"><i class="bi {{ step.icon|default:'bi-circle' }} me-1"></i>{{ step.title }}</a>
+              <a href="#step-{{ step.step_key }}" class="text-decoration-none truncate"><i class="bi {{ step.icon|default:'bi-circle' }} me-1"></i>{{ step.title }}</a>
             {% endfor %}
           </div>
         </div>
@@ -124,10 +123,10 @@
         <div class="rmc-command-panel__body">
           <h2 class="h6 mb-2">{% trans "Next actions" %}</h2>
           <div class="d-grid gap-2">
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
+            <a class="btn btn-sm btn-outline-secondary truncate" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
               <i class="bi bi-pin-angle me-1"></i>{% trans "Use Dashboard as default" %}
             </a>
-            <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">
+            <a class="btn btn-sm btn-primary truncate" href="{% url 'kb:kb_home' %}">
               <i class="bi bi-journal-text me-1"></i>{% trans "Help / KB" %}
             </a>
           </div>

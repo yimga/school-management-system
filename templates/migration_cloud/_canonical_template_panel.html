@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 <!-- Migration Cloud canonical-template panel (super/portal shells; URL namespace chosen from shell variable). -->
 <aside class="rmc-card rmc-card--canonical-template" data-rmc-canonical-template-panel aria-labelledby="rmc-canonical-template-title">
   <header class="rmc-card__header">
@@ -9,9 +9,11 @@
   </header>
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-card__body">
-    <p class="rmc-lede rmc-lede--sm">
-      {% trans "Same idea as a Shopify CSV import: download our canonical template, fill in the rows you have, upload through the wizard. No source-system signature required." %}
-    </p>
+    {% trans "Same idea as a Shopify CSV import: download our canonical template, fill in the rows you have, upload through the wizard. No source-system signature required." as page_tip_1 %}
+    <details class="rmc-help-details mb-2" data-rmc-core-context="1">
+      <summary class="small fw-semibold">{% trans "About this page" %}</summary>
+      <div class="small text-muted pt-1">{{ page_tip_1 }}</div>
+    </details>
     <p class="rmc-form__help">
       {% trans "Twenty domains covered — students, staff, guardians, enrollment, attendance, grades, finance, and more. Extra columns you keep are preserved as DynamicFieldValues; re-uploads on the same external_id update existing records (idempotent)." %}
     </p>

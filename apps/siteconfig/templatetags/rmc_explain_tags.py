@@ -9,22 +9,53 @@ register = template.Library()
 
 
 @register.inclusion_tag("partials/rmc_info_tag.html", takes_context=True)
-def rmc_info_tag(context, entity="", field="", feature="", title="", body="", placement="top"):
+def rmc_info_tag(
+    context,
+    entity="",
+    field="",
+    feature="",
+    title="",
+    body="",
+    placement="top",
+    what="",
+    why="",
+    watch_outs="",
+    chips="",
+    surface="",
+):
     """
-    Render an info icon with popover copy.
+    Render an info icon with exceptional tip payload.
 
     Copy resolves from *feature*, *entity*+*field* (metadata catalog + static registry),
-    or explicit *title* / *body*.
+    or explicit *title* / *body*. Optional *what* / *why* / *watch_outs* / *chips* /
+    *surface* power the fixed tip layer.
     """
     if title or body:
         resolved = {"title": title, "body": body}
     else:
         resolved = get_ui_field_help(entity or "", field or "", feature=feature or "")
+    resolved_title = resolved.get("title") or title
+    resolved_body = resolved.get("body") or body
+    tip_what = what or resolved.get("what") or resolved_body
+    tip_why = why or resolved.get("why") or ""
+    tip_watch = watch_outs or resolved.get("watch_outs") or ""
+    tip_chips = chips or resolved.get("chips") or ""
+    if isinstance(tip_chips, (list, tuple)):
+        tip_chips = "|".join(str(c) for c in tip_chips if c)
+    tip_surface = surface or resolved.get("surface") or ""
     return {
-        "title": resolved.get("title") or title,
-        "body": resolved.get("body") or body,
+        "title": resolved_title,
+        "body": resolved_body,
+        "what": tip_what,
+        "why": tip_why,
+        "watch_outs": tip_watch,
+        "chips": tip_chips,
+        "surface": tip_surface,
         "placement": placement,
-        "label": resolved.get("title") or title or field or feature,
+        "label": resolved_title or field or feature,
+        "entity": entity,
+        "field": field,
+        "feature": feature,
         "extra_class": context.get("rmc_info_extra_class", ""),
     }
 

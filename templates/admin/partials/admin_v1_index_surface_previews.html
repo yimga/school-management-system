@@ -1,9 +1,12 @@
-{% load i18n static %}
+{% load i18n static rmc_explain_tags %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div data-rmc-section-nav-skip aria-hidden="false">
+<div data-rmc-section-nav-skip aria-hidden="false" data-rmc-core-context="1">
 <section class="cp-section cp-section--platform-tags" id="rmc-admin-sec-tags" data-rmc-section-anchor aria-labelledby="cp-platform-tags-heading">
-  <h2 class="cp-section__title" id="cp-platform-tags-heading">{% trans "Platform information tags" %}</h2>
-  <p class="cp-section__lede">{% trans "Compliance, trust, and operational labels surfaced on operator surfaces — seeded from platform registry." %}</p>
+  <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap mb-2">
+    <h2 class="cp-section__title mb-0" id="cp-platform-tags-heading">{% trans "Platform information tags" %}</h2>
+    {% trans "Compliance, trust, and operational labels surfaced on operator surfaces — seeded from platform registry." as tags_tip %}
+    {% rmc_info_tag title=_("Platform tags") body=tags_tip surface="django-admin" %}
+  </div>
   <div class="cp-platform-tag-row" role="list">
     <span class="cp-status" data-tone="success" role="listitem">SOC 2</span>
     <span class="cp-status" data-tone="success" role="listitem">ISO 27001</span>
@@ -15,11 +18,14 @@
 </section>
 
 <section class="cp-section cp-section--surface-preview" id="rmc-admin-sec-changelist" data-rmc-section-anchor aria-labelledby="cp-changelist-preview-heading">
-  <h2 class="cp-section__title" id="cp-changelist-preview-heading">
-    {% trans "Changelist" %} · {% trans "Schools" %}
-    <span class="cp-section__path">/admin/schools/school/</span>
-  </h2>
-  <p class="cp-section__lede">{% trans "Sortable + filterable + bulk actions. Filters live on the rail. Pagination 25/page (page-fold standards)." %}</p>
+  <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap mb-2">
+    <h2 class="cp-section__title mb-0" id="cp-changelist-preview-heading">
+      {% trans "Changelist" %} · {% trans "Schools" %}
+      <span class="cp-section__path">/admin/schools/school/</span>
+    </h2>
+    {% trans "Sortable + filterable + bulk actions. Filters live on the rail. Pagination 25/page (page-fold standards)." as cl_preview_tip %}
+    {% rmc_info_tag title=_("Changelist preview") body=cl_preview_tip surface="django-admin" %}
+  </div>
 
   <div class="cp-changelist cp-changelist--preview" data-rmc-surface-preview-interactive="changelist">
     <aside class="cp-filters" aria-label="{% trans 'Filter rail preview' %}">
@@ -89,11 +95,14 @@
 </section>
 
 <section class="cp-section cp-section--surface-preview" id="rmc-admin-sec-changeform" data-rmc-section-anchor aria-labelledby="cp-changeform-preview-heading">
-  <h2 class="cp-section__title" id="cp-changeform-preview-heading">
-    {% trans "Change form" %} · {% trans "Edit school" %}
-    <span class="cp-section__path">/admin/schools/school/…/change/</span>
-  </h2>
-  <p class="cp-section__lede">{% trans "Tabbed fieldsets, dense field grid, inline help, audit sidecar." %}</p>
+  <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap mb-2">
+    <h2 class="cp-section__title mb-0" id="cp-changeform-preview-heading">
+      {% trans "Change form" %} · {% trans "Edit school" %}
+      <span class="cp-section__path">/admin/schools/school/…/change/</span>
+    </h2>
+    {% trans "Tabbed fieldsets, dense field grid, inline help, audit sidecar." as cf_preview_tip %}
+    {% rmc_info_tag title=_("Change form preview") body=cf_preview_tip surface="django-admin" %}
+  </div>
 
   <div class="cp-form-frame" data-rmc-surface-preview-interactive="changeform">
     <div class="cp-form">

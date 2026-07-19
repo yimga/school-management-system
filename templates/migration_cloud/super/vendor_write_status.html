@@ -1,6 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% comment %} table-column-budget-allow: migration-vendor-write-seven-column-lens {% endcomment %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — vendor write authorization status" }}{% endblock %}
 
@@ -13,10 +13,12 @@
 <main class="rmc-page rmc-page--vendor-write-status" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "Vendor write-path authorization status" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Per-vendor authorization status for the platform-side write-path gate. Read-only — the gate is enforced server-side in" %}
-      <code class="rmc-kbd">{{ gate_module_path }}</code>.
-    </p>
+    <details class="rmc-help-details mb-2" data-rmc-core-context="1">
+      <summary class="small fw-semibold">{% trans "About this page" %}</summary>
+      <div class="small text-muted pt-1">{% trans "Per-vendor authorization status for the platform-side write-path gate. Read-only — the gate is enforced server-side in" %}
+      <code class="rmc-kbd">{{ gate_module_path }}</code>.</div>
+    </details>
+    
     <p class="rmc-meta">
       <a class="rmc-link" href="/{{ docket_doc_path }}">{% trans "Counsel review docket" %}</a>
       ·

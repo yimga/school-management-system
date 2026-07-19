@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n static workflow_guidance_tags %}
+{% load i18n static workflow_guidance_tags rmc_explain_tags %}
 {% block page_title %}{{ page_title }}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
@@ -10,10 +10,14 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--migration-connector" id="main" data-rmc-migration-connector-wizard data-rmc-migration-cloud-surface data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-scroll-policy="paginate">
+<main class="rmc-page rmc-page--migration-connector" id="main" data-rmc-migration-connector-wizard data-rmc-migration-cloud-surface data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-scroll-policy="paginate" data-rmc-core-context="1">
   <header class="rmc-page__header mb-4">
-    <h1 class="rmc-h1">{{ page_title }}</h1>
-    <p class="rmc-lede text-muted">{% trans "Authorized migration only. We never store plaintext passwords in logs. Credentials purge after import unless you opt into a reusable connector." %}</p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{{ page_title }}</h1>
+      {% trans "Authorized migration only. We never store plaintext passwords in logs. Credentials purge after import unless you opt into a reusable connector." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="migration-cloud" placement="bottom" %}
+    </div>
+    
   </header>
   {% block connector_body %}{% endblock %}
 </main>

@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n static %}
+{% load i18n static rmc_explain_tags %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -50,13 +50,12 @@
     <div class="rmc-admin-index-main">
   <section class="cp-hero" id="rmc-admin-sec-hero" data-rmc-section-anchor>
     <div class="cp-hero__eyebrow">{% trans "Platform Backoffice" %}</div>
-    <h1 class="cp-hero__title">{% trans "Operator catalog & raw records" %}</h1>
-    <p class="cp-hero__lede">
-      {% blocktrans trimmed %}
-      Every registered model, jump-to-changelist, audit log, and raw CRUD surface. Guided work stays in
-      <em>/super/, Config center, and Studio</em> — raw records live here for the moments those don't fit.
-      {% endblocktrans %}
-    </p>    <div class="cp-hero__actions cp-hero__actions--toolbar rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions' %}" data-rmc-section-nav-curated="1">
+    <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
+      <h1 class="cp-hero__title mb-0 truncate">{% trans "Operator catalog & raw records" %}</h1>
+      {% blocktrans trimmed asvar admin_hero_tip %}Every registered model, jump-to-changelist, audit log, and raw CRUD surface. Guided work stays in /super/, Config center, and Studio — raw records live here for the moments those don't fit.{% endblocktrans %}
+      {% rmc_info_tag title=_("About this catalog") body=admin_hero_tip|striptags surface="django-admin" placement="bottom" %}
+    </div>
+    <div class="cp-hero__actions cp-hero__actions--toolbar rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions' %}" data-rmc-section-nav-curated="1">
       <div class="cp-hero__actions-group cp-hero__actions-group--primary" role="group" aria-label="{% trans 'Primary actions' %}">
         <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "New school" %}</a>
         <a class="cp-btn" href="{% url 'super:invite_school' %}">✉ {% trans "Invite a school" %}</a>
@@ -106,8 +105,11 @@
   </div>
 
   <section class="cp-section" id="rmc-admin-sec-catalog" data-rmc-section-anchor aria-labelledby="cp-catalog-heading">
-    <h2 class="cp-section__title" id="cp-catalog-heading">{% trans "Model catalog by section" %}</h2>
-    <p class="cp-section__lede">{% trans "Direct access to each Django admin changelist. Counts are live from the registry." %}</p>
+    <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap mb-2">
+      <h2 class="cp-section__title mb-0" id="cp-catalog-heading">{% trans "Model catalog by section" %}</h2>
+      {% trans "Direct access to each Django admin changelist. Counts are live from the registry." as catalog_tip %}
+      {% rmc_info_tag title=_("Model catalog") body=catalog_tip surface="django-admin" placement="bottom" %}
+    </div>
 
     <div class="cp-section__row" role="tablist" aria-label="{% trans 'Catalog sections' %}">
       <label class="visually-hidden" for="rmcAdminCatalogSearch">{% trans "Search models" %}</label>

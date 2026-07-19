@@ -55,8 +55,7 @@
             <section class="rmc-django-command-band" data-rmc-django-command-band="change-list" aria-label="{% trans 'Admin list command surface' %}">
                 <div class="rmc-django-command-band__copy">
                     <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% trans "Tenant backend" %}{% endif %}</span>
-                    <strong>{{ cl.opts.verbose_name_plural|capfirst }}</strong>
-                    <small>{% trans "Full-width records surface. Tables stay native and scroll horizontally only when the data requires it." %}</small>
+                    <strong class="truncate">{{ cl.opts.verbose_name_plural|capfirst }}</strong>
                 </div>
                 <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
                     <span>{% blocktranslate count counter=cl.result_count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktranslate %}</span>

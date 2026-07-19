@@ -1,12 +1,12 @@
 {
-  "date": "2026-07-18",
-  "generated_at": "2026-07-19T02:45:00+00:00",
+  "date": "2026-07-19",
+  "generated_at": "2026-07-19T12:30:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 145,
-  "raw": "sms-v4.05.145-admin-page-aware-a2z-2026-07-18",
+  "patch": 147,
+  "raw": "sms-v4.05.148-fluff-burn-intrusive-2026-07-19",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-page-aware-a2z",
+  "slug": "platform-core-context",
   "valid": true
 }

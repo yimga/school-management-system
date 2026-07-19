@@ -1,6 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% comment %} table-column-budget-allow: migration-webhook-delivery-ten-column-lens {% endcomment %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 {% block page_title %}{{ page_title|default:"Webhook delivery log" }}{% endblock %}
 
@@ -14,13 +14,15 @@
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
     <h1 class="rmc-h1">{% trans "Webhook delivery log" %}</h1>
-    <p class="rmc-lede">
-      {% if subscription_id %}
+    <details class="rmc-help-details mb-2" data-rmc-core-context="1">
+      <summary class="small fw-semibold">{% trans "About this page" %}</summary>
+      <div class="small text-muted pt-1">{% if subscription_id %}
       {% blocktrans %}Showing deliveries for subscription #{{ subscription_id }}.{% endblocktrans %}
       {% else %}
       {% trans "Showing all deliveries across every subscription." %}
-      {% endif %}
-    </p>
+      {% endif %}</div>
+    </details>
+    
   </header>
 
   {% if rows %}

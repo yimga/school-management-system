@@ -251,10 +251,14 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         self.assertIn("tp_mission_strip.html", text)
         self.assertIn("namespace != 'studio_os'", text)
 
-    def test_tp_v3_suppresses_legacy_page_explain_strip(self):
+    def test_tp_v3_includes_page_explain_strip(self):
+        """v3 shells keep the compact page-explain bar (Core vs Context education)."""
         text = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
-        self.assertIn("not tp_v3_tenant_shell", text)
         self.assertIn("rmc_page_explain_strip.html", text)
+        # Strip is no longer gated behind `not tp_v3_tenant_shell`.
+        idx = text.find("rmc_page_explain_strip.html")
+        window = text[max(0, idx - 180) : idx]
+        self.assertNotIn("not tp_v3_tenant_shell", window)
 
     def test_tp_v3_suppresses_global_next_action_strip(self):
         text = (ROOT / "templates/components/next_action_strip.html").read_text(

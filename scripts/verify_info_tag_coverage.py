@@ -19,6 +19,7 @@ REQUIRED_SHELL_INCLUDES = (
     ROOT / "templates/base.html",
     ROOT / "templates/portal_base.html",
     ROOT / "templates/control_plane_base.html",
+    ROOT / "templates/admin/base_site.html",
 )
 
 REQUIRED_SNIPPETS = (

@@ -2532,12 +2532,33 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
 
 [data-rmc-shell-root="django-admin"] [data-rmc-django-metrics] {
   display: grid !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   gap: 0.55rem !important;
   padding: 0.65rem 0.75rem !important;
   border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
   border-radius: calc(var(--rmc-django-struct-radius, 14px) - 2px) !important;
   background: color-mix(in srgb, var(--surface-canvas, #070b18) 55%, transparent) !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-metrics].rmc-django-metrics--compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-workspace-head__copy h1.truncate,
+[data-rmc-shell-root="django-admin"] .rmc-django-head-action.truncate {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-workspace-head__copy h1 {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  flex-wrap: wrap !important;
+  max-width: 100% !important;
 }
 
 [data-rmc-shell-root="django-admin"] .rmc-django-metric {

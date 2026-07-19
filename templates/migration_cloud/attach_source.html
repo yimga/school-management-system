@@ -1,5 +1,5 @@
 {% extends mc_base|default:"control_plane_base.html" %}<!-- Attach a live source to a PENDING bundle (DB/OAuth/mailbox/API). -->
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 
 {% block page_title %}{{ page_title }}{% endblock %}
 
@@ -9,16 +9,18 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--migration-cloud-attach" id="main">
+<main class="rmc-page rmc-page--migration-cloud-attach" id="main" data-rmc-core-context="1">
   <header class="rmc-page__header">
     <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}"
        class="rmc-back">{% trans "← Back to bundle" %}</a>
-    <h1 class="rmc-h1">{% trans "Attach source" %}</h1>
-    <p class="rmc-lede">
-      {% blocktrans with method=bundle.intake_method %}Bundle is staged for the
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Attach source" %}</h1>
+      {% blocktrans with method=bundle.intake_method asvar page_tip_1 %}Bundle is staged for the
       <strong>{{ method }}</strong> intake method. Provide the endpoint or
       handle below so the pipeline can pull from it.{% endblocktrans %}
-    </p>
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="migration-cloud" placement="bottom" %}
+    </div>
+    
   </header>
 
   {% if errors %}

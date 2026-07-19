@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n static %}
+{% load i18n static rmc_explain_tags %}
 {% block title %}{% trans "Day-1 palette locked" %}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
@@ -16,14 +16,16 @@
   data-rmc-tenant-studio-day1="1"
   data-rmc-tenant-studio-day1-active-act="3"
   data-page-archetype="day1-lock"
-  data-shell-surface="tenant-school-studio-day1">
+  data-shell-surface="tenant-school-studio-day1"
+  data-rmc-core-context="1">
 
   <header class="rmc-day1-act-header">
     <span class="rmc-day1-eyebrow">{% trans "Act 3 — Locked in" %}</span>
-    <h1 class="rmc-day1-headline">{% trans "Your palette is live across the platform" %}</h1>
-    <p class="rmc-day1-lede">
-      {% trans "The portal, marketing surface, and login chrome now wear your brand. You can re-run this session from the cockpit anytime." %}
-    </p>
+    <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
+      <h1 class="rmc-day1-headline mb-0 truncate">{% trans "Your palette is live across the platform" %}</h1>
+      {% trans "The portal, marketing surface, and login chrome now wear your brand. You can re-run this session from the cockpit anytime." as day1_lock_tip %}
+      {% rmc_info_tag title=_("Palette locked") body=day1_lock_tip surface="tenant" placement="bottom" %}
+    </div>
   </header>
 
   <section class="rmc-day1-lock-summary">

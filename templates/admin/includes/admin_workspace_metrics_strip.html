@@ -1,22 +1,28 @@
-{% load i18n admin_urls %}
+{% load i18n admin_urls rmc_explain_tags %}
 {% comment %}
-  G4: workspace-head + 5-up metrics strip inside the Django admin workbench.
-  surface: "change-form" | "change-list"
+  Core vs Context: compact workspace head + honest metrics (no fake KPIs).
+  Education lives in ⓘ tips — not manifesto ledes.
 {% endcomment %}
 <header class="rmc-django-workspace-head" data-rmc-django-workspace-head="1">
   <div class="rmc-django-workspace-head__copy">
     {% if surface == "change-list" %}
-      <h1>{{ cl.opts.verbose_name_plural|capfirst }}</h1>
-      <p>{% trans "Full-width records surface. Tables stay native; the rail is context only — Add and filters live in the head and tools." %}</p>
+      {% trans "This list" as tip_list_title %}
+      {% blocktrans asvar tip_list_body %}Native table of records. Use Add and Filters in the head; the rail shows list counts and filters only.{% endblocktrans %}
+      <h1 class="truncate">
+        {{ cl.opts.verbose_name_plural|capfirst }}
+        {% rmc_info_tag title=tip_list_title body=tip_list_body surface="django-admin" placement="bottom" %}
+      </h1>
     {% else %}
-      <h1>
+      {% trans "This form" as tip_form_title %}
+      {% blocktrans asvar tip_form_body %}Smart field grid with one horizontal save row. Context lives in the rail; tools stay in the thin column.{% endblocktrans %}
+      <h1 class="truncate">
         {% if add %}
           {% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}
         {% else %}
           {% blocktrans with name=opts.verbose_name %}Change {{ name }}{% endblocktrans %}
         {% endif %}
+        {% rmc_info_tag title=tip_form_title body=tip_form_body surface="django-admin" placement="bottom" %}
       </h1>
-      <p>{% trans "Balanced full-canvas workbench: smart field grid, context-only rail, tools column, and one horizontal save row." %}</p>
     {% endif %}
   </div>
   <div class="rmc-django-workspace-head__actions" data-rmc-django-head-actions="1">
@@ -24,27 +30,47 @@
       {% if has_add_permission %}
         {% url cl.opts|admin_urlname:"add" as add_url %}
         {% if add_url %}
-        <a class="rmc-django-head-action rmc-django-head-action--primary" href="{% add_preserved_filters add_url is_popup to_field %}">{% blocktrans with name=cl.opts.verbose_name %}Add {{ name }}{% endblocktrans %}</a>
+        <a class="rmc-django-head-action rmc-django-head-action--primary truncate" href="{% add_preserved_filters add_url is_popup to_field %}">{% blocktrans with name=cl.opts.verbose_name %}+ {{ name }}{% endblocktrans %}</a>
         {% endif %}
       {% endif %}
       {% if cl.has_filters %}
-        <button type="button" class="rmc-django-head-action" data-rmc-changelist-open-filters="1">{% trans "Filters" %}</button>
+        <button type="button" class="rmc-django-head-action truncate" data-rmc-changelist-open-filters="1">{% trans "Filters" %}</button>
       {% endif %}
     {% elif surface != "change-list" and change and original %}
       {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
       {% if history_url %}
-      <a class="rmc-django-head-action" href="{{ history_url }}">{% trans "History" %}</a>
+      <a class="rmc-django-head-action truncate" href="{{ history_url }}">{% trans "History" %}</a>
       {% endif %}
       {% if has_absolute_url %}
-      <a class="rmc-django-head-action rmc-django-head-action--primary" href="{{ absolute_url }}" target="_blank" rel="noopener">{% trans "View on site" %}</a>
+      <a class="rmc-django-head-action rmc-django-head-action--primary truncate" href="{{ absolute_url }}" target="_blank" rel="noopener">{% trans "View site" %}</a>
       {% endif %}
     {% endif %}
   </div>
 </header>
-<div class="rmc-django-metrics" data-rmc-django-metrics="1" role="group" aria-label="{% trans 'Canvas readiness' %}">
-  <div class="rmc-django-metric is-good"><span>{% trans "Canvas" %}</span><b>100%</b></div>
-  <div class="rmc-django-metric is-good"><span>{% trans "Form cap" %}</span><b>{% trans "Removed" %}</b></div>
-  <div class="rmc-django-metric is-good"><span>{% trans "Table" %}</span><b>{% trans "Native" %}</b></div>
-  <div class="rmc-django-metric is-good"><span>{% trans "Save" %}</span><b>{% trans "Static" %}</b></div>
-  <div class="rmc-django-metric is-good"><span>{% trans "Scope" %}</span><b>{% if is_manager_host %}{% trans "Operator" %}{% else %}{% trans "Tenant" %}{% endif %}</b></div>
+<div class="rmc-django-metrics rmc-django-metrics--compact" data-rmc-django-metrics="1" role="group" aria-label="{% trans 'Workspace status' %}">
+  {% trans "Scope" as tip_scope_title %}
+  {% blocktrans asvar tip_scope_body %}Operator hosts manage the platform fleet. Tenant hosts are school-scoped — never cross schools.{% endblocktrans %}
+  <div class="rmc-django-metric is-good">
+    <span>{% trans "Scope" %} {% rmc_info_tag title=tip_scope_title body=tip_scope_body surface="django-admin" %}</span>
+    <b>{% if is_manager_host %}{% trans "Operator" %}{% else %}{% trans "Tenant" %}{% endif %}</b>
+  </div>
+  {% if surface == "change-list" %}
+  <div class="rmc-django-metric">
+    <span>{% trans "Results" %}</span>
+    <b>{% if cl.result_count is not None %}{{ cl.result_count }}{% else %}—{% endif %}</b>
+  </div>
+  <div class="rmc-django-metric">
+    <span>{% trans "Filters" %}</span>
+    <b>{% if cl.has_filters %}{% trans "On" %}{% else %}{% trans "Off" %}{% endif %}</b>
+  </div>
+  {% else %}
+  <div class="rmc-django-metric" data-rmc-metric-pulse="sections">
+    <span>{% trans "Sections" %}</span>
+    <b data-rmc-pulse="sections">—</b>
+  </div>
+  <div class="rmc-django-metric" data-rmc-metric-pulse="dirty">
+    <span>{% trans "Save" %}</span>
+    <b data-rmc-pulse="dirty">{% trans "Clean" %}</b>
+  </div>
+  {% endif %}
 </div>

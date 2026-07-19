@@ -1,6 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% comment %} table-column-budget-allow: migration-dlq-ten-column-operator-lens {% endcomment %}
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 
 {% block page_title %}{{ page_title|default:"Webhook Dead Letter Queue" }}{% endblock %}
 
@@ -10,13 +10,15 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--operator-dlq" id="main" data-rmc-scroll-policy="paginate" aria-labelledby="dlq-page-heading">
+<main class="rmc-page rmc-page--operator-dlq" id="main" data-rmc-scroll-policy="paginate" aria-labelledby="dlq-page-heading" data-rmc-core-context="1">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}" aria-label="{% trans 'Back to webhook delivery log' %}">{% trans "← Back to delivery log" %}</a>
-    <h1 class="rmc-h1" id="dlq-page-heading">{% trans "Webhook Dead Letter Queue" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Webhook deliveries that exhausted their retry budget. Replay an entry to re-attempt outbound delivery." %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1" id="dlq-page-heading">{% trans "Webhook Dead Letter Queue" %}</h1>
+      {% trans "Webhook deliveries that exhausted their retry budget. Replay an entry to re-attempt outbound delivery." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
   </header>
 
   <nav class="rmc-segmented" role="tablist" aria-label="{% trans 'Filter by status' %}">

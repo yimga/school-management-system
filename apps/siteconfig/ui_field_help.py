@@ -123,7 +123,15 @@ def get_ui_field_help(entity_code: str, field_name: str = "", *, feature: str = 
     if key:
         static = UI_FIELD_HELP.get(key)
         if static:
-            return {"title": str(static["title"]), "body": str(static["body"])}
+            out = {"title": str(static["title"]), "body": str(static["body"])}
+            for key in ("what", "why", "watch_outs", "chips", "surface"):
+                if key in static and static[key]:
+                    val = static[key]
+                    if key == "chips" and isinstance(val, (list, tuple)):
+                        out[key] = "|".join(str(c) for c in val if c)
+                    else:
+                        out[key] = str(val)
+            return out
     if entity_code and field_name:
         db = _catalog_lookup(entity_code, field_name)
         if db.get("title"):

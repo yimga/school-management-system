@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 
 {% block page_title %}{{ page_title|default:"Email delivery configuration" }}{% endblock %}
 
@@ -34,12 +34,14 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--operator-email-configure w-100 max-w-none mx-auto" id="main">
+<main class="rmc-page rmc-page--operator-email-configure w-100 max-w-none mx-auto" id="main" data-rmc-core-context="1">
   <header class="rmc-page__header">
-    <h1 class="rmc-h1">{% trans "Email delivery configuration" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Set the SMTP server RunMyCampus uses to send verification emails, password resets, and operator notifications. When 'Enable operator override' is unchecked, the platform falls back to the environment-configured SMTP server." %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Email delivery configuration" %}</h1>
+      {% trans "Set the SMTP server RunMyCampus uses to send verification emails, password resets, and operator notifications. When 'Enable operator override' is unchecked, the platform falls back to the environment-configured SMTP server." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
     <p class="rmc-muted">
       <a href="{{ health_url|default:'#' }}">{% trans "Back to email health dashboard" %}</a>
     </p>

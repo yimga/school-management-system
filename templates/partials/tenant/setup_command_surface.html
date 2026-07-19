@@ -1,4 +1,4 @@
-{% load static i18n terminology_tags %}
+{% load static i18n terminology_tags rmc_explain_tags %}
 {% comment %}
   Onboarding "command surface" for the tenant-admin v3 canvas.
 
@@ -42,8 +42,11 @@
   <header class="rmc-setup-surface__hero">
     <div class="rmc-setup-surface__hero-copy">
       <p class="rmc-setup-surface__eyebrow">{% trans "School readiness" %}</p>
-      <h1 class="rmc-setup-surface__title">{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}</h1>
-      <p class="rmc-setup-surface__lede">{% blocktrans with school_term=rmc_school_term %}One guided path from first login to launch — provision, configure, import data, then go live.{% endblocktrans %}</p>
+      <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
+        <h1 class="rmc-setup-surface__title mb-0 truncate">{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}</h1>
+        {% blocktrans with school_term=rmc_school_term asvar setup_surface_tip %}One guided path from first login to launch — provision, configure, import data, then go live.{% endblocktrans %}
+        {% rmc_info_tag title=_("School setup") body=setup_surface_tip surface="tenant" placement="bottom" %}
+      </div>
       {% if rmc_setup_recommended_next and rmc_setup_recommended_next.link %}
       <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="{{ rmc_setup_recommended_next.link }}" data-rmc-setup-next-action="1">
         <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
@@ -150,7 +153,7 @@
           <span class="rmc-setup-surface__card-status">
             {% if step.done %}{% trans "Done" %}{% else %}{% trans "Not started" %}{% endif %}
           </span>
-          <a class="rmc-setup-surface__card-cta" href="{{ step.link|default:rmc_setup_checklist_url }}">
+          <a class="rmc-setup-surface__card-cta" href="{% firstof step.link rmc_setup_checklist_url '#' %}">
             {% if step.done %}{% trans "Review" %}{% else %}{% trans "Start" %}{% endif %}
           </a>
         </div>

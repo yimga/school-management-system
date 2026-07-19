@@ -1,30 +1,40 @@
-{% load i18n %}
-{% comment %} v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` alongside existing rmc-wcx-hero classes — additive, preserves every caller's hero layout. {% endcomment %}
-<section class="rmc-wcx-hero rmc-wcx-surface rmc-page-header-glow" data-world-class-page-hero="1" data-page-purpose="{% firstof purpose title %}" aria-labelledby="{{ hero_id|default:'world-class-page-title' }}">
+{% load i18n rmc_explain_tags %}
+{% comment %}
+  Core vs Context page hero: title + actions first; education via ⓘ.
+  Visual panel is compact (no manifesto wall).
+{% endcomment %}
+<section class="rmc-wcx-hero rmc-wcx-hero--compact rmc-wcx-surface rmc-page-header-glow" data-world-class-page-hero="1" data-rmc-core-context="1" data-page-purpose="{% firstof purpose title %}" aria-labelledby="{{ hero_id|default:'world-class-page-title' }}">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div>
+  <div class="rmc-wcx-hero__main rmc-wcx-hero__main--flex">
     {% if breadcrumb_label %}<nav aria-label="{% trans 'Breadcrumb' %}" class="small mb-2"><a href="{{ breadcrumb_url }}">{{ breadcrumb_label }}</a></nav>{% endif %}
     <div class="rmc-wcx-hero__eyebrow rmc-page-eyebrow">{{ role|default:_("RunMyCampus workspace") }}</div>
     {% if heading_tag == "h2" %}
-    <h2 id="{{ hero_id|default:'world-class-page-title' }}" class="rmc-wcx-hero__title">{{ title }}</h2>
+    <h2 id="{{ hero_id|default:'world-class-page-title' }}" class="rmc-wcx-hero__title">
+      <span class="truncate">{{ title }}</span>
+      {% if subtitle %}{% rmc_info_tag title=title body=subtitle surface=hero_surface|default:"tenant" placement="bottom" %}{% endif %}
+    </h2>
     {% else %}
-    <h1 id="{{ hero_id|default:'world-class-page-title' }}" class="rmc-wcx-hero__title">{{ title }}</h1>
+    <h1 id="{{ hero_id|default:'world-class-page-title' }}" class="rmc-wcx-hero__title">
+      <span class="truncate">{{ title }}</span>
+      {% if subtitle %}{% rmc_info_tag title=title body=subtitle surface=hero_surface|default:"tenant" placement="bottom" %}{% endif %}
+    </h1>
     {% endif %}
     {% if status %}<span class="rmc-badge" data-world-class-status-pill="1">{{ status }}</span>{% endif %}
-    <p class="rmc-wcx-hero__copy">{{ subtitle }}</p>
     <div class="rmc-wcx-actions" data-world-class-primary-action-slot="1">
-      {% if primary_url and primary_label %}<a class="btn btn-primary" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
-      {% if secondary_url and secondary_label %}<a class="btn btn-outline-primary" href="{{ secondary_url }}">{{ secondary_label }}</a>{% endif %}
-      {% comment %} v8 page-header actions (Export PDF + Quick action) — platform-wide via the
-         common page hero, self-gated + config-driven by cockpit_shell.actions. {% endcomment %}
+      {% if primary_url and primary_label %}<a class="btn btn-primary truncate" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
+      {% if secondary_url and secondary_label %}<a class="btn btn-outline-primary truncate" href="{{ secondary_url }}">{{ secondary_label }}</a>{% endif %}
       {% include "partials/cockpit/_page_actions.html" %}
     </div>
   </div>
-  <div class="rmc-wcx-hero__visual" aria-label="{% trans 'Page readiness summary' %}">
-    <div class="rmc-wcx-visual-panel">
+  {% if visual_title or visual_body or icon %}
+  <div class="rmc-wcx-hero__visual rmc-wcx-hero__visual--compact" aria-label="{% trans 'Page readiness summary' %}">
+    <div class="rmc-wcx-visual-panel rmc-wcx-visual-panel--compact">
       <span class="rmc-wcx-icon" aria-hidden="true">{{ icon|default:"*" }}</span>
-      <h2 class="h5 mt-2 mb-1">{{ visual_title|default:_("What happens next") }}</h2>
-      <p class="small text-muted mb-0">{{ visual_body|default:_("Review the readiness signal, clear the top blocker, then continue through the guided action.") }}</p>
+      <strong class="rmc-wcx-visual-panel__title truncate">{{ visual_title|default:_("Next") }}</strong>
+      {% if visual_body %}
+      {% rmc_info_tag title=visual_title|default:_("What happens next") body=visual_body surface=hero_surface|default:"tenant" %}
+      {% endif %}
     </div>
   </div>
+  {% endif %}
 </section>

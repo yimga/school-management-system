@@ -1,0 +1,1377 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>APPROVAL v2 — Platform-wide info tags · zero bleed · operator + tenant</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #040812;
+      --line: rgba(177, 200, 236, .16);
+      --text: #eef5ff;
+      --muted: #9eb0c9;
+      --dim: #6f819c;
+      --green: #26d486;
+      --amber: #f8bf3f;
+      --red: #f15b6c;
+      --blue: #4f7dff;
+      --cyan: #4fd1c5;
+      --radius: 12px;
+      --pad: 12px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; color: var(--text); min-height: 100vh;
+      background:
+        radial-gradient(circle at 82% -8%, rgba(79,125,255,.2), transparent 30%),
+        radial-gradient(circle at 8% 4%, rgba(79,209,197,.1), transparent 26%),
+        linear-gradient(180deg, #07111f, var(--bg));
+      overflow-x: hidden;
+    }
+    .page {
+      max-width: 1480px; margin: 0 auto;
+      padding: 28px clamp(14px, 2.5vw, 28px) 96px;
+      min-width: 0;
+    }
+
+    /* —— Integrity utilities (anti-bleed) —— */
+    .truncate {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+    }
+    .wrap { overflow-wrap: anywhere; word-break: break-word; min-width: 0; }
+    .no-clip { overflow: visible !important; }
+
+    /* —— Hero —— */
+    .hero { display: grid; gap: 12px; margin-bottom: 16px; min-width: 0; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px; max-width: 100%;
+      padding: 6px 12px; border-radius: 999px;
+      border: 1px solid rgba(248,191,63,.42); background: rgba(248,191,63,.1);
+      color: #ffe7a8; font-size: 11px; font-weight: 850; letter-spacing: .05em; text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 0; font-size: clamp(1.4rem, 2.2vw, 2rem); letter-spacing: -0.03em; line-height: 1.2;
+    }
+    .hero p { margin: 0; color: var(--muted); max-width: 88ch; line-height: 1.55; font-size: 14px; }
+    .banner {
+      margin: 0 0 18px; padding: 12px 14px; border-radius: 14px;
+      border: 1px solid rgba(248,191,63,.35); background: rgba(248,191,63,.08);
+      color: #ffe7a8; font-size: 13px; line-height: 1.5;
+    }
+    .banner.ok {
+      border-color: rgba(38,212,134,.35); background: rgba(38,212,134,.08); color: #b6f5d4;
+    }
+    .hint {
+      margin: 0 0 18px; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid rgba(79,209,197,.3); background: rgba(79,209,197,.08);
+      color: var(--cyan); font-size: 12.5px; line-height: 1.45;
+    }
+
+    /* —— Audit checklist —— */
+    .audit {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px; margin-bottom: 22px;
+    }
+    .audit-item {
+      display: flex; gap: 8px; align-items: flex-start;
+      padding: 10px 12px; border-radius: 12px;
+      border: 1px solid rgba(38,212,134,.28); background: rgba(38,212,134,.07);
+      font-size: 12px; line-height: 1.4; color: var(--muted); min-width: 0;
+    }
+    .audit-item strong { color: #9ff0c6; flex: 0 0 auto; }
+    .audit-item span { min-width: 0; }
+
+    /* —— Principles —— */
+    .principles {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 22px;
+    }
+    .prin {
+      border: 1px solid var(--line); border-radius: 14px; padding: 14px; min-width: 0;
+      background: linear-gradient(180deg, rgba(20,34,58,.9), rgba(10,18,32,.95));
+    }
+    .prin .n {
+      font-size: 10px; font-weight: 950; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--cyan); margin-bottom: 6px;
+    }
+    .prin h3 { margin: 0 0 6px; font-size: 13px; }
+    .prin p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+
+    /* —— Coverage matrix —— */
+    .coverage {
+      border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin-bottom: 24px;
+      background: rgba(12,20,36,.92);
+    }
+    .coverage-head {
+      padding: 14px 16px; border-bottom: 1px solid var(--line); background: rgba(22,39,65,.55);
+    }
+    .coverage-head h2 { margin: 0 0 4px; font-size: 1rem; }
+    .coverage-head p { margin: 0; font-size: 12px; color: var(--dim); }
+    .cov-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .cov-table th, .cov-table td {
+      padding: 10px 12px; border-bottom: 1px solid var(--line);
+      font-size: 12px; text-align: left; vertical-align: top; min-width: 0;
+    }
+    .cov-table th {
+      color: var(--dim); font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+      background: rgba(5,11,20,.55);
+    }
+    .cov-table td { color: var(--muted); line-height: 1.4; word-break: break-word; }
+    .cov-table tr:last-child td { border-bottom: 0; }
+    .cov-table .yes { color: #9ff0c6; font-weight: 800; }
+    .cov-table code {
+      font-size: 10px; padding: 1px 5px; border-radius: 4px;
+      background: rgba(79,125,255,.15); color: #cfe0ff;
+    }
+
+    /* —— TOC —— */
+    .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+    .toc a {
+      text-decoration: none; color: var(--text); font-size: 12px; font-weight: 700;
+      padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(22,39,65,.65); max-width: 100%;
+    }
+    .toc a:hover { border-color: rgba(79,125,255,.55); }
+
+    /* —— Legend —— */
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 16px; font-size: 11px; color: var(--muted);
+    }
+    .legend i {
+      display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px;
+    }
+    .l-fluff { background: rgba(241,91,108,.55); }
+    .l-core { background: rgba(38,212,134,.55); }
+    .l-edu { background: rgba(79,125,255,.55); }
+
+    /* —— Slices —— */
+    .slice { margin-bottom: 40px; scroll-margin-top: 12px; min-width: 0; }
+    .slice-h { display: grid; gap: 4px; margin-bottom: 10px; min-width: 0; }
+    .slice-h h2 { margin: 0; font-size: clamp(1rem, 1.6vw, 1.12rem); line-height: 1.3; }
+    .slice-h small { color: var(--dim); font-size: 12px; line-height: 1.4; }
+    .scope {
+      display: inline-flex; max-width: 100%;
+      font-size: 10px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
+      color: #9ff0c6; border: 1px solid rgba(38,212,134,.35); background: rgba(38,212,134,.1);
+      padding: 3px 8px; border-radius: 999px;
+    }
+    .compare {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
+    }
+    .panel {
+      border: 1px solid var(--line); border-radius: 16px;
+      background: linear-gradient(180deg, rgba(17,31,53,.94), rgba(9,17,31,.98));
+      box-shadow: 0 20px 60px rgba(0,0,0,.32);
+      min-width: 0; display: flex; flex-direction: column;
+      /* tips must not be clipped by the panel */
+      overflow: visible;
+    }
+    .panel-head {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 11px 14px; border-bottom: 1px solid var(--line); background: rgba(22,39,65,.72);
+      border-radius: 16px 16px 0 0; min-width: 0;
+    }
+    .panel-head h3 { margin: 0; font-size: 13px; min-width: 0; }
+    .tag {
+      flex: 0 0 auto; font-size: 10px; font-weight: 950; letter-spacing: .06em; text-transform: uppercase;
+      padding: 4px 9px; border-radius: 999px; white-space: nowrap;
+    }
+    .tag.before { background: rgba(241,91,108,.18); color: #ffc3ca; border: 1px solid rgba(241,91,108,.4); }
+    .tag.after { background: rgba(38,212,134,.16); color: #9ff0c6; border: 1px solid rgba(38,212,134,.4); }
+
+    .mock {
+      padding: 12px; min-height: 420px; display: flex; flex-direction: column; gap: 10px;
+      min-width: 0; overflow: visible;
+    }
+    .mock.two {
+      display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .85fr); gap: 10px;
+    }
+    .shell {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: rgba(9,17,31,.88);
+      display: flex; flex-direction: column; min-width: 0; min-height: 0; flex: 1;
+      /* allow tips to escape shell; do not clip button text */
+      overflow: visible;
+    }
+
+    /* Callout markers */
+    .fluff, .core, .edu {
+      border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.4; min-width: 0;
+    }
+    .fluff {
+      border: 1px dashed rgba(241,91,108,.45); background: rgba(241,91,108,.07); color: #ffc3ca;
+    }
+    .fluff::before { content: "FLUFF · "; font-weight: 950; font-size: 9px; letter-spacing: .06em; }
+    .core {
+      border: 1px solid rgba(38,212,134,.35); background: rgba(38,212,134,.07); color: var(--text);
+    }
+    .core::before { content: "CORE · "; font-weight: 950; font-size: 9px; letter-spacing: .06em; color: #9ff0c6; }
+    .edu {
+      border: 1px solid rgba(79,125,255,.35); background: rgba(79,125,255,.08); color: var(--muted);
+    }
+    .edu::before { content: "EDUCATE · "; font-weight: 950; font-size: 9px; letter-spacing: .06em; color: #b9c9ff; }
+
+    /* Explain strip — wraps; never bleeds */
+    .explain {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      padding: 9px 11px; border-bottom: 1px solid var(--line);
+      background: rgba(22,39,65,.5); border-radius: var(--radius) var(--radius) 0 0;
+      min-width: 0;
+    }
+    .explain__copy {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px;
+      min-width: 0; flex: 1 1 180px;
+    }
+    .explain__label {
+      font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em;
+      flex: 0 0 auto;
+    }
+    .explain__title {
+      font-size: 12px; font-weight: 750; max-width: 100%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .explain__tags { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+    .explain__next {
+      display: inline-flex; align-items: center; gap: 6px;
+      max-width: 100%; padding: 6px 10px; border-radius: 999px;
+      border: 1px solid rgba(79,125,255,.45); background: rgba(79,125,255,.16);
+      font-size: 11px; font-weight: 750; color: #cfe0ff;
+      /* allow wrap instead of bleed */
+      white-space: normal; line-height: 1.25; flex: 0 1 auto;
+      text-decoration: none;
+    }
+    .explain__next .k {
+      font-size: 9px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim);
+      flex: 0 0 auto;
+    }
+
+    /* Chips — short labels only; wrap container */
+    .chip {
+      display: inline-flex; align-items: center; max-width: 100%;
+      font-size: 10px; font-weight: 750; line-height: 1.2;
+      padding: 4px 8px; border-radius: 999px;
+      border: 1px solid var(--line); color: var(--muted); background: rgba(22,39,65,.6);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .chip.warn { color: #ffe7a8; border-color: rgba(248,191,63,.4); background: rgba(248,191,63,.1); }
+    .chip.ok { color: #9ff0c6; border-color: rgba(38,212,134,.35); background: rgba(38,212,134,.1); }
+    .chip.danger { color: #ffc3ca; border-color: rgba(241,91,108,.4); background: rgba(241,91,108,.1); }
+    .chip.info { color: #cfe0ff; border-color: rgba(79,125,255,.4); background: rgba(79,125,255,.12); }
+
+    /* Buttons — no text bleed */
+    .actions { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      max-width: 100%;
+      font-size: 11px; font-weight: 750; line-height: 1.2;
+      padding: 7px 11px; border-radius: 8px;
+      border: 1px solid var(--line); background: rgba(22,39,65,.8); color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .btn.primary { background: rgba(79,125,255,.28); border-color: rgba(79,125,255,.5); }
+    .btn.ghost { background: transparent; color: var(--muted); }
+    .btn.sm { padding: 5px 9px; font-size: 10px; }
+
+    /* Info glyph + floating tip (portal-style, not clipped) */
+    .info {
+      position: relative; display: inline-grid; place-items: center;
+      width: 16px; height: 16px; border-radius: 50%; flex: 0 0 auto;
+      border: 1px solid rgba(79,125,255,.55); background: rgba(79,125,255,.18);
+      color: #cfe0ff; font-size: 10px; font-weight: 900; cursor: pointer;
+      vertical-align: middle;
+    }
+    .info:hover, .info:focus-visible {
+      background: rgba(79,125,255,.35); outline: none;
+      box-shadow: 0 0 0 3px rgba(79,125,255,.22);
+    }
+    .info.pulse { animation: ipulse 1.8s infinite; }
+    @keyframes ipulse {
+      0% { box-shadow: 0 0 0 0 rgba(79,125,255,.4); }
+      70% { box-shadow: 0 0 0 7px rgba(79,125,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(79,125,255,0); }
+    }
+
+    /* Fixed-position tip layer — never clipped by overflow ancestors */
+    .tip-layer {
+      position: fixed; z-index: 9999; width: min(340px, calc(100vw - 24px));
+      display: none; pointer-events: auto;
+    }
+    .tip-layer.is-on { display: block; animation: tipIn .16s ease-out; }
+    @keyframes tipIn {
+      from { opacity: 0; transform: translateY(-3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .rich-pop {
+      border: 1px solid rgba(79,125,255,.45); border-radius: 14px;
+      background: linear-gradient(180deg, #15263f, #0c1526);
+      box-shadow: 0 18px 50px rgba(0,0,0,.5);
+      overflow: hidden; max-width: 100%;
+    }
+    .rich-pop__head {
+      padding: 11px 13px; border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+      min-width: 0;
+    }
+    .rich-pop__head h4 {
+      margin: 0; font-size: 13px; line-height: 1.3; min-width: 0; flex: 1 1 auto;
+    }
+    .rich-pop__head .surf {
+      flex: 0 0 auto; font-size: 9px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase;
+      padding: 3px 7px; border-radius: 999px; white-space: nowrap;
+      background: rgba(38,212,134,.14); color: #9ff0c6; border: 1px solid rgba(38,212,134,.35);
+    }
+    .rich-pop__body { padding: 11px 13px; display: grid; gap: 9px; }
+    .rich-sec h5 {
+      margin: 0 0 3px; font-size: 9px; letter-spacing: .07em; text-transform: uppercase; color: var(--dim);
+    }
+    .rich-sec p, .rich-sec li {
+      margin: 0; font-size: 12px; color: var(--muted); line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    .rich-sec ul { margin: 0; padding-left: 16px; }
+    .rich-pop__foot {
+      padding: 9px 13px; border-top: 1px solid var(--line);
+      display: flex; flex-wrap: wrap; gap: 5px; background: rgba(5,11,20,.4);
+    }
+
+    /* Inline tip preview cards (static, in-flow — no bleed) */
+    .tip-inline {
+      margin-top: 8px; width: 100%; max-width: 100%;
+    }
+
+    .band {
+      padding: 10px 12px; border-bottom: 1px solid var(--line);
+      background: rgba(22,39,65,.4); min-width: 0;
+    }
+    .head-row {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px;
+      align-items: flex-start; min-width: 0;
+    }
+    .head-row h4 {
+      margin: 0; font-size: 14px; display: flex; align-items: center; gap: 6px;
+      min-width: 0; flex: 1 1 auto; line-height: 1.3;
+    }
+
+    .metrics {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+      gap: 6px; padding: 0 10px 10px; min-width: 0;
+    }
+    .metric {
+      border: 1px solid var(--line); border-radius: 8px; padding: 7px 8px;
+      background: rgba(5,11,20,.7); min-width: 0;
+    }
+    .metric span {
+      display: flex; align-items: center; gap: 4px; min-width: 0;
+      font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: .04em;
+    }
+    .metric span .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .metric b {
+      display: block; font-size: 12px; margin-top: 2px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .metric.fake { opacity: .75; border-style: dashed; border-color: rgba(241,91,108,.4); }
+    .check { color: var(--green); }
+
+    .fields {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+      padding: 10px; flex: 1; min-width: 0;
+    }
+    .fields .wide { grid-column: 1 / -1; }
+    label {
+      display: flex; align-items: center; gap: 5px; min-width: 0;
+      font-size: 9px; color: var(--dim); font-weight: 800; letter-spacing: .05em;
+      text-transform: uppercase; margin-bottom: 4px;
+    }
+    .input {
+      width: 100%; min-height: 34px; border-radius: 8px; border: 1px solid var(--line);
+      background: rgba(5,11,20,.82); color: var(--text); padding: 7px 9px; font-size: 12px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .save {
+      display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end;
+      padding: 8px 10px; border-top: 1px solid var(--line); background: rgba(22,39,65,.4);
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+
+    .rail { padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .card {
+      border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px;
+      background: rgba(5,11,20,.55); min-width: 0;
+    }
+    .card h5 {
+      margin: 0 0 6px; font-size: 10px; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--dim); display: flex; align-items: center; gap: 5px; min-width: 0;
+    }
+    .fact {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px;
+      font-size: 11px; padding: 3px 0; border-bottom: 1px solid rgba(177,200,236,.08);
+      min-width: 0;
+    }
+    .fact:last-child { border-bottom: 0; }
+    .fact dt { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fact dd { margin: 0; font-weight: 700; text-align: right; }
+
+    .option-a {
+      border: 1px solid var(--line); border-radius: 12px; padding: 10px;
+      background: rgba(22,39,65,.35); min-width: 0;
+    }
+    .option-a .eyebrow {
+      font-size: 9px; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--amber); font-weight: 850;
+    }
+    .option-a h4 {
+      margin: 4px 0 0; font-size: 13px; display: flex; align-items: center; gap: 6px;
+      min-width: 0; line-height: 1.3;
+    }
+    .oa-metrics {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px;
+    }
+    .oa-m {
+      border: 1px solid var(--line); border-radius: 8px; padding: 7px;
+      background: rgba(5,11,20,.65); min-width: 0;
+    }
+    .oa-m span {
+      display: flex; align-items: center; gap: 4px; min-width: 0;
+      font-size: 9px; color: var(--dim); text-transform: uppercase;
+    }
+    .oa-m strong {
+      display: block; font-size: 11px; margin: 2px 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .oa-m p { margin: 0; font-size: 10px; color: var(--muted); line-height: 1.35; }
+
+    .catalog { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .cat {
+      border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 11px;
+      background: rgba(5,11,20,.6); min-width: 0;
+    }
+    .cat b { display: block; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cat span { color: var(--dim); font-size: 10px; }
+
+    .row-cta {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      gap: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 8px;
+      background: rgba(5,11,20,.6); min-width: 0;
+    }
+    .row-cta .meta { min-width: 0; flex: 1 1 120px; }
+    .row-cta .meta b { display: block; font-size: 12px; }
+    .row-cta .meta span { font-size: 10px; color: var(--dim); }
+
+    .fold-note {
+      margin-top: auto; padding: 8px 10px; font-size: 10px; color: var(--dim);
+      border-top: 1px dashed var(--line); line-height: 1.4;
+    }
+
+    .anatomy {
+      border: 1px solid var(--line); border-radius: 16px; margin-bottom: 24px;
+      background: rgba(12,20,36,.92); overflow: hidden;
+    }
+    .anatomy-head {
+      padding: 14px 16px; border-bottom: 1px solid var(--line); background: rgba(22,39,65,.55);
+    }
+    .anatomy-head h2 { margin: 0 0 4px; font-size: 1rem; }
+    .anatomy-head p { margin: 0; font-size: 12px; color: var(--dim); }
+    .anatomy-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+    }
+    .anatomy-col { padding: 14px 16px; border-right: 1px solid var(--line); min-width: 0; }
+    .anatomy-col:last-child { border-right: 0; }
+    .anatomy-col h3 {
+      margin: 0 0 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--amber);
+    }
+    .layer {
+      display: flex; gap: 10px; align-items: flex-start; padding: 9px; border-radius: 10px;
+      border: 1px solid var(--line); background: rgba(5,11,20,.55); margin-bottom: 7px; min-width: 0;
+    }
+    .layer .icon {
+      width: 26px; height: 26px; border-radius: 50%; flex: 0 0 auto;
+      display: grid; place-items: center; font-size: 12px; font-weight: 900;
+      background: rgba(79,125,255,.22); color: #cfe0ff; border: 1px solid rgba(79,125,255,.4);
+    }
+    .layer strong { display: block; font-size: 12px; margin-bottom: 2px; }
+    .layer span { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+    .batch {
+      margin-top: 8px; padding: 18px; border-radius: 16px;
+      border: 1px solid rgba(38,212,134,.35); background: rgba(38,212,134,.07);
+      min-width: 0;
+    }
+    .batch h2 { margin: 0 0 8px; font-size: 1rem; }
+    .batch ol { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .batch li { margin-bottom: 6px; }
+
+    @media (max-width: 1100px) {
+      .principles, .anatomy-grid, .compare, .mock.two { grid-template-columns: minmax(0, 1fr); }
+      .anatomy-col { border-right: 0; border-bottom: 1px solid var(--line); }
+      .oa-metrics { grid-template-columns: minmax(0, 1fr); }
+      .fields { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .cov-table { display: block; overflow-x: auto; }
+      .cov-table th, .cov-table td { white-space: normal; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <span class="pill">Approval v2 · zero bleed · platform-wide · no code yet</span>
+      <h1>Platform-wide information tags — intelligent, surface-aware, integrity-safe</h1>
+      <p>
+        Operator <em>and</em> tenant. Admin, control plane, and school ops.
+        Core work stays on the canvas; education lives in page-aware ⓘ tags
+        (What · Why · Watch outs · chips). This preview is audited for
+        <strong>no text bleed</strong>, <strong>no clipped tips</strong>,
+        <strong>no broken wrapping</strong>.
+      </p>
+    </div>
+
+    <div class="banner">
+      Nothing is implemented until you reply <strong>Approved</strong>.
+      Click ⓘ icons — tips use a fixed layer so they never clip inside mock panels.
+    </div>
+
+    <div class="banner ok">
+      Integrity pass on this HTML: buttons truncate instead of overflow · chips wrap ·
+      explain strip flex-wraps · tips escape via <code>position: fixed</code> · grids use
+      <code>minmax(0, 1fr)</code> · long labels shortened.
+    </div>
+
+    <p class="hint">Click any blue ⓘ in an After panel. Esc or click outside to close.</p>
+
+    <div class="audit" aria-label="Preview integrity checklist">
+      <div class="audit-item"><strong>✓</strong><span>Button text cannot spill past edges</span></div>
+      <div class="audit-item"><strong>✓</strong><span>Chip labels short + ellipsis-safe</span></div>
+      <div class="audit-item"><strong>✓</strong><span>Tips not clipped by overflow:hidden</span></div>
+      <div class="audit-item"><strong>✓</strong><span>Explain strip wraps on narrow panels</span></div>
+      <div class="audit-item"><strong>✓</strong><span>Operator + tenant payloads both shown</span></div>
+      <div class="audit-item"><strong>✓</strong><span>Every surface family in coverage matrix</span></div>
+    </div>
+
+    <div class="principles">
+      <div class="prin">
+        <div class="n">01 · Core</div>
+        <h3>Work first</h3>
+        <p>Save, Configure, Preview, catalog — never buried under manifesto copy.</p>
+      </div>
+      <div class="prin">
+        <div class="n">02 · Educate</div>
+        <h3>Tags teach</h3>
+        <p>About strip + field ⓘ + metric ⓘ + rail ⓘ + workflow chips on every applicable page.</p>
+      </div>
+      <div class="prin">
+        <div class="n">03 · Aware</div>
+        <h3>Surface payload</h3>
+        <p>Operator ≠ tenant copy. Form ≠ list ≠ Config. Host badge inside every tip.</p>
+      </div>
+      <div class="prin">
+        <div class="n">04 · Intact</div>
+        <h3>Zero bleed</h3>
+        <p>No cut text, no leaking panels, no broken buttons — layout integrity is non-negotiable.</p>
+      </div>
+    </div>
+
+    <!-- COVERAGE -->
+    <section class="coverage" id="coverage">
+      <div class="coverage-head">
+        <h2>Platform coverage matrix (where info tags apply)</h2>
+        <p>Implementation will wire education everywhere below — operator and tenant — without breaking page integrity.</p>
+      </div>
+      <table class="cov-table">
+        <thead>
+          <tr>
+            <th style="width:22%">Surface family</th>
+            <th style="width:14%">Host</th>
+            <th style="width:22%">Page explain</th>
+            <th style="width:22%">Field / metric ⓘ</th>
+            <th style="width:20%">Workflow chips</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Django admin index</td>
+            <td><span class="yes">Op + Tenant</span></td>
+            <td class="yes">Yes · curated body</td>
+            <td>KPI ⓘ · search</td>
+            <td><code>manual-fallback</code></td>
+          </tr>
+          <tr>
+            <td>Admin change form / list</td>
+            <td><span class="yes">Op + Tenant</span></td>
+            <td class="yes">Yes</td>
+            <td class="yes">Auto + curated fields</td>
+            <td><code>audit-logged</code></td>
+          </tr>
+          <tr>
+            <td>App index / guided (waive, delete)</td>
+            <td><span class="yes">Op + Tenant</span></td>
+            <td class="yes">Yes</td>
+            <td>Rail + checklist ⓘ</td>
+            <td><code>not-reversible</code></td>
+          </tr>
+          <tr>
+            <td>Config Center / Blueprint / Pack / CR</td>
+            <td><span class="yes">Operator CP</span></td>
+            <td class="yes">Yes</td>
+            <td class="yes">Option A metrics ⓘ</td>
+            <td><code>approval-required</code></td>
+          </tr>
+          <tr>
+            <td>School config / blueprint / packs / import</td>
+            <td><span class="yes">Tenant ops</span></td>
+            <td class="yes">Yes</td>
+            <td class="yes">Option A metrics ⓘ</td>
+            <td><code>tenant-safe</code></td>
+          </tr>
+          <tr>
+            <td>Flight Deck / onboarding / money</td>
+            <td><span class="yes">Op + Tenant</span></td>
+            <td class="yes">Yes</td>
+            <td>Status ⓘ only</td>
+            <td>route taxonomy</td>
+          </tr>
+          <tr>
+            <td>Portal / Backend / Teacher / Parent</td>
+            <td><span class="yes">Tenant roles</span></td>
+            <td class="yes">Existing strip</td>
+            <td class="yes">Manifest auto-wire</td>
+            <td>role-scoped</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="anatomy">
+      <div class="anatomy-head">
+        <h2>Exceptional tag contract (no bleed)</h2>
+        <p>Builds on <code>rmc_info_tag</code> · page explain · field manifest · workflow taxonomy</p>
+      </div>
+      <div class="anatomy-grid">
+        <div class="anatomy-col">
+          <h3>Appear on</h3>
+          <div class="layer"><div class="icon">1</div><div><strong>Page explain</strong><span>Title visible · body in ⓘ · Next when available</span></div></div>
+          <div class="layer"><div class="icon">2</div><div><strong>Fields &amp; metrics</strong><span>Auto-wire + curated high-risk controls</span></div></div>
+          <div class="layer"><div class="icon">3</div><div><strong>Rail &amp; Option A</strong><span>Teach on titles — not duplicate ledes</span></div></div>
+        </div>
+        <div class="anatomy-col">
+          <h3>Rich tip shape</h3>
+          <div class="tip-inline">
+            <div class="rich-pop">
+              <div class="rich-pop__head">
+                <h4>Change user</h4>
+                <span class="surf">Operator</span>
+              </div>
+              <div class="rich-pop__body">
+                <div class="rich-sec"><h5>What</h5><p>Edit a control-plane account. Not a school tenant schema.</p></div>
+                <div class="rich-sec"><h5>Why</h5><p>Wrong scope can grant manager access.</p></div>
+                <div class="rich-sec"><h5>Watch outs</h5><ul><li>is_staff ≠ school admin</li><li>Prefer Config / Studio</li></ul></div>
+              </div>
+              <div class="rich-pop__foot">
+                <span class="chip info">audit-logged</span>
+                <span class="chip warn">platform-only</span>
+                <span class="chip ok">reversible</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="anatomy-col">
+          <h3>Integrity rules</h3>
+          <div class="layer"><div class="icon">A</div><div><strong>Short labels</strong><span>Buttons ≤ 2 words where possible; chips use taxonomy keys</span></div></div>
+          <div class="layer"><div class="icon">B</div><div><strong>Wrap, don’t spill</strong><span>Flex wrap + ellipsis — never overflow:hidden on text alone</span></div></div>
+          <div class="layer"><div class="icon">C</div><div><strong>Tips float free</strong><span>Fixed tip layer — never clipped by mock shells</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><i class="l-fluff"></i> Fluff</span>
+      <span><i class="l-core"></i> Core</span>
+      <span><i class="l-edu"></i> Educate (ⓘ)</span>
+    </div>
+
+    <nav class="toc">
+      <a href="#coverage">Coverage</a>
+      <a href="#s0">0 · Explain strip</a>
+      <a href="#s1">1 · Form metrics</a>
+      <a href="#s2">2 · Admin index</a>
+      <a href="#s3">3 · Form + rail</a>
+      <a href="#s4">4 · Config / Option A</a>
+      <a href="#s5">5 · Op vs Tenant</a>
+    </nav>
+
+    <!-- S0 -->
+    <section class="slice" id="s0">
+      <div class="slice-h">
+        <span class="scope">All shells · Op + Tenant</span>
+        <h2>0. Page explain — teach without a wall · strip never bleeds</h2>
+        <small>rmc_page_explain_strip.html on admin, portal, control plane</small>
+      </div>
+      <div class="compare">
+        <article class="panel">
+          <div class="panel-head"><h3>Before</h3><span class="tag before">Wall or empty</span></div>
+          <div class="mock">
+            <div class="shell">
+              <div class="explain">
+                <div class="explain__copy">
+                  <span class="explain__label">About</span>
+                  <span class="explain__title">Users</span>
+                </div>
+              </div>
+              <div style="padding:12px" class="fluff">Long steering paragraph repeated in hero + band + strip — pushes catalog down and feels broken.</div>
+              <div class="fold-note">Weak education · or prose that steals the fold</div>
+            </div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h3>After</h3><span class="tag after">Intact strip</span></div>
+          <div class="mock">
+            <div class="shell">
+              <div class="explain">
+                <div class="explain__copy">
+                  <span class="explain__label">About</span>
+                  <span class="explain__title">Operator catalog</span>
+                  <button type="button" class="info pulse" data-tip="tip-s0" aria-label="About this page">i</button>
+                  <div class="explain__tags">
+                    <span class="chip info">platform-only</span>
+                    <span class="chip warn">fallback</span>
+                  </div>
+                </div>
+                <a class="explain__next" href="#s2"><span class="k">Next</span> Config center →</a>
+              </div>
+              <div style="padding:12px" class="core">CTAs + KPIs + catalog in the first fold</div>
+              <div class="edu">Tenant twin: “School catalog” · chips <code>tenant-safe</code> · Next → Backend</div>
+              <div class="fold-note">Strip wraps · Next button wraps · no overflow past panel edge</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- S1 -->
+    <section class="slice" id="s1">
+      <div class="slice-h">
+        <span class="scope">Op + Tenant admin forms</span>
+        <h2>1. Metrics — live pulse only · field tags educate</h2>
+        <small>No fake “Canvas 100%” · buttons stay inside the head</small>
+      </div>
+      <div class="compare">
+        <article class="panel">
+          <div class="panel-head"><h3>Before</h3><span class="tag before">Fake KPIs</span></div>
+          <div class="mock">
+            <div class="shell">
+              <div class="band">
+                <h4 style="margin:0 0 6px;font-size:14px">Change user</h4>
+                <div class="fluff">Balanced full-canvas workbench manifesto…</div>
+              </div>
+              <div class="metrics">
+                <div class="metric fake"><span><span class="lbl">Canvas</span></span><b>100%</b></div>
+                <div class="metric fake"><span><span class="lbl">Form cap</span></span><b>Removed</b></div>
+                <div class="metric fake"><span><span class="lbl">Table</span></span><b>Native</b></div>
+                <div class="metric fake"><span><span class="lbl">Save</span></span><b>Static</b></div>
+                <div class="metric"><span><span class="lbl">Scope</span></span><b>Operator</b></div>
+              </div>
+              <div class="fields" style="opacity:.55">
+                <div><label>Username</label><div class="input">admin</div></div>
+                <div><label>is_staff</label><div class="input">no help</div></div>
+              </div>
+            </div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h3>After</h3><span class="tag after">Clean + tagged</span></div>
+          <div class="mock">
+            <div class="shell">
+              <div class="explain">
+                <div class="explain__copy">
+                  <span class="explain__label">About</span>
+                  <span class="explain__title">Change user</span>
+                  <button type="button" class="info" data-tip="tip-s1-page" aria-label="About change user">i</button>
+                </div>
+              </div>
+              <div class="band">
+                <div class="head-row">
+                  <h4>Change user
+                    <button type="button" class="info" data-tip="tip-s1-layout" aria-label="Why this layout">i</button>
+                  </h4>
+                  <div class="actions">
+                    <span class="btn sm">History</span>
+                    <span class="btn sm primary">View site</span>
+                  </div>
+                </div>
+              </div>
+              <div class="metrics">
+                <div class="metric">
+                  <span>
+                    <span class="lbl">Scope</span>
+                    <button type="button" class="info" data-tip="tip-s1-scope" aria-label="Scope help">i</button>
+                  </span>
+                  <b>Operator</b>
+                </div>
+                <div class="metric"><span><span class="lbl">Save</span></span><b class="check">Clean</b></div>
+                <div class="metric"><span><span class="lbl">Required</span></span><b>0</b></div>
+              </div>
+              <div class="fields">
+                <div>
+                  <label>Username
+                    <button type="button" class="info" data-tip="tip-s1-user" aria-label="Username help">i</button>
+                  </label>
+                  <div class="input">admin</div>
+                </div>
+                <div>
+                  <label>is_staff
+                    <button type="button" class="info pulse" data-tip="tip-s1-staff" aria-label="is_staff help">i</button>
+                  </label>
+                  <div class="input">☐</div>
+                </div>
+              </div>
+              <div class="save">
+                <span class="btn sm">Continue</span>
+                <span class="btn sm primary">Save</span>
+              </div>
+              <div class="fold-note">“View site” not “View on site” — short labels prevent button bleed</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- S2 -->
+    <section class="slice" id="s2">
+      <div class="slice-h">
+        <span class="scope">Op + Tenant admin index</span>
+        <h2>2. Admin index — one CTA band · education once</h2>
+        <small>Action buttons wrap; never spill out of the head row</small>
+      </div>
+      <div class="compare">
+        <article class="panel">
+          <div class="panel-head"><h3>Before</h3><span class="tag before">Steering ×3</span></div>
+          <div class="mock">
+            <div class="shell">
+              <div class="band"><div class="fluff">Prefer Config… Prefer Studio… Prefer guided…</div></div>
+              <div style="padding:10px;display:grid;gap:8px">
+                <div class="fluff">Hero repeats the same message</div>
+                <div class="actions">
+                  <span class="btn primary">+ New school</span>
+                  <span class="btn">Config</span>
+                </div>
+                <div class="catalog" style="opacity:.45">
+                  <div class="cat"><b>Schools</b><span>12</span></div>
+                  <div class="cat"><b>Accounts</b><span>8</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h3>After</h3><span class="tag after">Catalog up</span></div>
+          <div class="mock">
+            <div class="shell">
+              <div class="explain">
+                <div class="explain__copy">
+                  <span class="explain__label">About</span>
+                  <span class="explain__title">Operator catalog</span>
+                  <button type="button" class="info" data-tip="tip-s2" aria-label="When to use raw admin">i</button>
+                  <span class="chip info">platform-only</span>
+                </div>
+                <a class="explain__next" href="#s4"><span class="k">Next</span> Config →</a>
+              </div>
+              <div class="band">
+                <div class="head-row">
+                  <h4>Operator catalog</h4>
+                  <div class="actions">
+                    <span class="btn sm primary">+ School</span>
+                    <span class="btn sm">Config</span>
+                    <span class="btn sm">Studio</span>
+                    <span class="btn sm ghost">⌘K</span>
+                  </div>
+                </div>
+              </div>
+              <div style="padding:10px;display:grid;gap:8px">
+                <div class="metrics" style="padding:0">
+                  <div class="metric"><span><span class="lbl">Models</span></span><b>248</b></div>
+                  <div class="metric"><span><span class="lbl">Apps</span></span><b>42</b></div>
+                  <div class="metric"><span><span class="lbl">Schools</span></span><b>19</b></div>
+                </div>
+                <div class="input" style="color:var(--dim)">Search models…</div>
+                <div class="catalog">
+                  <div class="cat"><b>Schools</b><span>12 models</span></div>
+                  <div class="cat"><b>Accounts</b><span>8 models</span></div>
+                  <div class="cat"><b>Billing</b><span>6 models</span></div>
+                  <div class="cat"><b>Siteconfig</b><span>11 models</span></div>
+                </div>
+              </div>
+              <div class="fold-note">Tenant: “School catalog” · Next → Backend · no /super/ in tips</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- S3 -->
+    <section class="slice" id="s3">
+      <div class="slice-h">
+        <span class="scope">Op + Tenant admin</span>
+        <h2>3. Form + page-aware rail — facts on canvas · teach on ⓘ</h2>
+        <small>Two-column mock uses minmax(0) so rail never crushes fields</small>
+      </div>
+      <div class="compare">
+        <article class="panel">
+          <div class="panel-head"><h3>Before</h3><span class="tag before">Lede echo</span></div>
+          <div class="mock two">
+            <div class="shell">
+              <div class="band"><div class="fluff">Full-canvas form…</div></div>
+              <div class="band"><div class="fluff">Balanced workbench…</div></div>
+              <div class="fields" style="opacity:.5"><div class="wide"><label>Email</label><div class="input">…</div></div></div>
+            </div>
+            <div class="shell rail">
+              <div class="card"><h5>Boundary</h5><div class="fluff" style="border:0;padding:0;background:transparent">Same paragraph…</div></div>
+              <div class="card"><h5>This record</h5><div class="fluff" style="border:0;padding:0;background:transparent">Same again…</div></div>
+            </div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h3>After</h3><span class="tag after">Dense + safe</span></div>
+          <div class="mock two">
+            <div class="shell">
+              <div class="explain">
+                <div class="explain__copy">
+                  <span class="explain__label">About</span>
+                  <span class="explain__title">Change user</span>
+                  <button type="button" class="info" data-tip="tip-s3-page" aria-label="Form help">i</button>
+                  <span class="chip ok">reversible</span>
+                </div>
+              </div>
+              <div class="band">
+                <div class="head-row">
+                  <div class="actions">
+                    <span class="btn sm primary">Form</span>
+                    <span class="btn sm ghost">Audit</span>
+                  </div>
+                  <div class="actions">
+                    <span class="btn sm">History</span>
+                    <span class="btn sm primary">View site</span>
+                  </div>
+                </div>
+              </div>
+              <div class="fields">
+                <div>
+                  <label>Email
+                    <button type="button" class="info" data-tip="tip-s3-email" aria-label="Email help">i</button>
+                  </label>
+                  <div class="input">ops@school…</div>
+                </div>
+                <div><label>Groups</label><div class="input">—</div></div>
+              </div>
+              <div class="save"><span class="btn sm primary">Save</span></div>
+            </div>
+            <div class="shell rail">
+              <div class="card">
+                <h5>This record
+                  <button type="button" class="info" data-tip="tip-s3-rail" aria-label="Boundary help">i</button>
+                </h5>
+                <div class="core" style="margin-bottom:6px">accounts.User</div>
+                <div class="fact"><dt>PK</dt><dd>7</dd></div>
+                <div class="fact"><dt>Status</dt><dd class="check">Active</dd></div>
+                <div class="fact"><dt>Save</dt><dd class="check">Clean</dd></div>
+              </div>
+              <div class="card">
+                <h5>Form pulse
+                  <button type="button" class="info" data-tip="tip-s3-pulse" aria-label="Pulse help">i</button>
+                </h5>
+                <div class="fact"><dt>Sections</dt><dd>4</dd></div>
+                <div class="fact"><dt>Required</dt><dd>0</dd></div>
+              </div>
+              <div class="edu">No duplicate lede · tips float above panels</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- S4 -->
+    <section class="slice" id="s4">
+      <div class="slice-h">
+        <span class="scope">Operator CP + Tenant ops</span>
+        <h2>4. Option A / Config — metrics core · path in ⓘ</h2>
+        <small>Configure CTA stays fully inside the row · metric text ellipsizes</small>
+      </div>
+      <div class="compare">
+        <article class="panel">
+          <div class="panel-head"><h3>Before</h3><span class="tag before">Irony lede</span></div>
+          <div class="mock">
+            <div class="shell" style="padding:10px;gap:8px;display:flex;flex-direction:column">
+              <div class="option-a">
+                <div class="eyebrow">Approved model</div>
+                <h4>Full-width platform configuration</h4>
+                <div class="fluff" style="margin-top:6px">“Open with the work, not a wall of text…” — then three essay tiles</div>
+                <div class="oa-metrics">
+                  <div class="oa-m"><span><span class="lbl">Modules</span></span><strong>Visible</strong><p>Long body…</p></div>
+                  <div class="oa-m"><span><span class="lbl">Path</span></span><strong>Governed</strong><p>Long body…</p></div>
+                  <div class="oa-m"><span><span class="lbl">Risk</span></span><strong>Audit</strong><p>Long body…</p></div>
+                </div>
+              </div>
+              <span class="btn primary" style="opacity:.55;align-self:flex-start">Configure</span>
+            </div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h3>After</h3><span class="tag after">Dense CTA</span></div>
+          <div class="mock">
+            <div class="shell" style="padding:10px;gap:8px;display:flex;flex-direction:column">
+              <div class="explain">
+                <div class="explain__copy">
+                  <span class="explain__label">About</span>
+                  <span class="explain__title">Platform config</span>
+                  <button type="button" class="info" data-tip="tip-s4" aria-label="Config center help">i</button>
+                  <span class="chip warn">approval</span>
+                </div>
+              </div>
+              <div class="option-a">
+                <div class="head-row">
+                  <div style="min-width:0">
+                    <div class="eyebrow">Command</div>
+                    <h4>Platform config
+                      <button type="button" class="info" data-tip="tip-s4-path" aria-label="Governed path">i</button>
+                    </h4>
+                  </div>
+                  <span class="chip ok">Operator</span>
+                </div>
+                <div class="oa-metrics">
+                  <div class="oa-m">
+                    <span>
+                      <span class="lbl">Modules</span>
+                      <button type="button" class="info" data-tip="tip-s4-mod" aria-label="Modules">i</button>
+                    </span>
+                    <strong>18 ready</strong>
+                  </div>
+                  <div class="oa-m"><span><span class="lbl">Pending CR</span></span><strong>3</strong></div>
+                  <div class="oa-m"><span><span class="lbl">Blockers</span></span><strong>0</strong></div>
+                </div>
+              </div>
+              <div class="row-cta">
+                <div class="meta"><b>Feature control</b><span>Tenant flags</span></div>
+                <span class="btn sm primary">Configure</span>
+              </div>
+              <div class="row-cta">
+                <div class="meta"><b>Blueprints</b><span>Governed install</span></div>
+                <span class="btn sm primary">Open</span>
+              </div>
+              <div class="edu">Also: Pack · Change Requests · tenant school config / blueprint / packs / onboarding</div>
+              <div class="fold-note">Short CTAs (“Open”, “Configure”) — no text bleed off buttons</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- S5 -->
+    <section class="slice" id="s5">
+      <div class="slice-h">
+        <span class="scope">Platform parity proof</span>
+        <h2>5. Same chrome · different education payload (Op vs Tenant)</h2>
+        <small>Inline tip cards (in-flow) — guaranteed no clip, no bleed off panel</small>
+      </div>
+      <div class="compare">
+        <article class="panel">
+          <div class="panel-head"><h3>Operator</h3><span class="tag after">manager host</span></div>
+          <div class="mock">
+            <div class="shell">
+              <div class="explain">
+                <div class="explain__copy">
+                  <span class="explain__label">About</span>
+                  <span class="explain__title">Blueprint marketplace</span>
+                  <span class="chip info">platform-only</span>
+                </div>
+              </div>
+              <div style="padding:12px;display:grid;gap:10px">
+                <div class="core">Preview · Request · Apply</div>
+                <div class="tip-inline">
+                  <div class="rich-pop">
+                    <div class="rich-pop__head">
+                      <h4>Blueprint marketplace</h4>
+                      <span class="surf">Operator</span>
+                    </div>
+                    <div class="rich-pop__body">
+                      <div class="rich-sec"><h5>What</h5><p>Governed installs across tenants. Preview impact before apply.</p></div>
+                      <div class="rich-sec"><h5>Why</h5><p>Stops unreviewed platform changes from hitting schools.</p></div>
+                      <div class="rich-sec"><h5>Watch outs</h5><ul><li>High risk needs approval</li><li>Rollback stays auditable</li></ul></div>
+                    </div>
+                    <div class="rich-pop__foot">
+                      <span class="chip info">platform-only</span>
+                      <span class="chip warn">approval</span>
+                      <span class="chip ok">preview</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-head"><h3>Tenant</h3><span class="tag after">school host</span></div>
+          <div class="mock">
+            <div class="shell">
+              <div class="explain">
+                <div class="explain__copy">
+                  <span class="explain__label">About</span>
+                  <span class="explain__title">School blueprints</span>
+                  <span class="chip ok">tenant-safe</span>
+                </div>
+              </div>
+              <div style="padding:12px;display:grid;gap:10px">
+                <div class="core">Preview · Apply — this school</div>
+                <div class="tip-inline">
+                  <div class="rich-pop">
+                    <div class="rich-pop__head">
+                      <h4>School blueprint setup</h4>
+                      <span class="surf">Tenant</span>
+                    </div>
+                    <div class="rich-pop__body">
+                      <div class="rich-sec"><h5>What</h5><p>Apply a tenant-safe model to <em>this school only</em>.</p></div>
+                      <div class="rich-sec"><h5>Why</h5><p>Settings, packs, and audit stay linked in school scope.</p></div>
+                      <div class="rich-sec"><h5>Watch outs</h5><ul><li>No /super/ or manager links</li><li>Blockers stay honest before apply</li></ul></div>
+                    </div>
+                    <div class="rich-pop__foot">
+                      <span class="chip ok">tenant-safe</span>
+                      <span class="chip warn">approval</span>
+                      <span class="chip info">preview</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <div class="batch">
+      <h2>What you are approving (v2)</h2>
+      <ol>
+        <li><strong>Platform-wide info tags</strong> — operator + tenant admin, CP, school ops, portal roles (coverage matrix).</li>
+        <li><strong>Rich tip contract</strong> — What / Why / Watch outs / chips / surface badge.</li>
+        <li><strong>Core vs Context</strong> — fake KPIs, irony ledes, steering walls → tags + live metrics.</li>
+        <li><strong>Integrity</strong> — short button labels, wrap/ellipsis, fixed tip layer, no clip/bleed/cut.</li>
+        <li><strong>Surface-aware payloads</strong> — operator copy never pasted onto tenant surfaces.</li>
+      </ol>
+      <p style="margin:14px 0 0;font-size:13px;color:var(--muted)">
+        Reply <strong>Approved</strong> to implement, or list any remaining visual issues in this HTML.
+      </p>
+    </div>
+  </div>
+
+  <!-- Fixed tip layer + tip payloads -->
+  <div id="tip-layer" class="tip-layer" role="dialog" aria-modal="false" hidden></div>
+
+  <template id="tip-s0">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Operator catalog</h4><span class="surf">Operator</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Jump to any registered model. Live counts. Searchable catalog.</p></div>
+        <div class="rich-sec"><h5>Why</h5><p>Use for raw CRUD when Config or Studio cannot express the change.</p></div>
+        <div class="rich-sec"><h5>Watch outs</h5><ul><li>Not day-to-day school setup</li><li>Tenant sees a school-scoped catalog</li></ul></div>
+      </div>
+      <div class="rich-pop__foot">
+        <span class="chip info">platform-only</span>
+        <span class="chip warn">fallback</span>
+        <span class="chip ok">audit-logged</span>
+      </div>
+    </div>
+  </template>
+  <template id="tip-s1-page">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Change user</h4><span class="surf">Operator</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Edit identity and permissions for a control-plane account.</p></div>
+        <div class="rich-sec"><h5>Why</h5><p>Staff flags unlock admin — high blast radius.</p></div>
+      </div>
+      <div class="rich-pop__foot"><span class="chip danger">review</span><span class="chip info">audit-logged</span></div>
+    </div>
+  </template>
+  <template id="tip-s1-layout">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Why this layout</h4><span class="surf">Canvas</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Smart field grid · context rail · one horizontal save row.</p></div>
+        <div class="rich-sec"><h5>Why</h5><p>Keeps the fold for fields — layout rules are optional reading.</p></div>
+      </div>
+    </div>
+  </template>
+  <template id="tip-s1-scope">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Scope</h4><span class="surf">Host</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Operator = manager host. Tenant admins see “Tenant” and school-bound models only.</p></div>
+      </div>
+    </div>
+  </template>
+  <template id="tip-s1-user">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>username</h4><span class="surf">Field</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Login identifier. Unique platform-wide on operator hosts.</p></div>
+        <div class="rich-sec"><h5>Watch outs</h5><ul><li>Changing it can break SSO links</li></ul></div>
+      </div>
+    </div>
+  </template>
+  <template id="tip-s1-staff">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>is_staff</h4><span class="surf">High risk</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Allows Django admin access. On tenant hosts, staff ≠ control-plane operator.</p></div>
+        <div class="rich-sec"><h5>Watch outs</h5><ul><li>Never use as the only auth gate on tenant routes</li></ul></div>
+      </div>
+      <div class="rich-pop__foot"><span class="chip danger">review</span><span class="chip warn">platform-only</span></div>
+    </div>
+  </template>
+  <template id="tip-s2">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>When to use raw admin</h4><span class="surf">Operator</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Model catalog for exceptions — not day-to-day configuration.</p></div>
+        <div class="rich-sec"><h5>Prefer</h5><p>Config center · Studio · Flight Deck.</p></div>
+      </div>
+      <div class="rich-pop__foot"><span class="chip warn">fallback</span></div>
+    </div>
+  </template>
+  <template id="tip-s3-page">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Form workspace</h4><span class="surf">Change form</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Form / Audit modes. Save stays horizontal inside the panel.</p></div>
+      </div>
+    </div>
+  </template>
+  <template id="tip-s3-email">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>email</h4><span class="surf">Field</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Primary contact for resets and audit notifications.</p></div>
+      </div>
+    </div>
+  </template>
+  <template id="tip-s3-rail">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Operator boundary</h4><span class="surf">Rail</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Control-plane scope. Guided work → Config / Studio.</p></div>
+        <div class="rich-sec"><h5>Tenant twin</h5><p>Same card says “This school” and links Backend Console.</p></div>
+      </div>
+    </div>
+  </template>
+  <template id="tip-s3-pulse">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Live pulse</h4><span class="surf">Client</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Sections · required empty · dirty state — updates as you edit.</p></div>
+      </div>
+    </div>
+  </template>
+  <template id="tip-s4">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Configuration Center</h4><span class="surf">Operator CP</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Governed modules for platform defaults. Prefer change requests before raw edits.</p></div>
+        <div class="rich-sec"><h5>Watch outs</h5><ul><li>/internal-admin/ is fallback only</li><li>School changes belong on tenant</li></ul></div>
+      </div>
+      <div class="rich-pop__foot"><span class="chip info">platform-only</span><span class="chip warn">approval</span></div>
+    </div>
+  </template>
+  <template id="tip-s4-path">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Governed path</h4><span class="surf">Option A</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Review → request → apply. Metrics show pending CRs and blockers.</p></div>
+      </div>
+    </div>
+  </template>
+  <template id="tip-s4-mod">
+    <div class="rich-pop">
+      <div class="rich-pop__head"><h4>Modules ready</h4><span class="surf">Metric</span></div>
+      <div class="rich-pop__body">
+        <div class="rich-sec"><h5>What</h5><p>Count of operator-scoped modules available to configure now.</p></div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    (function () {
+      var layer = document.getElementById("tip-layer");
+      var activeBtn = null;
+
+      function place(btn) {
+        var rect = btn.getBoundingClientRect();
+        var tipW = Math.min(340, window.innerWidth - 24);
+        var left = rect.left + rect.width / 2 - tipW / 2;
+        left = Math.max(12, Math.min(left, window.innerWidth - tipW - 12));
+        var top = rect.bottom + 10;
+        layer.style.width = tipW + "px";
+        layer.style.left = left + "px";
+        layer.style.top = top + "px";
+        // Flip up if near bottom
+        requestAnimationFrame(function () {
+          var h = layer.offsetHeight || 0;
+          if (top + h > window.innerHeight - 12) {
+            layer.style.top = Math.max(12, rect.top - h - 10) + "px";
+          }
+        });
+      }
+
+      function close() {
+        layer.classList.remove("is-on");
+        layer.hidden = true;
+        layer.innerHTML = "";
+        if (activeBtn) {
+          activeBtn.setAttribute("aria-expanded", "false");
+          activeBtn = null;
+        }
+      }
+
+      function open(btn) {
+        var id = btn.getAttribute("data-tip");
+        var tpl = document.getElementById(id);
+        if (!tpl) return;
+        close();
+        layer.innerHTML = tpl.innerHTML;
+        layer.hidden = false;
+        layer.classList.add("is-on");
+        btn.setAttribute("aria-expanded", "true");
+        activeBtn = btn;
+        place(btn);
+      }
+
+      document.querySelectorAll(".info[data-tip]").forEach(function (btn) {
+        btn.setAttribute("aria-expanded", "false");
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          if (activeBtn === btn) { close(); return; }
+          open(btn);
+        });
+        btn.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            btn.click();
+          }
+        });
+      });
+
+      document.addEventListener("click", function (e) {
+        if (layer.contains(e.target)) return;
+        close();
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") close();
+      });
+      window.addEventListener("resize", function () {
+        if (activeBtn) place(activeBtn);
+      });
+      window.addEventListener("scroll", function () {
+        if (activeBtn) place(activeBtn);
+      }, true);
+    })();
+  </script>
+</body>
+</html>

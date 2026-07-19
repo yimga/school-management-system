@@ -1,18 +1,17 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 
 {% block title %}{% trans "Intelligence & Self-Healing" %}{% endblock %}
 
 {% block cp_content %}
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<main id="main" class="container-fluid py-2" data-rmc-page="health-autopilot" data-page-archetype="operator-report" data-rmc-scroll-policy="paginate">
+<main id="main" class="container-fluid py-2" data-rmc-page="health-autopilot" data-page-archetype="operator-report" data-rmc-scroll-policy="paginate" data-rmc-core-context="1">
   <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
-    <div>
-      <h1 class="h3 mb-1">{% trans "Platform Intelligence &amp; Self-Healing" %}</h1>
-      <p class="text-tertiary mb-0">
-        {% trans "One place for AI status and the autonomous health remediation engine. Autonomous applies stay shadow-only until an operator enables a specific reversible kind via an autopilot policy — but you can also heal any actionable signal right now with a one-click, fully-audited Run once." %}
-      </p>
+    <div class="d-flex align-items-center gap-2 min-w-0">
+      <h1 class="h3 mb-0 truncate">{% trans "Platform Intelligence &amp; Self-Healing" %}</h1>
+      {% trans "One place for AI status and the autonomous health remediation engine. Autonomous applies stay shadow-only until an operator enables a specific reversible kind via an autopilot policy — but you can also heal any actionable signal right now with a one-click, fully-audited Run once." as autopilot_tip %}
+      {% rmc_info_tag title=_("Platform Intelligence & Self-Healing") body=autopilot_tip surface="operator" placement="bottom" %}
     </div>
     <div class="d-flex flex-wrap gap-2">
       {% if policies %}

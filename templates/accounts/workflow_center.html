@@ -15,10 +15,8 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
-
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 {% phase8_dashboard_declaration "accounts/workflow_center.html" %}
-<div class="container-fluid py-2">{% include "components/workflow_help_panel.html" with help=workflow_help %}</div>
+{# Core vs Context: help panel collapsed in side rail of main; no full-width How-it-works wall. #}
 {% include "accounts/partials/workflow_center_main.html" %}
 {% endblock %}

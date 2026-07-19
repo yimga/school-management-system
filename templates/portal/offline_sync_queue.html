@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% block rmc_workspace_os_header %}{% endblock %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 {% block title %}{% trans "Offline sync queue" %} — {{ block.super }}{% endblock %}
 
@@ -12,17 +12,18 @@
 
 {% comment %} table-pagination-allow: per-user-queue-view-layer-row-cap natural-drain-not-list-view {% endcomment %}
 {% comment %} table-column-budget-allow: offline-sync-multi-section-operator-conditional-columns — idempotency in row drawer meta {% endcomment %}
-<div class="container-fluid px-3 px-lg-4 py-4" data-rmc-offline-sync-queue="1" data-rmc-os-center="offline_sync_center" data-task="offline_sync" data-task-step="portal:offline-sync-queue" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+<div class="container-fluid px-3 px-lg-4 py-4" data-rmc-offline-sync-queue="1" data-rmc-os-center="offline_sync_center" data-task="offline_sync" data-task-step="portal:offline-sync-queue" data-rmc-scroll-policy="paginate" data-page-archetype="task-list" data-rmc-core-context="1">
   {% trans "Operations" as off_eyebrow %}
   {% trans "Queued offline mutations for this school — process in order; failures stay visible for retry or conflict resolution." as off_purpose %}
   {% include "components/rmc_os_page_header.html" with os_center_key="offline_sync_center" center_eyebrow=off_eyebrow center_title=_("Offline Sync Center") center_purpose=off_purpose %}
-  <p class="text-body-secondary small mb-4">
-    {% trans "Items captured while offline are applied here when you process the queue. Conflicts require an explicit choice — nothing is overwritten silently." %}
+  <div class="d-flex align-items-center gap-2 mb-3">
+    {% trans "Items captured while offline are applied when you process the queue. Conflicts need an explicit choice — nothing is overwritten silently." as offline_queue_tip %}
+    {% rmc_info_tag title=_("Offline sync queue") body=offline_queue_tip surface="tenant" placement="bottom" %}
     {% if operator_offline_scope %}
-      <span class="d-block mt-2 small">{% trans "Operator view: queue spans all submitters for this school (tenant-scoped)." %}</span>
+      {% trans "Operator view: queue spans all submitters for this school (tenant-scoped)." as offline_op_tip %}
+      {% rmc_info_tag title=_("Operator scope") body=offline_op_tip surface="operator" placement="bottom" %}
     {% endif %}
-    <span class="d-block mt-2 text-body-secondary">{% trans "What happens next: process applies queued mutations in order — failures stay visible so you can retry or resolve conflicts deliberately." %}</span>
-  </p>
+  </div>
 
   {% if pending_count == 0 and syncing_count == 0 and failed_count == 0 and conflict_count == 0 %}
   {% url 'accounts:backend_dashboard' as dash_url %}

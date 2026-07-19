@@ -1,11 +1,11 @@
 {% extends "backend_base.html" %}
-{% load i18n static %}
+{% load i18n static rmc_explain_tags %}
 {% block backend_title %}{% trans "Create classroom" %}{% endblock %}
 {% block backend_page %}
 {% include "components/next_action_strip.html" %}
 
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-2" data-page-archetype="record-create" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+<div class="container-fluid py-2" data-page-archetype="record-create" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-rmc-core-context="1">
   <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'accounts:backend_classroom_list' %}">{% trans "Classrooms" %}</a></li>
@@ -59,12 +59,18 @@
     <div class="col-12 col-lg-4 rmc-reveal">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
-          <p class="text-uppercase small text-muted mb-2 fw-semibold"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i>{% trans "Before you start" %}</p>
-          <ul class="small text-muted ps-3 mb-3">
-            <li class="mb-1">{% trans "Give the classroom a clear, unique name students and staff will recognise." %}</li>
-            <li class="mb-1">{% trans "Link it to the right academic year so rosters and reports line up." %}</li>
-            <li class="mb-0">{% trans "You can assign teachers and enrol students after the classroom is created." %}</li>
-          </ul>
+          <details class="rmc-help-details mb-3" data-rmc-core-context="1">
+            <summary class="text-uppercase small text-muted fw-semibold">
+              <i class="bi bi-lightbulb me-1" aria-hidden="true"></i>{% trans "Before you start" %}
+              {% trans "Tips before creating a classroom — naming, year link, and later roster steps." as classroom_tip %}
+              {% rmc_info_tag title=_("Create classroom") body=classroom_tip surface="tenant" %}
+            </summary>
+            <ul class="small text-muted ps-3 mb-0 mt-2">
+              <li class="mb-1">{% trans "Give the classroom a clear, unique name students and staff will recognise." %}</li>
+              <li class="mb-1">{% trans "Link it to the right academic year so rosters and reports line up." %}</li>
+              <li class="mb-0">{% trans "You can assign teachers and enrol students after the classroom is created." %}</li>
+            </ul>
+          </details>
           <a href="{% url 'accounts:backend_classroom_list' %}" class="btn btn-sm btn-outline-secondary w-100">
             <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Back to all classrooms" %}
           </a>

@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 <!-- v3.40.0 Agent 6 — Migration Cloud Command Center operator dashboard. Single staff-only screen aggregating every Migration Cloud pillar's live state. Eight cards in a responsive 3-column grid. Each card carries a status pill (ok/warn/alert/info), 2-4 key metrics, and a "Drill in →" link to the existing sub-dashboard. Hard contracts honored: * No inline <style> blocks (project zero-tolerance gate `scan_inline_style_off_token` would refuse this template otherwise). * No new JS file dependency — auto-refresh via <meta http-equiv>. * Tenant identifiers shown ONLY as IDs (PK ints) — never slugs. * Per-section errors render as a small muted line rather than breaking the layout. -->
 
@@ -17,12 +17,14 @@
 {% include "components/next_action_strip.html" %}
 
 {% include "partials/help_module_inline_assistant.html" %}
-<main class="rmc-page rmc-page--migration-cloud-command-center" id="main">
+<main class="rmc-page rmc-page--migration-cloud-command-center" id="main" data-rmc-core-context="1">
   <header class="rmc-page__header">
-    <h1 class="rmc-h1">{% trans "Migration Cloud — Command Center" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Live platform-wide snapshot. Eight pillars on one screen. Drill into each for full detail. Auto-refreshes every 60 seconds." %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Migration Cloud — Command Center" %}</h1>
+      {% trans "Live platform-wide snapshot. Eight pillars on one screen. Drill into each for full detail. Auto-refreshes every 60 seconds." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
     <!-- v3.40.0 Agent 14 — "Run Smoke Now" operator trigger. -->
     <p class="rmc-page__header-actions">
       <a class="rmc-btn rmc-btn--primary rmc-btn--sm"

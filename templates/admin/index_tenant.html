@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n static %}
+{% load i18n static rmc_explain_tags %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -78,8 +78,11 @@
     <div class="rmc-admin-index-main">
       <div class="tenant-admin-hero rmc-admin-index-hero" id="rmc-tenant-admin-sec-hero" data-rmc-section-anchor>
         <div class="tenant-admin-hero-label">{% firstof SITE.site_name _("School backoffice") %}</div>
-        <h1>{% trans "Records &amp; raw model access" %}</h1>
-        <p>{% trans "Configuration, workflows, and daily operations stay in Config center and the Backend Console. This catalog is for direct changelist and change-form work when those surfaces are not enough." %}</p>
+        <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
+          <h1 class="mb-0 truncate">{% trans "Records &amp; raw model access" %}</h1>
+          {% trans "Configuration, workflows, and daily operations stay in Config center and the Backend Console. This catalog is for direct changelist and change-form work when those surfaces are not enough." as tenant_admin_hero_tip %}
+          {% rmc_info_tag title=_("About this catalog") body=tenant_admin_hero_tip surface="django-admin" placement="bottom" %}
+        </div>
         <div class="tenant-admin-hero-actions rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions' %}" data-rmc-section-nav-curated="1">
           <a href="{% url 'siteconfig:console_domains_hub' %}" class="tenant-admin-cta-primary">
             <i class="bi bi-gear-wide-connected" aria-hidden="true"></i> {% trans "Open Config center" %}
@@ -109,8 +112,11 @@
       {% endif %}
 
       <section class="cp-section" id="rmc-tenant-admin-sec-catalog" data-rmc-section-anchor aria-labelledby="tenant-catalog-heading">
-        <h2 class="cp-section__title" id="tenant-catalog-heading">{% trans "Model catalog" %}</h2>
-        <p class="cp-section__lede">{% trans "Search and open any registered school model. Counts are live from this tenant admin site." %}</p>
+        <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap mb-2">
+          <h2 class="cp-section__title mb-0" id="tenant-catalog-heading">{% trans "Model catalog" %}</h2>
+          {% trans "Search and open any registered school model. Counts are live from this tenant admin site." as tenant_catalog_tip %}
+          {% rmc_info_tag title=_("Model catalog") body=tenant_catalog_tip surface="django-admin" placement="bottom" %}
+        </div>
 
         <div class="cp-section__row" role="tablist" aria-label="{% trans 'Catalog sections' %}">
           <label class="visually-hidden" for="rmcAdminCatalogSearch">{% trans "Search models" %}</label>

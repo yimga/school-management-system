@@ -1,6 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% comment %} table-column-budget-allow: migration-token-rotation-ten-column-lens {% endcomment %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 {% block page_title %}{{ page_title|default:"Token rotation chain" }}{% endblock %}
 
@@ -10,12 +10,14 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--operator-token-chain" id="main" data-rmc-scroll-policy="paginate">
+<main class="rmc-page rmc-page--operator-token-chain" id="main" data-rmc-scroll-policy="paginate" data-rmc-core-context="1">
   <header class="rmc-page__header">
-    <h1 class="rmc-h1">{% trans "Token rotation chain" %}</h1>
-    <p class="rmc-lede">
-      {% blocktrans with anchor=anchor_id total=chain_total %}Showing the full rotation lineage for token #{{ anchor }}. The chain contains {{ total }} token(s).{% endblocktrans %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Token rotation chain" %}</h1>
+      {% blocktrans with anchor=anchor_id total=chain_total asvar page_tip_1 %}Showing the full rotation lineage for token #{{ anchor }}. The chain contains {{ total }} token(s).{% endblocktrans %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
     <div class="rmc-page__actions">
       <a class="rmc-btn rmc-btn--ghost" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_list' %}{% else %}{% url 'migration_cloud_super:operator_token_list' %}{% endif %}">{% trans "Back to tokens" %}</a>
     </div>

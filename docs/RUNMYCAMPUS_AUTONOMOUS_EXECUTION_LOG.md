@@ -1,5 +1,47 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Intrusive fluff burn (Migration Cloud rmc-lede + residuals) (batch 1767 - 2026-07-19)
+
+**A. Scope:** User demanded another intrusive audit that catches all fluff and implements approved Core vs Context fingertip education — including the batch 1766 Migration Cloud `rmc-lede` residual — across ALL operator/tenant surfaces.
+
+**B. Shipped:** Codemod converted 37 educational `rmc-lede` walls to ⓘ title-rows (MC/schoolops/apicenter/communication); admin index + previews; setup surface; Day-1 studio; classroom/FAQ/decision intelligence/offline sync; audit gate fails on educational `rmc-lede`; SW `sms-v4.05.148`; cache `20260719-fluff-burn`.
+
+**C. Proof:** `audit_core_context_info_contract` PASS ×3; residual class scan 0; platformwide/scroll/canvas PASS; undefined-css 0; dead-hrefs 0; compile spot-check OK.
+
+**D. Honest:** Live Playwright screenshots still need healthy Django + login; marketing intentionally excluded from this burn.
+
+**E. Files:** `scripts/codemod_rmc_lede_to_info_tag.py`, migration_cloud/schoolops/apicenter/admin/setup/day1/portal/analytics templates, audit script, grammar CSS, SW/baseline, SOT/log.
+
+**F. Next:** Commit/push when asked; hard-refresh Migration Cloud + admin indexes after deploy.
+
+## Slice — Platform-wide Core vs Context (Workflow Center + shared chrome) (batch 1766 - 2026-07-19)
+
+**A. Scope:** User clarified Core vs Context is not Django-only — audit + fix tenant Workflow Center “How it works” walls and cascade via shared chrome to operator `/super/` + tenant dashboards/forms.
+
+**B. Shipped:** Compact collapsed `workflow_help_panel`; Workflow Center no full-width help wall; hero/section/ops-frame purpose → ⓘ; Flight Deck + Autopilot ledes → ⓘ; marketplace proof panels `<details>`; signature/document upload guides collapsed; SW `sms-v4.05.147`.
+
+**C. Proof:** `audit_core_context_info_contract` PASS ×3; page-fold 42/42; undefined-css 0; info-tag coverage PASS; dead-hrefs 0.
+
+**D. Honest:** Remaining Migration Cloud `rmc-lede` batch + live Playwright still open.
+
+**E. Files:** workflow help/main/center, shared hero/ops/section headers, flight deck, autopilot, marketplace catalog, portal signature/upload, CSS, audit script, SOT/log, SW.
+
+**F. Next:** Commit/push when asked; hard-refresh tenant Workflow Center + manager Flight Deck after deploy.
+
+## Slice — Core vs Context + exceptional info tags + globe KPI integrity (batch 1765 - 2026-07-19)
+
+**A. Scope:** Implement approved Core vs Context HTML platform-wide (operator + tenant); exceptional info tags; fix globe hidden KPIs under C·Caption; audit → fix → validate → reaudit ×2.
+
+**B. Shipped:** Compact admin metrics (no fake Canvas/Form-cap KPIs); fixed tip layer; admin tour bootstrap; tenant v3 page explain; Option A education via ⓘ; globe dock nested in chrome rail + deck-v2 orphan void hide + right-rail status buttons; cache `20260719-core-context-info`; SW `sms-v4.05.146`.
+
+**C. Proof:** `audit_core_context_info_contract` PASS (3 runs); canvas/platformwide/scroll PASS; `verify_info_tag_coverage` PASS; page-fold 42/42; undefined-css 0; dead-hrefs 0; 25 template/page-aware tests OK.
+
+**D. Honest:** Live Playwright screenshots still need healthy Django + login (not claimed).
+
+**E. Files:** info-tag template/JS/CSS, admin metrics/rail/Option A strips, portal_base, globe map/rail/CSS, audit scripts, SOT/log, SW.
+
+**F. Next:** Commit/push when asked; hard-refresh manager `/super/` + `/admin/` and tenant admin after deploy.
+
 ## Slice — Django admin page-aware rail A–Z (batch 1764 - 2026-07-18)
 
 **A. Scope:** After HTML approval, audit then implement page-aware rails platform-wide on operator + tenant Django admin; close app-index and guided-form gaps; re-audit A–Z.

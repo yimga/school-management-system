@@ -1,6 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% comment %} table-column-budget-allow: migration-token-list-eight-column-lens {% endcomment %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_explain_tags %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — scoped API tokens" }}{% endblock %}
 
@@ -10,13 +10,15 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--operator-tokens" id="main" data-rmc-scroll-policy="paginate">
+<main class="rmc-page rmc-page--operator-tokens" id="main" data-rmc-scroll-policy="paginate" data-rmc-core-context="1">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
-    <h1 class="rmc-h1">{% trans "Scoped API tokens" %}</h1>
-    <p class="rmc-lede">
-      {% trans "Operator surface for Migration Cloud REST API authentication. Plaintext is never recoverable — only the preview suffix is shown." %}
-    </p>
+    <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
+      <h1 class="rmc-h1">{% trans "Scoped API tokens" %}</h1>
+      {% trans "Operator surface for Migration Cloud REST API authentication. Plaintext is never recoverable — only the preview suffix is shown." as page_tip_1 %}
+      {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
+    </div>
+    
     <div class="rmc-page__actions">
       <a class="rmc-btn rmc-btn--primary" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_mint' %}{% else %}{% url 'migration_cloud_super:operator_token_mint' %}{% endif %}">{% trans "Mint new token" %}</a>
     </div>
