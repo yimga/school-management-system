@@ -18,8 +18,53 @@ def _dispatch(apps, schema_editor):
         return
     # `School` lives in the shared/public schema; under django-tenants only the
     # public run should dispatch (belt-and-suspenders against a per-tenant re-run).
-    schema = getattr(getattr(schema_editor, "connection", None), "schema_name", None)
+    connection = getattr(schema_editor, "connection", None)
+    schema = getattr(connection, "schema_name", None)
+    # #region agent log
+    def _agent_log(hypothesis_id, message, data):
+        import json
+        import logging
+        import time
+        from pathlib import Path
+
+        payload = {
+            "sessionId": "537138",
+            "runId": "pre-fix",
+            "hypothesisId": hypothesis_id,
+            "location": "schools.0078._dispatch",
+            "message": message,
+            "data": data,
+            "timestamp": int(time.time() * 1000),
+        }
+        logging.getLogger("schools.deploy_dispatch").warning(
+            "DEBUG537138 %s", json.dumps(payload, default=str)
+        )
+        try:
+            Path("debug-537138.log").open("a", encoding="utf-8").write(
+                json.dumps(payload, default=str) + "\n"
+            )
+        except Exception:  # noqa: BLE001
+            pass
+
+    # #endregion
+    # #region agent log
+    _agent_log(
+        "A",
+        "0078_enter",
+        {
+            "schema": schema,
+            "vendor": getattr(connection, "vendor", None),
+            "needs_rollback_before": bool(
+                getattr(connection, "needs_rollback", False)
+            ),
+            "in_atomic_block": bool(getattr(connection, "in_atomic_block", False)),
+        },
+    )
+    # #endregion
     if schema is not None and schema != "public":
+        # #region agent log
+        _agent_log("D", "0078_skip_non_public", {"schema": schema})
+        # #endregion
         return
     try:
         from apps.schools.deploy_dispatch import (
@@ -27,8 +72,36 @@ def _dispatch(apps, schema_editor):
             dispatch_setup_email_for_slug,
         )
 
-        dispatch_setup_email_for_slug(GILEAD_TECH_SLUG)
-    except Exception:  # noqa: BLE001 — a deploy must never fail on an email dispatch
+        result = dispatch_setup_email_for_slug(GILEAD_TECH_SLUG)
+        # #region agent log
+        _agent_log(
+            "A",
+            "0078_after_dispatch",
+            {
+                "result": result,
+                "needs_rollback_after": bool(
+                    getattr(connection, "needs_rollback", False)
+                ),
+                "in_atomic_block": bool(
+                    getattr(connection, "in_atomic_block", False)
+                ),
+            },
+        )
+        # #endregion
+    except Exception as ex:  # noqa: BLE001 — a deploy must never fail on an email dispatch
+        # #region agent log
+        _agent_log(
+            "A",
+            "0078_swallowed_exception",
+            {
+                "exc_type": type(ex).__name__,
+                "exc": str(ex)[:300],
+                "needs_rollback": bool(
+                    getattr(connection, "needs_rollback", False)
+                ),
+            },
+        )
+        # #endregion
         pass
 
 
