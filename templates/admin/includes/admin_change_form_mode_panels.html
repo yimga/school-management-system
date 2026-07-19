@@ -10,7 +10,7 @@
   <div class="rmc-django-mode-panel__body">
     <ul class="rmc-django-audit-list">
       <li>
-        <strong>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "Tenant scoped" %}{% endif %}</strong>
+        <strong>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "This school only" %}{% endif %}</strong>
         <span>{% trans "Save stays inside the workbench. No floating action bar." %}</span>
       </li>
       {% if change and original %}

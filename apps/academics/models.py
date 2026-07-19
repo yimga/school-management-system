@@ -185,6 +185,8 @@ class Specialty(models.Model):
 
     class Meta:
         ordering = ["name"]
+        verbose_name = "Specialty"
+        verbose_name_plural = "Specialties"
 
     def __str__(self):
         return self.name

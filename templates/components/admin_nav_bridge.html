@@ -58,12 +58,13 @@
                 <a href="{% url 'super:dashboard' %}" class="admin-nav-bridge__home-btn">{% trans "Control plane" %}</a>
                 <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="admin-nav-bridge__switch-btn" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
             {% else %}
-                <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__home-btn">{% trans "Portal Home" %}</a>
-                {% if request.resolver_match and request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
-                    <a href="{% url 'accounts:backend_dashboard' %}" class="admin-nav-bridge__switch-btn btn btn-sm btn-back-outline">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                        <span>{% trans "Back to Backend" %}</span>
-                    </a>
+                <a href="{% url 'siteconfig:console_domains_hub' %}" class="admin-nav-bridge__home-btn">{% trans "Config center" %}</a>
+                <a href="{% url 'siteconfig:feature_control_panel' %}" class="admin-nav-bridge__switch-btn">{% trans "Feature control" %}</a>
+                <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__switch-btn">{% trans "Portal" %}</a>
+                {% if has_permission %}
+                <div class="admin-nav-bridge__usertools" data-rmc-tenant-admin-usertools="1">
+                  {% include "unfold/helpers/userlinks.html" %}
+                </div>
                 {% endif %}
             {% endif %}
         </div>

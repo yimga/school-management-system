@@ -7,14 +7,16 @@
   <span id="site-settings-preview-url" data-url="{% url 'siteconfig:preview_from_form' %}" class="hidden" aria-hidden="true"></span>
   {% comment %} P3: SiteSettings is tenant_admin-only; `super:` URLs are not in tenant urlconf — link siteconfig + Studio surfaces that resolve on school hosts. {% endcomment %}
   <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="site-settings-cp-escape-heading">
-    <h2 id="site-settings-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% trans "Product control plane" %}</h2>
+    <h2 id="site-settings-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% if is_manager_host %}{% trans "Product control plane" %}{% else %}{% trans "Guided school settings" %}{% endif %}</h2>
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Guided workflows live outside this form. Use this page when you need every advanced field." %}</p>
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
       <li><a href="{% url 'siteconfig:theme_colors' %}" class="text-primary-600 hover:underline font-medium">{% trans "Theme & colors" %}</a></li>
       <li><a href="{% url 'siteconfig:feature_control_panel' %}" class="text-primary-600 hover:underline">{% trans "Feature control" %}</a></li>
       <li><a href="{% url 'siteconfig:tenant_runtime_configuration_hub' %}" class="text-primary-600 hover:underline">{% trans "Effective runtime summary" %}</a></li>
       <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a></li>
+      {% if is_manager_host %}
       <li><a href="{% url 'studio_os:output' %}" class="text-primary-600 hover:underline">{% trans "Studio · Output" %}</a></li>
+      {% endif %}
     </ul>
   </section>
 {% endblock %}

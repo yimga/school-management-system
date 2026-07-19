@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-history{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="object-history" data-rmc-admin-surface="smart-history" data-rmc-scroll-policy="paginate">
+  <section class="rmc-django-command-band" data-rmc-django-command-band="object-history" aria-label="{% trans 'History command surface' %}">
+    <div class="rmc-django-command-band__copy">
+      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
+      <strong>{% blocktrans with name=object|truncatewords:"18" %}History: {{ name }}{% endblocktrans %}</strong>
+      <small>{% if is_manager_host %}{% trans "Change log for this platform record." %}{% else %}{% trans "Change log for this school record." %}{% endif %}</small>
+    </div>
+    <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
+      <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "This school only" %}{% endif %}</span>
+      <span>{% trans "History" %}</span>
+    </div>
+  </section>
+
+  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
+    <div class="rmc-admin-index-main" data-rmc-django-form-panel="1" id="content-main">
+      <div id="change-history" class="module">
+        {% if action_list %}
+        <table class="rmc-data-table">
+          <thead>
+            <tr>
+              <th scope="col">{% trans 'Date/time' %}</th>
+              <th scope="col">{% trans 'User' %}</th>
+              <th scope="col">{% trans 'Action' %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for action in action_list %}
+            <tr>
+              <th scope="row">{{ action.action_time|date:"DATETIME_FORMAT" }}</th>
+              <td>{{ action.user.get_username }}{% if action.user.get_full_name %} ({{ action.user.get_full_name }}){% endif %}</td>
+              <td>{{ action.get_change_message }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="paginator">
+          {% if pagination_required %}
+            {% for i in page_range %}
+              {% if i == action_list.paginator.ELLIPSIS %}
+                {{ action_list.paginator.ELLIPSIS }}
+              {% elif i == action_list.number %}
+                <span class="this-page">{{ i }}</span>
+              {% else %}
+                <a href="?{{ page_var }}={{ i }}"{% if i == action_list.paginator.num_pages %} class="end"{% endif %}>{{ i }}</a>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {{ action_list.paginator.count }} {% blocktranslate count counter=action_list.paginator.count %}entry{% plural %}entries{% endblocktranslate %}
+        </p>
+        {% else %}
+        <div class="rmc-empty" role="status">
+          <p class="rmc-empty__title">{% trans "This object doesn't have a change history yet." %}</p>
+          <p class="rmc-empty__body">{% trans "It probably wasn't added via this admin site." %}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% include "admin/includes/admin_workspace_tools.html" with surface="admin-index" %}
+  </div>
+</div>
+{% endblock %}

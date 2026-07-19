@@ -61,7 +61,9 @@
         <a class="cp-btn" href="{% url 'super:invite_school' %}">✉ {% trans "Invite a school" %}</a>
         <a class="cp-btn" href="{% url 'super:signup_verifications' %}">✓ {% trans "Signup verifications" %}</a>
         <a class="cp-btn" href="{% url 'siteconfig:console_domains_hub' %}">⚙ {% trans "Open Config center" %}</a>
+        {% if is_manager_host %}
         <a class="cp-btn" href="{% url 'studio_os:shell' %}">⌘ {% trans "Open Studio" %}</a>
+        {% endif %}
         <button type="button" class="cp-btn cp-btn--ghost" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K · {% trans "command palette" %}</button>
       </div>
       <span class="cp-hero__actions-sep" aria-hidden="true"></span>
@@ -81,7 +83,9 @@
     </div>
     <div class="cp-steering__paths">
       <a class="cp-steering__path" data-active href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Config center" %}</a>
+      {% if is_manager_host %}
       <a class="cp-steering__path" href="{% url 'studio_os:shell' %}">{% trans "Studio" %}</a>
+      {% endif %}
       <a class="cp-steering__path" href="{% url 'super:dashboard' %}">{% trans "Control plane" %}</a>
     </div>
   </div>

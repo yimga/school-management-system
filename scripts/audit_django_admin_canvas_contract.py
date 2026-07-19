@@ -28,10 +28,90 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260719-full-fill" not in base_site:
-        errors.append("Django canvas contract link must use the full-fill cache bust for deployment visibility")
+    if "?v=20260719-tools-span-fix" not in base_site:
+        errors.append("Django canvas contract link must use the tenant-audit cache bust for deployment visibility")
     if "2026-07-19-full-fill-page-aware" not in css:
         errors.append("canvas contract must include 2026-07-19-full-fill-page-aware terminal block")
+
+    # tools-no-span-explode: span 20/40 invents empty grid tracks (stripe / dark-bar bug)
+    if re.search(r"data-rmc-django-tools[\s\S]{0,200}grid-row:\s*3\s*/\s*span\s*(20|40)", css):
+        errors.append("canvas contract must NOT use grid-row span 20/40 on [data-rmc-django-tools] (stripe bug)")
+    if "2026-07-19-tools-no-span-explode" not in css:
+        errors.append("canvas contract must include 2026-07-19-tools-no-span-explode terminal seal")
+    if "a.skip-link:not(:focus)" not in css and "a.skip-link:not(:focus):not(:focus-visible)" not in css:
+        errors.append("canvas contract must clip a.skip-link until focus (not only skip-link-theme)")
+    # Tenant /admin/ does not load Bootstrap — skip links must use design-tokens .skip-link.
+    if 'class="skip-link"' not in base or "skip-link-theme" in base or "visually-hidden-focusable" in base:
+        errors.append("admin/base.html canvas skip link must use class=skip-link only (no Bootstrap visually-hidden-focusable)")
+    # Unfold injects nav_global into tab_actions — never put skip-link there.
+    nav_global_block = re.search(
+        r"\{%\s*block\s+nav-global\s*%\}(.*?)\{%\s*endblock",
+        base_site,
+        re.S,
+    )
+    if nav_global_block and "skip-link" in nav_global_block.group(1):
+        errors.append("admin/base_site.html nav-global must be empty (skip-link must not enter Unfold tab_actions)")
+    if 'data-rmc-tenant-admin-chrome="1"' not in base:
+        errors.append("admin/base.html must mark tenant shell header for single school chrome")
+    if 'include "components/admin_nav_bridge.html"' not in base and "admin_nav_bridge.html" not in base:
+        errors.append("admin/base.html must mount admin_nav_bridge in the tenant shell header")
+    if "unfold/helpers/header.html" in base and "is_manager_host" not in base[base.find("rmc-app-shell__header") : base.find("rmc-app-shell__header") + 800]:
+        # Tenant must not render a second Unfold title bar alongside the school topbar.
+        header_slice = base[base.find("rmc-app-shell__header") : base.find("rmc-app-shell__header") + 900]
+        if "unfold/helpers/header.html" in header_slice and "admin_nav_bridge" in header_slice:
+            errors.append("admin/base.html tenant header must not stack Unfold header with nav bridge")
+    tokens = _read("static/css/design-tokens.css")
+    if ".visually-hidden-focusable:not(:focus)" not in tokens:
+        errors.append("design-tokens.css must define .visually-hidden-focusable (tenant admin has no Bootstrap)")
+    if "bootstrap-icons.min.css" not in base_site:
+        errors.append("admin/base_site.html must load bootstrap-icons for tenant admin CTAs")
+    if "manager-control-plane.css" in base_site:
+        # Must be gated — crude check: appear only inside is_manager_host branch near the link
+        mcp_idx = base_site.find("manager-control-plane.css")
+        gate_window = base_site[max(0, mcp_idx - 200) : mcp_idx]
+        if "is_manager_host" not in gate_window:
+            errors.append("manager-control-plane.css must be gated to is_manager_host (no tenant bleed)")
+    for admin_html in (
+        "templates/admin/app_index.html",
+        "templates/admin/change_list.html",
+        "templates/admin/includes/admin_change_form_mode_panels.html",
+        "templates/admin/object_history.html",
+        "templates/admin/delete_confirmation.html",
+    ):
+        if "Tenant scoped" in _read(admin_html):
+            errors.append(f"{admin_html} must not say Tenant scoped (use This school only)")
+    app_index = _read("templates/admin/app_index.html")
+    if "This school only" not in app_index or "School records" not in app_index:
+        errors.append("admin/app_index.html must use school-centric status chips on tenant")
+    banner = _read("templates/admin/includes/tenant_admin_decision_banner.html")
+    if "studio_os" in banner or "Operator workflow" in banner or "Decision console" in banner:
+        errors.append("tenant_admin_decision_banner must be school-only (no Studio / operator / Decision console)")
+    if "School configuration" not in banner:
+        errors.append("tenant_admin_decision_banner must use School configuration framing")
+    if 'un == "changelist"' not in base and 'url_name|default:"" == "changelist"' not in base:
+        if 'un == "changelist" or un == "change"' not in base:
+            errors.append("admin/base.html must show tenant decision banner only on changelist/change/add")
+    history = _read("templates/admin/object_history.html")
+    delete = _read("templates/admin/delete_confirmation.html")
+    if 'data-rmc-django-workspace="object-history"' not in history:
+        errors.append("object_history.html must use rmc-django-workspace markers")
+    if 'data-rmc-django-workspace="delete-confirm"' not in delete:
+        errors.append("delete_confirmation.html must use rmc-django-workspace markers")
+    app_list = _read("templates/admin/app_list.html")
+    # Report Library via Studio must be manager-only
+    studio_report = app_list.find("studio_os:output")
+    if studio_report >= 0:
+        before = app_list[max(0, studio_report - 120) : studio_report]
+        if "is_manager_host" not in before:
+            errors.append("admin/app_list.html Report Library (studio_os:output) must be gated to is_manager_host")
+    workspace_10x = _read("static/css/rmc-admin-workspace-10x.css")
+    for m in re.finditer(r"^[^/\n]*width:\s*max-content", workspace_10x, re.M):
+        errors.append(f"rmc-admin-workspace-10x.css still has active width:max-content: {m.group(0).strip()[:80]}")
+    nav_bridge = _read("templates/components/admin_nav_bridge.html")
+    if "Config center" not in nav_bridge or "Feature control" not in nav_bridge:
+        errors.append("admin_nav_bridge tenant escapes must include Config center and Feature control")
+    if "Back to Backend" in nav_bridge:
+        errors.append("admin_nav_bridge must not use Back to Backend as primary tenant escape (use Config/Feature/Portal)")
     submit_line = _read("templates/admin/submit_line.html")
     if 'data-rmc-save-compact="1"' not in submit_line or "rmc-django-save-split" not in submit_line:
         errors.append("submit_line.html must implement compact Save split (Save + menu)")

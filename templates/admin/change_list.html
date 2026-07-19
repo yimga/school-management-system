@@ -60,7 +60,7 @@
                 <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
                     <span>{% blocktranslate count counter=cl.result_count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktranslate %}</span>
                     <span>{% trans "Native table" %}</span>
-                    <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "Tenant scoped" %}{% endif %}</span>
+                    <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "This school only" %}{% endif %}</span>
                 </div>
             </section>
         {% endif %}

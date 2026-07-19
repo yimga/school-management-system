@@ -5,7 +5,7 @@
 <div
   class="mb-3 rounded-lg border border-base-300 bg-base-50 px-3 py-3 dark:border-base-600 dark:bg-base-800/40"
   role="region"
-  aria-label="{% trans 'Outcome-based operator navigation' %}"
+  aria-label="{% if is_manager_host %}{% trans 'Outcome-based operator navigation' %}{% else %}{% trans 'Related school workflows' %}{% endif %}"
   data-admin-outcome-deck="{{ admin_outcome_deck.admin_deck_outcome_id }}"
   data-admin-app="{{ admin_outcome_deck.admin_deck_app_label }}"
   {% if admin_outcome_deck.admin_deck_model_name %}data-admin-model="{{ admin_outcome_deck.admin_deck_model_name }}"{% endif %}
@@ -20,14 +20,14 @@
       <p class="text-xs text-base-600 dark:text-base-400 mb-0 mt-1">{{ admin_outcome_deck.admin_deck_subtitle }}</p>
       {% endif %}
       <p class="text-xs text-base-500 dark:text-base-500 mb-0 mt-2">
-        {% trans "Prefer the outcome links below for guided operator work. This Unfold page remains available for raw row access when required." %}
+        {% if is_manager_host %}{% trans "Prefer the outcome links below for guided operator work. This Unfold page remains available for raw row access when required." %}{% else %}{% trans "Prefer the links below for guided school workflows. This page remains available for direct records when needed." %}{% endif %}
       </p>
     </div>
   </div>
   {% if admin_outcome_deck.admin_deck_links %}
   <div class="flex flex-wrap gap-2 mt-3">
     {% for link in admin_outcome_deck.admin_deck_links %}
-    <span class="d-inline-flex align-items-center gap-1 flex-wrap">
+    <span class="inline-flex items-center gap-1 flex-wrap">
       <a href="{{ link.url }}" class="inline-flex items-center rounded-md border border-base-300 px-2 py-1 text-xs font-medium hover:bg-base-100 dark:border-base-600 dark:hover:bg-base-700" data-operator-stability="{{ link.stability }}">{{ link.label }}</a>
     </span>
     {% endfor %}

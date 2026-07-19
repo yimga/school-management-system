@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  {{ media }}
+  <script src="{% static 'admin/js/cancel.js' %}" async></script>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} delete-confirmation{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="delete-confirm" data-rmc-admin-surface="smart-delete" data-rmc-scroll-policy="paginate">
+  <section class="rmc-django-command-band" data-rmc-django-command-band="delete-confirm" aria-label="{% trans 'Delete confirmation' %}">
+    <div class="rmc-django-command-band__copy">
+      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
+      <strong>{% blocktrans with name=object %}Delete {{ name }}?{% endblocktrans %}</strong>
+      <small>{% if is_manager_host %}{% trans "Confirm deletion of this platform record and related objects." %}{% else %}{% trans "Confirm deletion of this school record and related objects." %}{% endif %}</small>
+    </div>
+    <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
+      <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "This school only" %}{% endif %}</span>
+      <span>{% trans "Destructive" %}</span>
+    </div>
+  </section>
+
+  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
+    <div class="rmc-admin-index-main" data-rmc-django-form-panel="1" id="content-main">
+      {% if perms_lacking %}
+        <p>{% blocktrans with escaped_object=object %}Deleting the {{ object_name }} '{{ escaped_object }}' would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
+        <ul id="deleted-objects">{{ perms_lacking|unordered_list }}</ul>
+      {% elif protected %}
+        <p>{% blocktrans with escaped_object=object %}Deleting the {{ object_name }} '{{ escaped_object }}' would require deleting the following protected related objects:{% endblocktrans %}</p>
+        <ul id="deleted-objects">{{ protected|unordered_list }}</ul>
+      {% else %}
+        <p>{% blocktrans with escaped_object=object %}Are you sure you want to delete the {{ object_name }} "{{ escaped_object }}"? All of the following related items will be deleted:{% endblocktrans %}</p>
+        {% include "admin/includes/object_delete_summary.html" %}
+        <h2>{% trans "Objects" %}</h2>
+        <ul id="deleted-objects">{{ deleted_objects|unordered_list }}</ul>
+        <form method="post">{% csrf_token %}
+          <div>
+            <input type="hidden" name="post" value="yes">
+            {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1">{% endif %}
+            {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">{% endif %}
+            <input type="submit" value="{% trans 'Yes, I’m sure' %}">
+            <a href="#" class="button cancel-link">{% trans "No, take me back" %}</a>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+    {% include "admin/includes/admin_workspace_tools.html" with surface="admin-index" %}
+  </div>
+</div>
+{% endblock %}

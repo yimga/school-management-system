@@ -88,12 +88,14 @@
 
     <h2 class="admin-sidebar-section-title">{% trans "Libraries & help" %}</h2>
     <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;">
+      {% if is_manager_host %}
       <li>
         <a href="{% url 'studio_os:output' %}" class="admin-sidebar-link {% if '/studio/output' in request.path %}active{% endif %}">
           <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4"/></svg></span>
           <span class="admin-sidebar-link-text">{% trans "Report Library" %}</span>
         </a>
       </li>
+      {% endif %}
       {% if is_manager_host %}
       <li>
         <a href="{% url 'super:blueprint_marketplace' %}" class="admin-sidebar-link {% if '/super/blueprints' in request.path %}active{% endif %}">

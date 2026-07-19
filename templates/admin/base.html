@@ -12,11 +12,12 @@
            /admin/. The duplicate include of manager_operator_topbar inside
            admin_nav_bridge.html (canvas body) is now removed; this is the single
            source of the manager topbar on the /admin/ shell.{% endcomment %}
-        <header class="rmc-app-shell__header" role="banner" data-rmc-admin-shell-header="1"{% if is_manager_host %} data-rmc-control-plane-chrome="1"{% endif %}>
+        <header class="rmc-app-shell__header" role="banner" data-rmc-admin-shell-header="1"{% if is_manager_host %} data-rmc-control-plane-chrome="1"{% else %} data-rmc-tenant-admin-chrome="1"{% endif %}>
             {% if is_manager_host %}
             {% include "partials/control_plane_unified_header.html" %}
             {% else %}
-                {% include "unfold/helpers/header.html" %}
+                {# Single school topbar (approved config engine) — no second Unfold title bar. #}
+                {% include "components/admin_nav_bridge.html" %}
             {% endif %}
         </header>
 
@@ -39,7 +40,8 @@
 
         {% comment %} ---------- Grid row 2, column 2 — the SINGLE scrollable canvas ---------- {% endcomment %}
         <div class="rmc-app-shell__canvas" data-rmc-shell-canvas="django-admin" data-rmc-backoffice-scroll-root="main">
-            <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
+            {# design-tokens .skip-link — tenant /admin/ has no Bootstrap utilities. #}
+            <a class="skip-link" href="#content">{% trans "Skip to main content" %}</a>
             <main id="cp-main-content" class="rmc-app-shell__canvas-body cp-admin-canvas-main{% if not is_manager_host %} bg-base-50 dark:bg-base-900 {% element_classes 'main' %}{% endif %}" role="main" data-shell-main="{% if is_manager_host %}platform-admin{% else %}django-admin{% endif %}" data-authenticated-surface="{% if is_manager_host %}manager-control-plane{% else %}django-admin{% endif %}" data-rmc-shell-main="django-admin" data-page-archetype="decision-console" data-shell-layout="admin-rmc-app-shell" data-rmc-admin-cp-unified="1">
 
                 {% block branding %}{% endblock %}
@@ -63,7 +65,7 @@
                 <nav aria-label="{% trans 'Breadcrumb' %}" class="px-4 pt-1 pb-2 rmc-admin-breadcrumb-nav">
                     <div class="{% if is_manager_host %}w-100{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto">
                         <ol class="breadcrumb rmc-admin-breadcrumb mb-0 flex flex-wrap items-center gap-1 text-sm text-base-600 dark:text-base-400">
-                            <li class="breadcrumb-item"><a href="{% url 'admin:index' %}" class="hover:text-primary dark:hover:text-primary">{% if is_manager_host %}{% trans 'Platform Backoffice' %}{% else %}{% trans 'Admin' %}{% endif %}</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'admin:index' %}" class="hover:text-primary dark:hover:text-primary">{% if is_manager_host %}{% trans 'Platform Backoffice' %}{% else %}{% firstof SITE.site_name site_header _("School configuration") %}{% endif %}</a></li>
                             {% if opts %}
                                 <li class="breadcrumb-item"><a href="{% url 'admin:app_list' opts.app_label %}" class="hover:text-primary dark:hover:text-primary">{{ opts.app_config.verbose_name|default:opts.app_label|title }}</a></li>
                                 <li class="breadcrumb-item active text-base-800 dark:text-base-200" aria-current="page">{% firstof opts.verbose_name_plural|capfirst title %}</li>
@@ -108,9 +110,11 @@
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
                             {% if not is_popup and request.user.is_authenticated and not is_manager_host %}
-                                {% if request.resolver_match.url_name|default:"" != "index" %}
+                                {% with un=request.resolver_match.url_name|default:"" %}
+                                {% if un == "changelist" or un == "change" or un == "add" %}
                                 {% include "admin/includes/tenant_admin_decision_banner.html" %}
                                 {% endif %}
+                                {% endwith %}
                                 {% include "admin/includes/admin_operator_outcome_deck.html" %}
                             {% endif %}
                             {% block object-tools %}{% endblock %}

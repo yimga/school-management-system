@@ -69,6 +69,26 @@ body:not(.control-plane-shell):has(.admin-nav-bridge) {
   gap: 0.75rem;
 }
 
+/* Shell-header mount: one school topbar (no second Unfold bar). */
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge {
+  position: relative;
+  top: auto;
+  z-index: 1;
+  width: 100%;
+}
+
+.admin-nav-bridge__usertools {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.25rem;
+}
+
+.admin-nav-bridge__usertools a,
+.admin-nav-bridge__usertools button {
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
+}
+
 .admin-nav-bridge__switch-btn {
   display: flex;
   align-items: center;

@@ -496,7 +496,7 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-list .results {
 
 body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list {
   display: table !important;
-  width: max-content !important;
+  width: 100% !important; /* was max-content — full-fill 2026-07-19 */
   min-width: 100% !important;
   table-layout: auto !important;
 }

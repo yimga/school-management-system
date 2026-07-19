@@ -2722,14 +2722,15 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
 
 [data-rmc-shell-root="django-admin"] [data-rmc-django-tools] {
   grid-column: 3 !important;
-  grid-row: 3 / span 20 !important;
+  grid-row: auto !important; /* NEVER span 20/40 — invents empty tracks → stripe/dark-bar bug */
+  align-self: start !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   gap: 0.55rem !important;
   padding-top: 0.35rem !important;
   border-left: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
-  min-height: 12rem !important;
+  min-height: 0 !important;
   position: sticky !important;
   top: clamp(5rem, 12vh, 8rem) !important;
 }
@@ -2820,6 +2821,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > [data-rmc-admin-form-contract="premium-form-frame"],
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-table-panel] {
   grid-column: 1 !important;
+  grid-row: 3 !important;
   min-width: 0 !important;
   width: 100% !important;
   max-width: none !important;
@@ -2829,6 +2831,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-side-panel],
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-changelist-rail] {
   grid-column: 2 !important;
+  grid-row: 3 !important;
   position: sticky !important;
   top: clamp(5rem, 12vh, 8rem) !important;
   max-height: calc(100vh - clamp(9rem, 18vh, 12rem)) !important;
@@ -2841,9 +2844,12 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
   min-width: 0 !important;
 }
 
-[data-rmc-shell-root="django-admin"] [data-rmc-django-tools] {
+/* Share ONE content row with form + rail. span N invents empty tracks (stripe bug). */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > [data-rmc-django-tools],
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-tools] {
   grid-column: 3 !important;
-  grid-row: 3 / span 40 !important;
+  grid-row: 3 !important;
+  align-self: start !important;
 }
 
 /* Form body is a vertical stack — never a 12-col trap for Unfold .flex wrappers. */
@@ -3414,4 +3420,42 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   [data-rmc-shell-root="django-admin"] .rmc-django-save-hint {
     display: none !important;
   }
+}
+
+/* ============================================================
+   2026-07-19-tenant-skip-a11y: clip ALL skip variants until focus
+   (design-tokens .skip-link + legacy skip-link-theme).
+   ============================================================ */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) a.skip-link:not(:focus):not(:focus-visible),
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) a.skip-link-theme:not(:focus):not(:focus-within),
+[data-rmc-shell-root="django-admin"] a.skip-link:not(:focus):not(:focus-visible),
+[data-rmc-shell-root="django-admin"] a.skip-link-theme:not(:focus):not(:focus-within) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+/* ============================================================
+   2026-07-19-tools-no-span-explode: seal against span 20/40 regress.
+   ============================================================ */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-tools] {
+  grid-row: auto !important;
+}
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > [data-rmc-django-tools],
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-tools],
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="app-index"] > [data-rmc-django-tools],
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas] > [data-rmc-django-tools] {
+  grid-row: 3 !important;
+  align-self: start !important;
+  min-height: 0 !important;
 }

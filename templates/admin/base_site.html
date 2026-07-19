@@ -12,8 +12,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   {% if is_manager_host %}
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
-  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   {% endif %}
+  {# Icons required on tenant /admin/ (index CTAs, nav) even without full Bootstrap CSS. #}
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <!-- Admin-only design tokens + platform super ultra high-end -->
   {% comment %}
   Set aesthetic-v2 flag on <html> so patterns.css scopes apply. Inline script
@@ -117,9 +118,11 @@
   <link rel="stylesheet" href="{% static 'css/admin-surface-fixes.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
+  {% if is_manager_host %}
   <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-manager-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/control-plane-ultra.css' %}">
+  {% endif %}
   <link rel="stylesheet" href="{% static 'css/surface-themes.css' %}">
   <link rel="stylesheet" href="{% static 'css/table-system.css' %}">
   <link rel="stylesheet" href="{% static 'css/form-system.css' %}">
@@ -224,8 +227,8 @@
   {% comment %} v4.10.2: last-loaded Django admin surface contract for both operator
      and tenant backends. Keeps approved canvas-first/full-width rules from being
      undone by older model-specific or Unfold defaults. {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260719-full-fill">
-  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260719-full-fill">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260719-tools-span-fix">
+  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260719-tools-span-fix">
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','{% if is_manager_host %}control-plane{% else %}tenant{% endif %}');})();</script>
   {% comment %} Server-resolved semantic brand colors + ThemePack.palette.admin_dashboard emitter. {% endcomment %}
   <style id="admin-brand-resolved-tokens">
@@ -350,7 +353,10 @@
 {% block pretitle %}{{ block.super }}{% include "components/rmc_page_explain_strip.html" %}{% endblock %}
 
 {% block branding %}
+  {% comment %} Tenant school topbar lives in the shell header (single chrome). Manager keeps CP header; branding only for preview cues. {% endcomment %}
+  {% if is_manager_host %}
   {% include 'components/admin_nav_bridge.html' %}
+  {% endif %}
   {% if PREVIEW_MODE_ENABLED %}
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="preview-cue preview-cue--active">
@@ -375,9 +381,11 @@
     {% comment %} The logo background is handled by CSS above. {% endcomment %}
 {% endblock %}
 
-{% block nav-global %}
-  <a href="{% if is_manager_host %}#cp-main-content{% else %}#content{% endif %}" class="skip-link">{% trans "Skip to main content" %}</a>
-{% endblock %}
+{% comment %}
+  Never put skip-link in nav-global — Unfold injects nav_global into tab_actions
+  as a visible action. Canvas skip-link in admin/base.html is the single SOT.
+{% endcomment %}
+{% block nav-global %}{% endblock %}
 
 {% block footer %}
   {{ block.super }}
@@ -411,7 +419,7 @@
   {% if is_manager_host %}
   <script src="{% static 'js/rmc-admin-v1-200x.js' %}" defer></script>
   {% endif %}
-  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260719-full-fill" defer></script>
+  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260719-tools-span-fix" defer></script>
   {% comment %} Phase G: ⌘K command palette on the admin shell too. {% endcomment %}
   {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
@@ -622,8 +630,8 @@
   {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   {% comment %} v4.10.2: terminal repeat so Django canvas contract wins after
      late preview/theme inline styles too. {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260719-full-fill">
-  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260719-full-fill">
-  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260719-full-fill" defer></script>
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260719-tools-span-fix">
+  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260719-tools-span-fix">
+  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260719-tools-span-fix" defer></script>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

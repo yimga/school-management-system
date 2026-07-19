@@ -4,12 +4,14 @@
 {% block form_before %}
   {% comment %} P3: tenant urlconf — preferences + dashboard hubs (no super:). {% endcomment %}
   <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="dashboard-user-pref-cp-escape-heading">
-    <h2 id="dashboard-user-pref-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% trans "Product control plane" %}</h2>
+    <h2 id="dashboard-user-pref-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% if is_manager_host %}{% trans "Product control plane" %}{% else %}{% trans "Guided school settings" %}{% endif %}</h2>
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "End-user preferences and layout tools live outside this admin form." %}</p>
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
       <li><a href="{% url 'siteconfig:user_preferences' %}" class="text-primary-600 hover:underline font-medium">{% trans "User preferences" %}</a></li>
       <li><a href="{% url 'siteconfig:dashboard_configuration_hub' %}" class="text-primary-600 hover:underline">{% trans "Dashboard configuration" %}</a></li>
+      {% if is_manager_host %}
       <li><a href="{% url 'studio_os:experience_dashboard_visual_packs' %}" class="text-primary-600 hover:underline">{% trans "Studio · Dashboard visual packs" %}</a></li>
+      {% endif %}
       <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a></li>
     </ul>
   </section>
