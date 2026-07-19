@@ -106,7 +106,7 @@ body.admin-manager-shell.change-list .results {
 body.admin-manager-shell.change-list .results table,
 body.admin-manager-shell.change-list #result_list {
   display: table !important;
-  width: max-content;
+  width: 100%; /* was max-content — full-fill 2026-07-19 */
   min-width: 100%;
   table-layout: auto;
   border-collapse: separate;
@@ -149,7 +149,7 @@ body.admin-manager-shell.change-list #result_list td {
   clear: none !important;
   width: auto;
   min-width: 6rem;
-  max-width: 24rem;
+  max-width: none; /* was 24rem — full-fill 2026-07-19 */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -330,7 +330,7 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-list .results {
 body:is(.admin-manager-shell, .admin-premium-shell).change-list .results table,
 body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list {
   display: table !important;
-  width: max-content !important;
+  width: 100% !important; /* was max-content — full-fill 2026-07-19 */
   min-width: 100% !important;
   max-width: none !important;
   table-layout: auto !important;
@@ -366,7 +366,7 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-list .results td {
   display: table-cell !important;
   float: none !important;
   width: auto !important;
-  max-width: 24rem;
+  max-width: none; /* was 24rem — full-fill 2026-07-19 */
   min-width: 3rem;
   white-space: nowrap !important;
   overflow: hidden !important;

@@ -216,7 +216,7 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-list .results {
 body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list,
 body:is(.admin-manager-shell, .admin-premium-shell).change-list .results table {
   display: table !important;
-  width: max-content !important;
+  width: 100% !important; /* neutralized pre-full-fill */
   min-width: 100% !important;
   max-width: none !important;
   table-layout: auto !important;
@@ -232,7 +232,7 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-list .results :is(th,
   display: table-cell !important;
   float: none !important;
   width: auto !important;
-  max-width: clamp(10rem, 18vw, 24rem);
+  max-width: none; /* neutralized cell clamp */
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -358,7 +358,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-
 
 html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] :is(#result_list, .results table) {
   display: table !important;
-  width: max-content !important;
+  width: 100% !important; /* neutralized pre-full-fill */
   min-width: 100% !important;
   max-width: none !important;
   table-layout: auto !important;
@@ -400,7 +400,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-
   float: none !important;
   clear: none !important;
   width: auto !important;
-  max-width: clamp(10rem, 18vw, 24rem);
+  max-width: none; /* neutralized cell clamp */
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -1114,7 +1114,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
   [data-rmc-django-table-panel="1"] :is(#result_list, .results table) {
-  width: max-content !important;
+  width: 100% !important; /* neutralized pre-full-fill */
   min-width: 100% !important;
   border-collapse: collapse !important;
 }
@@ -1282,7 +1282,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-
 }
 
 html[data-rmc-admin-html="unfold"] [data-rmc-admin-table-contract="native-table-scroll"] :is(#result_list, .results table) {
-  width: max-content !important;
+  width: 100% !important; /* neutralized pre-full-fill */
   min-width: 100% !important;
   border-collapse: collapse !important;
 }
@@ -1412,7 +1412,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-f
   .aligned
 ) .form-row {
   display: grid !important;
-  grid-template-columns: minmax(10rem, 0.32fr) minmax(0, 1fr) !important;
+  grid-template-columns: none !important; /* neutralized false label|value 0.32fr */
   column-gap: clamp(0.8rem, 1.1vw, 1.15rem) !important;
   align-items: start !important;
 }
@@ -1568,7 +1568,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
 }
 
 body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] :is(fieldset, .module, .aligned) .form-row {
-  grid-template-columns: minmax(9rem, 0.24fr) minmax(0, 1fr) !important;
+  grid-template-columns: none !important; /* neutralized false label|value 0.24fr */
 }
 
 body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] :is(
@@ -1876,7 +1876,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-shell-root="django
   .aligned
 ) .form-row {
   display: grid !important;
-  grid-template-columns: minmax(10rem, 0.32fr) minmax(0, 1fr) !important;
+  grid-template-columns: none !important; /* neutralized false label|value 0.32fr */
   column-gap: clamp(0.8rem, 1.1vw, 1.15rem) !important;
   align-items: start !important;
 }
@@ -1929,7 +1929,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-shell-root="django
 }
 
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-table-contract="native-table-scroll"] :is(#result_list, .results table) {
-  width: max-content !important;
+  width: 100% !important; /* neutralized pre-full-fill */
   min-width: 100% !important;
   border-collapse: collapse !important;
 }
@@ -1995,7 +1995,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-shell-root="django
 
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas] {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(14rem, var(--rmc-admin-canvas-rail, 18rem)) !important;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, var(--rmc-admin-canvas-rail, 18rem)) 3rem !important;
   gap: var(--rmc-admin-canvas-gutter, 1rem) !important;
   align-items: start !important;
   width: 100% !important;
@@ -2035,12 +2035,13 @@ body.admin-premium-shell .tenant-admin-index {
 
 @media (max-width: 1180px) {
   [data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas] {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) 3rem !important;
   }
 
   [data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas] > [data-rmc-django-side-panel] {
     position: static !important;
     max-height: none !important;
+    grid-column: 1 / -1 !important;
   }
 }
 
@@ -3186,5 +3187,231 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
   [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="app-index"] .rmc-admin-index-canvas,
   [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="guided"] .rmc-admin-index-canvas {
     grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+/* ============================================================
+   2026-07-19-full-fill-page-aware: kill max-content tables +
+   false label|value .form-row grids; compact Save; fill col-1.
+   Terminal override — must win for admin-manager + admin-premium.
+   ============================================================ */
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell).change-list .results table,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list,
+[data-rmc-shell-root="django-admin"] .results table,
+[data-rmc-shell-root="django-admin"] #result_list {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  table-layout: auto !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list th,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell).change-list #result_list td,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell).change-list .results th,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell).change-list .results td,
+[data-rmc-shell-root="django-admin"] #result_list th,
+[data-rmc-shell-root="django-admin"] #result_list td,
+[data-rmc-shell-root="django-admin"] .results th,
+[data-rmc-shell-root="django-admin"] .results td {
+  max-width: none !important;
+}
+
+/* Unfold: one .field-line child — never label|value 2-col on .form-row */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] .form-row,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] :is(fieldset, .module, .aligned) .form-row,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-row {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: none !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  gap: 0.35rem !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] .form-rows,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  gap: 0.85rem 1rem !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row {
+  grid-column: span 6 !important;
+  width: 100% !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(
+  .form-row.grid,
+  .form-row:has(textarea),
+  .form-row:has(.vLargeTextField),
+  .form-row:has(.selector),
+  .form-row:has(.related-widget-wrapper),
+  .form-row:has(.readonly)
+),
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(
+  .form-row.grid,
+  .form-row:has(textarea),
+  .form-row:has(.vLargeTextField),
+  .form-row:has(.selector),
+  .form-row:has(.related-widget-wrapper),
+  .form-row:has(.readonly)
+) {
+  grid-column: 1 / -1 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .field-line,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .field-line .grow,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .field-box,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] select,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] textarea {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .readonly,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .max-w-2xl {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Compact Save split */
+[data-rmc-shell-root="django-admin"] [data-rmc-save-compact="1"] .rmc-admin-submit-row__legacy,
+[data-rmc-shell-root="django-admin"] [data-rmc-save-compact="1"] .rmc-admin-submit-row__inner > .flex.flex-col-reverse {
+  display: none !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-compact {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  padding: 0.65rem 0.85rem !important;
+  border-top: 1px solid var(--hairline, rgba(255,255,255,.12)) !important;
+  background: color-mix(in srgb, var(--surface-elevated, #111827) 55%, transparent) !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-split {
+  display: inline-flex !important;
+  align-items: stretch !important;
+  border-radius: 10px !important;
+  overflow: visible !important;
+  position: relative !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-primary, #26d486) 40%, transparent) !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-split__primary {
+  min-height: 2.15rem !important;
+  padding: 0 0.95rem !important;
+  border: 0 !important;
+  border-radius: 10px 0 0 10px !important;
+  background: var(--brand-primary, var(--color-primary-600, #16a34a)) !important; /* off-token-allow: save-primary-fallback */
+  color: var(--on-brand, #04130b) !important; /* off-token-allow: on-brand-fallback */
+  font-size: 0.82rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-split__chev {
+  min-height: 2.15rem !important;
+  min-width: 2.15rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-left: 1px solid color-mix(in srgb, #000 18%, transparent) !important; /* off-token-allow: split-edge */
+  border-radius: 0 10px 10px 0 !important;
+  background: color-mix(in srgb, var(--brand-primary, #16a34a) 88%, #000) !important; /* off-token-allow: save-chev-fallback */
+  color: var(--on-brand, #04130b) !important; /* off-token-allow: on-brand-fallback */
+  font-size: 0.75rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu {
+  position: absolute !important;
+  bottom: calc(100% + 0.4rem) !important;
+  left: 0 !important;
+  min-width: 14rem !important;
+  z-index: 40 !important;
+  padding: 0.35rem !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--hairline, rgba(255,255,255,.14)) !important;
+  background: var(--surface-elevated, #0f172a) !important;
+  box-shadow: 0 18px 40px rgba(0,0,0,.4) !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu[hidden] {
+  display: none !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu button,
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu a {
+  display: flex !important;
+  width: 100% !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.5rem !important;
+  min-height: 2.1rem !important;
+  padding: 0 0.65rem !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--text-primary, inherit) !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu button:hover,
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu a:hover {
+  background: color-mix(in srgb, var(--surface-canvas, #fff) 8%, transparent) !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu .rmc-django-save-menu__danger,
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu a.rmc-django-save-menu__danger {
+  color: var(--color-danger, #f15b6c) !important; /* off-token-allow: danger-fallback */
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu__sep {
+  height: 1px !important;
+  margin: 0.25rem 0.4rem !important;
+  background: var(--hairline, rgba(255,255,255,.12)) !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-back {
+  width: 2.15rem !important;
+  height: 2.15rem !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--hairline, rgba(255,255,255,.14)) !important;
+  background: color-mix(in srgb, var(--surface-elevated, #111827) 40%, transparent) !important;
+  color: var(--text-secondary, inherit) !important;
+  text-decoration: none !important;
+  font-weight: 900 !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-hint {
+  margin-left: auto !important;
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  color: var(--text-secondary, rgba(255,255,255,.55)) !important;
+}
+
+@media (max-width: 720px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row,
+  [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row {
+    grid-column: 1 / -1 !important;
+  }
+  [data-rmc-shell-root="django-admin"] .rmc-django-save-hint {
+    display: none !important;
   }
 }

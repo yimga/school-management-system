@@ -1,129 +1,107 @@
 {% load i18n admin_urls %}
 
-{% comment %} v4.00.19 (2026-05-29) — single-instance contract.
-
-   Background: in admin change_form rendering, when many inline formsets are
-   present, this partial can render more than once (the contract was that
-   `submit_row` appears at the *bottom* of the page, but stacked-inline
-   pagination + HTMX swaps can produce extras). With `lg:sticky lg:bottom-0`
-   they all pin to the bottom of the viewport, producing the "stacked save
-   bars" the customer reported.
-
-   Two-line defense:
-     1) data-rmc-admin-submit-row-primary marks this instance for the CSS
-        sibling-rule in admin-manager-shell.css that hides any duplicate
-        ([data-rmc-admin-submit-contract] ~ [data-rmc-admin-submit-contract]).
-     2) The inline IIFE at the end of this template removes duplicates from
-        the DOM after parse so the user only ever sees ONE strip.
-
-   Display contract: NOT a viewport-sticky bar anymore. The strip lives at the
-   natural foot of the form column, but a compact floating cluster
-   (.rmc-admin-quickaction) is rendered alongside for thumb-reach Save while
-   scrolling — see admin-manager-shell.css. {% endcomment %}
+{% comment %}
+  Compact Save ▾ (2026-07-19): one primary Save + menu for continue / add another /
+  save as new / delete. Dedup contract preserved from v4.00.19.
+{% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div {% if not is_popup %}id="submit-row"{% endif %}
      class="rmc-admin-submit-row rmc-django-actions"
      data-rmc-admin-submit-contract="sticky-safe-actions"
      data-rmc-admin-submit-row-primary="1"
-     data-rmc-django-actions="static">
+     data-rmc-django-actions="static"
+     data-rmc-save-compact="1">
     {% if request.GET.next %}
     <input type="hidden" name="next" value="{{ request.GET.next }}" form="{{ opts.model_name }}_form">
     {% endif %}
-    <div class="rmc-admin-submit-row__inner backdrop-blur-xs bg-white/80 rounded-b-default pb-4 px-4 dark:bg-base-900/80 lg:border-t lg:border-base-200 relative dark:border-base-800">
-        <div class="flex flex-col-reverse gap-3 items-center mx-auto lg:flex-row-reverse lg:h-[64px] w-full">
-            <span class="rmc-admin-submit-row__hint d-none d-lg-inline text-xs text-base-500 dark:text-base-400 ms-auto" aria-hidden="true">⌘ + S</span>
-            {% block submit-row %}
-                {% if show_save %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_save" class="bg-primary-600 block border border-transparent cursor-pointer font-medium px-3 py-2 rounded-default w-full lg:w-auto rmc-django-action rmc-django-action--save">
+    <div class="rmc-admin-submit-row__inner backdrop-blur-xs bg-white/80 rounded-b-default pb-2 px-2 dark:bg-base-900/80 lg:border-t lg:border-base-200 relative dark:border-base-800">
+        {% url opts|admin_urlname:'changelist' as changelist_url %}
+        <div class="rmc-django-save-compact" data-rmc-save-compact-root="1">
+            {% if show_save %}
+            <div class="rmc-django-save-split" data-rmc-save-split="1">
+                <button type="submit"
+                        form="{{ opts.model_name }}_form"
+                        name="_save"
+                        class="rmc-django-save-split__primary rmc-django-action rmc-django-action--save">
+                    {% translate 'Save' %}
+                </button>
+                {% if show_save_and_continue or show_save_and_add_another or show_save_as_new or actions_submit_line or show_delete_link and original %}
+                <button type="button"
+                        class="rmc-django-save-split__chev"
+                        data-rmc-save-menu-toggle="1"
+                        aria-expanded="false"
+                        aria-haspopup="menu"
+                        aria-controls="rmc-django-save-menu-{{ opts.model_name }}"
+                        title="{% translate 'More save options' %}">
+                    ▾
+                </button>
+                <div class="rmc-django-save-menu"
+                     id="rmc-django-save-menu-{{ opts.model_name }}"
+                     role="menu"
+                     hidden
+                     data-rmc-save-menu="1">
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_save" role="menuitem">
                         {% translate 'Save' %}
+                        <small aria-hidden="true">↵</small>
                     </button>
-                {% endif %}
-
-                {% for action in actions_submit_line %}
-                    <button type="submit" form="{{ opts.model_name }}_form" {% if not action.attrs.name %}name="{{ action.action_name }}"{% endif %} class="border border-base-200 cursor-pointer flex font-medium gap-2 items-center justify-center px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 rmc-django-action rmc-django-action--ghost" {% include "unfold/helpers/attrs.html" with attrs=action.attrs %}>
-                        {% if action.icon %}
-                            <span class="material-symbols-outlined">
-                                {{ action.icon }}
-                            </span>
-                        {% endif %}
-
-                        {{ action.description }}
-                    </button>
-                {% endfor %}
-
-                {% if show_save_and_continue %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_continue" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 rmc-django-action rmc-django-action--ghost">
+                    {% if show_save_and_continue %}
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_continue" role="menuitem">
                         {% if can_change %}
                             {% translate 'Save and continue editing' %}
                         {% else %}
                             {% translate 'Save and view' %}
                         {% endif %}
+                        <small aria-hidden="true">⌘S</small>
                     </button>
-                {% endif %}
-
-                {% url opts|admin_urlname:'changelist' as changelist_url %}
-                <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 js-admin-back js-return-to-origin rmc-django-action rmc-django-action--ghost" data-fallback="{% add_preserved_filters changelist_url %}">
-                    {% translate 'Back' %}
-                </a>
-                <script>
-                  (function () {
-                    try {
-                      var a = document.currentScript && document.currentScript.previousElementSibling;
-                      if (!a || !a.classList || !a.classList.contains('js-admin-back')) return;
-                      var fallback = a.getAttribute('data-fallback') || '/admin/';
-                      function sameOrigin(url) {
-                        try { return new URL(url, window.location.href).origin === window.location.origin; }
-                        catch (e) { return false; }
-                      }
-                      var stored = null;
-                      try { stored = sessionStorage.getItem('runmycampus-return-url'); } catch (e) {}
-                      var ref = document.referrer;
-                      var href = (stored && sameOrigin(stored)) ? stored : (ref && sameOrigin(ref) ? ref : fallback);
-                      a.setAttribute('href', href);
-                      a.addEventListener('click', function (ev) {
-                        if (window.history && window.history.length > 1 && ref && sameOrigin(ref) && !(stored && sameOrigin(stored))) {
-                          ev.preventDefault();
-                          window.history.back();
-                        }
-                      });
-                    } catch (e) {}
-                  })();
-                </script>
-
-                {% if show_save_and_add_another %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_addanother" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 rmc-django-action rmc-django-action--ghost">
+                    {% endif %}
+                    {% if show_save_and_add_another %}
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_addanother" role="menuitem">
                         {% translate 'Save and add another' %}
+                        <small aria-hidden="true">⌘⇧S</small>
                     </button>
-                {% endif %}
-
-                {% if show_save_as_new %}
-                    <button type="submit" form="{{ opts.model_name }}_form" name="_saveasnew" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 rmc-django-action rmc-django-action--ghost">
+                    {% endif %}
+                    {% if show_save_as_new %}
+                    <button type="submit" form="{{ opts.model_name }}_form" name="_saveasnew" role="menuitem">
                         {% translate 'Save as new' %}
                     </button>
-                {% endif %}
-
-                <div class="flex flex-col gap-3 mr-auto w-full lg:flex-row lg:w-auto">
-                    {% if show_close or adminform.model_admin.change_form_show_cancel_button %}
-                        <a href="{% add_preserved_filters changelist_url %}" class="border border-base-200 cursor-pointer font-medium px-3 py-2 rounded-default text-center transition-all w-full hover:bg-base-50 lg:block lg:w-auto dark:border-base-700 dark:hover:text-base-200 dark:hover:bg-base-900 js-return-to-origin rmc-django-action rmc-django-action--ghost" data-fallback="{% add_preserved_filters changelist_url %}">
-                            {% translate 'Close' %}
-                        </a>
                     {% endif %}
-
+                    {% for action in actions_submit_line %}
+                    <button type="submit" form="{{ opts.model_name }}_form" {% if not action.attrs.name %}name="{{ action.action_name }}"{% endif %} role="menuitem" {% include "unfold/helpers/attrs.html" with attrs=action.attrs %}>
+                        {{ action.description }}
+                    </button>
+                    {% endfor %}
                     {% if show_delete_link and original %}
-                        {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
-
-                        <a href="{% add_preserved_filters delete_url %}" class="bg-red-600 cursor-pointer flex items-center justify-center font-medium h-[38px] ml-auto px-3 py-2 rounded-default text-center w-full lg:w-auto dark:bg-red-500/20 dark:text-red-500 rmc-django-action rmc-django-action--danger">
-                            {% translate "Delete" %} {{ opts.verbose_name }}
-                        </a>
+                    <div class="rmc-django-save-menu__sep" role="separator"></div>
+                    {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
+                    <a href="{% add_preserved_filters delete_url %}" class="rmc-django-save-menu__danger" role="menuitem">
+                        {% translate "Delete" %} {{ opts.verbose_name }}
+                    </a>
                     {% endif %}
                 </div>
-            {% endblock %}
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <a href="{% add_preserved_filters changelist_url %}"
+               class="rmc-django-save-back js-admin-back js-return-to-origin"
+               data-fallback="{% add_preserved_filters changelist_url %}"
+               title="{% translate 'Back' %}"
+               aria-label="{% translate 'Back' %}">←</a>
+
+            {% if show_close or adminform.model_admin.change_form_show_cancel_button %}
+            <a href="{% add_preserved_filters changelist_url %}"
+               class="rmc-django-action rmc-django-action--ghost js-return-to-origin"
+               data-fallback="{% add_preserved_filters changelist_url %}">
+                {% translate 'Close' %}
+            </a>
+            {% endif %}
+
+            <span class="rmc-django-save-hint d-none d-lg-inline" aria-hidden="true">{% translate "Save · more in ▾" %}</span>
         </div>
     </div>
 </div>
 
-{% comment %} v4.00.19 sticky submit row dedup script (HTMX/double-include safe). {% endcomment %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   try {
     function dedup() {
@@ -137,6 +115,61 @@
     dedup();
     document.addEventListener('DOMContentLoaded', dedup);
     document.addEventListener('htmx:afterSwap', dedup);
+
+    function wireSaveMenu(root) {
+      if (!root || root.getAttribute('data-rmc-save-wired') === '1') return;
+      root.setAttribute('data-rmc-save-wired', '1');
+      var toggle = root.querySelector('[data-rmc-save-menu-toggle]');
+      var menu = root.querySelector('[data-rmc-save-menu]');
+      if (!toggle || !menu) return;
+      function close() {
+        menu.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+      function open() {
+        menu.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+      toggle.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (menu.hidden) open(); else close();
+      });
+      document.addEventListener('click', function (ev) {
+        if (!root.contains(ev.target)) close();
+      });
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') close();
+      });
+    }
+    function wireAll() {
+      document.querySelectorAll('[data-rmc-save-compact-root]').forEach(wireSaveMenu);
+      document.querySelectorAll('.js-admin-back').forEach(function (a) {
+        if (a.getAttribute('data-rmc-back-wired') === '1') return;
+        a.setAttribute('data-rmc-back-wired', '1');
+        try {
+          var fallback = a.getAttribute('data-fallback') || '/admin/';
+          function sameOrigin(url) {
+            try { return new URL(url, window.location.href).origin === window.location.origin; }
+            catch (e) { return false; }
+          }
+          var stored = null;
+          try { stored = sessionStorage.getItem('runmycampus-return-url'); } catch (e) {}
+          var ref = document.referrer;
+          var href = (stored && sameOrigin(stored)) ? stored : (ref && sameOrigin(ref) ? ref : fallback);
+          a.setAttribute('href', href);
+          a.addEventListener('click', function (ev) {
+            if (window.history && window.history.length > 1 && ref && sameOrigin(ref) && !(stored && sameOrigin(stored))) {
+              ev.preventDefault();
+              window.history.back();
+            }
+          });
+        } catch (e) {}
+      });
+    }
+    wireAll();
+    document.addEventListener('DOMContentLoaded', wireAll);
+    document.addEventListener('htmx:afterSwap', wireAll);
   } catch (e) {}
 })();
 </script>

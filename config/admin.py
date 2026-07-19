@@ -42,9 +42,9 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
     enable_nav_sidebar = True
     login_template = "auth/admin_login.html"
     index_template_name = "admin/index_tenant.html"
-    site_header = "Tenant Administration"
-    site_title = "Tenant Administration"
-    index_title = "Administration Dashboard"
+    site_header = "School configuration"
+    site_title = "School configuration"
+    index_title = "Configuration & records"
 
     @staticmethod
     def _host_kind(request) -> str:
@@ -392,17 +392,40 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
 class TenantAdminSite(BaseRunMyCampusAdminSite):
     login_form = AuthenticationForm
     login_template = "auth/tenant_admin_login.html"
-    site_header = "Tenant Administration"
-    site_title = "Tenant Administration"
-    index_title = "Tenant Administration"
+    site_header = "School configuration"
+    site_title = "School configuration"
+    index_title = "Configuration & records"
     index_template_name = "admin/index_tenant.html"
 
+    def each_context(self, request):
+        context = super().each_context(request)
+        school = getattr(request, "school", None)
+        school_name = ""
+        if school is not None:
+            school_name = (
+                getattr(school, "name", None)
+                or getattr(school, "display_name", None)
+                or getattr(school, "slug", None)
+                or ""
+            )
+        if school_name:
+            context["site_header"] = school_name
+            context["site_title"] = school_name
+            context["index_title"] = f"{school_name} · Configuration & records"
+        else:
+            context["site_header"] = self.site_header
+            context["site_title"] = self.site_title
+            context["index_title"] = self.index_title
+        context["tenant_admin_engine"] = True
+        return context
+
     def index(self, request, extra_context=None):
-        """Intelligent tenant catalog index — same canvas contract as operator, tenant-scoped."""
+        """School configuration engine index — operator-quality canvas, school-scoped."""
+        base = self.each_context(request)
         context = build_admin_dashboard_context(
             request,
-            base_context=self.each_context(request),
-            title=self.index_title,
+            base_context=base,
+            title=base.get("index_title") or self.index_title,
         )
         app_list = self.get_app_list(request)
         context["app_list"] = app_list

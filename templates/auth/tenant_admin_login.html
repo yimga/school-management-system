@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>{% trans "Tenant administration sign-in" %} - {% firstof request.school.name site_title _("RunMyCampus") %}</title>
+  <title>{% trans "School configuration sign-in" %} - {% firstof request.school.name site_title _("RunMyCampus") %}</title>
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
@@ -15,13 +15,13 @@
     <div class="tenant-admin-login__shell">
       <section>
         <div class="tenant-admin-login__eyebrow">{% trans "School administration" %}</div>
-        <h1 id="tenant-admin-login-heading">{% firstof request.school.name _("Tenant console") %}</h1>
+        <h1 id="tenant-admin-login-heading">{% firstof request.school.name _("School configuration") %}</h1>
         <p class="tenant-admin-login__copy">
           {% trans "Sign in to manage this school's configuration, people, academics, finance, communications, compliance, and launch settings." %}
         </p>
-        <div class="tenant-admin-login__proof" aria-label="{% trans 'Tenant administration scope' %}">
-          <span><strong>{% trans "Tenant scoped" %}</strong>{% trans "Only this school host." %}</span>
-          <span><strong>{% trans "Configuration first" %}</strong>{% trans "Settings and operations." %}</span>
+        <div class="tenant-admin-login__proof" aria-label="{% trans 'School configuration scope' %}">
+          <span><strong>{% trans "This school only" %}</strong>{% trans "Only this school host." %}</span>
+          <span><strong>{% trans "Configuration first" %}</strong>{% trans "Settings and records." %}</span>
           <span><strong>{% trans "Audit aware" %}</strong>{% trans "Actions remain traceable." %}</span>
         </div>
       </section>
@@ -30,7 +30,7 @@
         <div class="tenant-admin-login__brand">
           <div class="tenant-admin-login__mark" aria-hidden="true">R</div>
           <div>
-            <strong>{% trans "Tenant Administration" %}</strong>
+            <strong>{% trans "Configuration &amp; records" %}</strong>
             <small>{% trans "Use your school admin account" %}</small>
           </div>
         </div>
@@ -47,7 +47,7 @@
         {% if user.is_authenticated %}
           <div class="tenant-admin-login__alert" role="alert">
             {% blocktranslate trimmed %}
-              You are authenticated as {{ username }}, but are not authorized to access this tenant admin console.
+              You are authenticated as {{ username }}, but are not authorized to access this school's configuration engine.
             {% endblocktranslate %}
           </div>
         {% endif %}
@@ -63,7 +63,7 @@
             <label for="id_password">{% trans "Password" %}</label>
             <input type="password" name="password" id="id_password" autocomplete="current-password" required>
           </div>
-          <button class="tenant-admin-login__submit" type="submit">{% trans "Open tenant admin" %}</button>
+          <button class="tenant-admin-login__submit" type="submit">{% trans "Open school configuration" %}</button>
         </form>
 
         {% if password_reset_url %}

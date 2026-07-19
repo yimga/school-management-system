@@ -1,12 +1,12 @@
 {
   "date": "2026-07-19",
-  "generated_at": "2026-07-19T12:30:00+00:00",
+  "generated_at": "2026-07-19T22:12:20+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 147,
-  "raw": "sms-v4.05.148-fluff-burn-intrusive-2026-07-19",
+  "patch": 149,
+  "raw": "sms-v4.05.149-django-full-fill-2026-07-19",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "platform-core-context",
+  "slug": "django-full-fill",
   "valid": true
 }

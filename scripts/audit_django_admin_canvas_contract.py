@@ -28,8 +28,38 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260719-fluff-burn" not in base_site:
-        errors.append("Django canvas contract link must use the core-context-info cache bust for deployment visibility")
+    if "?v=20260719-full-fill" not in base_site:
+        errors.append("Django canvas contract link must use the full-fill cache bust for deployment visibility")
+    if "2026-07-19-full-fill-page-aware" not in css:
+        errors.append("canvas contract must include 2026-07-19-full-fill-page-aware terminal block")
+    submit_line = _read("templates/admin/submit_line.html")
+    if 'data-rmc-save-compact="1"' not in submit_line or "rmc-django-save-split" not in submit_line:
+        errors.append("submit_line.html must implement compact Save split (Save + menu)")
+    tools = _read("templates/admin/includes/admin_workspace_tools.html")
+    if 'surface == "change-list"' not in tools or 'surface == "change-form"' not in tools:
+        errors.append("admin_workspace_tools.html must be page/surface-aware")
+    if 'surface == "admin-index"' not in tools and "admin-index" not in tools:
+        # Index tools omit + / Filters by not matching list/form branches — ensure no inert primary +
+        if "aria-hidden=\"true\">+</span>" in tools:
+            errors.append("admin_workspace_tools must not render inert + on every surface")
+    live_css = _read("static/css/rmc-admin-changelist-live.css")
+    if re.search(r"width:\s*max-content", live_css):
+        errors.append("rmc-admin-changelist-live.css must not use width:max-content on result tables")
+    # No active max-content / false label|value grids (comments mentioning them are OK)
+    for m in re.finditer(r"^[^/\n]*width:\s*max-content", css, re.M):
+        errors.append(f"canvas contract still has active width:max-content rule: {m.group(0).strip()[:80]}")
+    for m in re.finditer(r"^[^/\n]*0\.(24|32)fr", css, re.M):
+        errors.append(f"canvas contract still has active false label|value fr track: {m.group(0).strip()[:80]}")
+    login = _read("templates/auth/tenant_admin_login.html")
+    if "Tenant Administration" in login:
+        errors.append("tenant_admin_login.html must use school configuration identity")
+    if "Configuration &amp; records" not in login and "Configuration & records" not in login:
+        errors.append("tenant_admin_login.html must say Configuration & records")
+    rail_py = _read("apps/siteconfig/admin_page_aware_rail.py")
+    if "Tenant boundary" in rail_py:
+        errors.append("admin_page_aware_rail.py must not use Tenant boundary (use School boundary)")
+    if "School boundary" not in rail_py:
+        errors.append("admin_page_aware_rail.py must define School boundary")
     if "rmc_tour_bootstrap.html" not in base_site and "rmc-info-tag.js" not in base_site:
         errors.append("admin/base_site.html must load rmc-info-tag JS (via rmc_tour_bootstrap)")
     metrics = (ROOT / "templates/admin/includes/admin_workspace_metrics_strip.html").read_text(encoding="utf-8")
@@ -322,14 +352,18 @@ def _audit_intelligent_index_surfaces() -> list[str]:
         'data-rmc-django-command-band="admin-index"',
         'data-rmc-admin-index-canvas="tenant"',
         "rmc-admin-catalog-index",
-        "Tenant model catalog",
+        "Configuration &amp; records",
+        "School configuration engine",
         "admin_catalog",
+        'surface="admin-index"',
     ):
         if token not in tenant_index:
             errors.append(f"templates/admin/index_tenant.html missing intelligent index token: {token}")
 
     if "Raw model CRUD only" in tenant_index:
         errors.append("templates/admin/index_tenant.html must not use the empty Raw model CRUD-only hero")
+    if "Tenant model catalog" in tenant_index or "Tenant Administration" in tenant_index:
+        errors.append("templates/admin/index_tenant.html must use school configuration engine identity (not Tenant Administration)")
 
     if "def index(self, request, extra_context=None):" not in admin_py:
         errors.append("config/admin.py TenantAdminSite must override index for catalog context")
@@ -339,11 +373,21 @@ def _audit_intelligent_index_surfaces() -> list[str]:
     tenant_site_slice = admin_py.split("class TenantAdminSite", 1)[-1].split("class PlatformAdminSite", 1)[0]
     if "build_platform_admin_catalog" not in tenant_site_slice:
         errors.append("TenantAdminSite.index must build admin_catalog via build_platform_admin_catalog")
+    if "tenant_admin_engine" not in tenant_site_slice:
+        errors.append("TenantAdminSite.each_context must mark tenant_admin_engine for school identity")
 
-    if 'url_name|default:"" != "index"' not in nav_bridge and "!= \"index\"" not in nav_bridge:
-        errors.append("admin_nav_bridge must skip operator_console_strip on admin index")
-    if "operator_console_strip" not in nav_bridge:
-        errors.append("admin_nav_bridge must still expose operator_console_strip on non-index pages")
+    # School host must never inject operator control-plane chrome into /admin/
+    if "{% operator_console_strip" in nav_bridge or "{%operator_console_strip" in nav_bridge:
+        errors.append("admin_nav_bridge must not inject operator_console_strip on tenant /admin/")
+    if "PRIMARY_CONTROL_PLANE_NAV and not is_manager_host" in nav_bridge:
+        errors.append("admin_nav_bridge must not render PRIMARY_CONTROL_PLANE_NAV on tenant hosts")
+    if "control_plane_primary_nav.html" in nav_bridge and "is_manager_host" not in nav_bridge.split("control_plane_primary_nav.html")[0][-200:]:
+        # Soft: include of CP primary nav on tenant branch is forbidden
+        pass
+    if "{% include \"partials/control_plane_primary_nav.html\" %}" in nav_bridge:
+        errors.append("admin_nav_bridge must not include control_plane_primary_nav on tenant hosts")
+    if "Configuration &amp; records" not in nav_bridge and "Configuration & records" not in nav_bridge:
+        errors.append("admin_nav_bridge tenant identity must say Configuration & records")
 
     if 'data-rmc-admin-catalog-index="1"' not in operator_index:
         errors.append("templates/admin/index_superadmin.html missing catalog index marker")

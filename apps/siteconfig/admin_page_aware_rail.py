@@ -1,7 +1,7 @@
 """
 Page-aware Django admin context rail facts.
 
-Fills the Operator/Tenant boundary column with model/object/list-aware content
+Fills the Operator/School boundary column with model/object/list-aware content
 instead of static prose. Used by ``admin_page_aware`` template tags.
 """
 
@@ -21,6 +21,31 @@ def _safe_str(value: Any, *, limit: int = 72) -> str:
     if len(text) > limit:
         return text[: limit - 1] + "…"
     return text
+
+
+def _school_label(request) -> str:
+    school = getattr(request, "school", None) if request is not None else None
+    if school is None:
+        return ""
+    for attr in ("name", "display_name", "site_name", "slug"):
+        try:
+            val = getattr(school, attr, None)
+        except Exception:  # noqa: BLE001
+            val = None
+        if val:
+            return _safe_str(val, limit=48)
+    return ""
+
+
+def _boundary_title(*, is_manager_host: bool) -> str:
+    return _("Operator boundary") if is_manager_host else _("School boundary")
+
+
+def _boundary_fallback(*, is_manager_host: bool, request=None) -> str:
+    if is_manager_host:
+        return _("Platform backoffice")
+    school = _school_label(request)
+    return school or _("School configuration")
 
 
 def _attr_first(obj: Any, names: tuple[str, ...]) -> Any:
@@ -56,8 +81,8 @@ def build_change_form_rail(
         return {
             "surface": "change-form",
             "is_manager_host": bool(is_manager_host),
-            "boundary_title": _("Operator boundary") if is_manager_host else _("Tenant boundary"),
-            "boundary_strong": _("Platform backoffice") if is_manager_host else _("Tenant backend"),
+            "boundary_title": _boundary_title(is_manager_host=is_manager_host),
+            "boundary_strong": _boundary_fallback(is_manager_host=is_manager_host, request=request),
             "boundary_hint": _("Open a model to see page-aware context."),
             "page_title": _("Admin form"),
             "page_lede": _("Page-aware facts appear when a model form is loaded."),
@@ -124,11 +149,11 @@ def build_change_form_rail(
     return {
         "surface": "change-form",
         "is_manager_host": bool(is_manager_host),
-        "boundary_title": _("Operator boundary") if is_manager_host else _("Tenant boundary"),
+        "boundary_title": _boundary_title(is_manager_host=is_manager_host),
         "boundary_strong": (
             _("%(app)s · %(model)s") % {"app": app_label, "model": model_name}
             if app_label and model_name
-            else (_("Platform backoffice") if is_manager_host else _("Tenant backend"))
+            else _boundary_fallback(is_manager_host=is_manager_host, request=request)
         ),
         "boundary_hint": mode_hint,
         "page_title": object_title,
@@ -155,8 +180,8 @@ def build_changelist_rail(
         return {
             "surface": "change-list",
             "is_manager_host": bool(is_manager_host),
-            "boundary_title": _("Operator boundary") if is_manager_host else _("Tenant boundary"),
-            "boundary_strong": _("Platform backoffice") if is_manager_host else _("Tenant backend"),
+            "boundary_title": _boundary_title(is_manager_host=is_manager_host),
+            "boundary_strong": _boundary_fallback(is_manager_host=is_manager_host, request=request),
             "boundary_hint": _("Open a changelist to see page-aware list context."),
             "page_title": _("Records list"),
             "page_lede": _("Counts and filters appear when a list is loaded."),
@@ -227,11 +252,11 @@ def build_changelist_rail(
     return {
         "surface": "change-list",
         "is_manager_host": bool(is_manager_host),
-        "boundary_title": _("Operator boundary") if is_manager_host else _("Tenant boundary"),
+        "boundary_title": _boundary_title(is_manager_host=is_manager_host),
         "boundary_strong": (
             _("%(app)s · %(model)s") % {"app": app_label, "model": model_name}
             if app_label and model_name
-            else (_("Platform backoffice") if is_manager_host else _("Tenant backend"))
+            else _boundary_fallback(is_manager_host=is_manager_host, request=request)
         ),
         "boundary_hint": lede,
         "page_title": verbose_plural,
@@ -273,17 +298,17 @@ def build_index_rail(
         },
         {
             "label": _("Surface"),
-            "value": _("Operator index") if is_manager_host else _("Tenant index"),
+            "value": _("Operator index") if is_manager_host else _("School index"),
         },
     ]
     return {
         "surface": "index",
         "is_manager_host": bool(is_manager_host),
-        "boundary_title": _("Operator boundary") if is_manager_host else _("Tenant boundary"),
+        "boundary_title": _boundary_title(is_manager_host=is_manager_host),
         "boundary_strong": (
             _("Platform backoffice catalog")
             if is_manager_host
-            else _("School backend catalog")
+            else (_("%(school)s · configuration") % {"school": _school_label(request)} if _school_label(request) else _("School configuration catalog"))
         ),
         "boundary_hint": _(
             "Jump via Guided paths above; this rail tracks what is on the catalog."
@@ -323,7 +348,7 @@ def build_app_index_rail(
         {"label": _("Addable"), "value": str(addable)},
         {
             "label": _("Surface"),
-            "value": _("Operator app") if is_manager_host else _("Tenant app"),
+            "value": _("Operator app") if is_manager_host else _("School app"),
         },
     ]
     links: list[dict[str, str]] = []
@@ -335,7 +360,7 @@ def build_app_index_rail(
     return {
         "surface": "app-index",
         "is_manager_host": bool(is_manager_host),
-        "boundary_title": _("Operator boundary") if is_manager_host else _("Tenant boundary"),
+        "boundary_title": _boundary_title(is_manager_host=is_manager_host),
         "boundary_strong": _("App · %(label)s") % {"label": label},
         "boundary_hint": _("Models in this app — prefer guided surfaces when linked."),
         "page_title": _safe_str(title, limit=56) or label,
@@ -362,7 +387,7 @@ def build_guided_surface_rail(
         fact_rows = [
             {
                 "label": _("Surface"),
-                "value": _("Operator action") if is_manager_host else _("Tenant action"),
+                "value": _("Operator action") if is_manager_host else _("School action"),
             },
             {"label": _("Workflow"), "value": _("Guided")},
         ]
@@ -375,7 +400,7 @@ def build_guided_surface_rail(
     return {
         "surface": "guided",
         "is_manager_host": bool(is_manager_host),
-        "boundary_title": _("Operator boundary") if is_manager_host else _("Tenant boundary"),
+        "boundary_title": _boundary_title(is_manager_host=is_manager_host),
         "boundary_strong": _("Guided admin action"),
         "boundary_hint": page_lede or _("Complete this workflow, then return to the list."),
         "page_title": page_title or _("Guided action"),

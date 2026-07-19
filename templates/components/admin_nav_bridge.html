@@ -30,14 +30,12 @@
                 {% endif %}
             </div>
             <div>
-                <div class="admin-nav-bridge__title">{% if is_manager_host %}{% trans "RunMyCampus Manager" %}{% else %}{% trans "Admin portal" %}{% endif %}</div>
+                <div class="admin-nav-bridge__title">{% if is_manager_host %}{% trans "RunMyCampus Manager" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</div>
                 <div class="admin-nav-bridge__location">
                     {% if is_manager_host %}
                         RunMyCampus Manager — {% trans "System &amp; data" %}
-                    {% elif request.resolver_match and request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
-                        {% trans "Tenant Administration" %}
                     {% else %}
-                        {% trans "Backend - operations and workflows" %}
+                        {% trans "Configuration &amp; records" %}
                     {% endif %}
                 </div>
             </div>
@@ -88,16 +86,7 @@
     {% endif %}
 </div>
 {% endif %}
-{% comment %} Primary nav renders in cp-header on manager /admin/* and /super/*; tenant admin keeps pills here. {% endcomment %}
-{% if PRIMARY_CONTROL_PLANE_NAV and not is_manager_host %}
-{% include "partials/control_plane_primary_nav.html" %}
-{% endif %}
-{% comment %} Intelligent admin index owns its command band + catalog; the Feature Control
-   operator strip belongs on model pages / CCC, not as empty chrome above the index void. {% endcomment %}
-{% if PRIMARY_CONTROL_PLANE_NAV and not is_manager_host %}
-{% if request.resolver_match.url_name|default:"" != "index" %}
-<div class="px-3 pb-2">
-  {% operator_console_strip %}
-</div>
-{% endif %}
-{% endif %}
+{% comment %}
+  Tenant /admin/ is the school configuration engine — never inject control-plane
+  primary nav or operator_console_strip on the school host (operator bleed).
+{% endcomment %}

@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tenant admin — school configuration engine — APPROVAL</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#071018;
+      --school:#2dd4a8;
+      --school-deep:#0f766e;
+      --ink:#ecfdf8;
+      --muted:#9db7b0;
+      --dim:#6b857e;
+      --line:rgba(148,210,190,.18);
+      --panel:#0d1f1c;
+      --card:#122824;
+      --warn:#f8bf3f;
+      --danger:#f15b6c;
+      --blue:#5b8cff;
+      font-family:"Source Serif 4",Georgia,"Times New Roman",serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;color:var(--ink);min-height:100vh;
+      background:
+        radial-gradient(circle at 85% -5%,rgba(45,212,168,.18),transparent 32%),
+        radial-gradient(circle at 8% 10%,rgba(15,118,110,.22),transparent 28%),
+        linear-gradient(180deg,#0a1614,var(--bg));
+    }
+    .sans{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    .page{max-width:1580px;margin:0 auto;padding:28px 22px 88px}
+    .pill{
+      display:inline-flex;width:fit-content;padding:5px 11px;border-radius:999px;
+      border:1px solid rgba(45,212,168,.45);background:rgba(45,212,168,.1);
+      color:#b7f5df;font-size:11px;font-weight:850;letter-spacing:.07em;text-transform:uppercase;
+      font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+    }
+    h1{margin:12px 0 8px;font-size:clamp(1.7rem,2.5vw,2.35rem);letter-spacing:-.03em;font-weight:650}
+    .lede{margin:0 0 18px;color:var(--muted);max-width:95ch;line-height:1.55;font-size:15px}
+    .lede code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#c7fff0}
+    .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:22px}
+    .cardish{
+      border:1px solid var(--line);border-radius:16px;padding:14px 15px;background:rgba(18,40,36,.78);
+      font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+    }
+    .cardish b{display:block;font-size:12px;margin-bottom:5px;color:var(--ink)}
+    .cardish span{display:block;font-size:11px;color:var(--dim);line-height:1.45}
+    .section{
+      margin:28px 0 10px;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--muted);font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+    }
+    .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .panel{
+      border:1px solid var(--line);border-radius:18px;overflow:hidden;
+      background:linear-gradient(180deg,rgba(18,40,36,.96),rgba(8,18,16,.98));
+      box-shadow:0 28px 80px rgba(0,0,0,.4);min-width:0;
+    }
+    .panel-head{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      padding:12px 14px;border-bottom:1px solid var(--line);background:rgba(20,48,44,.85);
+      font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+    }
+    .panel-head h2{margin:0;font-size:13px;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+    .panel-head small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+    .tag{font-size:10px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px}
+    .tag.before{background:rgba(241,91,108,.16);color:#ffc3ca;border:1px solid rgba(241,91,108,.4)}
+    .tag.after{background:rgba(45,212,168,.14);color:#b7f5df;border:1px solid rgba(45,212,168,.4)}
+    .mock{padding:12px;background:#061210;display:grid;gap:8px;min-height:420px;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+    .topbar{
+      display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+      min-height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--line);
+      background:linear-gradient(90deg,rgba(15,118,110,.35),rgba(13,31,28,.92));
+    }
+    .brand{display:flex;align-items:center;gap:8px;min-width:0}
+    .mark{
+      width:28px;height:28px;border-radius:9px;display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--school),var(--school-deep));color:#04241c;font-weight:950;font-size:12px;
+    }
+    .brand strong{display:block;font-size:12px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .brand em{display:block;font-style:normal;font-size:10px;color:var(--muted)}
+    .search{
+      min-height:32px;border-radius:999px;border:1px solid var(--line);background:rgba(5,16,14,.75);
+      color:var(--muted);padding:0 12px;font-size:11px;display:flex;align-items:center;
+    }
+    .escapes{display:flex;gap:6px;flex-wrap:wrap}
+    .esc{min-height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:10px;font-weight:800;color:var(--muted);display:grid;place-items:center}
+    .esc.primary{border:0;background:linear-gradient(135deg,var(--school),var(--school-deep));color:#04241c}
+    .esc.bad{opacity:.4;text-decoration:line-through}
+    .ws{display:grid;grid-template-columns:minmax(0,1fr) minmax(9.5rem,18%) 2.35rem;gap:8px;min-height:330px}
+    .main,.rail,.tools{border:1px solid var(--line);border-radius:14px;background:rgba(10,24,21,.92);min-width:0;overflow:hidden}
+    .main{display:grid;grid-template-rows:auto auto 1fr auto}
+    .hero{
+      padding:14px 14px 12px;border-bottom:1px solid var(--line);
+      background:radial-gradient(circle at 100% 0%,rgba(45,212,168,.16),transparent 45%),rgba(12,28,25,.9);
+    }
+    .hero .eyebrow{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--school);margin-bottom:6px}
+    .hero h3{margin:0;font-size:18px;letter-spacing:-.02em;font-family:"Source Serif 4",Georgia,serif;font-weight:650}
+    .hero p{margin:6px 0 0;font-size:12px;color:var(--muted);line-height:1.4;max-width:52ch}
+    .cta-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+    .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);background:rgba(16,40,36,.55)}
+    .metric{border:1px solid var(--line);border-radius:10px;padding:7px 8px;background:rgba(5,16,14,.55)}
+    .metric small{display:block;font-size:9px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;font-weight:800}
+    .metric b{font-size:12px}
+    .body{padding:10px;position:relative;min-width:0}
+    .catalog{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .cat{
+      border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(5,16,14,.55);
+    }
+    .cat strong{display:block;font-size:12px;margin-bottom:4px}
+    .cat span{font-size:10px;color:var(--dim);line-height:1.4}
+    .btn{min-height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);font-size:11px;font-weight:800;white-space:nowrap}
+    .btn.primary{border:0;background:linear-gradient(135deg,var(--school),var(--school-deep));color:#04241c}
+    table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px}
+    th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    th{color:var(--dim);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+    td.hi{color:#9ff0d2}
+    .rail{padding:10px;display:grid;gap:8px;align-content:start}
+    .rail h4{margin:0;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .box{border:1px solid var(--line);border-radius:10px;padding:8px;background:rgba(5,16,14,.55);font-size:10px;color:var(--dim);line-height:1.4}
+    .box b{display:block;color:var(--ink);margin-bottom:3px}
+    .chip{display:inline-flex;margin:2px 2px 0 0;padding:3px 7px;border-radius:999px;border:1px solid var(--line);font-size:9px;font-weight:800;color:var(--muted)}
+    .chip.on{border-color:rgba(45,212,168,.45);color:#b7f5df;background:rgba(45,212,168,.1)}
+    .chip.off{opacity:.35;text-decoration:line-through}
+    .tools{display:grid;gap:6px;padding:6px;place-content:start center}
+    .tool{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;font-size:12px;color:var(--muted);background:rgba(255,255,255,.04)}
+    .tool.primary{background:rgba(45,212,168,.18);color:#b7f5df;border-color:rgba(45,212,168,.4)}
+    .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .fields .wide{grid-column:1/-1}
+    .field{border:1px solid var(--line);border-radius:10px;padding:8px;background:rgba(5,16,14,.55)}
+    .field label{display:block;font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+    .field input{width:100%;min-height:32px;border-radius:8px;border:1px solid var(--line);background:rgba(5,16,14,.9);color:var(--ink);padding:0 9px;font-size:12px}
+    .save{display:flex;flex-wrap:wrap;gap:6px;padding:9px 10px;border-top:1px solid var(--line);background:rgba(16,40,36,.55)}
+    .save-compact{
+      display:flex;align-items:center;gap:8px;padding:8px 10px;
+      border-top:1px solid var(--line);background:rgba(16,40,36,.55);
+    }
+    .save-split{
+      display:inline-flex;align-items:stretch;border-radius:10px;overflow:hidden;
+      box-shadow:0 0 0 1px rgba(45,212,168,.4);
+    }
+    .save-split .go{
+      min-height:34px;padding:0 14px;border:0;background:linear-gradient(135deg,var(--school),var(--school-deep));
+      color:#04241c;font-size:12px;font-weight:900;
+    }
+    .save-split .chev{
+      min-height:34px;min-width:34px;border:0;border-left:1px solid rgba(4,36,28,.25);
+      background:linear-gradient(135deg,#24c49a,#0e6b5f);color:#04241c;font-size:12px;font-weight:900;
+    }
+    .save-menu{position:relative;display:inline-flex}
+    .save-menu .fly{
+      position:absolute;bottom:calc(100% + 6px);left:0;min-width:230px;
+      border:1px solid var(--line);border-radius:12px;padding:6px;
+      background:rgba(8,22,19,.98);box-shadow:0 18px 40px rgba(0,0,0,.45);z-index:3;
+    }
+    .save-menu .fly button{
+      display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;
+      min-height:34px;padding:0 10px;border:0;border-radius:8px;background:transparent;
+      color:var(--ink);font-size:11px;font-weight:750;text-align:left;
+    }
+    .save-menu .fly button small{color:var(--dim);font-size:10px;font-weight:700}
+    .save-menu .fly .sep{height:1px;margin:4px 6px;background:var(--line)}
+    .save-menu .fly .danger{color:#ffc3ca}
+    .save-hint{margin-left:auto;font-size:10px;color:var(--dim);font-weight:700}
+    .icon-btn{
+      width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
+      background:rgba(255,255,255,.04);color:var(--muted);display:grid;place-items:center;font-size:14px;font-weight:900;
+    }
+    .void{
+      position:absolute;inset:12px 8px 12px 48%;border:1px dashed rgba(241,91,108,.45);border-radius:10px;
+      background:rgba(241,91,108,.06);display:grid;place-items:center;text-align:center;padding:8px;
+      color:#ffc3ca;font-size:10px;font-weight:800;line-height:1.35;pointer-events:none;
+    }
+    .contrast{
+      margin-top:22px;border:1px solid rgba(91,140,255,.35);border-radius:16px;padding:14px 16px;
+      background:rgba(91,140,255,.08);font-family:Inter,ui-sans-serif,system-ui,sans-serif;
+    }
+    .contrast h3{margin:0 0 8px;font-size:14px;color:#c9d8ff}
+    .contrast p{margin:0;font-size:12px;color:var(--muted);line-height:1.5}
+    .prompt{
+      margin-top:14px;border:1px solid rgba(45,212,168,.35);border-radius:16px;padding:14px 16px;
+      background:rgba(45,212,168,.07);font-family:ui-monospace,Menlo,Consolas,monospace;
+    }
+    .prompt h3{margin:0 0 8px;font-size:13px;color:#b7f5df;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+    .prompt pre{margin:0;white-space:pre-wrap;color:var(--muted);font-size:11px;line-height:1.45}
+    @media(max-width:1100px){.compare,.grid3,.catalog{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <span class="pill">Approval · tenant /admin/ · school configuration engine</span>
+    <h1>New Test High School · configuration engine</h1>
+    <p class="lede">
+      Tenant Django admin at hosts like
+      <code>https://new-school.runmycampus.com/admin/</code>
+      must feel as polished as operator <code>/admin/</code> — same full-fill canvas, same page-aware rail —
+      but every word, KPI, escape hatch, and tool is <b>school-centric</b>. This is the school’s
+      configuration backend/engine, not a thin clone of Platform Backoffice.
+    </p>
+
+    <div class="grid3">
+      <div class="cardish"><b>Creativity</b><span>School mark + teal brand cascade as hero signal; catalog cards for config domains, not a raw model dump.</span></div>
+      <div class="cardish"><b>Innovation</b><span>Page-aware tools: index has no CRUD +; list has Add/Filters; form has View site / Form pulse — never all at once.</span></div>
+      <div class="cardish"><b>Simplicity</b><span>Three escapes: Config center · Feature control · Portal. No Studio, Invite school, or fleet CTAs on tenant.</span></div>
+    </div>
+
+    <div class="section">Surface 1 · Tenant index (school hub)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head"><div><h2>Before</h2><small>“Tenant Administration” · thin · platform bleed risk</small></div><span class="tag before">Before</span></div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="brand"><div class="mark">T</div><div><strong>Tenant Administration</strong><em>Admin portal</em></div></div>
+            <div class="search">Search models…</div>
+            <div class="escapes"><span class="esc bad">Studio</span><span class="esc bad">Invite school</span><span class="esc">Backend</span></div>
+          </div>
+          <div class="ws">
+            <div class="main">
+              <div class="hero">
+                <div class="eyebrow">Tenant model catalog</div>
+                <h3>School backoffice</h3>
+                <p>Raw model list. Same left-cramped feel. Generic tools column with inert +.</p>
+              </div>
+              <div class="metrics">
+                <div class="metric"><small>Models</small><b>42</b></div>
+                <div class="metric"><small>Sections</small><b>8</b></div>
+                <div class="metric"><small>Scope</small><b>Tenant manifesto…</b></div>
+              </div>
+              <div class="body">
+                <div class="catalog" style="max-width:55%">
+                  <div class="cat"><strong>Accounts</strong><span>Users, groups…</span></div>
+                  <div class="cat"><strong>Academics</strong><span>Classes…</span></div>
+                </div>
+                <div class="void">UNUSED SPACE<br>+ generic chrome</div>
+              </div>
+            </div>
+            <aside class="rail"><h4>Boundary</h4><div class="box"><b>Static</b>Tenant backend · same text everywhere</div></aside>
+            <div class="tools"><span class="tool primary">+</span><span class="tool">⚡</span><span class="tool">?</span><span class="tool">↑</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><h2>After</h2><small>School-named engine · domain CTAs · index tools only</small></div><span class="tag after">After</span></div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="brand"><div class="mark">N</div><div><strong>New Test High School</strong><em>Configuration &amp; records</em></div></div>
+            <div class="search">Search school settings, people, academics…</div>
+            <div class="escapes">
+              <span class="esc primary">Config center</span>
+              <span class="esc">Feature control</span>
+              <span class="esc">Portal</span>
+            </div>
+          </div>
+          <div class="ws">
+            <div class="main">
+              <div class="hero">
+                <div class="eyebrow">School configuration engine</div>
+                <h3>Configure this school</h3>
+                <p>Guided domains first. Raw models stay one click away — never the hero story.</p>
+                <div class="cta-row">
+                  <button class="btn primary" type="button">Open Config center</button>
+                  <button class="btn" type="button">Feature control</button>
+                  <button class="btn" type="button">Browse models</button>
+                </div>
+              </div>
+              <div class="metrics">
+                <div class="metric"><small>Staff accounts</small><b>18</b></div>
+                <div class="metric"><small>Config readiness</small><b>72%</b></div>
+                <div class="metric"><small>Pending invites</small><b>3</b></div>
+              </div>
+              <div class="body">
+                <div class="catalog">
+                  <div class="cat"><strong>People &amp; access</strong><span>Users · roles · guardians — school-scoped</span></div>
+                  <div class="cat"><strong>Academics</strong><span>Classes · subjects · calendars</span></div>
+                  <div class="cat"><strong>Finance</strong><span>Fee types · invoices · waivers</span></div>
+                  <div class="cat"><strong>Brand &amp; launch</strong><span>SiteSettings · features · communications</span></div>
+                </div>
+              </div>
+            </div>
+            <aside class="rail">
+              <h4>School boundary</h4>
+              <div class="box"><b>New Test High School</b>Tenant host · this school only</div>
+              <h4>On this page</h4>
+              <div class="box">Hub · 4 domains · catalog collapsed by section</div>
+              <div>
+                <span class="chip on">Config center</span>
+                <span class="chip on">Features</span>
+                <span class="chip off">Add user</span>
+                <span class="chip off">Filters</span>
+                <span class="chip off">Studio</span>
+              </div>
+            </aside>
+            <div class="tools" title="Index: no model CRUD">
+              <span class="tool" title="Command palette">?</span>
+              <span class="tool" title="Back to top">↑</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="section">Surface 2 · Tenant Users list (page-aware + full-fill)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head"><div><h2>Before</h2><small>Left-cramped · Operator-style labels · inert tools</small></div><span class="tag before">Before</span></div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="brand"><div class="mark">T</div><div><strong>Tenant Administration</strong><em>Users</em></div></div>
+            <div class="search">Search…</div>
+            <div class="escapes"><span class="esc bad">Platform Backoffice</span></div>
+          </div>
+          <div class="ws">
+            <div class="main">
+              <div class="hero" style="padding:10px 12px"><h3 style="font-size:15px">Users</h3></div>
+              <div class="metrics"><div class="metric"><small>Scope</small><b>Tenant</b></div><div class="metric"><small>Canvas</small><b>—</b></div><div class="metric"><small>Native</small><b>—</b></div></div>
+              <div class="body">
+                <table style="width:max-content;table-layout:auto"><thead><tr><th></th><th>Username</th><th>Email</th><th>Role</th></tr></thead>
+                <tbody><tr><td>☐</td><td class="hi">school.admin</td><td class="hi">a@…</td><td>ADMIN</td></tr></tbody></table>
+                <div class="void">DEAD ZONE</div>
+              </div>
+            </div>
+            <aside class="rail"><h4>Operator boundary</h4><div class="box"><b>Wrong host language</b>Platform wording on school host</div></aside>
+            <div class="tools"><span class="tool primary">+</span><span class="tool">⚡</span><span class="tool">?</span><span class="tool">↗</span><span class="tool">↑</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><h2>After</h2><small>School boundary · table fills · list tools only</small></div><span class="tag after">After</span></div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="brand"><div class="mark">N</div><div><strong>New Test High School</strong><em>People · Users</em></div></div>
+            <div class="search">Search staff &amp; accounts in this school…</div>
+            <div class="escapes"><span class="esc">Config center</span><span class="esc">Portal</span></div>
+          </div>
+          <div class="ws">
+            <div class="main">
+              <div class="hero" style="padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+                <div><div class="eyebrow">School records</div><h3 style="font-size:16px;margin:0">Users</h3></div>
+                <button class="btn primary" type="button">Add user</button>
+              </div>
+              <div class="metrics">
+                <div class="metric"><small>On page</small><b>10</b></div>
+                <div class="metric"><small>Filters</small><b>Role · Active</b></div>
+                <div class="metric"><small>School</small><b>New Test HS</b></div>
+              </div>
+              <div class="body">
+                <table>
+                  <thead><tr><th style="width:2rem"></th><th>Username</th><th>Email</th><th>Role</th><th>Staff</th><th>Active</th></tr></thead>
+                  <tbody>
+                    <tr><td>☐</td><td class="hi">school.admin</td><td class="hi">admin@new-school…</td><td>ADMIN</td><td>✓</td><td>✓</td></tr>
+                    <tr><td>☐</td><td class="hi">j.doe</td><td class="hi">j.doe@new-school…</td><td>TEACHER</td><td>—</td><td>✓</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <aside class="rail">
+              <h4>School boundary</h4>
+              <div class="box"><b>accounts · user</b>This school’s people only</div>
+              <h4>This list</h4>
+              <div class="box">10 shown · Filters available · Page 1</div>
+              <div><span class="chip on">Add user</span><span class="chip on">Filters</span><span class="chip off">View site</span><span class="chip off">Invite school</span></div>
+            </aside>
+            <div class="tools">
+              <span class="tool primary">+</span>
+              <span class="tool">⚡</span>
+              <span class="tool">?</span>
+              <span class="tool">↑</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="section">Surface 3 · Tenant change form (config record)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head"><div><h2>Before</h2><small>Crushed fields · Filters tool · platform boundary copy</small></div><span class="tag before">Before</span></div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="brand"><div class="mark">T</div><div><strong>Tenant Administration</strong><em>Change user</em></div></div>
+            <div class="search">Search…</div>
+            <div class="escapes"><span class="esc bad">Control plane</span></div>
+          </div>
+          <div class="ws">
+            <div class="main">
+              <div class="hero" style="padding:10px 12px"><h3 style="font-size:15px;margin:0">Change user</h3></div>
+              <div class="metrics"><div class="metric"><small>Scope</small><b>Tenant</b></div><div class="metric"><small>Sections</small><b>--</b></div><div class="metric"><small>Save</small><b>Clean</b></div></div>
+              <div class="body">
+                <div class="fields" style="max-width:30%;grid-template-columns:1fr">
+                  <div class="field"><label>Username</label><input value="school.admin" readonly></div>
+                </div>
+                <div class="void">EMPTY LANE</div>
+              </div>
+            </div>
+            <aside class="rail"><h4>Operator boundary</h4><div class="box"><b>Wrong</b>Platform language</div></aside>
+            <div class="tools"><span class="tool primary">+</span><span class="tool">⚡</span><span class="tool">?</span><span class="tool">↗</span><span class="tool">↑</span></div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><h2>After</h2><small>Full-fill · compact Save ▾ · form-only tools</small></div><span class="tag after">After</span></div>
+        <div class="mock">
+          <div class="topbar">
+            <div class="brand"><div class="mark">N</div><div><strong>New Test High School</strong><em>People · Edit user</em></div></div>
+            <div class="search">Jump to settings, classes, finance…</div>
+            <div class="escapes"><span class="esc">Config center</span><span class="esc">Portal</span></div>
+          </div>
+          <div class="ws">
+            <div class="main">
+              <div class="hero" style="padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+                <div><div class="eyebrow">Editing school account</div><h3 style="font-size:16px;margin:0">school.admin</h3></div>
+                <div style="display:flex;gap:6px"><button class="btn" type="button">Form</button><button class="btn" type="button">Audit</button></div>
+              </div>
+              <div class="metrics">
+                <div class="metric"><small>Mode</small><b>Editing</b></div>
+                <div class="metric"><small>Sections</small><b>4</b></div>
+                <div class="metric"><small>Save</small><b>Clean</b></div>
+              </div>
+              <div class="body">
+                <div class="fields">
+                  <div class="field"><label>Username</label><input value="school.admin" readonly></div>
+                  <div class="field"><label>Email</label><input value="admin@new-school…" readonly></div>
+                  <div class="field wide"><label>Role in this school</label><input value="ADMIN · settings.manage" readonly></div>
+                  <div class="field"><label>First name</label><input value="School" readonly></div>
+                  <div class="field"><label>Last name</label><input value="Admin" readonly></div>
+                </div>
+              </div>
+              <div class="save-compact" aria-label="Save actions">
+                <div class="save-menu">
+                  <div class="save-split">
+                    <button class="go" type="button">Save</button>
+                    <button class="chev" type="button" aria-label="More save options">▾</button>
+                  </div>
+                  <div class="fly" role="menu">
+                    <button type="button">Save <small>↵</small></button>
+                    <button type="button">Save and continue editing <small>⌘S</small></button>
+                    <button type="button">Save and add another <small>⌘⇧S</small></button>
+                    <div class="sep"></div>
+                    <button type="button" class="danger">Delete user</button>
+                  </div>
+                </div>
+                <button class="icon-btn" type="button" title="Back">←</button>
+                <span class="save-hint">Split Save · variants in menu</span>
+              </div>
+            </div>
+            <aside class="rail">
+              <h4>School boundary</h4>
+              <div class="box"><b>This record</b>APP accounts · MODE Editing · Active Yes</div>
+              <h4>Form pulse</h4>
+              <div class="box">Required empty 0 · Dirty no</div>
+              <h4>Related in this school</h4>
+              <div class="box">Feature control · Roles · Config center</div>
+              <div><span class="chip on">Save ▾</span><span class="chip on">View site</span><span class="chip on">History</span><span class="chip off">Filters</span><span class="chip off">Studio</span></div>
+            </aside>
+            <div class="tools">
+              <span class="tool primary">+</span>
+              <span class="tool">↗</span>
+              <span class="tool">?</span>
+              <span class="tool">↑</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="contrast">
+      <h3>Operator contrast (same pattern, different world)</h3>
+      <p>
+        Operator <code>/admin/</code> keeps Platform Backoffice identity, fleet KPIs, Studio / Invite school on the
+        <b>index only</b>, and “Operator boundary” rail copy. Tenant never receives those.
+        Both hosts share: full-fill tables/forms, page-aware tools (list ≠ form ≠ index),
+        and a context rail that only shows facts for the open surface.
+      </p>
+    </div>
+
+    <div class="prompt">
+      <h3>Aggressive fix prompt (after both HTMLs approved)</h3>
+      <pre>CLAIM: Django admin full-fill + page/surface-aware chrome — operator + tenant configuration engine
+
+1) CSS full-fill (both shells): kill #result_list max-content + th/td 24rem caps; kill .form-row false label|value grid vs Unfold .field-line; inputs/field-line 100%; Save flush in form panel.
+2) Page-aware tools: index = ⌘K + top only (no + / Filters / View site); changelist = Add (if allowed) + Filters + ⌘K; change-form = Add (if allowed) + View site (if URL) + ⌘K — never show Filters on forms or View site on lists.
+3) Tenant identity: school name + “Configuration & records”; remove Operator boundary / Platform / Studio / Invite school / control-plane strip from tenant host; school-scoped rail + metrics; index CTAs = Config center / Feature control / Browse models + school KPIs.
+4) Operator keeps Platform Backoffice; fleet CTAs only on operator index — not on every model page.
+5) Compact Save: split button [Save | ▾] — continue / add another / delete in menu (not a horizontal button wall). Keyboard shortcuts preserved.
+6) Harden audit_django_admin_canvas_contract.py + page-aware chrome checks; cache-bust + SW bump; prove Users list/form on manager AND new-school tenant hosts.
+DO NOT touch backend_* portal shells. No parallel strategy docs.</pre>
+    </div>
+  </div>
+</body>
+</html>

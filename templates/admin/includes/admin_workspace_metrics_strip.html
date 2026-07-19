@@ -14,7 +14,7 @@
       </h1>
     {% else %}
       {% trans "This form" as tip_form_title %}
-      {% blocktrans asvar tip_form_body %}Smart field grid with one horizontal save row. Context lives in the rail; tools stay in the thin column.{% endblocktrans %}
+      {% blocktrans asvar tip_form_body %}Smart field grid with a compact Save control (more options in the menu). Context lives in the rail; tools stay page-aware in the thin column.{% endblocktrans %}
       <h1 class="truncate">
         {% if add %}
           {% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}
@@ -49,10 +49,10 @@
 </header>
 <div class="rmc-django-metrics rmc-django-metrics--compact" data-rmc-django-metrics="1" role="group" aria-label="{% trans 'Workspace status' %}">
   {% trans "Scope" as tip_scope_title %}
-  {% blocktrans asvar tip_scope_body %}Operator hosts manage the platform fleet. Tenant hosts are school-scoped — never cross schools.{% endblocktrans %}
+  {% blocktrans asvar tip_scope_body %}Operator hosts manage the platform fleet. School hosts are school-scoped configuration engines — never cross schools.{% endblocktrans %}
   <div class="rmc-django-metric is-good">
     <span>{% trans "Scope" %} {% rmc_info_tag title=tip_scope_title body=tip_scope_body surface="django-admin" %}</span>
-    <b>{% if is_manager_host %}{% trans "Operator" %}{% else %}{% trans "Tenant" %}{% endif %}</b>
+    <b>{% if is_manager_host %}{% trans "Operator" %}{% else %}{% firstof SITE.site_name _("School") %}{% endif %}</b>
   </div>
   {% if surface == "change-list" %}
   <div class="rmc-django-metric">

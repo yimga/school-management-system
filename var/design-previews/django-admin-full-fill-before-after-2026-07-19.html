@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Django admin — full-fill canvas (before / after) — APPROVAL</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050914;
+      --surface: #0d1829;
+      --panel: #111f35;
+      --line: rgba(177, 200, 236, 0.17);
+      --text: #eef5ff;
+      --muted: #a4b4cc;
+      --dim: #71839d;
+      --blue: #4f7dff;
+      --green: #26d486;
+      --amber: #f8bf3f;
+      --red: #f15b6c;
+      --violet: #8c72ff;
+      --neon: #7dffb3;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 80% -8%, rgba(79, 125, 255, 0.22), transparent 30%),
+        radial-gradient(circle at 10% 0%, rgba(38, 212, 134, 0.1), transparent 26%),
+        linear-gradient(180deg, #06101d, var(--bg));
+    }
+    .page { max-width: 1560px; margin: 0 auto; padding: 28px 22px 72px; }
+    .hero { display: grid; gap: 12px; margin-bottom: 22px; }
+    .pill {
+      display: inline-flex; width: fit-content; padding: 5px 11px; border-radius: 999px;
+      border: 1px solid rgba(248, 191, 63, 0.45); background: rgba(248, 191, 63, 0.12);
+      color: #ffe5a4; font-size: 11px; font-weight: 850; letter-spacing: 0.07em; text-transform: uppercase;
+    }
+    .hero h1 { margin: 0; font-size: clamp(1.6rem, 2.4vw, 2.2rem); letter-spacing: -0.02em; }
+    .hero p { margin: 0; color: var(--muted); max-width: 95ch; line-height: 1.55; font-size: 14px; }
+    .findings {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 6px 0 18px;
+    }
+    .finding {
+      border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
+      background: rgba(17, 31, 53, 0.72);
+    }
+    .finding strong { display: block; font-size: 12px; margin-bottom: 4px; }
+    .finding span { color: var(--dim); font-size: 11px; line-height: 1.4; display: block; }
+    .section-label {
+      margin: 22px 0 10px; font-size: 12px; font-weight: 900; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .panel {
+      border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+      background: linear-gradient(180deg, rgba(17, 31, 53, 0.96), rgba(9, 17, 31, 0.98));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+      min-width: 0;
+    }
+    .panel-head {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 12px 14px; border-bottom: 1px solid var(--line); background: rgba(22, 39, 65, 0.72);
+    }
+    .panel-head h2 { margin: 0; font-size: 13px; }
+    .panel-head small { color: var(--muted); font-size: 11px; }
+    .tag {
+      font-size: 10px; font-weight: 950; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 4px 9px; border-radius: 999px; white-space: nowrap;
+    }
+    .tag.before { background: rgba(241, 91, 108, 0.18); color: #ffc3ca; border: 1px solid rgba(241, 91, 108, 0.4); }
+    .tag.after { background: rgba(38, 212, 134, 0.16); color: #9ff0c6; border: 1px solid rgba(38, 212, 134, 0.4); }
+    .mock {
+      padding: 12px; display: grid; gap: 10px;
+      background: #070f1c;
+      min-height: 420px;
+    }
+    .chrome {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      min-height: 36px; padding: 0 10px; border-radius: 10px;
+      border: 1px solid var(--line); background: rgba(13, 24, 42, 0.9); font-size: 11px; color: var(--muted);
+    }
+    .chrome b { color: var(--text); }
+    .ws {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 18%) 2.4rem;
+      gap: 8px;
+      min-height: 340px;
+      align-items: stretch;
+    }
+    .main, .rail, .tools {
+      border: 1px solid var(--line); border-radius: 12px; background: rgba(9, 17, 31, 0.88);
+      min-width: 0; overflow: hidden;
+    }
+    .main { display: grid; grid-template-rows: auto auto 1fr auto; }
+    .title-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 10px 12px; border-bottom: 1px solid var(--line);
+    }
+    .title-row h3 { margin: 0; font-size: 16px; letter-spacing: -0.02em; }
+    .metrics {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;
+      padding: 8px 10px; border-bottom: 1px solid var(--line); background: rgba(22, 39, 65, 0.35);
+    }
+    .metric {
+      border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; background: rgba(5, 11, 20, 0.55);
+    }
+    .metric small { display: block; font-size: 9px; color: var(--dim); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 800; }
+    .metric b { font-size: 12px; }
+    .body { padding: 10px; min-width: 0; position: relative; }
+    .search {
+      display: flex; gap: 6px; margin-bottom: 10px;
+    }
+    .search input {
+      flex: 1; min-width: 0; min-height: 32px; border-radius: 8px;
+      border: 1px solid var(--line); background: rgba(5, 11, 20, 0.85); color: var(--text);
+      padding: 0 10px; font-size: 12px;
+    }
+    .btn {
+      min-height: 32px; padding: 0 11px; border-radius: 8px; border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.05); color: var(--text); font-size: 11px; font-weight: 800;
+      white-space: nowrap;
+    }
+    .btn.primary { border: 0; background: linear-gradient(135deg, var(--green), #1a9b65); color: #04130b; }
+    .btn.danger { border-color: rgba(241, 91, 108, 0.45); color: #ffc3ca; background: rgba(241, 91, 108, 0.1); }
+
+    /* BEFORE: table max-content + cell clamps = left cramp */
+    .table-wrap.before { overflow: auto; }
+    table.before {
+      width: max-content;
+      min-width: 0;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    table.before th, table.before td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      max-width: 11rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    table.before th { color: var(--dim); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+    table.before td.neon { color: var(--neon); }
+    .void-hint {
+      position: absolute; inset: 48px 8px 52px 58%;
+      border: 1px dashed rgba(241, 91, 108, 0.45);
+      border-radius: 10px;
+      background: rgba(241, 91, 108, 0.06);
+      display: grid; place-items: center; text-align: center; padding: 10px;
+      color: #ffc3ca; font-size: 11px; font-weight: 800; line-height: 1.35; pointer-events: none;
+    }
+
+    /* AFTER: table fills main pane */
+    .table-wrap.after { overflow-x: auto; }
+    table.after {
+      width: 100%;
+      min-width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 11px;
+    }
+    table.after th, table.after td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      max-width: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    table.after th { color: var(--dim); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+    table.after td.neon { color: var(--neon); }
+    table.after col.c-check { width: 2.2rem; }
+    table.after col.c-user { width: 22%; }
+    table.after col.c-email { width: 34%; }
+    table.after col.c-role { width: 18%; }
+    table.after col.c-staff { width: 13%; }
+    table.after col.c-active { width: 13%; }
+
+    .rail { padding: 10px; display: grid; gap: 10px; align-content: start; }
+    .rail h4 {
+      margin: 0; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    }
+    .rail .box {
+      border: 1px solid var(--line); border-radius: 10px; padding: 8px;
+      background: rgba(5, 11, 20, 0.55); font-size: 10px; color: var(--dim); line-height: 1.4;
+    }
+    .rail .box b { color: var(--text); display: block; margin-bottom: 4px; }
+    .tools {
+      display: grid; gap: 6px; padding: 6px; place-content: start center;
+    }
+    .tools span {
+      width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line);
+      display: grid; place-items: center; font-size: 12px; color: var(--muted); background: rgba(255,255,255,0.04);
+    }
+
+    /* FORM BEFORE: false label|value grid crushes Unfold .field-line into ~30% */
+    .form-body { padding: 10px; display: grid; gap: 10px; position: relative; min-height: 260px; }
+    .tabs {
+      display: flex; gap: 2px; overflow: auto; padding: 2px;
+      border-bottom: 1px solid var(--line); margin: -2px -2px 0;
+    }
+    .tabs span {
+      font-size: 10px; font-weight: 800; color: var(--muted); padding: 7px 9px;
+      border-radius: 8px; white-space: nowrap;
+    }
+    .tabs span.on { background: rgba(79, 125, 255, 0.22); color: var(--text); }
+    .form-row.before {
+      display: grid;
+      grid-template-columns: minmax(5rem, 0.28fr) minmax(0, 1fr);
+      gap: 0;
+      border: 1px solid transparent;
+    }
+    /* Simulate Unfold: ONE child (.field-line) lands in first track only */
+    .field-line {
+      display: flex; flex-direction: column; gap: 5px; min-width: 0;
+      padding: 8px; border: 1px solid var(--line); border-radius: 10px;
+      background: rgba(5, 11, 20, 0.55);
+    }
+    .field-line label {
+      font-size: 10px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+    }
+    .field-line .input {
+      width: 100%; min-height: 34px; border-radius: 8px;
+      border: 1px solid var(--line); background: rgba(5, 11, 20, 0.9); color: var(--text);
+      padding: 0 10px; font-size: 12px;
+    }
+    .field-line .readonly {
+      font-size: 10px; color: var(--dim); line-height: 1.45; word-break: break-all;
+    }
+    .form-row.before .field-line { grid-column: 1; }
+    .form-row.before::after {
+      content: "";
+      /* empty second track = the live dead zone */
+    }
+    .save.before {
+      position: absolute; right: 10px; bottom: 10px; width: min(220px, 42%);
+      border: 1px solid var(--line); border-radius: 12px; padding: 8px;
+      background: rgba(13, 24, 42, 0.95); display: grid; gap: 6px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+    .save .btn { width: 100%; text-align: center; display: grid; place-items: center; }
+
+    /* FORM AFTER: field-line full width; smart 2-col on form-rows; save flush */
+    .form-rows.after {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .form-rows.after .wide { grid-column: 1 / -1; }
+    .form-row.after { display: block; width: 100%; }
+    .form-row.after .field-line { width: 100%; }
+    .save.after {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      padding: 10px; border-top: 1px solid var(--line);
+      background: rgba(22, 39, 65, 0.45);
+    }
+    .save.after .btn { min-width: 7.5rem; }
+    .save.after .spacer { flex: 1; }
+    .save-compact {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+      border-top: 1px solid var(--line); background: rgba(22, 39, 65, 0.45);
+    }
+    .save-split {
+      display: inline-flex; border-radius: 10px; overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(38, 212, 134, 0.35);
+    }
+    .save-split .go {
+      min-height: 34px; padding: 0 14px; border: 0;
+      background: linear-gradient(135deg, var(--green), #1a9b65);
+      color: #04130b; font-size: 12px; font-weight: 900;
+    }
+    .save-split .chev {
+      min-height: 34px; min-width: 34px; border: 0;
+      border-left: 1px solid rgba(4, 19, 11, 0.22);
+      background: linear-gradient(135deg, #1fbf76, #168a5a);
+      color: #04130b; font-size: 12px; font-weight: 900;
+    }
+    .save-menu { position: relative; display: inline-flex; }
+    .save-menu .fly {
+      position: absolute; bottom: calc(100% + 6px); left: 0; min-width: 220px;
+      border: 1px solid var(--line); border-radius: 12px; padding: 6px;
+      background: rgba(13, 24, 42, 0.98); box-shadow: 0 18px 40px rgba(0,0,0,0.45); z-index: 3;
+    }
+    .save-menu .fly button {
+      display: flex; width: 100%; justify-content: space-between; align-items: center;
+      min-height: 34px; padding: 0 10px; border: 0; border-radius: 8px;
+      background: transparent; color: var(--text); font-size: 11px; font-weight: 750;
+    }
+    .save-menu .fly small { color: var(--dim); }
+    .save-menu .fly .sep { height: 1px; margin: 4px 6px; background: var(--line); }
+    .save-menu .fly .danger { color: #ffc3ca; }
+    .save-hint { margin-left: auto; font-size: 10px; color: var(--dim); font-weight: 700; }
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04); color: var(--muted); display: grid; place-items: center;
+      font-size: 14px; font-weight: 900;
+    }
+
+    .callout {
+      margin-top: 18px; border: 1px solid rgba(79, 125, 255, 0.35); border-radius: 14px;
+      padding: 14px 16px; background: rgba(79, 125, 255, 0.08);
+    }
+    .callout h3 { margin: 0 0 8px; font-size: 14px; }
+    .callout ol { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .callout code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px; color: #c9d8ff;
+    }
+    .prompt {
+      margin-top: 12px; border: 1px solid rgba(38, 212, 134, 0.35); border-radius: 14px;
+      padding: 14px 16px; background: rgba(38, 212, 134, 0.07);
+    }
+    .prompt h3 { margin: 0 0 8px; font-size: 14px; color: #9ff0c6; }
+    .prompt pre {
+      margin: 0; white-space: pre-wrap; color: var(--muted); font-size: 12px; line-height: 1.45;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    @media (max-width: 1100px) {
+      .compare, .findings { grid-template-columns: 1fr; }
+      .ws { grid-template-columns: minmax(0, 1fr) minmax(8rem, 28%) 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <span class="pill">Approval required — no implementation until you sign off</span>
+      <h1>Django admin full-fill — why pages still look left-cramped</h1>
+      <p>
+        Audit result: the outer workbench (main + Operator Boundary rail + 48px tools) is already correct.
+        The disgraceful void is <b>inside</b> the main pane. Changelist tables still compute as
+        <code>width: max-content</code> with cell caps, and change-form CSS still treats Unfold’s single
+        <code>.field-line</code> child as a classic Django label|control 2-column grid — crushing fields into ~28% width
+        and leaving a dead lane beside Save. Scope: operator <b>and</b> tenant <code>/admin/</code>. Learn-from:
+        <code>/super/</code> full-width canvas (main column always <code>minmax(0,1fr)</code> + tables/forms at 100%).
+      </p>
+    </div>
+
+    <div class="findings">
+      <div class="finding">
+        <strong>1. Table refuses to stretch</strong>
+        <span><code>rmc-admin-django-canvas-contract.css</code> + <code>rmc-admin-changelist-live.css</code> keep <code>#result_list { width: max-content }</code> and <code>th/td { max-width: 24rem }</code>. Short User lists leave a void after STAFF.</span>
+      </div>
+      <div class="finding">
+        <strong>2. Form row grid is wrong for Unfold</strong>
+        <span><code>.form-row { grid-template-columns: 0.24fr / 0.32fr | 1fr }</code> puts the entire <code>.field-line</code> in track 1. Track 2 is empty → left cramp + floating Save.</span>
+      </div>
+      <div class="finding">
+        <strong>3. Audits passed markers, not pixels</strong>
+        <span>Contract scripts check tokens / structure. Contradictory “terminal” CSS blocks still leave the bad rules winning on specificity. Fix = one last override that kills max-content + false label|value grid.</span>
+      </div>
+    </div>
+
+    <div class="section-label">Surface A — Users changelist (matches your screenshot)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Before — live today</h2>
+            <small>Table hugs content · void beside rail</small>
+          </div>
+          <span class="tag before">Before</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>RUNMYCAMPUS</b> · /admin/accounts/user/</span><span>Operator Backoffice</span></div>
+          <div class="ws">
+            <div class="main">
+              <div class="title-row"><h3>Users</h3><button class="btn primary" type="button">Add user</button></div>
+              <div class="metrics">
+                <div class="metric"><small>On page</small><b>10</b></div>
+                <div class="metric"><small>Filters</small><b>Available</b></div>
+                <div class="metric"><small>Save</small><b>—</b></div>
+              </div>
+              <div class="body">
+                <div class="search"><input value="Search users…" readonly><button class="btn" type="button">Search</button><button class="btn" type="button">Filters</button></div>
+                <div class="table-wrap before">
+                  <table class="before">
+                    <thead><tr><th></th><th>Username</th><th>Email address</th><th>Role</th><th>Staff</th></tr></thead>
+                    <tbody>
+                      <tr><td>☐</td><td class="neon">admin</td><td class="neon">admin@…</td><td>SUPERADMIN</td><td>✓</td></tr>
+                      <tr><td>☐</td><td class="neon">demo.teacher</td><td class="neon">teacher@…</td><td>TEACHER</td><td>—</td></tr>
+                      <tr><td>☐</td><td class="neon">demo.parent</td><td class="neon">parent@…</td><td>PARENT</td><td>—</td></tr>
+                      <tr><td>☐</td><td class="neon">bursar</td><td class="neon">bursar@…</td><td>BURSAR</td><td>✓</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="void-hint">DEAD ZONE<br>max-content table<br>+ 24rem cell caps</div>
+              </div>
+            </div>
+            <aside class="rail">
+              <h4>Operator boundary</h4>
+              <div class="box"><b>accounts · user</b>Host-aware admin surface</div>
+              <h4>This list</h4>
+              <div class="box">APP accounts<br>MODEL user<br>ON PAGE 10<br>FILTERS Available</div>
+            </aside>
+            <div class="tools"><span>+</span><span>⚡</span><span>⋯</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>After — proposed</h2>
+            <small>Table fills col-1 up to the rail · /super/ pattern</small>
+          </div>
+          <span class="tag after">After</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>RUNMYCAMPUS</b> · /admin/accounts/user/</span><span>Operator Backoffice</span></div>
+          <div class="ws">
+            <div class="main">
+              <div class="title-row"><h3>Users</h3><button class="btn primary" type="button">Add user</button></div>
+              <div class="metrics">
+                <div class="metric"><small>On page</small><b>10</b></div>
+                <div class="metric"><small>Filters</small><b>Available</b></div>
+                <div class="metric"><small>Results</small><b>Full width</b></div>
+              </div>
+              <div class="body">
+                <div class="search"><input value="Search users…" readonly><button class="btn" type="button">Search</button><button class="btn" type="button">Filters</button></div>
+                <div class="table-wrap after">
+                  <table class="after">
+                    <colgroup>
+                      <col class="c-check"><col class="c-user"><col class="c-email"><col class="c-role"><col class="c-staff"><col class="c-active">
+                    </colgroup>
+                    <thead><tr><th></th><th>Username</th><th>Email address</th><th>Role</th><th>Staff</th><th>Active</th></tr></thead>
+                    <tbody>
+                      <tr><td>☐</td><td class="neon">admin</td><td class="neon">admin@runmycampus.com</td><td>SUPERADMIN</td><td>✓</td><td>✓</td></tr>
+                      <tr><td>☐</td><td class="neon">demo.teacher</td><td class="neon">teacher@demo.school</td><td>TEACHER</td><td>—</td><td>✓</td></tr>
+                      <tr><td>☐</td><td class="neon">demo.parent</td><td class="neon">parent@demo.school</td><td>PARENT</td><td>—</td><td>✓</td></tr>
+                      <tr><td>☐</td><td class="neon">bursar</td><td class="neon">bursar@demo.school</td><td>BURSAR</td><td>✓</td><td>✓</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <aside class="rail">
+              <h4>Operator boundary</h4>
+              <div class="box"><b>accounts · user</b>Page-aware · no dead void</div>
+              <h4>This list</h4>
+              <div class="box">APP accounts<br>MODEL user<br>ON PAGE 10<br>WIDTH 100%</div>
+            </aside>
+            <div class="tools"><span>+</span><span>⚡</span><span>⋯</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="section-label">Surface B — Add / Change user form (matches your screenshots)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Before — live today</h2>
+            <small>False label|value grid · fields in ~28% · Save floats</small>
+          </div>
+          <span class="tag before">Before</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>Change user</b> · Form mode</span><span>Scope · Operator</span></div>
+          <div class="ws">
+            <div class="main">
+              <div class="title-row"><h3>Change user</h3><button class="btn" type="button">History</button></div>
+              <div class="metrics">
+                <div class="metric"><small>Scope</small><b>Operator</b></div>
+                <div class="metric"><small>Sections</small><b>4</b></div>
+                <div class="metric"><small>Save</small><b>Clean</b></div>
+              </div>
+              <div class="form-body">
+                <div class="tabs"><span class="on">Personal info</span><span>Permissions</span><span>Important dates</span></div>
+                <div class="form-row before">
+                  <div class="field-line">
+                    <label>Username</label>
+                    <input class="input" value="admin" readonly>
+                  </div>
+                </div>
+                <div class="form-row before">
+                  <div class="field-line">
+                    <label>Password</label>
+                    <div class="readonly">
+                      <strong>PASSWORD</strong> algorithm: pbkdf2…<br>
+                      <strong>HASH</strong> ************************<br>
+                      <strong>LAST NAME</strong> looks stacked because the column is crushed
+                    </div>
+                  </div>
+                </div>
+                <div class="void-hint" style="inset: 56px 8px 96px 36%;">EMPTY 1fr TRACK<br>Unfold .field-line<br>stuck in 0.28fr</div>
+                <div class="save before">
+                  <button class="btn primary" type="button">Save</button>
+                  <button class="btn" type="button">Save and continue</button>
+                  <button class="btn" type="button">Save and add another</button>
+                  <button class="btn" type="button">Back</button>
+                  <button class="btn danger" type="button">Delete user</button>
+                </div>
+              </div>
+            </div>
+            <aside class="rail">
+              <h4>Operator boundary</h4>
+              <div class="box"><b>This record</b>APP accounts<br>MODEL user<br>ACTIVE Yes</div>
+              <h4>Form pulse</h4>
+              <div class="box">Mode Form<br>Dirty No<br>Sections ready</div>
+            </aside>
+            <div class="tools"><span>👁</span><span>⋯</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>After — proposed</h2>
+            <small>field-line 100% · smart 2-col · compact Save ▾</small>
+          </div>
+          <span class="tag after">After</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>Change user</b> · Form mode</span><span>Scope · Operator</span></div>
+          <div class="ws">
+            <div class="main">
+              <div class="title-row"><h3>Change user</h3><button class="btn" type="button">History</button></div>
+              <div class="metrics">
+                <div class="metric"><small>Scope</small><b>Operator</b></div>
+                <div class="metric"><small>Sections</small><b>4</b></div>
+                <div class="metric"><small>Save</small><b>Clean</b></div>
+              </div>
+              <div class="form-body" style="padding-bottom: 0;">
+                <div class="tabs"><span class="on">Personal info</span><span>Permissions</span><span>Important dates</span></div>
+                <div class="form-rows after">
+                  <div class="form-row after">
+                    <div class="field-line">
+                      <label>Username</label>
+                      <input class="input" value="admin" readonly>
+                    </div>
+                  </div>
+                  <div class="form-row after">
+                    <div class="field-line">
+                      <label>Email address</label>
+                      <input class="input" value="admin@runmycampus.com" readonly>
+                    </div>
+                  </div>
+                  <div class="form-row after wide">
+                    <div class="field-line">
+                      <label>Password</label>
+                      <div class="readonly">
+                        Algorithm <b style="color:var(--text)">pbkdf2_sha256</b> · iterations 870000<br>
+                        Hash summary readable across the full field width — no stacked shouty labels in a crushed column.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-row after">
+                    <div class="field-line">
+                      <label>First name</label>
+                      <input class="input" value="Platform" readonly>
+                    </div>
+                  </div>
+                  <div class="form-row after">
+                    <div class="field-line">
+                      <label>Last name</label>
+                      <input class="input" value="Admin" readonly>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="save-compact">
+                <div class="save-menu">
+                  <div class="save-split">
+                    <button class="go" type="button">Save</button>
+                    <button class="chev" type="button">▾</button>
+                  </div>
+                  <div class="fly">
+                    <button type="button">Save <small>↵</small></button>
+                    <button type="button">Save and continue editing <small>⌘S</small></button>
+                    <button type="button">Save and add another <small>⌘⇧S</small></button>
+                    <div class="sep"></div>
+                    <button type="button" class="danger">Delete user</button>
+                  </div>
+                </div>
+                <button class="icon-btn" type="button">←</button>
+                <span class="save-hint">1 primary · variants in ▾</span>
+              </div>
+            </div>
+            <aside class="rail">
+              <h4>Operator boundary</h4>
+              <div class="box"><b>This record</b>APP accounts<br>MODEL user<br>ACTIVE Yes</div>
+              <h4>Form pulse</h4>
+              <div class="box">Fields fill col-1<br>Save anchored<br>No dead lane</div>
+            </aside>
+            <div class="tools"><span>👁</span><span>⋯</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="callout">
+      <h3>What we will change after you approve (CSS-first, platform-wide /admin/)</h3>
+      <ol>
+        <li>Kill every <code>width: max-content</code> on <code>#result_list</code> / <code>.results table</code>; set <code>width: 100%</code>; remove <code>th/td max-width: 24rem</code> clamps.</li>
+        <li>Stop <code>.form-row { grid-template-columns: 0.24fr|0.32fr 1fr }</code>. Unfold has one <code>.field-line</code> child — use block/flex column; keep 12/2-col smart grid on <code>.form-rows</code> only.</li>
+        <li>Inputs + <code>.field-line</code> at <code>width: 100%</code>; password readonly fills the field (override <code>max-w-2xl</code>).</li>
+        <li>Save stays in <code>[data-rmc-django-actions-in-panel]</code>, full width of the form panel, flush under fieldsets.</li>
+        <li>One terminal override block with high enough specificity for both <code>admin-manager-shell</code> and <code>admin-premium-shell</code> (operator + tenant). Do not touch <code>backend_*</code> / portal shells.</li>
+        <li>Harden <code>audit_django_admin_canvas_contract.py</code> to fail on <code>max-content</code> / false label|value <code>.form-row</code> grids so this cannot regress.</li>
+      </ol>
+    </div>
+
+    <div class="prompt">
+      <h3>Aggressive fix prompt (ready after approval)</h3>
+      <pre>CLAIM: Django admin canvas fill — kill max-content tables + false label|value form-row grid (operator + tenant /admin/)
+
+Root cause confirmed by audit + live screenshots:
+1) #result_list / .results table still width:max-content + th/td max-width clamps (canvas contract + rmc-admin-changelist-live.css)
+2) .form-row still grid-template-columns ~0.24fr/0.32fr | 1fr, but Unfold markup has ONE .field-line child — fields crush into ~28% and Save looks floating in the empty 1fr track
+3) Audits checked markers; contradictory terminal CSS blocks still lose/win incorrectly — ship ONE last override that wins
+
+Implement CSS-first (templates only if password readonly needs a thin override):
+- static/css/rmc-admin-django-canvas-contract.css — append ONE terminal full-fill block at EOF; neutralize max-content + false label|value .form-row grids for both admin-manager-shell and admin-premium-shell
+- static/css/rmc-admin-changelist-live.css — remove width:max-content and td max-width:24rem
+- scripts/audit_django_admin_canvas_contract.py — fail if max-content or 0.24fr/0.32fr form-row grids remain as winners
+- bump cache-bust + service-worker CACHE_VERSION
+
+MUST:
+- Tables width:100% fill col-1 up to Operator Boundary rail; horizontal scroll only on true overflow
+- .form-rows > .form-row = block/flex column (NOT label|value grid); smart multi-col on .form-rows; .field-line + inputs 100%
+- Save full width of form panel only, flush under fields
+- Password readonly readable full width (no crushed stacked-label look)
+- Platform-wide operator + tenant /admin/ parity; DO NOT touch backend_* / portal shells
+- Prove: audit green + visual Users changelist/add/change fill the main pane on manager and tenant hosts
+- Re-audit twice; record SOT/autonomous log only after gates pass
+
+DO NOT create parallel strategy docs. Smallest production-ready CSS diff.</pre>
+    </div>
+  </div>
+</body>
+</html>

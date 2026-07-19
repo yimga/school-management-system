@@ -45,7 +45,7 @@
         {% include "admin/includes/admin_workspace_metrics_strip.html" with surface="change-form" %}
         <section class="rmc-django-command-band" data-rmc-django-command-band="change-form" aria-label="{% trans 'Admin form command surface' %}">
             <div class="rmc-django-command-band__copy">
-                <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% trans "Tenant backend" %}{% endif %}</span>
+                <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
                 <strong>
                     {% if add %}
                         {% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}
@@ -53,7 +53,7 @@
                         {% blocktrans with name=opts.verbose_name %}Change {{ name }}{% endblocktrans %}
                     {% endif %}
                 </strong>
-                <small>{% trans "Full-canvas form workspace. Fields, audit context, and save actions stay inside one balanced surface." %}</small>
+                <small>{% trans "Full-canvas form. Compact Save menu keeps actions tight; page-aware rail and tools stay host-scoped." %}</small>
             </div>
             <div class="rmc-django-view-toggle" role="tablist" aria-label="{% trans 'View mode' %}" data-rmc-django-view-toggle="1">
                 <button type="button" class="rmc-django-view-toggle__btn is-active" role="tab" aria-selected="true" data-rmc-django-view="form">{% trans "Form" %}</button>
