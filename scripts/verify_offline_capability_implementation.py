@@ -95,6 +95,13 @@ _CAPABILITY_SPEC: dict[str, dict] = {
         "form_kinds": ("homework_submission",),
         "generic": False,
     },
+    "enable_offline_fee_payment_sync": {
+        "sodp_tokens": ("payment_receipt", "payment.proof_upload"),
+        "sodp_members": ("PAYMENT_PROOF", "PAYMENT_RECEIPT"),
+        "wal_domains": ("billing_charge",),
+        "form_kinds": ("payment_receipt",),
+        "generic": False,
+    },
 }
 
 
