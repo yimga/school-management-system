@@ -138,7 +138,9 @@
 
   function setViewMode(workspace, mode) {
     if (!workspace || !mode) return;
-    var allowed = { form: 1, preview: 1, audit: 1 };
+    // Staged/fake Preview mode removed — only Form + Audit are honest.
+    if (mode === "preview") mode = "form";
+    var allowed = { form: 1, audit: 1 };
     if (!allowed[mode]) mode = "form";
     workspace.setAttribute("data-rmc-django-view-mode", mode);
     try {
@@ -160,12 +162,7 @@
       else panel.setAttribute("hidden", "");
     });
 
-    if (mode === "preview") {
-      var pUrl = resolvePreviewUrl();
-      if (pUrl) mountIframeInStage(pUrl);
-    } else {
-      closePreviewDrawer();
-    }
+    closePreviewDrawer();
   }
 
   function initViewToggle() {
@@ -178,47 +175,27 @@
     } catch (_e) {
       stored = null;
     }
-    if (stored === "form" || stored === "preview" || stored === "audit") {
+    if (stored === "preview") stored = "form";
+    if (stored === "form" || stored === "audit") {
       setViewMode(workspace, stored);
     } else {
       setViewMode(workspace, "form");
     }
 
     workspace.addEventListener("click", function (ev) {
-      var jump = ev.target.closest("[data-rmc-django-view-jump]");
-      if (jump) {
-        ev.preventDefault();
-        var jumpMode = jump.getAttribute("data-rmc-django-view-jump");
-        setViewMode(workspace, jumpMode);
-        if (jumpMode === "preview") openPreviewDrawer();
-        return;
-      }
       var btn = ev.target.closest("[data-rmc-django-view-toggle] [data-rmc-django-view]");
       if (!btn) return;
       ev.preventDefault();
       var mode = btn.getAttribute("data-rmc-django-view");
       setViewMode(workspace, mode);
-      if (mode === "preview") openPreviewDrawer();
     });
   }
 
   function initPreviewOpeners() {
+    // Keep close handlers for model-specific real drawers (e.g. CountryRegistry).
+    // Do not create staged Django preview drawers from generic chrome.
     document.addEventListener("click", function (ev) {
-      var openBtn = ev.target.closest("[data-rmc-django-preview-open]");
-      if (openBtn) {
-        ev.preventDefault();
-        var mode = openBtn.getAttribute("data-rmc-django-preview-open") || "drawer";
-        var url = resolvePreviewUrl();
-        if (mode === "popout" && url) {
-          openPreviewPopout(url);
-        } else if (mode === "tab" && url) {
-          openPreviewTab(url);
-        } else {
-          openPreviewDrawer();
-        }
-        return;
-      }
-      var closeBtn = ev.target.closest("[data-rmc-django-preview-close]");
+      var closeBtn = ev.target.closest("[data-rmc-django-preview-close], [data-rmc-mv-preview-close]");
       if (closeBtn) {
         ev.preventDefault();
         closePreviewDrawer(closeBtn.closest(".rmc-mv-preview-drawer"));
@@ -289,10 +266,66 @@
     }
   }
 
+  function initPageAwarePulse() {
+    var pulse = document.querySelector("[data-rmc-django-rail-pulse]");
+    if (!pulse) return;
+    var main = document.getElementById("content-main");
+    var form =
+      (main && main.querySelector("form")) ||
+      document.querySelector(".rmc-django-form-panel form") ||
+      document.querySelector("#content-main form");
+    if (!form) return;
+
+    var elSections = pulse.querySelector('[data-rmc-pulse="sections"]');
+    var elRequired = pulse.querySelector('[data-rmc-pulse="required-empty"]');
+    var elDirty = pulse.querySelector('[data-rmc-pulse="dirty"]');
+    var cleanLabel = pulse.getAttribute("data-rmc-pulse-clean") || "Clean";
+    var dirtyLabel = pulse.getAttribute("data-rmc-pulse-dirty") || "Unsaved";
+    var dirty = false;
+
+    function countSections() {
+      if (!main) return 0;
+      return main.querySelectorAll("fieldset.module, .inline-group").length;
+    }
+
+    function countRequiredEmpty() {
+      var nodes = form.querySelectorAll(
+        "input[required], select[required], textarea[required], .required input, .required select, .required textarea"
+      );
+      var empty = 0;
+      Array.prototype.forEach.call(nodes, function (el) {
+        if (el.disabled || el.type === "hidden") return;
+        var val = (el.value || "").trim();
+        if (!val) empty += 1;
+      });
+      return empty;
+    }
+
+    function refresh() {
+      if (elSections) elSections.textContent = String(countSections());
+      if (elRequired) elRequired.textContent = String(countRequiredEmpty());
+      if (elDirty) {
+        elDirty.textContent = dirty ? dirtyLabel : cleanLabel;
+        elDirty.classList.toggle("is-warn", dirty);
+      }
+    }
+
+    form.addEventListener("input", function () {
+      dirty = true;
+      refresh();
+    });
+    form.addEventListener("change", function () {
+      dirty = true;
+      refresh();
+    });
+    refresh();
+  }
+
   ready(function () {
     initOnThisPage();
     initViewToggle();
     initPreviewOpeners();
     initChangelistRail();
+    initPageAwarePulse();
   });
 })();

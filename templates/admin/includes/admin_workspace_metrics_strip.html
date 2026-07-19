@@ -7,7 +7,7 @@
   <div class="rmc-django-workspace-head__copy">
     {% if surface == "change-list" %}
       <h1>{{ cl.opts.verbose_name_plural|capfirst }}</h1>
-      <p>{% trans "Full-width records surface. Tables stay native; filters and context stay in the rail." %}</p>
+      <p>{% trans "Full-width records surface. Tables stay native; the rail is context only — Add and filters live in the head and tools." %}</p>
     {% else %}
       <h1>
         {% if add %}
@@ -16,14 +16,19 @@
           {% blocktrans with name=opts.verbose_name %}Change {{ name }}{% endblocktrans %}
         {% endif %}
       </h1>
-      <p>{% trans "Full-canvas form workbench: command band, smart field grid, contextual rail, and one clear save row." %}</p>
+      <p>{% trans "Balanced full-canvas workbench: smart field grid, context-only rail, tools column, and one horizontal save row." %}</p>
     {% endif %}
   </div>
   <div class="rmc-django-workspace-head__actions" data-rmc-django-head-actions="1">
-    {% if surface == "change-list" and has_add_permission %}
-      {% url cl.opts|admin_urlname:"add" as add_url %}
-      {% if add_url %}
-      <a class="rmc-django-head-action rmc-django-head-action--primary" href="{% add_preserved_filters add_url is_popup to_field %}">{% blocktrans with name=cl.opts.verbose_name %}Add {{ name }}{% endblocktrans %}</a>
+    {% if surface == "change-list" %}
+      {% if has_add_permission %}
+        {% url cl.opts|admin_urlname:"add" as add_url %}
+        {% if add_url %}
+        <a class="rmc-django-head-action rmc-django-head-action--primary" href="{% add_preserved_filters add_url is_popup to_field %}">{% blocktrans with name=cl.opts.verbose_name %}Add {{ name }}{% endblocktrans %}</a>
+        {% endif %}
+      {% endif %}
+      {% if cl.has_filters %}
+        <button type="button" class="rmc-django-head-action" data-rmc-changelist-open-filters="1">{% trans "Filters" %}</button>
       {% endif %}
     {% elif surface != "change-list" and change and original %}
       {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
@@ -40,6 +45,6 @@
   <div class="rmc-django-metric is-good"><span>{% trans "Canvas" %}</span><b>100%</b></div>
   <div class="rmc-django-metric is-good"><span>{% trans "Form cap" %}</span><b>{% trans "Removed" %}</b></div>
   <div class="rmc-django-metric is-good"><span>{% trans "Table" %}</span><b>{% trans "Native" %}</b></div>
-  <div class="rmc-django-metric is-warn"><span>{% trans "Preview" %}</span><b>{% trans "Stage" %}</b></div>
+  <div class="rmc-django-metric is-good"><span>{% trans "Save" %}</span><b>{% trans "Static" %}</b></div>
   <div class="rmc-django-metric is-good"><span>{% trans "Scope" %}</span><b>{% if is_manager_host %}{% trans "Operator" %}{% else %}{% trans "Tenant" %}{% endif %}</b></div>
 </div>

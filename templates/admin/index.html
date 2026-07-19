@@ -420,8 +420,8 @@
         <p class="app-meta">{% trans "Users, roles, authentication, and entity orchestration" %}</p>
         <div class="app-actions">
           <a href="{% url 'admin:accounts_user_changelist' %}" class="app-btn">{% trans "Users" %}</a>
-          <a href="{% url 'admin:accounts_accessrole_changelist' %}" class="app-btn">{% trans "Roles" %}</a>
-          <a href="{% url 'admin:auth_group_changelist' %}" class="app-btn">{% trans "Groups" %}</a>
+          <a href="{% url 'accounts:rbac' %}" class="app-btn">{% trans "Roles" %}</a>
+          <a href="{% url 'accounts:rbac' %}" class="app-btn">{% trans "Groups" %}</a>
         </div>
         <div class="app-actions mt-2">
           <a href="{% url 'accounts:rbac' %}" class="app-btn">{% trans "RBAC & Access Control" %}</a>
@@ -434,9 +434,9 @@
         <h3 class="app-title">{% trans "People Management" %}</h3>
         <p class="app-meta">{% trans "Students, teachers, guardians" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:people_studentprofile_changelist' %}" class="app-btn">{% trans "Student profiles" %}</a>
-          <a href="{% url 'admin:people_studentguardian_changelist' %}" class="app-btn">{% trans "Student guardians" %}</a>
-          <a href="{% url 'admin:people_teacherprofile_changelist' %}" class="app-btn">{% trans_term "Teachers" key="teacher" plural=True %}</a>
+          <a href="{% url 'accounts:backend_student_list' %}" class="app-btn">{% trans "Student profiles" %}</a>
+          <a href="{% url 'accounts:backend_guardian_list' %}" class="app-btn">{% trans "Student guardians" %}</a>
+          <a href="{% url 'accounts:backend_teacher_list' %}" class="app-btn">{% trans_term "Teachers" key="teacher" plural=True %}</a>
         </div>
       </div>
 

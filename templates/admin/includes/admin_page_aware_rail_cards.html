@@ -1,0 +1,81 @@
+{% load i18n %}
+{% comment %}
+  Page-aware rail body: this-object / this-list facts, live pulse, guided paths.
+  Included via {% admin_page_aware_rail surface=... %}.
+{% endcomment %}
+{% if rail %}
+<div class="rmc-rail-card" data-rmc-django-rail-page="1">
+  <div class="rmc-rail-h">{{ rail.boundary_title }}</div>
+  <div class="rmc-rail-b">
+    <div class="rmc-rail-scope">
+      <strong>{{ rail.boundary_strong }}</strong>
+      <span>{{ rail.boundary_hint }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="rmc-rail-card" data-rmc-django-rail-this-page="1">
+  <div class="rmc-rail-h">{% if rail.surface == "change-list" %}{% trans "This list" %}{% elif rail.surface == "index" %}{% trans "This catalog" %}{% elif rail.surface == "app-index" %}{% trans "This app" %}{% elif rail.surface == "guided" %}{% trans "This action" %}{% else %}{% trans "This record" %}{% endif %}</div>
+  <div class="rmc-rail-b">
+    <div class="rmc-rail-scope">
+      <strong>{{ rail.page_title }}</strong>
+      <span>{{ rail.page_lede }}</span>
+    </div>
+    {% if rail.facts %}
+    <dl class="rmc-django-rail-facts" data-rmc-django-rail-facts="1">
+      {% for fact in rail.facts %}
+      <div class="rmc-django-rail-fact">
+        <dt>{{ fact.label }}</dt>
+        <dd>{{ fact.value }}</dd>
+      </div>
+      {% endfor %}
+    </dl>
+    {% endif %}
+    {% if rail.links %}
+    <nav class="rmc-django-rail-links" aria-label="{% trans 'Page links' %}">
+      {% for link in rail.links %}
+      <a href="{{ link.url }}"{% if link.external %} target="_blank" rel="noopener"{% endif %}>{{ link.label }}</a>
+      {% endfor %}
+    </nav>
+    {% endif %}
+  </div>
+</div>
+
+{% if rail.pulse_enabled %}
+<div class="rmc-rail-card" data-rmc-django-rail-pulse-card="1">
+  <div class="rmc-rail-h">{% trans "Form pulse" %}</div>
+  <div class="rmc-rail-b">
+    <dl class="rmc-django-rail-facts" data-rmc-django-rail-pulse="1" aria-live="polite"
+        data-rmc-pulse-clean="{% trans 'Clean' %}"
+        data-rmc-pulse-dirty="{% trans 'Unsaved' %}">
+      <div class="rmc-django-rail-fact">
+        <dt>{% trans "Sections" %}</dt>
+        <dd data-rmc-pulse="sections">—</dd>
+      </div>
+      <div class="rmc-django-rail-fact">
+        <dt>{% trans "Required empty" %}</dt>
+        <dd data-rmc-pulse="required-empty">—</dd>
+      </div>
+      <div class="rmc-django-rail-fact">
+        <dt>{% trans "Save state" %}</dt>
+        <dd data-rmc-pulse="dirty">{% trans "Clean" %}</dd>
+      </div>
+    </dl>
+    <p class="rmc-django-rail-pulse-hint" data-rmc-pulse-hint>{% trans "Updates as you move through this form." %}</p>
+  </div>
+</div>
+{% endif %}
+
+{% if rail.guided %}
+<div class="rmc-rail-card" data-rmc-django-rail-guided="1">
+  <div class="rmc-rail-h">{% trans "Related outcomes" %}</div>
+  <div class="rmc-rail-b">
+    <nav class="rmc-django-rail-links" aria-label="{% trans 'Related outcomes' %}">
+      {% for link in rail.guided %}
+      <a href="{{ link.url }}">{{ link.label }}</a>
+      {% endfor %}
+    </nav>
+  </div>
+</div>
+{% endif %}
+{% endif %}

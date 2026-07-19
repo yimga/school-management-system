@@ -5,16 +5,35 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<div class="colM">
-  <h1>{% trans "Permanent delete requires offboarding workflow" %}</h1>
-  <p>{% blocktrans with name=object.name %}Deleting school <strong>{{ name }}</strong> from Django admin bypasses inventory, schema drop, and audit receipts.{% endblocktrans %}</p>
-  <ul>
-    <li>{% trans "Use Tenant 360 Offboarding for the guided purge (dry-run inventory + typed slug)." %}</li>
-    <li>{% trans "Or schedule auto-purge from the offboarding queue after export and legal review." %}</li>
-  </ul>
-  <p>
-    <a class="button" href="{{ offboarding_url }}">{% trans "Open Tenant 360 offboarding" %}</a>
-    <a class="button" href="{% url 'admin:schools_school_changelist' %}">{% trans "Back to schools" %}</a>
-  </p>
+{% with guided_rail_title="Permanent delete blocked" guided_rail_lede="Use Tenant 360 offboarding — admin hard-delete bypasses inventory and audit." %}
+<div class="rmc-admin-workspace rmc-django-workspace rmc-django-canvas" data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-guided" data-rmc-django-workspace="guided" data-rmc-scroll-policy="paginate">
+  {% include "admin/includes/admin_workspace_metrics_strip.html" with surface="change-form" %}
+  <section class="rmc-django-command-band" data-rmc-django-command-band="guided" aria-label="{% trans 'Guided delete command surface' %}">
+    <div class="rmc-django-command-band__copy">
+      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% trans "Tenant backend" %}{% endif %}</span>
+      <strong>{% trans "Permanent delete requires offboarding workflow" %}</strong>
+      <small>{% blocktrans with name=object.name %}Deleting school <strong>{{ name }}</strong> from Django admin bypasses inventory, schema drop, and audit receipts.{% endblocktrans %}</small>
+    </div>
+  </section>
+
+  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
+    <div id="content-main" class="cp-form-frame rmc-django-form-panel" data-rmc-admin-form-contract="premium-form-frame" data-rmc-django-form-panel="1">
+      <div class="rmc-django-form-body" data-rmc-django-form-body="1">
+        <ul class="rmc-django-guided-checklist">
+          <li>{% trans "Use Tenant 360 Offboarding for the guided purge (dry-run inventory + typed slug)." %}</li>
+          <li>{% trans "Or schedule auto-purge from the offboarding queue after export and legal review." %}</li>
+        </ul>
+        <div class="rmc-django-actions-slot" data-rmc-django-actions-slot="1" data-rmc-django-actions-in-panel="1">
+          <div class="submit-row rmc-django-actions">
+            <a class="button default" href="{{ offboarding_url }}">{% trans "Open Tenant 360 offboarding" %}</a>
+            <a class="button" href="{% url 'admin:schools_school_changelist' %}">{% trans "Back to schools" %}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% include "admin/includes/admin_guided_surface_rail.html" %}
+    {% include "admin/includes/admin_workspace_tools.html" with surface="change-form" %}
+  </div>
 </div>
+{% endwith %}
 {% endblock %}

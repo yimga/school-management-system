@@ -1,60 +1,7 @@
 {% load i18n admin_urls %}
 {% comment %}
-  Preview + Audit mode panels for the intelligent change-form canvas.
-  Form mode keeps #content-main; these panels activate via data-rmc-django-view-mode.
+  Audit mode panel only. Staged Live preview panel removed — no fake preview workspace.
 {% endcomment %}
-<section class="rmc-django-mode-panel rmc-django-mode-panel--preview" data-rmc-django-mode-panel="preview" hidden aria-label="{% trans 'Preview workspace' %}">
-  <div class="rmc-django-mode-panel__head">
-    <h2>{% trans "Live preview" %}</h2>
-    {% if rmc_admin_preview_url or has_absolute_url %}
-    <p>{% trans "Preview opens as drawer, popout, or new tab." %}</p>
-    {% else %}
-    <p>{% trans "No preview URL available for this object. Model-specific previews mount here when the object defines get_absolute_url." %}</p>
-    {% endif %}
-  </div>
-  <div class="rmc-django-mode-panel__body">
-    <div class="rmc-django-preview-stage" data-rmc-django-preview-stage="1" data-rmc-admin-preview-url="{% if rmc_admin_preview_url %}{{ rmc_admin_preview_url }}{% elif has_absolute_url %}{{ absolute_url }}{% endif %}">
-      {% if rmc_admin_preview_url or has_absolute_url %}
-      <div class="rmc-django-preview-iframe-wrap" data-rmc-django-preview-iframe-mount="1">
-      </div>
-      {% else %}
-      {% include "admin/includes/admin_preview_card_stage.html" %}
-      {% endif %}
-      <div class="rmc-django-preview-cta-row">
-        {% if rmc_admin_preview_url or has_absolute_url %}
-        <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="drawer">
-          <span aria-hidden="true">▣</span> {% trans "Drawer" %}
-        </button>
-        <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="popout">
-          <span aria-hidden="true">⧉</span> {% trans "Popout" %}
-        </button>
-        <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="tab">
-          <span aria-hidden="true">↗</span> {% trans "New tab" %}
-        </button>
-        {% else %}
-        <button type="button" class="rmc-django-preview-cta" data-rmc-django-preview-open="drawer">
-          <span aria-hidden="true">▣</span> {% trans "Open preview drawer" %}
-        </button>
-        {% endif %}
-      </div>
-      <p class="rmc-django-mode-panel__hint">
-        {% if rmc_admin_preview_url or has_absolute_url %}
-          {% if is_manager_host %}
-            {% trans "Operator preview stays read-only. Popout opens a separate window; new tab opens in the browser." %}
-          {% else %}
-            {% trans "Tenant preview stays school-scoped. Popout opens a separate window; new tab opens in the browser." %}
-          {% endif %}
-        {% else %}
-          {% if is_manager_host %}
-            {% trans "Operator preview stays read-only. Prefer popout when the control rail is already dense." %}
-          {% else %}
-            {% trans "Tenant preview stays school-scoped. Prefer popout when the control rail is already dense." %}
-          {% endif %}
-        {% endif %}
-      </p>
-    </div>
-  </div>
-</section>
 <section class="rmc-django-mode-panel rmc-django-mode-panel--audit" data-rmc-django-mode-panel="audit" hidden aria-label="{% trans 'Audit workspace' %}">
   <div class="rmc-django-mode-panel__head">
     <h2>{% trans "Audit context" %}</h2>
@@ -80,10 +27,12 @@
           <span>{% trans "History appears after the first successful save." %}</span>
         </li>
       {% endif %}
-      <li>
-        <strong>{% trans "Validation" %}</strong>
-        <span>{% trans "Live field checks remain active in Form mode." %}</span>
-      </li>
+      {% if has_absolute_url %}
+        <li>
+          <strong>{% trans "View on site" %}</strong>
+          <span><a href="{{ absolute_url }}" target="_blank" rel="noopener">{% trans "Open live page" %}</a></span>
+        </li>
+      {% endif %}
     </ul>
   </div>
 </section>

@@ -5,29 +5,48 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<div class="module">
-  <h2>{{ title }}</h2>
-  <p>{% trans "Set billing to" %} <strong>{% trans "Complimentary (waived)" %}</strong> {% trans "for the selected school(s). A waiver note is required for compliance." %}</p>
-  {% if schools %}
-  <ul>
-    {% for school in schools %}
-    <li>{{ school.name }} ({{ school.slug }})</li>
-    {% endfor %}
-  </ul>
-  <form method="post" action="">
-    {% csrf_token %}
-    <input type="hidden" name="ids" value="{{ ids }}">
-    <div class="form-row">
-      <label for="waiver_note">{% trans "Waiver note (required):" %}</label>
-      <textarea name="waiver_note" id="waiver_note" rows="4" cols="60" required placeholder="{% trans 'e.g. Partnership with NGO; approved by board 2025-02.' %}"></textarea>
+{% with guided_rail_title=title guided_rail_lede="Set billing to Complimentary (waived). A waiver note is required for compliance." %}
+<div class="rmc-admin-workspace rmc-django-workspace rmc-django-canvas" data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-guided" data-rmc-django-workspace="guided" data-rmc-scroll-policy="paginate">
+  {% include "admin/includes/admin_workspace_metrics_strip.html" with surface="change-form" %}
+  <section class="rmc-django-command-band" data-rmc-django-command-band="guided" aria-label="{% trans 'Waive subscription command surface' %}">
+    <div class="rmc-django-command-band__copy">
+      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% trans "Tenant backend" %}{% endif %}</span>
+      <strong>{{ title }}</strong>
+      <small>{% trans "Set billing to" %} <strong>{% trans "Complimentary (waived)" %}</strong> {% trans "for the selected school(s). A waiver note is required for compliance." %}</small>
     </div>
-    <div class="submit-row">
-      <input type="submit" value="{% trans 'Apply COMPLIMENTARY and save note' %}">
-      <a href="{% url 'admin:schools_school_changelist' %}" class="button cancel-link">{% trans "Cancel" %}</a>
+  </section>
+
+  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
+    <div id="content-main" class="cp-form-frame rmc-django-form-panel" data-rmc-admin-form-contract="premium-form-frame" data-rmc-django-form-panel="1">
+      <div class="rmc-django-form-body" data-rmc-django-form-body="1">
+        {% if schools %}
+        <ul class="rmc-django-guided-checklist">
+          {% for school in schools %}
+          <li>{{ school.name }} ({{ school.slug }})</li>
+          {% endfor %}
+        </ul>
+        <form method="post" action="" class="rmc-django-guided-form">
+          {% csrf_token %}
+          <input type="hidden" name="ids" value="{{ ids }}">
+          <div class="form-row">
+            <label for="waiver_note">{% trans "Waiver note (required):" %}</label>
+            <textarea name="waiver_note" id="waiver_note" rows="4" cols="60" required placeholder="{% trans 'e.g. Partnership with NGO; approved by board 2025-02.' %}"></textarea>
+          </div>
+          <div class="rmc-django-actions-slot" data-rmc-django-actions-slot="1" data-rmc-django-actions-in-panel="1">
+            <div class="submit-row rmc-django-actions">
+              <input type="submit" class="default" value="{% trans 'Apply COMPLIMENTARY and save note' %}">
+              <a href="{% url 'admin:schools_school_changelist' %}" class="button cancel-link">{% trans "Cancel" %}</a>
+            </div>
+          </div>
+        </form>
+        {% else %}
+        <p class="admin-app-index__empty text-muted">{% trans "No schools selected." %} <a href="{% url 'admin:schools_school_changelist' %}">{% trans "Back to Schools" %}</a></p>
+        {% endif %}
+      </div>
     </div>
-  </form>
-  {% else %}
-  <p>{% trans "No schools selected." %} <a href="{% url 'admin:schools_school_changelist' %}">{% trans "Back to Schools" %}</a></p>
-  {% endif %}
+    {% include "admin/includes/admin_guided_surface_rail.html" %}
+    {% include "admin/includes/admin_workspace_tools.html" with surface="change-form" %}
+  </div>
 </div>
+{% endwith %}
 {% endblock %}

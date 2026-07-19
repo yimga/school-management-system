@@ -631,7 +631,8 @@
             <p>Instead of a narrow Django form floating inside a large empty page, the surface becomes a clean workbench: command band, smart form grid, contextual rail, live preview, native table, and one clear action row.</p>
           </div>
           <div class="head-actions">
-            <button class="secondary-action">Browse operator hub</button>
+            <button class="secondary-action">History</button>
+            <button class="secondary-action">View on site</button>
             <button class="primary-action">Save readiness</button>
           </div>
         </div>
@@ -640,7 +641,7 @@
           <div class="metric good"><span>Canvas</span><b>100%</b></div>
           <div class="metric good"><span>Form cap</span><b>Removed</b></div>
           <div class="metric good"><span>Table</span><b>Native</b></div>
-          <div class="metric warn"><span>Preview</span><b>Popout</b></div>
+          <div class="metric good"><span>Save</span><b>Static</b></div>
           <div class="metric good"><span>Scope</span><b>Both</b></div>
         </div>
 
@@ -653,7 +654,6 @@
               </div>
               <div class="view-toggle" aria-label="View mode">
                 <button class="active">Form</button>
-                <button>Preview</button>
                 <button>Audit</button>
               </div>
             </div>
@@ -748,35 +748,14 @@
           <aside class="side-col">
             <section class="side-panel-2">
               <div class="panel-head">
-                <h2>Control rail</h2>
-                <small>Context only</small>
+                <h2>Operator boundary</h2>
+                <small>Page-aware — accounts · user</small>
               </div>
               <div class="panel-body">
-                <div class="insight good"><b>Canvas contract</b><span>Full-width form frame is active for operator and tenant admin.</span></div>
-                <div class="insight good"><b>Save action</b><span>Static action row. No footer overlap, no floating bar leak.</span></div>
-                <div class="insight warn"><b>Live preview</b><span>Preview is available as drawer, popout, or new tab when inline would be cramped.</span></div>
-              </div>
-            </section>
-
-            <section class="side-panel-2">
-              <div class="panel-head">
-                <h2>Live preview</h2>
-                <small>Not squeezed inline</small>
-              </div>
-              <div class="panel-body">
-                <div class="preview-card">
-                  <div class="preview-nav">
-                    <b>Logo</b>
-                    <span></span><span></span><span></span><span></span>
-                  </div>
-                  <div class="preview-screen">
-                    <b>Admin dashboard preview</b>
-                    <div class="preview-line" style="width: 78%;"></div>
-                    <div class="preview-line" style="width: 58%;"></div>
-                    <div class="preview-line" style="width: 86%;"></div>
-                    <div class="preview-line" style="width: 44%;"></div>
-                  </div>
-                </div>
+                <div class="insight good"><b>accounts · user</b><span>Editing — save updates this row only. Not static filler.</span></div>
+                <div class="insight good"><b>This record</b><span>admin · pk 7 · Active Yes · App accounts</span></div>
+                <div class="insight good"><b>Form pulse</b><span>Sections 5 · Required empty 0 · Save state Clean</span></div>
+                <div class="insight good"><b>On this page</b><span>1 · Account foundation · 2 · Access defaults · 3 · Audit note</span></div>
               </div>
             </section>
           </aside>
@@ -799,17 +778,15 @@
       </section>
     </main>
 
-    <aside class="tools">
-      <div class="tool primary">+</div>
-      <div class="tool">◎</div>
-      <div class="tool">⚡</div>
-      <div class="tool">?</div>
-      <div class="tool">↗</div>
+    <aside class="tools" title="Workspace tools">
+      <div class="tool primary" title="Add">+</div>
+      <div class="tool" title="Command palette">?</div>
+      <div class="tool" title="Back to top">↑</div>
     </aside>
 
     <footer class="footer">
       <strong>RunMyCampus Manager Backoffice</strong>
-      <span>Full-canvas Django admin proof - commit 11821d302</span>
+      <span>Full-canvas Django admin — rail context-only; actions in head / tools / save row</span>
       <span>Security - Privacy - Terms</span>
     </footer>
   </div>

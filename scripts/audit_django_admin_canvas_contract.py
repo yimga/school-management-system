@@ -28,8 +28,8 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260717-parity-close" not in base_site:
-        errors.append("Django canvas contract link must use the parity-close cache bust for deployment visibility")
+    if "?v=20260718-page-aware-a2z" not in base_site:
+        errors.append("Django canvas contract link must use the page-aware-a2z cache bust for deployment visibility")
     if f'{contract_link}\' %}}" media="print"' in base_site:
         errors.append("Django canvas contract must not be lazy media=print/onload CSS")
     if contract_link in base_site and "rmc_theme_experience_dual_plane_styles.html" in base_site:
@@ -64,10 +64,10 @@ def main() -> int:
         errors.append("canvas contract must place .form-rows > .form-row on a half-width smart grid (span 6)")
     if "data-rmc-django-actions-in-panel" not in css:
         errors.append("canvas contract must style [data-rmc-django-actions-in-panel] as form-panel footer")
-    if "parity-close" not in css:
-        errors.append("rmc-admin-django-canvas-contract.css must include parity-close G3-G9 block")
-    if "rmc-django-preview-card" not in css:
-        errors.append("canvas contract must style .rmc-django-preview-card preview stage")
+    if "balanced-canvas-no-bleed" not in css and "parity-close" not in css:
+        errors.append("rmc-admin-django-canvas-contract.css must include balanced-canvas / parity-close terminal block")
+    if "page-aware-rail" not in css or "rmc-django-rail-facts" not in css:
+        errors.append("canvas contract must include page-aware-rail facts styling")
     if "data-rmc-django-tools" not in css:
         errors.append("canvas contract must style [data-rmc-django-tools] 48px tools column")
     if "data-rmc-django-metrics" not in css:
@@ -133,16 +133,31 @@ def main() -> int:
         errors.append("admin/change_form.html missing operator/tenant form scope marker")
     if 'data-rmc-admin-surface="smart-form"' not in change_form:
         errors.append("admin/change_form.html missing smart form surface marker")
-    if "admin_preview_card_stage.html" not in change_form and "admin_change_form_mode_panels.html" in change_form:
-        mode_panels = _read("templates/admin/includes/admin_change_form_mode_panels.html")
-        if "admin_preview_card_stage.html" not in mode_panels:
-            errors.append("admin change-form preview mode must include admin_preview_card_stage.html")
+    if "admin_preview_card_stage.html" in change_form:
+        errors.append("admin/change_form.html must not include staged admin_preview_card_stage.html")
     mode_panels = _read("templates/admin/includes/admin_change_form_mode_panels.html")
-    if "admin_preview_card_stage.html" not in mode_panels:
-        errors.append("admin_change_form_mode_panels.html must include preview-card stage")
+    if "admin_preview_card_stage.html" in mode_panels or 'data-rmc-django-mode-panel="preview"' in mode_panels:
+        errors.append("admin_change_form_mode_panels.html must not ship staged Live preview (honest: remove until real)")
+    if 'data-rmc-django-mode-panel="audit"' not in mode_panels:
+        errors.append("admin_change_form_mode_panels.html must keep the Audit mode panel")
     rail = _read("templates/admin/includes/admin_change_form_rail.html")
-    if "admin_preview_card_stage.html" not in rail:
-        errors.append("admin_change_form_rail.html must include preview-card stage")
+    if "admin_preview_card_stage.html" in rail or 'data-rmc-django-rail-preview="1"' in rail or "rmc-django-preview-card" in rail:
+        errors.append("admin_change_form_rail.html must not include staged Live preview")
+    if "admin_page_aware_rail" not in rail and "admin_page_aware_rail_cards" not in rail:
+        errors.append("admin_change_form_rail.html must include page-aware rail cards")
+    if 'data-rmc-django-rail-page-aware="1"' not in rail:
+        errors.append("admin_change_form_rail.html must mark data-rmc-django-rail-page-aware")
+    cl_rail = _read("templates/admin/includes/admin_changelist_rail.html")
+    if "admin_page_aware_rail" not in cl_rail:
+        errors.append("admin_changelist_rail.html must include page-aware rail cards")
+    if 'data-rmc-django-view="preview"' in change_form:
+        errors.append("admin/change_form.html must not expose a Preview view toggle without a real preview")
+    metrics = _read("templates/admin/includes/admin_workspace_metrics_strip.html")
+    if '{% trans "Stage" %}' in metrics or ">Stage<" in metrics:
+        errors.append("admin_workspace_metrics_strip.html must not claim Preview/Stage when preview is removed")
+    tools = _read("templates/admin/includes/admin_workspace_tools.html")
+    if 'data-rmc-django-view-jump="preview"' in tools or "data-rmc-django-preview-open" in tools:
+        errors.append("admin_workspace_tools.html must not expose staged preview tools")
     if "admin_workspace_metrics_strip.html" not in change_form:
         errors.append("admin/change_form.html must include workspace metrics strip")
     if "admin_workspace_tools.html" not in change_form:
@@ -168,9 +183,10 @@ def main() -> int:
     if "<h1" in header_cl:
         errors.append("admin_changelist_header.html must not render an H1 (G9)")
     workspace_js = _read("static/js/rmc-admin-workspace.js")
-    if "mountPreviewStageInDrawer" not in workspace_js:
-        errors.append("rmc-admin-workspace.js must mount preview-card stage into drawer")
-
+    if 'if (mode === "preview") mode = "form";' not in workspace_js:
+        errors.append("rmc-admin-workspace.js must refuse staged preview mode (map to form)")
+    if "data-rmc-django-view-mode" not in workspace_js or "setViewMode" not in workspace_js:
+        errors.append("rmc-admin-workspace.js must wire Form/Audit view mode")
     if 'data-rmc-admin-table-contract="native-table-scroll"' not in change_list:
         errors.append("admin/change_list.html missing native table scroll marker")
     if 'data-rmc-django-workspace="change-list"' not in change_list:
@@ -185,9 +201,6 @@ def main() -> int:
         errors.append("admin/change_list.html missing changelist context rail include")
     if 'cp-changelist-live' not in change_list:
         errors.append("admin/change_list.html must apply cp-changelist-live to tenant and operator")
-    workspace_js = _read("static/js/rmc-admin-workspace.js")
-    if "data-rmc-django-view-mode" not in workspace_js or "setViewMode" not in workspace_js:
-        errors.append("rmc-admin-workspace.js must wire Form/Preview/Audit view mode")
 
     required_css_tokens = (
         "body:is(.admin-manager-shell, .admin-premium-shell)",
@@ -211,7 +224,11 @@ def main() -> int:
         "data-rmc-django-changelist-rail",
         "data-rmc-django-actions-slot",
         "parity-close",
-        "rmc-django-preview-card",
+        "balanced-canvas-no-bleed",
+        "page-aware-rail",
+        "guided-app-index-canvas",
+        "rmc-django-rail-facts",
+        "rmc-django-guided-checklist",
         "data-rmc-django-tools",
         "data-rmc-django-metrics",
         "data-rmc-django-table-pagination",
@@ -221,7 +238,6 @@ def main() -> int:
         "Final platform-wide/tenant-wide Django sweep",
         "Structural canvas closure, 2026-07-11",
         "Production hardening, 2026-07-12",
-        "Preview parity closure, 2026-07-12",
         "HTML-gate independent closure, 2026-07-13",
         "rmc-django-workspace",
         "rmc-django-command-band",
@@ -346,6 +362,29 @@ def _audit_intelligent_index_surfaces() -> list[str]:
     app_index = _read("templates/admin/app_index.html")
     if 'data-rmc-django-command-band="app-index"' not in app_index:
         errors.append("templates/admin/app_index.html missing app-index command band")
+    if "admin_app_index_rail.html" not in app_index:
+        errors.append("templates/admin/app_index.html must include page-aware app-index rail")
+    if 'data-rmc-django-workspace="app-index"' not in app_index:
+        errors.append("templates/admin/app_index.html missing app-index workspace marker")
+
+    app_rail = _read("templates/admin/includes/admin_app_index_rail.html")
+    if "admin_page_aware_rail" not in app_rail or 'data-rmc-django-rail-page-aware="1"' not in app_rail:
+        errors.append("admin_app_index_rail.html must be page-aware")
+
+    for guided_path in (
+        "templates/admin/schools/school/delete_guided.html",
+        "templates/admin/schools/school/waive_subscription_form.html",
+    ):
+        guided = _read(guided_path)
+        if "admin_guided_surface_rail.html" not in guided:
+            errors.append(f"{guided_path} must include guided page-aware rail")
+        if 'data-rmc-django-workspace="guided"' not in guided:
+            errors.append(f"{guided_path} must use guided django workspace canvas")
+        if "rmc-django-form-panel" not in guided:
+            errors.append(f"{guided_path} must use premium form panel frame")
+
+    if "admin_page_aware_rail" not in _read("templates/admin/includes/admin_index_context_rail.html"):
+        errors.append("admin_index_context_rail.html must include page-aware rail")
 
     return errors
 

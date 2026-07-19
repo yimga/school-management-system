@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Django admin page-aware rail A–Z (batch 1764 - 2026-07-18)
+
+**A. Scope:** After HTML approval, audit then implement page-aware rails platform-wide on operator + tenant Django admin; close app-index and guided-form gaps; re-audit A–Z.
+
+**B. Shipped:** Page-aware builders (change-form/list/index/app-index/guided); rails on all shared surfaces + school waive/delete; no History/View duplicate in rail; Form pulse JS; guided/app-index workbench CSS; cache `20260718-page-aware-a2z`; SW `sms-v4.05.145`.
+
+**C. Proof:** `audit_django_admin_canvas_contract` + platformwide + tenant-scroll PASS; undefined-css 0; off-token 0; template-compile 1851 OK; 6 `test_admin_page_aware_rail` OK; second surface matrix 12/12.
+
+**D. Honest:** Live Playwright screenshots still need healthy Django + login (not claimed).
+
+**E. Files:** `admin_page_aware_rail.py`, templatetag, rail includes, `app_index` + school guided templates, canvas CSS/JS, audit scripts, tests, SOT/log, SW.
+
+**F. Next:** Commit/push when asked; hard-refresh `/admin/` on manager + tenant after deploy.
+
 ## Slice — Flight Deck hide settled/superseded provision failures (batch 1763 - 2026-07-18)
 
 **A. Scope:** Stop Flight Deck from showing historical FAILED Provision school cards when the school is live or a later attempt superseded them; give operators an explicit Clear gated on success.

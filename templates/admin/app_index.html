@@ -9,70 +9,80 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<div class="admin-app-index rmc-admin-app-index rmc-django-workspace" data-rmc-django-workspace="app-index" data-rmc-admin-surface="smart-app-index" data-rmc-scroll-policy="paginate">
+<div class="admin-app-index rmc-admin-app-index rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="app-index" data-rmc-admin-surface="smart-app-index" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-scroll-policy="paginate">
   <section class="rmc-django-command-band" data-rmc-django-command-band="app-index" aria-label="{% trans 'App catalog command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% trans "Tenant backend" %}{% endif %}</span>
       <strong>{{ title }}</strong>
-      <small>{% blocktranslate with app=app_list.0.name|default:title %}Models in {{ app }}. Prefer guided surfaces when available; use changelist for raw row access.{% endblocktranslate %}</small>
+      {% firstof app_list.0.name title as app_label_copy %}
+      <small>{% blocktranslate with app=app_label_copy %}Models in {{ app }}. Prefer guided surfaces when available; use changelist for raw row access.{% endblocktranslate %}</small>
     </div>
     <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
       <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "Tenant scoped" %}{% endif %}</span>
       <span>{% trans "App catalog" %}</span>
     </div>
   </section>
-  <div class="admin-app-index__back mb-2">
-    <a href="{% url 'admin:index' %}" class="text-decoration-none small">
-      <span aria-hidden="true">←</span> {% if is_manager_host %}{% trans "Back to platform catalog" %}{% else %}{% trans "Back to school catalog" %}{% endif %}
-    </a>
-  </div>
 
-  {% if admin_app_index_models %}
-  <div class="rmc-admin-catalog-model-grid mb-3">
-    {% for model in admin_app_index_models %}
-    <div class="rmc-admin-catalog-model-card">
-      <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-name text-decoration-none">{{ model.name }}</a>
-      <span class="rmc-admin-catalog-model-meta">{{ model.object_name }}</span>
-      <div class="rmc-admin-catalog-model-actions">
-        <a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>
-        {% if model.add_url %}<a href="{{ model.add_url }}">{% trans "Add" %}</a>{% endif %}
-        {% if model.super_url %}<a href="{{ model.super_url }}" class="fw-semibold">{% trans "Operator view" %}</a>{% endif %}
+  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
+    <div class="rmc-admin-index-main" data-rmc-django-form-panel="1">
+      <div class="admin-app-index__back mb-2">
+        <a href="{% url 'admin:index' %}" class="text-decoration-none small">
+          <span aria-hidden="true">←</span> {% if is_manager_host %}{% trans "Back to platform catalog" %}{% else %}{% trans "Back to school catalog" %}{% endif %}
+        </a>
       </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% elif app_list %}
-    {% for app in app_list %}
-      {% if app.models %}
-        <div class="admin-app-index__grid">
-          {% for model in app.models %}
-            {% if not model.hidden %}
-              <div class="admin-app-index__card">
-                {% if model.admin_url %}
-                  <a href="{{ model.admin_url }}" class="admin-app-index__card-link"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>
-                    {{ model.name }}
-                  </a>
-                {% else %}
-                  <span class="admin-app-index__card-link">{{ model.name }}</span>
-                {% endif %}
-                <div class="admin-app-index__card-actions">
-                  {% if model.add_url %}
-                    <a href="{{ model.add_url }}" class="addlink">+ {% trans "Add" %}</a>
-                  {% endif %}
-                  {% if model.admin_url %}
-                    <a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>
-                  {% endif %}
-                </div>
-              </div>
-            {% endif %}
-          {% endfor %}
+
+      <section id="rmc-admin-app-index-models" data-rmc-section-anchor>
+      {% if admin_app_index_models %}
+      <div class="rmc-admin-catalog-model-grid mb-3">
+        {% for model in admin_app_index_models %}
+        <div class="rmc-admin-catalog-model-card">
+          <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-name text-decoration-none">{{ model.name }}</a>
+          <span class="rmc-admin-catalog-model-meta">{{ model.object_name }}</span>
+          <div class="rmc-admin-catalog-model-actions">
+            <a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>
+            {% if model.add_url %}<a href="{{ model.add_url }}">{% trans "Add" %}</a>{% endif %}
+            {% if model.super_url %}<a href="{{ model.super_url }}" class="fw-semibold">{% trans "Operator view" %}</a>{% endif %}
+          </div>
         </div>
+        {% endfor %}
+      </div>
+      {% elif app_list %}
+        {% for app in app_list %}
+          {% if app.models %}
+            <div class="admin-app-index__grid">
+              {% for model in app.models %}
+                {% if not model.hidden %}
+                  <div class="admin-app-index__card">
+                    {% if model.admin_url %}
+                      <a href="{{ model.admin_url }}" class="admin-app-index__card-link"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>
+                        {{ model.name }}
+                      </a>
+                    {% else %}
+                      <span class="admin-app-index__card-link">{{ model.name }}</span>
+                    {% endif %}
+                    <div class="admin-app-index__card-actions">
+                      {% if model.add_url %}
+                        <a href="{{ model.add_url }}" class="addlink">+ {% trans "Add" %}</a>
+                      {% endif %}
+                      {% if model.admin_url %}
+                        <a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="admin-app-index__empty text-muted">{% trans "You don't have permission to view or edit anything in this app." %}</p>
+          {% endif %}
+        {% endfor %}
       {% else %}
-        <p class="admin-app-index__empty text-muted">{% trans "You don't have permission to view or edit anything in this app." %}</p>
+        <p class="admin-app-index__empty text-muted">{% trans "You don't have permission to view or edit anything." %}</p>
       {% endif %}
-    {% endfor %}
-  {% else %}
-    <p class="admin-app-index__empty text-muted">{% trans "You don't have permission to view or edit anything." %}</p>
-  {% endif %}
+      </section>
+    </div>
+    {% include "admin/includes/admin_app_index_rail.html" %}
+    {% include "admin/includes/admin_workspace_tools.html" with surface="app-index" %}
+  </div>
 </div>
 {% endblock %}

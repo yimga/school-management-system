@@ -1,22 +1,9 @@
-{% load i18n %}
+{% load i18n admin_page_aware %}
 {% comment %}
-  G8: shared index context rail for operator + tenant intelligent indexes.
+  Index context rail: page-aware catalog density + section anchors.
 {% endcomment %}
-<aside class="rmc-admin-context-rail rmc-django-side-panel" data-rmc-rail="1" data-rmc-admin-context-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-django-side-panel="1">
-  <div class="rmc-rail-card">
-    <div class="rmc-rail-h">{% if is_manager_host %}{% trans "Operator boundary" %}{% else %}{% trans "Tenant boundary" %}{% endif %}</div>
-    <div class="rmc-rail-b">
-      <div class="rmc-rail-scope">
-        {% if is_manager_host %}
-          <strong>{% trans "Platform backoffice" %}</strong>
-          <span>{% trans "Global/operator records only. Guided work stays in Config center and Studio." %}</span>
-        {% else %}
-          <strong>{% firstof SITE.site_name _("Tenant backend") %}</strong>
-          <span>{% trans "School configuration stays tenant-scoped. Guided changes use Config center; raw rows stay here." %}</span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+<aside class="rmc-admin-context-rail rmc-django-side-panel" data-rmc-rail="1" data-rmc-admin-context-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-django-side-panel="1" data-rmc-django-rail-context-only="1" data-rmc-django-rail-page-aware="1">
+  {% admin_page_aware_rail "index" %}
   <div class="rmc-rail-card">
     <div class="rmc-rail-h">{% trans "On this page" %}</div>
     <div class="rmc-rail-b">
@@ -29,23 +16,6 @@
           <a href="#rmc-tenant-admin-sec-catalog"><span class="rmc-onthispage__n">2</span> {% trans "Model catalog" %}</a>
         {% endif %}
       </nav>
-    </div>
-  </div>
-  <div class="rmc-rail-card">
-    <div class="rmc-rail-h">{% trans "Quick actions" %}</div>
-    <div class="rmc-rail-b">
-      <div class="rmc-rail-actions">
-        <a href="{% url 'siteconfig:console_domains_hub' %}"><span aria-hidden="true">⚙</span> {% trans "Config center" %}</a>
-        {% if is_manager_host %}
-          <a href="{% url 'studio_os:shell' %}"><span aria-hidden="true">⌘</span> {% trans "Studio" %}</a>
-          <a href="{% url 'super:dashboard' %}"><span aria-hidden="true">◎</span> {% trans "Control plane" %}</a>
-          <a href="#rmc-admin-sec-catalog"><span aria-hidden="true">↑</span> {% trans "Back to catalog" %}</a>
-        {% else %}
-          <a href="{% url 'accounts:backend_dashboard' %}"><span aria-hidden="true">⌘</span> {% trans "Backend Console" %}</a>
-          <a href="{% url 'siteconfig:feature_control_panel' %}"><span aria-hidden="true">◎</span> {% trans "Feature control" %}</a>
-          <a href="#rmc-tenant-admin-sec-catalog"><span aria-hidden="true">↑</span> {% trans "Back to catalog" %}</a>
-        {% endif %}
-      </div>
     </div>
   </div>
 </aside>

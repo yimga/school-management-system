@@ -207,7 +207,7 @@
 // rmc-copilot-help-mode.css so tenants drop the retired bottom takeover.
 // v4.05.75: tenant shell chrome contract fixes footer-as-body-content and
 // cache-busts rmc-tenant-workspace-canvas.css for deployed tenants.
-const CACHE_VERSION = "sms-v4.05.141-flight-deck-clear-after-success-2026-07-18";
+const CACHE_VERSION = "sms-v4.05.145-admin-page-aware-a2z-2026-07-18";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -345,6 +345,8 @@ const STATIC_ASSETS = [
   "/static/js/_pages/rmc-attendance-wal-enhance.js",
   "/static/js/_pages/rmc-ai-stream-bridge.js",
   "/static/js/_pages/rmc-gradebook-wal-enhance.js",
+  // v4.05.138: lesson-plan CRDT client caller (Metric 25).
+  "/static/js/_pages/rmc-lesson-plan-crdt-enhance.js",
   // v4.02.66: Global Footprint interactive globe (manager landing).
   "/static/js/rmc-offline-queue-crypto.js",
   "/static/js/rmc-world-globe-loader.js",

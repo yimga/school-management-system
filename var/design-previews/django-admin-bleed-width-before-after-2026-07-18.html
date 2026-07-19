@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Django admin — balanced canvas (rail actions relocated)</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050914; --surface: #111f35; --line: rgba(177,200,236,.17);
+      --text: #eef5ff; --muted: #a4b4cc; --dim: #71839d;
+      --blue: #4f7dff; --green: #26d486; --amber: #f8bf3f; --red: #f15b6c; --violet: #8c72ff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; color: var(--text); min-height: 100vh;
+      background:
+        radial-gradient(circle at 78% -10%, rgba(79,125,255,.22), transparent 28%),
+        radial-gradient(circle at 12% 0%, rgba(38,212,134,.12), transparent 24%),
+        linear-gradient(180deg, #06101d, var(--bg));
+    }
+    .page { max-width: 1480px; margin: 0 auto; padding: 28px 22px 64px; }
+    .hero { display: grid; gap: 10px; margin-bottom: 20px; }
+    .hero h1 { margin: 0; font-size: clamp(1.55rem, 2.3vw, 2.1rem); letter-spacing: -0.02em; }
+    .hero p { margin: 0; color: var(--muted); max-width: 82ch; line-height: 1.5; }
+    .pill {
+      display: inline-flex; width: fit-content; padding: 5px 10px; border-radius: 999px;
+      border: 1px solid rgba(38,212,134,.4); background: rgba(38,212,134,.12);
+      color: #9ff0c6; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase;
+    }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .panel {
+      border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+      background: linear-gradient(180deg, rgba(17,31,53,.94), rgba(9,17,31,.98));
+      box-shadow: 0 24px 70px rgba(0,0,0,.35);
+    }
+    .panel-head {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 13px 15px; border-bottom: 1px solid var(--line); background: rgba(22,39,65,.72);
+    }
+    .panel-head h2 { margin: 0; font-size: 14px; }
+    .panel-head small { color: var(--muted); font-size: 11px; }
+    .tag { font-size: 10px; font-weight: 950; letter-spacing: .08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; }
+    .tag.before { background: rgba(241,91,108,.18); color: #ffc3ca; border: 1px solid rgba(241,91,108,.4); }
+    .tag.after { background: rgba(38,212,134,.16); color: #9ff0c6; border: 1px solid rgba(38,212,134,.4); }
+    .mock { padding: 14px; display: grid; gap: 10px; min-height: 540px; }
+    .band {
+      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+      border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: rgba(13,24,42,.86);
+    }
+    .band strong { display: block; font-size: 13px; }
+    .band small { color: var(--muted); font-size: 11px; }
+    .head-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      min-height: 30px; padding: 0 11px; border-radius: 999px; border: 1px solid var(--line);
+      background: rgba(255,255,255,.05); color: var(--text); font-size: 11px; font-weight: 850;
+    }
+    .chip.primary { border: 0; background: linear-gradient(135deg, var(--green), #1a9b65); color: #04130b; }
+    .ws {
+      display: grid; gap: 12px; align-items: start; min-height: 360px;
+    }
+    .ws.before { grid-template-columns: minmax(0,.55fr) minmax(240px,.45fr); position: relative; }
+    .ws.after { grid-template-columns: minmax(0,1fr) minmax(220px,20vw) 42px; }
+    .card { border: 1px solid var(--line); border-radius: 12px; background: rgba(9,17,31,.82); overflow: hidden; min-width: 0; }
+    .tabs { display: flex; gap: 2px; padding: 8px 10px; border-bottom: 1px solid var(--line); background: rgba(22,39,65,.5); overflow: auto; }
+    .tabs span { font-size: 11px; font-weight: 800; color: var(--muted); padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
+    .tabs span.on { background: rgba(79,125,255,.22); color: var(--text); }
+    .fields { padding: 14px; display: grid; gap: 12px; }
+    .fields.cramped { max-width: 260px; }
+    .fields.smart { grid-template-columns: 1fr 1fr; }
+    .fields.smart .wide { grid-column: 1 / -1; }
+    label { display: block; font-size: 10px; color: var(--muted); font-weight: 900; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px; }
+    .input { width: 100%; min-height: 38px; border-radius: 8px; border: 1px solid var(--line); background: rgba(5,11,20,.82); color: var(--text); padding: 8px 10px; font-size: 12px; }
+    .pad { padding: 12px; display: grid; gap: 10px; }
+    .pad h3 { margin: 0; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .pad p { margin: 0; color: var(--dim); font-size: 11px; line-height: 1.4; }
+    .rail-btns { display: grid; gap: 6px; }
+    .rail-btns a {
+      display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 10px;
+      border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.04);
+      color: #ffc3ca; font-size: 11px; font-weight: 800; text-decoration: none;
+    }
+    .bleed {
+      position: absolute; left: 42%; top: 48px; display: flex; gap: 8px; height: 200px; z-index: 4; pointer-events: none;
+    }
+    .bleed div {
+      width: 16px; overflow-wrap: anywhere; word-break: break-all; font-size: 10px; font-weight: 850;
+      line-height: 1.05; padding: 5px 1px; border-radius: 5px; text-align: center;
+      border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06);
+    }
+    .bleed .save { background: linear-gradient(180deg,#6a7dff,#4a5fe0); color: #fff; }
+    .actions {
+      display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px;
+      padding: 12px 14px; border-top: 1px solid var(--line); background: rgba(22,39,65,.54);
+    }
+    .btn {
+      min-height: 34px; padding: 0 13px; border-radius: 8px; font-size: 12px; font-weight: 900;
+      white-space: nowrap; border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--text);
+    }
+    .btn.primary { border: 0; background: linear-gradient(135deg, var(--violet), var(--blue)); color: #fff; }
+    .btn.danger { background: rgba(241,91,108,.18); color: #ffb4bc; border-color: rgba(241,91,108,.35); }
+    .tools {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 4px;
+      border-left: 1px solid var(--line);
+    }
+    .tool {
+      width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px;
+      border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--muted); font-size: 12px;
+    }
+    .tool.primary { color: #fff; background: linear-gradient(135deg, #806aff, #654dea); border-color: transparent; }
+    .preview {
+      min-height: 120px; border-radius: 10px; padding: 10px;
+      background: linear-gradient(135deg, rgba(255,255,255,.08), transparent 42%), #dbe2ed; color: #172033;
+      display: grid; gap: 7px;
+    }
+    .pline { height: 8px; border-radius: 999px; background: rgba(23,32,51,.14); }
+    .map {
+      margin-top: 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    }
+    .map .card2 {
+      border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: rgba(17,31,53,.7);
+    }
+    .map h3 { margin: 0 0 8px; font-size: 13px; }
+    .map p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .map code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10px; color: #c9d8ff; }
+    @media (max-width: 1100px) {
+      .compare, .map { grid-template-columns: 1fr; }
+      .ws.after { grid-template-columns: 1fr; }
+      .tools { flex-direction: row; border: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <span class="pill">Updated · rail context-only · actions relocated</span>
+      <h1>Operator boundary rail: buttons removed &amp; surfaces balanced</h1>
+      <p>
+        Quick actions are gone from the Operator / Tenant boundary column.
+        History, View on site, Filters, Preview, and Add live in the workspace head and tools column.
+        Delete stays on the horizontal save row. Platform-wide for operator + tenant <code>/admin/</code>.
+      </p>
+    </div>
+
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Before</h2><small>Rail button stack + save bleed</small></div>
+          <span class="tag before">Broken</span>
+        </div>
+        <div class="mock">
+          <div class="band">
+            <div><strong>Change user</strong><small>Actions jammed into the rail</small></div>
+          </div>
+          <div class="ws before">
+            <div class="card">
+              <div class="tabs"><span class="on">Personal info</span><span>Permissions</span><span>Role</span></div>
+              <div class="fields cramped">
+                <div><label>Username</label><div class="input">admin</div></div>
+              </div>
+            </div>
+            <aside class="card">
+              <div class="pad">
+                <h3>Operator boundary</h3>
+                <p>Platform backoffice</p>
+                <h3>Quick actions (removed)</h3>
+                <div class="rail-btns">
+                  <a href="#">↺ View history</a>
+                  <a href="#">↗ View on site</a>
+                  <a href="#">↑ Back to top</a>
+                  <a href="#">🗑 Delete…</a>
+                  <a href="#">▣ Preview drawer</a>
+                  <a href="#">◎ Preview mode</a>
+                </div>
+              </div>
+            </aside>
+            <div class="bleed" aria-hidden="true">
+              <div>Delete user</div>
+              <div>Save and continue editing</div>
+              <div class="save">Save</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>After</h2><small>Balanced canvas · context-only rail</small></div>
+          <span class="tag after">Target</span>
+        </div>
+        <div class="mock">
+          <div class="band">
+            <div><strong>Change user</strong><small>Full-width form · horizontal save · tools for chrome actions</small></div>
+            <div class="head-actions">
+              <span class="chip">History</span>
+              <span class="chip primary">View on site</span>
+            </div>
+          </div>
+          <div class="ws after">
+            <div class="card">
+              <div class="tabs"><span class="on">Personal info</span><span>Permissions</span><span>Role</span></div>
+              <div class="fields smart">
+                <div><label>Username</label><div class="input">admin</div></div>
+                <div><label>Email</label><div class="input">admin@runmycampus.com</div></div>
+                <div class="wide"><label>Notes</label><div class="input" style="min-height:56px">Wide fields span the form column</div></div>
+              </div>
+              <div class="actions">
+                <button class="btn danger" type="button">Delete user</button>
+                <button class="btn" type="button">Save and continue editing</button>
+                <button class="btn" type="button">Back</button>
+                <button class="btn primary" type="button">Save</button>
+              </div>
+            </div>
+            <aside class="card">
+              <div class="pad">
+                <h3>Operator boundary</h3>
+                <p>Context only — no action buttons. Actions live in head, tools, and save row.</p>
+                <h3>On this page</h3>
+                <p>1 · Personal info · 2 · Permissions · 3 · Role</p>
+                <h3>Honest rail</h3>
+                <p>No Live preview / Stage placeholder. Context only.</p>
+              </div>
+            </aside>
+            <aside class="tools" title="Workspace tools">
+              <div class="tool primary">+</div>
+              <div class="tool">?</div>
+              <div class="tool">↑</div>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="map">
+      <div class="card2">
+        <h3>Workspace head</h3>
+        <p>History · View on site · Add · Filters<br><code>admin_workspace_metrics_strip.html</code></p>
+      </div>
+      <div class="card2">
+        <h3>Tools column</h3>
+        <p>Preview mode · Preview drawer · Command palette · Back to top<br><code>admin_workspace_tools.html</code></p>
+      </div>
+      <div class="card2">
+        <h3>Save row</h3>
+        <p>Delete · Save and continue · Save — horizontal, no bleed<br><code>submit_line.html</code> + terminal CSS</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

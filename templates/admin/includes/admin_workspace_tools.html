@@ -19,17 +19,14 @@
     <span class="rmc-django-tool is-primary" aria-hidden="true">+</span>
   {% endif %}
 
-  {% if surface == "change-form" %}
-  <button type="button" class="rmc-django-tool" data-rmc-django-view-jump="preview" title="{% trans 'Preview mode' %}" aria-label="{% trans 'Preview mode' %}">◎</button>
-  {% else %}
-  <button type="button" class="rmc-django-tool" data-rmc-changelist-open-filters title="{% trans 'Filters' %}" aria-label="{% trans 'Filters' %}">⚡</button>
+  {% if surface == "change-list" %}
+  <button type="button" class="rmc-django-tool" data-rmc-changelist-open-filters="1" title="{% trans 'Filters' %}" aria-label="{% trans 'Filters' %}">⚡</button>
   {% endif %}
 
   <button type="button" class="rmc-django-tool" data-rmc-command-bar-trigger="1" title="{% trans 'Command palette' %}" aria-label="{% trans 'Command palette' %}">?</button>
 
   {% if surface == "change-form" and has_absolute_url %}
   <a class="rmc-django-tool" href="{{ absolute_url }}" target="_blank" rel="noopener" title="{% trans 'View on site' %}" aria-label="{% trans 'View on site' %}">↗</a>
-  {% else %}
-  <a class="rmc-django-tool" href="#content-main" title="{% trans 'Back to top' %}" aria-label="{% trans 'Back to top' %}">↑</a>
   {% endif %}
+  <a class="rmc-django-tool" href="#content-main" title="{% trans 'Back to top' %}" aria-label="{% trans 'Back to top' %}">↑</a>
 </aside>
