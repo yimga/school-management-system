@@ -6,12 +6,12 @@ WHY THIS EXISTS
 ``School.objects.create(...)`` that skips the provisioning pipeline lands "live"
 with no tenant workspace behind it and 500s on every request.
 
-That is not hypothetical, and it is not a one-off: the migration
-``schools/0012_seed_default_gilead_school`` MANUFACTURES one on every deploy. It
-is a single-tenant-era leftover ("Seed default tenant … one existing tenant")
-that creates ``gilead-school`` with ``is_active=True, is_approved=True`` and
-never provisions it. Its partner ``customers/0003_ensure_gilead_tenant_domain``
-then runs a bare ``CREATE SCHEMA IF NOT EXISTS gilead_school`` with no
+That is not hypothetical, and it is not a one-off: schools migration ``0012``
+(legacy default-tenant seed) MANUFACTURES one on every deploy. It is a
+single-tenant-era leftover ("Seed default tenant … one existing tenant") that
+creates an active+approved school row and never provisions it. Its partner
+customers migration ``0003`` (legacy default-tenant domain ensure) then runs a
+bare ``CREATE SCHEMA IF NOT EXISTS`` for that tenant with no
 ``migrate_schemas --tenant`` — so the row can even own an EMPTY schema, which is
 why this probe asks whether the schema has TABLES rather than whether it exists.
 
@@ -128,19 +128,91 @@ def _candidate_schema_names(school) -> list[str]:
     return names
 
 
-def _schema_has_tables(schema_name: str) -> bool:
-    """True when this schema exists AND has been migrated into.
+def _workspace_migration_coverage_floor() -> float:
+    """Fraction of expected tenant migrations a schema must have applied to count
+    as at HEAD. Below 1.0 so the brief post-deploy window (before
+    ``migrate_schemas`` catches every tenant up to a newly-added migration) never
+    turns a healthy tenant into a false "absent"; above 0.5 so an early-death
+    partial migrate cannot sneak through. Env/settings overridable (no hardcoding).
+    """
+    from django.conf import settings
 
-    Existence alone is NOT the question, and answering it that way would have
-    made this whole probe useless on the very row it was written for:
-    ``customers/0003_ensure_gilead_tenant_domain`` runs a bare
-    ``CREATE SCHEMA IF NOT EXISTS gilead_school`` and NOTHING else — no
-    ``migrate_schemas --tenant`` — so the default-seeded tenant can own an EMPTY
-    schema. An empty schema is not a workspace; every request against it still
-    500s. Healthy production tenants carry ~322 tables / ~1196 applied
-    migrations, so "has at least one table" cleanly separates the two.
+    raw = getattr(settings, "TENANT_WORKSPACE_MIGRATION_COVERAGE_FLOOR", None)
+    try:
+        value = float(raw) if raw is not None else 0.9
+    except (TypeError, ValueError):
+        value = 0.9
+    return min(0.99, max(0.5, value))
 
-    One parameterized catalog query — no schema switching, no injection surface.
+
+def _expected_tenant_migrations() -> set:
+    """The ``(app_label, migration_name)`` set a fully-migrated tenant schema
+    carries — the live migration graph filtered to ``TENANT_APPS``. Empty when it
+    cannot be resolved, which ``_coverage_is_at_head`` reads as "no evidence"
+    (never a false "behind").
+    """
+    try:
+        from django.apps import apps as django_apps
+        from django.conf import settings
+        from django.db import connection
+        from django.db.migrations.loader import MigrationLoader
+
+        tenant_names = set(getattr(settings, "TENANT_APPS", []) or [])
+        if not tenant_names:
+            return set()
+        tenant_labels = {
+            cfg.label
+            for cfg in django_apps.get_app_configs()
+            if cfg.name in tenant_names
+        }
+        if not tenant_labels:
+            return set()
+        loader = MigrationLoader(connection, ignore_no_migrations=True)
+        return {
+            (app_label, name)
+            for (app_label, name) in loader.graph.nodes
+            if app_label in tenant_labels
+        }
+    except Exception:  # noqa: BLE001 — an unresolvable expectation is "no evidence"
+        logger.debug(
+            "tenant_workspace: expected-migration set unresolved", exc_info=True
+        )
+        return set()
+
+
+def _coverage_is_at_head(applied, expected, floor: float) -> bool:
+    """Pure coverage decision (unit-testable without a DB): the schema is at HEAD
+    when it has applied at least ``floor`` of the expected tenant migrations. An
+    empty ``expected`` means we cannot judge, so we do NOT declare it behind.
+    """
+    expected = set(expected)
+    if not expected:
+        return True
+    covered = len(set(applied) & expected) / len(expected)
+    return covered >= floor
+
+
+def _schema_is_at_head(schema_name: str) -> bool:
+    """True when this schema is migrated to HEAD — not merely "has some table".
+
+    "Has at least one table" cannot tell a healthy tenant from a HALF-migrated
+    one: a migrate killed mid-run (the exact failure the watchdog exists for)
+    leaves SOME tables and a partial ``django_migrations``, which then reads
+    "present" -> "ready" while surfaces whose tables never landed still 500. And
+    a bare ``CREATE SCHEMA IF NOT EXISTS`` (customers ``0003``) with no
+    ``migrate_schemas --tenant`` leaves an EMPTY schema. This compares the
+    schema's applied tenant-migration set against the code's expected set
+    (``_expected_tenant_migrations``) and requires substantial coverage.
+
+    Biased hard toward "present": an EMPTY schema (no tables) is provably absent,
+    but ANY uncertainty in judging coverage — no ``django_migrations`` ledger, an
+    unreadable ledger, an unresolvable expected set — falls back to the old
+    "has tables" = present answer. Only a schema PROVABLY below the coverage floor
+    is downgraded, so a healthy or merely-post-deploy-behind tenant is never
+    turned into a false "absent" that would re-provision it.
+
+    Cross-schema catalog reads only (no schema switching); the schema name is
+    quoted, never interpolated raw.
     """
     from django.db import connection
 
@@ -150,7 +222,24 @@ def _schema_has_tables(schema_name: str) -> bool:
             "WHERE table_schema = %s LIMIT 1",
             [schema_name],
         )
-        return cursor.fetchone() is not None
+        if cursor.fetchone() is None:
+            return False  # empty schema — provably not a workspace
+        cursor.execute(
+            "SELECT 1 FROM information_schema.tables "
+            "WHERE table_schema = %s AND table_name = 'django_migrations' LIMIT 1",
+            [schema_name],
+        )
+        if cursor.fetchone() is None:
+            # Tables but no migration ledger — cannot judge coverage. Keep the
+            # legacy "has tables" = present answer rather than risk a false absent.
+            return True
+        quoted = connection.ops.quote_name(schema_name)
+        cursor.execute("SELECT app, name FROM %s.django_migrations" % quoted)
+        applied = {(row[0], row[1]) for row in cursor.fetchall()}
+
+    return _coverage_is_at_head(
+        applied, _expected_tenant_migrations(), _workspace_migration_coverage_floor()
+    )
 
 
 def _probe(school) -> bool | None:
@@ -161,7 +250,7 @@ def _probe(school) -> bool | None:
         return None
     try:
         for name in names:
-            if _schema_has_tables(name):
+            if _schema_is_at_head(name):
                 return True
         return False
     except Exception:  # noqa: BLE001 — an unanswerable probe is None, never False
