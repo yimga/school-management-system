@@ -1,11 +1,15 @@
-"""High-frequency substitute shift market — Redis/cache locks + realtime fan-out.
+"""High-frequency substitute shift market — DB-durable + optional cache fence.
 
-Uses Django cache (Redis when ``REDIS_URL`` is set) to prevent double-bookings.
+Source of truth is ``SubstituteMarketShift`` in the DB.  Cache (Redis when
+``REDIS_URL`` is set) is an optional race-fence for the slot lock, NOT the
+durable state.  A ``cache.clear()`` never loses an open shift.
+
 WebSocket notifications use Channels group ``school-{school_id}-substitute-market``.
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -13,14 +17,14 @@ from datetime import date, datetime, timezone
 from typing import Any, Callable
 
 from django.core.cache import cache
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 logger = logging.getLogger(__name__)
 
 LOCK_PREFIX = "rmc:substitute:lock:"
 SHIFT_PREFIX = "rmc:substitute:shift:"
 OPEN_INDEX_PREFIX = "rmc:substitute:open_index:"
-DEFAULT_LOCK_TTL_SEC = 120
+DEFAULT_LOCK_TTL_SEC = 120  # magic-number-allow: short-lived cache race fence
 DEFAULT_SHIFT_TTL_SEC = 86400  # magic-number-allow: substitute shift availability TTL = 1 day (seconds)
 
 
@@ -99,12 +103,14 @@ class OpenShift:
     status: str = "open"
     claimed_by_id: int | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    # Metric 12: ranked-candidate notify fired when the shift opens (0 if none /
-    # notify disabled / broker soft-failed). Surfaced to the ops UI message.
     notify_attempted: int = 0
     notify_accepted: int = 0
     notify_used_override: bool = False
 
+
+# ---------------------------------------------------------------------------
+# Cache helpers (optional speed fence — DB is SOT)
+# ---------------------------------------------------------------------------
 
 def _lock_key(*, school_id: int, work_date: date, period_label: str) -> str:
     slot = (period_label or "full_day").strip().lower().replace(" ", "_")
@@ -119,37 +125,36 @@ def _open_index_key(school_id: int) -> str:
     return f"{OPEN_INDEX_PREFIX}{school_id}"
 
 
-def _append_open_shift(school_id: int, shift_id: str) -> None:
-    key = _open_index_key(school_id)
-    current = list(cache.get(key) or [])
-    if shift_id not in current:
-        current.append(shift_id)
-        cache.set(key, current, DEFAULT_SHIFT_TTL_SEC)
+def _cache_mirror_open(school_id: int, shift_id: str, payload: dict) -> None:
+    """Best-effort cache mirror for fast reads."""
+    try:
+        cache.set(_shift_cache_key(shift_id), payload, DEFAULT_SHIFT_TTL_SEC)
+        key = _open_index_key(school_id)
+        current = list(cache.get(key) or [])
+        if shift_id not in current:
+            current.append(shift_id)
+            cache.set(key, current, DEFAULT_SHIFT_TTL_SEC)
+    except Exception:  # noqa: BLE001
+        pass
 
 
-def _remove_open_shift(school_id: int, shift_id: str) -> None:
-    key = _open_index_key(school_id)
-    current = [sid for sid in (cache.get(key) or []) if sid != shift_id]
-    cache.set(key, current, DEFAULT_SHIFT_TTL_SEC)
-
-
-def list_open_shifts(*, school_id: int) -> list[dict[str, Any]]:
-    """Return open shift payloads for a school (for ops claim UI)."""
-    key = _open_index_key(school_id)
-    shift_ids = list(cache.get(key) or [])
-    open_rows: list[dict[str, Any]] = []
-    kept: list[str] = []
-    for shift_id in shift_ids:
+def _cache_mirror_claim(school_id: int, shift_id: str) -> None:
+    """Best-effort remove from cache index on claim."""
+    try:
         cached = cache.get(_shift_cache_key(shift_id))
-        if cached and cached.get("status") == "open":
-            open_rows.append(cached)
-            kept.append(shift_id)
-        elif cached and cached.get("status") == "claimed":
-            continue
-    if kept != shift_ids:
-        cache.set(key, kept, DEFAULT_SHIFT_TTL_SEC)
-    return open_rows
+        if cached:
+            cached["status"] = "claimed"
+            cache.set(_shift_cache_key(shift_id), cached, DEFAULT_SHIFT_TTL_SEC)
+        key = _open_index_key(school_id)
+        current = [sid for sid in (cache.get(key) or []) if sid != shift_id]
+        cache.set(key, current, DEFAULT_SHIFT_TTL_SEC)
+    except Exception:  # noqa: BLE001
+        pass
 
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 def acquire_shift_slot_lock(
     *,
@@ -159,11 +164,41 @@ def acquire_shift_slot_lock(
     ttl_sec: int = DEFAULT_LOCK_TTL_SEC,
 ) -> bool:
     """Atomic lock via cache.add — returns True when this caller owns the slot."""
-    return cache.add(_lock_key(school_id=school_id, work_date=work_date, period_label=period_label), "1", ttl_sec)
+    return cache.add(
+        _lock_key(school_id=school_id, work_date=work_date, period_label=period_label),
+        "1",
+        ttl_sec,
+    )
 
 
 def release_shift_slot_lock(*, school_id: int, work_date: date, period_label: str = "") -> None:
     cache.delete(_lock_key(school_id=school_id, work_date=work_date, period_label=period_label))
+
+
+def list_open_shifts(*, school_id: int) -> list[dict[str, Any]]:
+    """Return open shift payloads for a school (for ops claim UI).
+
+    Queries the DB as source of truth.  The ``school_id`` parameter accepts
+    ``int(school.pk)`` for backwards compatibility with callers that pass that.
+    """
+    from apps.schoolops.models import SubstituteMarketShift
+
+    qs = SubstituteMarketShift.objects.filter(
+        school_id=school_id,
+        status=SubstituteMarketShift.STATUS_OPEN,
+    ).order_by("-created_at")
+
+    rows: list[dict[str, Any]] = []
+    for shift in qs:
+        rows.append({
+            "shift_id": str(shift.pk),
+            "school_id": int(shift.school_id),
+            "absent_teacher_id": shift.absent_teacher_id,
+            "work_date": shift.work_date.isoformat(),
+            "period_label": shift.period_label,
+            "status": shift.status,
+        })
+    return rows
 
 
 def open_shift(
@@ -177,45 +212,73 @@ def open_shift(
     send_whatsapp_fn=None,
     send_sms_fn=None,
 ) -> OpenShift:
-    """Open a substitute shift; fails fast when slot lock cannot be acquired.
+    """Open a substitute shift; persists to DB first (durable), cache second.
+
+    Idempotent: if an open shift already exists for this (school, work_date,
+    period_label, absent_teacher), raises ShiftAlreadyBooked.  The cache lock
+    remains as a fast-path race fence but is NOT required for correctness.
 
     Metric 12 DoD: opening a market shift also ranks available substitutes and
     broadcasts WhatsApp/SMS to the qualified tier (or override when none), so
-    ops do not need a separate "Find and broadcast" click after open. Notify is
-    best-effort — broker failures never roll back the open shift / WS event.
-    Inject ``send_*_fn`` in tests; production uses the communication service.
+    ops do not need a separate "Find and broadcast" click after open.
     """
+    from apps.schoolops.models import SubstituteMarketShift
+
     school_id = int(getattr(school, "pk"))
-    if not acquire_shift_slot_lock(school_id=school_id, work_date=work_date, period_label=period_label):
+
+    # Fast-path cache fence (non-authoritative)
+    cache_locked = acquire_shift_slot_lock(
+        school_id=school_id, work_date=work_date, period_label=period_label
+    )
+
+    # DB is SOT — enforce uniqueness inside a transaction
+    try:
+        with transaction.atomic():
+            existing = SubstituteMarketShift.objects.filter(
+                school_id=school_id,
+                absent_teacher_id=absent_teacher_id,
+                work_date=work_date,
+                period_label=period_label,
+                status=SubstituteMarketShift.STATUS_OPEN,
+            ).exists()
+            if existing:
+                raise ShiftAlreadyBooked("substitute slot already locked or booked")
+
+            db_shift = SubstituteMarketShift.objects.create(
+                school_id=school_id,
+                absent_teacher_id=absent_teacher_id,
+                work_date=work_date,
+                period_label=period_label,
+                status=SubstituteMarketShift.STATUS_OPEN,
+            )
+    except ShiftAlreadyBooked:
+        raise
+    except IntegrityError:
         raise ShiftAlreadyBooked("substitute slot already locked or booked")
 
     shift = OpenShift(
-        shift_id=str(uuid.uuid4()),
+        shift_id=str(db_shift.pk),
         school_id=school_id,
         absent_teacher_id=absent_teacher_id,
         work_date=work_date,
         period_label=period_label,
     )
-    cache.set(
-        _shift_cache_key(shift.shift_id),
-        {
-            "shift_id": shift.shift_id,
-            "school_id": shift.school_id,
-            "absent_teacher_id": shift.absent_teacher_id,
-            "work_date": shift.work_date.isoformat(),
-            "period_label": shift.period_label,
-            "status": shift.status,
-        },
-        DEFAULT_SHIFT_TTL_SEC,
-    )
-    _append_open_shift(school_id, shift.shift_id)
+
+    # Mirror to cache for speed
+    _cache_mirror_open(school_id, shift.shift_id, {
+        "shift_id": shift.shift_id,
+        "school_id": shift.school_id,
+        "absent_teacher_id": shift.absent_teacher_id,
+        "work_date": shift.work_date.isoformat(),
+        "period_label": shift.period_label,
+        "status": shift.status,
+    })
 
     from apps.schoolops.substitute_handover import (
         broadcast_substitute_request,
         find_substitute_candidates,
         select_qualified_or_override,
     )
-    import hashlib
 
     def _hash(value: str) -> str:
         return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
@@ -234,10 +297,6 @@ def open_shift(
         candidate_count=len(candidates),
         expires_at=(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
     ).to_dict()
-    # Route on the CANONICAL str(school.pk) — byte-identical to
-    # ``scope["school_id"]`` (set by TenantChannelsMiddleware), so the send lands
-    # in the exact group SubstituteMarketConsumer joins. School.pk is a UUID, so
-    # the internal int ``school_id`` (cache keys) must NOT be used for the group.
     _publish_substitute_event(
         room_school_id=str(getattr(school, "pk")),
         payload=payload,
@@ -274,6 +333,13 @@ def open_shift(
     shift.notify_accepted = notify_accepted
     shift.notify_used_override = notify_used_override
 
+    # Persist notify stats back to the durable row
+    SubstituteMarketShift.objects.filter(pk=db_shift.pk).update(
+        notify_attempted=notify_attempted,
+        notify_accepted=notify_accepted,
+        notify_used_override=notify_used_override,
+    )
+
     logger.info(
         "substitute_market.open shift=%s school=%s absent=%s candidates=%s "
         "notify_accepted=%s/%s override=%s",
@@ -295,49 +361,47 @@ def claim_shift(
     substitute_teacher_id: int,
     publish_fn: Callable[[dict[str, Any]], None] | None = None,
 ) -> int:
-    """Atomically claim an open shift and persist ``SubstituteCover``."""
-    from apps.schoolops.models import SubstituteCover
-    import hashlib
+    """Atomically claim an open shift and persist ``SubstituteCover``.
+
+    Works after cache.clear() — loads shift from DB as source of truth.
+    """
+    from apps.schoolops.models import SubstituteCover, SubstituteMarketShift
+
+    school_id = int(getattr(school, "pk"))
+
+    with transaction.atomic():
+        try:
+            db_shift = (
+                SubstituteMarketShift.objects
+                .select_for_update()
+                .get(pk=shift_id, school_id=school_id, status=SubstituteMarketShift.STATUS_OPEN)
+            )
+        except SubstituteMarketShift.DoesNotExist:
+            raise SubstituteMarketError("shift_not_open")
+
+        cover, _created = SubstituteCover.objects.get_or_create(
+            school_id=school_id,
+            work_date=db_shift.work_date,
+            absent_teacher_id=db_shift.absent_teacher_id,
+            period_label=db_shift.period_label,
+            defaults={"covering_teacher_id": substitute_teacher_id},
+        )
+        if cover.covering_teacher_id and cover.covering_teacher_id != substitute_teacher_id:
+            raise ShiftAlreadyBooked("cover already assigned")
+        if not cover.covering_teacher_id:
+            cover.covering_teacher_id = substitute_teacher_id
+            cover.save(update_fields=["covering_teacher_id"])
+
+        db_shift.status = SubstituteMarketShift.STATUS_CLAIMED
+        db_shift.claimed_by_id = substitute_teacher_id
+        db_shift.cover = cover
+        db_shift.save(update_fields=["status", "claimed_by_id", "cover_id", "updated_at"])
+
+    # Best-effort cache mirror
+    _cache_mirror_claim(school_id, shift_id)
 
     def _hash(value: str) -> str:
         return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
-
-    cached = cache.get(_shift_cache_key(shift_id))
-    if not cached or cached.get("status") != "open":
-        raise SubstituteMarketError("shift_not_open")
-
-    school_id = int(getattr(school, "pk"))
-    if int(cached.get("school_id", 0)) != school_id:
-        raise SubstituteMarketError("tenant_mismatch")
-
-    work_date = date.fromisoformat(cached["work_date"])
-    period_label = cached.get("period_label") or ""
-
-    lock_key = _lock_key(school_id=school_id, work_date=work_date, period_label=period_label)
-    if not cache.get(lock_key):
-        raise SubstituteMarketError("shift_not_open")
-
-    try:
-        with transaction.atomic():
-            cover, _created = SubstituteCover.objects.get_or_create(
-                school_id=school_id,
-                work_date=work_date,
-                absent_teacher_id=int(cached["absent_teacher_id"]),
-                period_label=period_label,
-                defaults={"covering_teacher_id": substitute_teacher_id},
-            )
-            if cover.covering_teacher_id and cover.covering_teacher_id != substitute_teacher_id:
-                raise ShiftAlreadyBooked("cover already assigned")
-            if not cover.covering_teacher_id:
-                cover.covering_teacher_id = substitute_teacher_id
-                cover.save(update_fields=["covering_teacher_id"])
-    except ShiftAlreadyBooked:
-        raise
-
-    cached["status"] = "claimed"
-    cached["claimed_by_id"] = substitute_teacher_id
-    cache.set(_shift_cache_key(shift_id), cached, DEFAULT_SHIFT_TTL_SEC)
-    _remove_open_shift(school_id, shift_id)
 
     payload = SubstituteShiftClaimEvent(
         shift_id=shift_id,
@@ -345,10 +409,6 @@ def claim_shift(
         substitute_teacher_id_hash=_hash(str(substitute_teacher_id)),
         cover_id=cover.pk,
     ).to_dict()
-    # Route on the CANONICAL str(school.pk) — byte-identical to
-    # ``scope["school_id"]`` (set by TenantChannelsMiddleware), so the send lands
-    # in the exact group SubstituteMarketConsumer joins. School.pk is a UUID, so
-    # the internal int ``school_id`` (cache keys) must NOT be used for the group.
     _publish_substitute_event(
         room_school_id=str(getattr(school, "pk")),
         payload=payload,
@@ -356,6 +416,10 @@ def claim_shift(
     )
     return int(cover.pk)
 
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
 
 def _publish_substitute_event(
     *,

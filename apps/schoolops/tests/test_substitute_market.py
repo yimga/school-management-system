@@ -16,6 +16,7 @@ from apps.schoolops.substitute_market import (
     ShiftAlreadyBooked,
     acquire_shift_slot_lock,
     claim_shift,
+    list_open_shifts,
     open_shift,
 )
 from apps.schools.models import School
@@ -392,3 +393,126 @@ class SubstituteRadiusMatchTests(TestCase):
         self.assertFalse(by_id[str(self.far.pk)].within_radius)
         targets = select_qualified_or_override(ranked)
         self.assertEqual({c.teacher_id for c in targets}, {str(self.near.pk)})
+
+
+class SubstituteMarketDurabilityTests(TestCase):
+    """Metric 12 durability: open shifts survive cache.clear()."""
+
+    def setUp(self):
+        cache.clear()
+        self.school = School.objects.create(
+            name="Durability School",
+            slug="durability-school",
+            subdomain="durability-school",
+            is_active=True,
+        )
+        self.absent = User.objects.create_user(
+            username="absent_durable",
+            password="testpass123",
+            role=User.Role.TEACHER,
+        )
+        self.sub = User.objects.create_user(
+            username="sub_durable",
+            password="testpass123",
+            role=User.Role.TEACHER,
+        )
+        dept = Department.objects.create(school=self.school, name="Durable", code="DUR")
+        TeacherProfile.objects.create(
+            school=self.school,
+            user=self.absent,
+            department=dept,
+            is_active=True,
+            phone="+237600000200",
+        )
+        TeacherProfile.objects.create(
+            school=self.school,
+            user=self.sub,
+            department=dept,
+            is_active=True,
+            phone="+237600000201",
+        )
+        self.work_date = date(2026, 7, 19)
+
+    def test_open_shift_survives_cache_clear(self):
+        """After cache.clear(), list_open_shifts still returns the shift."""
+        shift = open_shift(
+            school=self.school,
+            absent_teacher_id=self.absent.pk,
+            work_date=self.work_date,
+            period_label="Period 3",
+            publish_fn=lambda _: None,
+            notify=False,
+        )
+        cache.clear()
+
+        open_rows = list_open_shifts(school_id=int(self.school.pk))
+        self.assertEqual(len(open_rows), 1)
+        self.assertEqual(open_rows[0]["shift_id"], shift.shift_id)
+        self.assertEqual(open_rows[0]["status"], "open")
+
+    def test_claim_after_cache_clear(self):
+        """claim_shift works even when cache is completely gone."""
+        shift = open_shift(
+            school=self.school,
+            absent_teacher_id=self.absent.pk,
+            work_date=self.work_date,
+            period_label="Period 4",
+            publish_fn=lambda _: None,
+            notify=False,
+        )
+        cache.clear()
+
+        cover_id = claim_shift(
+            school=self.school,
+            shift_id=shift.shift_id,
+            substitute_teacher_id=self.sub.pk,
+            publish_fn=lambda _: None,
+        )
+        self.assertGreater(cover_id, 0)
+
+        from apps.schoolops.models import SubstituteCover
+
+        cover = SubstituteCover.objects.get(pk=cover_id)
+        self.assertEqual(cover.covering_teacher_id, self.sub.pk)
+
+        open_rows = list_open_shifts(school_id=int(self.school.pk))
+        self.assertEqual(len(open_rows), 0)
+
+    def test_open_shift_is_idempotent_same_slot(self):
+        """Opening the same slot twice raises ShiftAlreadyBooked."""
+        open_shift(
+            school=self.school,
+            absent_teacher_id=self.absent.pk,
+            work_date=self.work_date,
+            period_label="P5",
+            publish_fn=lambda _: None,
+            notify=False,
+        )
+        cache.clear()
+
+        with self.assertRaises(ShiftAlreadyBooked):
+            open_shift(
+                school=self.school,
+                absent_teacher_id=self.absent.pk,
+                work_date=self.work_date,
+                period_label="P5",
+                publish_fn=lambda _: None,
+                notify=False,
+            )
+
+    def test_db_model_persists_shift(self):
+        """SubstituteMarketShift row is created on open."""
+        from apps.schoolops.models import SubstituteMarketShift
+
+        shift = open_shift(
+            school=self.school,
+            absent_teacher_id=self.absent.pk,
+            work_date=self.work_date,
+            period_label="P6",
+            publish_fn=lambda _: None,
+            notify=False,
+        )
+        db_shift = SubstituteMarketShift.objects.get(pk=shift.shift_id)
+        self.assertEqual(db_shift.status, "open")
+        self.assertEqual(db_shift.absent_teacher_id, self.absent.pk)
+        self.assertEqual(db_shift.school_id, self.school.pk)

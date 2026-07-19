@@ -457,6 +457,74 @@ class SubstituteCover(models.Model):
         return f"{self.work_date} absent={self.absent_teacher_id}"
 
 
+class SubstituteMarketShift(models.Model):
+    """Durable record of an opened substitute shift in the market.
+
+    DB is source of truth; the cache layer is an optional speed fence.
+    The UUID pk doubles as ``shift_id`` in WS payloads.
+    """
+
+    import uuid as _uuid_mod
+
+    STATUS_OPEN = "open"
+    STATUS_CLAIMED = "claimed"
+    STATUS_CANCELLED = "cancelled"
+    STATUS_EXPIRED = "expired"
+    STATUS_CHOICES = [
+        (STATUS_OPEN, "Open"),
+        (STATUS_CLAIMED, "Claimed"),
+        (STATUS_CANCELLED, "Cancelled"),
+        (STATUS_EXPIRED, "Expired"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=_uuid_mod.uuid4, editable=False)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="substitute_market_shifts",
+    )
+    absent_teacher = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="substitute_market_absences",
+    )
+    work_date = models.DateField()
+    period_label = models.CharField(max_length=80, blank=True)
+    status = models.CharField(
+        max_length=16, choices=STATUS_CHOICES, default=STATUS_OPEN, db_index=True
+    )
+    claimed_by = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="substitute_market_claims",
+    )
+    cover = models.ForeignKey(
+        "schoolops.SubstituteCover",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="market_shift",
+    )
+    notify_attempted = models.PositiveIntegerField(default=0)
+    notify_accepted = models.PositiveIntegerField(default=0)
+    notify_used_override = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_substitutemarketshift"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "status", "work_date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.work_date} shift={self.pk} status={self.status}"
+
+
 class VisitorCheckIn(models.Model):
     """
     Wave 16: front-desk visitor log (ops module).
