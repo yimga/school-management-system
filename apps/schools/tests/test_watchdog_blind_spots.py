@@ -193,3 +193,134 @@ class OwnerEmailIsRecoverableTests(TestCase):
             "skipped -- sourcing the email from the membership that step would "
             "have written is a fixed point on the broken state",
         )
+
+
+@override_settings(MULTI_TENANT_BASE_DOMAIN="runmycampus.com")
+class WedgedButHeartbeatingRunTests(TestCase):
+    """G9 — a fresh heartbeat is not proof of progress.
+
+    Found by the provisioning audit (2026-07-19). ``heartbeat_during`` pings from
+    a BACKGROUND THREAD, so a migrate wedged on a DB lock / hung call keeps its
+    heartbeat fresh forever while advancing nothing. Judged on heartbeat staleness
+    alone the run reads "live" indefinitely: the owner watches "Preparing…"
+    forever, the poll-driven resume keeps returning ``in_flight``, and the sweep's
+    heartbeat filter never selects it. These lock the absolute wall-clock ceiling
+    -- past it a running+fresh-heartbeat run is resumable via BOTH the owner poll
+    and the no-one-watching sweep -- while a genuinely-fresh run under the ceiling
+    is still left strictly alone.
+    """
+
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()  # the resume path is cache-single-flighted; isolate per test
+        self.school = School.objects.create(
+            name="Wedged Migrate Academy",
+            slug="wedged-migrate",
+            subdomain="wedged-migrate",
+            is_active=False,
+        )
+
+    def _running_run(self, *, started_ago: int, heartbeat_ago: int) -> WorkflowRun:
+        run = WorkflowRun.objects.create(
+            workflow_key="tenant_school_provision",
+            school_id=str(self.school.pk),
+            status="running",
+            total_steps=5,
+            current_step_ordinal=3,
+            current_step_name="tenant_schema",
+            expected_duration_seconds=600,
+        )
+        now = timezone.now()
+        # started_at / last_heartbeat_at are auto_now_add -> set via update().
+        WorkflowRun.objects.filter(pk=run.pk).update(
+            started_at=now - timedelta(seconds=started_ago),
+            last_heartbeat_at=now - timedelta(seconds=heartbeat_ago),
+        )
+        run.refresh_from_db()
+        return run
+
+    def test_wedged_run_with_fresh_heartbeat_is_not_live(self):
+        from apps.schools.provision_watchdog import (
+            _run_is_live,
+            provision_resume_wall_clock_ceiling_seconds,
+            provisioning_drive_is_live,
+        )
+
+        ceiling = provision_resume_wall_clock_ceiling_seconds()
+        run = self._running_run(started_ago=ceiling + 60, heartbeat_ago=0)
+        self.assertFalse(
+            _run_is_live(run),
+            "a running run past the wall-clock ceiling is wedged, not live -- "
+            "even with a perfectly fresh heartbeat",
+        )
+        self.assertFalse(
+            provisioning_drive_is_live(self.school),
+            "the re-entry guard must stop skipping once the ceiling is crossed",
+        )
+
+    def test_fresh_run_under_ceiling_stays_live(self):
+        from apps.schools.provision_watchdog import (
+            _run_is_live,
+            provision_resume_wall_clock_ceiling_seconds,
+        )
+
+        ceiling = provision_resume_wall_clock_ceiling_seconds()
+        run = self._running_run(
+            started_ago=min(ceiling - 120, 300), heartbeat_ago=0
+        )
+        self.assertTrue(
+            _run_is_live(run),
+            "a genuinely-live migrate under the ceiling with a fresh heartbeat "
+            "must NEVER be disturbed -- interrupting a healthy migrate is worse "
+            "than a stuck one",
+        )
+
+    def test_owner_poll_resumes_the_wedged_run(self):
+        from apps.schools.provision_watchdog import (
+            provision_resume_wall_clock_ceiling_seconds,
+            resume_provision_if_stuck,
+        )
+
+        ceiling = provision_resume_wall_clock_ceiling_seconds()
+        self._running_run(started_ago=ceiling + 60, heartbeat_ago=0)
+        with patch(
+            "apps.schools.tasks.kick_complete_provisioning_background"
+        ) as kick:
+            result = resume_provision_if_stuck(self.school, reason="poll")
+        self.assertEqual(
+            result.get("action"),
+            "resumed",
+            "the owner poll must resume a wedged-but-heartbeating run instead of "
+            "reporting it in_flight forever",
+        )
+        kick.assert_called_once()
+
+    def test_sweep_catches_wedged_run_despite_fresh_heartbeat(self):
+        from apps.schools.provision_watchdog import (
+            _dead_running_school_ids,
+            provision_resume_wall_clock_ceiling_seconds,
+        )
+
+        ceiling = provision_resume_wall_clock_ceiling_seconds()
+        self._running_run(started_ago=ceiling + 60, heartbeat_ago=0)
+        self.assertIn(
+            str(self.school.pk),
+            _dead_running_school_ids(10),
+            "the no-one-watching sweep must reach a wedged run whose heartbeat "
+            "never goes stale -- the wall-clock arm is what sees it",
+        )
+
+    def test_sweep_leaves_a_genuinely_live_run_alone(self):
+        from apps.schools.provision_watchdog import (
+            _dead_running_school_ids,
+            provision_resume_wall_clock_ceiling_seconds,
+        )
+
+        ceiling = provision_resume_wall_clock_ceiling_seconds()
+        self._running_run(started_ago=min(ceiling - 120, 300), heartbeat_ago=0)
+        self.assertNotIn(
+            str(self.school.pk),
+            _dead_running_school_ids(10),
+            "a fresh, under-ceiling run must not be swept",
+        )

@@ -34,7 +34,15 @@ One canonical, single-flight resume with three properties:
    pings every ``HEARTBEAT_INTERVAL`` (30s) while the migrate is genuinely alive,
    so a heartbeat older than ``provision_resume_stale_seconds()`` (default 120s =
    four missed pings) reliably means the runner died — safe to resume without
-   racing a healthy slow migrate.
+   racing a healthy slow migrate. But heartbeat freshness alone is NOT sufficient
+   proof of health: the heartbeat pings from a BACKGROUND THREAD, so a migrate
+   wedged on a DB lock / hung call keeps it fresh forever while making zero
+   progress — an eternal "Preparing…" that neither resume nor re-entry ever
+   escapes. So liveness also carries an ABSOLUTE WALL-CLOCK CEILING
+   (``provision_resume_wall_clock_ceiling_seconds()``, default 30 min, far above
+   the 600s expected duration and below the ~3.3h reaper): past it a ``running``
+   run is not-live regardless of heartbeat, and the sweep's wall-clock arm reaches
+   it even when nobody is polling.
 2. The re-drive resumes the IDEMPOTENT migrate (already-applied migrations are
    skipped), so each cycle makes forward progress and provisioning converges even
    under a per-run time ceiling that is shorter than a cold full migrate.
@@ -108,6 +116,36 @@ def provision_resume_max_per_hour() -> int:
     return max(value, 1)
 
 
+def provision_resume_wall_clock_ceiling_seconds() -> int:
+    """Absolute wall-clock age past which a ``running`` provision is treated as
+    NOT live *even if its heartbeat is fresh*.
+
+    ``heartbeat_during`` pings from a BACKGROUND THREAD, so a migrate that is
+    genuinely WEDGED — blocked on a DB lock, a hung network call, an infinite
+    loop — keeps the heartbeat fresh forever while making zero progress. The
+    heartbeat proves the PROCESS is alive, not that the migrate ADVANCES. Judged
+    on heartbeat staleness alone, such a run reads "live" indefinitely: the owner
+    watches "Preparing your campus workspace" forever, the poll-driven resume
+    keeps returning ``in_flight``, and ``_do_provision``'s re-entry guard keeps
+    skipping — nothing ever offers a way out.
+
+    Set FAR above ``expected_duration_seconds`` (600s) so a legitimately slow cold
+    migrate (which keeps pinging every 30s) is never mistaken for wedged, and well
+    below the ~3.3h abandonment reaper. Default 30 min, floored at 20 min.
+    Env/settings overridable (no hardcoding).
+    """
+    from django.conf import settings
+
+    raw = getattr(settings, "PROVISION_RESUME_WALL_CLOCK_CEILING_SECONDS", None)
+    try:
+        value = int(raw) if raw is not None else 1800  # magic-number-allow: default-wall-clock-ceiling-30min
+    except (TypeError, ValueError):
+        value = 1800  # magic-number-allow: default-wall-clock-ceiling-30min
+    # Never allow a ceiling low enough to cancel a genuinely-slow migrate: floor
+    # comfortably above expected_duration (600s) plus the heartbeat margin.
+    return max(value, 1200)  # magic-number-allow: wall-clock-ceiling-floor-20min
+
+
 def _now():
     return timezone.now()
 
@@ -122,13 +160,38 @@ def _run_heartbeat_age_seconds(run: Any) -> float | None:
         return None
 
 
-def _run_is_live(run: Any) -> bool:
-    """A ``running`` run whose heartbeat is fresh — a genuine in-flight provision.
+def _run_wall_clock_age_seconds(run: Any) -> float | None:
+    """Seconds since the run STARTED — independent of heartbeat freshness.
 
-    Do NOT touch these: interrupting a healthy migrate is the one thing worse
-    than a stuck one.
+    Used for the wedged-but-heartbeating ceiling: a blocked migrate keeps its
+    heartbeat fresh, so only the wall-clock since ``started_at`` reveals it.
+    """
+    started = getattr(run, "started_at", None)
+    if started is None:
+        return None
+    try:
+        return max(0.0, (_now() - started).total_seconds())
+    except (TypeError, ValueError, AttributeError):
+        return None
+
+
+def _run_is_live(run: Any) -> bool:
+    """A ``running`` run whose heartbeat is fresh AND which is under the absolute
+    wall-clock ceiling — a genuine in-flight provision.
+
+    Do NOT touch a healthy migrate: interrupting one is the one thing worse than a
+    stuck one. But a fresh heartbeat is NOT sufficient proof of health — the
+    heartbeat pings from a background thread, so a wedged migrate keeps it fresh
+    forever (see ``provision_resume_wall_clock_ceiling_seconds``). Past the
+    ceiling, a ``running`` run is treated as not-live so the single-flighted,
+    idempotent resume path can act.
     """
     if run is None or (getattr(run, "status", "") or "").lower() != "running":
+        return False
+    run_age = _run_wall_clock_age_seconds(run)
+    if run_age is not None and run_age >= provision_resume_wall_clock_ceiling_seconds():
+        # Wedged-but-alive: heartbeat may be fresh, but the run has been "running"
+        # longer than any legitimate migrate. Stop treating it as live.
         return False
     age = _run_heartbeat_age_seconds(run)
     if age is None:
@@ -329,19 +392,37 @@ _UNFINISHED_RUN_STATUSES: tuple[str, ...] = ("running", "stuck", "failed", "canc
 
 
 def _dead_running_school_ids(limit: int) -> list[str]:
-    """School ids whose latest provisioning run is unfinished AND heartbeat-dead."""
+    """School ids whose latest provisioning run is unfinished AND either
+    heartbeat-dead OR past the wall-clock ceiling (wedged-but-heartbeating).
+
+    The heartbeat-staleness filter alone is blind to the wedged case: a migrate
+    blocked on a lock keeps pinging from its background thread, so its
+    ``last_heartbeat_at`` never goes stale and the sweep never selects it. The
+    wall-clock arm (``started_at`` older than the ceiling) catches exactly those,
+    so the no-one-is-watching backstop reaches a wedged run just like the
+    owner-poll path does.
+    """
     try:
         from apps.platform_runtime.models import WorkflowRun
     except ImportError:
         return []
-    cutoff = _now() - timedelta(seconds=provision_resume_stale_seconds())
+    from django.db.models import Q
+
+    now = _now()
+    heartbeat_cutoff = now - timedelta(seconds=provision_resume_stale_seconds())
+    wallclock_cutoff = now - timedelta(
+        seconds=provision_resume_wall_clock_ceiling_seconds()
+    )
     try:
         rows = (
             # tenant-isolation-allow: provision-watchdog-system-sweep-cross-tenant-stuck-runs
             WorkflowRun.objects.filter(
                 workflow_key=PROVISION_WORKFLOW_KEY,
                 status__in=_UNFINISHED_RUN_STATUSES,
-                last_heartbeat_at__lt=cutoff,
+            )
+            .filter(
+                Q(last_heartbeat_at__lt=heartbeat_cutoff)
+                | Q(started_at__lt=wallclock_cutoff)
             )
             .exclude(school_id="")
             .order_by("-started_at")
