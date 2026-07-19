@@ -1259,7 +1259,13 @@ def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
         return _apply_attendance(sid, uid, payload, force_local=force_local)
     if at == OfflineAction.ActionType.GRADING:
         return _apply_grading(sid, uid, payload, force_local=force_local)
-    if at == OfflineAction.ActionType.PAYMENT_RECEIPT:
+    if (
+        at == OfflineAction.ActionType.PAYMENT_RECEIPT
+        or at_norm == OfflineActionType.PAYMENT_PROOF
+    ):
+        # PAYMENT_PROOF is the taxonomy member (payment.proof_upload); the
+        # legacy OfflineAction.ActionType.PAYMENT_RECEIPT value still arrives
+        # from older clients and maps via normalize_action_type.
         return _apply_payment_receipt(sid, uid, payload)
     if at == OfflineAction.ActionType.NOTES_REPORT:
         return _apply_notes_report(sid, uid, payload)

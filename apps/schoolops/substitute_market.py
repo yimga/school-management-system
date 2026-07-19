@@ -333,8 +333,8 @@ def open_shift(
     shift.notify_accepted = notify_accepted
     shift.notify_used_override = notify_used_override
 
-    # Persist notify stats back to the durable row
-    SubstituteMarketShift.objects.filter(pk=db_shift.pk).update(
+    # Persist notify stats back to the durable row (always school-scoped).
+    SubstituteMarketShift.objects.filter(pk=db_shift.pk, school_id=school_id).update(
         notify_attempted=notify_attempted,
         notify_accepted=notify_accepted,
         notify_used_override=notify_used_override,
