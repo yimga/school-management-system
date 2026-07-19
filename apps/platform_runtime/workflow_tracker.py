@@ -583,6 +583,19 @@ def finalize_run(
         # tenant-isolation-allow: workflow-finalize-single-row-pk-update-on-held-run
         WorkflowRun.objects.filter(pk=run.pk).update(**update_fields)
 
+        # A new succeeded provision must clear older FAILED cards for that school
+        # immediately — do not wait for the 10-minute settled Celery sweep.
+        if (
+            status == "succeeded"
+            and getattr(run, "workflow_key", "") == "tenant_school_provision"
+        ):
+            try:
+                from apps.platform_runtime.tasks import supersede_prior_provision_failures
+
+                supersede_prior_provision_failures(run)
+            except Exception:
+                logger.debug("workflow_supersede_prior_provision_skip", exc_info=True)
+
         if status in ("succeeded", "failed", "cancelled"):
             try:
                 from apps.platform_runtime.workflow_duration_stats import (

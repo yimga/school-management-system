@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Flight Deck hide settled/superseded provision failures (batch 1763 - 2026-07-18)
+
+**A. Scope:** Stop Flight Deck from showing historical FAILED Provision school cards when the school is live or a later attempt superseded them; give operators an explicit Clear gated on success.
+
+**B. Shipped:** `suppress_stale_provision_failure_for_deck` on deck JSON; `supersede_prior_provision_failures` on success finalize; **Clear from deck** (`clear_after_success`) only when settled or superseded+succeeded — handler returns `clear_requires_successful_provision` otherwise; SW `sms-v4.05.141`.
+
+**C. Proof:** clear-after-success + suppress/finalize Flight Deck tests OK.
+
+**D. Honest:** Latest unfinished failure on an unsettled school cannot be cleared.
+
+**E. Files:** `tasks.py`, flight deck actions/views/JS, `workflow_fix_handlers.py`, `workflow_tracker.py`, tests, SOT/log, SW.
+
+**F. Next:** Commit/push when asked; Refresh deck on manager after deploy.
+
 ## Slice — Operator Option A governed twins (batch 1762 - 2026-07-18)
 
 **A. Scope:** Apply Option A only to the four operator surfaces that need it (config center, blueprint/pack marketplaces, change requests) — not platform-wide.

@@ -51,6 +51,10 @@ def flight_deck_labels() -> dict[str, str]:
             "Requires network — retry when connected."
         ),
         "preview_title": _("Fix preview"),
+        "clear_after_success": _("Clear from deck"),
+        "clear_requires_success": _(
+            "Can only clear after provisioning has succeeded."
+        ),
     }
 
 
@@ -143,6 +147,8 @@ def flight_deck_json_view(request):
             continue
         active.append(enrich_run_payload(row, run=run))
 
+    from apps.platform_runtime.tasks import suppress_stale_provision_failure_for_deck
+
     recent_failed = []
     qs = WorkflowRun.objects.filter(  # tenant-isolation-allow: operator-flight-deck-recent-failed-tenant-schema-filter
         status__in=("failed", "cancelled")
@@ -151,6 +157,10 @@ def flight_deck_json_view(request):
         qs = qs.filter(tenant_schema=schema)
     for run in qs:
         if workflow_run_is_remediated(run):
+            continue
+        # Provision success (or a newer attempt) must not leave historical FAILED
+        # cards inflating Needs operator — stamp + hide immediately on read.
+        if suppress_stale_provision_failure_for_deck(run):
             continue
         recent_failed.append(
             enrich_run_payload(serialize_workflow_run(run), run=run)

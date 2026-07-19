@@ -415,10 +415,21 @@ def apply_fix_view(request, run_id: int):
     )
 
     remediation = resolve_effective_remediation(run)
-    if not remediation.get("auto_fix_available"):
+    # Operator may POST an explicit clear kind — only clear_after_success /
+    # mark_superseded are accepted overrides (handlers enforce success gate).
+    requested_kind = str(
+        request.POST.get("auto_fix_kind")
+        or request.GET.get("auto_fix_kind")
+        or ""
+    ).strip()
+    if requested_kind in ("clear_after_success", "mark_superseded"):
+        kind = requested_kind
+    elif not remediation.get("auto_fix_available"):
         return _respond_mutation(request, run_id, {"ok": False, "reason": "no_auto_fix_available"})
-
-    kind = str(remediation.get("auto_fix_kind", ""))
+    else:
+        kind = str(remediation.get("auto_fix_kind", ""))
+    if not kind:
+        return _respond_mutation(request, run_id, {"ok": False, "reason": "no_auto_fix_available"})
     workflow_key = run.workflow_key
 
     from apps.platform_runtime.workflow_autopilot import promotion_hint, record_apply_log
@@ -456,7 +467,10 @@ def apply_fix_view(request, run_id: int):
         healing_supported_for_run,
     )
 
-    if healing_supported_for_run(run, kind=kind):
+    # Clear-after-success must never enter a requeue healing chain.
+    if kind in ("clear_after_success", "mark_superseded"):
+        result = apply_auto_fix_kind(run=run, kind=kind)
+    elif healing_supported_for_run(run, kind=kind):
         result = apply_healing_for_run(
             run=run,
             kind=kind,

@@ -270,7 +270,7 @@ def process_offline_queues_due(
 
 @shared_task(name="platform_runtime.tenant_reactivation_sweep")
 def tenant_reactivation_sweep_task() -> dict:
-    """v4.00.98 Phase 4 — daily reactivation sweep entrypoint for Celery beat.
+    """v4.00.98 Phase 4 â€” daily reactivation sweep entrypoint for Celery beat.
 
     Mirrors `manage.py run_tenant_reactivation_sweep --apply`. Never raises;
     captures the engine summary so beat can record the outcome.
@@ -285,7 +285,7 @@ def tenant_reactivation_sweep_task() -> dict:
 
 @shared_task(name="platform_runtime.signup_verification_stale_sweep")
 def signup_verification_stale_sweep_task() -> dict:
-    """v4.00.98 Phase 5 — fire operator alert + tenant reminder when a
+    """v4.00.98 Phase 5 â€” fire operator alert + tenant reminder when a
     signup verification email has been unclicked for >24h. Best-effort."""
     try:
         from datetime import timedelta as _td
@@ -333,7 +333,7 @@ def signup_verification_stale_sweep_task() -> dict:
 
 @shared_task(name="platform_runtime.workflow_stuck_alert_sweep")
 def workflow_stuck_alert_sweep_task() -> dict:
-    """v4.00.98 Phase 6 — find RUNNING WorkflowRun rows past their expected
+    """v4.00.98 Phase 6 â€” find RUNNING WorkflowRun rows past their expected
     heartbeat window and publish workflow.run.stuck. Cool-down handled by
     the email matrix (60 min per (event_type, recipient))."""
     try:
@@ -347,7 +347,7 @@ def workflow_stuck_alert_sweep_task() -> dict:
 
         now = _tz.now()
         # Scan only rows where status=running AND last_heartbeat is at least
-        # 1.5 × the smallest reasonable expected duration ago.
+        # 1.5 Ã— the smallest reasonable expected duration ago.
         candidates = list(
             # tenant-isolation-allow: platform-workflow-stuck-no-tenant-scope
             WorkflowRun.objects.filter(
@@ -440,7 +440,7 @@ def scheduled_job_health_monitor_task() -> dict:
     The in-process scheduler (``apps.platform_runtime.periodic``) runs this same
     monitor off ``/health/`` while there is no Celery broker, then stands down the
     moment a real worker + beat are provisioned. Without this beat entry, that
-    hand-off would SILENCE the watchdog — so it is registered here too, keeping it
+    hand-off would SILENCE the watchdog â€” so it is registered here too, keeping it
     alive in every execution mode.
     """
     try:
@@ -459,7 +459,7 @@ def _run_school_is_settled(run) -> bool:
     Reuses the provisioning watchdog's single definition of "settled" (portal
     ready AND Phase B complete) rather than re-deriving it here, so the sweep and
     the watchdog can never disagree about whether a school still needs work.
-    Fails OPEN (False) — an unknown school is treated as still needing the
+    Fails OPEN (False) â€” an unknown school is treated as still needing the
     remediation it would have got before this guard existed.
     """
     try:
@@ -470,7 +470,7 @@ def _run_school_is_settled(run) -> bool:
         if school is None:
             return False
         return bool(_school_is_settled(school))
-    except Exception:  # noqa: BLE001 — the guard must never break the sweep
+    except Exception:  # noqa: BLE001 â€” the guard must never break the sweep
         logger.debug(
             "settled-check failed for run=%s; treating as not settled",
             getattr(run, "pk", None),
@@ -479,7 +479,160 @@ def _run_school_is_settled(run) -> bool:
         return False
 
 
-def _resolve_stale_provisioned_run(run) -> bool:
+def provision_failure_clearable_after_success(run) -> bool:
+    """True when an operator may clear this provision failure from the Flight Deck.
+
+    Clear is allowed only after proof of success:
+    - the school is settled (portal ready + Phase B), or
+    - a ``succeeded`` provision run exists **and** a newer attempt superseded
+      this row (this card is historical, not the live failure).
+
+    The latest unfinished failure for an unsettled school cannot be cleared.
+    """
+    if getattr(run, "workflow_key", "") != "tenant_school_provision":
+        return False
+    status = (getattr(run, "status", "") or "").lower()
+    if status not in ("failed", "cancelled", "stuck"):
+        return False
+    if _run_school_is_settled(run):
+        return True
+    school_id = str(getattr(run, "school_id", "") or "")
+    if not school_id:
+        return False
+    if not _provision_has_later_attempt(run):
+        return False
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+
+        return (
+            # tenant-isolation-allow: platform-workflow-success-proof-per-school-id
+            WorkflowRun.objects.filter(
+                workflow_key="tenant_school_provision",
+                school_id=school_id,
+                status="succeeded",
+            ).exists()
+        )
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _provision_has_later_attempt(run) -> bool:
+    """True when another tenant_school_provision row for this school is newer."""
+    school_id = str(getattr(run, "school_id", "") or "")
+    if not school_id:
+        return False
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+
+        latest = (
+            # tenant-isolation-allow: platform-workflow-latest-provision-per-school-id
+            WorkflowRun.objects.filter(
+                workflow_key="tenant_school_provision",
+                school_id=school_id,
+            )
+            .order_by("-started_at", "-pk")
+            .first()
+        )
+    except Exception:  # noqa: BLE001 — never break deck/sweep on lookup failure
+        return False
+    return latest is not None and latest.pk != getattr(run, "pk", None)
+
+
+def suppress_stale_provision_failure_for_deck(run) -> bool:
+    """Hide (and stamp) provision failures that are settled or superseded.
+
+    Flight Deck used to list every non-remediated failed/cancelled row forever.
+    Celery's 10-minute settled sweep eventually stamps them — but without beat,
+    or between ticks, operators see "Needs operator: 9" for schools that already
+    provisioned. Call this on the deck read path so the UI matches reality now.
+
+    Returns True when the row must leave Active / Recent failures.
+    """
+    from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
+
+    if workflow_run_is_remediated(run):
+        return True
+    if getattr(run, "workflow_key", "") != "tenant_school_provision":
+        return False
+    if _run_school_is_settled(run):
+        _resolve_stale_provisioned_run(run)
+        return True
+    if _provision_has_later_attempt(run):
+        _resolve_stale_provisioned_run(
+            run,
+            kind="superseded_by_later_attempt",
+            human_action=(
+                "No action needed — a newer provisioning attempt exists for this "
+                "school. This row is historical, not the live failure."
+            ),
+            error_message=(
+                "superseded: newer tenant_school_provision attempt exists for "
+                "this school"
+            ),
+        )
+        return True
+    return False
+
+
+def supersede_prior_provision_failures(succeeded_run) -> int:
+    """On successful provision finalize, stamp older failed/cancelled/stuck rows.
+
+    Each attempt is a new ``WorkflowRun``. Success does not rewrite prior FAILED
+    rows unless we stamp them — otherwise the deck keeps them until Celery beat.
+    """
+    if getattr(succeeded_run, "workflow_key", "") != "tenant_school_provision":
+        return 0
+    school_id = str(getattr(succeeded_run, "school_id", "") or "")
+    if not school_id:
+        return 0
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+        from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
+
+        priors = list(
+            # tenant-isolation-allow: platform-workflow-supersede-prior-failures-by-school-id
+            WorkflowRun.objects.filter(
+                workflow_key="tenant_school_provision",
+                school_id=school_id,
+                status__in=("failed", "cancelled", "stuck"),
+            ).exclude(pk=succeeded_run.pk)[:50]
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug("supersede_prior_provision_failures_lookup_failed", exc_info=True)
+        return 0
+    cleared = 0
+    for prior in priors:
+        try:
+            if workflow_run_is_remediated(prior):
+                continue
+            if _resolve_stale_provisioned_run(
+                prior,
+                kind="superseded_by_success",
+                human_action=(
+                    "No action needed — a later provisioning run succeeded for "
+                    "this school. This row is historical."
+                ),
+                error_message=(
+                    "superseded: later tenant_school_provision run succeeded"
+                ),
+            ):
+                cleared += 1
+        except Exception:  # noqa: BLE001
+            logger.debug(
+                "supersede_prior_provision_failures_row_failed pk=%s",
+                getattr(prior, "pk", None),
+                exc_info=True,
+            )
+    return cleared
+
+
+def _resolve_stale_provisioned_run(
+    run,
+    *,
+    kind: str = "stale_run_superseded",
+    human_action: str | None = None,
+    error_message: str | None = None,
+) -> bool:
     """Retire a red row whose school is actually fine, and CLEAR IT OFF THE DECK.
 
     Setting ``status="cancelled"`` alone is not enough: the Flight Deck lists
@@ -504,17 +657,17 @@ def _resolve_stale_provisioned_run(run) -> bool:
 
     now = timezone.now()
     stamp = {
-        "kind": "stale_run_superseded",
+        "kind": kind,
         "applied_at": now.isoformat(),
         "school_id": str(getattr(run, "school_id", "") or ""),
-        "result": {"ok": True, "applied": "stale_run_superseded"},
+        "result": {"ok": True, "applied": kind},
     }
     payload = dict(getattr(run, "payload_summary", None) or {})
     remediation = dict(getattr(run, "suggested_remediation", None) or {})
     payload[_REMEDIATED_PAYLOAD_KEY] = stamp
     remediation[_REMEDIATED_PAYLOAD_KEY] = stamp
     remediation["auto_fix_available"] = False
-    remediation["human_action"] = (
+    remediation["human_action"] = human_action or (
         "No action needed — this school is fully provisioned. The drive was "
         "killed after the work landed but before it could record success, so "
         "this row was stale, not a failure."
@@ -527,23 +680,25 @@ def _resolve_stale_provisioned_run(run) -> bool:
         suggested_remediation=remediation,
         error_summary={
             "type": "StaleRun",
-            "message": (
+            "message": error_message
+            or (
                 "superseded: school is fully provisioned (drive died after the "
                 "work landed, before finalize could record success)"
             ),
         },
     )
     logger.info(
-        "retired stale provisioning run=%s school=%s (school already provisioned)",
+        "retired stale provisioning run=%s school=%s kind=%s",
         getattr(run, "pk", None),
         getattr(run, "school_id", ""),
+        kind,
     )
     return True
 
 
 @shared_task(name="platform_runtime.workflow_failed_provision_auto_requeue_sweep")
 def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
-    """Batch 1737 — zero-fail: auto-requeue failed/stuck tenant_school_provision runs."""
+    """Batch 1737 â€” zero-fail: auto-requeue failed/stuck tenant_school_provision runs."""
     try:
         from apps.platform_runtime.models import WorkflowRun
         from apps.platform_runtime.workflow_autopilot import try_auto_apply_on_failure
@@ -557,7 +712,7 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
             WorkflowRun.objects.filter(
                 workflow_key="tenant_school_provision",
                 status__in=("failed", "stuck", "cancelled"),
-            ).order_by("-started_at")[:100]  # WorkflowRun has no `updated_at`; -updated_at raised FieldError (swallowed) → sweep was a no-op
+            ).order_by("-started_at")[:100]  # WorkflowRun has no `updated_at`; -updated_at raised FieldError (swallowed) â†’ sweep was a no-op
         )
         remediated = 0
         requeued = 0
@@ -568,11 +723,11 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
                 # A run can be FAILED while its school is fully provisioned: the
                 # drive is killed AFTER the work lands but BEFORE finalize_run
                 # writes "succeeded", so the row stays failed forever while the
-                # tenant is live (observed in prod — schools with 322 tables /
+                # tenant is live (observed in prod â€” schools with 322 tables /
                 # 1196 applied migrations / phase A+B complete still carrying a
                 # FAILED tenant_schema run). Requeuing those re-drives a finished
                 # tenant, and because the requeue never clears the old row it
-                # would be re-picked on EVERY tick — an unbounded migrate storm.
+                # would be re-picked on EVERY tick â€” an unbounded migrate storm.
                 # Mark the stale row cancelled so it leaves the candidate set,
                 # and never re-drive a settled school.
                 if _run_school_is_settled(run):

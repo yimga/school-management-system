@@ -93,6 +93,7 @@ _ONLINE_ONLY_ACTION_KINDS = frozenset(
         "bulk_apply_fix",
         "requeue_provision",
         "cancel",
+        "clear_after_success",
     }
 )
 
@@ -214,6 +215,24 @@ def build_operator_actions(*, run: Any, payload: dict[str, Any]) -> list[dict[st
                     "primary": False,
                 }
             )
+        except Exception:
+            pass
+        # Operator clear only after success proof — unfinished failures stay.
+        try:
+            from apps.platform_runtime.tasks import (
+                provision_failure_clearable_after_success,
+            )
+
+            if run is not None and provision_failure_clearable_after_success(run):
+                actions.insert(
+                    0,
+                    _action_meta(
+                        "clear_after_success",
+                        label="Clear from deck",
+                        primary=True,
+                        capability=auto_fix_capability("clear_after_success"),
+                    ),
+                )
         except Exception:
             pass
 

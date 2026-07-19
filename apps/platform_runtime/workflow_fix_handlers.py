@@ -56,6 +56,16 @@ AUTO_FIX_HANDLER_CATALOG: dict[str, dict[str, Any]] = {
         "requires_network": False,
         "description": "Moves the old row out of the unresolved deck after replacement work exists.",
     },
+    "clear_after_success": {
+        "label": "Clear from deck",
+        "mode": "execute",
+        "confidence": "high",
+        "requires_network": False,
+        "description": (
+            "Removes this provision failure from the Flight Deck only after the "
+            "school provisioned successfully (settled or a succeeded run exists)."
+        ),
+    },
     "retry_once_with_backoff": {
         "label": "Retry with backoff",
         "mode": "execute",
@@ -303,6 +313,7 @@ def preview_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
         "repair_tenant_schema_drift",
         "run_tenant_migrations",
         "mark_superseded",
+        "clear_after_success",
         "resume_from_checkpoint",
         "retry_failed_step",
         "replay_webhook",
@@ -630,7 +641,56 @@ def _apply_auto_fix_kind_impl(*, run: Any, kind: str) -> dict[str, Any]:
         result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
         return result
 
+    if kind == "clear_after_success":
+        # Explicit operator clear — same gate as mark_superseded for provision.
+        return apply_auto_fix_kind(run=run, kind="mark_superseded")
+
     if kind == "mark_superseded":
+        workflow_key = getattr(run, "workflow_key", "") or ""
+        if workflow_key == "tenant_school_provision":
+            from apps.platform_runtime.tasks import (
+                provision_failure_clearable_after_success,
+            )
+
+            if not provision_failure_clearable_after_success(run):
+                return {
+                    "ok": False,
+                    "reason": "clear_requires_successful_provision",
+                    "kind": kind,
+                    "message": (
+                        "Cannot clear this row until provisioning has succeeded "
+                        "(school settled or a succeeded provision run exists)."
+                    ),
+                }
+            from apps.platform_runtime.tasks import _resolve_stale_provisioned_run
+
+            if _resolve_stale_provisioned_run(
+                run,
+                kind="operator_clear_after_success",
+                human_action=(
+                    "Cleared by operator after successful provisioning. "
+                    "This historical failure no longer needs attention."
+                ),
+                error_message=(
+                    "superseded: operator cleared after successful provision"
+                ),
+            ):
+                return {
+                    "ok": True,
+                    "applied": "clear_after_success",
+                    "refresh_deck": True,
+                    "healing_poll_ms": 1500,
+                    "operator_message": (
+                        "Cleared from Flight Deck — provisioning already succeeded."
+                    ),
+                }
+            return {
+                "ok": True,
+                "applied": "clear_after_success",
+                "refresh_deck": True,
+                "reason": "already_remediated",
+                "operator_message": "Already cleared from the Flight Deck.",
+            }
         result = {
             "ok": True,
             "applied": kind,

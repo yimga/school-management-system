@@ -185,8 +185,21 @@ class GenuinelyUnprovisionedSchoolStillRequeuedTests(TestCase):
             "an inactive, unprovisioned school must NOT be treated as settled",
         )
         self.run.refresh_from_db()
-        self.assertNotEqual(
-            (self.run.status or "").lower(),
-            "cancelled",
-            "a genuinely failed run must stay a candidate for remediation",
+        # A successful requeue may supersede this row (status cancelled + stamp).
+        # What must never happen: retiring it as "settled / fully provisioned"
+        # while the school is still inactive and unfinished.
+        err = (self.run.error_summary or {}).get("message", "")
+        human = (self.run.suggested_remediation or {}).get("human_action", "")
+        self.assertNotIn(
+            "fully provisioned",
+            f"{err} {human}",
+            "genuinely broken schools must not be retired as settled",
         )
+        if (self.run.status or "").lower() == "cancelled":
+            self.assertIn("superseded", err.lower())
+        else:
+            self.assertEqual(
+                (self.run.status or "").lower(),
+                "failed",
+                "a genuinely failed run must stay a candidate for remediation",
+            )

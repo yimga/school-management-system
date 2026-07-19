@@ -229,6 +229,212 @@ class FlightDeckEnrichmentTests(TestCase):
             0,
         )
 
+    @override_settings(ALLOWED_HOSTS=["*"], MULTI_TENANT_BASE_DOMAIN="runmycampus.com")
+    def test_flight_deck_hides_settled_school_stale_failures(self):
+        """Live school + Phase A/B complete must not inflate Recent failures."""
+        settled = School.objects.create(
+            name="Settled Academy",
+            slug=f"settled-{uuid.uuid4().hex[:8]}",
+            subdomain=f"st{uuid.uuid4().hex[:6]}",
+            is_active=True,
+            settings={
+                "provisioning": {"phase_a_complete": True, "phase_b_complete": True}
+            },
+        )
+        stale = WorkflowRun.objects.create(
+            workflow_key="tenant_school_provision",
+            workflow_label="Provision school",
+            status="failed",
+            school_id=str(settled.pk),
+            tenant_schema=settled.subdomain,
+            current_step_name="tenant_schema",
+            current_step_ordinal=3,
+            total_steps=5,
+            error_summary={
+                "type": "TimeoutError",
+                "message": "Worker timed out. The background worker stopped sending heartbeats.",
+            },
+        )
+        request = self.factory.get(
+            "/platform-runtime/workflow-progress/flight-deck.json",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        request.user = self.staff
+        response = flight_deck_json_view(request)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        failed_ids = {row.get("id") for row in data.get("recent_failed") or []}
+        self.assertNotIn(
+            stale.pk,
+            failed_ids,
+            "settled-school FAILED rows must leave the deck on JSON load",
+        )
+        stale.refresh_from_db()
+        from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
+
+        self.assertTrue(workflow_run_is_remediated(stale))
+
+    @override_settings(ALLOWED_HOSTS=["*"])
+    def test_flight_deck_hides_failures_superseded_by_later_success(self):
+        """A later succeeded provision must clear older FAILED cards immediately."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        school = School.objects.create(
+            name="Retry School",
+            slug=f"retry-{uuid.uuid4().hex[:8]}",
+            subdomain=f"rt{uuid.uuid4().hex[:6]}",
+            is_active=False,
+        )
+        older = WorkflowRun.objects.create(
+            workflow_key="tenant_school_provision",
+            workflow_label="Provision school",
+            status="failed",
+            school_id=str(school.pk),
+            tenant_schema=school.subdomain,
+            started_at=timezone.now() - timedelta(hours=2),
+            ended_at=timezone.now() - timedelta(hours=1),
+            current_step_name="tenant_schema",
+            current_step_ordinal=3,
+            total_steps=5,
+            error_summary={"type": "TimeoutError", "message": "heartbeat lost"},
+        )
+        WorkflowRun.objects.create(
+            workflow_key="tenant_school_provision",
+            workflow_label="Provision school",
+            status="succeeded",
+            school_id=str(school.pk),
+            tenant_schema=school.subdomain,
+            started_at=timezone.now() - timedelta(minutes=5),
+            ended_at=timezone.now() - timedelta(minutes=1),
+            current_step_name="complete",
+            current_step_ordinal=5,
+            total_steps=5,
+        )
+        request = self.factory.get(
+            "/platform-runtime/workflow-progress/flight-deck.json",
+            HTTP_ACCEPT="application/json",
+            HTTP_HOST=_MANAGER_HOST,
+        )
+        request.user = self.staff
+        response = flight_deck_json_view(request)
+        data = json.loads(response.content)
+        failed_ids = {row.get("id") for row in data.get("recent_failed") or []}
+        self.assertNotIn(older.pk, failed_ids)
+        # The setUp unprovisioned failure for self.school may still appear.
+        self.assertIn(self.run.pk, failed_ids)
+
+    def test_finalize_success_supersedes_prior_failures(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from apps.platform_runtime.workflow_tracker import finalize_run
+
+        school = School.objects.create(
+            name="Finalize Supersede",
+            slug=f"fin-{uuid.uuid4().hex[:8]}",
+            subdomain=f"fn{uuid.uuid4().hex[:6]}",
+            is_active=False,
+        )
+        prior = WorkflowRun.objects.create(
+            workflow_key="tenant_school_provision",
+            status="failed",
+            school_id=str(school.pk),
+            started_at=timezone.now() - timedelta(hours=1),
+        )
+        winner = WorkflowRun.objects.create(
+            workflow_key="tenant_school_provision",
+            status="running",
+            school_id=str(school.pk),
+            started_at=timezone.now(),
+        )
+        finalize_run(winner, status="succeeded")
+        prior.refresh_from_db()
+        from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
+
+        self.assertTrue(workflow_run_is_remediated(prior))
+        self.assertEqual((prior.status or "").lower(), "cancelled")
+
+    def test_clear_from_deck_offered_only_after_success(self):
+        from apps.platform_runtime.workflow_flight_deck_actions import (
+            build_operator_actions,
+        )
+        from apps.platform_runtime.workflow_tracker import serialize_workflow_run
+
+        kinds = [
+            a.get("kind")
+            for a in build_operator_actions(
+                run=self.run, payload=serialize_workflow_run(self.run)
+            )
+        ]
+        self.assertNotIn(
+            "clear_after_success",
+            kinds,
+            "unfinished provision failure must not offer Clear from deck",
+        )
+
+        settled = School.objects.create(
+            name="Clearable School",
+            slug=f"clr-{uuid.uuid4().hex[:8]}",
+            subdomain=f"cl{uuid.uuid4().hex[:6]}",
+            is_active=True,
+            settings={
+                "provisioning": {"phase_a_complete": True, "phase_b_complete": True}
+            },
+        )
+        stale = WorkflowRun.objects.create(
+            workflow_key="tenant_school_provision",
+            status="failed",
+            school_id=str(settled.pk),
+            tenant_schema=settled.subdomain,
+            current_step_name="tenant_schema",
+            total_steps=5,
+            current_step_ordinal=3,
+        )
+        kinds_ok = [
+            a.get("kind")
+            for a in build_operator_actions(
+                run=stale, payload=serialize_workflow_run(stale)
+            )
+        ]
+        self.assertIn("clear_after_success", kinds_ok)
+
+    @patch("apps.schools.tasks.dispatch_provision_school")
+    @override_settings(ALLOWED_HOSTS=["*"])
+    def test_clear_after_success_refuses_unfinished_and_clears_settled(
+        self, _dispatch_mock
+    ):
+        from apps.platform_runtime.workflow_fix_handlers import apply_auto_fix_kind
+
+        refused = apply_auto_fix_kind(run=self.run, kind="clear_after_success")
+        self.assertFalse(refused.get("ok"))
+        self.assertEqual(refused.get("reason"), "clear_requires_successful_provision")
+
+        settled = School.objects.create(
+            name="Clear Apply School",
+            slug=f"cla-{uuid.uuid4().hex[:8]}",
+            subdomain=f"ca{uuid.uuid4().hex[:6]}",
+            is_active=True,
+            settings={
+                "provisioning": {"phase_a_complete": True, "phase_b_complete": True}
+            },
+        )
+        stale = WorkflowRun.objects.create(
+            workflow_key="tenant_school_provision",
+            status="failed",
+            school_id=str(settled.pk),
+            tenant_schema=settled.subdomain,
+        )
+        cleared = apply_auto_fix_kind(run=stale, kind="clear_after_success")
+        self.assertTrue(cleared.get("ok"), cleared)
+        stale.refresh_from_db()
+        from apps.platform_runtime.workflow_fix_handlers import workflow_run_is_remediated
+
+        self.assertTrue(workflow_run_is_remediated(stale))
+
     def test_workflow_recovery_playbook_covers_registry(self):
         coverage = workflow_recovery_coverage()
         self.assertGreaterEqual(len(coverage), 1)

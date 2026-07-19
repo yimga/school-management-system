@@ -83,7 +83,7 @@
     var base = state.endpoints || {};
     var runId = run.id;
     var schoolId = run.school_id || "";
-    if (kind === "apply_fix" || kind === "preview_fix" || kind === "requeue_provision") {
+    if (kind === "apply_fix" || kind === "preview_fix" || kind === "requeue_provision" || kind === "clear_after_success") {
       return (base.apply_fix || "").replace("{run_id}", String(runId));
     }
     if (kind === "cancel") {
@@ -584,6 +584,10 @@
     var promise;
     if (kind === "preview_fix") {
       promise = postAction(url + (url.indexOf("?") >= 0 ? "&" : "?") + "dry_run=1");
+    } else if (kind === "clear_after_success") {
+      promise = postAction(url, {
+        body: "auto_fix_kind=" + encodeURIComponent("clear_after_success"),
+      });
     } else {
       promise = postAction(url);
     }

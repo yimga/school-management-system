@@ -1,12 +1,12 @@
 {
   "date": "2026-07-18",
-  "generated_at": "2026-07-18T12:40:00+00:00",
+  "generated_at": "2026-07-19T02:10:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 135,
-  "raw": "sms-v4.05.135-operator-option-a-governed-2026-07-18",
+  "patch": 141,
+  "raw": "sms-v4.05.141-flight-deck-clear-after-success-2026-07-18",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "operator-option-a-governed",
+  "slug": "flight-deck-clear-after-success",
   "valid": true
 }
