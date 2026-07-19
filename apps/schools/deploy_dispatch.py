@@ -42,6 +42,64 @@ def _active_owner_emails(school) -> list[str]:
     return emails
 
 
+def dispatch_setup_email_for_school(school) -> dict:
+    """Resend the owner-setup email to every ACTIVE owner of a resolved ``school``.
+
+    Operator-initiated sibling of :func:`dispatch_setup_email_for_slug`: takes a
+    ``School`` the operator already selected (e.g. from the tenant-360 console) and
+    does NOT re-filter on ``is_active`` — the operator picked this tenant on
+    purpose. Fail-soft; never raises. Returns
+    ``{"found", "recipients", "sent", "configured"}`` (``configured`` is the honest
+    "can we actually deliver mail right now?" flag: ``True`` / ``False`` / ``None``).
+    """
+    result = {"found": False, "recipients": 0, "sent": 0, "configured": None}
+    if school is None:
+        return result
+    result["found"] = True
+    try:
+        from apps.schools.welcome_email import send_welcome_email
+
+        # Honest preflight — same signal the CLI/migration path surfaces.
+        try:
+            from apps.schoolops.email_delivery import transactional_email_configured
+
+            result["configured"] = bool(transactional_email_configured(school=school))
+        except Exception:  # noqa: BLE001 — preflight is advisory, never fatal
+            result["configured"] = None
+        if result["configured"] is False:
+            logger.warning(
+                "dispatch_setup_email_for_school: transactional email is NOT "
+                "configured (Brevo EMAIL_HOST_USER / EMAIL_HOST_PASSWORD empty) — "
+                "the setup email for school=%s will be attempted but not delivered "
+                "until those secrets are set.",
+                getattr(school, "pk", None),
+            )
+
+        emails = _active_owner_emails(school)
+        result["recipients"] = len(emails)
+        for email in emails:
+            try:
+                if send_welcome_email(str(school.pk), email):
+                    result["sent"] += 1
+            except Exception:  # noqa: BLE001 — one bad send must not abort the rest
+                logger.warning(
+                    "dispatch_setup_email_for_school send failed", exc_info=True
+                )
+        logger.info(
+            "dispatch_setup_email_for_school school=%s recipients=%s sent=%s",
+            getattr(school, "pk", None),
+            result["recipients"],
+            result["sent"],
+        )
+    except Exception:  # noqa: BLE001 — an operator action must never 500 on an email
+        logger.warning(
+            "dispatch_setup_email_for_school failed for school=%s",
+            getattr(school, "pk", None),
+            exc_info=True,
+        )
+    return result
+
+
 def dispatch_setup_email_for_slug(slug: str) -> dict:
     """Resend the owner-setup email to every ACTIVE owner of the school ``slug``.
 

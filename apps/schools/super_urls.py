@@ -24,6 +24,7 @@ from . import super_views_config_crud
 from . import super_views_enterprise_security
 from . import super_views_security_surface
 from . import super_views_mfa_policy
+from . import super_views_owner_email
 from . import super_views_operator_team
 from . import super_views_superadmin
 from .super_views_founder_dashboard import super_founder_dashboard
@@ -288,6 +289,13 @@ urlpatterns = [
         "security/schools/<uuid:school_id>/mfa-policy/",
         require_super_access_with_host(super_views_mfa_policy.tenant_mfa_policy),
         name="tenant_mfa_policy",
+    ),
+    path(
+        "schools/<uuid:school_id>/resend-owner-setup-email/",
+        require_super_access_with_host(
+            super_views_owner_email.resend_owner_setup_email_view
+        ),
+        name="resend_owner_setup_email",
     ),
     path(
         "api/schools/<uuid:school_id>/requeue-provision/",

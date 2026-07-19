@@ -164,6 +164,10 @@
         {% endif %}
         <a class="btn btn-sm btn-outline-primary" href="{% url 'platform_runtime:workflow_progress_flight_deck' %}">{% trans "Open Flight Deck" %}</a>
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:tenant_health' %}">{% trans "Tenant health" %}</a>
+        <form method="post" action="{% url 'super:resend_owner_setup_email' school.id %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Resend owner setup email" %}</button>
+        </form>
       </div>
     </div>
   </div>
