@@ -2,7 +2,7 @@
 # Idempotent: safe to run when column/index already exist from a previous partial run.
 
 import uuid
-from django.db import migrations, models
+from django.db import migrations, models, transaction
 
 
 def apply_payment_code_idempotent(apps, schema_editor):
@@ -28,9 +28,10 @@ def apply_payment_code_idempotent(apps, schema_editor):
                 )
         else:
             try:
-                cursor.execute(
-                    "ALTER TABLE finance_invoice ADD COLUMN payment_code VARCHAR(32) NULL;"
-                )
+                with transaction.atomic(using=connection.alias):
+                    cursor.execute(
+                        "ALTER TABLE finance_invoice ADD COLUMN payment_code VARCHAR(32) NULL;"
+                    )
             except Exception:
                 pass
 
@@ -110,27 +111,30 @@ def apply_payment_code_idempotent(apps, schema_editor):
             # We'll need to recreate the table or use a workaround
             # For now, just add the unique constraint
             try:
-                cursor.execute("""
-                    CREATE UNIQUE INDEX IF NOT EXISTS finance_invoice_payment_code_key
-                    ON finance_invoice (payment_code);
-                """)
+                with transaction.atomic(using=connection.alias):
+                    cursor.execute("""
+                        CREATE UNIQUE INDEX IF NOT EXISTS finance_invoice_payment_code_key
+                        ON finance_invoice (payment_code);
+                    """)
             except Exception:
                 # Constraint/index already exists - ignore
                 pass
         else:
             # For other databases, try to add constraints
             try:
-                cursor.execute("""
-                    ALTER TABLE finance_invoice
-                    ALTER COLUMN payment_code SET NOT NULL;
-                """)
+                with transaction.atomic(using=connection.alias):
+                    cursor.execute("""
+                        ALTER TABLE finance_invoice
+                        ALTER COLUMN payment_code SET NOT NULL;
+                    """)
             except Exception:
                 pass
             try:
-                cursor.execute("""
-                    ALTER TABLE finance_invoice
-                    ADD CONSTRAINT finance_invoice_payment_code_key UNIQUE (payment_code);
-                """)
+                with transaction.atomic(using=connection.alias):
+                    cursor.execute("""
+                        ALTER TABLE finance_invoice
+                        ADD CONSTRAINT finance_invoice_payment_code_key UNIQUE (payment_code);
+                    """)
             except Exception:
                 # Constraint already exists - ignore
                 pass

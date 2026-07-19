@@ -120,6 +120,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # swallowed = silent data loss. Zero-tolerance from day 1; must run every PR
     # or the class silently re-opens.
     ("scripts/scan_lander_phantom_fields.py", "architectural-boundaries.yml"),
+    # Migration transaction side-effects (2026-07-19) — the deploy-abort seal. A
+    # migration that does a DB op inside a broad swallowing except (or any
+    # email/network/Celery I/O) can poison the migrate transaction and abort the
+    # whole Render deploy (the schools/0078 crash). Zero-tolerance; must run every
+    # PR or the class silently re-opens.
+    ("scripts/scan_migration_transaction_side_effects.py", "architectural-boundaries.yml"),
     # Metric 24 (Documentation): every installed app has a README whose factual
     # claims are checked against the live app registry. Unwired, per-app docs rot
     # back to nothing -- which is exactly the state this gate was written to end.

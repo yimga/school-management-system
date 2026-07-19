@@ -329,6 +329,23 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_lander_phantom_fields -v
 
+  migration-transaction-side-effects:
+    name: No side effects in a migration transaction (deploy-abort seal)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner (zero-tolerance)
+        run: |
+          python scripts/scan_migration_transaction_side_effects.py
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_scan_migration_transaction_side_effects -v
+
   tenant-template-operator-links:
     name: No tenant-facing template links to an operator route (H4.6)
     runs-on: ubuntu-latest
