@@ -12,6 +12,7 @@ from decimal import Decimal
 # ── Squad / roster ─────────────────────────────────────────────────────────
 DEFAULT_SQUAD_SIZE = 15
 DEFAULT_ROSTER_CAP = 30
+DEFAULT_CLUB_CAPACITY = 40
 
 # ── Eligibility thresholds ─────────────────────────────────────────────────
 # An athlete is academically eligible at or above this average (percent scale)

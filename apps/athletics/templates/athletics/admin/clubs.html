@@ -1,0 +1,113 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Athletics — Clubs" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1"><i class="bi bi-people me-2" aria-hidden="true"></i>{% trans "Clubs" %}</h1>
+      <p class="text-muted mb-0">{% blocktrans %}Extracurricular clubs for {{ school }}.{% endblocktrans %}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'athletics:admin_seasons' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-trophy me-1" aria-hidden="true"></i>{% trans "Seasons" %}
+      </a>
+      <a href="{% url 'athletics:admin_fixtures' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-calendar-event me-1" aria-hidden="true"></i>{% trans "Fixtures" %}
+      </a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4 rounded-2xl">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Create a club" %}</h2>
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <form method="post" action="{% url 'athletics:admin_clubs' %}" class="row g-3">
+        {% csrf_token %}
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="{{ form.name.id_for_label }}">{% trans "Name" %}</label>
+          {{ form.name }}
+          {% for error in form.name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="{{ form.category.id_for_label }}">{% trans "Category" %}</label>
+          {{ form.category }}
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="{{ form.academic_year.id_for_label }}">{% trans "Academic year" %}</label>
+          {{ form.academic_year }}
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="{{ form.meeting_day.id_for_label }}">{% trans "Meeting day" %}</label>
+          {{ form.meeting_day }}
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="{{ form.meeting_location.id_for_label }}">{% trans "Meeting location" %}</label>
+          {{ form.meeting_location }}
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="{{ form.capacity.id_for_label }}">{% trans "Capacity" %}</label>
+          {{ form.capacity }}
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="{{ form.status.id_for_label }}">{% trans "Status" %}</label>
+          {{ form.status }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.description.id_for_label }}">{% trans "Description" %}</label>
+          {{ form.description }}
+        </div>
+        <div class="col-12 col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">{% trans "Create club" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card shadow-sm rounded-2xl">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Active clubs" %}</h2>
+      {% if clubs %}
+      <div class="rmc-data-table-wrap" style="overflow-x:auto;"><!-- inline-style-allow: wide-table-horizontal-scroll-container -->
+        <table class="table rmc-data-table align-middle">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Club" %}</th>
+              <th scope="col">{% trans "Category" %}</th>
+              <th scope="col">{% trans "Meeting" %}</th>
+              <th scope="col">{% trans "Capacity" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for club in clubs %}
+            <tr>
+              <td>
+                <a href="{% url 'athletics:admin_club_detail' club_id=club.id %}">{{ club.name }}</a>
+              </td>
+              <td>{{ club.get_category_display }}</td>
+              <td class="small text-muted">
+                {% if club.meeting_day or club.meeting_location %}
+                  {{ club.meeting_day }}{% if club.meeting_day and club.meeting_location %} · {% endif %}{{ club.meeting_location }}
+                {% else %}—{% endif %}
+              </td>
+              <td>{{ club.capacity }}</td>
+              <td><span class="badge text-bg-secondary">{{ club.get_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="rmc-empty text-center py-5">
+        <i class="bi bi-people display-6 text-muted d-block mb-2" aria-hidden="true"></i>
+        <p class="mb-1 fw-semibold">{% trans "No clubs yet" %}</p>
+        <p class="text-muted small mb-0">{% trans "Create a debate, robotics, or service club to get started." %}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

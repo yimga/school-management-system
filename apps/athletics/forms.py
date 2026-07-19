@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from django import forms
 
-from apps.athletics.models import Fixture, Season
+from apps.athletics.models import Club, Fixture, Season
 
 
 _TEXT = {"class": "form-control"}
@@ -144,6 +144,91 @@ class AddMemberForm(forms.Form):
     )
     position = forms.CharField(
         max_length=48, required=False, widget=forms.TextInput(attrs=_TEXT)
+    )
+
+    def __init__(self, *args, school=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.people.models import StudentProfile
+
+        if school is not None:
+            self.fields["student"].queryset = StudentProfile.objects.filter(
+                school=school, is_active=True
+            ).order_by("last_name", "first_name")
+        else:
+            self.fields["student"].queryset = StudentProfile.objects.none()
+
+
+class ClubForm(forms.ModelForm):
+    """Academic-leadership club create/edit. Academic year queryset school-scoped."""
+
+    class Meta:
+        model = Club
+        fields = [
+            "name",
+            "category",
+            "academic_year",
+            "description",
+            "meeting_day",
+            "meeting_location",
+            "capacity",
+            "status",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs=_TEXT),
+            "category": forms.Select(attrs=_SELECT),
+            "academic_year": forms.Select(attrs=_SELECT),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "meeting_day": forms.TextInput(attrs=_TEXT),
+            "meeting_location": forms.TextInput(attrs=_TEXT),
+            "capacity": forms.NumberInput(attrs=_TEXT),
+            "status": forms.Select(attrs=_SELECT),
+        }
+
+    def __init__(self, *args, school=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.academics.models import AcademicYear
+
+        if school is not None:
+            self.fields["academic_year"].queryset = AcademicYear.objects.filter(
+                school=school
+            ).order_by("-start_date")
+        else:
+            self.fields["academic_year"].queryset = AcademicYear.objects.none()
+        self.fields["academic_year"].required = False
+        self.fields["description"].required = False
+        self.fields["meeting_day"].required = False
+        self.fields["meeting_location"].required = False
+
+    def clean(self):
+        cleaned = super().clean()
+        name = (cleaned.get("name") or "").strip()
+        school_id = getattr(self.instance, "school_id", None)
+        if school_id and name:
+            from django.utils.text import slugify
+
+            slug = slugify(name)[:120] or "club"
+            dupes = Club.objects.filter(school_id=school_id, slug=slug)
+            if self.instance.pk:
+                dupes = dupes.exclude(pk=self.instance.pk)
+            # Same slug from a renamed club with a different display name is OK
+            # if we already have a distinct slug; only block exact name+slug clash
+            # for brand-new clubs where save() would derive the same slug.
+            if not self.instance.pk and dupes.exists():
+                self.add_error(
+                    "name",
+                    "A club with this name (or slug) already exists for this school.",
+                )
+        return cleaned
+
+
+class EnrollClubMemberForm(forms.Form):
+    """Add a student to a club roster (service performs the write)."""
+
+    student = forms.ModelChoiceField(
+        queryset=None, widget=forms.Select(attrs=_SELECT)
+    )
+    role_title = forms.CharField(
+        max_length=64, required=False, widget=forms.TextInput(attrs=_TEXT)
     )
 
     def __init__(self, *args, school=None, **kwargs):

@@ -2,6 +2,7 @@
 
 from .booking import FixtureVenueBooking
 from .catalog import Season, Sport, TeamKitFee
+from .clubs import Club, ClubAdvisorAssignment, ClubCategory, ClubMembership
 from .consent import (
     ParticipationConsent,
     ParticipationConsentDecision,
@@ -18,6 +19,10 @@ __all__ = [
     "TeamKitFee",
     "Team",
     "CoachAssignment",
+    "Club",
+    "ClubAdvisorAssignment",
+    "ClubCategory",
+    "ClubMembership",
     "TeamMembership",
     "MedicalClearance",
     "ParticipationConsent",

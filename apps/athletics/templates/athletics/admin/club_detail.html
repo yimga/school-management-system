@@ -1,0 +1,106 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{{ club.name }} — {% trans "Club" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <nav aria-label="{% trans 'Breadcrumb' %}" class="mb-1">
+        <ol class="breadcrumb mb-0 small">
+          <li class="breadcrumb-item"><a href="{% url 'athletics:admin_clubs' %}">{% trans "Clubs" %}</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ club.name }}</li>
+        </ol>
+      </nav>
+      <h1 class="h3 mb-1">{{ club.name }}</h1>
+      <p class="text-muted mb-0">
+        {{ club.get_category_display }}
+        · {{ club.get_status_display }}
+        {% if club.meeting_day %} · {{ club.meeting_day }}{% endif %}
+        {% if club.meeting_location %} · {{ club.meeting_location }}{% endif %}
+      </p>
+    </div>
+    <a href="{% url 'athletics:admin_clubs' %}" class="btn btn-outline-secondary btn-sm">
+      {% trans "All clubs" %}
+    </a>
+  </div>
+
+  {% if club.description %}
+  <div class="card shadow-sm mb-4 rounded-2xl">
+    <div class="card-body">
+      <p class="mb-0">{{ club.description }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if can_manage %}
+  <div class="card shadow-sm mb-4 rounded-2xl">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Enroll a student" %}</h2>
+      <form method="post" action="{% url 'athletics:admin_club_enroll' club_id=club.id %}" class="row g-3 align-items-end">
+        {% csrf_token %}
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="{{ enroll_form.student.id_for_label }}">{% trans "Student" %}</label>
+          {{ enroll_form.student }}
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="{{ enroll_form.role_title.id_for_label }}">{% trans "Role (optional)" %}</label>
+          {{ enroll_form.role_title }}
+        </div>
+        <div class="col-12 col-md-3">
+          <button type="submit" class="btn btn-primary w-100">{% trans "Enroll" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm rounded-2xl">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{% trans "Roster" %} <span class="text-muted small">({{ club.capacity }} {% trans "cap" %})</span></h2>
+      {% if memberships %}
+      <div class="rmc-data-table-wrap" style="overflow-x:auto;"><!-- inline-style-allow: wide-table-horizontal-scroll-container -->
+        <table class="table rmc-data-table align-middle">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Student" %}</th>
+              <th scope="col">{% trans "Role" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+              <th scope="col">{% trans "Joined" %}</th>
+              {% if can_manage %}<th scope="col" class="text-end">{% trans "Actions" %}</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in memberships %}
+            <tr>
+              <td>{{ m.student }}</td>
+              <td>{% if m.role_title %}{{ m.role_title }}{% else %}—{% endif %}</td>
+              <td><span class="badge text-bg-secondary">{{ m.get_status_display }}</span></td>
+              <td class="small text-muted">{% if m.joined_at %}{{ m.joined_at|date:"Y-m-d" }}{% else %}—{% endif %}</td>
+              {% if can_manage %}
+              <td class="text-end">
+                {% if m.status != "left" %}
+                <form method="post" action="{% url 'athletics:admin_club_withdraw' membership_id=m.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Withdraw" %}</button>
+                </form>
+                {% endif %}
+              </td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="rmc-empty text-center py-5">
+        <i class="bi bi-person-plus display-6 text-muted d-block mb-2" aria-hidden="true"></i>
+        <p class="mb-1 fw-semibold">{% trans "No members yet" %}</p>
+        <p class="text-muted small mb-0">{% trans "Enroll students above to build the club roster." %}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

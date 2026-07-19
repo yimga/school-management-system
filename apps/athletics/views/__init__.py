@@ -5,6 +5,12 @@ introspection) can reach them from ``apps.athletics.views`` directly.
 """
 
 from apps.athletics.views.admin_console import admin_fixtures, admin_seasons
+from apps.athletics.views.clubs import (
+    admin_club_detail,
+    admin_club_enroll,
+    admin_club_withdraw,
+    admin_clubs,
+)
 from apps.athletics.views.coach import (
     coach_add_member,
     coach_cancel_fixture,
@@ -24,6 +30,10 @@ from apps.athletics.views.consent_public import (
 from apps.athletics.views.family import family_my_team
 
 __all__ = [
+    "admin_club_detail",
+    "admin_club_enroll",
+    "admin_club_withdraw",
+    "admin_clubs",
     "admin_fixtures",
     "admin_seasons",
     "coach_add_member",

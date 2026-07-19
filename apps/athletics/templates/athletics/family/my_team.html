@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container-fluid py-2">
   <h1 class="h3 mb-1"><i class="bi bi-trophy me-2" aria-hidden="true"></i>{% trans "Sports" %}</h1>
-  <p class="text-muted">{% blocktrans %}Teams, fixtures, and consent for your family at {{ school }}.{% endblocktrans %}</p>
+  <p class="text-muted">{% blocktrans %}Teams, clubs, fixtures, and consent for your family at {{ school }}.{% endblocktrans %}</p>
 
   {% if pending_consents %}
   <div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
@@ -54,6 +54,62 @@
       </div>
       {% else %}
         {% include "components/dashboard_empty_state.html" with icon="bi-trophy" title=_("No team memberships yet.") message=_("When a coach adds your child to a team it will appear here.") %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4" id="clubs">
+    <div class="card-body">
+      <h2 class="h5 mb-3"><i class="bi bi-people me-2" aria-hidden="true"></i>{% trans "Clubs" %}</h2>
+      {% if club_memberships %}
+      <div class="rmc-data-table-wrap" style="overflow-x:auto;"><!-- inline-style-allow: wide-table-horizontal-scroll-container -->
+        <table class="table rmc-data-table align-middle">
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Member" %}</th>
+              <th scope="col">{% trans "Club" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for membership in club_memberships %}
+            <tr>
+              <td>{{ membership.student.first_name }} {{ membership.student.last_name }}</td>
+              <td>{{ membership.club.name }}</td>
+              <td><span class="rmc-badge rmc-badge--muted">{{ membership.get_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-people" title=_("No club memberships yet.") message=_("Open clubs below can be requested for your child.") %}
+      {% endif %}
+
+      {% if open_clubs and students %}
+      <h3 class="h6 mt-4 mb-2">{% trans "Open clubs" %}</h3>
+      <ul class="list-group list-group-flush">
+        {% for club in open_clubs %}
+        <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 px-0">
+          <div>
+            <strong>{{ club.name }}</strong>
+            {% if club.meeting_day %}<div class="small text-muted">{{ club.meeting_day }}{% if club.meeting_location %} · {{ club.meeting_location }}{% endif %}</div>{% endif %}
+          </div>
+          <form method="post" class="d-flex flex-wrap gap-2 align-items-center">
+            {% csrf_token %}
+            <input type="hidden" name="intent" value="enroll_club">
+            <input type="hidden" name="club_id" value="{{ club.id }}">
+            <label class="visually-hidden" for="club-enroll-student-{{ club.id }}">{% trans "Child" %}</label>
+            <select class="form-select form-select-sm" name="student_id" id="club-enroll-student-{{ club.id }}" required>
+              {% for student in students %}
+              <option value="{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">{% trans "Enroll" %}</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
       {% endif %}
     </div>
   </div>

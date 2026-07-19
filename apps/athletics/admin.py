@@ -15,6 +15,9 @@ from django.contrib import admin
 from config.admin import tenant_admin_site
 
 from .models import (
+    Club,
+    ClubAdvisorAssignment,
+    ClubMembership,
     CoachAssignment,
     EligibilityRecord,
     Fixture,
@@ -103,6 +106,53 @@ class CoachAssignmentAdmin(admin.ModelAdmin):
     )
     raw_id_fields = ("school", "team", "coach", "teacher_profile")
     list_select_related = ("school", "team", "coach")
+
+
+@admin.register(Club, site=tenant_admin_site)
+class ClubAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "category",
+        "status",
+        "capacity",
+        "academic_year",
+        "school",
+    )
+    list_filter = ("category", "status", "school")
+    search_fields = ("name", "slug", "school__name")
+    raw_id_fields = ("school", "academic_year")
+    list_select_related = ("school", "academic_year")
+    prepopulated_fields = {"slug": ("name",)}
+
+
+@admin.register(ClubAdvisorAssignment, site=tenant_admin_site)
+class ClubAdvisorAssignmentAdmin(admin.ModelAdmin):
+    list_display = ("advisor", "club", "role", "is_active", "school", "created_at")
+    list_filter = ("role", "is_active", "school")
+    search_fields = (
+        "advisor__first_name",
+        "advisor__last_name",
+        "advisor__email",
+        "club__name",
+    )
+    raw_id_fields = ("school", "club", "advisor")
+    list_select_related = ("school", "club", "advisor")
+
+
+@admin.register(ClubMembership, site=tenant_admin_site)
+class ClubMembershipAdmin(admin.ModelAdmin):
+    list_display = (
+        "student",
+        "club",
+        "role_title",
+        "status",
+        "joined_at",
+        "school",
+    )
+    list_filter = ("status", "school")
+    search_fields = _STUDENT_SEARCH + ("club__name", "role_title")
+    raw_id_fields = ("school", "club", "student")
+    list_select_related = ("school", "club", "student")
 
 
 @admin.register(TeamMembership, site=tenant_admin_site)

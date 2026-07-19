@@ -59,6 +59,22 @@ urlpatterns = [
     # ── Academic-leadership admin console ──────────────────────────────────
     path("admin/seasons/", views.admin_seasons, name="admin_seasons"),
     path("admin/fixtures/", views.admin_fixtures, name="admin_fixtures"),
+    path("admin/clubs/", views.admin_clubs, name="admin_clubs"),
+    path(
+        "admin/clubs/<int:club_id>/",
+        views.admin_club_detail,
+        name="admin_club_detail",
+    ),
+    path(
+        "admin/clubs/<int:club_id>/enroll/",
+        views.admin_club_enroll,
+        name="admin_club_enroll",
+    ),
+    path(
+        "admin/club-memberships/<int:membership_id>/withdraw/",
+        views.admin_club_withdraw,
+        name="admin_club_withdraw",
+    ),
     # ── Anonymous guardian participation-consent pages (token-in-URL) ──────
     path(  # rbac-allow: anonymous-by-design-consent-token-in-url-sha256-lookup
         "consent/",

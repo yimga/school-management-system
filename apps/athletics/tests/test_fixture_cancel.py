@@ -22,7 +22,6 @@ from django.utils import timezone
 
 from apps.athletics.models import Fixture, FixtureVenueBooking
 from apps.athletics.services.booking import (
-    BookingConflictError,
     book_fixture_venue,
     overlapping_confirmed_count,
 )
