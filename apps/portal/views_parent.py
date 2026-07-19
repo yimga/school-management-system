@@ -207,6 +207,38 @@ def parent_medal_case(request: HttpRequest):
 
 @parent_portal_required
 @role_required(User.Role.PARENT)
+def parent_issued_items(request: HttpRequest):
+    """Family-facing inventory: outstanding StudentResourceReturn rows for linked children."""
+    from apps.people.models import StudentResourceReturn
+
+    students = _guardian_students_for_medal_case(request.user)
+    student_ids = [s.pk for s in students]
+    outstanding = []
+    if student_ids:
+        # tenant-isolation-allow: guardian-linked-student-ids-only-parent-portal-issued-items
+        outstanding = list(
+            StudentResourceReturn.objects.filter(
+                student_id__in=student_ids,
+                returned_at__isnull=True,
+            )
+            .select_related("student", "academic_year")
+            .order_by("student__last_name", "item_label")
+        )
+    by_student: dict = {}
+    for row in outstanding:
+        by_student.setdefault(row.student, []).append(row)
+    return render(
+        request,
+        "parent/issued_items.html",
+        {
+            "issued_by_student": list(by_student.items()),
+            "has_outstanding": bool(outstanding),
+        },
+    )
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
 def parent_workflow_center(request: HttpRequest):
     """
     Parent Workflow Center: steps with progress (what you've done → where you are → what's next).
@@ -559,6 +591,8 @@ def portal_stats(request: HttpRequest):
 @role_required(User.Role.PARENT)
 def parent_attendance_discipline(request: HttpRequest):
     """Attendance & Discipline: list absences/tardies and submit justification. RBAC: linked children only."""
+    from apps.academics.models import Incident
+
     links = guardian_student_links(request.user, results_only=False)
     student_ids = [link.student_id for link in links]
     absences = []
@@ -571,6 +605,18 @@ def parent_attendance_discipline(request: HttpRequest):
             )
             .select_related("student", "classroom")
             .order_by("-date")[:100]
+        )
+    # Parent-visible discipline: only incidents staff marked notify_parent.
+    notified_incidents = []
+    if student_ids:
+        # tenant-isolation-allow: guardian-linked-students-parent-notified-incidents-only
+        notified_incidents = list(
+            Incident.objects.filter(
+                student_id__in=student_ids,
+                notify_parent=True,
+            )
+            .select_related("student")
+            .order_by("-date", "-id")[:50]
         )
     justifications = (
         AttendanceJustification.objects.filter(guardian=request.user)
@@ -594,7 +640,7 @@ def parent_attendance_discipline(request: HttpRequest):
         return redirect("portal:parent_attendance_discipline")
     hero = {
         "title": "Attendance & Discipline",
-        "subtitle": "View absences and submit justifications",
+        "subtitle": "View absences, notified incidents, and submit justifications",
         "actions": [],
     }
     return render(
@@ -603,6 +649,7 @@ def parent_attendance_discipline(request: HttpRequest):
         {
             "hero": hero,
             "absences": absences,
+            "notified_incidents": notified_incidents,
             "justifications": justifications,
             "form": form,
             "children": [link.student for link in links],

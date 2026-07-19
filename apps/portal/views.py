@@ -54,6 +54,7 @@ from .views_parent import (
     parent_workflow_center,  # noqa: F401
     claim_invite,  # noqa: F401
     parent_medal_case,  # noqa: F401
+    parent_issued_items,  # noqa: F401
     child_digital_id,  # noqa: F401
     portal_stats,  # noqa: F401
     parent_attendance_discipline,  # noqa: F401

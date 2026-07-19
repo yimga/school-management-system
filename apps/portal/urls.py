@@ -16,6 +16,7 @@ from .views import (
     parent_set_active_child,
     parent_workflow_center,
     parent_medal_case,
+    parent_issued_items,
     unified_calendar,
     my_digital_id,
     child_digital_id,
@@ -378,6 +379,11 @@ urlpatterns = [
     path("proud-campus/", proud_campus_feed, name="proud_campus_feed"),
     path("parent/contact-school/", parent_contact_school, name="parent_contact_school"),
     path("parent/medal-case/", parent_medal_case, name="parent_medal_case"),  # rbac-allow: inline-auth (login redirect inside view)
+    path(
+        "parent/issued-items/",
+        parent_issued_items,
+        name="parent_issued_items",
+    ),  # rbac-allow: parent-portal-decorator-gates-guardian-scoped-issued-items
     path(
         "parent/child/<int:student_id>/id/", child_digital_id, name="child_digital_id"
     ),
