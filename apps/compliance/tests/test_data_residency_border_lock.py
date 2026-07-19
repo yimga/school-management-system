@@ -321,6 +321,60 @@ class MiddlewareBorderLockTests(PlainTestCase):
         self.assertEqual(mw(request), "OK")
 
 
+class RegionAliasStubTests(PlainTestCase):
+    """Prove border-lock works against real DATABASES aliases registered in settings_test.
+
+    ``config.settings_test`` registers ``replica_eu_central`` and
+    ``replica_us_east`` as in-memory SQLite copies of ``default``.  These
+    tests confirm the alias-to-region mapping + enforce_region_match
+    interaction using those live entries — no mocking of the alias
+    registry.
+    """
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=True)
+    @patch("apps.compliance.cross_border_export._audit_residency_violation")
+    def test_eu_tenant_blocked_from_us_east_alias(self, audit_mock):
+        from django.conf import settings
+        self.assertIn("replica_eu_central", settings.DATABASES)
+        self.assertIn("replica_us_east", settings.DATABASES)
+
+        from apps.schools.data_residency import region_for_alias
+        self.assertEqual(region_for_alias("replica_eu_central"), "eu_central")
+        self.assertEqual(region_for_alias("replica_us_east"), "us_east")
+
+        school = _school(region="eu_central")
+        with self.assertRaises(ResidencyViolation) as ctx:
+            enforce_region_match(
+                school, region_for_alias("replica_us_east"), kind="db_route",
+            )
+        self.assertEqual(ctx.exception.source_region, "eu_central")
+        self.assertEqual(ctx.exception.target_region, "us_east")
+        audit_mock.assert_called_once()
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=True)
+    @patch("apps.compliance.cross_border_export._audit_residency_violation")
+    def test_eu_tenant_allowed_on_eu_central_alias(self, audit_mock):
+        from apps.schools.data_residency import region_for_alias
+
+        school = _school(region="eu_central")
+        enforce_region_match(
+            school, region_for_alias("replica_eu_central"), kind="db_route",
+        )
+        audit_mock.assert_not_called()
+
+    @override_settings(DATA_RESIDENCY_ENFORCE=True)
+    @patch("apps.compliance.cross_border_export._audit_residency_violation")
+    def test_us_tenant_blocked_from_eu_central_alias(self, audit_mock):
+        from apps.schools.data_residency import region_for_alias
+
+        school = _school(region="us_east")
+        with self.assertRaises(ResidencyViolation):
+            enforce_region_match(
+                school, region_for_alias("replica_eu_central"), kind="db_route",
+            )
+        audit_mock.assert_called_once()
+
+
 class AuditTrailWriteTests(TestCase):
     """DB-TOUCHING: proves the block writes a real ACCESS_DENIED AuditLog row.
 

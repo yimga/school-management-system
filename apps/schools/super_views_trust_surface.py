@@ -196,6 +196,7 @@ def super_trust_center(request):
             "platform_rollups": compute_platform_identity_rollups(),
             "tenant_identity_graph_api_path": "/api/learning/identity-graph-summary/",
             "tenant_statutory_extract_api_path": "/api/learning/statutory-extract/",
+            "sovereignty_pledge_url": "/docs/SOVEREIGNTY_PLEDGE.md",
             "beachhead_checklist": _beachhead_checklist(45),
             "beachhead_wedge_id": 45,
         },

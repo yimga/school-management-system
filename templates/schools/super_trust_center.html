@@ -103,7 +103,8 @@
         <div class="card-body">
           <h6 class="card-title"><span class="bi bi-geo-alt me-2" aria-hidden="true"></span>{% trans "Data residency & sovereignty" %}</h6>
           <p class="card-text small text-secondary">{% trans "Where data lives; region-specific compliance (GDPR, FERPA). Region packs define default data residency per continent." %}</p>
-          {% if geography_url %}<a href="{{ geography_url }}" class="btn btn-outline-primary btn-sm">{% trans "Geography & region packs" %}</a>{% else %}<span class="rmc-badge">{% trans "Docs" %}</span>{% endif %}
+          {% if geography_url %}<a href="{{ geography_url }}" class="btn btn-outline-primary btn-sm me-1">{% trans "Geography & region packs" %}</a>{% endif %}
+          {% if sovereignty_pledge_url %}<a href="{{ sovereignty_pledge_url }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">{% trans "Sovereignty pledge" %}</a>{% else %}<span class="rmc-badge">{% trans "Docs" %}</span>{% endif %}
         </div>
       </div>
     </div>

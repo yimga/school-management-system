@@ -97,6 +97,11 @@ DATABASES = {
 # `using="preview"` call doesn't trip a KeyError mid-test.
 DATABASES["preview"] = DATABASES["default"].copy()
 
+# Stub regional aliases so border-lock tests can reference real DATABASES
+# entries under @override_settings without touching production config.
+DATABASES["replica_eu_central"] = DATABASES["default"].copy()
+DATABASES["replica_us_east"] = DATABASES["default"].copy()
+
 # Disable router fan-out during tests. The tenant + preview routers
 # add overhead and surface lookup failures that have nothing to do
 # with the system under test.
