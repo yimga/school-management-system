@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-07-19T12:41:25.470190+00:00",
+  "ready": true,
+  "failed": [],
+  "sensitive_codes": [
+    "attendance.mark",
+    "finance.manage",
+    "finance.view",
+    "grade.submit"
+  ],
+  "wired_codes_sample": [
+    "attendance.mark",
+    "finance.manage",
+    "finance.view",
+    "grade.submit"
+  ],
+  "checks": [
+    {
+      "check": "runbook",
+      "ok": true
+    },
+    {
+      "check": "readiness-module",
+      "ok": true
+    },
+    {
+      "check": "mgmt-preflight",
+      "ok": true
+    },
+    {
+      "check": "enforce-tests",
+      "ok": true
+    },
+    {
+      "check": "readiness-tests",
+      "ok": true
+    },
+    {
+      "check": "settings-flag-default-off",
+      "ok": true
+    },
+    {
+      "check": "sensitive-codes-expected",
+      "ok": true
+    },
+    {
+      "check": "sensitive-codes-wired",
+      "ok": true
+    },
+    {
+      "check": "enforce_permission_token",
+      "ok": true
+    }
+  ],
+  "note": "Flip remains operator-gated via RMC_REBAC_ENFORCE_SENSITIVE=1 after `manage.py check_rebac_enforcement_readiness` exits 0 on live tenants."
+}

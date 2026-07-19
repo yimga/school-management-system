@@ -145,3 +145,4 @@ re-flipping later is immediate.
 - `apps/accounts/management/commands/sync_rebac_tuples.py`
 - `apps/accounts/rebac_signals.py` — the auto-resync handlers
 - `apps/accounts/tests/test_rebac_enforcement_readiness.py` — parity/drift/heal proof
+- `scripts/verify_rebac_enforcement_flip_readiness.py` — repo flip-readiness gate (artifacts + SOT codes; does not flip the env flag)
