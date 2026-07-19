@@ -184,6 +184,79 @@ def main() -> int:
         "components/back_to_top.html",
     )
 
+    chrome_styles = _read("templates/partials/rmc_platform_chrome_styles.html")
+    chrome_scripts = _read("templates/partials/rmc_platform_chrome_scripts.html")
+    add(
+        "chrome_collapsable_css",
+        "Platform chrome loads rmc-collapsable.css (operator+tenant parity)",
+        "rmc-collapsable.css" in chrome_styles,
+        "rmc_platform_chrome_styles.html",
+    )
+    add(
+        "chrome_collapsable_js",
+        "Platform chrome loads rmc-collapsable.js after fold standards",
+        "rmc-collapsable.js" in chrome_scripts
+        and chrome_scripts.find("rmc-page-fold-standards.js")
+        < chrome_scripts.find("rmc-collapsable.js"),
+        "rmc_platform_chrome_scripts.html",
+    )
+
+    fold_js = _read("static/js/rmc-page-fold-standards.js")
+    fold_css = _read("static/css/rmc-page-fold-standards.css")
+    for needle, cid, desc in (
+        ("initFoldStages", "fold_js_stages", "Fold JS implements fold stages"),
+        ("initFieldsetAccordion", "fold_js_fieldset_accordion", "Fold JS implements fieldset accordion"),
+        ("initCardStackPagination", "fold_js_card_pager", "Fold JS implements card-stack pager"),
+        ("initSecondaryFolds", "fold_js_secondary_folds", "Fold JS implements secondary-fold collapse"),
+        (".rmc-fold-stages", "fold_css_stages", "Fold CSS defines .rmc-fold-stages"),
+    ):
+        src = fold_css if needle.startswith(".") else fold_js
+        add(cid, desc, needle in src, "rmc-page-fold-standards")
+
+    experience = _read("templates/studio_os/modes/experience.html")
+    add(
+        "studio_experience_fold_stages",
+        "Studio Experience uses data-rmc-fold-stages (Builder/Rollout/Templates)",
+        'data-rmc-fold-stages' in experience
+        and 'data-rmc-fold-stage="builder"' in experience
+        and 'data-rmc-fold-stage="rollout"' in experience
+        and 'data-rmc-fold-stage="templates"' in experience,
+        "studio_os/modes/experience.html",
+    )
+    add(
+        "studio_experience_fold_nav",
+        "Studio Experience marks data-rmc-page-fold-nav=required",
+        'data-rmc-page-fold-nav="required"' in experience,
+        "studio_os/modes/experience.html",
+    )
+
+    cockpit = _read("templates/siteconfig/super/cockpit_configure.html")
+    add(
+        "cockpit_configure_fieldset_accordion",
+        "Cockpit configure uses fieldset accordion compression",
+        'data-rmc-fieldset-accordion="1"' in cockpit
+        and 'data-rmc-page-fold-nav="required"' in cockpit,
+        "siteconfig/super/cockpit_configure.html",
+    )
+
+    theme_personality = _read("templates/siteconfig/super/theme_personality_configure.html")
+    add(
+        "theme_personality_fieldset_accordion",
+        "Theme personality configure uses fieldset accordion compression",
+        'data-rmc-fieldset-accordion="1"' in theme_personality
+        and 'data-rmc-page-fold-nav="required"' in theme_personality,
+        "siteconfig/super/theme_personality_configure.html",
+    )
+
+    marketing_voice = _read("templates/siteconfig/super/marketing_voice_configure.html")
+    add(
+        "marketing_voice_fieldset_accordion",
+        "Marketing voice configure uses fieldset accordion compression",
+        'data-rmc-fieldset-accordion="1"' in marketing_voice
+        and 'data-rmc-page-fold-nav="required"' in marketing_voice,
+        "siteconfig/super/marketing_voice_configure.html",
+    )
+
     failed = [r for r in rows if r.status == "FAIL"]
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),

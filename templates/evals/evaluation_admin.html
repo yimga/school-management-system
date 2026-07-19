@@ -188,8 +188,9 @@
       <div class="d-flex gap-2 align-items-center flex-wrap">
         <span class="small text-muted me-1">{% trans "View:" %}</span>
         <div class="btn-group btn-group-sm table-density-toggle" role="group" aria-label="{% trans 'Table density' %}">
-          <button type="button" class="btn btn-outline-secondary" data-density="condensed">{% trans "Condensed" %}</button>
-          <button type="button" class="btn btn-outline-secondary" data-density="expanded">{% trans "Expanded" %}</button>
+          <button type="button" class="btn btn-outline-secondary" data-density="compact">{% trans "Compact" %}</button>
+          <button type="button" class="btn btn-outline-secondary" data-density="comfortable">{% trans "Cozy" %}</button>
+          <button type="button" class="btn btn-outline-secondary" data-density="spacious">{% trans "Roomy" %}</button>
         </div>
         <a class="btn btn-outline-secondary btn-sm" href="?{{ export_csv_query }}">{% trans "Export CSV" %}</a>
         <a class="btn btn-outline-secondary btn-sm" href="?{{ export_pdf_query }}">{% trans "Export PDF" %}</a>

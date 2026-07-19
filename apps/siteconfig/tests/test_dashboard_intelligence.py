@@ -77,6 +77,22 @@ class DashEngineContractTests(SimpleTestCase):
         for cls in (".rmc-dash-bar", ".rmc-dash-focus", ".rmc-dash-grip", ".rmc-dash-hidden", ".rmc-dash-cust"):
             self.assertIn(cls, css, cls)
 
+    def test_density_css_covers_compact_cozy_roomy(self):
+        css = _read("static/css/rmc-class-grammar.css")
+        for val in (
+            '[data-rmc-dash-density="compact"]',
+            '[data-rmc-dash-density="comfortable"]',
+            '[data-rmc-dash-density="spacious"]',
+        ):
+            self.assertIn(val, css, val)
+        # Real spacing, not margin-only
+        self.assertIn("padding-block", css)
+        self.assertIn("--density-card-padding", css)
+
+    def test_operator_super_dashboard_has_cockpit_hook(self):
+        tpl = _read("templates/schools/super_dashboard.html")
+        self.assertIn('data-rmc-tp-dashboard-cockpit="operator-super"', tpl)
+
     def test_settings_route_template_and_action(self):
         urls = _read("apps/siteconfig/urls.py")
         self.assertIn('name="dashboard_prefs"', urls)

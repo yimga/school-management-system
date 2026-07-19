@@ -1,5 +1,5 @@
 /**
- * Page fold standards — measure content depth, enforce 2-fold back-to-top threshold,
+ * Page fold standards - measure content depth, enforce 2-fold back-to-top threshold,
  * client pagination for task lists/tables marked data-rmc-scroll-policy="paginate".
  */
 (function () {
@@ -288,10 +288,317 @@
     mount.insertBefore(nav, mount.firstChild);
   }
 
+  var CARD_PAGE_SIZE = 6;
+  var STAGES_STORAGE = "rmcFoldStages:v1:";
+
+  function readStagePref(key) {
+    if (!key) return null;
+    try {
+      return localStorage.getItem(STAGES_STORAGE + key);
+    } catch (_) {
+      return null;
+    }
+  }
+  function writeStagePref(key, value) {
+    if (!key) return;
+    try {
+      localStorage.setItem(STAGES_STORAGE + key, value);
+    } catch (_) {}
+  }
+
+  function buildStagesNav(items, activeId, onSelect) {
+    var nav = document.createElement("div");
+    nav.className = "rmc-fold-stages";
+    nav.setAttribute("role", "tablist");
+    nav.setAttribute("aria-label", "Page sections");
+    nav.setAttribute("data-rmc-page-fold-nav", "required");
+
+    items.forEach(function (item) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "rmc-fold-stages__btn";
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("data-rmc-fold-stage-btn", item.id);
+      btn.textContent = item.label;
+      btn.setAttribute("aria-pressed", item.id === activeId ? "true" : "false");
+      btn.addEventListener("click", function () {
+        onSelect(item.id);
+      });
+      nav.appendChild(btn);
+    });
+
+    var hint = document.createElement("span");
+    hint.className = "rmc-fold-stages__hint";
+    hint.textContent = "One section at a time";
+    nav.appendChild(hint);
+    return nav;
+  }
+
+  function syncStageButtons(nav, activeId) {
+    nav.querySelectorAll("[data-rmc-fold-stage-btn]").forEach(function (btn) {
+      var on = btn.getAttribute("data-rmc-fold-stage-btn") === activeId;
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  /** Explicit fold stages: [data-rmc-fold-stages] > [data-rmc-fold-stage] */
+  function initFoldStages(root) {
+    var scope = root || document;
+    var hosts = scope.querySelectorAll("[data-rmc-fold-stages]");
+    hosts.forEach(function (host) {
+      if (host.getAttribute("data-rmc-fold-stages-ready") === "1") return;
+      var stages = Array.prototype.filter.call(host.children, function (el) {
+        return el.nodeType === 1 && el.hasAttribute("data-rmc-fold-stage");
+      });
+      if (stages.length < 2) return;
+      host.setAttribute("data-rmc-fold-stages-ready", "1");
+
+      var persistKey = host.getAttribute("data-rmc-fold-stages-persist") || "";
+      var items = stages.map(function (el, idx) {
+        var id =
+          el.getAttribute("data-rmc-fold-stage") ||
+          el.id ||
+          "stage-" + (idx + 1);
+        el.setAttribute("data-rmc-fold-stage", id);
+        if (!el.id) el.id = "rmc-fold-" + id;
+        var label =
+          el.getAttribute("data-rmc-fold-stage-label") ||
+          sectionNavLabelFor(el) ||
+          id;
+        return { id: id, label: label, el: el };
+      });
+
+      var preferred = readStagePref(persistKey);
+      var initial = items[0].id;
+      if (preferred && items.some(function (i) { return i.id === preferred; })) {
+        initial = preferred;
+      } else {
+        var def = items.find(function (i) {
+          return i.el.getAttribute("data-rmc-fold-stage-default") === "1";
+        });
+        if (def) initial = def.id;
+      }
+
+      function show(id) {
+        items.forEach(function (item) {
+          var on = item.id === id;
+          item.el.hidden = !on;
+          if (on) {
+            item.el.removeAttribute("hidden");
+          } else {
+            item.el.setAttribute("hidden", "hidden");
+          }
+        });
+        syncStageButtons(nav, id);
+        writeStagePref(persistKey, id);
+        applyFoldAttributes();
+        try {
+          window.scrollTo({ top: Math.max(0, host.getBoundingClientRect().top + window.scrollY - 80), behavior: "smooth" });
+        } catch (_) {}
+      }
+
+      var nav = buildStagesNav(items, initial, show);
+      host.insertBefore(nav, host.firstChild);
+      show(initial);
+
+      // Deep-link: #rollout / #rmc-fold-rollout / hash matching stage id
+      function applyHash() {
+        var hash = (location.hash || "").replace(/^#/, "");
+        if (!hash) return;
+        var match = items.find(function (i) {
+          return i.id === hash || i.el.id === hash || hash.indexOf(i.id) !== -1;
+        });
+        if (match) show(match.id);
+      }
+      applyHash();
+      window.addEventListener("hashchange", applyHash);
+    });
+  }
+
+  /**
+   * Fieldset accordion - turns a mega-form into fold stages (one group visible).
+   * Host: form[data-rmc-fieldset-accordion="1"]. Id'd fieldsets = stages;
+   * id-less fieldsets share a "Content blocks" stage (paginated).
+   */
+  function initFieldsetAccordion(root) {
+    var scope = root || document;
+    var hosts = scope.querySelectorAll('[data-rmc-fieldset-accordion="1"]');
+    hosts.forEach(function (host) {
+      if (host.getAttribute("data-rmc-fieldset-accordion-ready") === "1") return;
+      var fieldsets = Array.prototype.slice.call(host.querySelectorAll("fieldset")).filter(function (fs) {
+        return !fs.closest("[data-rmc-fieldset-accordion-skip]");
+      });
+      if (fieldsets.length < 2) return;
+      host.setAttribute("data-rmc-fieldset-accordion-ready", "1");
+
+      var groups = [];
+      var orphans = [];
+      fieldsets.forEach(function (fs) {
+        var legend = fs.querySelector("legend");
+        var label = legend
+          ? legend.textContent.trim().replace(/\s+/g, " ").slice(0, 40)
+          : "Section";
+        if (fs.id) {
+          groups.push({ id: fs.id, label: label, nodes: [fs] });
+        } else {
+          orphans.push(fs);
+        }
+      });
+      if (orphans.length) {
+        groups.push({
+          id: "rmc-fieldset-more",
+          label: "Content blocks",
+          nodes: orphans,
+          paginate: true,
+        });
+      }
+      if (groups.length < 2) return;
+
+      var contentHeading = host.querySelector("#cockpit-content-blocks, [data-rmc-fieldset-more-heading]");
+      var persistKey =
+        host.getAttribute("data-rmc-fieldset-accordion-persist") ||
+        "fieldset:" + (host.id || location.pathname);
+      var preferred = readStagePref(persistKey);
+      var initial = groups[0].id;
+      if (preferred && groups.some(function (g) { return g.id === preferred; })) {
+        initial = preferred;
+      }
+
+      function show(id) {
+        groups.forEach(function (g) {
+          var on = g.id === id;
+          g.nodes.forEach(function (node) {
+            if (on) {
+              node.hidden = false;
+              node.removeAttribute("hidden");
+              node.classList.remove("d-none");
+            } else {
+              node.hidden = true;
+              node.setAttribute("hidden", "hidden");
+            }
+          });
+        });
+        if (contentHeading) {
+          var showMore = id === "rmc-fieldset-more";
+          contentHeading.hidden = !showMore;
+          if (showMore) contentHeading.removeAttribute("hidden");
+          else contentHeading.setAttribute("hidden", "hidden");
+        }
+        syncStageButtons(nav, id);
+        writeStagePref(persistKey, id);
+        applyFoldAttributes();
+      }
+
+      var nav = buildStagesNav(
+        groups.map(function (g) { return { id: g.id, label: g.label }; }),
+        initial,
+        show
+      );
+      host.insertBefore(nav, host.firstChild);
+      show(initial);
+
+      var contentGroup = groups.find(function (g) { return g.paginate; });
+      if (contentGroup && contentGroup.nodes.length > CARD_PAGE_SIZE) {
+        paginateNodeList(contentGroup.nodes, CARD_PAGE_SIZE, contentGroup.nodes[0].parentNode);
+      }
+    });
+  }
+
+  function paginateNodeList(nodes, pageSize, insertHost) {
+    if (!nodes || nodes.length <= pageSize || !insertHost) return;
+    if (insertHost.getAttribute("data-rmc-card-pager-ready") === "1") return;
+    insertHost.setAttribute("data-rmc-card-pager-ready", "1");
+    var totalPages = Math.ceil(nodes.length / pageSize);
+    var nav = buildTaskPager("Section pages", totalPages, function (p) {
+      nodes.forEach(function (node, idx) {
+        var pageIdx = Math.floor(idx / pageSize) + 1;
+        var hide = pageIdx !== p;
+        // Respect parent stage visibility: only toggle d-none when parent stage is visible
+        if (node.hidden && node.hasAttribute("hidden")) return;
+        node.classList.toggle("d-none", hide);
+      });
+    });
+    nav.classList.add("rmc-card-pager");
+    var last = nodes[nodes.length - 1];
+    if (last && last.parentNode) {
+      last.parentNode.insertBefore(nav, last.nextSibling);
+    }
+  }
+
+  /** Card / section stack pager for [data-rmc-paginate-cards] */
+  function initCardStackPagination(root) {
+    var scope = root || document;
+    var hosts = scope.querySelectorAll("[data-rmc-paginate-cards]");
+    hosts.forEach(function (host) {
+      if (host.getAttribute("data-rmc-card-pager-ready") === "1") return;
+      var sel = host.getAttribute("data-rmc-paginate-cards") || ":scope > *";
+      var cards;
+      try {
+        cards = Array.prototype.slice.call(host.querySelectorAll(sel));
+      } catch (_) {
+        cards = Array.prototype.slice.call(host.children);
+      }
+      cards = cards.filter(function (el) {
+        return el.nodeType === 1 && !el.classList.contains("rmc-fold-stages") && !el.classList.contains("rmc-task-pager") && !el.classList.contains("rmc-card-pager");
+      });
+      var size = parseInt(host.getAttribute("data-rmc-paginate-size") || String(CARD_PAGE_SIZE), 10) || CARD_PAGE_SIZE;
+      if (cards.length <= size) return;
+      paginateNodeList(cards, size, host);
+    });
+  }
+
+  /** Progressive disclosure: collapse [data-rmc-secondary-fold] into details */
+  function initSecondaryFolds(root) {
+    var scope = root || document;
+    var nodes = scope.querySelectorAll("[data-rmc-secondary-fold]");
+    nodes.forEach(function (el) {
+      if (el.getAttribute("data-rmc-secondary-fold-ready") === "1") return;
+      if (el.tagName === "DETAILS" || el.classList.contains("rmc-collapsable")) {
+        el.setAttribute("data-rmc-secondary-fold-ready", "1");
+        return;
+      }
+      el.setAttribute("data-rmc-secondary-fold-ready", "1");
+      var title =
+        el.getAttribute("data-rmc-secondary-fold") ||
+        el.getAttribute("data-rmc-fold-stage-label") ||
+        sectionNavLabelFor(el) ||
+        "More details";
+      var key = el.getAttribute("data-rmc-collapsable-key") || el.id || "";
+      var details = document.createElement("details");
+      details.className = "rmc-collapsable";
+      details.setAttribute("data-rmc-collapsable-default", "collapsed");
+      if (key) details.setAttribute("data-rmc-collapsable-key", key);
+      details.setAttribute("data-rmc-collapsable-chrome", "section");
+      var summary = document.createElement("summary");
+      summary.className = "rmc-collapsable__head";
+      var t = document.createElement("span");
+      t.className = "rmc-collapsable__title";
+      t.textContent = title;
+      var chev = document.createElement("span");
+      chev.className = "rmc-collapsable__chevron";
+      chev.setAttribute("aria-hidden", "true");
+      chev.textContent = "v";
+      summary.appendChild(t);
+      summary.appendChild(chev);
+      var body = document.createElement("div");
+      body.className = "rmc-collapsable__body";
+      var parent = el.parentNode;
+      if (!parent) return;
+      parent.insertBefore(details, el);
+      details.appendChild(summary);
+      details.appendChild(body);
+      body.appendChild(el);
+    });
+  }
+
   function init() {
     applyFoldAttributes();
     initTaskListPagination(document);
     initTableClientPagination(document);
+    initFoldStages(document);
+    initFieldsetAccordion(document);
+    initCardStackPagination(document);
+    initSecondaryFolds(document);
     initAutoSectionNav();
     window.addEventListener(
       "resize",
@@ -308,4 +615,16 @@
   } else {
     init();
   }
+
+  window.RMCPageFold = {
+    refresh: function () {
+      applyFoldAttributes();
+      initTaskListPagination(document);
+      initTableClientPagination(document);
+      initFoldStages(document);
+      initFieldsetAccordion(document);
+      initCardStackPagination(document);
+      initSecondaryFolds(document);
+    },
+  };
 })();

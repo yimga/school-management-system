@@ -79,6 +79,28 @@ class TableEngineContractTests(SimpleTestCase):
         for cls in (".rmc-tbl-bar", ".rmc-tbl-seg", ".rmc-tbl-mark", ".rmc-tbl-sortable", ".rmc-tbl-cur"):
             self.assertIn(cls, css, cls)
 
+    def test_density_css_honors_compact_cozy_roomy(self):
+        """Intelligence writes compact|comfortable|spacious — CSS must respond."""
+        long_page = _read("static/css/rmc-long-page-grammar.css")
+        table_sys = _read("static/css/table-system.css")
+        for src, label in ((long_page, "long-page"), (table_sys, "table-system")):
+            for val in ('[data-density="compact"]', '[data-density="comfortable"]', '[data-density="spacious"]'):
+                self.assertIn(val, src, f"{label} missing {val}")
+        # Legacy aliases kept so older markup still densifies
+        self.assertIn('[data-density="condensed"]', long_page)
+        self.assertIn('[data-density="expanded"]', long_page)
+
+    def test_engine_apply_density_helper(self):
+        js = _read("static/js/rmc-table-intelligence.js")
+        self.assertIn("function applyDensity", js)
+        self.assertIn("function normalizeDensity", js)
+        self.assertIn("table-density-", js)
+        self.assertIn('condensed: "compact"', js)
+        self.assertIn('expanded: "spacious"', js)
+        # Density bar is not trapped behind the min-rows extras gate alone
+        self.assertIn("showExtras", js)
+        self.assertIn("wantExtras", js)
+
     def test_settings_route_template_and_action(self):
         self.assertIn('name="table_settings"', _read("apps/siteconfig/urls.py"))
         self.assertIn("table_settings", _read("apps/siteconfig/command_bar_registry.py"))

@@ -15,19 +15,41 @@
  * Use .table-family on <table>; .table-density-compact|comfortable|spacious on wrapper or table.
  */
 
-/* Density: apply padding from design tokens */
+/* Density: apply padding from design tokens (class OR data-density attr).
+   Intelligence engine sets data-density=compact|comfortable|spacious; classes
+   remain for static markup. condensed/expanded are legacy aliases. */
 .table-density-compact th,
-.table-density-compact td {
+.table-density-compact td,
+.table-family[data-density="compact"] th,
+.table-family[data-density="compact"] td,
+.table-family[data-density="condensed"] th,
+.table-family[data-density="condensed"] td,
+.rmc-data-table[data-density="compact"] th,
+.rmc-data-table[data-density="compact"] td,
+.rmc-data-table[data-density="condensed"] th,
+.rmc-data-table[data-density="condensed"] td {
   padding:var(--rmc-lit-9481baa3ea);
   font-size: var(--type-table, 0.875rem);
 }
 .table-density-comfortable th,
-.table-density-comfortable td {
+.table-density-comfortable td,
+.table-family[data-density="comfortable"] th,
+.table-family[data-density="comfortable"] td,
+.rmc-data-table[data-density="comfortable"] th,
+.rmc-data-table[data-density="comfortable"] td {
   padding:var(--rmc-lit-fc3114e4bb);
   font-size: var(--type-table, 0.875rem);
 }
 .table-density-spacious th,
-.table-density-spacious td {
+.table-density-spacious td,
+.table-family[data-density="spacious"] th,
+.table-family[data-density="spacious"] td,
+.table-family[data-density="expanded"] th,
+.table-family[data-density="expanded"] td,
+.rmc-data-table[data-density="spacious"] th,
+.rmc-data-table[data-density="spacious"] td,
+.rmc-data-table[data-density="expanded"] th,
+.rmc-data-table[data-density="expanded"] td {
   padding:var(--rmc-lit-eb4effd5cd);
   font-size: var(--type-table, 0.875rem);
 }

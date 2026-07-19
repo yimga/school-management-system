@@ -28,6 +28,11 @@
   var PREFS_KEY = "rmcTablePrefs:v1";
   var MIN_ROWS_FOR_BAR = 6;     // tiny tables stay clean (sort/keyboard still on)
   var DENSITIES = ["compact", "comfortable", "spacious"];
+  var DENSITY_ALIASES = {
+    compact: "compact", cozy: "comfortable", comfortable: "comfortable",
+    roomy: "spacious", spacious: "spacious", condensed: "compact", expanded: "spacious"
+  };
+  var DENSITY_CLASSES = ["table-density-compact", "table-density-comfortable", "table-density-spacious"];
 
   var cfg = { intelligence: true, filter: true, sort: true, columns: true, export: true, density: "comfortable" };
 
@@ -119,6 +124,27 @@
   }
   function cellText(cell) { return (cell.textContent || "").replace(/\s+/g, " ").trim(); }
 
+  function normalizeDensity(raw, fallback) {
+    var key = String(raw || "").toLowerCase().trim();
+    if (DENSITY_ALIASES[key]) { return DENSITY_ALIASES[key]; }
+    return DENSITIES.indexOf(fallback) !== -1 ? fallback : "comfortable";
+  }
+
+  function applyDensity(table, raw) {
+    var density = normalizeDensity(raw, cfg.density);
+    table.setAttribute("data-density", density);
+    DENSITY_CLASSES.forEach(function (cls) { table.classList.remove(cls); });
+    table.classList.add("table-density-" + density);
+    return density;
+  }
+
+  function resolveInitialDensity(table, prefs) {
+    if (prefs && DENSITIES.indexOf(prefs.density) !== -1) { return prefs.density; }
+    var existing = table.getAttribute("data-density");
+    if (existing) { return normalizeDensity(existing, cfg.density); }
+    return normalizeDensity(cfg.density, "comfortable");
+  }
+
   function inferType(table, colIndex) {
     var rows = bodyRows(table), nums = 0, seen = 0;
     for (var i = 0; i < rows.length && seen < 12; i++) {
@@ -166,9 +192,9 @@
     var ncols = heads.length;
     var rows = bodyRows(table);
 
-    // density (per-user pref over cascade default)
-    var density = DENSITIES.indexOf(prefs.density) !== -1 ? prefs.density : cfg.density;
-    table.setAttribute("data-density", density);
+    // density (per-user pref over cascade default; preserve condensed/expanded markup)
+    var density = applyDensity(table, resolveInitialDensity(table, prefs));
+    prefs.density = density;
 
     // restore hidden columns
     var hidden = {};
@@ -291,13 +317,22 @@
       r.click();
     }
 
-    /* toolbar (only for tables big enough to warrant it) */
+    /* toolbar: density always when intelligence is on; filter/columns/export need enough rows */
     var bar = null;
-    if (rows.length >= MIN_ROWS_FOR_BAR && (cfg.filter || cfg.columns || cfg.export)) {
+    var wantExtras = rows.length >= MIN_ROWS_FOR_BAR && (cfg.filter || cfg.columns || cfg.export);
+    if (cfg.intelligence) {
       bar = buildBar(table, {
-        cfg: cfg, density: density, heads: heads, hidden: hidden,
+        cfg: cfg,
+        density: density,
+        heads: heads,
+        hidden: hidden,
+        showExtras: wantExtras,
         onFilter: function (v) { state.q = v; applyFilter(); },
-        onDensity: function (v) { table.setAttribute("data-density", v); prefs.density = v; setPrefs(key, prefs); },
+        onDensity: function (v) {
+          density = applyDensity(table, v);
+          prefs.density = density;
+          setPrefs(key, prefs);
+        },
         onToggleCol: function (ci, show) {
           hidden[ci] = !show;
           prefs.hidden = Object.keys(hidden).filter(function (k2) { return hidden[k2]; }).map(Number);
@@ -349,7 +384,8 @@
     count.setAttribute("role", "status");
     count.setAttribute("aria-live", "polite");
 
-    if (opts.cfg.filter) {
+    var showExtras = opts.showExtras !== false;
+    if (showExtras && opts.cfg.filter) {
       var fwrap = document.createElement("div");
       fwrap.className = "rmc-tbl-bar__filter";
       var input = document.createElement("input");
@@ -372,7 +408,7 @@
     }
     bar.appendChild(count);
 
-    // density segmented control
+    // density segmented control — always present when the bar is built
     var seg = document.createElement("div");
     seg.className = "rmc-tbl-seg";
     seg.setAttribute("role", "group");
@@ -382,6 +418,7 @@
       b.type = "button";
       b.className = "rmc-tbl-seg__btn";
       b.textContent = d[1];
+      b.setAttribute("data-density", d[0]);
       b.setAttribute("aria-pressed", d[0] === opts.density ? "true" : "false");
       b.addEventListener("click", function () {
         Array.prototype.forEach.call(seg.children, function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
@@ -392,7 +429,7 @@
     bar.appendChild(seg);
 
     // columns popover
-    if (opts.cfg.columns && opts.heads.length) {
+    if (showExtras && opts.cfg.columns && opts.heads.length) {
       var pop = document.createElement("div");
       pop.className = "rmc-tbl-pop";
       var gear = document.createElement("button");
@@ -426,7 +463,7 @@
     }
 
     // CSV export
-    if (opts.cfg.export) {
+    if (showExtras && opts.cfg.export) {
       var csv = document.createElement("button");
       csv.type = "button";
       csv.className = "rmc-tbl-gear";

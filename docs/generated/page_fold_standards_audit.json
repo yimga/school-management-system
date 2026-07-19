@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T14:34:31.579986+00:00",
+  "generated_at": "2026-07-19T10:15:40.957971+00:00",
   "pass": true,
   "rows": [
     {
@@ -157,6 +157,78 @@
       "description": "Back-to-top loads scroll-container before init",
       "status": "PASS",
       "proof": "components/back_to_top.html"
+    },
+    {
+      "check_id": "chrome_collapsable_css",
+      "description": "Platform chrome loads rmc-collapsable.css (operator+tenant parity)",
+      "status": "PASS",
+      "proof": "rmc_platform_chrome_styles.html"
+    },
+    {
+      "check_id": "chrome_collapsable_js",
+      "description": "Platform chrome loads rmc-collapsable.js after fold standards",
+      "status": "PASS",
+      "proof": "rmc_platform_chrome_scripts.html"
+    },
+    {
+      "check_id": "fold_js_stages",
+      "description": "Fold JS implements fold stages",
+      "status": "PASS",
+      "proof": "rmc-page-fold-standards"
+    },
+    {
+      "check_id": "fold_js_fieldset_accordion",
+      "description": "Fold JS implements fieldset accordion",
+      "status": "PASS",
+      "proof": "rmc-page-fold-standards"
+    },
+    {
+      "check_id": "fold_js_card_pager",
+      "description": "Fold JS implements card-stack pager",
+      "status": "PASS",
+      "proof": "rmc-page-fold-standards"
+    },
+    {
+      "check_id": "fold_js_secondary_folds",
+      "description": "Fold JS implements secondary-fold collapse",
+      "status": "PASS",
+      "proof": "rmc-page-fold-standards"
+    },
+    {
+      "check_id": "fold_css_stages",
+      "description": "Fold CSS defines .rmc-fold-stages",
+      "status": "PASS",
+      "proof": "rmc-page-fold-standards"
+    },
+    {
+      "check_id": "studio_experience_fold_stages",
+      "description": "Studio Experience uses data-rmc-fold-stages (Builder/Rollout/Templates)",
+      "status": "PASS",
+      "proof": "studio_os/modes/experience.html"
+    },
+    {
+      "check_id": "studio_experience_fold_nav",
+      "description": "Studio Experience marks data-rmc-page-fold-nav=required",
+      "status": "PASS",
+      "proof": "studio_os/modes/experience.html"
+    },
+    {
+      "check_id": "cockpit_configure_fieldset_accordion",
+      "description": "Cockpit configure uses fieldset accordion compression",
+      "status": "PASS",
+      "proof": "siteconfig/super/cockpit_configure.html"
+    },
+    {
+      "check_id": "theme_personality_fieldset_accordion",
+      "description": "Theme personality configure uses fieldset accordion compression",
+      "status": "PASS",
+      "proof": "siteconfig/super/theme_personality_configure.html"
+    },
+    {
+      "check_id": "marketing_voice_fieldset_accordion",
+      "description": "Marketing voice configure uses fieldset accordion compression",
+      "status": "PASS",
+      "proof": "siteconfig/super/marketing_voice_configure.html"
     }
   ]
 }

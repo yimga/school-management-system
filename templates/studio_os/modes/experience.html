@@ -16,14 +16,60 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section data-page-archetype="studio-os-experience" aria-labelledby="studio-experience-hero">
-  <div data-rmc-scroll-policy="paginate" id="studio-experience-hero">
-    {% include "studio_os/partials/mode_hero_shell.html" %}
+<section
+  data-page-archetype="studio-os-experience"
+  aria-labelledby="studio-experience-hero"
+  data-rmc-page-fold-nav="required"
+  data-rmc-section-nav="curated"
+  data-rmc-scroll-policy="paginate"
+  data-rmc-fold-stages
+  data-rmc-fold-stages-persist="studio-experience"
+>
+  <div
+    data-rmc-fold-stage="builder"
+    data-rmc-fold-stage-label="{% trans 'Builder' %}"
+    data-rmc-fold-stage-default="1"
+    data-rmc-section-anchor
+    id="builder-stage"
+  >
+    <div id="studio-experience-hero" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Experience' %}">
+      {% include "studio_os/partials/mode_hero_shell.html" %}
+    </div>
+    <details class="rmc-collapsable mb-3"
+             data-rmc-collapsable-key="studio-experience-guidance"
+             data-rmc-collapsable-default="collapsed"
+             data-rmc-collapsable-chrome="section">
+      <summary class="rmc-collapsable__head">
+        <span class="rmc-collapsable__title">{% trans "Guidance & tips" %}</span>
+        <span class="rmc-collapsable__chevron" aria-hidden="true">&#9662;</span>
+      </summary>
+      <div class="rmc-collapsable__body">
+        {% include "studio_os/partials/studio_guidance_panel.html" %}
+      </div>
+    </details>
+    <div id="builder" data-rmc-studio-experience-builder="1">
+      {% include "studio_os/partials/studio_experience_mode_body.html" %}
+    </div>
   </div>
-  {% include "studio_os/partials/studio_guidance_panel.html" %}
-  <div id="builder" data-rmc-studio-experience-builder="1">
-    {% include "studio_os/partials/studio_experience_mode_body.html" %}
+
+  <div
+    data-rmc-fold-stage="rollout"
+    data-rmc-fold-stage-label="{% trans 'Rollout' %}"
+    data-rmc-section-anchor
+    id="rollout"
+    hidden
+  >
+    {% include "studio_os/partials/experience_rollout_fold.html" %}
   </div>
-  {% include "studio_os/partials/experience_rollout_fold.html" %}
+
+  <div
+    data-rmc-fold-stage="templates"
+    data-rmc-fold-stage-label="{% trans 'Templates' %}"
+    data-rmc-section-anchor
+    id="templates"
+    hidden
+  >
+    {% include "studio_os/partials/experience_templates_fold.html" %}
+  </div>
 </section>
 {% endblock %}

@@ -372,11 +372,37 @@ body.rmc-cmdk-open { overflow: hidden; }
 .rmc-data-table .cell-fail,
 .rmc-data-table .cell-danger { color: var(--ds-danger); font-weight: 600; }
 
-/* Density toggle: `condensed` halves vertical padding. */
+/* Density toggle — Compact / Cozy / Roomy (intelligence engine) + legacy aliases.
+   Intelligence writes compact|comfortable|spacious; condensed↔compact, expanded↔spacious. */
+.rmc-data-table[data-density="compact"] thead th,
+.rmc-data-table[data-density="compact"] tbody td,
 .rmc-data-table[data-density="condensed"] thead th,
-.rmc-data-table[data-density="condensed"] tbody td { padding: 0.35rem 0.7rem; font-size: var(--type-size-caption); }
+.rmc-data-table[data-density="condensed"] tbody td,
+.gradebook-table[data-density="compact"] thead th,
+.gradebook-table[data-density="compact"] tbody td,
+.gradebook-table[data-density="condensed"] thead th,
+.gradebook-table[data-density="condensed"] tbody td {
+  padding: var(--table-density-compact, 0.35rem 0.5rem);
+  font-size: var(--type-size-caption, 0.8125rem);
+}
+.rmc-data-table[data-density="comfortable"] thead th,
+.rmc-data-table[data-density="comfortable"] tbody td,
+.gradebook-table[data-density="comfortable"] thead th,
+.gradebook-table[data-density="comfortable"] tbody td {
+  padding: var(--table-density-comfortable, 0.5rem 0.75rem);
+  font-size: var(--type-size-body, 0.875rem);
+}
+.rmc-data-table[data-density="spacious"] thead th,
+.rmc-data-table[data-density="spacious"] tbody td,
 .rmc-data-table[data-density="expanded"] thead th,
-.rmc-data-table[data-density="expanded"] tbody td { padding: 0.95rem 1rem; }
+.rmc-data-table[data-density="expanded"] tbody td,
+.gradebook-table[data-density="spacious"] thead th,
+.gradebook-table[data-density="spacious"] tbody td,
+.gradebook-table[data-density="expanded"] thead th,
+.gradebook-table[data-density="expanded"] tbody td {
+  padding: var(--table-density-spacious, 0.75rem 1rem);
+  font-size: var(--type-size-body, 0.875rem);
+}
 
 /* Wrapper that gives the table its sticky-header scroll region. */
 .rmc-data-table-wrap {

@@ -4,7 +4,11 @@
    guarantees min-width:0 (workspace_layout.html), but the legacy include uses
    Bootstrap rows/cards that can still push wider on 1366px without explicit
    max-width:100% inside. .rmc-studio-experience-canvas-clamp is defined in
-   static/css/studio-experience-mode.css. {% endcomment %}
+   static/css/studio-experience-mode.css.
+
+   Page-length (2026-07): live preview stays primary; compare + full theme form
+   sit behind progressive disclosure so the Builder stage is not a multi-fold wall.
+{% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-studio-experience-canvas-clamp" data-rmc-studio-experience-canvas="inpage">
   {% if experience_selected_region %}
@@ -20,6 +24,31 @@
   {% endif %}
   {% include "studio_os/partials/experience_live_preview_pane.html" %}
   {% include "studio_os/partials/workspace/experience_role_filmstrip.html" %}
-  {% include "studio_os/partials/experience_compare_fold.html" %}
-  {% include "siteconfig/partials/theme_colors_content.html" with suppress_theme_inline_preview=1 theme_content_surface="studio_experience" %}
+
+  <details class="rmc-collapsable"
+           data-rmc-collapsable-key="studio-experience-compare"
+           data-rmc-collapsable-default="collapsed"
+           data-rmc-collapsable-chrome="section">
+    <summary class="rmc-collapsable__head">
+      <span class="rmc-collapsable__title">{% trans "Compare packs" %}</span>
+      <span class="rmc-collapsable__chevron" aria-hidden="true">&#9662;</span>
+    </summary>
+    <div class="rmc-collapsable__body">
+      {% include "studio_os/partials/experience_compare_fold.html" %}
+    </div>
+  </details>
+
+  <details class="rmc-collapsable"
+           data-rmc-collapsable-key="studio-experience-theme-form"
+           data-rmc-collapsable-default="open"
+           data-rmc-collapsable-chrome="section"
+           open>
+    <summary class="rmc-collapsable__head">
+      <span class="rmc-collapsable__title">{% trans "Theme & colors" %}</span>
+      <span class="rmc-collapsable__chevron" aria-hidden="true">&#9662;</span>
+    </summary>
+    <div class="rmc-collapsable__body">
+      {% include "siteconfig/partials/theme_colors_content.html" with suppress_theme_inline_preview=1 theme_content_surface="studio_experience" %}
+    </div>
+  </details>
 </div>

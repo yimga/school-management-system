@@ -1,5 +1,6 @@
 /**
- * Page fold standards — sticky section nav, task list pagers, fold warnings.
+ * Page fold standards — sticky section nav, task list pagers, fold stages,
+ * fieldset accordion, card-stack pager, fold warnings.
  */
 
 :root {
@@ -58,6 +59,78 @@ html[data-surface="control-plane"] [data-rmc-page-fold-nav="required"] .feature-
   padding-top: 0.5rem;
 }
 
+/* ── Fold stages (container tabs) — one major fold visible at a time ── */
+.rmc-fold-stages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.875rem;
+  padding: 0.35rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 0.625rem);
+  background: var(--surface-canvas);
+}
+.rmc-fold-stages[data-rmc-page-fold-nav="required"],
+[data-rmc-page-fold-nav="required"] > .rmc-fold-stages {
+  position: sticky;
+  top: var(--rmc-fold-nav-sticky-top);
+  z-index: 1021;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background: color-mix(in oklab, var(--surface-canvas) 92%, transparent);
+}
+.rmc-fold-stages__btn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm, 0.5rem);
+  cursor: pointer;
+  line-height: 1.2;
+}
+.rmc-fold-stages__btn:hover {
+  color: var(--brand-primary, var(--school-primary));
+  background: var(--surface-overlay);
+}
+.rmc-fold-stages__btn[aria-pressed="true"] {
+  background: var(--brand-primary, var(--school-primary));
+  color: var(--text-on-brand, var(--surface-canvas));
+}
+.rmc-fold-stages__btn:focus-visible {
+  outline: 2px solid var(--brand-primary, var(--school-primary));
+  outline-offset: 2px;
+}
+[data-rmc-fold-stage][hidden] {
+  display: none !important;
+}
+.rmc-fold-stages__hint {
+  margin-inline-start: auto;
+  font-size: var(--type-size-xs, 0.75rem);
+  color: var(--text-tertiary);
+  padding-inline: 0.5rem;
+}
+
+/* Fieldset accordion host: stages strip sits above the form body */
+[data-rmc-fieldset-accordion="1"] > .rmc-fold-stages {
+  margin-bottom: 1rem;
+}
+
+/* Card-stack pager */
+.rmc-card-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--hairline);
+}
+
 /* Dev / QA: subtle indicator when page exceeds 4 folds */
 html[data-rmc-exceeds-4-folds="1"]::before {
   content: "";
@@ -68,8 +141,8 @@ html[data-rmc-exceeds-4-folds="1"]::before {
   height: 3px;
   background: linear-gradient(
     90deg,
-    var(--school-primary, #4f46e5),
-    var(--school-accent, #10b981)
+    var(--school-primary, var(--brand-primary)),
+    var(--school-accent, var(--brand-accent))
   );
   z-index: 9999;
   pointer-events: none;
