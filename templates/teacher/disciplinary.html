@@ -23,7 +23,7 @@
           <select class="form-select form-select-sm" id="discipline-student" name="student_id" required>
             <option value="">{% trans "Select student" %}</option>
             {% for s in discipline_students %}
-            <option value="{{ s.pk }}">{{ s.get_full_name|default:s }}</option>
+            <option value="{{ s.pk }}">{{ s.get_full_name|default:s }}</option>{# default-fallback-allow: s is for-loop student #}
             {% endfor %}
           </select>
         </div>

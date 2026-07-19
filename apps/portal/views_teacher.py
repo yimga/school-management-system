@@ -16,6 +16,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.db.models import Count, Max, Prefetch, Q, Sum
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.decorators import (
@@ -507,19 +508,33 @@ def take_student_attendance(request: HttpRequest):
         )
 
     if request.method == "POST" and classroom_obj and students:
-        for s in students:
-            status = (
-                request.POST.get(f"status_{s.id}") or ""
-            ).strip() or Attendance.Status.PRESENT
-            if status not in {c[0] for c in Attendance.Status.choices}:
-                status = Attendance.Status.PRESENT
-            Attendance.objects.update_or_create(
-                student=s,
-                classroom=classroom_obj,
-                date=att_date,
-                defaults={"status": status},
+        from apps.academics.bulk_attendance import apply_student_status_map
+
+        school = getattr(request, "school", None) or getattr(request.user, "school", None)
+        school_id = getattr(school, "pk", None) or getattr(classroom_obj, "school_id", None)
+        if not school_id:
+            messages.error(request, _("School context required to save attendance."))
+        else:
+            allowed = {c[0] for c in Attendance.Status.choices}
+            statuses: dict[int, str] = {}
+            for s in students:
+                status = (
+                    request.POST.get(f"status_{s.id}") or ""
+                ).strip() or Attendance.Status.PRESENT
+                if status not in allowed:
+                    status = Attendance.Status.PRESENT
+                statuses[int(s.id)] = status
+            result = apply_student_status_map(
+                classroom_id=classroom_obj.id,
+                date_value=att_date,
+                school_id=school_id,
+                statuses=statuses,
             )
-        messages.success(request, f"Attendance saved for {len(students)} students.")
+            messages.success(
+                request,
+                _("Attendance saved for %(count)s students.")
+                % {"count": result.created + result.updated + result.skipped},
+            )
         return redirect(
             f"{reverse('portal:take_student_attendance')}?date={att_date.isoformat()}&classroom={classroom_obj.id}"
         )
@@ -1201,7 +1216,7 @@ CASELOAD_MAX_STUDENTS = 200
 @login_required
 @require_school
 @require_permission("discipline.manage")
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def counselor_caseload(request: HttpRequest):
     """MTSS counselor caseload — students who need attention, school-scoped.
 
@@ -1213,10 +1228,90 @@ def counselor_caseload(request: HttpRequest):
     Tier 2/3, OR an incident within ``CASELOAD_RECENT_DAYS``, OR an open
     (non-resolved) incident.
 
+    POST ``intent=set_tier`` updates open-incident MTSS tiers for a student.
+
     RBAC: ``discipline.manage`` (DISCIPLINE_MASTER / CENSOR / bursar-style grants)
     plus the tenant-admin tier and platform superusers (``require_permission``).
     """
+    from django.contrib import messages
+    from django.shortcuts import redirect
+
+    from apps.academics.discipline_services import (
+        log_mtss_contact,
+        set_student_mtss_tier,
+    )
+    from apps.analytics.models import InterventionLog
+
     school = request.school  # guaranteed by @require_school
+
+    if request.method == "POST":
+        intent = (request.POST.get("intent") or "").strip()
+        if intent == "set_tier":
+            sid_raw = (request.POST.get("student_id") or "").strip()
+            tier = (request.POST.get("mtss_tier") or "").strip()
+            if not sid_raw.isdigit():
+                messages.error(request, _("Select a valid student."))
+            else:
+                student = StudentProfile.objects.filter(
+                    pk=int(sid_raw), school=school
+                ).first()
+                if student is None:
+                    messages.error(request, _("Student not found in this school."))
+                else:
+                    result = set_student_mtss_tier(
+                        school=school,
+                        student=student,
+                        tier=tier,
+                        actor=request.user,
+                    )
+                    if result.get("updated", 0) > 0:
+                        messages.success(
+                            request,
+                            _(
+                                "MTSS tier updated to %(tier)s "
+                                "(%(count)s open incident(s))."
+                            )
+                            % {
+                                "tier": result.get("tier"),
+                                "count": result["updated"],
+                            },
+                        )
+                    else:
+                        messages.warning(
+                            request,
+                            result.get("reason")
+                            or _("No open incidents to update for this student."),
+                        )
+            return redirect("portal:counselor_caseload")
+        if intent == "log_contact":
+            sid_raw = (request.POST.get("student_id") or "").strip()
+            action = (request.POST.get("action_taken") or "").strip()
+            notes = (request.POST.get("notes") or "").strip()
+            if not sid_raw.isdigit():
+                messages.error(request, _("Select a valid student."))
+            else:
+                student = StudentProfile.objects.filter(
+                    pk=int(sid_raw), school=school
+                ).first()
+                if student is None:
+                    messages.error(request, _("Student not found in this school."))
+                else:
+                    result = log_mtss_contact(
+                        school=school,
+                        student=student,
+                        action_taken=action,
+                        notes=notes,
+                        actor=request.user,
+                    )
+                    if result.get("ok"):
+                        messages.success(request, _("Intervention contact logged."))
+                    else:
+                        messages.error(
+                            request,
+                            result.get("reason") or _("Could not log contact."),
+                        )
+            return redirect("portal:counselor_caseload")
+
     today = timezone.localdate()
     recent_cutoff = today - timedelta(days=CASELOAD_RECENT_DAYS)
     tier2, tier3 = Incident.MtssTier.TIER_2, Incident.MtssTier.TIER_3
@@ -1273,6 +1368,15 @@ def counselor_caseload(request: HttpRequest):
         .values("incident__student_id")
         .annotate(cnt=Count("id"))
     }
+    recent_contacts: dict[int, list] = {sid: [] for sid in student_ids}
+    if student_ids:
+        for log in (
+            InterventionLog.objects.filter(school=school, student_id__in=student_ids)
+            .order_by("-created_at")[: CASELOAD_MAX_STUDENTS * 3]
+        ):
+            bucket = recent_contacts.get(log.student_id)
+            if bucket is not None and len(bucket) < 3:
+                bucket.append(log)
 
     tier_labels = dict(Incident.MtssTier.choices)
     caseload = []
@@ -1294,6 +1398,7 @@ def counselor_caseload(request: HttpRequest):
                 "pending_notify": r["pending_notify"],
                 "behavior_points": point_totals.get(sid, 0),
                 "open_interventions": open_interventions.get(sid, 0),
+                "recent_contacts": recent_contacts.get(sid, []),
             }
         )
 
@@ -1316,6 +1421,7 @@ def counselor_caseload(request: HttpRequest):
             "caseload": caseload,
             "summary": summary,
             "recent_days": CASELOAD_RECENT_DAYS,
+            "mtss_tier_choices": Incident.MtssTier.choices,
         },
     )
 

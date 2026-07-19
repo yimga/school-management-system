@@ -129,6 +129,7 @@ def resolve_incident(
     completed = 0
     if complete_restorative:
         open_actions = RestorativeAction.objects.filter(
+            school_id=incident.school_id,
             incident=incident,
             status__in=[
                 RestorativeAction.Status.PLANNED,
@@ -154,3 +155,88 @@ def resolve_incident(
         "already_resolved": False,
         "restorative_completed": completed,
     }
+
+
+@transaction.atomic
+def set_student_mtss_tier(
+    *,
+    school: Any,
+    student: Any,
+    tier: str,
+    actor: Any | None = None,
+) -> dict[str, Any]:
+    """Update MTSS tier on all non-RESOLVED incidents for a student (caseload workflow).
+
+    Caseload aggregates ``Max(mtss_tier)`` across incidents, so mutating open rows
+    is what counselors need to escalate/de-escalate without opening a new referral.
+    RESOLVED incidents are left unchanged (audit history).
+    """
+    from apps.academics.models import Incident
+
+    if school is None or student is None:
+        return {"updated": 0, "reason": "missing_school_or_student"}
+    if getattr(student, "school_id", None) != getattr(school, "pk", None):
+        return {"updated": 0, "reason": "student_school_mismatch"}
+
+    valid = {c.value for c in Incident.MtssTier}
+    tier_s = str(tier or "").strip()
+    if tier_s not in valid:
+        return {"updated": 0, "reason": "invalid_tier"}
+
+    qs = Incident.objects.filter(
+        school=school,
+        student=student,
+    ).exclude(status=Incident.Status.RESOLVED)
+    updated = qs.update(mtss_tier=tier_s)
+    logger.info(
+        "mtss_tier_updated school_id=%s student_id=%s tier=%s updated=%s actor=%s",
+        getattr(school, "pk", None),
+        getattr(student, "pk", None),
+        tier_s,
+        updated,
+        getattr(actor, "pk", None),
+    )
+    return {"updated": updated, "tier": tier_s}
+
+
+@transaction.atomic
+def log_mtss_contact(
+    *,
+    school: Any,
+    student: Any,
+    action_taken: str,
+    notes: str = "",
+    actor: Any | None = None,
+) -> dict[str, Any]:
+    """Append an MTSS intervention contact (Meeting/Call/Email) for a student.
+
+    Writes ``analytics.InterventionLog`` so counselor caseload has a real contact
+    timeline without inventing a parallel discipline model.
+    """
+    from apps.analytics.models import InterventionLog
+
+    if school is None or student is None:
+        return {"ok": False, "reason": "missing_school_or_student"}
+    if getattr(student, "school_id", None) != getattr(school, "pk", None):
+        return {"ok": False, "reason": "student_school_mismatch"}
+
+    action = (action_taken or "").strip()[:100] or "Note"
+    note = (notes or "").strip()
+    trigger = note[:255] if note else f"MTSS contact: {action}"
+    log = InterventionLog.objects.create(
+        school=school,
+        student=student,
+        trigger_reason=trigger,
+        action_taken=action,
+        status=InterventionLog.Status.ONGOING,
+    )
+    logger.info(
+        "mtss_contact_logged school_id=%s student_id=%s action=%s log_id=%s actor=%s",
+        getattr(school, "pk", None),
+        getattr(student, "pk", None),
+        action,
+        log.pk,
+        getattr(actor, "pk", None),
+    )
+    return {"ok": True, "log_id": log.pk, "action_taken": action}
+

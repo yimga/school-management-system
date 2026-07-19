@@ -49,7 +49,7 @@
     <p class="text-muted small mb-3">{% blocktrans %}Students on an active MTSS tier (2/3), with an open incident, or an incident in the last {{ recent_days }} days. Behavior points and restorative interventions are tracked automatically.{% endblocktrans %}</p>
     {% if caseload %}
     <div class="table-responsive">
-      <table class="table table-striped align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table" data-rmc-table-7col="1">
+      <table class="table table-striped align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table" data-rmc-table-8col="1">
         <caption class="visually-hidden">{% trans "Counselor Caseload" %}</caption>
         <thead>
           <tr>
@@ -60,6 +60,7 @@
             <th scope="col">{% trans "Behavior points" %}</th>
             <th scope="col">{% trans "Open interventions" %}</th>
             <th scope="col">{% trans "Parent notice" %}</th>
+            <th scope="col">{% trans "Contact log" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -70,6 +71,20 @@
             </td>
             <td>
               <span class="rmc-badge{% if c.is_tier3 %} text-danger fw-bold{% elif c.is_tier2 %} text-warning fw-bold{% endif %}">{{ c.tier_label }}</span>
+              {% if c.open_count and c.student %}
+              <form method="post" class="mt-1 d-flex flex-wrap gap-1 align-items-center">
+                {% csrf_token %}
+                <input type="hidden" name="intent" value="set_tier">
+                <input type="hidden" name="student_id" value="{{ c.student_id }}">
+                <label class="visually-hidden" for="mtss-tier-{{ c.student_id }}">{% trans "Set MTSS tier" %}</label>
+                <select class="form-select form-select-sm" name="mtss_tier" id="mtss-tier-{{ c.student_id }}" style="max-width:10rem;"><!-- inline-style-allow: compact-tier-select-width -->
+                  {% for value, label in mtss_tier_choices %}
+                  <option value="{{ value }}"{% if value == c.tier %} selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Update" %}</button>
+              </form>
+              {% endif %}
             </td>
             <td>
               {{ c.incident_count }}
@@ -82,6 +97,33 @@
             </td>
             <td>
               {% if c.pending_notify %}<span class="rmc-badge text-warning">{{ c.pending_notify }} {% trans "pending" %}</span>{% else %}<span class="small text-secondary">{% trans "Up to date" %}</span>{% endif %}
+            </td>
+            <td>
+              {% if c.recent_contacts %}
+              <ul class="list-unstyled small mb-2">
+                {% for log in c.recent_contacts %}
+                <li><strong>{{ log.action_taken }}</strong> · {{ log.created_at|date:"Y-m-d" }}</li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+              {% if c.student %}
+              {# CRDT: draft note mirrors via rmcCRDT LWW (policy_registry student_note). #}
+              <form method="post" class="d-flex flex-column gap-1" data-rmc-crdt-entity="student_note">
+                {% csrf_token %}
+                <input type="hidden" name="intent" value="log_contact">
+                <input type="hidden" name="student_id" value="{{ c.student_id }}">
+                <label class="visually-hidden" for="mtss-action-{{ c.student_id }}">{% trans "Contact type" %}</label>
+                <select class="form-select form-select-sm" name="action_taken" id="mtss-action-{{ c.student_id }}" required>
+                  <option value="Meeting">{% trans "Meeting" %}</option>
+                  <option value="Call">{% trans "Call" %}</option>
+                  <option value="Email">{% trans "Email" %}</option>
+                  <option value="Note">{% trans "Note" %}</option>
+                </select>
+                <label class="visually-hidden" for="mtss-notes-{{ c.student_id }}">{% trans "Notes" %}</label>
+                <input class="form-control form-control-sm" type="text" name="notes" id="mtss-notes-{{ c.student_id }}" maxlength="255" placeholder="{% trans 'Brief note' %}" data-rmc-crdt-key="draft-note-{{ c.student_id }}">
+                <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Log contact" %}</button>
+              </form>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
@@ -99,4 +141,5 @@
   </div>
 </div>
 </div>
+<script src="{% static 'js/_pages/rmc-student-note-crdt-enhance.js' %}" defer></script>
 {% endblock %}

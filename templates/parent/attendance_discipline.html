@@ -53,6 +53,43 @@
     </div>
   </div>
 
+  <div class="card mb-4" id="discipline">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Notified discipline incidents" %}</h5>
+    </div>
+    <div class="card-body">
+      {% if notified_incidents %}
+        <div class="table-responsive">
+          <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-table-5col="1">
+            <caption class="visually-hidden">{% trans "Notified discipline incidents" %}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{% trans "Date" %}</th>
+                <th scope="col">{% trans_term "Student" key="student" %}</th>
+                <th scope="col">{% trans "Type" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col">{% trans "MTSS tier" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inc in notified_incidents %}
+                <tr>
+                  <td>{{ inc.date|date }}</td>
+                  <td>{{ inc.student.get_full_name|default:inc.student }}</td>
+                  <td>{{ inc.get_incident_type_display }}</td>
+                  <td>{{ inc.get_status_display }}</td>
+                  <td>{{ inc.get_mtss_tier_display }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">{% trans "No discipline incidents have been shared with you yet." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
   <div class="card mb-4">
     <div class="card-header">
       <h5 class="mb-0">{% trans "Submit justification" %}</h5>
