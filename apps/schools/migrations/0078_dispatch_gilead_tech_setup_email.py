@@ -1,73 +1,29 @@
-"""One-time, on-deploy dispatch of the gilead-tech owner setup email.
+"""schools.0078 — intentionally inert (was: on-deploy gilead-tech setup email).
 
-Runs once (recorded in django_migrations, so it never re-fires on later deploys)
-during the release ``migrate``. Test-skipped and fully fail-soft — a deploy must
-never fail on an email. Delivery still needs the Brevo mail secrets in prod; when
-absent the send layer no-ops. The manual ``manage.py resend_owner_setup_email``
-remains the reliable path. Real logic lives in apps/schools/deploy_dispatch.py.
+History: this node originally dispatched the "your school is ready" owner-setup
+email during the release ``migrate``. That is fundamentally unsafe — the send does
+fail-soft DB writes + SMTP *inside the migration's atomic transaction*. When any
+query fails (a cross-app table not yet migrated, an SMTP-audit INSERT, etc.), the
+fail-soft ``except`` swallows the Python error but Postgres leaves the connection
+in ``needs_rollback``. The migration framework's ``record_applied`` then raises
+``TransactionManagementError`` and ABORTS THE ENTIRE DEPLOY. A savepoint dance
+cannot rescue it: once ``needs_rollback`` is set, the ``ROLLBACK TO SAVEPOINT``
+SQL is itself blocked by ``validate_no_broken_transaction`` (which is exactly the
+Render pre-deploy crash observed 2026-07-19).
 
-Important (Postgres): ``deploy_dispatch`` is fail-soft and may swallow a DB error
-after the connection is already marked ``needs_rollback``. That aborts the outer
-migration atomic block and makes ``record_applied`` raise
-``TransactionManagementError``. The email work MUST run inside a savepoint that
-we roll back whenever the connection is broken, so migrate can still record this
-node and continue.
+The owner-setup email now lives ONLY where it belongs — OUTSIDE migrate, in a
+normal request/command context where a mail failure can never abort a deploy:
+
+  * ``manage.py resend_owner_setup_email --school gilead-tech``
+  * the operator "Resend owner setup email" button on the tenant-360 page
+    (``apps/schools/super_views_owner_email.py``).
+
+This node is kept (it may already be recorded in some environments'
+``django_migrations``) but is now a guaranteed no-op.
 """
 from __future__ import annotations
 
-import logging
-
-from django.conf import settings
 from django.db import migrations
-
-logger = logging.getLogger("schools.deploy_dispatch")
-
-
-def _dispatch(apps, schema_editor):
-    # Never send during a test-DB build — only on a real deploy migrate.
-    if getattr(settings, "RUNNING_TESTS", False):
-        return
-    # `School` lives in the shared/public schema; under django-tenants only the
-    # public run should dispatch (belt-and-suspenders against a per-tenant re-run).
-    connection = getattr(schema_editor, "connection", None)
-    if connection is None:
-        return
-    schema = getattr(connection, "schema_name", None)
-    if schema is not None and schema != "public":
-        return
-
-    sid = connection.savepoint()
-    try:
-        from apps.schools.deploy_dispatch import (
-            GILEAD_TECH_SLUG,
-            dispatch_setup_email_for_slug,
-        )
-
-        dispatch_setup_email_for_slug(GILEAD_TECH_SLUG)
-    except Exception:  # noqa: BLE001 — a deploy must never fail on an email dispatch
-        logger.warning("schools.0078 dispatch raised; rolling back savepoint", exc_info=True)
-    finally:
-        # If any query inside the savepoint failed (even when deploy_dispatch
-        # swallowed the Python exception), restore a clean outer transaction
-        # so django_migrations.record_applied can run.
-        if getattr(connection, "needs_rollback", False):
-            logger.warning(
-                "schools.0078: connection needs_rollback after dispatch — "
-                "savepoint_rollback so migrate can record the migration"
-            )
-            connection.savepoint_rollback(sid)
-        else:
-            try:
-                connection.savepoint_commit(sid)
-            except Exception:  # noqa: BLE001
-                logger.warning(
-                    "schools.0078: savepoint_commit failed; rolling back",
-                    exc_info=True,
-                )
-                try:
-                    connection.savepoint_rollback(sid)
-                except Exception:  # noqa: BLE001
-                    pass
 
 
 class Migration(migrations.Migration):
@@ -77,5 +33,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(_dispatch, migrations.RunPython.noop),
+        migrations.RunPython(migrations.RunPython.noop, migrations.RunPython.noop),
     ]

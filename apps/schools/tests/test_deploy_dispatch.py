@@ -187,75 +187,34 @@ class DispatchForSchoolTests(TestCase):
         self.assertTrue(result["found"])
 
 
-class MigrationDispatchNoopUnderTestsTests(TestCase):
-    def test_migration_function_skips_under_running_tests(self):
-        # RUNNING_TESTS is True here, so the migration function must not dispatch,
-        # even with a matching active school present.
+class Migration0078IsInertTests(TestCase):
+    """0078 must do NOTHING at migrate time.
+
+    Side-effecting work in a migration (DB writes + SMTP) can poison the outer
+    atomic transaction and abort the whole deploy (Render pre-deploy TME seen
+    2026-07-19). The owner-setup email now runs OUTSIDE migrate — the management
+    command and the tenant-360 operator button — so this node is a guaranteed
+    no-op. These tests lock that in so no one reintroduces a migrate-time send.
+    """
+
+    def _migration_module(self):
         import importlib
 
-        school = _school("gilead-tech")
-        _owner(school)
-        mig = importlib.import_module(
-            "apps.schools.migrations.0078_dispatch_gilead_tech_setup_email"
-        )
-        with mock.patch(
-            "apps.schools.deploy_dispatch.dispatch_setup_email_for_slug"
-        ) as disp:
-            # schema_editor is unused on the RUNNING_TESTS short-circuit path.
-            mig._dispatch(apps=None, schema_editor=None)
-        disp.assert_not_called()
-
-
-class MigrationDispatchSavepointIsolationTests(TestCase):
-    """0078 must not leave the outer migrate atomic block aborted (Render TME)."""
-
-    def test_savepoint_rollback_when_dispatch_leaves_needs_rollback(self):
-        import importlib
-        from types import SimpleNamespace
-
-        from django.conf import settings
-        from django.test.utils import override_settings
-
-        mig = importlib.import_module(
+        return importlib.import_module(
             "apps.schools.migrations.0078_dispatch_gilead_tech_setup_email"
         )
 
-        class _Conn:
-            schema_name = "public"
-            needs_rollback = False
+    def test_operations_are_a_pure_noop(self):
+        from django.db import migrations as dj_migrations
 
-            def __init__(self):
-                self.rolled_back = []
-                self.committed = []
+        ops = self._migration_module().Migration.operations
+        self.assertEqual(len(ops), 1)
+        op = ops[0]
+        self.assertIsInstance(op, dj_migrations.RunPython)
+        # Both directions are the framework no-op — zero DB side effects.
+        self.assertIs(op.code, dj_migrations.RunPython.noop)
+        self.assertIs(op.reverse_code, dj_migrations.RunPython.noop)
 
-            def savepoint(self):
-                return "sid-0078"
-
-            def savepoint_rollback(self, sid):
-                self.rolled_back.append(sid)
-                self.needs_rollback = False
-
-            def savepoint_commit(self, sid):
-                self.committed.append(sid)
-
-        conn = _Conn()
-
-        def _poison_dispatch(_slug):
-            # Simulate fail-soft path: DB error was swallowed but Postgres left
-            # the connection needing a rollback.
-            conn.needs_rollback = True
-            return {"found": True, "recipients": 0, "sent": 0, "configured": False}
-
-        schema_editor = SimpleNamespace(connection=conn)
-        with override_settings(RUNNING_TESTS=False), mock.patch(
-            "apps.schools.deploy_dispatch.dispatch_setup_email_for_slug",
-            side_effect=_poison_dispatch,
-        ):
-            # Ensure the migration sees RUNNING_TESTS=False even if settings_test
-            # set it True at import time — override_settings handles that.
-            self.assertFalse(settings.RUNNING_TESTS)
-            mig._dispatch(apps=None, schema_editor=schema_editor)
-
-        self.assertEqual(conn.rolled_back, ["sid-0078"])
-        self.assertEqual(conn.committed, [])
-        self.assertFalse(conn.needs_rollback)
+    def test_no_dispatch_side_effect_remains(self):
+        # The old side-effecting _dispatch is gone; nothing runs at migrate time.
+        self.assertFalse(hasattr(self._migration_module(), "_dispatch"))
