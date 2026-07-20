@@ -18,10 +18,10 @@
 
 | Slice | Implementation | Proof | SHA |
 |-------|----------------|-------|-----|
-| **#13 Athletics / events** | `confirm_registration_payment` + `release_reservation`; admin cash settle / release actions | school_events **7 OK** | *(this wave)* |
-| **#7 Payments** | Daraja STK path in webhook normalizer; mpesa slug aliases | normalizer **6 OK** (incl. STK success/fail) | *(this wave)* |
-| **#4 Report cards** | `ur` in `RTL_CERTIFICATE_LOCALES` + fixture + Playwright | CertificateRtl **OK**; e2e **4/4 PASS** | *(this wave)* |
-| **#5 EAV** | `build_student_search_index` honors `FieldCatalogEntry.is_indexed` | student search is_indexed test **OK** | *(this wave)* |
+| **#13 Athletics / events** | `confirm_registration_payment` + `release_reservation`; admin cash settle / release actions | school_events **7 OK** | `70e968211` |
+| **#7 Payments** | Daraja STK path in webhook normalizer; mpesa slug aliases | normalizer **6 OK** (incl. STK success/fail) | `70e968211` |
+| **#4 Report cards** | `ur` in `RTL_CERTIFICATE_LOCALES` + fixture + Playwright | CertificateRtl **OK**; e2e **4/4 PASS** | `70e968211` |
+| **#5 EAV** | `build_student_search_index` honors `FieldCatalogEntry.is_indexed` | student search is_indexed test **OK** | `70e968211` |
 
 ### Prompt B delta scorecard (Wave 34)
 
