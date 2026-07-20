@@ -66,7 +66,7 @@ v8 · approval canvas · operator+tenant
 | --- | --- |
 | `build_id` | `2026-07-20-v8` |
 | `cache_bust` | `20260720-admin-preview-parity-v8` |
-| `sw_version` | `sms-v4.05.161-admin-both-hosts-2026-07-20` |
+| `sw_version` | `sms-v4.05.162-mc-offline-counsel-2026-07-20` |
 
 When bumping a wave: edit the **lock first**, then templates / CSS / SW / auditors together.
 

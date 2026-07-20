@@ -3,6 +3,6 @@
   "css_files": 40,
   "content_pages": 11,
   "expected_cache_bust": "20260720-admin-preview-parity-v8",
-  "expected_sw": "sms-v4.05.161-admin-both-hosts-2026-07-20",
+  "expected_sw": "sms-v4.05.162-mc-offline-counsel-2026-07-20",
   "findings": []
 }

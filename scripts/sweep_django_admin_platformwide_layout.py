@@ -24,7 +24,7 @@ REPORT = ROOT / "var" / "admin-surface-platformwide-sweep.json"
 
 # Bump together with base_site ?v= and SW CACHE_VERSION on each layout wave.
 EXPECTED_CACHE_BUST = "20260720-admin-preview-parity-v8"
-EXPECTED_SW = "sms-v4.05.161-admin-both-hosts-2026-07-20"
+EXPECTED_SW = "sms-v4.05.162-mc-offline-counsel-2026-07-20"
 
 
 def _read(path: Path) -> str:

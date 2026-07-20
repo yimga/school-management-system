@@ -1,7 +1,7 @@
 {
   "build_id": "2026-07-20-v8",
   "cache_bust": "20260720-admin-preview-parity-v8",
-  "sw_version": "sms-v4.05.161-admin-both-hosts-2026-07-20",
+  "sw_version": "sms-v4.05.162-mc-offline-counsel-2026-07-20",
   "seal": "2026-07-20-preview-parity-sot",
   "approval_previews": [
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
