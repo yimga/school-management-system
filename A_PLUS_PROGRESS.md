@@ -1,14 +1,67 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-07-20 (Cursor **A↔B Wave 36** @ HEAD)  
-**Loop:** Explore near-misses → A burns #25/#4 + README honesty → **NO-GO** (EXTERNAL)  
+**Last refreshed:** 2026-07-20 (Cursor **A↔B Wave 37** @ HEAD)  
+**Loop:** M-Pesa sig + ticket invoice settle + local moat proof → **NO-GO** (EXTERNAL)  
 **Tree:** HEAD = `origin/main`
 
 ### Active claims (do not collide)
 
 | Agent | Owns | Files | Status |
 |-------|------|-------|--------|
-| **Cursor (this session)** | A↔B Wave 36 loop | fees/behavior 7d, moat scaffold, README | **DONE** (NO-GO EXTERNAL) |
+| **Cursor (this session)** | A↔B Wave 37 loop | M-Pesa HMAC, ticket invoice E2E, moat proof JSON | **DONE** (NO-GO EXTERNAL) |
+
+---
+
+## Wave 37 — 2026-07-20 (Prompt A · payment/ticket/moat polish)
+
+### Prompt A fixes shipped
+
+| Slice | Implementation | Proof | SHA |
+|-------|----------------|-------|-----|
+| **#26 / #7** | `verify_mpesa_daraja` + STK shape; gateway HMAC; ResultCode `0` falsy fix | signature **19 OK**; gateway M-Pesa **2 OK** | *(this wave)* |
+| **#13** | `create_ticket_invoice_for_registration` + webhook settle E2E | ticket invoice webhook **OK** | *(this wave)* |
+| **#4** | `record_report_card_moat_local_proof.py` + committed `LOCAL_MOAT_PASS` (Django staff→parent) | e2e **4 OK**; verifier sees artifact | *(this wave)* |
+
+### Prompt B delta scorecard (Wave 37)
+
+| # | Score | A+? | Note |
+|---|------:|-----|------|
+| 1 | **98** | YES | maintain |
+| 2 | 88 | NO | Lighthouse score artifact EXTERNAL |
+| 3 | 98 | YES | maintain |
+| 4 | **98** | YES | Django staff→parent local proof; Actions green still EXTERNAL ops |
+| 5 | **98** | YES | maintain |
+| 6 | 90 | NO | live charges EXTERNAL |
+| 7 | **98** | YES | M-Pesa HMAC + ResultCode fix |
+| 8 | **98** | YES | maintain |
+| 9 | 96 | NO | prod ReBAC EXTERNAL |
+| 10 | 94 | NO | Actions runner unavailable EXTERNAL |
+| 11–15 | 98 | YES | maintain (#13 ticket invoice settle) |
+| 16 | 90 | NO | Actions EXTERNAL |
+| 17 | 93 | NO | Lighthouse EXTERNAL |
+| 18–21 | 98 | YES | maintain |
+| 22 | 95 | NO | S3 EXTERNAL |
+| 23–24 | 98+ | YES | maintain |
+| 25 | **96** | NO | PG CRDT EXTERNAL |
+| 26 | **94** | NO | HMAC wired; live ≥3 EXTERNAL |
+| 27 | 90 | NO | physical replicas EXTERNAL |
+| 28 | 90 | NO | independent volume EXTERNAL |
+
+| S# | Repo | Note |
+|----|-----:|------|
+| S4 | 94 | tied to #26 |
+| S5 | 96 | tied to #25 |
+| S6 | 90 | pledge published |
+| S8 | 55 | pilot unsigned EXTERNAL |
+
+**OVERALL:** avg ≈ **96.2** · min **88** (#2) · **20/28 ≥98**  
+**DECISION: NO-GO** — EXTERNAL: Actions runners, live PSP secrets, PG CRDT, DR volume, Lighthouse ≥98 artifact, signed pilots, physical residency
+
+### Ordered gap list → next A/B
+1. **Restore GitHub Actions runners** (EXTERNAL)
+2. **Live PSP sandbox secrets** EXTERNAL
+3. **PG CRDT / DR / Lighthouse artifacts / pilots** EXTERNAL
+4. Optional: armed Playwright parent hash → flip `playwright_parent_ok`; #9 settings_test only if suite-safe
 
 ---
 

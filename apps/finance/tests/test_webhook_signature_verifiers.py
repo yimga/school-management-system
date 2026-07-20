@@ -11,6 +11,8 @@ import unittest
 from apps.finance.webhooks.signature_verifiers import (
     verify_aggregator_hmac,
     verify_flutterwave,
+    verify_mpesa_daraja,
+    verify_mpesa_stk_callback_shape,
     verify_paystack,
     verify_stripe,
 )
@@ -126,6 +128,45 @@ class AggregatorHmacTests(unittest.TestCase):
         )
         self.assertFalse(ok)
         self.assertTrue(reason.startswith("aggregator_unsupported_algorithm"))
+
+
+class MpesaDarajaVerifierTests(unittest.TestCase):
+    secret = "mpesa_whsec_unit"
+
+    def test_valid_hmac_passes(self):
+        body = b'{"Body":{"stkCallback":{"CheckoutRequestID":"ws_1","ResultCode":0}}}'
+        digest = hmac.new(self.secret.encode(), body, hashlib.sha256).hexdigest()
+        ok, reason = verify_mpesa_daraja({"X-Signature": digest}, body, self.secret)
+        self.assertTrue(ok, reason)
+        self.assertEqual(reason, "")
+
+    def test_missing_secret_fails(self):
+        ok, reason = verify_mpesa_daraja({"X-Signature": "x"}, b"{}", "")
+        self.assertFalse(ok)
+        self.assertEqual(reason, "mpesa_secret_missing")
+
+    def test_empty_body_fails(self):
+        ok, reason = verify_mpesa_daraja({"X-Signature": "x"}, b"  ", self.secret)
+        self.assertFalse(ok)
+        self.assertEqual(reason, "mpesa_body_empty")
+
+    def test_tampered_body_fails(self):
+        body = b'{"Body":{"stkCallback":{"CheckoutRequestID":"ws_1","ResultCode":0}}}'
+        digest = hmac.new(self.secret.encode(), body, hashlib.sha256).hexdigest()
+        ok, reason = verify_mpesa_daraja(
+            {"X-Signature": digest}, b'{"Body":{"stkCallback":{"CheckoutRequestID":"ws_2","ResultCode":0}}}', self.secret
+        )
+        self.assertFalse(ok)
+        self.assertEqual(reason, "mpesa_signature_mismatch")
+
+    def test_stk_shape_requires_checkout_and_result(self):
+        ok, reason = verify_mpesa_stk_callback_shape({})
+        self.assertFalse(ok)
+        self.assertEqual(reason, "mpesa_payload_empty")
+        ok, reason = verify_mpesa_stk_callback_shape(
+            {"Body": {"stkCallback": {"CheckoutRequestID": "ws_1", "ResultCode": 0}}}
+        )
+        self.assertTrue(ok, reason)
 
 
 if __name__ == "__main__":

@@ -232,3 +232,66 @@ def confirm_registration_from_psp(
         confirmed.metadata = meta
         confirmed.save(update_fields=["metadata", "updated_at"])
     return confirmed
+
+
+@transaction.atomic
+def create_ticket_invoice_for_registration(
+    *,
+    registration: EventRegistration,
+    profile,
+    academic_year,
+    student=None,
+):
+    """Create an AR invoice linked to a RESERVED registration (Metric #13).
+
+    Stores ``invoice_id`` on the registration metadata. Callers should pass
+    ``event_registration_id`` on the webhook payload (or nested metadata) so
+    ``_maybe_confirm_event_registration`` can settle the hold. Live PSP capture
+    remains EXTERNAL.
+    """
+    from apps.finance.models import Invoice, InvoiceLine
+
+    locked = EventRegistration.objects.select_for_update().get(pk=registration.pk)
+    if locked.status != EventRegistration.Status.RESERVED:
+        raise RegistrationStateError(
+            f"Ticket invoice requires RESERVED status (got {locked.status!r})."
+        )
+    meta = dict(locked.metadata or {})
+    existing_id = meta.get("invoice_id")
+    if existing_id:
+        try:
+            return Invoice.objects.get(pk=int(existing_id))
+        except (Invoice.DoesNotExist, TypeError, ValueError):
+            pass
+
+    amount = Decimal(str(locked.amount_due or 0))
+    school = getattr(locked.event, "school", None)
+    invoice = Invoice.objects.create(
+        profile=profile,
+        academic_year=academic_year,
+        school=school,
+        invoice_type=Invoice.InvoiceType.AR,
+        status=Invoice.Status.ISSUED,
+        student=student,
+        total_amount=amount,
+        balance_amount=amount,
+        issued_date=timezone.now().date(),
+        notes=(
+            f"Event ticket registration {locked.pk} "
+            f"(event_registration_id={locked.pk})"
+        ),
+    )
+    InvoiceLine.objects.create(
+        invoice=invoice,
+        description=f"Event ticket x{locked.quantity}",
+        quantity=Decimal(str(locked.quantity or 1)),
+        unit_price=(amount / Decimal(str(max(int(locked.quantity or 1), 1)))).quantize(
+            Decimal("0.01")
+        ),
+        amount=amount,
+        fee_item=None,
+    )
+    meta["invoice_id"] = invoice.pk
+    locked.metadata = meta
+    locked.save(update_fields=["metadata", "updated_at"])
+    return invoice

@@ -281,3 +281,93 @@ class SchoolEventsTests(TestCase):
         self.assertEqual(confirmed.status, EventRegistration.Status.CONFIRMED)
         self.assertEqual(confirmed.metadata.get("psp_reference"), "ws_CO_TEST_1")
         self.assertEqual(confirmed.metadata.get("payment_method"), "mpesa_daraja")
+
+    def test_ticket_invoice_webhook_settles_registration(self):
+        """RESERVED → ticket invoice → mocked Paystack webhook → CONFIRMED."""
+        import hashlib
+        import hmac
+        import json
+
+        from apps.academics.models import AcademicYear
+        from apps.finance.models import ComplianceProfile, Invoice
+        from apps.school_events.services import create_ticket_invoice_for_registration
+        from apps.siteconfig.models import Integration
+
+        profile = ComplianceProfile.objects.create(
+            name="Ticket PSP",
+            country_code="CM",
+            currency_code="XAF",
+            currency_symbol="XAF",
+            timezone="Africa/Douala",
+            chart_template=ComplianceProfile.ChartTemplate.OHADA,
+            min_wage=Decimal("60000"),
+            default_hours_per_week=Decimal("40"),
+            overtime_multiplier=Decimal("1.5"),
+            annual_leave_days=21,
+            maternity_leave_days=84,
+            is_active=True,
+        )
+        year = AcademicYear.objects.create(
+            name="2025/2026",
+            start_date="2025-09-01",
+            end_date="2026-06-30",
+            is_active=True,
+            school=self.school,
+        )
+        registration = register_for_tier(
+            event=self.event, tier=self.tier, purchaser=self.user, quantity=1
+        )
+        invoice = create_ticket_invoice_for_registration(
+            registration=registration,
+            profile=profile,
+            academic_year=year,
+        )
+        registration.refresh_from_db()
+        self.assertEqual(registration.metadata.get("invoice_id"), invoice.pk)
+        self.assertEqual(Invoice.objects.filter(pk=invoice.pk).count(), 1)
+
+        secret = "ticket-psk-secret"
+        Integration.objects.create(
+            name="Paystack Ticket",
+            slug="paystack-ticket",
+            provider="payments",
+            enabled=True,
+            config={"provider_slug": "paystack", "webhook_secret": secret},
+        )
+        payload = {
+            "event": "charge.success",
+            "invoiceId": invoice.pk,
+            "amount": "25.00",
+            "transaction_id": "psk-ticket-1",
+            "status": "successful",
+            "event_registration_id": registration.pk,
+            "data": {
+                "reference": "psk-ticket-1",
+                "status": "success",
+                "amount": 2500,
+                "currency": "XAF",
+                "metadata": {
+                    "invoice_id": invoice.pk,
+                    "event_registration_id": registration.pk,
+                },
+            },
+        }
+        body = json.dumps(payload).encode("utf-8")
+        signature = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+        # Finance webhook lives on the platform urlconf, not the tenant host Client.
+        webhook_client = Client()
+        response = webhook_client.post(
+            reverse(
+                "finance:payment_webhook",
+                kwargs={"provider_slug": "paystack"},
+            ),
+            data=body,
+            content_type="application/json",
+            HTTP_X_SIGNATURE=signature,
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json().get("status"), "ok")
+        registration.refresh_from_db()
+        self.assertEqual(registration.status, EventRegistration.Status.CONFIRMED)
+        self.assertEqual(registration.amount_paid, Decimal("25.00"))
+        self.assertEqual(registration.metadata.get("psp_reference"), "psk-ticket-1")

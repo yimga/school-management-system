@@ -175,16 +175,40 @@ class MpesaDarajaGateway(BasePaymentGateway):
     ) -> Optional[GatewayResult]:
         if not isinstance(payload, dict) or not payload:
             return None
+        secret = str(self.config.get("webhook_secret") or "").strip()
+        if secret:
+            from apps.finance.webhooks.signature_verifiers import (
+                verify_mpesa_daraja,
+                verify_mpesa_stk_callback_shape,
+            )
+
+            shape_ok, shape_reason = verify_mpesa_stk_callback_shape(payload)
+            if not shape_ok:
+                return GatewayResult(
+                    success=False,
+                    message=f"M-Pesa STK callback shape failed: {shape_reason}",
+                    raw_response={"status": "invalid_shape", "reason": shape_reason},
+                )
+            body_bytes = raw_body if raw_body is not None else b""
+            ok, reason = verify_mpesa_daraja(headers, body_bytes, secret)
+            if not ok:
+                return GatewayResult(
+                    success=False,
+                    message=f"M-Pesa webhook signature failed: {reason}",
+                    raw_response={"status": "signature_failed", "reason": reason},
+                )
         body = payload.get("Body") if isinstance(payload.get("Body"), dict) else payload
         callback = body.get("stkCallback") if isinstance(body, dict) else None
         if not isinstance(callback, dict):
             callback = body if isinstance(body, dict) else {}
-        result_code = str(
-            callback.get("ResultCode")
-            or payload.get("ResultCode")
-            or payload.get("status")
-            or ""
-        ).strip()
+        # ResultCode 0 is success — must not treat as falsy via `or`.
+        if "ResultCode" in callback:
+            raw_code = callback.get("ResultCode")
+        elif "ResultCode" in payload:
+            raw_code = payload.get("ResultCode")
+        else:
+            raw_code = payload.get("status")
+        result_code = "" if raw_code is None else str(raw_code).strip()
         tx_id = str(
             callback.get("CheckoutRequestID")
             or payload.get("CheckoutRequestID")

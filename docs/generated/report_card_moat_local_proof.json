@@ -1,0 +1,15 @@
+{
+  "status": "LOCAL_MOAT_PASS",
+  "recorded_at": "2026-07-20T11:17:09+00:00",
+  "django_e2e_ok": true,
+  "django_labels": [
+    "apps.reports.tests.test_report_card_e2e_flow",
+    "apps.reports.tests.test_report_card_e2e_seed"
+  ],
+  "playwright_parent_ok": false,
+  "armed_runner_ok": false,
+  "external_remaining": [
+    "EXTERNAL_ACTIONS_GREEN_REQUIRED: Do not invent GitHub Actions tenant-moat-e2e success from this local proof."
+  ],
+  "note": "Staff publish→parent PDF proven via Django TestCase (Ran 4 tests, OK on 2026-07-20). Set playwright_parent_ok/armed_runner_ok after a real local armed run."
+}

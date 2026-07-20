@@ -142,5 +142,56 @@ class AggregatorWebhookSignatureTests(unittest.TestCase):
         self.assertEqual(result.transaction_id, "tx2")
 
 
+class MpesaDarajaWebhookSignatureTests(unittest.TestCase):
+    def test_invalid_signature_returns_failure(self):
+        from apps.finance.gateways.mpesa_daraja import MpesaDarajaGateway
+
+        cfg = {
+            "consumer_key": "k",
+            "consumer_secret": "s",
+            "shortcode": "174379",
+            "passkey": "p",
+            "webhook_secret": "mpesa_whsec",
+            "stub_only": True,
+        }
+        gw = MpesaDarajaGateway(_School(), cfg)
+        body = (
+            b'{"Body":{"stkCallback":{"CheckoutRequestID":"ws_x","ResultCode":0}}}'
+        )
+        result = gw.parse_webhook(
+            json.loads(body),
+            headers={"X-Signature": "deadbeef"},
+            raw_body=body,
+        )
+        self.assertIsNotNone(result)
+        self.assertFalse(result.success)
+        self.assertIn("signature failed", (result.message or "").lower())
+
+    def test_valid_signature_parses_success(self):
+        from apps.finance.gateways.mpesa_daraja import MpesaDarajaGateway
+
+        cfg = {
+            "consumer_key": "k",
+            "consumer_secret": "s",
+            "shortcode": "174379",
+            "passkey": "p",
+            "webhook_secret": "mpesa_whsec",
+            "stub_only": True,
+        }
+        gw = MpesaDarajaGateway(_School(), cfg)
+        body = (
+            b'{"Body":{"stkCallback":{"CheckoutRequestID":"ws_ok","ResultCode":0}}}'
+        )
+        digest = hmac.new(b"mpesa_whsec", body, hashlib.sha256).hexdigest()
+        result = gw.parse_webhook(
+            json.loads(body),
+            headers={"X-Signature": digest},
+            raw_body=body,
+        )
+        self.assertIsNotNone(result)
+        self.assertTrue(result.success)
+        self.assertEqual(result.transaction_id, "ws_ok")
+
+
 if __name__ == "__main__":
     unittest.main()

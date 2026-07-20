@@ -170,10 +170,65 @@ def verify_aggregator_hmac(
     return True, ""
 
 
+def verify_mpesa_daraja(
+    headers: dict[str, Any] | None,
+    raw_body: bytes,
+    secret: str,
+    *,
+    header_name: str = "X-Signature",
+) -> tuple[bool, str]:
+    """M-Pesa Daraja callback verification used by the platform webhook rail.
+
+    Safaricom's public docs emphasize TLS + IP allowlisting over a signed body.
+    Our multi-tenant ingress still requires an Integration ``webhook_secret`` and
+    HMAC-SHA256 of the raw body (same posture as MTN soak / PaymentValidator)
+    so anonymous callers cannot forge STK callbacks. Fail-closed when secret or
+    header is missing.
+    """
+    if not secret:
+        return False, "mpesa_secret_missing"
+    if not (raw_body or b"").strip():
+        return False, "mpesa_body_empty"
+    sig = _h(headers, header_name) or _h(headers, "x-signature")
+    if not sig:
+        return False, "mpesa_signature_header_missing"
+    expected = hmac.new(secret.encode("utf-8"), raw_body or b"", hashlib.sha256).hexdigest()
+    candidate = sig.strip()
+    if candidate.lower().startswith("sha256="):
+        candidate = candidate.split("=", 1)[1].strip()
+    if not _const_time_eq(candidate.lower(), expected.lower()):
+        return False, "mpesa_signature_mismatch"
+    return True, ""
+
+
+def verify_mpesa_stk_callback_shape(payload: dict[str, Any] | None) -> tuple[bool, str]:
+    """Structural fail-closed check for Daraja STK callback JSON (no crypto)."""
+    if not isinstance(payload, dict) or not payload:
+        return False, "mpesa_payload_empty"
+    body = payload.get("Body") if isinstance(payload.get("Body"), dict) else payload
+    callback = (
+        body.get("stkCallback")
+        if isinstance(body, dict) and isinstance(body.get("stkCallback"), dict)
+        else (body if isinstance(body, dict) else {})
+    )
+    if not isinstance(callback, dict) or not callback:
+        return False, "mpesa_stk_callback_missing"
+    checkout = str(
+        callback.get("CheckoutRequestID") or payload.get("CheckoutRequestID") or ""
+    ).strip()
+    if not checkout:
+        return False, "mpesa_checkout_request_id_missing"
+    if callback.get("ResultCode") is None and payload.get("ResultCode") is None:
+        return False, "mpesa_result_code_missing"
+    return True, ""
+
+
 # Stable export surface for the gateway/processor call sites.
 __all__ = [
     "verify_stripe",
     "verify_paystack",
     "verify_flutterwave",
     "verify_aggregator_hmac",
+    "verify_mpesa_daraja",
+    "verify_mpesa_stk_callback_shape",
 ]
