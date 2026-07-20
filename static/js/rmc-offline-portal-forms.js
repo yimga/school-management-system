@@ -373,6 +373,116 @@
     });
   }
 
+  function _mcBlobDb() {
+    return new Promise(function (resolve, reject) {
+      var req = indexedDB.open('rmc-mc-offline-blobs', 1);
+      req.onupgradeneeded = function (ev) {
+        var db = ev.target.result;
+        if (!db.objectStoreNames.contains('blobs')) {
+          db.createObjectStore('blobs');
+        }
+      };
+      req.onsuccess = function (ev) { resolve(ev.target.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function _csrfCookie() {
+    var m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+
+  function _stageMcBlobs(id, files, meta) {
+    return _mcBlobDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction('blobs', 'readwrite');
+        tx.objectStore('blobs').put({
+          files: files,
+          uploadUrl: meta && meta.uploadUrl ? meta.uploadUrl : '',
+          label: meta && meta.label ? meta.label : '',
+          created: Date.now(),
+        }, id);
+        tx.oncomplete = function () { resolve(); };
+        tx.onerror = function () { reject(tx.error); };
+      });
+    });
+  }
+
+  function _flushMcBlobs() {
+    if (!navigator.onLine) return;
+    _mcBlobDb().then(function (db) {
+      var tx = db.transaction('blobs', 'readonly');
+      var store = tx.objectStore('blobs');
+      var req = store.getAllKeys();
+      req.onsuccess = function () {
+        var keys = req.result || [];
+        keys.forEach(function (key) {
+          var getReq = store.get(key);
+          getReq.onsuccess = function () {
+            var row = getReq.result;
+            if (!row || !row.files || !row.files.length) return;
+            var form = document.querySelector('form[data-rmc-offline-form="migration_cloud_upload"]');
+            var uploadUrl = (row.uploadUrl || (form && form.action) || '').trim();
+            if (!uploadUrl) return;
+            var fd = new FormData();
+            var csrfEl = form && form.querySelector('[name="csrfmiddlewaretoken"]');
+            var csrf = (csrfEl && csrfEl.value) || _csrfCookie();
+            if (csrf) fd.append('csrfmiddlewaretoken', csrf);
+            if (row.label) fd.append('label', row.label);
+            for (var i = 0; i < row.files.length; i++) {
+              fd.append('artifacts', row.files[i], row.files[i].name);
+            }
+            fetch(uploadUrl, {
+              method: 'POST',
+              body: fd,
+              credentials: 'same-origin',
+              headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            }).then(function (r) {
+              if (!r.ok) return;
+              var delTx = db.transaction('blobs', 'readwrite');
+              delTx.objectStore('blobs').delete(key);
+              toast('Offline Migration Cloud files uploaded.', 'success');
+            }).catch(function () { /* retry on next online */ });
+          };
+        });
+      };
+    }).catch(function () { /* IDB unavailable */ });
+  }
+
+  function wireMigrationCloudUpload(form) {
+    form.addEventListener('submit', function (ev) {
+      if (navigator.onLine || !enabled()) return;
+      var cfg = window.SMS_OFFLINE_CONFIG || {};
+      if (cfg.migrationCloudUploadSyncEnabled === false) return;
+      ev.preventDefault();
+      var input = form.querySelector('input[type="file"][name="artifacts"]');
+      if (!input || !input.files || !input.files.length) {
+        toast('Choose at least one file to queue offline.', 'warning');
+        return;
+      }
+      var files = Array.prototype.slice.call(input.files);
+      var idem = 'mc-offline-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+      var labelEl = form.querySelector('[name="label"]');
+      var label = labelEl ? String(labelEl.value || '') : '';
+      _stageMcBlobs(idem, files, { uploadUrl: form.action || '', label: label }).then(function () {
+        window.rmcOfflineEnqueue({
+          action_type: 'migration_cloud_upload',
+          payload: {
+            filenames: files.map(function (f) { return f.name; }),
+            sizes: files.map(function (f) { return f.size; }),
+            label: label,
+            client_offline_id: idem.slice(0, 64),
+            pending_local_blobs: true,
+          },
+          idempotency_key: idem.slice(0, 128),
+        });
+        toast('Files saved on this device. They will upload when you reconnect.', 'success');
+      }).catch(function () {
+        toast('Could not store files offline on this device.', 'warning');
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('form[data-rmc-offline-form="attendance"]').forEach(wireAttendance);
     document.querySelectorAll('form[data-rmc-offline-form="grading"]').forEach(wireGrading);
@@ -382,5 +492,10 @@
     document.querySelectorAll('form[data-rmc-offline-form="support_ticket"]').forEach(wireSupportTicket);
     document.querySelectorAll('form[data-rmc-offline-form="field_capture"]').forEach(wireFieldCapture);
     document.querySelectorAll('form[data-rmc-offline-form="donation_capture"]').forEach(wireDonationCapture);
+    document.querySelectorAll('form[data-rmc-offline-form="migration_cloud_upload"]').forEach(wireMigrationCloudUpload);
+    window.addEventListener('online', _flushMcBlobs);
+    if (navigator.onLine) {
+      window.setTimeout(_flushMcBlobs, 1500);
+    }
   });
 })();

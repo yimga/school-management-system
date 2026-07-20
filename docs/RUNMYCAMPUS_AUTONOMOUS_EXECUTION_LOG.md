@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Offline MC upload + counsel shovel-ready (batch 1770 - 2026-07-20)
+
+**A. Scope:** Close offline Migration Cloud upload (not in capability matrix) and make MAA v2 / FACTS-Skyward counsel flips shovel-ready without fabricating PDFs.
+
+**B. Shipped:** SODP `migration_cloud_upload` / `migration.bundle_upload` + IndexedDB blob staging/flush; taxonomy + capability gate + portal config flag; upload template wired; MAA approval token settings + promote clears `_FALLBACK_DRAFT_VERSIONS` + legal checklist; companion-extension FACTS/Skyward honest-stub vendors restored; SW bump `sms-v4.05.162-mc-offline-counsel-2026-07-20`.
+
+**C. Proof:** `verify_offline_capability_implementation` PASS (checked=6); `verify_offline_manifest_taxonomy` PASS; `verify_honest_stubs_intact` PASS; `verify_service_worker_version --check-monotonic` OK; `run_sqlite_memory_tests` `test_offline_migration_cloud_upload` 6 OK.
+
+**D. Honest:** Did **not** flip `RMC_MAA_DEFAULT_VERSION` to v2.0 or implement real FACTS/Skyward POSTBACKs — those remain EXTERNAL until `docs/legal/maa_v2_signoff.pdf` and the FACTS/Skyward counsel letter exist. Prod `new-school` forensic still EXTERNAL.
+
+**E. Files:** offline taxonomy/capability/bundle/action_types/queue/models/migration 0097; `rmc-offline-portal-forms.js`; `upload.html`; `promote_maa_v2.py`; `settings.py`; `docs/legal/README.md`; companion-extension vendors; SOT/log/audit twin; SW + baseline.
+
+**F. Next:** Operator drops counsel PDFs then runs promote/write flip runbooks; Render shell for `inspect_migration_tenant --slug=new-school`.
+
 ## Slice — Migration Cloud tenant closeout (batch 1769 - 2026-07-20)
 
 **A. Scope:** End-to-end 100% of **repo-contained** Migration Cloud tenant dominance residuals after P0–P2 (advance stuck UX, entitlement gap, companion next URL, quarantine empty states, operator forensic docs).

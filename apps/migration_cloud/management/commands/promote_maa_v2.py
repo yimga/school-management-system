@@ -296,7 +296,7 @@ class Command(BaseCommand):
             )
             new = new2
 
-        # Rewrite 2 — draft set.
+        # Rewrite 2 — draft set (public export).
         # Tolerate optional type-annotation and varying whitespace.
         draft_pat = re.compile(
             r'^(MAA_TEXT_DRAFT_VERSIONS)(\s*:\s*set\[str\])?\s*=\s*\{\s*"v2\.0"\s*\}\s*$',
@@ -310,6 +310,20 @@ class Command(BaseCommand):
                 'MAA_TEXT_DRAFT_VERSIONS: {"v2.0"} -> set()'
             )
             new = new3
+
+        # Rewrite 3 — runtime fallback used by get_draft_versions().
+        fallback_pat = re.compile(
+            r'^(_FALLBACK_DRAFT_VERSIONS)(\s*:\s*set\[str\])?\s*=\s*\{\s*"v2\.0"\s*\}\s*$',
+            flags=re.MULTILINE,
+        )
+        def _fallback_repl(m: re.Match) -> str:
+            return f"{m.group(1)}{m.group(2) or ''} = set()"
+        new4, n3 = fallback_pat.subn(_fallback_repl, new, count=1)
+        if n3 > 0:
+            changes.append(
+                '_FALLBACK_DRAFT_VERSIONS: {"v2.0"} -> set()'
+            )
+            new = new4
 
         return new, changes
 

@@ -26,6 +26,7 @@ OFFLINE_CAPABILITY_TIERS: dict[str, frozenset[str]] = {
             "enable_offline_grade_sync",
             "enable_offline_homework_sync",
             "enable_offline_fee_payment_sync",
+            "enable_offline_migration_cloud_upload",
         }
     ),
     "OFFLINE_BACKGROUND_SYNC": frozenset(

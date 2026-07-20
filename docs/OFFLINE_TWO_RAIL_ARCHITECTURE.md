@@ -58,7 +58,9 @@ reconnect — an honest online-only boundary, not theater).
 | `enable_offline_form_queue` | generic `rmcOfflineEnqueue` | — | real |
 | `enable_offline_attendance_sync` | `attendance` / `attendance.mark` | `attendance`, `teacher_attendance` | real (both rails) |
 | `enable_offline_grade_sync` | `grading` / `grade.submit` | `grade` | real (both rails) |
-| `enable_offline_homework_sync` | `homework_submission` / `homework.submit` | — | **producer + applier real, UI surface latent** |
+| `enable_offline_homework_sync` | `homework_submission` / `homework.submit` | — | real (SODP + UI) |
+| `enable_offline_fee_payment_sync` | `payment_receipt` / `payment.proof_upload` | — | real (SODP; file proof online-only) |
+| `enable_offline_migration_cloud_upload` | `migration_cloud_upload` / `migration.bundle_upload` | — | real (SODP metadata + IndexedDB blobs; flush on reconnect) |
 
 ### The one latent capability — homework
 
@@ -72,6 +74,15 @@ It is **latent**, not theater: no template currently carries
 and a user cannot trigger it. Closing this is a *product* task — ship a student
 homework-submission surface and tag its form — not a plumbing task. The gate
 reports it as `latent` (non-fatal) until that UI lands.
+
+### Migration Cloud offline upload
+
+Tenant `/school/setup/migration-cloud/upload/` carries
+`data-rmc-offline-form="migration_cloud_upload"`. While offline, files are stored
+in IndexedDB and a SODP intent records filenames/sizes only (never base64 in
+JSON). On reconnect, the client POSTs multipart to the same upload action and
+the SODP applier records the intent (or ingests when `staged_media_paths` is
+present). Upload still does **not** mean import — confirm apply remains required.
 
 ---
 

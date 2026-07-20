@@ -172,7 +172,7 @@ Phantom-field scanner: **0** (2026-07-20).
 | 12 | Connector quality &lt; 70 | **CLOSED (code)** | Import blocked with coded errors |
 | 13 | Legacy wizard confusion | **CLOSED (UX)** | P2 deprecation banner → MC upload |
 | 14 | Connector tables RLS | **PARTIAL** | Migrations 0037/0038 |
-| 15 | Offline / resume mid-ingest | **NOT DONE** | No MC offline producer |
+| 15 | Offline / resume mid-ingest | **DONE** | SODP + IndexedDB blobs (`enable_offline_migration_cloud_upload`); batch 1770 |
 
 ---
 
@@ -327,12 +327,14 @@ Industry-leader order — implement only after this audit is accepted:
 | DFV badge for payroll/compliance | review template + context `dfv_only` |
 | Legacy wizard deprecation banner | `accounts/migration_wizard.html` → MC upload |
 
-### Still EXTERNAL / NOT DONE
+### Still EXTERNAL (counsel / prod)
 - Prod DB forensic for `new-school` (needs operator shell / Render DB)
-- FACTS/Skyward write counsel, MAA v2 flip
-- Offline MC upload capability
+- FACTS/Skyward write counsel + MAA v2 flip (**shovel-ready** — PDFs missing; do not fabricate)
 
-**Combined proof (2026-07-20):** 32 focused Django tests OK (P0–P1 suites) + P2 honesty tests; `scan_lander_phantom_fields` 0; `verify_migration_cloud_connectors` PASS.
+### Closed in batch 1770
+- Offline MC upload in capability matrix (SODP metadata + IndexedDB flush)
+
+**Combined proof (2026-07-20):** 32 focused Django tests OK (P0–P1 suites) + P2 honesty + offline MC 6 OK; `scan_lander_phantom_fields` 0; `verify_migration_cloud_connectors` PASS; offline capability PASS 6.
 
 ---
 
@@ -350,6 +352,7 @@ Closes remaining **repo-contained** Shopify/AWS failure modes after P0–P2:
 | Operator runbook: `inspect_migration_tenant` in Command Center tip + docs | DONE | `MIGRATION_CLOUD_COMMAND_CENTER.md` + template tip |
 | Playwright e2e upload-rail smoke (gated `MIGRATION_CLOUD_E2E`) | DONE | `tests/e2e/migration-cloud.spec.js` |
 | Prod `new-school` DB forensic | **EXTERNAL** | Still needs Render shell |
-| Offline MC / counsel MAA+FACTS | **EXTERNAL / NOT DONE** | Honest — not repo-closeable |
+| Offline MC upload (SODP + IndexedDB) | **DONE** | batch 1770 — capability matrix PASS |
+| Counsel MAA v2 + FACTS/Skyward writes | **EXTERNAL (shovel-ready)** | PDFs required; promote/stubs intact |
 
 **Tenant rail entitlement policy (locked):** Day-1 `/school/setup/migration-cloud/` remains **ungated** by plan capability (onboarding). Portal `/portal/configure/migration/` stays gated. Growing School and above seed `migration_cloud` so portal is not a surprise 402 for typical paid tenants after `seed_subscription_catalog`.

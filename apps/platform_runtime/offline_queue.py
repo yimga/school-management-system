@@ -561,6 +561,110 @@ def _apply_payment_receipt(school_id, user_id: int, payload: dict[str, Any]) -> 
     return {"ok": True, "intent_id": intent.id}
 
 
+def _apply_migration_cloud_upload(
+    school_id, user_id: int, payload: dict[str, Any]
+) -> dict[str, Any]:
+    """Record offline Migration Cloud upload intent; ingest when paths are staged.
+
+    Multi-MB files must not ride in the SODP JSON payload. Clients stage blobs in
+    IndexedDB and POST them on reconnect (``staged_media_paths``). Metadata-only
+    apply persists an intent on ``school.settings['migration_cloud']`` — same
+    honesty contract as payment_receipt (details now, file when online).
+    """
+    from django.utils import timezone
+
+    from apps.schools.models import School
+
+    # tenant-isolation-allow: school-pk-from-offline-action-tenant-bind
+    school = School.objects.filter(pk=school_id).first()
+    if school is None:
+        return {"ok": False, "error": "school_not_found"}
+
+    filenames = payload.get("filenames") or []
+    if not isinstance(filenames, list) or not filenames:
+        return {"ok": False, "error": "filenames required"}
+
+    client_key = str(payload.get("client_offline_id") or "")[:64]
+    paths = [
+        str(p)
+        for p in (payload.get("staged_media_paths") or [])
+        if str(p).strip()
+    ]
+
+    if paths:
+        try:
+            from apps.migration_cloud.models import IntakeMethod, SlaTier
+            from apps.migration_cloud.schema_binding import resolve_school_schema_name
+            from apps.migration_cloud.services import BundleIngestionService, BundleSpec
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": f"ingest_import_failed:{type(exc).__name__}"}
+
+        label = str(payload.get("label") or "Offline upload")[:200]
+        handle = paths[0] if len(paths) == 1 else paths
+        digests = [str(x) for x in (payload.get("sha256s") or []) if str(x).strip()]
+        try:
+            spec = BundleSpec(
+                intake_method=IntakeMethod.FILE_UPLOAD,
+                handle=handle,
+                school_id=school.pk,
+                schema_name=resolve_school_schema_name(school),
+                label=label,
+                sla_tier=SlaTier.SMALL,
+                idempotency_key=client_key or None,
+                triggered_by_id=user_id or None,
+                intake_source_uri=(
+                    paths[0] if len(paths) == 1 else f"{len(paths)} offline files staged"
+                ),
+            )
+            result = BundleIngestionService().ingest(spec)
+            try:
+                from apps.migration_cloud.celery_tasks import enqueue_advance
+
+                if enqueue_advance(result.bundle_id, use_accelerator=True) is None:
+                    from apps.migration_cloud.pipeline import advance_bundle
+
+                    advance_bundle(bundle_id=result.bundle_id, use_accelerator=True)
+            except Exception:  # noqa: BLE001
+                from apps.migration_cloud.pipeline import advance_bundle
+
+                advance_bundle(bundle_id=result.bundle_id, use_accelerator=True)
+            return {
+                "ok": True,
+                "bundle_id": result.bundle_id,
+                "ingested": True,
+                "artifacts": result.artifacts_registered,
+                "digests_echo": digests[:10],
+            }
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": str(exc)[:500]}
+
+    # Metadata-only: park intent for reconnect flush (payment-honest pattern).
+    settings_blob = dict(school.settings or {})
+    mc_bucket = dict(settings_blob.get("migration_cloud") or {})
+    intents = list(mc_bucket.get("offline_upload_intents") or [])
+    if client_key:
+        for row in intents:
+            if str(row.get("client_offline_id") or "") == client_key:
+                return {"ok": True, "dedup": True, "pending_files": True}
+    intents.append(
+        {
+            "client_offline_id": client_key,
+            "filenames": [str(f)[:255] for f in filenames][:50],
+            "sizes": list(payload.get("sizes") or [])[:50],
+            "sha256s": list(payload.get("sha256s") or [])[:50],
+            "label": str(payload.get("label") or "")[:200],
+            "user_id": user_id,
+            "status": "awaiting_blob",
+            "queued_at": timezone.now().isoformat(),
+        }
+    )
+    mc_bucket["offline_upload_intents"] = intents[-50:]
+    settings_blob["migration_cloud"] = mc_bucket
+    school.settings = settings_blob
+    school.save(update_fields=["settings", "updated_at"])
+    return {"ok": True, "pending_files": True}
+
+
 def _persist_student_note(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
     """Create or dedupe a ``StudentNote`` row (no workflow dispatch)."""
     from django.contrib.auth import get_user_model
@@ -1277,6 +1381,11 @@ def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
         return _apply_homework_submission(
             sid, uid, payload, force_local=force_local
         )
+    if (
+        at == OfflineAction.ActionType.MIGRATION_CLOUD_UPLOAD
+        or at_norm == OfflineActionType.MIGRATION_BUNDLE_UPLOAD
+    ):
+        return _apply_migration_cloud_upload(sid, uid, payload)
     if at == OfflineAction.ActionType.SUPPORT_TICKET:
         return _apply_support_ticket(sid, uid, payload)
     if at == OfflineAction.ActionType.DONATION_INTAKE:

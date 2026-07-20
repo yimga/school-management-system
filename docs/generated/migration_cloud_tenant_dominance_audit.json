@@ -27,9 +27,9 @@
     "closeout_quarantine_empty_hints": "DONE",
     "closeout_plan_entitlement_growing_plus": "DONE",
     "closeout_command_center_inspect_docs": "DONE",
-    "EXTERNAL_counsel_maa_facts_skyward": "EXTERNAL",
+    "EXTERNAL_counsel_maa_facts_skyward": "EXTERNAL_SHOVEL_READY",
     "prod_new_school_db_forensic": "BLOCKED_EXTERNAL",
-    "offline_mc_upload": "NOT_DONE"
+    "offline_mc_upload": "DONE"
   },
   "failure_modes": {
     "1_no_confirm_apply": "CLOSED_UX",
@@ -46,13 +46,14 @@
     "12_connector_quality": "CLOSED",
     "13_legacy_wizard": "CLOSED_UX",
     "14_connector_rls": "PARTIAL",
-    "15_offline_resume": "NOT_DONE"
+    "15_offline_resume": "DONE_SODP_IDB"
   },
   "proofs_2026_07_20": {
     "focused_django_p0_p1": "32_OK",
     "closeout_suite": "test_tenant_closeout_ux_2026_07_20",
     "scan_lander_phantom_fields": 0,
-    "verify_migration_cloud_connectors": "PASS_8"
+    "verify_migration_cloud_connectors": "PASS_8",
+    "offline_mc_upload": "verify_offline_capability_implementation_PASS_6_plus_6_django"
   },
   "markdown": "docs/generated/migration_cloud_tenant_dominance_audit.md"
 }

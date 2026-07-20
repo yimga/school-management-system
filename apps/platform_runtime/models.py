@@ -2049,6 +2049,7 @@ class OfflineAction(models.Model):
         PAYMENT_RECEIPT = "payment_receipt", "Payment / receipt capture"
         NOTES_REPORT = "notes_report", "Notes / report capture"
         HOMEWORK_SUBMISSION = "homework_submission", "Homework submission"
+        MIGRATION_CLOUD_UPLOAD = "migration_cloud_upload", "Migration Cloud file upload"
         NOTIFY_PARENT = "notify.parent", "Notify parent"
         NOTIFY_STAFF = "notify.staff", "Notify staff"
         SUPPORT_TICKET = "support_ticket", "Support ticket"

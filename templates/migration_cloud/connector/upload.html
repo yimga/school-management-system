@@ -19,8 +19,11 @@ tenant host, since the connector namespace is nested under super/portal too).
     <strong>{% trans "Important:" %}</strong>
     {% trans "Upload does not import. After detection you must confirm “Import into my school” before any records appear in Students, Staff, or other lists." %}
   </p>
+  <p class="small text-muted mb-3">
+    {% trans "If you lose connectivity mid-upload, files are staged on this device and uploaded automatically when you reconnect (offline Migration Cloud queue)." %}
+  </p>
 
-  <form method="post" enctype="multipart/form-data" action="{{ upload_url }}">
+  <form method="post" enctype="multipart/form-data" action="{{ upload_url }}" data-rmc-offline-form="migration_cloud_upload">
     {% csrf_token %}
     <div class="mb-3">
       <label for="mc-artifacts" class="form-label fw-semibold">{% trans "Choose files" %}</label>

@@ -1,12 +1,12 @@
 {
   "date": "2026-07-20",
-  "generated_at": "2026-07-20T14:20:00+00:00",
+  "generated_at": "2026-07-20T19:59:26+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 161,
-  "raw": "sms-v4.05.161-admin-both-hosts-2026-07-20",
+  "patch": 162,
+  "raw": "sms-v4.05.162-mc-offline-counsel-2026-07-20",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-both-hosts",
+  "slug": "mc-offline-counsel",
   "valid": true
 }

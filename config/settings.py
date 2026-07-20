@@ -1021,6 +1021,14 @@ MIGRATION_CLOUD_MAA_OPTIN_TENANT_IDS = [
     for _x in (os.environ.get("RMC_MAA_V2_OPTIN_TENANT_IDS", "") or "").split(",")
     if _x.strip().isdigit()
 ]
+# Empty until counsel signoff is filed and ops sets the token in the
+# deployment env. ``promote_maa_v2`` refuses when this is blank (see
+# docs/MAA_V2_FLIP_RUNBOOK.md + docs/legal/README.md).
+MAA_V2_PROMOTION_APPROVAL_TOKEN = (
+    os.environ.get("RMC_MAA_V2_PROMOTION_APPROVAL_TOKEN", "")
+    or os.environ.get("MAA_V2_PROMOTION_APPROVAL_TOKEN", "")
+    or ""
+).strip()
 
 # --- Celery beat enablement gate (v3.34.0 Agent 5) ---
 # Lazy guard for beat entries that the operator can defer per-environment

@@ -102,6 +102,13 @@ _CAPABILITY_SPEC: dict[str, dict] = {
         "form_kinds": ("payment_receipt",),
         "generic": False,
     },
+    "enable_offline_migration_cloud_upload": {
+        "sodp_tokens": ("migration_cloud_upload", "migration.bundle_upload"),
+        "sodp_members": ("MIGRATION_BUNDLE_UPLOAD", "MIGRATION_CLOUD_UPLOAD"),
+        "wal_domains": (),
+        "form_kinds": ("migration_cloud_upload",),
+        "generic": False,
+    },
 }
 
 

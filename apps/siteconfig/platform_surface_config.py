@@ -296,6 +296,9 @@ def resolve_sms_offline_config(
         "attendanceSyncEnabled": _yn("enable_offline_attendance_sync", True),
         "gradeSyncEnabled": _yn("enable_offline_grade_sync", True),
         "homeworkSyncEnabled": _yn("enable_offline_homework_sync", True),
+        "migrationCloudUploadSyncEnabled": _yn(
+            "enable_offline_migration_cloud_upload", True
+        ),
         "backgroundSyncEnabled": _yn("enable_offline_background_sync", True),
         "requestPersistentStorage": _yn("request_persistent_browser_storage", True),
         "reachabilityUrl": reachability,

@@ -34,6 +34,9 @@ _EXPECTED_STUBS: dict[str, int] = {
     "companion-docker/app/extractors/skyward.py": 3,
     # 3 markers: 1 in docstring + 2 in code branches.
     "companion-docker/app/extractors/facts.py": 3,
+    # Extension write surfaces restored as honest stubs (read extractors live).
+    "companion-extension/src/vendors/facts.ts": 3,
+    "companion-extension/src/vendors/skyward.ts": 3,
 }
 
 

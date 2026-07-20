@@ -48,6 +48,8 @@ class RealTreeTests(unittest.TestCase):
                 "enable_offline_attendance_sync",
                 "enable_offline_grade_sync",
                 "enable_offline_homework_sync",
+                "enable_offline_fee_payment_sync",
+                "enable_offline_migration_cloud_upload",
             },
         )
 

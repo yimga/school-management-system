@@ -18,6 +18,7 @@ class OfflineActionType(models.TextChoices):
     STUDENT_NOTE = "student.note", "Student note"
     HOMEWORK_SUBMIT = "homework.submit", "Homework submit"
     PAYMENT_PROOF = "payment.proof_upload", "Payment proof upload"
+    MIGRATION_BUNDLE_UPLOAD = "migration.bundle_upload", "Migration Cloud upload"
     SUPPORT_TICKET = "support.ticket", "Support ticket"
     NOTIFY_PARENT = "notify.parent", "Notify parent"
     NOTIFY_STAFF = "notify.staff", "Notify staff"
@@ -35,6 +36,7 @@ LEGACY_TO_SODP: dict[str, str] = {
     "notes_report": OfflineActionType.STUDENT_NOTE,
     "homework_submission": OfflineActionType.HOMEWORK_SUBMIT,
     "support_ticket": OfflineActionType.SUPPORT_TICKET,
+    "migration_cloud_upload": OfflineActionType.MIGRATION_BUNDLE_UPLOAD,
 }
 
 SODP_TO_LEGACY: dict[str, str] = {v: k for k, v in LEGACY_TO_SODP.items()}
@@ -123,6 +125,18 @@ def validate_offline_payload(action_type: str, payload: dict[str, Any]) -> list[
         student_id = payload.get("student_id")
         if student_id in (None, ""):
             errors.append("homework.submit requires student_id")
+
+    if at == OfflineActionType.MIGRATION_BUNDLE_UPLOAD:
+        filenames = payload.get("filenames")
+        if not isinstance(filenames, list) or not filenames:
+            errors.append("migration.bundle_upload requires filenames[]")
+        # Forbid embedding multi-MB base64 in the JSON SODP payload.
+        for banned in ("file_base64", "files_base64", "content_base64", "blob_base64"):
+            if banned in payload:
+                errors.append(f"migration.bundle_upload forbids {banned} in JSON payload")
+        client_id = str(payload.get("client_offline_id") or "").strip()
+        if not client_id:
+            errors.append("migration.bundle_upload requires client_offline_id")
 
     if at == OfflineActionType.IAM_REQUEST_ACCESS:
         code = str(payload.get("permission_code") or "").strip()
