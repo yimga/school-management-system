@@ -42,6 +42,8 @@ REQUIRED_GIT_PATHS = (
     "scripts/release/render_start_web.sh",
     "static/js/rmc-workflow-track-headers.js",
     "static/css/rmc-class-grammar-ext.css",
+    "var/admin-approval-build-lock.json",
+    "scripts/verify_django_admin_preview_parity.py",
 )
 
 REQUIRED_SHELL_STATIC = (
@@ -145,8 +147,27 @@ def _check_shell_references(failures: list[str]) -> None:
         )
 
 
+def _check_admin_approval_parity(failures: list[str]) -> None:
+    """Stdlib lock: approval HTML markers must be present before Django setup."""
+    script = ROOT / "scripts" / "verify_django_admin_preview_parity.py"
+    if not script.is_file():
+        failures.append("missing scripts/verify_django_admin_preview_parity.py")
+        return
+    proc = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=str(ROOT),
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or "").strip().splitlines()
+        hint = detail[-1] if detail else "PREVIEW_PARITY_FAIL"
+        failures.append(f"django admin approval parity: {hint}")
+
+
 def main() -> int:
     failures: list[str] = []
+    _check_admin_approval_parity(failures)
     _check_shell_includes(failures)
     _check_shell_static_assets(failures)
     _check_shell_references(failures)

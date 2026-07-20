@@ -55,6 +55,8 @@ on:
       - "scripts/scan_money_float.py"
       - "scripts/scan_locale_coverage.py"
       - "scripts/verify_service_worker_version.py"
+      - "scripts/verify_django_admin_preview_parity.py"
+      - "var/admin-approval-build-lock.json"
       - "scripts/verify_deploy_cache_posture.py"
       - "scripts/verify_slo_registry.py"
       - "scripts/verify_intelligence_model_producers.py"
@@ -748,6 +750,25 @@ jobs:
         # must be >= baseline.
         run: |
           python scripts/verify_service_worker_version.py --check-monotonic
+
+  django-admin-preview-parity:
+    name: "Admin: approval HTML → live shell lock (visible chip + grid)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify Django admin preview parity (lock + approval HTML)
+        # Prevents another CSS-only / uncached deploy that looks unchanged.
+        # Lock: var/admin-approval-build-lock.json. Proof: tenant /admin/ chip.
+        run: |
+          python scripts/verify_django_admin_preview_parity.py
+      - name: Unit tests (lock shape + clean-tree calibration)
+        run: |
+          python -m unittest scripts.tests.test_verify_django_admin_preview_parity -v
 
   deploy-cache-posture:
     name: "PWA: deploy cache posture (SW scope + freshness + no scanner block)"

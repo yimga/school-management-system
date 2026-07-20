@@ -61,6 +61,9 @@ GATES: list[tuple[str, list[str]]] = [
     ("template-render-safety", ["audit_template_render_safety.py", "--compare"]),
     ("attribute-context-includes", ["scan_attribute_context_includes.py"]),
     ("service-worker-version", ["verify_service_worker_version.py", "--check-monotonic"]),
+    # Approval HTML → live admin: fails if build lock / visible chip / grid drift.
+    # Prevents another "CSS-only commit looks unchanged after deploy" silent miss.
+    ("django-admin-preview-parity", ["verify_django_admin_preview_parity.py"]),
 ]
 
 _PER_GATE_TIMEOUT_S = 120

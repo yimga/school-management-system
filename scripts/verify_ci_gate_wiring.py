@@ -136,6 +136,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # answers "is this table actually enumerated", and must stay wired so the
     # uncovered set cannot grow before an RLS-mode flip.
     ("scripts/scan_rls_table_coverage.py", "ci.yml"),
+    # Django admin approval HTML → live shell lock (2026-07-20). Prevents shipping
+    # layout waves that pass narrative audits but leave tenant/operator /admin/
+    # looking unchanged (missing build chip / cache bust / approval grid).
+    ("scripts/verify_django_admin_preview_parity.py", "architectural-boundaries.yml"),
 )
 
 

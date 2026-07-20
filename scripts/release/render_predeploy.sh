@@ -19,6 +19,11 @@ run() {
 # Fail fast when migration files are gitignored or not committed (e.g. *Conflict*.py rule).
 run "${PYTHON_BIN}" scripts/verify_migration_files_tracked.py
 
+# Fail fast when Django admin approval HTML parity lock drifts (visible chip /
+# cache-bust / SW / grid). Catches the class of "deploy looked the same" bugs
+# where CSS-only or un-pushed layout waves never reach production markers.
+run "${PYTHON_BIN}" scripts/verify_django_admin_preview_parity.py
+
 # Fail fast when shell includes reference a template missing from the checkout.
 WFP_STRIP="templates/components/rmc_workflow_progress_strip.html"
 if [[ ! -f "${WFP_STRIP}" ]]; then
