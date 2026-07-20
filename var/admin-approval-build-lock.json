@@ -1,18 +1,23 @@
 {
-  "build_id": "2026-07-20-v7",
-  "cache_bust": "20260720-admin-preview-parity-v7",
-  "sw_version": "sms-v4.05.160-admin-approval-html-2026-07-20",
+  "build_id": "2026-07-20-v8",
+  "cache_bust": "20260720-admin-preview-parity-v8",
+  "sw_version": "sms-v4.05.161-admin-both-hosts-2026-07-20",
   "seal": "2026-07-20-preview-parity-sot",
   "approval_previews": [
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
     "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-07-20-v7\"",
-    "v7 · approval canvas",
+    "data-rmc-admin-approval-build=\"2026-07-20-v8\"",
+    "v8 \u00b7 approval canvas \u00b7 operator+tenant",
     "Staff accounts",
     "Search school settings, people, academics",
-    "rmc-admin-preview-parity-critical"
+    "rmc-admin-preview-parity-critical",
+    "Platform Backoffice"
   ],
-  "rule": "Every admin layout wave MUST bump build_id + cache_bust + sw_version together, then keep templates/CSS/SW/auditors in lockstep. verify_django_admin_preview_parity.py fails CI/predeploy when any consumer drifts. Visible chip on tenant /admin/ proves the deploy landed."
+  "hosts": [
+    "operator",
+    "tenant"
+  ],
+  "rule": "Visible chip required on BOTH templates/admin/index_superadmin.html (operator) and templates/admin/index_tenant.html (tenant). Bump build_id+cache_bust+sw_version together."
 }

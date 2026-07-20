@@ -167,7 +167,7 @@
   <link rel="stylesheet" href="{% static 'css/admin-200x-shell-overlay.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-v1-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260720-admin-preview-parity-v7">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260720-admin-preview-parity-v8">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-sidebar-luxury-10x.css' %}">
   {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
@@ -178,7 +178,7 @@
   {% comment %} v4.10.1: tenant backend gets the same spacious change-form body
      contract as operator admin, but without operator-only rails or links. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260720-admin-preview-parity-v7">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260720-admin-preview-parity-v8">
   <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}">
   {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
@@ -229,12 +229,12 @@
   {% comment %} v4.10.2: last-loaded Django admin surface contract for both operator
      and tenant backends. Keeps approved canvas-first/full-width rules from being
      undone by older model-specific or Unfold defaults. {% endcomment %}
-  <meta name="rmc-admin-approval-build" content="2026-07-20-v7">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260720-admin-preview-parity-v7">
-  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260720-admin-preview-parity-v7">
+  <meta name="rmc-admin-approval-build" content="2026-07-20-v8">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260720-admin-preview-parity-v8">
+  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260720-admin-preview-parity-v8">
   {% comment %} Critical preview-parity grid ships with HTML so ManifestStatic hashed CSS
        cannot leave operators on the pre-approval wide-rail layout. Matches approval .ws. {% endcomment %}
-  <style id="rmc-admin-preview-parity-critical" nonce="{{ csp_nonce }}" data-rmc-admin-preview-parity="2026-07-20" data-rmc-admin-approval-build="2026-07-20-v7">
+  <style id="rmc-admin-preview-parity-critical" nonce="{{ csp_nonce }}" data-rmc-admin-preview-parity="2026-07-20" data-rmc-admin-approval-build="2026-07-20-v8">
     /* Beat #cp-main-content 2-col chains — approval HTML is always main|rail|tools. */
     html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content .rmc-admin-workspace,
     html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content [data-rmc-django-workspace="change-form"],
@@ -275,6 +275,20 @@
       width: 100% !important;
       max-width: none !important;
       margin-inline: 0 !important;
+    }
+    /* Shared deploy proof chip — operator + tenant /admin/ indexes. */
+    .rmc-admin-approval-build-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--brand-success, #26d486) 45%, transparent);
+      background: color-mix(in srgb, var(--brand-success, #26d486) 14%, transparent);
+      color: var(--text-secondary, #9ff0c6);
+      font-size: 0.65rem;
+      font-weight: 850;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
   </style>
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','{% if is_manager_host %}control-plane{% else %}tenant{% endif %}');})();</script>
@@ -467,7 +481,7 @@
   {% if is_manager_host %}
   <script src="{% static 'js/rmc-admin-v1-200x.js' %}" defer></script>
   {% endif %}
-  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260720-admin-preview-parity-v7" defer></script>
+  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260720-admin-preview-parity-v8" defer></script>
   {% comment %} Phase G: ⌘K command palette on the admin shell too. {% endcomment %}
   {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
@@ -678,8 +692,8 @@
   {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   {% comment %} v4.10.2: terminal repeat so Django canvas contract wins after
      late preview/theme inline styles too. {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260720-admin-preview-parity-v7">
-  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260720-admin-preview-parity-v7">
-  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260720-admin-preview-parity-v7" defer></script>
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260720-admin-preview-parity-v8">
+  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260720-admin-preview-parity-v8">
+  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260720-admin-preview-parity-v8" defer></script>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

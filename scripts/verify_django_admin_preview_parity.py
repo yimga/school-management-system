@@ -37,6 +37,7 @@ BASE = ROOT / "templates/admin/base.html"
 NAV_BRIDGE = ROOT / "templates/components/admin_nav_bridge.html"
 SUBMIT_LINE = ROOT / "templates/admin/submit_line.html"
 INDEX_TENANT = ROOT / "templates/admin/index_tenant.html"
+INDEX_OPERATOR = ROOT / "templates/admin/index_superadmin.html"
 CHANGE_FORM = ROOT / "templates/admin/change_form.html"
 CHANGE_LIST = ROOT / "templates/admin/change_list.html"
 SW = ROOT / "static/js/service-worker.js"
@@ -111,6 +112,7 @@ def main() -> int:
     nav = _read(NAV_BRIDGE)
     submit = _read(SUBMIT_LINE)
     index_t = _read(INDEX_TENANT)
+    index_op = _read(INDEX_OPERATOR)
     change_form = _read(CHANGE_FORM)
     change_list = _read(CHANGE_LIST)
     sw = _read(SW)
@@ -174,11 +176,28 @@ def main() -> int:
         errors.append(f"admin/base.html must emit {build_attr}")
     if build_attr not in base_site and f'content="{build_id}"' not in base_site:
         errors.append(f"base_site must emit approval build meta/attr for {build_id}")
-    if build_attr not in index_t and build_id not in index_t:
-        errors.append(f"index_tenant.html must reference build_id {build_id}")
+
+    # BOTH hosts must show the visible deploy-proof chip (operator + tenant /admin/).
+    chip_needle = "rmc-admin-approval-build-chip"
+    if chip_needle not in index_t or build_id not in index_t:
+        errors.append(
+            f"tenant index_tenant.html must show visible approval chip for {build_id}"
+        )
+    if chip_needle not in index_op or build_id not in index_op:
+        errors.append(
+            f"operator index_superadmin.html must show visible approval chip for {build_id}"
+        )
+    if 'data-rmc-admin-index-canvas="operator"' not in index_op:
+        errors.append("index_superadmin.html must use data-rmc-admin-index-canvas=operator")
+    if 'data-rmc-admin-index-canvas="tenant"' not in index_t:
+        errors.append("index_tenant.html must use data-rmc-admin-index-canvas=tenant")
+    if "admin_workspace_tools.html" not in index_op or "admin_workspace_tools.html" not in index_t:
+        errors.append("operator + tenant indexes must include admin_workspace_tools.html")
+    if "admin_index_context_rail.html" not in index_op or "admin_index_context_rail.html" not in index_t:
+        errors.append("operator + tenant indexes must include admin_index_context_rail.html")
 
     for proof in visible_proofs:
-        haystacks = (base_site, base, index_t, nav, css)
+        haystacks = (base_site, base, index_t, index_op, nav, css)
         if not any(proof in h for h in haystacks):
             errors.append(f"visible proof missing from live shell: {proof!r}")
 

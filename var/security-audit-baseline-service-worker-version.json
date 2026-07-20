@@ -1,12 +1,12 @@
 {
   "date": "2026-07-20",
-  "generated_at": "2026-07-20T14:10:00+00:00",
+  "generated_at": "2026-07-20T14:20:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 160,
-  "raw": "sms-v4.05.160-admin-approval-html-2026-07-20",
+  "patch": 161,
+  "raw": "sms-v4.05.161-admin-both-hosts-2026-07-20",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-approval-html",
+  "slug": "admin-both-hosts",
   "valid": true
 }

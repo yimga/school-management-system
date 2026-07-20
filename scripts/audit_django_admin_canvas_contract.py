@@ -28,8 +28,8 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260720-admin-preview-parity-v7" not in base_site:
-        errors.append("Django canvas contract link must use the preview-parity-v7 cache bust for deployment visibility")
+    if "?v=20260720-admin-preview-parity-v8" not in base_site:
+        errors.append("Django canvas contract link must use the preview-parity-v8 cache bust for deployment visibility")
     if "2026-07-19-full-fill-page-aware" not in css:
         errors.append("canvas contract must include 2026-07-19-full-fill-page-aware terminal block")
     if "2026-07-20-preview-parity-sot" not in css:
