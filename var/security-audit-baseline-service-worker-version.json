@@ -1,12 +1,12 @@
 {
   "date": "2026-07-20",
-  "generated_at": "2026-07-20T12:00:00+00:00",
+  "generated_at": "2026-07-20T16:30:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 157,
-  "raw": "sms-v4.05.157-admin-miss-nothing-2026-07-20",
+  "patch": 159,
+  "raw": "sms-v4.05.159-admin-preview-parity-2026-07-20",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-miss-nothing",
+  "slug": "admin-preview-parity",
   "valid": true
 }

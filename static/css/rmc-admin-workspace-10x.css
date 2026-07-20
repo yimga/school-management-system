@@ -240,16 +240,21 @@ body.admin-premium-shell #content {
   padding-inline: clamp(0.55rem, 1vw, 0.9rem) !important;
 }
 
+/* Preview parity: never collapse to 2-col at large breakpoints (TOOLS must stay on the row). */
 @container (min-width: 1180px) {
-  body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace {
-    grid-template-columns: minmax(0, 1fr) clamp(260px, 20vw, 330px);
+  body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace,
+  body:is(.admin-manager-shell, .admin-premium-shell).change-form [data-rmc-django-workspace="change-form"],
+  body:is(.admin-manager-shell, .admin-premium-shell).change-list [data-rmc-django-workspace="change-list"] {
+    grid-template-columns: minmax(0, 1fr) minmax(9.2rem, 17%) 2.35rem !important;
   }
 }
 
 @supports not (container-type: inline-size) {
   @media (min-width: 1380px) {
-    body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace {
-      grid-template-columns: minmax(0, 1fr) clamp(260px, 20vw, 330px);
+    body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace,
+    body:is(.admin-manager-shell, .admin-premium-shell).change-form [data-rmc-django-workspace="change-form"],
+    body:is(.admin-manager-shell, .admin-premium-shell).change-list [data-rmc-django-workspace="change-list"] {
+      grid-template-columns: minmax(0, 1fr) minmax(9.2rem, 17%) 2.35rem !important;
     }
   }
 }
@@ -563,9 +568,17 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   padding-bottom: clamp(7rem, 11vh, 10rem) !important;
 }
 
-body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace {
-  grid-template-columns: minmax(0, 1fr) minmax(15rem, clamp(16rem, 18vw, 22rem)) !important;
-  align-items: start;
+body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace,
+body:is(.admin-manager-shell, .admin-premium-shell).change-form [data-rmc-django-workspace="change-form"],
+body:is(.admin-manager-shell, .admin-premium-shell).change-list [data-rmc-django-workspace="change-list"] {
+  /* Approval preview .ws — main | ~17% rail | 2.35rem tools (NEVER 2-col; that strands TOOLS). */
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(9.2rem, 17%) 2.35rem !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  align-items: start !important;
 }
 
 body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-workspace > #content-main {

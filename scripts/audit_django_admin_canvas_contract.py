@@ -28,10 +28,28 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260720-admin-fullfill-v4" not in base_site:
-        errors.append("Django canvas contract link must use the fullfill-v4 cache bust for deployment visibility")
+    if "?v=20260720-admin-preview-parity-v6" not in base_site:
+        errors.append("Django canvas contract link must use the preview-parity-v6 cache bust for deployment visibility")
     if "2026-07-19-full-fill-page-aware" not in css:
         errors.append("canvas contract must include 2026-07-19-full-fill-page-aware terminal block")
+    if "2026-07-20-preview-parity-sot" not in css:
+        errors.append("canvas contract must include 2026-07-20-preview-parity-sot (approval HTML grid)")
+    if "minmax(9.2rem, 17%)" not in css and "minmax(9.2rem,17%)" not in css:
+        errors.append("canvas contract must use operator approval rail minmax(9.2rem, 17%)")
+    # Preview-parity verifier is the structural SOT vs approval HTML files.
+    try:
+        from scripts.verify_django_admin_preview_parity import main as _preview_parity_main
+    except ImportError:
+        import importlib.util
+
+        _pp = ROOT / "scripts" / "verify_django_admin_preview_parity.py"
+        spec = importlib.util.spec_from_file_location("verify_django_admin_preview_parity", _pp)
+        assert spec and spec.loader
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _preview_parity_main = mod.main
+    if _preview_parity_main() != 0:
+        errors.append("verify_django_admin_preview_parity.py failed (approval HTML ≠ live shell)")
 
     # tools-no-span-explode: span 20/40 invents empty grid tracks (stripe / dark-bar bug)
     if re.search(r"data-rmc-django-tools[\s\S]{0,200}grid-row:\s*3\s*/\s*span\s*(20|40)", css):
