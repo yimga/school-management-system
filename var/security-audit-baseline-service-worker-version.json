@@ -1,12 +1,12 @@
 {
   "date": "2026-07-20",
-  "generated_at": "2026-07-20T11:00:00+00:00",
+  "generated_at": "2026-07-20T11:30:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 154,
-  "raw": "sms-v4.05.154-admin-action-nowrap-2026-07-20",
+  "patch": 155,
+  "raw": "sms-v4.05.155-admin-fullfill-grid-auto-2026-07-20",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-action-nowrap",
+  "slug": "admin-fullfill-grid-auto",
   "valid": true
 }

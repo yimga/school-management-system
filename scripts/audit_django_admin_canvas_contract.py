@@ -28,18 +28,25 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260720-admin-action-nowrap" not in base_site:
-        errors.append("Django canvas contract link must use the action-nowrap cache bust for deployment visibility")
+    if "?v=20260720-admin-fullfill-v2" not in base_site:
+        errors.append("Django canvas contract link must use the fullfill-v2 cache bust for deployment visibility")
     if "2026-07-19-full-fill-page-aware" not in css:
         errors.append("canvas contract must include 2026-07-19-full-fill-page-aware terminal block")
 
     # tools-no-span-explode: span 20/40 invents empty grid tracks (stripe / dark-bar bug)
     if re.search(r"data-rmc-django-tools[\s\S]{0,200}grid-row:\s*3\s*/\s*span\s*(20|40)", css):
         errors.append("canvas contract must NOT use grid-row span 20/40 on [data-rmc-django-tools] (stripe bug)")
+    css_nocomment = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    if re.search(r"grid-row:\s*\d+", css_nocomment):
+        errors.append("canvas contract must NOT hardcode numeric grid-row (use auto — empty tracks cause stripe/right-void)")
     if "2026-07-19-tools-no-span-explode" not in css:
         errors.append("canvas contract must include 2026-07-19-tools-no-span-explode terminal seal")
     if "2026-07-20-action-nowrap" not in css:
         errors.append("canvas contract must include 2026-07-20-action-nowrap save-bleed seal")
+    if "2026-07-20-grid-row-auto-fullfill" not in css:
+        errors.append("canvas contract must include 2026-07-20-grid-row-auto-fullfill terminal seal")
+    if "data-rmc-admin-html','unfold'" not in base_site and 'data-rmc-admin-html","unfold"' not in base_site:
+        errors.append("base_site must set data-rmc-admin-html=unfold in pre-paint head script")
     if re.search(r"\.rmc-django-action\s*\{[^}]*overflow-wrap:\s*anywhere", css):
         errors.append("canvas contract must not set overflow-wrap:anywhere on .rmc-django-action")
     if "a.skip-link:not(:focus)" not in css and "a.skip-link:not(:focus):not(:focus-visible)" not in css:

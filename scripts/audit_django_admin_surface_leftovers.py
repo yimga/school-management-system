@@ -126,10 +126,25 @@ def main() -> int:
     css = _read(ROOT / "static/css/rmc-admin-django-canvas-contract.css")
     if re.search(r"data-rmc-django-tools[\s\S]{0,220}grid-row:\s*3\s*/\s*span\s*(20|40)", css):
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "tools span 20/40 stripe bug regress")
+    # Any active grid-row:N (not in comments) invents empty tracks → right void + stripes
+    css_nocomment = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    if re.search(
+        r"\[data-rmc-django-(?:tools|side-panel|table-panel|changelist-rail|form-panel)\][^{]*\{[^}]*grid-row:\s*\d+",
+        css_nocomment,
+    ) or re.search(
+        r"premium-form-frame[^{]*\{[^}]*grid-row:\s*\d+",
+        css_nocomment,
+    ) or re.search(
+        r"\[data-rmc-admin-form-contract=\"premium-form-frame\"\][^{]*\{[^}]*grid-row:\s*\d+",
+        css_nocomment,
+    ):
+        add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "hardcoded grid-row:N on workspace panes (stripe/right-void)")
     if "2026-07-19-tools-no-span-explode" not in css:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "tools-no-span-explode seal missing")
     if "2026-07-20-action-nowrap" not in css:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "action-nowrap save-bleed seal missing")
+    if "2026-07-20-grid-row-auto-fullfill" not in css:
+        add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "grid-row-auto-fullfill seal missing")
     if re.search(r"\.rmc-django-action\s*\{[^}]*overflow-wrap:\s*anywhere", css):
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, ".rmc-django-action must not use overflow-wrap:anywhere (save bleed)")
     # Bare Unfold .flex wrappers must not share form-row span-6 half-width
@@ -141,6 +156,14 @@ def main() -> int:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "form-body > .flex must not use grid-column span 6")
     if "a.skip-link:not(:focus)" not in css:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "skip-link clip until focus missing")
+
+    parity = _read(ROOT / "static/css/admin-cp-parity.css")
+    if re.search(
+        r"#content-main\.cp-form-frame[^{]*\{[^}]*margin:\s*0\s+auto",
+        parity,
+        re.S,
+    ):
+        add("P0", ROOT / "static/css/admin-cp-parity.css", 0, "cp-form-frame must not use margin:0 auto (centers + right void)")
 
     banner = _read(ADMIN / "includes" / "tenant_admin_decision_banner.html")
     if "studio_os" in banner or "Decision console" in banner or "Operator workflow" in banner:

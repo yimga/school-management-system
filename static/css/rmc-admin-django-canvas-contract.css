@@ -2835,7 +2835,8 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > [data-rmc-admin-form-contract="premium-form-frame"],
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-table-panel] {
   grid-column: 1 !important;
-  grid-row: 3 !important;
+  /* NEVER grid-row: N — hardcoding invents empty tracks (stripe / right-void / stranded TOOLS). */
+  grid-row: auto !important;
   min-width: 0 !important;
   width: 100% !important;
   max-width: none !important;
@@ -2845,7 +2846,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-side-panel],
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-changelist-rail] {
   grid-column: 2 !important;
-  grid-row: 3 !important;
+  grid-row: auto !important;
   position: sticky !important;
   top: clamp(5rem, 12vh, 8rem) !important;
   max-height: calc(100vh - clamp(9rem, 18vh, 12rem)) !important;
@@ -2858,11 +2859,11 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
   min-width: 0 !important;
 }
 
-/* Share ONE content row with form + rail. span N invents empty tracks (stripe bug). */
+/* Same auto row as form + rail via column placement (not grid-row: 3). */
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > [data-rmc-django-tools],
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-tools] {
   grid-column: 3 !important;
-  grid-row: 3 !important;
+  grid-row: auto !important;
   align-self: start !important;
 }
 
@@ -3464,12 +3465,6 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
    ============================================================ */
 [data-rmc-shell-root="django-admin"] [data-rmc-django-tools] {
   grid-row: auto !important;
-}
-[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > [data-rmc-django-tools],
-[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > [data-rmc-django-tools],
-[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="app-index"] > [data-rmc-django-tools],
-[data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas] > [data-rmc-django-tools] {
-  grid-row: 3 !important;
   align-self: start !important;
   min-height: 0 !important;
 }
@@ -3484,4 +3479,88 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   white-space: nowrap !important;
   max-width: none !important;
   width: auto !important;
+}
+
+/* ============================================================
+   2026-07-20-grid-row-auto-fullfill: terminal seal.
+   Hardcoded grid-row:3 left empty tracks → venetian stripes, right void,
+   TOOLS stranded at viewport edge while content stayed cramped/centered.
+   Auto-placement after spanning headers packs form|rail|tools on ONE row.
+   ============================================================ */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) :is(
+  #cp-main-content,
+  #content,
+  #content-main,
+  .cp-admin-page-body,
+  .cp-form-frame,
+  .rmc-django-workspace,
+  .rmc-django-canvas,
+  .rmc-admin-index-canvas,
+  [data-rmc-admin-index-canvas]
+),
+body:is(.admin-manager-shell, .admin-premium-shell) :is(
+  #cp-main-content,
+  #content,
+  #content-main.cp-form-frame,
+  .cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"],
+  .rmc-django-workspace,
+  .rmc-admin-index-canvas
+) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-inline: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"],
+body:is(.admin-manager-shell, .admin-premium-shell).change-form .admin-cp-unified-page #cp-main-content #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"],
+body:is(.admin-manager-shell, .admin-premium-shell) .cp-form-frame {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > :is(
+  [data-rmc-admin-form-contract="premium-form-frame"],
+  [data-rmc-django-side-panel],
+  [data-rmc-django-tools],
+  [data-rmc-django-mode-panel]
+),
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > :is(
+  [data-rmc-django-table-panel],
+  [data-rmc-django-side-panel],
+  [data-rmc-django-changelist-rail],
+  [data-rmc-django-tools]
+),
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas] > :is(
+  .rmc-admin-index-main,
+  [data-rmc-django-side-panel],
+  [data-rmc-django-tools]
+),
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="app-index"] .rmc-admin-index-canvas > :is(
+  .rmc-admin-index-main,
+  [data-rmc-django-side-panel],
+  [data-rmc-django-tools]
+) {
+  grid-row: auto !important;
+}
+
+/* Skip-link: body-class only so tenant works before/without unfold html attr. */
+body:is(.admin-manager-shell, .admin-premium-shell) a.skip-link:not(:focus):not(:focus-visible),
+body:is(.admin-manager-shell, .admin-premium-shell) a.skip-link-theme:not(:focus):not(:focus-visible),
+[data-rmc-shell-root="django-admin"] a.skip-link:not(:focus):not(:focus-visible),
+[data-rmc-shell-root="django-admin"] a.skip-link-theme:not(:focus):not(:focus-visible) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }

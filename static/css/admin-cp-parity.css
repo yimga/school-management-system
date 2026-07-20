@@ -843,23 +843,27 @@ body.admin-manager-shell .rmc-admin-breadcrumb {
   line-height: 1.25;
 }
 
-body.admin-manager-shell .cp-form-frame {
-  width: min(100%, var(--rmc-backoffice-form-max)) !important;
-  max-width: var(--rmc-backoffice-form-max) !important;
-  margin-inline: auto;
+/* Full-canvas forms — never center-clamp (was margin:auto + form-max → right void). */
+body.admin-manager-shell .cp-form-frame,
+body.admin-premium-shell .cp-form-frame {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
   padding-bottom: 0.5rem;
 }
 
-body.admin-manager-shell.change-form #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] {
-  width: min(100%, var(--rmc-backoffice-form-max)) !important;
-  max-width: var(--rmc-backoffice-form-max) !important;
-  margin: 0 auto !important;
+body.admin-manager-shell.change-form #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"],
+body.admin-premium-shell.change-form #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
 }
 
-body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] {
-  width: min(100%, var(--rmc-backoffice-form-max)) !important;
-  max-width: var(--rmc-backoffice-form-max) !important;
-  margin: 0 auto !important;
+body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"],
+body.admin-premium-shell.change-form #cp-main-content #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
 }
 
 body.admin-manager-shell .cp-form-frame > form {
