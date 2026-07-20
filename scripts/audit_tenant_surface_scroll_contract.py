@@ -49,7 +49,7 @@ def main() -> int:
 
     admin_tokens = (
         "rmc-tenant-surface-scroll-contract.css",
-        "?v=20260719-tools-span-fix",
+        "?v=20260720-admin-leftovers",
         "rmc-tenant-surface-paginator.js",
         "rmc-admin-django-canvas-contract.css",
     )

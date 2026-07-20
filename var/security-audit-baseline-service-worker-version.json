@@ -1,12 +1,12 @@
 {
-  "date": "2026-07-19",
-  "generated_at": "2026-07-20T00:55:00+00:00",
+  "date": "2026-07-20",
+  "generated_at": "2026-07-20T09:00:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 152,
-  "raw": "sms-v4.05.152-admin-tools-span-fix-2026-07-19",
+  "patch": 153,
+  "raw": "sms-v4.05.153-admin-surface-leftovers-2026-07-20",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-tools-span-fix",
+  "slug": "admin-surface-leftovers",
   "valid": true
 }

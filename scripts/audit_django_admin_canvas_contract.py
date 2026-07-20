@@ -28,7 +28,7 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260719-tools-span-fix" not in base_site:
+    if "?v=20260720-admin-leftovers" not in base_site:
         errors.append("Django canvas contract link must use the tenant-audit cache bust for deployment visibility")
     if "2026-07-19-full-fill-page-aware" not in css:
         errors.append("canvas contract must include 2026-07-19-full-fill-page-aware terminal block")
@@ -481,8 +481,27 @@ def _audit_intelligent_index_surfaces() -> list[str]:
         errors.append("templates/admin/index_tenant.html must include shared index context rail")
 
     base = _read("templates/admin/base.html")
-    if 'url_name|default:"" != "index"' not in base or "tenant_admin_decision_banner" not in base:
-        errors.append("admin/base.html must skip tenant decision banner on admin index")
+    if "tenant_admin_decision_banner" not in base or 'un == "changelist"' not in base:
+        errors.append("admin/base.html must show tenant decision banner only on changelist/change/add")
+    if 'data-rmc-django-workspace="delete-confirm"' not in _read("templates/admin/delete_selected_confirmation.html"):
+        errors.append("delete_selected_confirmation.html must use rmc-django-workspace delete-confirm markers")
+
+    # Continuous leftovers loop gate (operator + tenant left-behind surfaces)
+    try:
+        from scripts.audit_django_admin_surface_leftovers import main as leftovers_main
+    except Exception:
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "audit_django_admin_surface_leftovers",
+            ROOT / "scripts" / "audit_django_admin_surface_leftovers.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(mod)
+        leftovers_main = mod.main
+    if leftovers_main() != 0:
+        errors.append("audit_django_admin_surface_leftovers.py reported remaining left-behind admin surfaces")
 
     quickaction = _read("static/js/_pages/admin-quickaction.js")
     if 'data-rmc-django-workspace="change-form"' not in quickaction:

@@ -5,7 +5,8 @@
   - change-list: Add (if allowed) + Filters + command palette + top
   - change-form / guided: Add (if allowed) + View site (if URL) + command palette + top
 {% endcomment %}
-<aside class="rmc-django-tools" data-rmc-django-tools="1" data-rmc-tools-surface="{{ surface|default:'unknown' }}" aria-label="{% trans 'Workspace tools' }" title="{% trans 'Workspace tools' %}">
+{% trans "Workspace tools" as tools_label %}
+<aside class="rmc-django-tools" data-rmc-django-tools="1" data-rmc-tools-surface="{{ surface|default:'unknown' }}" aria-label="{{ tools_label }}" title="{{ tools_label }}">
   {% if surface == "change-list" and has_add_permission %}
     {% url cl.opts|admin_urlname:"add" as add_url %}
     {% if add_url %}
