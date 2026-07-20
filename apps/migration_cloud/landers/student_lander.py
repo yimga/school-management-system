@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
+    _jsonable,
     conflict_resolution_for,
     detect_and_register_assets,
     detect_conflict,
@@ -89,8 +90,9 @@ class StudentLander(Lander):
             # deliberately reuses it at the target).
             school_scope: dict[str, Any] = {}
             if ctx.school is not None and "school" in model_fields:
+                # Scope the lookup only — never put the School instance into
+                # ``defaults`` (it leaks into updated_ids → MigrationRun JSON).
                 school_scope = {"school": ctx.school}
-                defaults["school"] = ctx.school
 
             if ctx.dry_run:
                 exists = StudentProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
@@ -105,10 +107,32 @@ class StudentLander(Lander):
 
             try:
                 lookup_field = _lookup_field("external_id", model_fields)
+                # Never let defaults overwrite the upsert key with a *different*
+                # source column (e.g. lookup admission_number=external_id while
+                # defaults.admission_number=CSV-adm). That creates a row whose
+                # unique key no longer matches the lookup, so re-apply 500s as
+                # UNIQUE constraint on (school, admission_number).
+                defaults.pop(lookup_field, None)
+                if (
+                    "student_code" in model_fields
+                    and lookup_field != "student_code"
+                    and not defaults.get("student_code")
+                ):
+                    defaults["student_code"] = external_id
                 existing_obj = StudentProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
                     **school_scope,
                     **{lookup_field: external_id},
                 ).first()
+                if existing_obj is None and "admission_number" in model_fields:
+                    # Legacy rows created under the pre-fix bug (lookup key
+                    # drifted from admission_number) — recover by admission
+                    # number when the CSV still carries it.
+                    adm = (row.get("admission_number") or "").strip()
+                    if adm:
+                        existing_obj = StudentProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name)
+                            **school_scope,
+                            admission_number=adm,
+                        ).first()
                 if existing_obj is not None:
                     detect_conflict(
                         ctx=ctx, domain="students",
@@ -123,11 +147,20 @@ class StudentLander(Lander):
                             canonical_obj=existing_obj, domain="students",
                         )
                         continue
-                obj, created = StudentProfile.objects.update_or_create(
-                    **school_scope,
-                    **{lookup_field: external_id},
-                    defaults=defaults,
-                )
+                    # Update in place when we recovered via admission_number
+                    # rather than the primary lookup field.
+                    for k, v in defaults.items():
+                        setattr(existing_obj, k, v)
+                    if lookup_field in model_fields:
+                        setattr(existing_obj, lookup_field, external_id)
+                    existing_obj.save()
+                    obj, created = existing_obj, False
+                else:
+                    obj, created = StudentProfile.objects.update_or_create(
+                        **school_scope,
+                        **{lookup_field: external_id},
+                        defaults=defaults,
+                    )
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
@@ -135,7 +168,12 @@ class StudentLander(Lander):
                 else:
                     result.updated += 1
                     result.updated_ids_with_old_values.append(
-                        {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
+                        {
+                            "pk": obj.pk,
+                            "old": {
+                                k: _jsonable(getattr(obj, k, None)) for k in defaults
+                            },
+                        }
                     )
                 persist_dfv_extras(
                     ctx=ctx, entity_type="student", entity_id=obj.pk,
@@ -227,7 +265,16 @@ def _lookup_field(canonical: str, available: set[str]) -> str:
     canonical name so the caller sees a clean error if no candidate exists.
     """
     candidates = {
-        "external_id": ("external_id", "sis_external_id", "source_id", "admission_number"),
+        # Prefer student_code on RunMyCampus StudentProfile — it is the stable
+        # SIS key. admission_number is a separate unique column and must not be
+        # the sole upsert key when the CSV also sends a different adm number.
+        "external_id": (
+            "external_id",
+            "sis_external_id",
+            "source_id",
+            "student_code",
+            "admission_number",
+        ),
     }.get(canonical, (canonical,))
     for c in candidates:
         if c in available:

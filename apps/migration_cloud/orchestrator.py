@@ -868,6 +868,14 @@ def _create_audit_run(bundle: MigrationBundle, job: _ArtifactJob, *, dry_run: bo
     )
 
 
+def _json_safe(value: Any) -> Any:
+    """Make lander audit payloads JSONField-safe (no model instances)."""
+    try:
+        return json.loads(json.dumps(value, default=str))
+    except (TypeError, ValueError):
+        return str(value)[:500]
+
+
 def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> None:
     if run is None:
         return
@@ -890,7 +898,9 @@ def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> N
         summary={
             **(run.execution_summary or {}),
             "created_ids": outcome.result.created_ids[:200],  # cap for size
-            "updated_ids_with_old_values": outcome.result.updated_ids_with_old_values[:200],
+            "updated_ids_with_old_values": _json_safe(
+                outcome.result.updated_ids_with_old_values[:200]
+            ),
             "errors_sample": outcome.result.errors[:20],
         },
     )
