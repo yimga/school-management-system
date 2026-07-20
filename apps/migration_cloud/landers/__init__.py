@@ -26,7 +26,7 @@ models, with DFV fallback retained for out-of-order bundles):
     * ``finance``                → ``apps.finance.Invoice``            (upsert on reference)
     * ``transcripts``            → ``apps.people.TranscriptVaultItem`` (upsert on student+hash)
     * ``health``                 → ``apps.schoolops.HealthRecord``     (upsert on student+date+category)
-    * ``payroll``                → ``apps.payroll.Payslip``            (upsert on employee+reference)
+    * ``payroll``                → DFV custom records (Payslip needs PayrollRun/Employee FKs — see payroll_lander honesty note)
     * ``communications``         → ``apps.communication.Message``      (upsert on recipient+subject)
     * ``events``                 → ``apps.school_events.SchoolEvent``  (upsert on title+starts_at)
     * ``library``                → ``apps.schoolops.LibraryItem``      (upsert on isbn or title+author)
@@ -37,7 +37,7 @@ models, with DFV fallback retained for out-of-order bundles):
     * ``hostel_assignments``     → ``apps.schoolops.HostelAssignment`` (v3.29 — upsert on student+room+effective_from; same DFV fallback when HostelRoom hasn't landed)
     * ``cafeteria_assignments``  → ``apps.schoolops.MealPlanBalance`` (v3.29 — upsert on student+meal_plan, meal_plan FK nullable for generic credit; last-wins balance with ``last_topup_amount/_at`` audit trail; Decimal end-to-end to satisfy scan_money_float)
     * ``alumni``                 → ``apps.people.StudentProfile`` w/ enrollment_status='graduated'
-    * ``compliance``             → ``apps.compliance.ComplianceCheck`` (upsert on check_type+check_date)
+    * ``compliance``             → DFV custom records (no first-class ComplianceCheck land path — see compliance_lander)
     * ``athletics_teams``        → ``apps.athletics.Team`` (2026-07-09 — upsert on season+name; provisions Sport+Season school-scoped on the fly; optional home_venue skip-when-unresolved)
     * ``athletics_memberships``  → ``apps.athletics.TeamMembership`` (2026-07-09 — upsert on team+student; quarantines on unresolved student/team)
     * ``athletics_fixtures``     → ``apps.athletics.Fixture`` (+ ``FixtureResult`` when a score is present; 2026-07-09 — upsert on team+opponent_name+scheduled_start; optional venue skip-when-unresolved)

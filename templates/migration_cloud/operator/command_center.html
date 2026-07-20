@@ -21,7 +21,7 @@
   <header class="rmc-page__header">
     <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
       <h1 class="rmc-h1">{% trans "Migration Cloud — Command Center" %}</h1>
-      {% trans "Live platform-wide snapshot. Eight pillars on one screen. Drill into each for full detail. Auto-refreshes every 60 seconds." as page_tip_1 %}
+      {% trans "Live platform-wide snapshot. Eight pillars on one screen. Drill into each for full detail. Auto-refreshes every 60 seconds. For tenant upload-but-empty forensics run: manage.py inspect_migration_tenant --slug=TENANT_SLUG." as page_tip_1 %}
       {% rmc_info_tag title=_("About this page") body=page_tip_1|striptags surface="operator" placement="bottom" %}
     </div>
     

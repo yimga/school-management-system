@@ -157,14 +157,35 @@ def _json_error(message: str, *, status: int, code: str | None = None) -> JsonRe
     return JsonResponse(body, status=status)
 
 
-def _next_step_url(bundle_id: int) -> str:
-    """Best-effort hint at the wizard URL the operator should visit next.
+def _next_step_url(bundle_id: int, request: HttpRequest | None = None) -> str:
+    """Host-aware next URL after companion upload/decrypt.
 
-    Returns a string path; the Companion popup uses it to deep-link the
-    operator into the wizard after a successful upload. We can't use
-    ``reverse()`` because the route lives under two mount points; we
-    construct the operator-shell path by convention.
+    Companion endpoints mount under portal and super URL namespaces. Prefer a
+    named reverse for the active namespace; fall back to the tenant connector
+    review path, then the historical operator detail path.
     """
+    from django.urls import NoReverseMatch, reverse
+
+    ns = ""
+    if request is not None:
+        match = getattr(request, "resolver_match", None)
+        ns = (getattr(match, "namespace", None) or "").strip()
+
+    candidates: list[str] = []
+    if ns in ("migration_cloud_portal", "migration_cloud_super"):
+        candidates.append(f"{ns}:bundle_detail")
+    candidates.extend(
+        (
+            "migration_cloud_connector:bundle-review",
+            "migration_cloud_portal:bundle_detail",
+            "migration_cloud_super:bundle_detail",
+        )
+    )
+    for name in candidates:
+        try:
+            return reverse(name, kwargs={"bundle_id": bundle_id})
+        except NoReverseMatch:
+            continue
     return f"/super/migration/{bundle_id}/"
 
 
@@ -558,7 +579,7 @@ class CompanionUploadView(LoginRequiredMixin, View):
                     "bundle_id": existing.bundle_id,
                     "receipt_id": existing.pk,
                     "status": existing.bundle.status if existing.bundle else "unknown",
-                    "next_step_url": _next_step_url(existing.bundle_id),
+                    "next_step_url": _next_step_url(existing.bundle_id, request),
                 },
                 status=200,
             )
@@ -681,7 +702,7 @@ class CompanionUploadView(LoginRequiredMixin, View):
                         "bundle_id": existing.bundle_id,
                         "receipt_id": existing.pk,
                         "status": existing.bundle.status if existing.bundle else "unknown",
-                        "next_step_url": _next_step_url(existing.bundle_id),
+                        "next_step_url": _next_step_url(existing.bundle_id, request),
                     },
                     status=200,
                 )
@@ -726,7 +747,7 @@ class CompanionUploadView(LoginRequiredMixin, View):
                 "bundle_id": bundle.pk,
                 "receipt_id": receipt.pk,
                 "status": bundle.status,
-                "next_step_url": _next_step_url(bundle.pk),
+                "next_step_url": _next_step_url(bundle.pk, request),
             },
             status=201,
         )
@@ -914,7 +935,7 @@ class CompanionDecryptHookView(LoginRequiredMixin, View):
                 "artifacts_registered": ingest_summary.get("artifacts_registered", 0),
                 "status": bundle.status,
                 "decrypted_at": receipt.ciphertext_blob.decrypted_at.isoformat(),
-                "next_step_url": _next_step_url(bundle.pk),
+                "next_step_url": _next_step_url(bundle.pk, request),
             },
             status=200,
         )

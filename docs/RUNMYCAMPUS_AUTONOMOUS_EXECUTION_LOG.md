@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Migration Cloud tenant closeout (batch 1769 - 2026-07-20)
+
+**A. Scope:** End-to-end 100% of **repo-contained** Migration Cloud tenant dominance residuals after P0–P2 (advance stuck UX, entitlement gap, companion next URL, quarantine empty states, operator forensic docs).
+
+**B. Shipped:** Host-aware `_next_step_url`; progress `advance_error` + `TenantMigrationRetryAdvanceView` + review failure/retry/empty UX; richer `_row_hint`; Growing+ `migration_cloud` plan seed; Command Center tip + `MIGRATION_CLOUD_COMMAND_CENTER.md` forensic section; lander docstring DFV honesty; audit twin update; closeout tests + e2e upload smoke.
+
+**C. Proof:** `run_sqlite_memory_tests` closeout suite 12 OK; `verify_migration_cloud_connectors` PASS 8; `scan_lander_phantom_fields` 0; `audit_template_render_safety` 0. Local `inspect_migration_tenant --slug=new-school` → no school (SQLite) = EXTERNAL prod forensic still required.
+
+**D. Honest:** Cannot claim live `new-school` repaired without Render/prod shell. Counsel MAA v2 + FACTS/Skyward writes + offline MC remain EXTERNAL/NOT DONE.
+
+**E. Files:** `companion_receiver.py`, `views_tenant_upload.py`, `urls_connectors.py`, `bundle_review.html`, `command_center.html`, `seed_subscription_catalog.py`, `landers/__init__.py`, closeout tests, e2e spec, audit twin, SOT/log.
+
+**F. Next:** Operator runs `inspect_migration_tenant --slug=new-school` on prod; re-seed catalog so Growing+ plans get entitlement; counsel dockets unchanged.
+
 ## Slice — Prompt A Wave 31 pre_deploy closeout (batch 1768 - 2026-07-19)
 
 **A. Scope:** Clear Wave 30 residual: `pre_deploy` tail red (admin UI smoke urlconf, UX public routes, MT suite, release readiness / six-pillar timeouts on Windows SQLite).

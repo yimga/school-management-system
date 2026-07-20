@@ -42,6 +42,11 @@ urlpatterns = [
         name="bundle-progress",
     ),
     path(
+        "bundle/<int:bundle_id>/retry/",
+        views_tenant_upload.TenantMigrationRetryAdvanceView.as_view(),
+        name="bundle-retry",
+    ),
+    path(
         "bundle/<int:bundle_id>/apply/",
         views_tenant_upload.TenantMigrationApplyView.as_view(),
         name="bundle-apply",

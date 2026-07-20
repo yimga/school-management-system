@@ -222,8 +222,8 @@ class ReviewHintTests(TestCase):
         )
         self.assertEqual(_row_hint(good_pdf), "")
 
-        # A zero-row CSV isn't a format-extraction problem — no format hint.
+        # Zero-row CSV/TSV/JSON get an actionable empty-file hint.
         empty_csv = types.SimpleNamespace(
             quarantined=False, row_count=0, detected_format="csv"
         )
-        self.assertEqual(_row_hint(empty_csv), "")
+        self.assertIn("data rows", _row_hint(empty_csv))

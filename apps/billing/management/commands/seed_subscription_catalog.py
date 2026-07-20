@@ -50,7 +50,18 @@ PLAN_CATALOG = (
         "base_price": "99.00",
         "max_students": 900,
         "max_staff": 90,
-        "features": ["attendance", "student_records", "parent_portal", "finance", "communication", "admissions", "analytics_basic"],
+        # migration_cloud: portal wizard + API entitlement (tenant Day-1 rail
+        # at /school/setup/migration-cloud/ stays ungated for onboarding).
+        "features": [
+            "attendance",
+            "student_records",
+            "parent_portal",
+            "finance",
+            "communication",
+            "admissions",
+            "analytics_basic",
+            "migration_cloud",
+        ],
     },
     {
         "slug": "professional-school",
@@ -58,7 +69,18 @@ PLAN_CATALOG = (
         "base_price": "249.00",
         "max_students": 2500,
         "max_staff": 250,
-        "features": ["attendance", "student_records", "parent_portal", "finance", "communication", "admissions", "analytics", "lms", "api_basic"],
+        "features": [
+            "attendance",
+            "student_records",
+            "parent_portal",
+            "finance",
+            "communication",
+            "admissions",
+            "analytics",
+            "lms",
+            "api_basic",
+            "migration_cloud",
+        ],
     },
     {
         "slug": "multi-campus",
@@ -66,7 +88,16 @@ PLAN_CATALOG = (
         "base_price": "599.00",
         "max_students": 7500,
         "max_staff": 750,
-        "features": ["multi_campus", "finance", "analytics", "lms", "api_basic", "workflow_packs", "brand_controls"],
+        "features": [
+            "multi_campus",
+            "finance",
+            "analytics",
+            "lms",
+            "api_basic",
+            "workflow_packs",
+            "brand_controls",
+            "migration_cloud",
+        ],
     },
     {
         "slug": "enterprise-network",
@@ -88,7 +119,15 @@ PLAN_CATALOG = (
         ],
         "max_students": None,
         "max_staff": None,
-        "features": ["district_reporting", "emis", "policy_bundles", "sso", "api_advanced", "data_residency"],
+        "features": [
+            "district_reporting",
+            "emis",
+            "policy_bundles",
+            "sso",
+            "api_advanced",
+            "data_residency",
+            "migration_cloud",
+        ],
     },
     {
         "slug": "ngo-low-resource",
@@ -112,7 +151,13 @@ PLAN_CATALOG = (
         "base_price": "999.00",
         "max_students": None,
         "max_staff": None,
-        "features": ["custom_branding", "custom_domain", "marketplace_private", "priority_support"],
+        "features": [
+            "custom_branding",
+            "custom_domain",
+            "marketplace_private",
+            "priority_support",
+            "migration_cloud",
+        ],
     },
     {
         "slug": "sovereign-self-hosted",
@@ -126,7 +171,14 @@ PLAN_CATALOG = (
         ],
         "max_students": None,
         "max_staff": None,
-        "features": ["self_hosted", "data_residency", "offline_sync", "api_advanced", "support_sla"],
+        "features": [
+            "self_hosted",
+            "data_residency",
+            "offline_sync",
+            "api_advanced",
+            "support_sla",
+            "migration_cloud",
+        ],
     },
 )
 

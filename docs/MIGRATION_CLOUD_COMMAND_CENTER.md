@@ -107,6 +107,31 @@ v3.40.0 wave. The Command Center is built to survive their renames:
 | Companion (no MAA)     | Block further uploads for that tenant until MAA is signed.                           |
 | Counsel (warn)         | Ping legal for v2.0 PDF signoff; not an outage but blocking the promotion.           |
 
+## Tenant “uploaded but school empty” forensic
+
+When a school reports files uploaded on the tenant rail
+(`/school/setup/migration-cloud/`) but no students/staff appear, run this
+**on the production shell** (not from a workstation without prod Postgres):
+
+```bash
+python manage.py inspect_migration_tenant --slug=<tenant-slug>
+```
+
+Classify with the Phase 0 tree in
+`docs/generated/migration_cloud_tenant_dominance_audit.md` §0.2.3:
+
+1. Companion decrypt without artifacts → companion plaintext ingest path
+2. Advance stuck / `size_summary.error` → Retry detection on review, or Celery
+3. `MAPPED` with no live apply → tenant never confirmed **Import into my school**
+4. `APPLIED` + empty/wrong `schema_name` → repair schema binding then re-apply
+
+**Entitlement note:** the tenant Day-1 connector rail is **not** gated on the
+`migration_cloud` plan capability (onboarding must work). The portal wizard at
+`/portal/configure/migration/` **is** gated (402 without entitlement). Catalog
+seed includes `migration_cloud` on Growing School and above (plus district /
+white-label / sovereign). Re-run `seed_subscription_catalog` after deploy so
+existing Plan rows pick up the feature list.
+
 ## Things this dashboard intentionally does **not** show
 
 * Raw tenant slugs (only IDs / hashed prefixes via sub-dashboards).

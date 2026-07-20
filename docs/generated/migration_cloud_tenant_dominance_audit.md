@@ -333,3 +333,23 @@ Industry-leader order — implement only after this audit is accepted:
 - Offline MC upload capability
 
 **Combined proof (2026-07-20):** 32 focused Django tests OK (P0–P1 suites) + P2 honesty tests; `scan_lander_phantom_fields` 0; `verify_migration_cloud_connectors` PASS.
+
+---
+
+## Closeout wave (same day — repo 100%)
+
+Closes remaining **repo-contained** Shopify/AWS failure modes after P0–P2:
+
+| Item | Status | Proof |
+|------|--------|-------|
+| Companion `next_step_url` host-aware (portal/super/connector) | DONE | `test_tenant_closeout_ux_2026_07_20.NextStepUrlTests` |
+| Advance failure → `advance_error` in progress JSON + review banner | DONE | `_progress_payload` + `bundle_review.html` |
+| Tenant **Retry detection** POST (`bundle-retry`) | DONE | `TenantMigrationRetryAdvanceView` + tests |
+| Quarantine reason + empty CSV/ZIP row hints | DONE | `_row_hint` + template |
+| Entitlement: `migration_cloud` on Growing+ plans (portal 402 gap) | DONE | `seed_subscription_catalog` + CatalogEntitlementCloseout |
+| Operator runbook: `inspect_migration_tenant` in Command Center tip + docs | DONE | `MIGRATION_CLOUD_COMMAND_CENTER.md` + template tip |
+| Playwright e2e upload-rail smoke (gated `MIGRATION_CLOUD_E2E`) | DONE | `tests/e2e/migration-cloud.spec.js` |
+| Prod `new-school` DB forensic | **EXTERNAL** | Still needs Render shell |
+| Offline MC / counsel MAA+FACTS | **EXTERNAL / NOT DONE** | Honest — not repo-closeable |
+
+**Tenant rail entitlement policy (locked):** Day-1 `/school/setup/migration-cloud/` remains **ungated** by plan capability (onboarding). Portal `/portal/configure/migration/` stays gated. Growing School and above seed `migration_cloud` so portal is not a surprise 402 for typical paid tenants after `seed_subscription_catalog`.

@@ -69,11 +69,6 @@ any locale can't break the inline script's string literals.
     if (bar) { bar.classList.remove('progress-bar-striped', 'progress-bar-animated'); }
   }
   function schedule() {
-    if (tries > 120) {  // ~5 min ceiling then stop polling; user can refresh
-      stopBar();
-      if (note) { note.textContent = el.getAttribute('data-msg-timeout'); }
-      return;
-    }
     window.setTimeout(tick, 2500);
   }
   function tick() {
@@ -85,7 +80,19 @@ any locale can't break the inline script's string literals.
         paint(data.status);
         if (data.failed) {
           stopBar();
-          if (note) { note.textContent = el.getAttribute('data-msg-failed'); }
+          var err = (data.advance_error || '').toString().trim();
+          if (note) {
+            note.textContent = err
+              ? (el.getAttribute('data-msg-failed') + ' ' + err)
+              : el.getAttribute('data-msg-failed');
+          }
+          window.setTimeout(function () { window.location.reload(); }, 1200);
+          return;
+        }
+        if (tries > 120) {
+          stopBar();
+          if (note) { note.textContent = el.getAttribute('data-msg-timeout'); }
+          window.setTimeout(function () { window.location.reload(); }, 800);
           return;
         }
         if (data.done) {
@@ -101,6 +108,22 @@ any locale can't break the inline script's string literals.
   window.setTimeout(tick, 1500);
 })();
 </script>
+{% endif %}
+
+{% if detection_failed or advance_error %}
+<section class="rmc-card mb-4" aria-labelledby="mc-detect-fail-heading">
+  <h2 id="mc-detect-fail-heading" class="h5">{% trans "Detection needs another try" %}</h2>
+  {% if advance_error %}
+  <p class="text-muted small">{{ advance_error }}</p>
+  {% else %}
+  <p class="text-muted small">{% trans "We could not finish reading this upload. Retry detection, or upload a CSV/Excel export." %}</p>
+  {% endif %}
+  <form method="post" action="{{ retry_url }}" class="d-flex gap-2 flex-wrap">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning" data-mc-retry-advance="1">{% trans "Retry detection" %}</button>
+    <a class="btn btn-outline-secondary" href="{{ upload_url }}">{% trans "Upload different files" %}</a>
+  </form>
+</section>
 {% endif %}
 
 {% if apply_result %}
@@ -201,6 +224,7 @@ any locale can't break the inline script's string literals.
             <td>
               {{ row.filename }}
               {% if row.quarantined %}<span class="rmc-badge">{% trans "needs review" %}</span>{% endif %}
+              {% if row.quarantine_reason %}<div class="small text-muted mt-1">{{ row.quarantine_reason }}</div>{% endif %}
             </td>
             <td>{{ row.format }}</td>
             <td class="text-end">{{ row.rows|default:"—" }}</td>
@@ -242,7 +266,25 @@ any locale can't break the inline script's string literals.
     <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Save corrections & re-detect" %}</button>
   </form>
   {% else %}
-  <p class="text-muted mb-0">{% trans "No files detected yet. If you just uploaded, give it a moment and refresh." %}</p>
+  <div class="rmc-empty mb-0" role="status">
+    <p class="mb-2">{% trans "No files detected yet." %}</p>
+    <p class="text-muted small mb-3">
+      {% if detecting %}
+        {% trans "Detection is still running — wait a moment, or retry if this stays empty." %}
+      {% else %}
+        {% trans "Upload a CSV, Excel, JSON, PDF, or ZIP export to continue." %}
+      {% endif %}
+    </p>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-primary btn-sm" href="{{ upload_url }}">{% trans "Upload files" %}</a>
+      {% if retry_url %}
+      <form method="post" action="{{ retry_url }}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Retry detection" %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
   {% endif %}
 </section>
 

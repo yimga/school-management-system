@@ -142,14 +142,17 @@ def _idempotency_key(school_id, user_pk, digests) -> str:
 
 
 def _row_hint(artifact) -> str:
-    """Plain-language explanation when a file profiled to zero rows.
-
-    A silent "0 rows" reads as "nothing to import" with no reason. For the two
-    formats most likely to arrive empty — a scanned PDF (no text layer) or an
-    Excel sheet whose first tab is blank — tell the operator exactly what to do
-    instead of leaving them staring at a dead-end.
-    """
-    if artifact.quarantined or (artifact.row_count or 0) > 0:
+    """Plain-language explanation when a file profiled to zero rows or is quarantined."""
+    if artifact.quarantined:
+        reason = (artifact.quarantine_reason or "").strip()
+        if reason:
+            return reason
+        return (
+            "This file was held for review and will not import until the issue "
+            "is fixed. Re-export a clean CSV/Excel from your old system, or "
+            "correct the record type below and re-detect."
+        )
+    if (artifact.row_count or 0) > 0:
         return ""
     fmt = artifact.detected_format
     if fmt == "pdf":
@@ -165,8 +168,20 @@ def _row_hint(artifact) -> str:
             "sheet has a header row followed by data, or save it as CSV and "
             "upload again."
         )
-    return ""
-
+    if fmt in ("csv", "tsv", "json"):
+        return (
+            "No data rows were found. Confirm the file has a header row and at "
+            "least one data row, then upload again."
+        )
+    if fmt in ("zip", "archive"):
+        return (
+            "No importable members were found in this archive. Include CSV, "
+            "Excel, JSON, or PDF exports inside the ZIP and try again."
+        )
+    return (
+        "No rows were detected in this file. Re-export as CSV or Excel from "
+        "your old system and upload again."
+    )
 
 def _advance(bundle_id) -> None:
     """Run profile → classify → map after intake. Celery if up, inline otherwise
@@ -254,8 +269,9 @@ def _progress_payload(bundle) -> dict:
         "status": bundle.status,
         "status_label": bundle.get_status_display(),
         "detecting": detecting,
-        "done": not detecting,
+        "done": not detecting and bundle.status not in _FAILED_STATUSES,
         "failed": bundle.status in _FAILED_STATUSES,
+        "advance_error": (bundle.size_summary or {}).get("error") or "",
         "snapshot": snapshot,
         "detected": detected,
     }
@@ -472,6 +488,9 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "verification": _build_verification(bundle),
             "repair": _build_repair(bundle),
             "repair_url": _connector_reverse(request, "bundle-repair", bundle_id=bundle.pk),
+            "retry_url": _connector_reverse(request, "bundle-retry", bundle_id=bundle.pk),
+            "advance_error": (bundle.size_summary or {}).get("error") or "",
+            "detection_failed": bundle.status in _FAILED_STATUSES,
             "detecting": _is_detecting(bundle),
             "progress_url": _connector_reverse(request, "bundle-progress", bundle_id=bundle.pk),
             "upload_url": _connector_reverse(request, "upload"),
@@ -634,6 +653,39 @@ class TenantMigrationApplyView(_TenantAdminWriteRequiredMixin, View):
             )
         context = TenantMigrationReviewView().build_context(request, bundle, apply_result=summary)
         return render(request, self.template_name, context)
+
+
+class TenantMigrationRetryAdvanceView(_TenantAdminWriteRequiredMixin, View):
+    """POST → re-run detection (advance) for a stuck or failed upload.
+
+    Rewinds FAILED/ABORTED bundles to INGESTING so ``advance_bundle`` can
+    profile/classify/map again. Tenant-admin gated; tenant-scoped.
+    """
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int):
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        if bundle.status in _FAILED_STATUSES:
+            summary = dict(bundle.size_summary or {})
+            summary.pop("error", None)
+            bundle.size_summary = summary
+            bundle.status = BundleStatus.INGESTING
+            bundle.save(update_fields=["status", "size_summary", "updated_at"])
+        elif bundle.status in (
+            BundleStatus.MAPPED,
+            BundleStatus.READY,
+            BundleStatus.CLASSIFIED,
+        ):
+            # Allow remount when detection looked done but tenant wants a re-run.
+            bundle.status = BundleStatus.PROFILED
+            bundle.save(update_fields=["status", "updated_at"])
+        _advance(bundle.pk)
+        messages.info(
+            request,
+            "Re-running detection. This page will update when files are ready to review.",
+        )
+        return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
 
 
 class TenantMigrationRepairView(_TenantAdminWriteRequiredMixin, View):
