@@ -22,9 +22,9 @@
 
 | Slice | Implementation | Proof | SHA |
 |-------|----------------|-------|-----|
-| **#13 hold TTL** | `expire_stale_reservations` + `expire_stale_event_reservations` command | school_events expire + PSP confirm tests **OK** | *(this wave)* |
-| **#13 PSP bridge** | webhook → `confirm_registration_from_psp` via `event_registration_id` metadata | unit **OK**; soak still ledger-first | *(this wave)* |
-| **#7 / #26** | canonical STK invoice/amount fallback; M-Pesa 4th rail in multi-PSP soak | soak **4 rails OK**; normalizer **OK** | *(this wave)* |
+| **#13 hold TTL** | `expire_stale_reservations` + `expire_stale_event_reservations` command | school_events expire + PSP confirm tests **OK** | `53b3372a1` |
+| **#13 PSP bridge** | webhook → `confirm_registration_from_psp` via `event_registration_id` metadata | unit **OK**; soak still ledger-first | `53b3372a1` |
+| **#7 / #26** | canonical STK invoice/amount fallback; M-Pesa 4th rail in multi-PSP soak | soak **4 rails OK**; normalizer **OK** | `53b3372a1` |
 
 ### Prompt B delta scorecard (Wave 35)
 
