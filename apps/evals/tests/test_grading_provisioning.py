@@ -23,12 +23,34 @@ class ScaleConfigTests(SimpleTestCase):
             self.assertIn(scale, _VALID_SCALE_TYPES, preset)
 
     def test_key_presets_map_as_expected(self):
+        """Francophone schools now get their OWN scale type, not the generic 0–20.
+
+        ``francophone_bac`` used to map to ``numeric_0_20``; the platform since
+        grew a dedicated ``french_0_20`` (plus us_letter / uk_gcse_9_1 / waec_letter
+        and the rest), so each country's report card can carry its real band
+        labels instead of a borrowed A–E. What must NOT drift is the axis: a
+        Cameroon or France school is still marked out of 20, and
+        ``test_francophone_preset_is_still_a_20_point_axis`` pins that.
+        """
         from apps.evals.grading_provisioning import _PRESET_TO_SCALE_TYPE
 
-        self.assertEqual(_PRESET_TO_SCALE_TYPE["francophone_bac"], "numeric_0_20")
-        self.assertEqual(_PRESET_TO_SCALE_TYPE["american"], "gpa_4_0")
-        self.assertEqual(_PRESET_TO_SCALE_TYPE["british_igcse"], "letter_a_e")
-        self.assertEqual(_PRESET_TO_SCALE_TYPE["west_african_waec"], "percentage")
+        self.assertEqual(_PRESET_TO_SCALE_TYPE["francophone_bac"], "french_0_20")
+        self.assertEqual(_PRESET_TO_SCALE_TYPE["american"], "us_letter")
+        self.assertEqual(_PRESET_TO_SCALE_TYPE["british_igcse"], "uk_gcse_9_1")
+        self.assertEqual(_PRESET_TO_SCALE_TYPE["west_african_waec"], "waec_letter")
+
+    def test_francophone_preset_is_still_a_20_point_axis(self):
+        """The invariant behind the rename: Cameroon/France are marked out of 20.
+
+        A Buea school accepting a mark of 25 was a real defect; the axis is the
+        thing that matters, not the name of the scale.
+        """
+        from apps.evals.grading import ASSESSMENT_WEIGHTS_SCALE_MAP
+        from apps.evals.grading_provisioning import _PRESET_TO_SCALE_TYPE, _scale_config
+
+        scale_type = _PRESET_TO_SCALE_TYPE["francophone_bac"]
+        self.assertEqual(ASSESSMENT_WEIGHTS_SCALE_MAP[scale_type], "0-20")
+        self.assertEqual(_scale_config(scale_type)["score_scale"], 20)
 
     def test_scale_config_percentage(self):
         from apps.evals.grading_provisioning import _scale_config
@@ -107,8 +129,9 @@ class ResolveLocalScaleTypeTests(SimpleTestCase):
 
         # Blank settings -> country wins. Because step 2 returns here, a
         # platform-wide default (step 3) can never override the country.
-        self.assertEqual(resolve_local_scale_type(self._school({})), "numeric_0_20")
-        self.assertEqual(resolve_local_scale_type(self._school(None)), "numeric_0_20")
+        # FR derives the dedicated French scale (still a 0–20 axis).
+        self.assertEqual(resolve_local_scale_type(self._school({})), "french_0_20")
+        self.assertEqual(resolve_local_scale_type(self._school(None)), "french_0_20")
 
     def test_school_explicit_ignores_non_dict_settings(self):
         from apps.evals.grading_provisioning import _school_explicit_scale_type
@@ -132,7 +155,7 @@ class ResolveLocalScaleTypeTests(SimpleTestCase):
             self.assertEqual(gp.resolve_local_scale_type(self._school({}, country_code="")), "percentage")
             # A known country still beats the platform hint.
             gp._scale_type_from_cascade = lambda school: "gpa_4_0"
-            self.assertEqual(gp.resolve_local_scale_type(self._school({}, country_code="FR")), "numeric_0_20")
+            self.assertEqual(gp.resolve_local_scale_type(self._school({}, country_code="FR")), "french_0_20")
         finally:
             gp._scale_type_from_cascade = original
 
@@ -173,14 +196,14 @@ class GradingProvisioningDBTests(TestCase):
         from apps.evals.grading_provisioning import ensure_local_grading_scale
         from apps.evals.models import AssessmentWeights, GradingScale
 
-        school = self._school(country_code="FR")  # francophone_bac → numeric_0_20
+        school = self._school(country_code="FR")  # francophone_bac → french_0_20
         ay = AcademicYear.objects.create(
             school=school, name="2025/2026", start_date="2025-09-01", end_date="2026-07-31"
         )
         res = ensure_local_grading_scale(school, academic_year=ay)
         self.assertTrue(res["ok"])
         scale = GradingScale.objects.get(school=school, is_default=True)
-        self.assertEqual(scale.scale_type, "numeric_0_20")
+        self.assertEqual(scale.scale_type, "french_0_20")
         self.assertTrue(
             AssessmentWeights.objects.filter(
                 school=school, academic_year=ay, term=None, classroom=None

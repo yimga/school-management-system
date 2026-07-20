@@ -37,11 +37,37 @@ class ScaleForAssessmentWeightsTests(TestCase):
         w = MagicMock(grading_scale="unknown")
         self.assertEqual(scale_for_assessment_weights(w), "0-20")
 
-    def test_map_keys_complete(self):
+    def test_every_scale_type_has_a_display_mapping(self):
+        """The operational↔display contract: EVERY scale must map.
+
+        This used to assert a frozen five-name set, which broke the moment the
+        platform grew the ten international scales (french_0_20, ib_1_7,
+        uk_gcse_9_1, ...) — a legitimate addition failing a test that was really
+        just a snapshot. The invariant worth holding is the one stated in
+        ``grading.py``: a ScaleType with no entry here silently falls back to
+        0–20, so a French or IB school would be scored on the wrong axis.
+        """
+        from apps.evals.models import GradingScale
+
+        declared = {choice.value for choice in GradingScale.ScaleType}
+        missing = declared - set(ASSESSMENT_WEIGHTS_SCALE_MAP)
         self.assertEqual(
-            set(ASSESSMENT_WEIGHTS_SCALE_MAP.keys()),
-            {"numeric_0_20", "letter_a_e", "gpa_4_0", "percentage", "numeric_1_5"},
+            missing,
+            set(),
+            f"ScaleType(s) with no display mapping — they would silently score "
+            f"on the 0–20 fallback: {sorted(missing)}",
         )
+
+    def test_core_scales_keep_their_historical_display_axis(self):
+        """These four are load-bearing; changing one re-scores existing schools."""
+        for scale_type, expected in (
+            ("numeric_0_20", "0-20"),
+            ("letter_a_e", "0-20"),
+            ("gpa_4_0", "gpa"),
+            ("percentage", "0-100"),
+        ):
+            with self.subTest(scale_type=scale_type):
+                self.assertEqual(ASSESSMENT_WEIGHTS_SCALE_MAP[scale_type], expected)
 
     def test_numeric_1_5_maps_to_1_5(self):
         w = MagicMock(grading_scale="numeric_1_5")

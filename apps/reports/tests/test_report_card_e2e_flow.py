@@ -162,9 +162,29 @@ class ReportCardPublishParentE2ETests(TestCase):
             requested_by=teacher_user,
         )
 
+    def _mark_mfa_verified(self, user):
+        """Satisfy ``RequireMFAMiddleware`` for a staff/ADMIN session.
+
+        MFA enforcement covers the ADMIN role, so a bare ``force_login`` staff
+        client is redirected to ``/authentication/mfa/setup/`` before it ever
+        reaches the view — the publish silently never happened and this test
+        failed on the resulting empty ``TermPublishStatus``. That redirect is
+        correct product behaviour; the test has to authenticate through it,
+        exactly as ``accounts.tests.test_backend_dashboard_shell_render`` does.
+        """
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.update_or_create(
+            user=user, name="report-e2e-test", defaults={"confirmed": True}
+        )
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+
     @mock.patch("apps.reports.views.render_pdf_bytes", return_value=_MOCK_PDF)
     def test_staff_publish_then_parent_downloads_pdf(self, _mock_pdf):
         self.client.force_login(self.staff)
+        self._mark_mfa_verified(self.staff)
         publish_resp = self.client.post(
             reverse("reports:publish_term_results"),
             data={
@@ -218,6 +238,7 @@ class ReportCardPublishParentE2ETests(TestCase):
         from apps.reports.services import term_report_context
 
         self.client.force_login(self.staff)
+        self._mark_mfa_verified(self.staff)
         publish_resp = self.client.post(
             reverse("reports:publish_term_results"),
             data={
