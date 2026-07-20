@@ -110,6 +110,59 @@ def normalize_provider_payload(
         status = str(payload.get("status") or "").lower()
         amount = _decimal_amount(payload.get("amount") or 0)
         currency = str(payload.get("currency") or "USD").upper()[:3]
+    elif provider_slug in {"mpesa_daraja", "mpesa", "mpesa-daraja", "safaricom"}:
+        # Safaricom Daraja STK callback: Body.stkCallback.{CheckoutRequestID,ResultCode,CallbackMetadata}
+        body = payload.get("Body") if isinstance(payload.get("Body"), dict) else payload
+        callback = (
+            body.get("stkCallback")
+            if isinstance(body, dict) and isinstance(body.get("stkCallback"), dict)
+            else (body if isinstance(body, dict) else {})
+        )
+        event_id = str(
+            callback.get("CheckoutRequestID")
+            or callback.get("MerchantRequestID")
+            or payload.get("CheckoutRequestID")
+            or ""
+        ).strip()
+        result_code = str(
+            callback.get("ResultCode")
+            if callback.get("ResultCode") is not None
+            else payload.get("ResultCode")
+            or ""
+        ).strip()
+        status = "success" if result_code in {"0", "00"} else "failed"
+        amount = Decimal("0")
+        currency = "KES"
+        meta_items = callback.get("CallbackMetadata", {})
+        items = (
+            meta_items.get("Item")
+            if isinstance(meta_items, dict)
+            else None
+        )
+        if isinstance(items, list):
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                name = str(item.get("Name") or "").strip().lower()
+                if name == "amount":
+                    amount = _decimal_amount(item.get("Value"))
+                elif name in {"billrefnumber", "accountreference"} and not meta.get(
+                    "invoice_id"
+                ):
+                    raw_ref = item.get("Value")
+                    try:
+                        meta = {**meta, "invoice_id": int(raw_ref)}
+                    except (TypeError, ValueError):
+                        meta = {**meta, "account_reference": str(raw_ref or "")}
+        if not meta.get("invoice_id"):
+            acct = str(
+                callback.get("AccountReference")
+                or payload.get("AccountReference")
+                or meta.get("account_reference")
+                or ""
+            ).strip()
+            if acct.isdigit():
+                meta = {**meta, "invoice_id": int(acct)}
     else:
         event_id = str(payload.get("reference") or payload.get("id") or "").strip()
         status = str(payload.get("status") or "").strip().lower()

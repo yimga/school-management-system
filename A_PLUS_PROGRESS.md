@@ -1,14 +1,75 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-07-19 (Cursor **A↔B Wave 33** @ HEAD)  
-**Loop:** Prompt B found offline red → Prompt A fixed → continue A polish → Prompt B NO-GO (EXTERNAL)  
+**Last refreshed:** 2026-07-20 (Cursor **A↔B Wave 34** @ HEAD)  
+**Loop:** Prompt A near-miss burn (#13/#7/#4/#5) → Prompt B re-score still **NO-GO** (EXTERNAL)  
 **Tree:** HEAD = `origin/main`
 
 ### Active claims (do not collide)
 
 | Agent | Owns | Files | Status |
 |-------|------|-------|--------|
-| **Cursor (this session)** | A↔B Wave 33 loop | offline fee rail, #15 auto-link, M-Pesa, scoreboard | **DONE** (NO-GO EXTERNAL) |
+| **Cursor (this session)** | A↔B Wave 34 loop | athletics settle, M-Pesa STK normalize, ur RTL, EAV is_indexed | **DONE** (NO-GO EXTERNAL) |
+
+---
+
+## Wave 34 — 2026-07-20 (Prompt A · repo near-miss burn)
+
+### Prompt A fixes shipped
+
+| Slice | Implementation | Proof | SHA |
+|-------|----------------|-------|-----|
+| **#13 Athletics / events** | `confirm_registration_payment` + `release_reservation`; admin cash settle / release actions | school_events **7 OK** | *(this wave)* |
+| **#7 Payments** | Daraja STK path in webhook normalizer; mpesa slug aliases | normalizer **6 OK** (incl. STK success/fail) | *(this wave)* |
+| **#4 Report cards** | `ur` in `RTL_CERTIFICATE_LOCALES` + fixture + Playwright | CertificateRtl **OK**; e2e **4/4 PASS** | *(this wave)* |
+| **#5 EAV** | `build_student_search_index` honors `FieldCatalogEntry.is_indexed` | student search is_indexed test **OK** | *(this wave)* |
+
+### Prompt B delta scorecard (Wave 34)
+
+| # | Score | A+? | Note |
+|---|------:|-----|------|
+| 1 | **98** | YES | maintain |
+| 2 | 88 | NO | Lighthouse score artifact EXTERNAL |
+| 3 | 98 | YES | maintain |
+| 4 | **96** | NO | ur RTL in suite; moat Playwright EXTERNAL |
+| 5 | **98** | YES | is_indexed honored in search index |
+| 6 | 90 | NO | live charges EXTERNAL |
+| 7 | **97** | NO | STK normalize wired; live merchant EXTERNAL |
+| 8 | **98** | YES | maintain |
+| 9 | 96 | NO | prod ReBAC EXTERNAL |
+| 10 | 94 | NO | Actions runner unavailable EXTERNAL |
+| 11 | 98 | YES | maintain |
+| 12 | 98 | YES | maintain |
+| 13 | **97** | NO | cash settle + capacity release; live paid-ticket PSP EXTERNAL |
+| 14 | 98 | YES | maintain |
+| 15 | **98** | YES | maintain |
+| 16 | 90 | NO | Actions runner unavailable EXTERNAL |
+| 17 | 93 | NO | Lighthouse EXTERNAL |
+| 18–21 | 98 | YES | #21 ur fixture in RTL suite |
+| 22 | 95 | NO | S3/side-DB EXTERNAL |
+| 23–24 | 98+ | YES | maintain |
+| 25 | 90 | NO | PG CRDT EXTERNAL |
+| 26 | **91** | NO | M-Pesa STK normalize + gateway; live ≥3 EXTERNAL |
+| 27 | 90 | NO | physical replicas EXTERNAL |
+| 28 | 90 | NO | independent volume EXTERNAL |
+
+| S# | Repo | Note |
+|----|-----:|------|
+| S4 | 91 | tied to #26 |
+| S5 | 90 | tied to #25 |
+| S6 | 90 | pledge published |
+| S8 | 55 | pilot unsigned EXTERNAL |
+
+**OVERALL:** avg ≈ **95.5** · min **88** (#2) · **17/28 ≥98**  
+**DECISION: NO-GO** — EXTERNAL unchanged: Actions runners, live PSP secrets, PG CRDT, DR volume, Lighthouse ≥98 artifact, signed pilots, physical residency
+
+### Ordered gap list → next A/B
+1. **Restore GitHub Actions runners** (EXTERNAL account/billing) then green postgres
+2. **Live PSP sandbox secrets** (≥3 rails) EXTERNAL
+3. **PG CRDT** EXTERNAL
+4. **DR independent volume / S3** EXTERNAL
+5. **Lighthouse ≥98 artifact** EXTERNAL
+6. **Signed pilot cohort** EXTERNAL market
+7. Repo polish only if residual near-miss remains (#4 moat, #9 prod flip, #13 live ticket rail)
 
 ---
 

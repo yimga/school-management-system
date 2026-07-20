@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 
 from config.admin import tenant_admin_site
 from apps.school_events.models import (
@@ -8,6 +8,11 @@ from apps.school_events.models import (
     EventTicketTier,
     EventVenue,
     SchoolEvent,
+)
+from apps.school_events.services import (
+    RegistrationStateError,
+    confirm_registration_payment,
+    release_reservation,
 )
 
 
@@ -65,3 +70,34 @@ class EventRegistrationAdmin(admin.ModelAdmin):
     )
     list_filter = ("status",)
     search_fields = ("event__title", "attendee_name", "attendee_email")
+    actions = ("confirm_cash_payment", "release_unpaid_hold")
+
+    @admin.action(description="Confirm cash/manual payment (RESERVED → CONFIRMED)")
+    def confirm_cash_payment(self, request, queryset):
+        ok = skip = 0
+        for registration in queryset:
+            try:
+                confirm_registration_payment(registration=registration, method="cash")
+                ok += 1
+            except RegistrationStateError:
+                skip += 1
+        self.message_user(
+            request,
+            f"Confirmed {ok} registration(s); skipped {skip}.",
+            messages.SUCCESS if ok else messages.WARNING,
+        )
+
+    @admin.action(description="Release unpaid RESERVED hold (restore capacity)")
+    def release_unpaid_hold(self, request, queryset):
+        ok = skip = 0
+        for registration in queryset:
+            try:
+                release_reservation(registration=registration)
+                ok += 1
+            except RegistrationStateError:
+                skip += 1
+        self.message_user(
+            request,
+            f"Released {ok} hold(s); skipped {skip}.",
+            messages.SUCCESS if ok else messages.WARNING,
+        )

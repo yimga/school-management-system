@@ -15,7 +15,13 @@ from apps.school_events.models import (
     EventVenue,
     SchoolEvent,
 )
-from apps.school_events.services import upcoming_public_events_for_school
+from apps.school_events.services import (
+    RegistrationStateError,
+    confirm_registration_payment,
+    register_for_tier,
+    release_reservation,
+    upcoming_public_events_for_school,
+)
 from apps.schools.models import School
 
 
@@ -178,7 +184,7 @@ class SchoolEventsTests(TestCase):
         )
 
     def test_registration_exact_capacity_then_sold_out(self):
-        from apps.school_events.services import TicketCapacityError, register_for_tier
+        from apps.school_events.services import TicketCapacityError
 
         self.tier.capacity = 1
         self.tier.sold_quantity = 0
@@ -193,3 +199,43 @@ class SchoolEventsTests(TestCase):
             register_for_tier(
                 event=self.event, tier=self.tier, purchaser=self.user, quantity=1
             )
+
+    def test_confirm_registration_payment_settles_reserved_hold(self):
+        registration = register_for_tier(
+            event=self.event, tier=self.tier, purchaser=self.user, quantity=2
+        )
+        self.assertEqual(registration.status, EventRegistration.Status.RESERVED)
+        settled = confirm_registration_payment(
+            registration=registration, method="cash"
+        )
+        settled.refresh_from_db()
+        self.assertEqual(settled.status, EventRegistration.Status.CONFIRMED)
+        self.assertEqual(settled.amount_paid, Decimal("50.00"))
+        self.assertEqual(settled.metadata.get("payment_method"), "cash")
+        # Idempotent when already confirmed.
+        again = confirm_registration_payment(registration=settled)
+        self.assertEqual(again.pk, settled.pk)
+        self.assertEqual(again.status, EventRegistration.Status.CONFIRMED)
+
+    def test_release_reservation_restores_tier_capacity(self):
+        registration = register_for_tier(
+            event=self.event, tier=self.tier, purchaser=self.user, quantity=3
+        )
+        self.tier.refresh_from_db()
+        self.assertEqual(self.tier.sold_quantity, 3)
+        self.assertEqual(registration.status, EventRegistration.Status.RESERVED)
+
+        released = release_reservation(registration=registration)
+        released.refresh_from_db()
+        self.tier.refresh_from_db()
+        self.assertEqual(released.status, EventRegistration.Status.CANCELED)
+        self.assertEqual(self.tier.sold_quantity, 0)
+        self.assertIn("released_at", released.metadata or {})
+
+        # Cannot release a confirmed booking.
+        paid = register_for_tier(
+            event=self.event, tier=self.tier, purchaser=self.user, quantity=1
+        )
+        confirm_registration_payment(registration=paid)
+        with self.assertRaises(RegistrationStateError):
+            release_reservation(registration=paid)

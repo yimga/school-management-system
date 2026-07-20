@@ -58,3 +58,47 @@ class StudentSearchTests(TestCase):
         self.alice.save()
         self.alice.refresh_from_db()
         self.assertIn("updated", self.alice.search_index)
+
+    def test_build_search_index_honors_field_catalog_is_indexed(self):
+        from apps.metadata.models import EntityCatalogEntry, FieldCatalogEntry
+        from apps.metadata.services import set_dynamic_field_value
+
+        entity, _ = EntityCatalogEntry.objects.get_or_create(
+            code="student",
+            defaults={"name": "Student", "model_label": "people.StudentProfile"},
+        )
+        FieldCatalogEntry.objects.update_or_create(
+            entity=entity,
+            field_name="preferred_nickname",
+            defaults={
+                "label": "Preferred nickname",
+                "data_type": "string",
+                "is_custom": True,
+                "is_indexed": True,
+            },
+        )
+        FieldCatalogEntry.objects.update_or_create(
+            entity=entity,
+            field_name="internal_case_note",
+            defaults={
+                "label": "Internal case note",
+                "data_type": "string",
+                "is_custom": True,
+                "is_indexed": False,
+            },
+        )
+        set_dynamic_field_value(
+            self.alice, "preferred_nickname", "WonderKid", school=self.school
+        )
+        set_dynamic_field_value(
+            self.alice, "internal_case_note", "SECRETNOTE99", school=self.school
+        )
+        # Uncatalogued legacy key remains searchable.
+        set_dynamic_field_value(
+            self.alice, "legacy_freeform", "LegacyToken42", school=self.school
+        )
+
+        idx = build_student_search_index(self.alice)
+        self.assertIn("wonderkid", idx)
+        self.assertIn("legacytoken42", idx)
+        self.assertNotIn("secretnote99", idx)

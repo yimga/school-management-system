@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * Metric 21 — certificate RTL (ar / he / fa).
+ * Metric 21 / #4 — certificate RTL (ar / he / fa / ur).
  * Loads Django-rendered fixtures from disk into Chromium (no Django webServer).
  * Fixtures regenerated via:
  *   python -c "… write_rtl_e2e_fixtures('tests/e2e/fixtures')"
@@ -17,6 +17,7 @@ const LOCALES = [
   { code: "ar", file: "certificate-rtl-ar.html", sample: "شهادة" },
   { code: "he", file: "certificate-rtl-he.html", sample: "תעודת" },
   { code: "fa", file: "certificate-rtl-fa.html", sample: "گواهینامه" },
+  { code: "ur", file: "certificate-rtl-ur.html", sample: "کامیابی کا سرٹیفکیٹ" },
 ];
 
 async function horizontalOverflowPx(page) {

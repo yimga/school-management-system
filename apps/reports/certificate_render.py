@@ -14,7 +14,7 @@ from django.template.loader import render_to_string
 from apps.reports.localization import CertificateLocalizer, get_certificate_localizer
 
 CERTIFICATE_TEMPLATE = "reports/certificate_document.html"
-RTL_CERTIFICATE_LOCALES = ("ar", "he", "fa")
+RTL_CERTIFICATE_LOCALES = ("ar", "he", "fa", "ur")
 
 
 def render_certificate_html(
@@ -41,7 +41,7 @@ def render_certificate_html(
 
 
 def write_rtl_e2e_fixtures(destination_dir) -> list[str]:
-    """Materialize ar/he/fa certificate HTML fixtures for Playwright (serverless)."""
+    """Materialize ar/he/fa/ur certificate HTML fixtures for Playwright (serverless)."""
     from pathlib import Path
 
     dest = Path(destination_dir)

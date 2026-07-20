@@ -63,6 +63,9 @@ PROVIDER_SLUG_ALIASES = {
     "mtnmomo": "mtn_momo",
     "orange": "orange_momo",
     "orange_money": "orange_momo",
+    "mpesa": "mpesa_daraja",
+    "mpesa-daraja": "mpesa_daraja",
+    "safaricom": "mpesa_daraja",
 }
 PROVIDER_SLUG_TO_METHOD = {
     "mtn_momo": PaymentMethodCode.MTN_MOMO,
@@ -70,6 +73,8 @@ PROVIDER_SLUG_TO_METHOD = {
     "orange_momo": PaymentMethodCode.ORANGE_MOMO,
     "orange_money": PaymentMethodCode.ORANGE_MOMO,
     "orange": PaymentMethodCode.ORANGE_MOMO,
+    "mpesa_daraja": PaymentMethodCode.OTHER,
+    "mpesa": PaymentMethodCode.OTHER,
 }
 DEFAULT_SIGNATURE_FORMAT = "{invoice_id}:{amount}"
 DEFAULT_SIGNATURE_HEADER = "X-Signature"

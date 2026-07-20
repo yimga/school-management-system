@@ -71,12 +71,12 @@ management commands.
   (`tier.sold_quantity += quantity; tier.save(...)`) with no `F()` expression and
   no row lock, so concurrent registrations can lose an increment. Both are real
   gaps; if you are adding paid ticketing at scale, close them together.
-- **Registration does not take money.** The view sets `amount_due` from
-  `price × quantity` and hard-codes `amount_paid = Decimal("0.00")`. A free tier
-  (`total_due <= 0`) goes straight to CONFIRMED; a paid one stops at RESERVED and
-  stays there. Nothing in this app moves a RESERVED booking to CONFIRMED and
-  nothing reconciles against `finance` — that leg is not built. Do not describe
-  this app's ticketing as payment-collecting.
+- **Registration does not take card/mobile money in-app.** The service sets
+  `amount_due` from `price × quantity` and starts paid tiers at RESERVED with
+  `amount_paid = 0`. Free tiers go straight to CONFIRMED. Cash/manual settle and
+  unpaid-hold release live in `confirm_registration_payment` /
+  `release_reservation` (tenant admin actions). Live PSP ticket capture remains
+  EXTERNAL; do not describe this app as fully payment-collecting without a rail.
 - **`fundraising_goal` is a stored target, not a tracked total.**
   `event_operations_snapshot` sums `sponsor_commitments__pledged_amount` into
   `sponsorship_total`; nothing compares the two or verifies a pledge was paid.

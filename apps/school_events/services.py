@@ -113,3 +113,66 @@ def register_for_tier(
         sold_quantity=F("sold_quantity") + qty
     )
     return registration
+
+
+class RegistrationStateError(Exception):
+    """Raised when a registration is not in the expected status for an action."""
+
+
+@transaction.atomic
+def confirm_registration_payment(
+    *,
+    registration: EventRegistration,
+    amount=None,
+    method: str = "cash",
+) -> EventRegistration:
+    """Mark a RESERVED registration paid (cash/manual) and move to CONFIRMED.
+
+    Metric #13: closes the unpaid-hold leak without requiring a live PSP.
+    Idempotent when already CONFIRMED.
+    """
+    locked = EventRegistration.objects.select_for_update().get(pk=registration.pk)
+    if locked.status == EventRegistration.Status.CONFIRMED:
+        return locked
+    if locked.status != EventRegistration.Status.RESERVED:
+        raise RegistrationStateError(
+            f"Cannot confirm payment from status {locked.status!r}."
+        )
+    paid = Decimal(str(amount if amount is not None else locked.amount_due or 0))
+    if paid < 0:
+        raise RegistrationStateError("amount must be non-negative")
+    meta = dict(locked.metadata or {})
+    meta["payment_method"] = (method or "cash").strip().lower() or "cash"
+    meta["paid_at"] = timezone.now().isoformat()
+    locked.amount_paid = paid
+    locked.status = EventRegistration.Status.CONFIRMED
+    locked.metadata = meta
+    locked.save(update_fields=["amount_paid", "status", "metadata", "updated_at"])
+    return locked
+
+
+@transaction.atomic
+def release_reservation(*, registration: EventRegistration) -> EventRegistration:
+    """Cancel a RESERVED hold and restore tier capacity.
+
+    Metric #13: unpaid RESERVED rows must not permanently consume sold_quantity.
+    """
+    locked = EventRegistration.objects.select_for_update().get(pk=registration.pk)
+    if locked.status == EventRegistration.Status.CANCELED:
+        return locked
+    if locked.status != EventRegistration.Status.RESERVED:
+        raise RegistrationStateError(
+            f"Only RESERVED holds can be released (got {locked.status!r})."
+        )
+    qty = max(int(locked.quantity or 1), 1)
+    tier_id = locked.ticket_tier_id
+    locked.status = EventRegistration.Status.CANCELED
+    meta = dict(locked.metadata or {})
+    meta["released_at"] = timezone.now().isoformat()
+    locked.metadata = meta
+    locked.save(update_fields=["status", "metadata", "updated_at"])
+    if tier_id:
+        tier = EventTicketTier.objects.select_for_update().get(pk=tier_id)
+        new_sold = max(int(tier.sold_quantity or 0) - qty, 0)
+        EventTicketTier.objects.filter(pk=tier_id).update(sold_quantity=new_sold)
+    return locked

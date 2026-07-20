@@ -84,3 +84,54 @@ class WebhookNormalizerTests(unittest.TestCase):
         self.assertIsNotNone(event)
         assert event is not None
         self.assertEqual(event.currency, "USD")
+
+    def test_mpesa_daraja_stk_success(self):
+        payload = {
+            "Body": {
+                "stkCallback": {
+                    "MerchantRequestID": "29115-34620561-1",
+                    "CheckoutRequestID": "ws_CO_191220191020363925",
+                    "ResultCode": 0,
+                    "ResultDesc": "The service request is processed successfully.",
+                    "CallbackMetadata": {
+                        "Item": [
+                            {"Name": "Amount", "Value": 1.0},
+                            {"Name": "MpesaReceiptNumber", "Value": "NLJ7RT61SV"},
+                            {"Name": "TransactionDate", "Value": 20191219102115},
+                            {"Name": "PhoneNumber", "Value": 254708374149},
+                            {"Name": "BillRefNumber", "Value": "88"},
+                        ]
+                    },
+                }
+            }
+        }
+        event = normalize_provider_payload("mpesa_daraja", payload)
+        self.assertIsNotNone(event)
+        assert event is not None
+        self.assertEqual(event.event_id, "ws_CO_191220191020363925")
+        self.assertEqual(event.invoice_id, 88)
+        self.assertEqual(event.currency, "KES")
+        self.assertEqual(event.amount_decimal, Decimal("1"))
+        self.assertTrue(event.is_success())
+
+        # Alias slug used by some webhook routes.
+        alias = normalize_provider_payload("mpesa", payload)
+        self.assertIsNotNone(alias)
+        assert alias is not None
+        self.assertEqual(alias.event_id, event.event_id)
+
+    def test_mpesa_daraja_stk_failure(self):
+        payload = {
+            "Body": {
+                "stkCallback": {
+                    "CheckoutRequestID": "ws_CO_FAIL_1",
+                    "ResultCode": 1032,
+                    "ResultDesc": "Request cancelled by user",
+                }
+            }
+        }
+        event = normalize_provider_payload("mpesa_daraja", payload)
+        self.assertIsNotNone(event)
+        assert event is not None
+        self.assertEqual(event.event_id, "ws_CO_FAIL_1")
+        self.assertFalse(event.is_success())
