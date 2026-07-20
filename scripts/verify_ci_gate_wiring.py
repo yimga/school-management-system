@@ -62,6 +62,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Money never float; tenant rows always scoped; offline label has code.
     ("scripts/scan_money_float.py", "architectural-boundaries.yml"),
     ("scripts/scan_tenant_queryset_safety.py", "tenant-isolation-scan.yml"),
+    # A SHARED model may never FK a TENANT table. Nothing else can catch it:
+    # the Postgres CI job runs USE_DJANGO_TENANTS="0" (one schema, so the FK
+    # resolves) and SQLite cannot create tenant schemas — while production runs
+    # "1", where `migrate_schemas --shared` dies on any fresh database.
+    ("scripts/scan_cross_tenancy_fk.py", "architectural-boundaries.yml"),
     ("scripts/verify_offline_capability_implementation.py", "architectural-boundaries.yml"),
     # Tenant-facing money renders the locale currency, never a hardcoded symbol.
     ("scripts/scan_locale_display.py", "architectural-boundaries.yml"),

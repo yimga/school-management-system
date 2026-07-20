@@ -63,6 +63,7 @@ SCANNER_BASELINE_MAP: dict[str, str | None] = {
     "scan_theme_locked_token_text.py": "security-audit-baseline-theme-locked-token-text.json",
     "scan_rls_bypass.py": "security-audit-baseline-rls-bypass.json",
     "scan_money_float.py": "security-audit-baseline-money-float.json",
+    "scan_cross_tenancy_fk.py": "security-audit-baseline-cross-tenancy-fk.json",
     "scan_tenant_isolation_marker_quality.py": "security-audit-baseline-tenant-isolation-marker-quality.json",
     "scan_sri_required.py": "security-audit-baseline-sri-required.json",
     "verify_csp_nonce_emission.py": "security-audit-baseline-csp-nonce-emission.json",

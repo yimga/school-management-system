@@ -632,6 +632,29 @@ jobs:
         run: |
           python scripts/scan_money_float.py --compare
 
+  cross-tenancy-fk:
+    name: "P3: Cross-tenancy ForeignKey (SHARED -> TENANT)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        # A SHARED_APPS model cannot ForeignKey a TENANT_APPS table: under
+        # USE_DJANGO_TENANTS=1 (what render.yaml sets) the target does not exist
+        # in `public` and there is one copy per tenant. `makemigrations` writes
+        # such an FK happily and NOTHING else catches it — the Postgres CI job
+        # sets USE_DJANGO_TENANTS="0" (RLS, one schema, so it resolves) and the
+        # SQLite suites cannot create tenant schemas at all. On a FRESH database
+        # `migrate_schemas --shared` (render_predeploy.sh) then dies, breaking DR
+        # restore / new region / staging rebuild. Allowlist marker:
+        #   # cross-tenancy-fk-allow: <reason>
+        run: |
+          python scripts/scan_cross_tenancy_fk.py --compare
+
   tenant-isolation-marker-quality:
     name: "P3: Tenant-isolation marker reason quality"
     runs-on: ubuntu-latest
