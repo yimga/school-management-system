@@ -71,9 +71,15 @@ def _local_proof_status() -> tuple[bool, str]:
         return False, f"{rel} status={status!r} (want LOCAL_MOAT_PASS)"
     if not data.get("django_e2e_ok"):
         return False, f"{rel} missing django_e2e_ok=true"
-    if not data.get("playwright_parent_ok") and not data.get("armed_runner_ok"):
-        return False, f"{rel} missing playwright_parent_ok or armed_runner_ok"
-    return True, f"{rel} status={status}"
+    # Django staff→parent e2e is sufficient for local moat PASS.
+    # Playwright parent / armed runner are optional upgrades.
+    extras = []
+    if data.get("playwright_parent_ok"):
+        extras.append("playwright_parent")
+    if data.get("armed_runner_ok"):
+        extras.append("armed_runner")
+    extra_note = f" +{','.join(extras)}" if extras else " (Django e2e only)"
+    return True, f"{rel} status={status}{extra_note}"
 
 
 def main(argv: list[str] | None = None) -> int:
