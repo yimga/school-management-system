@@ -18,9 +18,9 @@
 
 | Slice | Implementation | Proof | SHA |
 |-------|----------------|-------|-----|
-| **#26 / #7** | `verify_mpesa_daraja` + STK shape; gateway HMAC; ResultCode `0` falsy fix | signature **19 OK**; gateway M-Pesa **2 OK** | *(this wave)* |
-| **#13** | `create_ticket_invoice_for_registration` + webhook settle E2E | ticket invoice webhook **OK** | *(this wave)* |
-| **#4** | `record_report_card_moat_local_proof.py` + committed `LOCAL_MOAT_PASS` (Django staff→parent) | e2e **4 OK**; verifier sees artifact | *(this wave)* |
+| **#26 / #7** | `verify_mpesa_daraja` + STK shape; gateway HMAC; ResultCode `0` falsy fix | signature **19 OK**; gateway M-Pesa **2 OK** | `0a81db77a` |
+| **#13** | `create_ticket_invoice_for_registration` + webhook settle E2E | ticket invoice webhook **OK** | `0a81db77a` |
+| **#4** | `record_report_card_moat_local_proof.py` + committed `LOCAL_MOAT_PASS` (Django staff→parent) | e2e **4 OK**; verifier sees artifact | `0a81db77a` |
 
 ### Prompt B delta scorecard (Wave 37)
 
