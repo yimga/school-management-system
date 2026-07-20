@@ -64,9 +64,9 @@ v8 · approval canvas · operator+tenant
 
 | Key | Value (as of handoff write) |
 | --- | --- |
-| `build_id` | `2026-07-20-v8` |
-| `cache_bust` | `20260720-admin-preview-parity-v8` |
-| `sw_version` | `sms-v4.05.162-mc-offline-counsel-2026-07-20` |
+| `build_id` | `2026-07-20-v11` |
+| `cache_bust` | `20260720-admin-preview-parity-v11` |
+| `sw_version` | `sms-v4.05.164-admin-preview-parity-v11-2026-07-20` |
 
 When bumping a wave: edit the **lock first**, then templates / CSS / SW / auditors together.
 
@@ -74,13 +74,7 @@ When bumping a wave: edit the **lock first**, then templates / CSS / SW / audito
 
 ## Current tree hazard (fix first)
 
-As of 2026-07-20 handoff write, the working tree may be **dirty** with an unrelated Migration Cloud / offline wave. Example failure mode:
-
-- Live SW bumped to `sms-v4.05.162-mc-offline-counsel-2026-07-20`
-- Admin lock still expects `161`
-- → `python scripts/verify_django_admin_preview_parity.py` → **PREVIEW_PARITY_FAIL**
-
-**Before admin work:** either update the lock + auditors to the new SW, or stash/isolate the unrelated wave so admin parity is not blocked.
+As of merge `c59f60d97` (`agent/django-admin-v11-parity` → `main`), lock / SW / auditors are aligned on **v11** / `sms-v4.05.164-admin-preview-parity-v11-2026-07-20`. Offline MC upload remains on main; any future SW bump must update the approval lock + `EXPECTED_SW` pins together or `verify_django_admin_preview_parity.py` fails.
 
 ---
 
