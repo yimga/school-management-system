@@ -28,8 +28,8 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260720-admin-fullfill-v2" not in base_site:
-        errors.append("Django canvas contract link must use the fullfill-v2 cache bust for deployment visibility")
+    if "?v=20260720-admin-fullfill-v3" not in base_site:
+        errors.append("Django canvas contract link must use the fullfill-v3 cache bust for deployment visibility")
     if "2026-07-19-full-fill-page-aware" not in css:
         errors.append("canvas contract must include 2026-07-19-full-fill-page-aware terminal block")
 
@@ -45,8 +45,13 @@ def main() -> int:
         errors.append("canvas contract must include 2026-07-20-action-nowrap save-bleed seal")
     if "2026-07-20-grid-row-auto-fullfill" not in css:
         errors.append("canvas contract must include 2026-07-20-grid-row-auto-fullfill terminal seal")
+    if "2026-07-20-platformwide-no-container" not in css:
+        errors.append("canvas contract must include 2026-07-20-platformwide-no-container seal")
     if "data-rmc-admin-html','unfold'" not in base_site and 'data-rmc-admin-html","unfold"' not in base_site:
         errors.append("base_site must set data-rmc-admin-html=unfold in pre-paint head script")
+    content_m = re.search(r'<div id="content"[^>]*>', base)
+    if content_m and ("mx-auto" in content_m.group(0) or re.search(r"\bcontainer\b", content_m.group(0))):
+        errors.append("admin/base.html #content must not use Tailwind container or mx-auto")
     if re.search(r"\.rmc-django-action\s*\{[^}]*overflow-wrap:\s*anywhere", css):
         errors.append("canvas contract must not set overflow-wrap:anywhere on .rmc-django-action")
     if "a.skip-link:not(:focus)" not in css and "a.skip-link:not(:focus):not(:focus-visible)" not in css:
@@ -513,6 +518,22 @@ def _audit_intelligent_index_surfaces() -> list[str]:
         leftovers_main = mod.main
     if leftovers_main() != 0:
         errors.append("audit_django_admin_surface_leftovers.py reported remaining left-behind admin surfaces")
+
+    try:
+        from scripts.sweep_django_admin_platformwide_layout import main as sweep_main
+    except Exception:
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "sweep_django_admin_platformwide_layout",
+            ROOT / "scripts" / "sweep_django_admin_platformwide_layout.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(mod)
+        sweep_main = mod.main
+    if sweep_main() != 0:
+        errors.append("sweep_django_admin_platformwide_layout.py reported remaining layout landmines")
 
     quickaction = _read("static/js/_pages/admin-quickaction.js")
     if 'data-rmc-django-workspace="change-form"' not in quickaction:

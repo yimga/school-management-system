@@ -3546,21 +3546,47 @@ body:is(.admin-manager-shell, .admin-premium-shell) .cp-form-frame {
   grid-row: auto !important;
 }
 
-/* Skip-link: body-class only so tenant works before/without unfold html attr. */
-body:is(.admin-manager-shell, .admin-premium-shell) a.skip-link:not(:focus):not(:focus-visible),
-body:is(.admin-manager-shell, .admin-premium-shell) a.skip-link-theme:not(:focus):not(:focus-visible),
-[data-rmc-shell-root="django-admin"] a.skip-link:not(:focus):not(:focus-visible),
-[data-rmc-shell-root="django-admin"] a.skip-link-theme:not(:focus):not(:focus-visible) {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  clip-path: inset(50%) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
+/* ============================================================
+   2026-07-20-platformwide-no-container: kill Tailwind container/mx-auto
+   on #content (base.html historically mixed container + mx-auto → right void).
+   ============================================================ */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) #content,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) #content.container,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) #content.mx-auto,
+[data-rmc-shell-root="django-admin"] #content,
+[data-rmc-shell-root="django-admin"] #content.container,
+[data-rmc-shell-root="django-admin"] #content.mx-auto {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-inline: 0 !important;
+}
+
+/* Form frame must not inherit overflow-wrap:anywhere into Save/labels. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"],
+[data-rmc-shell-root="django-admin"] #content-main[data-rmc-admin-form-contract="premium-form-frame"] {
+  overflow-wrap: normal !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
+    .rmc-django-action,
+    .submit-row,
+    button,
+    input[type="submit"],
+    label,
+    .form-row > label
+  ),
+[data-rmc-shell-root="django-admin"] #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  .rmc-django-action,
+  .submit-row,
+  button,
+  input[type="submit"],
+  label,
+  .form-row > label
+) {
+  overflow-wrap: normal !important;
+  word-break: normal !important;
 }

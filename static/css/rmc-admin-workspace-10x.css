@@ -261,7 +261,8 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-form .rmc-admin-works
 
 body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] {
   max-width: none;
-  overflow-wrap: anywhere;
+  /* NEVER overflow-wrap:anywhere here — it inherits into Save/labels (letter-strip). */
+  overflow-wrap: normal;
 }
 
 body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] > form {
@@ -602,8 +603,7 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[da
   textarea,
   .readonly,
   .help,
-  .form-row,
-  label
+  .helptext
 ) {
   overflow-wrap: anywhere;
   word-break: break-word;

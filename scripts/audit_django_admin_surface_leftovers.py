@@ -145,6 +145,8 @@ def main() -> int:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "action-nowrap save-bleed seal missing")
     if "2026-07-20-grid-row-auto-fullfill" not in css:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "grid-row-auto-fullfill seal missing")
+    if "2026-07-20-platformwide-no-container" not in css:
+        add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "platformwide-no-container seal missing")
     if re.search(r"\.rmc-django-action\s*\{[^}]*overflow-wrap:\s*anywhere", css):
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, ".rmc-django-action must not use overflow-wrap:anywhere (save bleed)")
     # Bare Unfold .flex wrappers must not share form-row span-6 half-width
@@ -164,6 +166,10 @@ def main() -> int:
         re.S,
     ):
         add("P0", ROOT / "static/css/admin-cp-parity.css", 0, "cp-form-frame must not use margin:0 auto (centers + right void)")
+
+    content_m = re.search(r'<div id="content"[^>]*>', base)
+    if content_m and ("mx-auto" in content_m.group(0) or re.search(r"\bcontainer\b", content_m.group(0))):
+        add("P0", ADMIN / "base.html", 0, "#content must not use container or mx-auto")
 
     banner = _read(ADMIN / "includes" / "tenant_admin_decision_banner.html")
     if "studio_os" in banner or "Decision console" in banner or "Operator workflow" in banner:
