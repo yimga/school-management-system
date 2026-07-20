@@ -69,6 +69,12 @@ body:not(.control-plane-shell):has(.admin-nav-bridge) {
   gap: 0.75rem;
 }
 
+/* Tenant admin does not load Bootstrap's full dropdown bundle. Keep the
+   empty typeahead panel out of layout until the shared search runtime opens it. */
+.admin-nav-bridge .cp-search-results-panel:not(.show) {
+  display: none !important;
+}
+
 /* Shell-header mount: one school topbar (no second Unfold bar). */
 [data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge {
   position: relative;

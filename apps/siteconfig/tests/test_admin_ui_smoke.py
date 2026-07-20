@@ -566,8 +566,8 @@ class AdminUiSmokeTests(TestCase):
         finally:
             set_urlconf(None)
 
-    def test_themepack_change_form_template_has_product_escape_links(self):
-        """ThemePack admin redirects to Studio; template remains the P3 escape contract (batch 14 #138)."""
+    def test_themepack_change_form_template_is_tenant_safe(self):
+        """ThemePack stays native and exposes only tenant-scoped guided links."""
         from pathlib import Path
 
         tpl = (
@@ -582,8 +582,7 @@ class AdminUiSmokeTests(TestCase):
         body = tpl.read_text(encoding="utf-8")
         self.assertIn("themepack-cp-escape-heading", body)
         self.assertIn("siteconfig:theme_colors", body)
-        self.assertIn("studio_os:experience", body)
-        self.assertIn("studio_os:output", body)
+        self.assertNotIn("studio_os:", body)
         self.assertIn("siteconfig:console_domains_hub", body)
 
     def test_compliancerule_change_form_links_to_control_plane_surfaces(self):

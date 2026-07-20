@@ -13,7 +13,7 @@
   <section class="rmc-django-command-band" data-rmc-django-command-band="app-index" aria-label="{% if is_manager_host %}{% trans 'App catalog command surface' %}{% else %}{% trans 'School records for this app' %}{% endif %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
-      <strong>{{ title }}</strong>
+      <h1 class="rmc-django-command-band__title">{{ title }}</h1>
       {% firstof app_list.0.name title as app_label_copy %}
       {% if is_manager_host %}
       <small>{% blocktranslate with app=app_label_copy %}Models in {{ app }}. Prefer guided surfaces when available; use changelist for raw row access.{% endblocktranslate %}</small>

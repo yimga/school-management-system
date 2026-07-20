@@ -216,6 +216,38 @@ def main() -> int:
         errors.append("change_list.html missing data-rmc-django-workspace=change-list")
     if "admin_workspace_tools.html" not in change_form or "admin_workspace_tools.html" not in change_list:
         errors.append("change_form/change_list must include workspace tools (preview col-3)")
+    if base_site.count("rmc-admin-django-canvas-contract.css") != 1:
+        errors.append("base_site must load the canonical Django canvas contract exactly once")
+    if base_site.count("rmc_theme_experience_dual_plane_styles.html") != 1:
+        errors.append("base_site must load theme-experience styles exactly once")
+    if base_site.count("admin-nav-bridge-tenant.css") != 1:
+        errors.append("base_site must own the tenant nav stylesheet exactly once in <head>")
+    if base_site.count("rmc-tour.css") != 1 or base_site.count(
+        "rmc-portal-row-detail-drawer.css"
+    ) != 1:
+        errors.append("base_site must own tour and row-drawer styles exactly once in <head>")
+    if "rmc_tour_css_in_head=True" not in base_site or "rmc_row_drawer_css_in_head=True" not in base_site:
+        errors.append("body runtime partials must suppress their already-loaded head styles")
+    if re.search(r"<link\b[^>]*\bstylesheet\b", nav, re.I):
+        errors.append("admin_nav_bridge must not inject a stylesheet from inside <body>")
+    if "cp_context_drawer_shell.html" in base_site:
+        errors.append("Django admin must not render the fixed legacy Context overlay")
+    if "_ai_copilot_rail.html" in base or "_operator_notebook.html" in base:
+        errors.append("Django admin must not render a second global copilot/notebook tools rail")
+    if "rmc_operator_footer_civic.html" in base or "admin-manager-sticky-slot" in base:
+        errors.append("Django admin must not overlay the workbench with a fixed civic footer or empty sticky slot")
+    if "admin_operator_steering_strip.html" in base or "rmc_operator_surface_strip" in base:
+        errors.append("Django admin must not stack a global steering strip above its page command band")
+    if "admin_change_form_header.html" in change_form or "admin_changelist_header.html" in change_list:
+        errors.append("change form/list must not stack legacy secondary headers above the workspace")
+    if "data-rmc-admin-preview-url" in change_form:
+        errors.append("shared change form must not advertise a staged generic preview URL")
+    if "2026-07-20-v11-host-identity-contrast" not in css:
+        errors.append("canvas CSS must seal host identity contrast")
+    if "2026-07-20-v11-tenant-index-catalog" not in css:
+        errors.append("canvas CSS must seal tenant index catalog layout")
+    if "2026-07-20-v11-responsive-stack" not in css:
+        errors.append("canvas CSS must seal tablet/mobile workspaces to one track")
 
     banned = [
         ("minmax(15rem, min(22vw", "wide 22vw rail (pre-approval)"),

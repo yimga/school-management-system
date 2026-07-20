@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 
@@ -12,6 +13,10 @@ def _read(path: str) -> str:
 
 def main() -> int:
     errors: list[str] = []
+    approval_lock = json.loads(_read("var/admin-approval-build-lock.json"))
+    approval_cache_bust = str(approval_lock.get("cache_bust", "")).strip()
+    if not approval_cache_bust:
+        errors.append("var/admin-approval-build-lock.json missing cache_bust")
 
     tenant_urls = _read("config/tenant_urls.py")
     platform_urls = _read("config/urls.py")
@@ -83,7 +88,7 @@ def main() -> int:
         'data-rmc-admin-canvas-host="{% if is_manager_host %}operator{% else %}tenant{% endif %}"',
         'data-rmc-admin-content="canvas-first"',
         "rmc-admin-django-canvas-contract.css",
-        "?v=20260720-admin-action-nowrap",
+        f"?v={approval_cache_bust}",
     )
     for token in admin_tokens:
         if token not in admin_base and token not in admin_base_site:

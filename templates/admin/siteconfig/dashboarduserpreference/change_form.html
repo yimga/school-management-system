@@ -9,9 +9,6 @@
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
       <li><a href="{% url 'siteconfig:user_preferences' %}" class="text-primary-600 hover:underline font-medium">{% trans "User preferences" %}</a></li>
       <li><a href="{% url 'siteconfig:dashboard_configuration_hub' %}" class="text-primary-600 hover:underline">{% trans "Dashboard configuration" %}</a></li>
-      {% if is_manager_host %}
-      <li><a href="{% url 'studio_os:experience_dashboard_visual_packs' %}" class="text-primary-600 hover:underline">{% trans "Studio · Dashboard visual packs" %}</a></li>
-      {% endif %}
       <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a></li>
     </ul>
   </section>

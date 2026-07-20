@@ -1,7 +1,7 @@
 /**
  * rmc-admin-workspace.js
  * - Builds the change-form "On this page" rail nav from fieldsets (scroll-spy).
- * - Form / Preview / Audit view toggle (intelligent canvas contract).
+ * - Honest Form / Audit view toggle (intelligent canvas contract).
  * - Changelist rail filter trigger.
  */
 (function () {
@@ -22,110 +22,6 @@
     var label = h ? (h.textContent || "").replace(/\s+/g, " ").trim() : "";
     if (!label) label = index === 0 ? "General" : "Section " + (index + 1);
     return label.length > 42 ? label.slice(0, 41) + "…" : label;
-  }
-
-  function ensurePreviewDrawer() {
-    var drawer = document.getElementById("rmc-django-preview-drawer");
-    if (drawer) return drawer;
-    drawer = document.createElement("aside");
-    drawer.id = "rmc-django-preview-drawer";
-    drawer.className = "rmc-mv-preview-drawer";
-    drawer.setAttribute("hidden", "");
-    drawer.setAttribute("aria-label", "Preview drawer");
-    drawer.innerHTML =
-      '<div class="rmc-mv-preview-drawer__head">' +
-      "<strong>Live preview</strong>" +
-      '<button type="button" class="rmc-mv-preview-drawer__close" data-rmc-django-preview-close aria-label="Close preview">&times;</button>' +
-      "</div>" +
-      '<div class="rmc-django-preview-drawer__body" data-rmc-django-preview-drawer-body="1"></div>';
-    document.body.appendChild(drawer);
-    return drawer;
-  }
-
-  function mountPreviewStageInDrawer(drawer) {
-    var body = drawer.querySelector("[data-rmc-django-preview-drawer-body]");
-    if (!body) return;
-    var stage = document.querySelector("[data-rmc-django-preview-card]");
-    body.innerHTML = "";
-    if (stage) {
-      body.appendChild(stage.cloneNode(true));
-    } else {
-      body.innerHTML =
-        "<p>Preview stays in a drawer so the form grid is never squeezed.</p>" +
-        '<p class="rmc-django-mode-panel__hint">Model-specific previews (theme, report card, registry) mount here when available.</p>';
-    }
-  }
-
-  function resolvePreviewUrl() {
-    var stage = document.querySelector("[data-rmc-admin-preview-url]");
-    if (stage) {
-      var url = stage.getAttribute("data-rmc-admin-preview-url");
-      if (url && url.trim()) return url.trim();
-    }
-    var ws = document.querySelector("[data-rmc-django-workspace]");
-    if (ws) {
-      var wsUrl = ws.getAttribute("data-rmc-admin-preview-url");
-      if (wsUrl && wsUrl.trim()) return wsUrl.trim();
-    }
-    return "";
-  }
-
-  function mountIframeInDrawer(drawer, url) {
-    var body = drawer.querySelector("[data-rmc-django-preview-drawer-body]");
-    if (!body) return;
-    body.innerHTML = "";
-    var iframe = document.createElement("iframe");
-    iframe.src = url;
-    iframe.className = "rmc-admin-preview-iframe";
-    iframe.setAttribute("loading", "lazy");
-    iframe.setAttribute("title", "Live preview");
-    iframe.style.cssText = "width:100%;height:480px;border:0;border-radius:var(--radius-lg,0.5rem);";
-    body.appendChild(iframe);
-  }
-
-  function mountIframeInStage(url) {
-    var mount = document.querySelector("[data-rmc-django-preview-iframe-mount]");
-    if (!mount) return;
-    if (mount.querySelector("iframe")) return;
-    var iframe = document.createElement("iframe");
-    iframe.src = url;
-    iframe.className = "rmc-admin-preview-iframe";
-    iframe.setAttribute("loading", "lazy");
-    iframe.setAttribute("title", "Live preview");
-    iframe.style.cssText = "width:100%;height:480px;border:0;border-radius:var(--radius-lg,0.5rem);";
-    mount.appendChild(iframe);
-  }
-
-  function openPreviewDrawer() {
-    var existing = document.querySelector(".rmc-mv-preview-drawer:not([hidden])");
-    if (existing) return;
-    var modelDrawer = document.querySelector(".rmc-mv-preview-drawer[hidden]");
-    if (modelDrawer && modelDrawer.id !== "rmc-django-preview-drawer") {
-      modelDrawer.removeAttribute("hidden");
-      return;
-    }
-    var drawer = ensurePreviewDrawer();
-    var url = resolvePreviewUrl();
-    if (url) {
-      mountIframeInDrawer(drawer, url);
-    } else {
-      mountPreviewStageInDrawer(drawer);
-    }
-    drawer.removeAttribute("hidden");
-  }
-
-  function openPreviewPopout(url) {
-    var w = window.open(url, "rmc-admin-preview", "popup,width=1280,height=900");
-    if (!w || w.closed) {
-      openPreviewDrawer();
-    }
-  }
-
-  function openPreviewTab(url) {
-    var w = window.open(url, "_blank", "noopener");
-    if (!w || w.closed) {
-      openPreviewDrawer();
-    }
   }
 
   function closePreviewDrawer(drawer) {

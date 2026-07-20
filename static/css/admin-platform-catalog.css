@@ -135,3 +135,181 @@
 [data-rmc-admin-catalog-search] ~ .rmc-admin-catalog-empty[hidden] {
   display: none;
 }
+
+/* The tenant index uses the same catalog primitives as the operator index.
+   These rules used to exist only in the manager-only 200x sheet, leaving the
+   tenant KPIs, tabs, and catalog as unstyled flow content. */
+.cp-kpi-strip {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0.75rem 0;
+}
+
+.cp-kpi {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+  padding: 0.8rem 0.9rem;
+  box-shadow: var(--elev-1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.cp-kpi__label {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  font-weight: 800;
+}
+
+.cp-kpi__value {
+  font-family: var(--serif, "Source Serif 4", Georgia, serif);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 650;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.cp-kpi__caption {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.cp-section {
+  padding: 1rem 0;
+  min-width: 0;
+}
+
+.cp-section__title {
+  font-family: var(--serif, "Source Serif 4", Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 650;
+  margin: 0 0 0.25rem;
+  color: var(--text-primary);
+}
+
+.cp-section__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.cp-section__search {
+  flex: 1 1 17.5rem;
+  width: 100%;
+  max-width: 26.25rem;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--hairline-strong, var(--hairline));
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+.cp-tab {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--hairline-strong, var(--hairline));
+  background: var(--surface-elevated);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.cp-tab[data-active] {
+  background: linear-gradient(
+    135deg,
+    var(--school-primary, #0f766e),
+    var(--school-accent, #2dd4a8)
+  );
+  color: var(--text-on-brand, #fff);
+  border-color: transparent;
+}
+
+.cp-catalog {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(17.5rem, 100%), 1fr));
+}
+
+.cp-catalog-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  box-shadow: var(--elev-1);
+  min-width: 0;
+}
+
+.cp-catalog-card[hidden] {
+  display: none !important;
+}
+
+.cp-catalog-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.cp-catalog-card__title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.cp-catalog-card__count {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-sunken, var(--surface-canvas));
+}
+
+.cp-catalog-card__items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cp-catalog-card__items li,
+.cp-catalog-card__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.cp-catalog-card__items a,
+.cp-catalog-card__foot a {
+  color: var(--school-primary, var(--color-primary-600));
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cp-catalog-card__foot {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--hairline);
+}
+
+@media (max-width: 767.98px) {
+  .cp-kpi-strip,
+  .cp-catalog-card__items {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

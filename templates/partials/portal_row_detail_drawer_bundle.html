@@ -1,6 +1,8 @@
 {% load static %}
 {% comment %} Row-detail drawer chrome — include once per template with data-rmc-row-detail tables. {% endcomment %}
 {% include "partials/portal_row_detail_drawer.html" %}
+{% if not rmc_row_drawer_css_in_head %}
 <link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+{% endif %}
 <script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

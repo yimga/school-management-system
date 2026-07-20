@@ -1,6 +1,4 @@
 from django.contrib import admin
-from django.http import HttpResponseRedirect
-from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 
 from config.admin import register_both, register_platform_admin
@@ -82,32 +80,11 @@ class ThemePackAdmin(ModelAdmin):
         ),
     )
 
-    # Theme packs are managed from Theme & Experience studio; hide standalone model page.
-    def has_module_permission(self, request):
-        return False
-
-    def get_model_perms(self, request):
-        return {}
-
-    def _studio_redirect(self):
-        try:
-            return HttpResponseRedirect(reverse("studio_os:experience"))
-        except NoReverseMatch:
-            return HttpResponseRedirect(reverse("siteconfig:theme_colors"))
-
-    def changelist_view(self, request, extra_context=None):
-        return self._studio_redirect()
-
-    def add_view(self, request, form_url="", extra_context=None):
-        return self._studio_redirect()
-
-    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
-        return self._studio_redirect()
-
     def palette_preview(self, obj):
         start, end = obj.gradient_colors
-        style = f"background: linear-gradient(135deg, {start}, {end}); width: 160px; height: 36px; border-radius: 12px;"
-        return format_html("<div style='{}'></div>", style)
+        # Keep the native table CSP-clean. The former inline gradient was
+        # blocked by the production style-src policy, leaving an empty cell.
+        return format_html("<span>{} → {}</span>", start, end)
 
     palette_preview.short_description = "Gradient"
 

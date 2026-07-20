@@ -539,19 +539,23 @@ class ThemeStudioSingleSurfaceTests(TestCase):
             msg=html,
         )
 
-    def test_themepack_admin_hidden_from_system_configuration_menu(self):
+    def test_themepack_admin_is_native_and_visible(self):
         model_admin = tenant_admin_site._registry[ThemePack]
         self.assertIsInstance(model_admin, ThemePackAdmin)
         request = RequestFactory().get("/admin/")
+        request.user = User.objects.create_superuser(
+            username="theme-pack-admin",
+            email="theme-pack-admin@example.com",
+            password="password",
+        )
         perms = model_admin.get_model_perms(request)
-        self.assertEqual(perms, {})
+        self.assertTrue(perms["view"])
+        self.assertTrue(perms["change"])
 
-    def test_themepack_admin_changeform_redirects_to_theme_studio(self):
+    def test_themepack_admin_uses_native_changelist_and_changeform(self):
         model_admin = tenant_admin_site._registry[ThemePack]
-        request = RequestFactory().get("/admin/siteconfig/themepack/1/change/")
-        response = model_admin.changeform_view(request, object_id="1")
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("studio_os:experience"))
+        self.assertIs(model_admin.changelist_view.__func__, ThemePackAdmin.__mro__[1].changelist_view)
+        self.assertIs(model_admin.changeform_view.__func__, ThemePackAdmin.__mro__[1].changeform_view)
 
 
 class ThemeStudioTemplateMarkerTests(SimpleTestCase):

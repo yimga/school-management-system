@@ -2,18 +2,20 @@
 {% load i18n static unfold %}
 
 {% block form_before %}
-  {% comment %} P3: tenant admin only — use siteconfig + Studio URLs that exist on school hosts (no super:). {% endcomment %}
+  {% comment %} Tenant-safe report styling links only. {% endcomment %}
   <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="reportcard-style-cp-escape-heading">
     <h2 id="reportcard-style-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% if is_manager_host %}{% trans "Product control plane" %}{% else %}{% trans "Guided school settings" %}{% endif %}</h2>
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Report styling workflows live outside this form. Use this page for every advanced field." %}</p>
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
       <li><a href="{% url 'siteconfig:reportcard_builder' %}" class="text-primary-600 hover:underline font-medium">{% trans "Report builder" %}</a></li>
-      {% if is_manager_host %}
-      <li><a href="{% url 'studio_os:output' %}" class="text-primary-600 hover:underline">{% trans "Studio · Output" %}</a></li>
-      {% endif %}
       <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a></li>
     </ul>
   </section>
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/color-palette-studio.css' %}">
 {% endblock %}
 
 {% block after_field_sets %}

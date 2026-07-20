@@ -4,17 +4,24 @@ Every model registered on ``platform_admin_site`` must have a matching
 """
 
 from django.core.cache import cache
+from django_otp.plugins.otp_totp.models import TOTPDevice
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
 from config.admin import platform_admin_site
 
-from apps.schools.super_admin_bridge_registry import PLATFORM_ADMIN_BRIDGES
+from apps.schools.super_admin_bridge_registry import (
+    PLATFORM_ADMIN_BRIDGE_ORDER,
+    PLATFORM_ADMIN_BRIDGES,
+)
 
 
 def _admin_changelist_path_tail(admin_url_name: str) -> str:
-    loc = reverse(str(admin_url_name)).lower()
+    # ``config.urls`` exposes /admin/ through host dispatch and therefore has
+    # no global ``admin`` namespace. Resolve the operator AdminSite against the
+    # manager URLconf exactly as a real manager-host request does.
+    loc = reverse(str(admin_url_name), urlconf="config.manager_urls").lower()
     parts = [p for p in loc.split("/") if p]
     return parts[-1] if parts else ""
 
@@ -26,6 +33,20 @@ def _changelist_name(model):
 
 @override_settings(ALLOWED_HOSTS=["*"])
 class PlatformAdminBridgeCompletenessTests(TestCase):
+    def _login_verified_operator(self, *, username: str) -> None:
+        user = User.objects.create_user(
+            username=username,
+            password="testpass123",
+            is_staff=True,
+            is_superuser=True,
+        )
+        TOTPDevice.objects.create(user=user, name="bridge-test", confirmed=True)
+        self.client.force_login(user)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+        cache.clear()
+
     def test_every_platform_admin_model_has_admin_bridge(self):
         platform_urls = {_changelist_name(m) for m in platform_admin_site._registry.keys()}
         bridge_urls = {str(v["admin_url"]) for v in PLATFORM_ADMIN_BRIDGES.values()}
@@ -38,14 +59,7 @@ class PlatformAdminBridgeCompletenessTests(TestCase):
 
     def test_sample_new_surface_bridge_redirects(self):
         """Smoke: extended surface bridges 302 to expected admin path (manager host)."""
-        user = User.objects.create_user(
-            username="bridge_complete",
-            password="testpass123",
-            is_staff=True,
-            is_superuser=True,
-        )
-        self.client.force_login(user)
-        cache.clear()
+        self._login_verified_operator(username="bridge_complete")
         for key in (
             "marketplace_marketplaceapp",
             "billing_billingaccount",
@@ -62,14 +76,7 @@ class PlatformAdminBridgeCompletenessTests(TestCase):
 
     def test_show_in_nav_bridge_keys_redirect(self):
         """Every show_in_nav registry entry must 302 via super:admin_bridge."""
-        user = User.objects.create_user(
-            username="bridge_show_in_nav",
-            password="testpass123",
-            is_staff=True,
-            is_superuser=True,
-        )
-        self.client.force_login(user)
-        cache.clear()
+        self._login_verified_operator(username="bridge_show_in_nav")
         for key in PLATFORM_ADMIN_BRIDGE_ORDER:
             meta = PLATFORM_ADMIN_BRIDGES.get(key)
             if not meta or not meta.get("show_in_nav"):

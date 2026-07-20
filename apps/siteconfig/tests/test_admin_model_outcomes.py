@@ -60,6 +60,29 @@ class AdminOutcomeDeckContextTests(TestCase):
         self.assertEqual(deck["admin_deck_model_name"], "countryprofile")
         self.assertTrue(deck["admin_deck_title"])
 
+    def test_tenant_deck_filters_operator_and_studio_links(self):
+        rf = RequestFactory().get(
+            "/admin/brand_experience/themepack/",
+            HTTP_HOST="demo-school.runmycampus.com",
+        )
+        rf.public_host_kind = "tenant"
+        rf.urlconf = "config.tenant_urls"
+        rf.user = User.objects.create_superuser("tenant-deck", "tenant-deck@t.com", "x")
+
+        deck = build_admin_outcome_deck_context(rf, is_platform_site=False)
+
+        self.assertIsNotNone(deck)
+        assert deck is not None
+        links = list(deck["admin_deck_links"]) + list(
+            deck["admin_deck_tenant_shortcuts"]
+        )
+        rendered = " ".join(
+            f"{link.get('label', '')} {link.get('url', '')}" for link in links
+        ).lower()
+        self.assertNotIn("studio", rendered)
+        self.assertNotIn("/super/", rendered)
+        self.assertNotIn("fleet", rendered)
+
 
 @override_settings(ALLOWED_HOSTS=["*", "testserver", "localhost", ".runmycampus.com"])
 class PlatformAdminChangelistCrawlTests(TestCase):

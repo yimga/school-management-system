@@ -3,6 +3,7 @@
   Core vs Context: compact workspace head + honest metrics (no fake KPIs).
   Education lives in ⓘ tips — not manifesto ledes.
 {% endcomment %}
+{% if not hide_workspace_head %}
 <header class="rmc-django-workspace-head" data-rmc-django-workspace-head="1">
   <div class="rmc-django-workspace-head__copy">
     {% if surface == "change-list" %}
@@ -47,12 +48,13 @@
     {% endif %}
   </div>
 </header>
+{% endif %}
 <div class="rmc-django-metrics rmc-django-metrics--compact" data-rmc-django-metrics="1" role="group" aria-label="{% trans 'Workspace status' %}">
   {% trans "Scope" as tip_scope_title %}
   {% blocktrans asvar tip_scope_body %}Operator hosts manage the platform fleet. School hosts are school-scoped configuration engines — never cross schools.{% endblocktrans %}
   <div class="rmc-django-metric is-good">
     <span>{% trans "Scope" %} {% rmc_info_tag title=tip_scope_title body=tip_scope_body surface="django-admin" %}</span>
-    <b>{% if is_manager_host %}{% trans "Operator" %}{% else %}{% firstof SITE.site_name _("School") %}{% endif %}</b>
+    <b>{% if is_manager_host %}{% trans "Operator" %}{% else %}{% trans "This school" %}{% endif %}</b>
   </div>
   {% if surface == "change-list" %}
   <div class="rmc-django-metric">

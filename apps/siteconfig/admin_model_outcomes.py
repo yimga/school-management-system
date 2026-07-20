@@ -10,6 +10,7 @@ admin pages under /admin/<app>/…
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import urlsplit
 
 from django.urls import NoReverseMatch, reverse
 
@@ -17,7 +18,7 @@ from apps.siteconfig.control_outcome_center import (
     OUTCOME_GROUP_SPECS,
     URL_SUFFIX_BY_NAME,
     _format_source_labels,
-    _rev,
+    _resolve_link_url,
     build_outcome_groups_for_request,
 )
 
@@ -127,13 +128,25 @@ def _tenant_operator_shortcuts() -> list[dict[str, str]]:
         ("Configuration Control Center", "siteconfig:console_domains_hub"),
         ("Feature control", "siteconfig:feature_control_panel"),
         ("Feature audit", "siteconfig:feature_control_audit"),
-        ("Studio", "studio_os:shell"),
     ):
         try:
             links.append({"label": label, "url": reverse(name)})
         except NoReverseMatch:
             continue
     return links
+
+
+def _tenant_safe_admin_link(link: dict[str, Any]) -> bool:
+    """Keep operator/Studio controls out of tenant Django admin rails."""
+    url = str(link.get("url") or "").strip()
+    label = str(link.get("label") or "").strip().lower()
+    path = urlsplit(url).path.lower()
+    if path.startswith(("/super/", "/studio/", "/setup-studio/")):
+        return False
+    return not any(
+        token in label
+        for token in ("studio", "fleet", "invite school", "signup verification")
+    )
 
 
 def build_admin_outcome_deck_context(
@@ -159,10 +172,10 @@ def build_admin_outcome_deck_context(
         links_out = list(group["links"][:8])
     elif spec:
         for label, url_name, stability, sources in spec["links"][:8]:
-            url = _rev(url_name, request)
+            url = _resolve_link_url(url_name, request)
             if not url:
                 continue
-            extra = URL_SUFFIX_BY_NAME.get(url_name)
+            extra = URL_SUFFIX_BY_NAME.get(url_name) if isinstance(url_name, str) else None
             if extra:
                 q = extra[1:] if extra.startswith("?") else extra
                 url = f"{url}{'&' if '?' in url else '?'}{q}"
@@ -185,6 +198,8 @@ def build_admin_outcome_deck_context(
         "admin_deck_is_platform": bool(is_platform_site),
     }
     if not is_platform_site:
+        links_out = [link for link in links_out if _tenant_safe_admin_link(link)]
+        ctx["admin_deck_links"] = links_out
         ctx["admin_deck_tenant_shortcuts"] = _tenant_operator_shortcuts()
     else:
         ctx["admin_deck_tenant_shortcuts"] = []
