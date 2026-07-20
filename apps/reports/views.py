@@ -37,6 +37,7 @@ from apps.reports.services import (
     generate_report_qr_code,
     is_term_published,
     parse_share_token,
+    financial_clearance_block_message,
     student_has_financial_clearance,
     student_has_outstanding_returns,
     notify_parent_report_blocked_by_debt,
@@ -276,7 +277,7 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     if not student_has_financial_clearance(student, year):
         notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
-            "Report card is not available until fees are cleared. Please visit the Bursary."
+            financial_clearance_block_message(student, year)
         )
     if student_has_outstanding_returns(student, year):
         return HttpResponseForbidden(
@@ -371,7 +372,7 @@ def parent_download_term_report_csv(request: HttpRequest, student_id: int):
     if not student_has_financial_clearance(student, year):
         notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
-            "Report card is not available until fees are cleared. Please visit the Bursary."
+            financial_clearance_block_message(student, year)
         )
     if student_has_outstanding_returns(student, year):
         return HttpResponseForbidden(
@@ -448,7 +449,7 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
     if not student_has_financial_clearance(student, year):
         notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
-            "Report card is not available until fees are cleared. Please visit the Bursary."
+            financial_clearance_block_message(student, year)
         )
     if student_has_outstanding_returns(student, year):
         return HttpResponseForbidden(
@@ -602,7 +603,7 @@ def parent_download_annual_report_csv(request: HttpRequest, student_id: int):
     if not student_has_financial_clearance(student, year):
         notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
-            "Report card is not available until fees are cleared. Please visit the Bursary."
+            financial_clearance_block_message(student, year)
         )
     if student_has_outstanding_returns(student, year):
         return HttpResponseForbidden(
@@ -680,7 +681,7 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
     if not student_has_financial_clearance(student, year):
         notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
-            "Report card is not available until fees are cleared. Please visit the Bursary."
+            financial_clearance_block_message(student, year)
         )
     if student_has_outstanding_returns(student, year):
         return HttpResponseForbidden(
@@ -765,7 +766,7 @@ def report_share(request: HttpRequest, token: str):
     if not student_has_financial_clearance(student, year):
         notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
-            "Report card is not available until fees are cleared. Please visit the Bursary."
+            financial_clearance_block_message(student, year)
         )
     if student_has_outstanding_returns(student, year):
         return HttpResponseForbidden(

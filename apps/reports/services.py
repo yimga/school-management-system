@@ -345,6 +345,103 @@ def student_has_financial_clearance(student: StudentProfile, academic_year) -> b
     return True
 
 
+def financial_clearance_shortfall(student: StudentProfile, academic_year) -> dict:
+    """What the family must actually pay to release this term's report card.
+
+    ``student_has_financial_clearance`` answers only yes/no, so the 403 could
+    just say "visit the Bursary" — leaving a parent with no idea whether they owe
+    a token amount or a full term. Schools here are commonly paid in
+    instalments, and the gate releases at the tenant's enrollment-clearance
+    threshold (50% by default), NOT at a zero balance — so the amount that
+    unblocks a report card is usually far less than the outstanding balance.
+    Surface both.
+
+    Returns ``{"outstanding", "needed_for_clearance", "currency", "invoices"}``
+    with Decimal amounts. Never raises — on any resolution failure it returns
+    zeros so the caller still renders a usable message.
+    """
+    from decimal import Decimal
+
+    from apps.finance.fractional_ledger_services import (
+        _clearance_threshold,
+        _ledger_paid_total,
+        _resolve_currency_code,
+        enrollment_clearance_for_invoice,
+    )
+    from apps.finance.models import Invoice
+
+    zero = Decimal("0.00")
+    result = {
+        "outstanding": zero,
+        "needed_for_clearance": zero,
+        "currency": "",
+        "invoices": 0,
+    }
+    school = getattr(student, "school", None)
+    try:
+        invoices = list(
+            # tenant-isolation-allow: service-layer-scoped-via-caller-student-and-academic-year
+            Invoice.objects.filter(
+                school=school, student=student, academic_year=academic_year
+            ).exclude(status=Invoice.Status.VOID)
+        )
+    except (DatabaseError, ValueError, TypeError):
+        return result
+
+    outstanding = zero
+    needed = zero
+    currency = ""
+    blocking = 0
+    for inv in invoices:
+        try:
+            balance = inv.computed_balance or zero
+            if balance <= zero:
+                continue
+            if enrollment_clearance_for_invoice(inv, school=school):
+                continue
+            blocking += 1
+            outstanding += balance
+            if not currency:
+                currency = _resolve_currency_code(inv)
+            # Clearance is a share of the invoice TOTAL, so the gap is measured
+            # against what has already been posted, not against the balance.
+            threshold = _clearance_threshold(school, inv.total_amount or zero)
+            gap = threshold - _ledger_paid_total(inv)
+            if gap > zero:
+                needed += gap
+        except (DatabaseError, ArithmeticError, ValueError, TypeError, AttributeError):
+            continue
+
+    result["outstanding"] = outstanding.quantize(Decimal("0.01"))
+    result["needed_for_clearance"] = min(needed, outstanding).quantize(Decimal("0.01"))
+    result["currency"] = currency
+    result["invoices"] = blocking
+    return result
+
+
+def financial_clearance_block_message(student: StudentProfile, academic_year) -> str:
+    """Human 403 body naming the real numbers, with a safe generic fallback."""
+    try:
+        gap = financial_clearance_shortfall(student, academic_year)
+    except (DatabaseError, ValueError, TypeError):
+        gap = None
+    base = "Report card is not available until fees are cleared."
+    if not gap or gap.get("invoices", 0) <= 0 or gap.get("outstanding", 0) <= 0:
+        return f"{base} Please visit the Bursary."
+    cur = (gap.get("currency") or "").strip()
+    outstanding = gap["outstanding"]
+    needed = gap["needed_for_clearance"]
+    amount = f"{cur} {outstanding}".strip()
+    if needed > 0 and needed < outstanding:
+        unlock = f"{cur} {needed}".strip()
+        return (
+            f"{base} Outstanding balance: {amount}. "
+            f"Paying {unlock} now meets this school's clearance threshold and "
+            "releases the report card. Please visit the Bursary."
+        )
+    return f"{base} Outstanding balance: {amount}. Please visit the Bursary."
+
+
 def student_has_outstanding_returns(student: StudentProfile, academic_year) -> bool:
     """
     True if the student has unreturned resources for this academic year.
@@ -882,9 +979,20 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         == student.specialty_id
     ]
 
-    class_position = _rank_position(class_rankings, student.id)
-    school_position = _rank_position(school_rankings, student.id)
-    specialty_position = _rank_position(specialty_rankings, student.id)
+    # A student with no gradable marks this term has no standing to rank. The
+    # ranking aggregates still contain the student (they are enrolled), so
+    # _rank_position happily returns their index — which printed a confident
+    # "8 / 20" on a report card whose subject table was empty and whose average
+    # was blank. Report no rank instead of inventing one; _rank_display renders
+    # "- / 20", which reads as "not ranked" rather than "ranked 8th".
+    is_rankable = overall_average is not None
+    class_position = _rank_position(class_rankings, student.id) if is_rankable else None
+    school_position = (
+        _rank_position(school_rankings, student.id) if is_rankable else None
+    )
+    specialty_position = (
+        _rank_position(specialty_rankings, student.id) if is_rankable else None
+    )
 
     promotion_status = get_promotion_status(student, academic_year, overall_average)
     class_averages = [aggregate.average for aggregate in class_rankings]
