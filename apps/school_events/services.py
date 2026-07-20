@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.db import models, transaction
@@ -176,3 +177,58 @@ def release_reservation(*, registration: EventRegistration) -> EventRegistration
         new_sold = max(int(tier.sold_quantity or 0) - qty, 0)
         EventTicketTier.objects.filter(pk=tier_id).update(sold_quantity=new_sold)
     return locked
+
+
+def expire_stale_reservations(
+    *,
+    older_than_minutes: int = 45,
+    limit: int = 500,
+    school=None,
+) -> int:
+    """Release unpaid RESERVED holds older than ``older_than_minutes``.
+
+    Metric #13: prevents abandoned holds from permanently consuming capacity
+    when cash settle / PSP confirm never arrives.
+    """
+    minutes = max(int(older_than_minutes or 45), 1)
+    cutoff = timezone.now() - timedelta(minutes=minutes)
+    qs = EventRegistration.objects.filter(
+        status=EventRegistration.Status.RESERVED,
+        created_at__lt=cutoff,
+    ).order_by("created_at")
+    if school is not None:
+        qs = qs.filter(event__school=school)
+    released = 0
+    for registration in qs[: max(int(limit or 500), 1)]:
+        try:
+            release_reservation(registration=registration)
+            released += 1
+        except RegistrationStateError:
+            continue
+    return released
+
+
+def confirm_registration_from_psp(
+    *,
+    registration_id: int,
+    amount=None,
+    method: str = "psp",
+    reference: str = "",
+) -> EventRegistration:
+    """Confirm a RESERVED registration after a successful PSP webhook.
+
+    Looks up by primary key; stores the PSP reference in metadata. Live merchant
+    capture remains EXTERNAL — this only closes the in-repo ticket state machine.
+    """
+    registration = EventRegistration.objects.get(pk=registration_id)
+    confirmed = confirm_registration_payment(
+        registration=registration,
+        amount=amount,
+        method=method or "psp",
+    )
+    if reference:
+        meta = dict(confirmed.metadata or {})
+        meta["psp_reference"] = str(reference)
+        confirmed.metadata = meta
+        confirmed.save(update_fields=["metadata", "updated_at"])
+    return confirmed

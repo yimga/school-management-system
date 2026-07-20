@@ -538,6 +538,70 @@ def scan_teller_placeholder(request: HttpRequest):
     )
 
 
+def _maybe_confirm_event_registration(
+    *,
+    payload: dict,
+    invoice,
+    amount,
+    method: str,
+    reference: str,
+) -> None:
+    """Best-effort: settle event ticket holds linked via metadata (Metric #13).
+
+    Looks for ``event_registration_id`` on the webhook payload, nested metadata,
+    or ``invoice.metadata``. Failures are logged and never roll back a posted
+    Payment — ticket state is secondary to ledger integrity.
+    """
+    metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    data_block = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+    invoice_meta = getattr(invoice, "metadata", None)
+    invoice_meta = invoice_meta if isinstance(invoice_meta, dict) else {}
+    raw = (
+        payload.get("event_registration_id")
+        or payload.get("eventRegistrationId")
+        or metadata.get("event_registration_id")
+        or metadata.get("eventRegistrationId")
+        or data_block.get("event_registration_id")
+        or invoice_meta.get("event_registration_id")
+    )
+    if raw is None or str(raw).strip() == "":
+        return
+    try:
+        registration_id = int(str(raw).strip())
+    except (TypeError, ValueError):
+        logger.warning(
+            "Ignoring non-integer event_registration_id=%r on webhook %s",
+            raw,
+            reference,
+        )
+        return
+    try:
+        from apps.school_events.services import (
+            RegistrationStateError,
+            confirm_registration_from_psp,
+        )
+
+        confirm_registration_from_psp(
+            registration_id=registration_id,
+            amount=amount,
+            method=method or "psp",
+            reference=reference,
+        )
+    except RegistrationStateError as exc:
+        logger.info(
+            "Event registration %s not confirmable after webhook %s: %s",
+            registration_id,
+            reference,
+            exc,
+        )
+    except Exception:
+        logger.exception(
+            "Failed confirming event registration %s after webhook %s",
+            registration_id,
+            reference,
+        )
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def payment_provider_webhook(request: HttpRequest, provider_slug: str):
@@ -906,6 +970,22 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     amount = _extract_amount(data)
     method = _extract_method(data, provider_code)
 
+    # Prefer canonical normalizer fields when top-level extractors miss
+    # provider-specific nests (e.g. M-Pesa Daraja STK CallbackMetadata).
+    if canonical_event is not None:
+        if not invoice_id and canonical_event.invoice_id:
+            invoice_id = canonical_event.invoice_id
+        if (
+            (amount is None or str(amount).strip() in {"", "0", "0.0", "0.00"})
+            and canonical_event.amount_decimal is not None
+            and canonical_event.amount_decimal > 0
+        ):
+            amount = canonical_event.amount_decimal
+        if not reference_id or reference_id == "unknown":
+            if canonical_event.event_id:
+                reference_id = canonical_event.event_id
+
+
     is_valid, error_msg = PaymentValidator.validate_amount(amount)
     if not is_valid:
         _create_webhook_log(
@@ -1028,6 +1108,13 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
                     payment=payment,
                     response_status=200,
                 )
+            _maybe_confirm_event_registration(
+                payload=data,
+                invoice=invoice,
+                amount=amount,
+                method=method or PaymentMethodCode.OTHER,
+                reference=reference_id,
+            )
             logger.info(
                 "Successfully processed webhook from %s: Invoice %s, Payment %s, Amount %s",
                 provider_slug,

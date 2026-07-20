@@ -75,8 +75,10 @@ management commands.
   `amount_due` from `price × quantity` and starts paid tiers at RESERVED with
   `amount_paid = 0`. Free tiers go straight to CONFIRMED. Cash/manual settle and
   unpaid-hold release live in `confirm_registration_payment` /
-  `release_reservation` (tenant admin actions). Live PSP ticket capture remains
-  EXTERNAL; do not describe this app as fully payment-collecting without a rail.
+  `release_reservation` (tenant admin actions). Abandoned holds age out via
+  `expire_stale_reservations` / `manage.py expire_stale_event_reservations`.
+  Successful finance webhooks may settle a hold when payload metadata carries
+  `event_registration_id`. Live PSP ticket capture remains EXTERNAL.
 - **`fundraising_goal` is a stored target, not a tracked total.**
   `event_operations_snapshot` sums `sponsor_commitments__pledged_amount` into
   `sponsorship_total`; nothing compares the two or verifies a pledge was paid.

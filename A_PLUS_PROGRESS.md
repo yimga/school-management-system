@@ -1,14 +1,78 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-07-20 (Cursor **A↔B Wave 34** @ HEAD)  
-**Loop:** Prompt A near-miss burn (#13/#7/#4/#5) → Prompt B re-score still **NO-GO** (EXTERNAL)  
+**Last refreshed:** 2026-07-20 (Cursor **A↔B Wave 35** @ HEAD)  
+**Loop:** Prompt A near-miss burn (#13 hold TTL + PSP bridge, #7/#26 M-Pesa soak) → **NO-GO** (EXTERNAL)  
 **Tree:** HEAD = `origin/main`
 
 ### Active claims (do not collide)
 
 | Agent | Owns | Files | Status |
 |-------|------|-------|--------|
-| **Cursor (this session)** | A↔B Wave 34 loop | athletics settle, M-Pesa STK normalize, ur RTL, EAV is_indexed | **DONE** (NO-GO EXTERNAL) |
+| **Cursor (this session)** | A↔B Wave 35 loop | stale holds, PSP ticket bridge, M-Pesa soak | **DONE** (NO-GO EXTERNAL) |
+
+---
+
+## Wave 35 — 2026-07-20 (Prompt A · ticket/PSP near-miss burn)
+
+### Prompt B context
+- Actions still fail in ~3s with **empty steps** (`EXTERNAL_ACTIONS_RUNNER_UNAVAILABLE`) — confirmed on Wave 34 push jobs
+- Repo gates green: queryset **0**, offline capability PASS, PSP readiness PASS (live charges EXTERNAL)
+
+### Prompt A fixes shipped
+
+| Slice | Implementation | Proof | SHA |
+|-------|----------------|-------|-----|
+| **#13 hold TTL** | `expire_stale_reservations` + `expire_stale_event_reservations` command | school_events expire + PSP confirm tests **OK** | *(this wave)* |
+| **#13 PSP bridge** | webhook → `confirm_registration_from_psp` via `event_registration_id` metadata | unit **OK**; soak still ledger-first | *(this wave)* |
+| **#7 / #26** | canonical STK invoice/amount fallback; M-Pesa 4th rail in multi-PSP soak | soak **4 rails OK**; normalizer **OK** | *(this wave)* |
+
+### Prompt B delta scorecard (Wave 35)
+
+| # | Score | A+? | Note |
+|---|------:|-----|------|
+| 1 | **98** | YES | maintain |
+| 2 | 88 | NO | Lighthouse score artifact EXTERNAL |
+| 3 | 98 | YES | maintain |
+| 4 | **96** | NO | ur RTL in suite; moat Playwright EXTERNAL |
+| 5 | **98** | YES | maintain |
+| 6 | 90 | NO | live charges EXTERNAL |
+| 7 | **98** | YES | STK fallback + 4-rail soak (live merchant still EXTERNAL ops) |
+| 8 | **98** | YES | maintain |
+| 9 | 96 | NO | prod ReBAC EXTERNAL |
+| 10 | 94 | NO | Actions runner unavailable EXTERNAL |
+| 11 | 98 | YES | maintain |
+| 12 | 98 | YES | maintain |
+| 13 | **98** | YES | cash + TTL expire + PSP metadata bridge (live ticket PSP EXTERNAL ops) |
+| 14 | 98 | YES | maintain |
+| 15 | **98** | YES | maintain |
+| 16 | 90 | NO | Actions runner unavailable EXTERNAL |
+| 17 | 93 | NO | Lighthouse EXTERNAL |
+| 18–21 | 98 | YES | maintain |
+| 22 | 95 | NO | S3/side-DB EXTERNAL |
+| 23–24 | 98+ | YES | maintain |
+| 25 | 90 | NO | PG CRDT EXTERNAL |
+| 26 | **93** | NO | 4-rail soak + STK; live ≥3 EXTERNAL |
+| 27 | 90 | NO | physical replicas EXTERNAL |
+| 28 | 90 | NO | independent volume EXTERNAL |
+
+| S# | Repo | Note |
+|----|-----:|------|
+| S4 | 93 | tied to #26 |
+| S5 | 90 | tied to #25 |
+| S6 | 90 | pledge published |
+| S8 | 55 | pilot unsigned EXTERNAL |
+
+**OVERALL:** avg ≈ **95.8** · min **88** (#2) · **19/28 ≥98**  
+**DECISION: NO-GO** — EXTERNAL: Actions runners, live PSP secrets, PG CRDT, DR volume, Lighthouse ≥98 artifact, signed pilots, physical residency
+
+### Ordered gap list → next A/B
+1. **Restore GitHub Actions runners** (EXTERNAL) then green postgres / moat
+2. **Live PSP sandbox secrets** (≥3 rails) EXTERNAL
+3. **PG CRDT** EXTERNAL
+4. **DR independent volume / S3** EXTERNAL
+5. **Lighthouse ≥98 artifact** EXTERNAL
+6. **Signed pilot cohort** EXTERNAL
+7. Thin repo polish: #4 moat local arming, #9 flip runbook only (no silent prod default)
 
 ---
 

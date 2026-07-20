@@ -239,3 +239,45 @@ class SchoolEventsTests(TestCase):
         confirm_registration_payment(registration=paid)
         with self.assertRaises(RegistrationStateError):
             release_reservation(registration=paid)
+
+    def test_expire_stale_reservations_releases_old_holds(self):
+        from datetime import timedelta
+
+        from apps.school_events.services import expire_stale_reservations
+
+        fresh = register_for_tier(
+            event=self.event, tier=self.tier, purchaser=self.user, quantity=1
+        )
+        stale = register_for_tier(
+            event=self.event, tier=self.tier, purchaser=self.user, quantity=2
+        )
+        EventRegistration.objects.filter(pk=stale.pk).update(
+            created_at=timezone.now() - timedelta(minutes=90)
+        )
+        self.tier.refresh_from_db()
+        self.assertEqual(self.tier.sold_quantity, 3)
+
+        released = expire_stale_reservations(older_than_minutes=45)
+        self.assertEqual(released, 1)
+        stale.refresh_from_db()
+        fresh.refresh_from_db()
+        self.tier.refresh_from_db()
+        self.assertEqual(stale.status, EventRegistration.Status.CANCELED)
+        self.assertEqual(fresh.status, EventRegistration.Status.RESERVED)
+        self.assertEqual(self.tier.sold_quantity, 1)
+
+    def test_confirm_registration_from_psp_stores_reference(self):
+        from apps.school_events.services import confirm_registration_from_psp
+
+        registration = register_for_tier(
+            event=self.event, tier=self.tier, purchaser=self.user, quantity=1
+        )
+        confirmed = confirm_registration_from_psp(
+            registration_id=registration.pk,
+            amount=Decimal("25.00"),
+            method="mpesa_daraja",
+            reference="ws_CO_TEST_1",
+        )
+        self.assertEqual(confirmed.status, EventRegistration.Status.CONFIRMED)
+        self.assertEqual(confirmed.metadata.get("psp_reference"), "ws_CO_TEST_1")
+        self.assertEqual(confirmed.metadata.get("payment_method"), "mpesa_daraja")

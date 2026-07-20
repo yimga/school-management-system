@@ -1,6 +1,6 @@
-"""Multi-PSP webhook soak — Paystack + Flutterwave + MTN share exactly-once posting.
+"""Multi-PSP webhook soak — Paystack + Flutterwave + MTN + M-Pesa share exactly-once posting.
 
-Extends the MTN-only soak (``test_webhook_duplicate_soak``) across three rails
+Extends the MTN-only soak (``test_webhook_duplicate_soak``) across four rails
 on the live ``payment_webhook`` path with mocked secrets (no merchant sandbox).
 """
 
@@ -74,22 +74,23 @@ class MultiPspWebhookSoakTests(TestCase):
             invoice_type=Invoice.InvoiceType.AR,
             status=Invoice.Status.ISSUED,
             student=self.student,
-            total_amount=Decimal("300.00"),
-            balance_amount=Decimal("300.00"),
+            total_amount=Decimal("400.00"),
+            balance_amount=Decimal("400.00"),
             issued_date=timezone.now().date(),
         )
         InvoiceLine.objects.create(
             invoice=self.invoice,
             description="Tuition",
             quantity=Decimal("1"),
-            unit_price=Decimal("300.00"),
-            amount=Decimal("300.00"),
+            unit_price=Decimal("400.00"),
+            amount=Decimal("400.00"),
             fee_item=None,
         )
         self.secrets = {
             "paystack": "psk-soak-secret",
             "flutterwave": "flw-soak-secret",
             "mtn_momo": "mtn-soak-secret",
+            "mpesa_daraja": "mpesa-soak-secret",
         }
         for slug, secret in self.secrets.items():
             Integration.objects.create(
@@ -124,7 +125,7 @@ class MultiPspWebhookSoakTests(TestCase):
         )
         self.assertEqual(processed.filter(reference_id=tx_id).count(), 1)
 
-    def test_three_rails_each_replay_exactly_once(self):
+    def test_four_rails_each_replay_exactly_once(self):
         cases = [
             (
                 "paystack",
@@ -173,6 +174,34 @@ class MultiPspWebhookSoakTests(TestCase):
                     "status": "successful",
                 },
             ),
+            (
+                "mpesa_daraja",
+                "ws_CO_multi_mpesa_1",
+                {
+                    # Top-level fields keep extractors happy; Body.stkCallback
+                    # exercises the Daraja normalizer path (Metric #7/#26).
+                    "invoiceId": self.invoice.pk,
+                    "amount": "50.00",
+                    "transaction_id": "ws_CO_multi_mpesa_1",
+                    "status": "successful",
+                    "Body": {
+                        "stkCallback": {
+                            "CheckoutRequestID": "ws_CO_multi_mpesa_1",
+                            "ResultCode": 0,
+                            "ResultDesc": "The service request is processed successfully.",
+                            "CallbackMetadata": {
+                                "Item": [
+                                    {"Name": "Amount", "Value": 50.0},
+                                    {
+                                        "Name": "BillRefNumber",
+                                        "Value": str(self.invoice.pk),
+                                    },
+                                ]
+                            },
+                        }
+                    },
+                },
+            ),
         ]
         for slug, tx_id, payload in cases:
             first = self._post(slug, payload)
@@ -185,10 +214,10 @@ class MultiPspWebhookSoakTests(TestCase):
                 provider=slug, tx_id=tx_id, amount=Decimal("50.00")
             )
 
-        self.assertEqual(Payment.objects.filter(invoice=self.invoice).count(), 3)
+        self.assertEqual(Payment.objects.filter(invoice=self.invoice).count(), 4)
         total = Payment.objects.filter(invoice=self.invoice).aggregate(
             total=Sum("amount")
         )["total"]
-        self.assertEqual(total, Decimal("150.00"))
+        self.assertEqual(total, Decimal("200.00"))
         self.invoice.refresh_from_db()
-        self.assertEqual(self.invoice.balance_amount, Decimal("150.00"))
+        self.assertEqual(self.invoice.balance_amount, Decimal("200.00"))
