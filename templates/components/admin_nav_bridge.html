@@ -11,8 +11,6 @@
    The primary nav row still renders below (line ~83 outside this if/else)
    when PRIMARY_CONTROL_PLANE_NAV is populated.{% endcomment %}
 {% else %}
-<link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}?v=20260720-admin-preview-parity-v8">
-
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="admin-nav-bridge" data-shell-nav-bridge="tenant-admin">
     <div class="admin-nav-bridge__row">

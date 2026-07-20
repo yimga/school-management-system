@@ -4,7 +4,7 @@
 {% block base %}
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 {# Tenant admin uses the same 2-col grid + canvas scroll as manager — never rmc-app-shell--fluid (that stacks sidebar over canvas and locks scroll). #}
-<div class="rmc-app-shell admin-cp-unified-page{% if is_manager_host %} admin-manager-shell control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% endif %}{% if not is_manager_host and is_popup %} rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}" data-rmc-isomorphic-template="tenant-admin-hub" data-rmc-admin-cp-unified="1" data-rmc-admin-approval-build="2026-07-20-v8"{% if is_manager_host %} data-rmc-backoffice-frame="v2" data-copilot="collapsed"{% endif %}>
+<div class="rmc-app-shell admin-cp-unified-page{% if is_manager_host %} admin-manager-shell control-plane-shell cp-surface{% endif %}{% if not is_manager_host and is_popup %} rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}" data-rmc-isomorphic-template="tenant-admin-hub" data-rmc-admin-cp-unified="1" data-rmc-admin-approval-build="2026-07-20-v11"{% if is_manager_host %} data-rmc-backoffice-frame="v2"{% endif %}>
 
         {% comment %} ---------- Grid row 1 — static header (viewport-pinned) ---------- {% endcomment %}
         {% comment %}v3.59.9 (2026-05-22): added data-rmc-control-plane-chrome="1" so
@@ -79,16 +79,6 @@
                 {% endif %}
                 {% endblock admin_breadcrumbs %}
 
-                {% if is_manager_host %}
-                {% block admin_operator_steering %}
-                    {% if not is_popup and request.resolver_match.url_name|default:"" != "index" %}
-                        {% if not cl %}
-                        {% include "components/rmc_operator_surface_strip.html" %}
-                        {% endif %}
-                        {% include "admin/includes/admin_operator_steering_strip.html" %}
-                    {% endif %}
-                {% endblock admin_operator_steering %}
-                {% endif %}
                 <div class="{% if is_manager_host %}cp-page-body cp-admin-page-body{% else %}rmc-tenant-admin-page-body{% endif %} @container px-4 pb-4 rmc-shell-canvas-container" data-rmc-cp-page-body="{% if is_manager_host %}1{% else %}0{% endif %}" data-rmc-backoffice-page-body="1" data-rmc-page-fold-nav="required" data-rmc-admin-canvas-contract="intelligent-full-width" data-rmc-admin-canvas-host="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
 
                     {% comment %} Platform-wide full-width canvas — never container/mx-auto (right-void + cramped). {% endcomment %}
@@ -134,11 +124,7 @@
                     </div>
 
                 </div>
-                {% if is_manager_host %}
-                <div id="admin-manager-sticky-slot" class="admin-manager-sticky-slot">
-                  {% block admin_manager_sticky_actions %}{% endblock %}
-                </div>
-                {% endif %}
+                {% if is_manager_host %}{% block admin_manager_sticky_actions %}{% endblock %}{% endif %}
 
                 {% block footer %}
                 {% if not is_manager_host %}
@@ -149,16 +135,10 @@
             </main>
         </div>
 
+        {% comment %}Django admin owns its page-aware 2.35rem tools column.
+        Global copilot/notebook rails and viewport-pinned civic footers belong
+        to the control plane, not the model workbench.{% endcomment %}
         {% if is_manager_host %}
-        {% include "partials/cockpit/_ai_copilot_rail.html" %}
-        {% if request.user.is_authenticated %}
-        {% include "partials/cockpit/_operator_notebook.html" %}
-        {% endif %}
-        {% endif %}
-
-        {% comment %} ---------- Grid row 3 — static footer (viewport-pinned) ---------- {% endcomment %}
-        {% if is_manager_host %}
-        {% include "partials/rmc_operator_footer_civic.html" %}
         {% include "admin/manager_cp_offcanvas.html" %}
         {% include "partials/cockpit/_activity_ticker_drawer.html" %}
         <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>
@@ -167,6 +147,5 @@
     </div>
     {% if is_manager_host %}
     {% include 'components/back_to_top.html' %}
-    {% include "partials/rmc_platform_chrome_scripts.html" %}
     {% endif %}
 {% endblock %}

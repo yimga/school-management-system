@@ -650,3 +650,142 @@ PLATFORM_ADMIN_SURFACE_BRIDGES: dict[str, dict[str, object]] = {
         "show_in_nav": False,
     },
 }
+
+# Models added to ``platform_admin_site`` after the original bridge inventory.
+# Keep these available from the operator hub without inflating the persistent
+# navigation rail. The key is deliberately the Django ``app_model`` pair so
+# the changelist name and bridge slug remain mechanically auditable.
+_SUPPLEMENTAL_PLATFORM_ADMIN_SURFACES: tuple[tuple[str, str, str], ...] = (
+    ("accounts_relationshiptuple", "Relationship tuples", "bi-people"),
+    ("billing_billingpromotion", "Billing promotions", "bi-tags"),
+    ("billing_countrybillingprofile", "Country billing profiles", "bi-globe"),
+    ("billing_platforminvoice", "Platform invoices", "bi-receipt"),
+    (
+        "billing_processorrevenueshareaccrual",
+        "Processor revenue-share accruals",
+        "bi-cash-coin",
+    ),
+    ("billing_subscriptiongrant", "Subscription grants", "bi-key"),
+    ("billing_usagecap", "Billing usage caps", "bi-speedometer"),
+    ("compliance_auditarchiverecord", "Audit archive records", "bi-archive"),
+    ("compliance_auditlegalhold", "Audit legal holds", "bi-shield-lock"),
+    ("marketplace_apprating", "Marketplace app ratings", "bi-star"),
+    ("marketplace_appversion", "Marketplace app versions", "bi-box-seam"),
+    (
+        "marketplace_publishersignuprequest",
+        "Publisher signup requests",
+        "bi-person-plus",
+    ),
+    ("marketplace_webhookdelivery", "Marketplace webhook deliveries", "bi-send"),
+    (
+        "marketplace_webhookendpoint",
+        "Marketplace webhook endpoints",
+        "bi-broadcast-pin",
+    ),
+    ("migration_cloud_migrationartifact", "Migration artifacts", "bi-archive"),
+    ("migration_cloud_migrationasset", "Migration assets", "bi-file-earmark"),
+    ("migration_cloud_migrationbundle", "Migration bundles", "bi-box"),
+    (
+        "migration_cloud_migrationconflict",
+        "Migration conflicts",
+        "bi-exclamation-diamond",
+    ),
+    (
+        "migration_cloud_migrationidmapping",
+        "Migration ID mappings",
+        "bi-diagram-2",
+    ),
+    (
+        "migration_cloud_migrationprogressevent",
+        "Migration progress events",
+        "bi-activity",
+    ),
+    ("observability_frictionevent", "Friction events", "bi-graph-down"),
+    (
+        "observability_platformstatusincident",
+        "Platform status incidents",
+        "bi-exclamation-triangle",
+    ),
+    (
+        "platform_runtime_operatortenantassignment",
+        "Operator tenant assignments",
+        "bi-person-check",
+    ),
+    (
+        "platform_runtime_platformoperatorinvite",
+        "Platform operator invites",
+        "bi-envelope-plus",
+    ),
+    (
+        "platform_runtime_platformoperatorprofile",
+        "Platform operator profiles",
+        "bi-person-badge",
+    ),
+    (
+        "platform_runtime_platformoperatorpromotionrequest",
+        "Operator promotion requests",
+        "bi-arrow-up-circle",
+    ),
+    (
+        "platform_runtime_scheduledjobheartbeat",
+        "Scheduled job heartbeats",
+        "bi-heart-pulse",
+    ),
+    (
+        "platform_runtime_workflowautopilotapplylog",
+        "Workflow autopilot apply logs",
+        "bi-journal-check",
+    ),
+    (
+        "platform_runtime_workflowautopilotpolicy",
+        "Workflow autopilot policies",
+        "bi-sliders",
+    ),
+    (
+        "platform_runtime_workflowdurationstat",
+        "Workflow duration statistics",
+        "bi-stopwatch",
+    ),
+    ("platform_runtime_workflowrun", "Workflow runs", "bi-play-circle"),
+    (
+        "platform_runtime_workflowslabreach",
+        "Workflow SLA breaches",
+        "bi-alarm",
+    ),
+    (
+        "registries_tenantgradescaleoverride",
+        "Tenant grade-scale overrides",
+        "bi-table",
+    ),
+    (
+        "siteconfig_marketingtestimonial",
+        "Marketing testimonials",
+        "bi-chat-quote",
+    ),
+    (
+        "siteconfig_platformpulsesnapshot",
+        "Platform pulse snapshots",
+        "bi-bar-chart",
+    ),
+)
+
+_supplemental_keys = [key for key, _label, _icon in _SUPPLEMENTAL_PLATFORM_ADMIN_SURFACES]
+_supplemental_overlap = set(_supplemental_keys) & set(PLATFORM_ADMIN_SURFACE_BRIDGES)
+if _supplemental_overlap:
+    raise RuntimeError(
+        f"Duplicate supplemental platform admin bridge keys: {_supplemental_overlap}"
+    )
+
+PLATFORM_ADMIN_SURFACE_BRIDGE_ORDER.extend(_supplemental_keys)
+PLATFORM_ADMIN_SURFACE_BRIDGES.update(
+    {
+        key: {
+            "admin_url": f"admin:{key}_changelist",
+            "label": _(f"{label} (platform admin)"),
+            "description": _DESC,
+            "icon": icon,
+            "show_in_nav": False,
+        }
+        for key, label, icon in _SUPPLEMENTAL_PLATFORM_ADMIN_SURFACES
+    }
+)

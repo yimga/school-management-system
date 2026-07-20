@@ -28,8 +28,68 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260720-admin-preview-parity-v8" not in base_site:
-        errors.append("Django canvas contract link must use the preview-parity-v8 cache bust for deployment visibility")
+    if "?v=20260720-admin-preview-parity-v11" not in base_site:
+        errors.append("Django canvas contract link must use the preview-parity-v11 cache bust for deployment visibility")
+    if base_site.count(contract_link) != 1:
+        errors.append("Django canvas contract must load exactly once")
+    if base_site.count("rmc_theme_experience_dual_plane_styles.html") != 1:
+        errors.append("Django admin theme-experience styles must load exactly once")
+    head_only_partials = (
+        "templates/partials/rmc_theme_meta.html",
+        "templates/partials/rmc_social_meta.html",
+        "templates/partials/rmc_shortcuts_i18n.html",
+        "templates/partials/rmc_platform_chrome_styles.html",
+        "templates/partials/rmc_platform_shell_beautify_styles.html",
+        "templates/partials/rmc_sidebar_disclosure_contract_styles.html",
+        "templates/partials/rmc_security_posture_layout_styles.html",
+        "templates/partials/rmc_dashboard_corporate_os_styles.html",
+        "templates/partials/rmc_authenticated_theme_tail.html",
+        "templates/partials/rmc_theme_experience_dual_plane_styles.html",
+        "templates/partials/rmc_lexicon_meta.html",
+        "templates/partials/rmc_theme_personality_overrides.html",
+    )
+    for partial in head_only_partials:
+        partial_text = _read(partial)
+        if re.search(r"<\s*(?:body|main|div|section|aside|p|span)\b", partial_text, re.I):
+            errors.append(
+                f"{partial} is included from <head> and must not emit body-flow markup"
+            )
+    nav_bridge_source = _read("templates/components/admin_nav_bridge.html")
+    if re.search(r"<link\b[^>]*\bstylesheet\b", nav_bridge_source, re.I):
+        errors.append(
+            "admin_nav_bridge.html must not emit a stylesheet from the body; load it in base_site <head>"
+        )
+    if base_site.count("admin-nav-bridge-tenant.css") != 1:
+        errors.append("base_site must load the tenant nav stylesheet exactly once in <head>")
+    if base_site.count("rmc-tour.css") != 1 or base_site.count(
+        "rmc-portal-row-detail-drawer.css"
+    ) != 1:
+        errors.append("tour and row-drawer styles must each load exactly once from base_site <head>")
+    if "rmc_tour_css_in_head=True" not in base_site or "rmc_row_drawer_css_in_head=True" not in base_site:
+        errors.append("runtime tour/row-drawer partials must be told their CSS is already in <head>")
+    if "cp_context_drawer_shell.html" in base_site:
+        errors.append("Django admin must not render the fixed Context overlay over page-aware tools")
+    if "2026-07-20-v11-host-identity-contrast" not in css:
+        errors.append("canvas contract must seal operator/tenant identity contrast")
+    if "2026-07-20-v11-tenant-index-catalog" not in css:
+        errors.append("canvas contract must seal tenant index catalog layout")
+    if "2026-07-20-v11-responsive-stack" not in css:
+        errors.append("canvas contract must seal tablet/mobile workspaces to one track")
+    shared_catalog_css = _read("static/css/admin-platform-catalog.css")
+    if ".cp-kpi-strip" not in shared_catalog_css or ".cp-catalog-card" not in shared_catalog_css:
+        errors.append("shared admin catalog CSS must style tenant KPI and catalog primitives")
+    if "_ai_copilot_rail.html" in base or "_operator_notebook.html" in base:
+        errors.append("Django admin must use its page-aware tools column, not a second global copilot/notebook rail")
+    if "rmc_operator_footer_civic.html" in base:
+        errors.append("Django admin must not render the viewport-pinned operator civic footer over its workbench")
+    if "admin_operator_steering_strip.html" in base or "rmc_operator_surface_strip" in base:
+        errors.append("admin/base.html must not stack a global operator steering strip above page workspaces")
+    if "admin_change_form_header.html" in change_form:
+        errors.append("change_form.html must not stack the legacy secondary header above the command band")
+    if "admin_changelist_header.html" in change_list:
+        errors.append("change_list.html must not stack the legacy secondary header above the command band")
+    if "data-rmc-admin-preview-url" in change_form:
+        errors.append("shared change_form must not advertise an unimplemented generic preview URL")
     if "2026-07-19-full-fill-page-aware" not in css:
         errors.append("canvas contract must include 2026-07-19-full-fill-page-aware terminal block")
     if "2026-07-20-preview-parity-sot" not in css:

@@ -1,8 +1,10 @@
-"""Tenant-admin registration for the Studio OS Experience module.
+"""Operator-admin registration for the Studio OS Experience approval trail.
 
-Follows the repo idiom (see apps/athletics/admin.py, apps/schoolops/admin.py):
-``@admin.register(Model, site=tenant_admin_site)`` with ``list_select_related``
-covering the FKs in ``list_display`` so the changelist never N+1s.
+The raw approval rows are a cross-tenant governance/audit surface. They belong
+on ``PlatformAdminSite`` only; tenant operators use the genuine Studio
+Experience workflow and must not see a Studio OS model or route in Django
+admin. ``list_select_related`` covers the FKs in ``list_display`` so the
+operator changelist never N+1s.
 
 ``ExperienceRegionApproval`` is an auto-managed proof-before-publish trail: rows
 are written by the ``experience_rollout`` service when an operator approves a
@@ -15,12 +17,12 @@ edit it -- a deliberate deviation from the editable athletics admins above.
 
 from django.contrib import admin
 
-from config.admin import tenant_admin_site
+from config.admin import platform_admin_site
 
 from .models import ExperienceRegionApproval
 
 
-@admin.register(ExperienceRegionApproval, site=tenant_admin_site)
+@admin.register(ExperienceRegionApproval, site=platform_admin_site)
 class ExperienceRegionApprovalAdmin(admin.ModelAdmin):
     list_display = (
         "region_key",

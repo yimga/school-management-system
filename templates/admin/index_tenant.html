@@ -59,7 +59,7 @@
   </div>
   {% endif %}
 
-  <section class="rmc-django-command-band" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="tenant-index-v8" aria-label="{% trans 'School configuration command surface' %}">
+  <section class="rmc-django-command-band" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="tenant-index-v11" aria-label="{% trans 'School configuration command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% firstof SITE.site_name _("School configuration") %}</span>
       <strong>{% trans "Configuration &amp; records" %}</strong>
@@ -71,7 +71,7 @@
       <span>{% blocktrans with n=admin_catalog.model_count %}{{ n }} models{% endblocktrans %}</span>
       {% endif %}
       <span>{% trans "Searchable catalog" %}</span>
-      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-20-v8" title="{% trans 'Deploy proof — approval HTML parity on tenant /admin/' %}">v8 · approval canvas · operator+tenant</span>
+      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-20-v11" title="{% trans 'Deploy proof — approval HTML parity on tenant /admin/' %}">v11 · approval canvas · operator+tenant</span>
     </div>
   </section>
 
@@ -81,7 +81,7 @@
         <div class="tenant-admin-hero-label">{% trans "School configuration engine" %}</div>
         <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
           {% firstof SITE.site_name _("this school") as school_label %}
-          <h1 class="mb-0 truncate">{% blocktrans with school=school_label %}Configure {{ school }}{% endblocktrans %}</h1>
+          <h1 class="mb-0">{% blocktrans with school=school_label %}Configure {{ school }}{% endblocktrans %}</h1>
           {% trans "Guided domains first via Config center and Feature control. The model catalog below is for direct school-scoped records when you need raw row access." as tenant_admin_hero_tip %}
           {% rmc_info_tag title=_("About this engine") body=tenant_admin_hero_tip surface="django-admin" placement="bottom" %}
         </div>

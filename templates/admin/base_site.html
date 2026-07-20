@@ -15,6 +15,9 @@
   {% endif %}
   {# Icons required on tenant /admin/ (index CTAs, nav) even without full Bootstrap CSS. #}
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
+  {% if not is_manager_host %}
+  <link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}?v=20260720-admin-preview-parity-v11">
+  {% endif %}
   <!-- Admin-only design tokens + platform super ultra high-end -->
   {% comment %}
   Set aesthetic-v2 flag on <html> so patterns.css scopes apply. Inline script
@@ -133,9 +136,6 @@
   <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-base-site-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
-  {% if is_manager_host %}{% include "partials/rmc_operator_tools_styles.html" %}{% elif cockpit.tenant_tools.enabled|default:False %}{% include "partials/rmc_tenant_tools_styles.html" %}{% endif %}
-  <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="{% static 'css/phase2-admin-bundle.css' %}">
   {% comment %} Phase G (2026-05-12): platform-wide long-page grammar. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
@@ -157,7 +157,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-modal-overlay-guard.css' %}" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260720-admin-preview-parity-v11">
   {% comment %} v3.58.0 (2026-05-22): /admin/ 200x re-skin overlay — re-styles the existing
      Unfold DOM (dashboard-header, stat-card, app-section, buttons) toward the
      v8 200x preview chrome (dark navy gradient, glass surfaces, Source Serif 4
@@ -167,10 +167,8 @@
   <link rel="stylesheet" href="{% static 'css/admin-200x-shell-overlay.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-v1-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260720-admin-preview-parity-v8">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260720-admin-preview-parity-v11">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-sidebar-luxury-10x.css' %}">
-  {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
   <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
   {% include "partials/rmc_security_posture_layout_styles.html" %}
   {% endif %}
@@ -178,8 +176,8 @@
   {% comment %} v4.10.1: tenant backend gets the same spacious change-form body
      contract as operator admin, but without operator-only rails or links. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260720-admin-preview-parity-v8">
-  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260720-admin-preview-parity-v11">
+  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260720-admin-preview-parity-v11">
   {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
@@ -192,21 +190,13 @@
   <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
   <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/control-plane-skeleton-root.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
-  {% comment %} v3.55.0 (2026-05-21): civic 4-tier centered footer (manager dark variant). {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-cp-operator-footer.css' %}">
-  {% comment %} v4.02.x: centered footer temporal dock (clock + weather dropup). {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-footer-temporal-dock.css' %}">
   {% comment %} v3.58.2 (2026-05-22): platform-wide vertical-density spec. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-surface-spacing-contract.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
   {% comment %} v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic + admin mirror cockpit (adoption wave). {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-mirror.css' %}">
-  <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
   {% endif %}
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
@@ -229,12 +219,14 @@
   {% comment %} v4.10.2: last-loaded Django admin surface contract for both operator
      and tenant backends. Keeps approved canvas-first/full-width rules from being
      undone by older model-specific or Unfold defaults. {% endcomment %}
-  <meta name="rmc-admin-approval-build" content="2026-07-20-v8">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260720-admin-preview-parity-v8">
-  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260720-admin-preview-parity-v8">
+  <meta name="rmc-admin-approval-build" content="2026-07-20-v11">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260720-admin-preview-parity-v11">
+  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260720-admin-preview-parity-v11">
+  <link rel="stylesheet" href="{% static 'css/rmc-tour.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
   {% comment %} Critical preview-parity grid ships with HTML so ManifestStatic hashed CSS
        cannot leave operators on the pre-approval wide-rail layout. Matches approval .ws. {% endcomment %}
-  <style id="rmc-admin-preview-parity-critical" nonce="{{ csp_nonce }}" data-rmc-admin-preview-parity="2026-07-20" data-rmc-admin-approval-build="2026-07-20-v8">
+  <style id="rmc-admin-preview-parity-critical" nonce="{{ csp_nonce }}" data-rmc-admin-preview-parity="2026-07-20" data-rmc-admin-approval-build="2026-07-20-v11">
     /* Beat #cp-main-content 2-col chains — approval HTML is always main|rail|tools. */
     html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content .rmc-admin-workspace,
     html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content [data-rmc-django-workspace="change-form"],
@@ -289,6 +281,26 @@
       font-weight: 850;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+    }
+    @media (max-width: 767.98px) {
+      [data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas],
+      [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="app-index"] .rmc-admin-index-canvas,
+      [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"],
+      [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+      }
+      [data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas] > *,
+      [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] > *,
+      [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] > * {
+        grid-column: 1 / -1 !important;
+      }
+      [data-rmc-shell-root="django-admin"] [data-rmc-django-tools] {
+        position: static !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        flex-direction: row !important;
+      }
     }
   </style>
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','{% if is_manager_host %}control-plane{% else %}tenant{% endif %}');})();</script>
@@ -481,14 +493,12 @@
   {% if is_manager_host %}
   <script src="{% static 'js/rmc-admin-v1-200x.js' %}" defer></script>
   {% endif %}
-  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260720-admin-preview-parity-v8" defer></script>
+  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260720-admin-preview-parity-v11" defer></script>
   {% comment %} Phase G: ⌘K command palette on the admin shell too. {% endcomment %}
   {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
     {% include 'components/rmc_command_palette.html' %}
-    {% include "partials/rmc_assist_dock_labels.html" %}
     {% comment %} v4.00.91: registry SOT island. {% endcomment %}
-    {% include "partials/rmc_assist_dock_slots.html" %}
     {% comment %} v4.00.97 Wave G2: impersonation banner partial — renders only when active. {% endcomment %}
     {% include "assist_dock/partials/impersonation_banner.html" %}
     <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
@@ -511,20 +521,13 @@
     <script src="{% static 'js/rmc-acx-drawer-toggle.js' %}" defer></script>
     <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
     {% include "partials/rmc_platform_chrome_scripts.html" %}
-    <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
-    {% if is_manager_host %}{% include "partials/rmc_operator_tools_scripts.html" %}{% elif cockpit.tenant_tools.enabled|default:False %}{% include "partials/rmc_tenant_tools_scripts.html" %}{% endif %}
     {% if is_manager_host %}{% include "partials/rmc_nav_sidebar_page_data.html" %}{% endif %}
     {% if is_manager_host %}<script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>
     <script src="{% static 'js/rmc-sidebar-intelligence.js' %}" defer></script>{% endif %}
     {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
-    {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
-    <script src="{% static 'js/rmc-workflow-track-headers.js' %}" nonce="{{ csp_nonce }}"></script>
-    <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
   {% endif %}
   {% if is_manager_host %}
-  {% include "partials/cp_context_drawer_shell.html" %}
   <script src="{% static 'js/_pages/rmc-app-shell.js' %}" defer></script>
-  <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
   <script src="{% static 'js/_pages/admin-quickaction.js' %}" defer></script>
   <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
   <script nonce="{{ csp_nonce }}">
@@ -685,15 +688,9 @@
   {% comment %} Phase 1: Bootstrap bundle required for offcanvas Context drawer (data-bs-toggle) — Unfold does not ship it. {% endcomment %}
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
-  {% include "partials/rmc_tour_bootstrap.html" %}
+  {% include "partials/rmc_tour_bootstrap.html" with rmc_tour_css_in_head=True %}
   <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
   {% if request.user.is_authenticated %}{% include 'components/back_to_top.html' %}{% endif %}
-  {% comment %} v4.01.46: terminal dual-plane pass after Unfold/admin late styles. {% endcomment %}
-  {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
-  {% comment %} v4.10.2: terminal repeat so Django canvas contract wins after
-     late preview/theme inline styles too. {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260720-admin-preview-parity-v8">
-  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260720-admin-preview-parity-v8">
-  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260720-admin-preview-parity-v8" defer></script>
-{% include "partials/portal_row_detail_drawer_bundle.html" %}
+  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260720-admin-preview-parity-v11" defer></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" with rmc_row_drawer_css_in_head=True %}
 {% endblock %}

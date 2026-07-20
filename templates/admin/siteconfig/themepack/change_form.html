@@ -2,21 +2,20 @@
 {% load static i18n unfold %}
 
 {% block form_before %}
-  {% comment %} P3: high-churn tenant admin — guided surfaces before raw ThemePack rows. {% endcomment %}
+  {% comment %} Native ThemePack CRUD with tenant-safe guided links. {% endcomment %}
   <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="themepack-cp-escape-heading">
     <h2 id="themepack-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% if is_manager_host %}{% trans "Product control plane" %}{% else %}{% trans "Guided school settings" %}{% endif %}</h2>
-    <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Themes and visual packs are edited in Studio and the theme hub; use this form for advanced or legacy fields." %}</p>
+    <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Edit the complete theme pack here or use the school theme hub for guided color changes." %}</p>
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
       <li><a href="{% url 'siteconfig:theme_colors' %}" class="text-primary-600 hover:underline font-medium">{% trans "Theme & colors" %}</a></li>
-      {% if is_manager_host %}
-      <li><a href="{% url 'studio_os:experience' %}" class="text-primary-600 hover:underline">{% trans "Studio · Experience" %}</a></li>
-      {% endif %}
-      {% if is_manager_host %}
-      <li><a href="{% url 'studio_os:output' %}" class="text-primary-600 hover:underline">{% trans "Studio · Output" %}</a></li>
-      {% endif %}
       <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a></li>
     </ul>
   </section>
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/color-palette-studio.css' %}">
 {% endblock %}
 
 {% block after_field_sets %}

@@ -120,6 +120,7 @@ PLATFORM_ADMIN_BRIDGE_ORDER: list[str] = [
     "platform_event_logs",
     "event_webhook_subscriptions",
     "event_webhook_deliveries",
+    "studio_experience_region_approvals",
 ]
 
 # bridge_key (URL slug) → config
@@ -759,6 +760,15 @@ PLATFORM_ADMIN_BRIDGES.update(
             "label": _("Event webhook deliveries (platform admin)"),
             "description": _("Webhook delivery attempts, outcomes, and retry evidence"),
             "icon": "bi-send-check",
+            "show_in_nav": False,
+        },
+        "studio_experience_region_approvals": {
+            "admin_url": "admin:studio_os_experienceregionapproval_changelist",
+            "label": _("Studio experience region approvals (platform admin)"),
+            "description": _(
+                "Read-only cross-tenant proof-before-publish approval trail"
+            ),
+            "icon": "bi-patch-check",
             "show_in_nav": False,
         },
     }

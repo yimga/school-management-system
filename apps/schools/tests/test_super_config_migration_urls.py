@@ -4,6 +4,7 @@ RUNBOOK_ADMIN_TO_SUPER_MIGRATION final checklist. Requires superuser on manager 
 """
 
 from django.core.cache import cache
+from django_otp.plugins.otp_totp.models import TOTPDevice
 from django.test import TestCase, override_settings
 from django.urls import NoReverseMatch, reverse
 
@@ -19,7 +20,7 @@ _TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 def _admin_changelist_path_tail(admin_url_name: str) -> str:
     """Last path segment of reversed admin changelist URL — must appear in 302 Location."""
-    loc = reverse(str(admin_url_name)).lower()
+    loc = reverse(str(admin_url_name), urlconf="config.manager_urls").lower()
     parts = [p for p in loc.split("/") if p]
     return parts[-1] if parts else ""
 
@@ -35,7 +36,15 @@ class SuperConfigMigrationUrlTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
+        TOTPDevice.objects.create(
+            user=self.user,
+            name="super-config-test",
+            confirmed=True,
+        )
         self.client.force_login(self.user)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
         self.host = "manager.runmycampus.com"
         # SuperAdminRateLimitMiddleware: /super/ limited to 120 req/min per user; clear between tests.
         cache.clear()

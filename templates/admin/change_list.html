@@ -41,9 +41,8 @@
 {% block content %}
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-    {% if is_manager_host and not is_popup %}
-        {% include "admin/includes/admin_changelist_header.html" %}
-    {% endif %}
+    {% comment %}The table panel command band below is the single page heading.
+       Legacy operator steering and secondary headers pushed tables below the fold.{% endcomment %}
     <div class="{% if not is_popup %}rmc-admin-workspace rmc-django-workspace rmc-django-canvas{% endif %}"{% if not is_popup %} data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-changelist" data-rmc-django-workspace="change-list"{% endif %}>
     {% if not is_popup %}
         {% include "admin/includes/admin_workspace_metrics_strip.html" with surface="change-list" %}

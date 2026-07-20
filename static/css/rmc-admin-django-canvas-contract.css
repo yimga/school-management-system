@@ -3779,3 +3779,208 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   position: sticky !important;
   inset: auto !important;
 }
+
+/* 2026-07-20-v11-single-tools-shell
+   Django admin already owns the approval HTML's page-aware tools track inside
+   each workspace. Retire the empty global copilot column left behind by older
+   operator-shell CSS so the canvas consumes every remaining pixel. */
+@media (min-width: 1024px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    > [data-rmc-shell-root="django-admin"].rmc-app-shell {
+    grid-template-columns:
+      var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px))
+      minmax(0, 1fr) !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    > [data-rmc-shell-root="django-admin"].rmc-app-shell > .rmc-app-shell__header {
+    grid-column: 1 / -1 !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    > [data-rmc-shell-root="django-admin"].rmc-app-shell > .rmc-app-shell__sidebar {
+    grid-column: 1 !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    > [data-rmc-shell-root="django-admin"].rmc-app-shell > .rmc-app-shell__canvas {
+    grid-column: 2 !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-shell-root="django-admin"] :is(
+      [data-rmc-admin-index-canvas],
+      [data-rmc-django-workspace="change-form"],
+      [data-rmc-django-workspace="change-list"]
+    ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-shell-root="django-admin"] :is(
+      [data-rmc-admin-index-canvas],
+      [data-rmc-django-workspace="change-form"],
+      [data-rmc-django-workspace="change-list"]
+    ) > * {
+    grid-column: 1 / -1 !important;
+  }
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-shell-root="django-admin"] [data-rmc-django-tools] {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex-direction: row !important;
+  }
+}
+
+/* 2026-07-20-v11-host-identity-contrast
+   The operator topbar is an always-dark chrome surface; theme body tokens can
+   otherwise resolve to dark ink on dark chrome. Tenant sidebar identity sits
+   on the resolved Unfold surface and must follow the effective theme. */
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell .cp-header .cp-brand__wordmark {
+  color: #f8fafc !important; /* off-token-allow: fixed dark operator chrome */
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell .cp-header .cp-brand__crumb {
+  color: #cbd5e1 !important; /* off-token-allow: fixed dark operator chrome */
+}
+
+html:not([data-resolved-theme="dark"]) body.admin-premium-shell
+  :is(.admin-unfold-sidebar-title, #nav-sidebar .admin-unfold-sidebar-title) {
+  color: var(--color-base-900, #0f172a) !important;
+}
+
+html:not([data-resolved-theme="dark"]) body.admin-premium-shell
+  :is(.admin-unfold-sidebar-subtitle, #nav-sidebar .admin-unfold-sidebar-subtitle) {
+  color: var(--color-base-600, #475569) !important;
+}
+
+html[data-resolved-theme="dark"] body.admin-premium-shell
+  :is(.admin-unfold-sidebar-title, #nav-sidebar .admin-unfold-sidebar-title) {
+  color: var(--color-base-100, #f1f5f9) !important;
+}
+
+html[data-resolved-theme="dark"] body.admin-premium-shell
+  :is(.admin-unfold-sidebar-subtitle, #nav-sidebar .admin-unfold-sidebar-subtitle) {
+  color: var(--color-base-400, #94a3b8) !important;
+}
+
+/* 2026-07-20-v11-tenant-index-catalog
+   Tenant index parity: its catalog must not depend on a manager-only 200x
+   stylesheet, and the primary escape must remain legible over school color. */
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+  [data-rmc-admin-index-canvas="tenant"] .tenant-admin-hero {
+  display: block !important;
+  padding: 1rem 1.1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+  [data-rmc-admin-index-canvas="tenant"] .tenant-admin-hero > div {
+  min-width: 0;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+  [data-rmc-admin-index-canvas="tenant"] .tenant-admin-hero > .d-flex {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  flex-wrap: wrap !important;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+  [data-rmc-admin-index-canvas="tenant"] .tenant-admin-hero h1 {
+  margin: 0 !important;
+  text-align: start !important;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+  [data-rmc-admin-index-canvas="tenant"] .tenant-admin-hero-actions {
+  display: flex !important;
+  align-items: center !important;
+  margin-top: 0.75rem;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell #cp-main-content
+  [data-rmc-admin-index-canvas="tenant"] .tenant-admin-cta-primary {
+  background: linear-gradient(
+    135deg,
+    var(--brand-success, #2dd4a8),
+    var(--school-deep, #0f766e)
+  ) !important;
+  color: #04241c !important; /* off-token-allow: approval tenant CTA */
+}
+
+/* 2026-07-20-v11-responsive-stack
+   Earlier high-specificity approval-grid seals appeared after the generic
+   media rule, so index/list pages retained three computed tracks while their
+   tools were hidden. At tablet/mobile widths every workspace child must return
+   to the single usable canvas track. */
+@media (max-width: 1180px) {
+  html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-list
+    .admin-cp-unified-page #cp-main-content
+    .rmc-admin-workspace[data-rmc-django-workspace="change-list"],
+  html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-list
+    [data-rmc-shell-root="django-admin"]
+    .rmc-admin-workspace[data-rmc-django-workspace="change-list"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body.admin-manager-shell
+    .admin-cp-unified-page #cp-main-content :is(
+      [data-rmc-admin-index-canvas="operator"],
+      [data-rmc-django-workspace="change-list"],
+      [data-rmc-django-workspace="change-form"]
+    ),
+  html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+    [data-rmc-shell-root="django-admin"] :is(
+      [data-rmc-admin-index-canvas="tenant"],
+      [data-rmc-django-workspace="change-list"],
+      [data-rmc-django-workspace="change-form"]
+    ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body.admin-manager-shell
+    .admin-cp-unified-page #cp-main-content :is(
+      [data-rmc-admin-index-canvas="operator"],
+      [data-rmc-django-workspace="change-list"],
+      [data-rmc-django-workspace="change-form"]
+    ) > *,
+  html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+    [data-rmc-shell-root="django-admin"] :is(
+      [data-rmc-admin-index-canvas="tenant"],
+      [data-rmc-django-workspace="change-list"],
+      [data-rmc-django-workspace="change-form"]
+    ) > * {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+/* Mobile operator chrome: keep the menu affordance in the free top-right
+   corner instead of laying it over the tenant mark at the left edge. */
+@media (max-width: 991.98px) {
+  html[data-rmc-admin-html="unfold"] body.admin-manager-shell
+    .rmc-platform-header .navbar-toggler {
+    position: absolute !important;
+    top: 0.5rem !important;
+    right: 1rem !important;
+    left: auto !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-command-band__copy
+  > .rmc-django-command-band__title {
+  margin: 0 !important;
+  color: var(--text-primary, inherit) !important;
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem) !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.01em !important;
+}

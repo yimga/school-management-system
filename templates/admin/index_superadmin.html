@@ -33,7 +33,7 @@
   </div>
   {% endif %}
 
-  <section class="rmc-django-command-band mx-4 mt-3" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="operator-index-v8" aria-label="{% trans 'Operator admin command surface' %}">
+  <section class="rmc-django-command-band mx-4 mt-3" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="operator-index-v11" aria-label="{% trans 'Operator admin command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% trans "Platform Backoffice" %}</span>
       <strong>{% trans "Operator catalog & raw records" %}</strong>
@@ -43,7 +43,7 @@
       <span>{% trans "Operator scoped" %}</span>
       {% if admin_catalog %}<span>{% blocktrans with n=admin_catalog.model_count %}{{ n }} models{% endblocktrans %}</span>{% endif %}
       <span>{% trans "Searchable catalog" %}</span>
-      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-20-v8" title="{% trans 'Deploy proof — approval HTML parity on operator /admin/' %}">v8 · approval canvas · operator+tenant</span>
+      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-20-v11" title="{% trans 'Deploy proof — approval HTML parity on operator /admin/' %}">v11 · approval canvas · operator+tenant</span>
     </div>
   </section>
 
@@ -52,7 +52,7 @@
   <section class="cp-hero" id="rmc-admin-sec-hero" data-rmc-section-anchor>
     <div class="cp-hero__eyebrow">{% trans "Platform Backoffice" %}</div>
     <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
-      <h1 class="cp-hero__title mb-0 truncate">{% trans "Operator catalog & raw records" %}</h1>
+      <h1 class="cp-hero__title mb-0">{% trans "Operator catalog & raw records" %}</h1>
       {% blocktrans trimmed asvar admin_hero_tip %}Every registered model, jump-to-changelist, audit log, and raw CRUD surface. Guided work stays in /super/, Config center, and Studio — raw records live here for the moments those don't fit.{% endblocktrans %}
       {% rmc_info_tag title=_("About this catalog") body=admin_hero_tip|striptags surface="django-admin" placement="bottom" %}
     </div>
