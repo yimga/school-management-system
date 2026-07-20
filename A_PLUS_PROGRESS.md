@@ -18,9 +18,9 @@
 
 | Slice | Implementation | Proof | SHA |
 |-------|----------------|-------|-----|
-| **#25 CRDT/offline** | `behavior_incident` → `Incident`; 7d fees+behavior server + IndexedDB e2e | multiday **OK**; Playwright **2/2**; coverage PASS | *(this wave)* |
-| **#4 Report cards** | `verify_report_card_moat_local_proof.py` scaffold (Actions still EXTERNAL) | `REPORT_CARD_MOAT_SCAFFOLD_PASS` | *(this wave)* |
-| **#13 docs** | README capacity claims match `register_for_tier` lock/F() | honesty | *(this wave)* |
+| **#25 CRDT/offline** | `behavior_incident` → `Incident`; 7d fees+behavior server + IndexedDB e2e | multiday **OK**; Playwright **2/2**; coverage PASS | `7fb0df97d` |
+| **#4 Report cards** | `verify_report_card_moat_local_proof.py` scaffold (Actions still EXTERNAL) | `REPORT_CARD_MOAT_SCAFFOLD_PASS` | `7fb0df97d` |
+| **#13 docs** | README capacity claims match `register_for_tier` lock/F() | honesty | `7fb0df97d` |
 
 ### Prompt B delta scorecard (Wave 36)
 
