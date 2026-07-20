@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Migration Cloud multi-country UAT + student re-apply (batch 1771 - 2026-07-20)
+
+**A. Scope:** End-to-end Migration Cloud on operator + tenant profiles across multiple countries and intake methods; fix every finding.
+
+**B. Shipped:** UAT harness `scripts/uat_migration_cloud_multi_country.py`; schools CM/NG/US/GH; CSV+ZIP ingest/advance/apply; student lander upsert key fix (`student_code` first, no defaults overwrite); orchestrator `_json_safe` for MigrationRun audit payloads.
+
+**C. Proof:** UAT PASS=72 FAIL=0 (`var/uat-migration-cloud-multi-country.json`); `test_student_lander_reapply_upsert` OK.
+
+**D. Honest:** Portal mirror remains plan-gated (403); tenant owners correctly 403 on `/super/migration/*`. Counsel MAA/FACTS and prod forensic still EXTERNAL. URL/SFTP/OAuth intakes not exercised in this HTTP matrix (adapters covered by existing unit suites).
+
+**E. Files:** `landers/student_lander.py`, `orchestrator.py`, UAT script + reapply test, SOT/log.
+
+**F. Next:** Optional expand UAT to PDF/`api_pull`/canonical template download; commit when asked.
+
 ## Slice — Offline MC upload + counsel shovel-ready (batch 1770 - 2026-07-20)
 
 **A. Scope:** Close offline Migration Cloud upload (not in capability matrix) and make MAA v2 / FACTS-Skyward counsel flips shovel-ready without fabricating PDFs.
