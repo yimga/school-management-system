@@ -1045,10 +1045,12 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   transform: none !important;
 }
 
+/* Never overflow-wrap:anywhere on actions — causes vertical letter-strip save bleed. */
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
   .rmc-django-action {
-  max-width: 100%;
-  overflow-wrap: anywhere;
+  max-width: none;
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
@@ -1365,8 +1367,14 @@ html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-f
   gap: clamp(0.75rem, 1vw, 1rem) !important;
 }
 
+/* form-row only — bare Unfold .flex wrappers must NOT get half-width span 6. */
 html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body > :is(
-  .form-row,
+  .form-row
+) {
+  grid-column: span 6 !important;
+  min-width: 0 !important;
+}
+html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body > :is(
   .flex,
   fieldset,
   .module,
@@ -1376,7 +1384,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-f
   .tabular,
   .inline-group
 ) {
-  grid-column: span 6 !important;
+  grid-column: 1 / -1 !important;
   min-width: 0 !important;
 }
 
@@ -1838,8 +1846,14 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-shell-root="django
   gap: clamp(0.75rem, 1vw, 1rem) !important;
 }
 
+/* form-row only — bare Unfold .flex wrappers must NOT get half-width span 6. */
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body > :is(
-  .form-row,
+  .form-row
+) {
+  grid-column: span 6 !important;
+  min-width: 0 !important;
+}
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body > :is(
   .flex,
   fieldset,
   .module,
@@ -1849,7 +1863,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-shell-root="django
   .tabular,
   .inline-group
 ) {
-  grid-column: span 6 !important;
+  grid-column: 1 / -1 !important;
   min-width: 0 !important;
 }
 
@@ -3458,4 +3472,16 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   grid-row: 3 !important;
   align-self: start !important;
   min-height: 0 !important;
+}
+
+/* ============================================================
+   2026-07-20-action-nowrap: seal Save/Delete against letter-strip bleed.
+   ============================================================ */
+[data-rmc-shell-root="django-admin"] .rmc-django-action,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) .rmc-django-action {
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  white-space: nowrap !important;
+  max-width: none !important;
+  width: auto !important;
 }

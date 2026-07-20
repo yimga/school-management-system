@@ -28,8 +28,8 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260720-admin-leftovers" not in base_site:
-        errors.append("Django canvas contract link must use the tenant-audit cache bust for deployment visibility")
+    if "?v=20260720-admin-action-nowrap" not in base_site:
+        errors.append("Django canvas contract link must use the action-nowrap cache bust for deployment visibility")
     if "2026-07-19-full-fill-page-aware" not in css:
         errors.append("canvas contract must include 2026-07-19-full-fill-page-aware terminal block")
 
@@ -38,6 +38,10 @@ def main() -> int:
         errors.append("canvas contract must NOT use grid-row span 20/40 on [data-rmc-django-tools] (stripe bug)")
     if "2026-07-19-tools-no-span-explode" not in css:
         errors.append("canvas contract must include 2026-07-19-tools-no-span-explode terminal seal")
+    if "2026-07-20-action-nowrap" not in css:
+        errors.append("canvas contract must include 2026-07-20-action-nowrap save-bleed seal")
+    if re.search(r"\.rmc-django-action\s*\{[^}]*overflow-wrap:\s*anywhere", css):
+        errors.append("canvas contract must not set overflow-wrap:anywhere on .rmc-django-action")
     if "a.skip-link:not(:focus)" not in css and "a.skip-link:not(:focus):not(:focus-visible)" not in css:
         errors.append("canvas contract must clip a.skip-link until focus (not only skip-link-theme)")
     # Tenant /admin/ does not load Bootstrap — skip links must use design-tokens .skip-link.

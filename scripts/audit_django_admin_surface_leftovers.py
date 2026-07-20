@@ -128,6 +128,17 @@ def main() -> int:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "tools span 20/40 stripe bug regress")
     if "2026-07-19-tools-no-span-explode" not in css:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "tools-no-span-explode seal missing")
+    if "2026-07-20-action-nowrap" not in css:
+        add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "action-nowrap save-bleed seal missing")
+    if re.search(r"\.rmc-django-action\s*\{[^}]*overflow-wrap:\s*anywhere", css):
+        add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, ".rmc-django-action must not use overflow-wrap:anywhere (save bleed)")
+    # Bare Unfold .flex wrappers must not share form-row span-6 half-width
+    if re.search(
+        r"\.rmc-django-form-body\s*>\s*:is\([^)]*\.flex[^)]*\)\s*\{[^}]*grid-column:\s*span\s*6",
+        css,
+        re.S,
+    ):
+        add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "form-body > .flex must not use grid-column span 6")
     if "a.skip-link:not(:focus)" not in css:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "skip-link clip until focus missing")
 
