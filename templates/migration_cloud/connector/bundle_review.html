@@ -207,6 +207,12 @@ any locale can't break the inline script's string literals.
             <td>
               {% if row.detected_domain %}
                 <strong>{{ row.detected_domain }}</strong>{% if row.confidence_pct is not None %} <span class="text-muted small">({{ row.confidence_pct }}%)</span>{% endif %}
+                {% if row.dfv_only %}
+                <div class="small text-muted mt-1">
+                  <span class="rmc-badge">{% trans "stored as custom records" %}</span>
+                  {% trans "This type does not appear in Payroll / Compliance lists yet — it is kept safely as custom field data." %}
+                </div>
+                {% endif %}
               {% else %}
                 <span class="text-muted">{% trans "auto-detecting…" %}</span>
               {% endif %}
@@ -242,11 +248,19 @@ any locale can't break the inline script's string literals.
 
 <section class="rmc-card" aria-labelledby="mc-import-heading">
   <h2 id="mc-import-heading" class="h5">{% trans "Import into my school" %}</h2>
+  <div class="rmc-alert-banner rmc-alert-banner--warning mb-3" role="status">
+    <div class="rmc-alert-banner__body">
+      <p class="rmc-alert-banner__title mb-1">{% trans "Not in your school yet" %}</p>
+      <p class="rmc-alert-banner__message mb-0">
+        {% trans "Uploading and detection only prepare the files. Use Preview first, then Import to write records into your school." %}
+      </p>
+    </div>
+  </div>
   <p class="text-muted small">{% trans "Preview first — nothing is written. Then confirm to import. Records that don't pass validation are held for review, never dropped." %}</p>
   <form method="post" action="{{ apply_url }}" class="d-flex gap-2 flex-wrap">
     {% csrf_token %}
     <button type="submit" name="confirm" value="" class="btn btn-outline-primary">{% trans "Preview import (dry-run)" %}</button>
-    <button type="submit" name="confirm" value="1" class="btn btn-primary">{% trans "Import into my school" %}</button>
+    <button type="submit" name="confirm" value="1" class="btn btn-primary" data-mc-live-import="1">{% trans "Import into my school" %}</button>
     <a class="btn btn-link" href="{{ upload_url }}">{% trans "Upload more files" %}</a>
     <a class="btn btn-link" href="{{ home_url }}">{% trans "Back to Migration Cloud" %}</a>
   </form>

@@ -11,6 +11,16 @@
   {% phase8_dashboard_declaration "accounts/migration_wizard.html" %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 
+  <div class="rmc-alert-banner rmc-alert-banner--warning mb-3" role="status">
+    <div class="rmc-alert-banner__body">
+      <p class="rmc-alert-banner__title mb-1">{% trans "Prefer Migration Cloud" %}</p>
+      <p class="rmc-alert-banner__message mb-2">
+        {% trans "This legacy wizard is kept for older runs. For new school imports, use Migration Cloud — upload, detect, then Import into my school." %}
+      </p>
+      <a class="rmc-alert-banner__cta" href="/school/setup/migration-cloud/upload/">{% trans "Open Migration Cloud upload" %}</a>
+    </div>
+  </div>
+
   <div class="rmc-banner border mb-3" role="region" aria-label="{% trans 'Related ecosystem workflows' %}">
     <div class="small fw-semibold mb-2">{% trans "Staged rollout & safety" %}</div>
     <p class="small text-muted mb-2">{% trans "Validate with dry run, review the scorecard, then commit. Use run history for audit; interop and API Center cover connectors and webhooks." %}</p>

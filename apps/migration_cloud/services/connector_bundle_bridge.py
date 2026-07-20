@@ -17,11 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 def _school_schema_name(school) -> str:
-    return (
-        getattr(school, "schema_name", None)
-        or getattr(school, "slug", None)
-        or "public"
-    )
+    from apps.migration_cloud.schema_binding import resolve_school_schema_name
+
+    # Never fall back to slug — production schemas are s_<uuid-hex>, not slug.
+    return resolve_school_schema_name(school) or "public"
 
 
 def write_staging_csv(

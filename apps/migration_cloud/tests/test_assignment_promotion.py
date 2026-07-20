@@ -164,10 +164,11 @@ class AssignmentModelShapeTests(SimpleTestCase):
 
 def _make_ctx(school):
     from apps.migration_cloud.landers.base import LanderContext
+    from apps.migration_cloud.schema_binding import resolve_school_schema_name
 
     return LanderContext(
         school=school,
-        schema_name=getattr(school, "schema_name", "public"),
+        schema_name=resolve_school_schema_name(school) or "public",
         bundle_id=0,
         artifact_id=0,
         dry_run=False,

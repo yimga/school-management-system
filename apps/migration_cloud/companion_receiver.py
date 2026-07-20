@@ -59,6 +59,7 @@ from .models import (
 # v3.38.0 Agent 5 — append-only audit emissions.
 from .models_audit import MigrationCloudAuditEvent as _AuditEvent
 from .reliability import idempotent_post, safe_500
+from .schema_binding import resolve_school_schema_name
 from .services import companion_keypair as _companion_keypair
 from .services.maa_text import (
     MAA_TEXT_DRAFT_VERSIONS,
@@ -635,6 +636,7 @@ class CompanionUploadView(LoginRequiredMixin, View):
 
                 bundle = MigrationBundle.objects.create(  # tenant-isolation-allow: companion-receiver-create-bundle-for-resolved-tenant
                     school=school,
+                    schema_name=resolve_school_schema_name(school),
                     label=f"Companion upload — {vendor_source}",
                     intake_method=IntakeMethod.FILE_UPLOAD,
                     intake_source_uri=f"companion://{vendor_source}/{idem_key[:16]}",
@@ -851,7 +853,8 @@ class CompanionDecryptHookView(LoginRequiredMixin, View):
                 code="decrypt_failed",
             )
 
-        # Mark blob decrypted; persist plaintext as the bundle's intake artifact.
+        # Mark blob decrypted; persist plaintext as the bundle's intake artifact
+        # via BundleIngestionService, then advance toward MAPPED (P0-B).
         receipt.ciphertext_blob.decrypted_at = timezone.now()
         receipt.ciphertext_blob.save(update_fields=["decrypted_at"])
 
@@ -863,15 +866,41 @@ class CompanionDecryptHookView(LoginRequiredMixin, View):
             receipt.key_version = opened_with_version[:16]
             receipt.save(update_fields=["key_version"])
 
-        bundle.intake_source_uri = f"{bundle.intake_source_uri} (decrypted)"
-        bundle.status = BundleStatus.INGESTING
-        bundle.started_at = bundle.started_at or timezone.now()
-        bundle.save(update_fields=["intake_source_uri", "status", "started_at", "updated_at"])
+        plaintext_size = len(plaintext)
+        try:
+            from .services.companion_plaintext_ingest import ingest_companion_plaintext
 
+            ingest_summary = ingest_companion_plaintext(
+                bundle=bundle, plaintext=plaintext
+            )
+        except Exception as exc:  # noqa: BLE001 — never echo plaintext in error
+            logger.exception(
+                "migration_cloud.companion_receiver: plaintext_ingest_failed "
+                "bundle_id=%s receipt_id=%s err=%s",
+                bundle.pk,
+                receipt.pk,
+                type(exc).__name__,
+            )
+            # Drop local reference; do not return content.
+            plaintext = b""
+            return _json_error(
+                "decrypted but could not register intake artifacts",
+                status=500,
+                code="ingest_after_decrypt_failed",
+            )
+        finally:
+            # Best-effort: drop the name binding so we never echo plaintext.
+            plaintext = b""
+
+        bundle.refresh_from_db()
         logger.info(
             "migration_cloud.companion_receiver: decrypted bundle_id=%s receipt_id=%s "
-            "plaintext_size=%s",
-            bundle.pk, receipt.pk, len(plaintext),
+            "plaintext_size=%s artifacts_registered=%s status=%s",
+            bundle.pk,
+            receipt.pk,
+            plaintext_size,
+            ingest_summary.get("artifacts_registered"),
+            bundle.status,
         )
 
         # We do NOT echo plaintext to the response. Caller picks up the
@@ -881,7 +910,9 @@ class CompanionDecryptHookView(LoginRequiredMixin, View):
                 "ok": True,
                 "bundle_id": bundle.pk,
                 "receipt_id": receipt.pk,
-                "plaintext_size": len(plaintext),
+                "plaintext_size": plaintext_size,
+                "artifacts_registered": ingest_summary.get("artifacts_registered", 0),
+                "status": bundle.status,
                 "decrypted_at": receipt.ciphertext_blob.decrypted_at.isoformat(),
                 "next_step_url": _next_step_url(bundle.pk),
             },

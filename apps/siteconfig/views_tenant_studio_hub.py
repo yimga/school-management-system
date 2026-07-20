@@ -151,7 +151,14 @@ def school_studio_redirect_setup(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def school_studio_redirect_migration(request: HttpRequest) -> HttpResponse:
-    return HttpResponseRedirect(_tenant_reverse("school_setup_imports"))
+    # P1-Nav: Studio "Migration" deep-links to Migration Cloud upload (connectionless),
+    # not the older imports setup page — so tenants find the rail that lands data.
+    try:
+        return HttpResponseRedirect(
+            reverse("migration_cloud_connector:upload", urlconf="config.tenant_urls")
+        )
+    except NoReverseMatch:
+        return HttpResponseRedirect(_tenant_reverse("school_setup_imports"))
 
 
 @login_required

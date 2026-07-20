@@ -15,6 +15,10 @@ tenant host, since the connector namespace is nested under super/portal too).
   <p class="text-muted mb-3">
     {% blocktrans %}Drop an export from your current system — Excel, CSV, TSV, JSON, PDF, or a ZIP of several files. You don't need to connect or authorise anything. We automatically detect each file's format and work out what it contains — students, staff, guardians, attendance, grades, fees and more — then let you review before anything is written to your school.{% endblocktrans %}
   </p>
+  <p class="small mb-3">
+    <strong>{% trans "Important:" %}</strong>
+    {% trans "Upload does not import. After detection you must confirm “Import into my school” before any records appear in Students, Staff, or other lists." %}
+  </p>
 
   <form method="post" enctype="multipart/form-data" action="{{ upload_url }}">
     {% csrf_token %}

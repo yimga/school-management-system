@@ -38,6 +38,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from apps.platform_runtime.workflow_tracker import track_workflow
+from apps.migration_cloud.schema_binding import resolve_school_schema_name
 
 from .ai_bridge import AIProposal, record_operator_feedback, remember_mapping_decision
 from .reliability import (
@@ -356,7 +357,7 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
                 idempotency_key=idem_key,
                 defaults={
                     "school_id": school_id,
-                    "schema_name": getattr(school, "schema_name", "") or "",
+                    "schema_name": resolve_school_schema_name(school),
                     "label": form["label"] or f"{method} (staged)",
                     "intake_method": method,
                     "intake_source_uri": intake_source_uri,
@@ -380,7 +381,7 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
                 intake_method=method,
                 handle=handle,
                 school_id=school_id,
-                schema_name=getattr(school, "schema_name", "") or "",
+                schema_name=resolve_school_schema_name(school),
                 label=form["label"],
                 source_hint=form["source_hint"],
                 sla_tier=form["sla_tier"],
@@ -1654,7 +1655,7 @@ class MigrationCloudBindSchoolView(LoginRequiredMixin, View):
                 school = None
             else:
                 bundle.school = school
-                bundle.schema_name = getattr(school, "schema_name", "") or bundle.schema_name
+                bundle.schema_name = resolve_school_schema_name(school) or bundle.schema_name
                 bundle.save(update_fields=["school", "schema_name", "updated_at"])
                 messages.success(
                     request,

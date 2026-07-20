@@ -65,15 +65,19 @@ class BuildVerificationTests(SimpleTestCase):
 
     def test_unverified_domain_is_dash_not_drift(self):
         # A domain with no model mapping reports no visible count — shown as "—",
-        # never mis-flagged as drift.
+        # never mis-flagged as drift. payroll/compliance stay DFV-only.
         v = _build_verification(self._bundle([
-            {"domain": "attendance", "source_count": 50, "target_created": 50,
+            {"domain": "payroll", "source_count": 50, "target_created": 50,
              "target_updated": 0, "target_visible_count": None},
         ]))
         self.assertTrue(v["ok"])
         self.assertEqual(v["rows"][0]["visible_label"], "—")
         self.assertFalse(v["rows"][0]["drift"])
 
+    def test_spec_covers_extended_domains(self):
+        d = domains_with_verification()
+        for expected in ("attendance", "grades", "behavior", "sections", "health"):
+            self.assertIn(expected, d)
     def test_updates_only_never_drift(self):
         # created=0 (all updates) can never trip the "created not present" check.
         v = _build_verification(self._bundle([

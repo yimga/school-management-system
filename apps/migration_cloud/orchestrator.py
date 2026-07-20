@@ -121,6 +121,17 @@ def _apply_bundle_inner(
             f"Bundle {bundle_id} is in status {bundle.status}; must be MAPPED to apply."
         )
 
+    from .schema_binding import ensure_bundle_schema_name
+
+    effective_schema = ensure_bundle_schema_name(bundle)
+    if bundle.school_id and not effective_schema:
+        raise ValueError(
+            f"Bundle {bundle_id} is bound to school_id={bundle.school_id} but has no "
+            "tenant schema_name — refuse apply so rows are not written off-tenant. "
+            "Re-bind the school or repair Client.schema_name, then retry."
+        )
+    bundle.refresh_from_db()
+
     bundle.mark_status(BundleStatus.APPLYING)
     bundle.refresh_from_db()
     _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="APPLYING",
@@ -360,10 +371,15 @@ def _build_jobs(bundle: MigrationBundle) -> list[_ArtifactJob]:
             continue
         mappings = per_artifact_mappings.get(artifact.path_within_bundle) or []
         domain_entry = per_artifact_domain.get(artifact.path_within_bundle) or {}
-        domain = domain_entry.get("domain", "custom_fields")
+        # Tenant/operator per-file override on the artifact row wins over discovery.
+        assigned = (getattr(artifact, "assigned_domain", None) or "").strip()
+        domain = assigned or domain_entry.get("domain", "custom_fields")
         if not mappings:
-            # If U4 never ran for this artifact, default everything to custom_fields.
-            domain = "custom_fields"
+            # If U4 never ran for this artifact, default everything to custom_fields
+            # unless the tenant explicitly assigned a domain (still land via that
+            # lander with empty mappings → lander quarantines bad rows).
+            if not assigned:
+                domain = "custom_fields"
         jobs.append(_ArtifactJob(artifact=artifact, domain=domain, mappings=mappings))
     return jobs
 

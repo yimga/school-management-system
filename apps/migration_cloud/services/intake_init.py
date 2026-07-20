@@ -11,6 +11,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.migration_cloud.models import BundleStatus, IntakeMethod, MigrationBundle, SlaTier
+from apps.migration_cloud.schema_binding import resolve_school_schema_name
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ def bootstrap_migration_bundle(
             idempotency_key=idem,
             defaults={
                 "school_id": school_id,
-                "schema_name": getattr(school, "schema_name", "") or "",
+                "schema_name": resolve_school_schema_name(school),
                 "label": label,
                 "intake_method": IntakeMethod.FILE_UPLOAD,
                 "source_hint": _SOURCE_TO_HINT.get(source_key, source_key),

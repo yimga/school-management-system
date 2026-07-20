@@ -37,6 +37,23 @@ _DOMAIN_MODELS: dict[str, tuple[str, str]] = {
     "staff": ("apps.people.models", "TeacherProfile"),
     "guardians": ("apps.people.models", "StudentGuardian"),
     "finance": ("apps.finance.models", "Invoice"),
+    # P1-Verify — extend beyond the original four so post-apply "visible in school"
+    # covers the main landable domains tenants actually check.
+    "attendance": ("apps.academics.models", "Attendance"),
+    "grades": ("apps.evals.models", "Evaluation"),
+    "behavior": ("apps.academics.models", "Incident"),
+    "sections": ("apps.academics.models", "Classroom"),
+    "health": ("apps.schoolops.models", "HealthRecord"),
+    "events": ("apps.school_events.models", "SchoolEvent"),
+    "library": ("apps.schoolops.models", "LibraryItem"),
+    "transport": ("apps.schoolops.models", "Route"),
+    "hostel": ("apps.schoolops.models", "HostelRoom"),
+    "cafeteria": ("apps.schoolops.models", "CanteenMeal"),
+    "transcripts": ("apps.people.models", "TranscriptVaultItem"),
+    "athletics_teams": ("apps.athletics.models", "Team"),
+    "transport_assignments": ("apps.schoolops.models", "TransportAssignment"),
+    "hostel_assignments": ("apps.schoolops.models", "HostelAssignment"),
+    "cafeteria_assignments": ("apps.schoolops.models", "MealPlanBalance"),
 }
 
 

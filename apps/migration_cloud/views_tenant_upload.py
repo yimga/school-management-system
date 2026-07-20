@@ -38,6 +38,7 @@ from django.shortcuts import redirect, render
 from django.views import View
 
 from . import defaults as mc_defaults
+from .schema_binding import resolve_school_schema_name
 from .accelerators.runmycampus_canonical import (
     canonical_domain_choices,
     is_valid_canonical_domain,
@@ -185,6 +186,44 @@ def _advance(bundle_id) -> None:
         logger.exception("mc tenant upload: inline advance failed for %s", bundle_id)
 
 
+def _sync_tenant_domain_overrides(bundle) -> None:
+    """Push per-file tenant corrections into the pipeline override map and remount.
+
+    Tenant review writes ``artifact.assigned_domain``, but ``advance_bundle`` only
+    honors ``discovery_summary.operator_assigned_domains``, and is a no-op once
+    status is already ``MAPPED``. Sync the map and rewind to ``PROFILED`` so
+    classify + map re-run with the tenant's tags (P1-Override).
+    """
+    summary = dict(bundle.discovery_summary or {})
+    operator = dict(summary.get("operator_assigned_domains") or {})
+    for artifact in bundle.artifacts.all():
+        tag = (artifact.assigned_domain or "").strip()
+        path_key = artifact.path_within_bundle or ""
+        name_key = artifact.filename or ""
+        if tag and is_valid_canonical_domain(tag):
+            if path_key:
+                operator[path_key] = tag
+            if name_key:
+                operator[name_key] = tag
+        else:
+            if path_key:
+                operator.pop(path_key, None)
+            if name_key:
+                operator.pop(name_key, None)
+    summary["operator_assigned_domains"] = operator
+    bundle.discovery_summary = summary
+    update_fields = ["discovery_summary", "updated_at"]
+    if bundle.status in (
+        BundleStatus.CLASSIFIED,
+        BundleStatus.MAPPED,
+        BundleStatus.READY,
+    ):
+        # Rewind so Phase U3/U4 run again with operator tags.
+        bundle.status = BundleStatus.PROFILED
+        update_fields.append("status")
+    bundle.save(update_fields=update_fields)
+
+
 def _progress_payload(bundle) -> dict:
     """Live auto-detection progress for the review-page poller.
 
@@ -328,7 +367,7 @@ class TenantMigrationUploadView(_TenantAdminWriteRequiredMixin, View):
             intake_method=IntakeMethod.FILE_UPLOAD,
             handle=handle,
             school_id=school.pk,
-            schema_name=getattr(school, "schema_name", "") or "",
+            schema_name=resolve_school_schema_name(school),
             label=(request.POST.get("label") or "").strip() or f"Upload — {len(files)} file(s)",
             source_hint=(request.POST.get("source_hint") or "").strip(),
             sla_tier=SlaTier.SMALL,
@@ -348,8 +387,9 @@ class TenantMigrationUploadView(_TenantAdminWriteRequiredMixin, View):
         _advance(result.bundle_id)
         messages.success(
             request,
-            f"Uploaded {result.artifacts_registered} file(s). We auto-detected the "
-            "format and the kind of records in each — review below, then import.",
+            f"Uploaded {result.artifacts_registered} file(s). Detection is running — "
+            "review the results next. Nothing is in your school until you click "
+            "“Import into my school.”",
         )
         return redirect(_connector_reverse(request, "bundle-review", bundle_id=result.bundle_id))
 
@@ -389,6 +429,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                 artifact.save(update_fields=["assigned_domain", "updated_at"])
                 changed += 1
         if changed:
+            _sync_tenant_domain_overrides(bundle)
             _advance(bundle.pk)
             messages.success(request, f"Updated {changed} file(s) and re-detected.")
         else:
@@ -400,6 +441,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         for artifact in bundle.artifacts.all():
             candidates = artifact.inferred_domain if isinstance(artifact.inferred_domain, list) else []
             top = candidates[0] if candidates and isinstance(candidates[0], dict) else {}
+            detected = (artifact.assigned_domain or top.get("domain", "") or "").strip()
             rows.append(
                 {
                     "id": artifact.pk,
@@ -418,6 +460,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                     "quarantined": artifact.quarantined,
                     "quarantine_reason": artifact.quarantine_reason,
                     "hint": _row_hint(artifact),
+                    "dfv_only": detected in ("payroll", "compliance"),
                 }
             )
         return {
