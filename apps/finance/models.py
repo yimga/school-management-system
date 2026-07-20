@@ -834,7 +834,17 @@ class Payment(models.Model):
             "'refunded'. Written only by services.process_refund_request."
         ),
     )
-    currency_code = models.CharField(max_length=3, default="USD")
+    currency_code = models.CharField(
+        max_length=3,
+        blank=True,
+        default="",
+        help_text=(
+            "ISO 4217. Left blank on create, save() resolves it from the invoice / "
+            "compliance profile / school before falling back to the platform "
+            "default — a hardcoded 'USD' default silently mis-stamped every "
+            "payment recorded without an explicit currency."
+        ),
+    )
     currency = models.ForeignKey(
         "registries.CurrencyRegistry",
         on_delete=models.PROTECT,
@@ -1056,6 +1066,8 @@ class Payment(models.Model):
             self.reference_number = uuid.uuid4().hex
         if self.gateway_transaction_id == "":
             self.gateway_transaction_id = None
+        if not self.currency_code:
+            self.currency_code = self._resolve_currency_code()
         # v4.00.36: auto-populate the typed CurrencyRegistry FK when only
         # the legacy string is set, so dashboards / FX paths can read .currency.
         if self.currency_id is None and self.currency_code:
@@ -1071,6 +1083,44 @@ class Payment(models.Model):
                 pass
         self.full_clean()
         super().save(*args, **kwargs)
+
+    def _resolve_currency_code(self) -> str:
+        """The payment's real currency — never a blind platform default.
+
+        ``currency_code`` used to default to the literal ``"USD"``, so every
+        payment recorded without an explicit currency was stamped USD regardless
+        of the school: a Buea bursar taking 100,000 XAF over the counter booked a
+        USD row, and any total summed across payments was meaningless. The same
+        blind-USD bug was already fixed once on the fractional ledger
+        (``fractional_ledger_services._resolve_currency_code``); this closes it on
+        the Payment row itself.
+
+        Walks the same cascade, most specific first, and only ever lands on the
+        platform default when nothing tenant-scoped resolves.
+        """
+        from django.conf import settings as django_settings
+
+        candidates = (
+            getattr(getattr(self, "currency", None), "code", ""),
+            getattr(getattr(getattr(self, "invoice", None), "currency", None), "code", ""),
+            getattr(
+                getattr(getattr(self, "invoice", None), "profile", None),
+                "currency_code",
+                "",
+            ),
+            getattr(getattr(self, "school", None), "currency", ""),
+            getattr(
+                getattr(getattr(self, "student", None), "school", None), "currency", ""
+            ),
+        )
+        for candidate in candidates:
+            code = (candidate or "").strip()
+            if code:
+                return code[:3].upper()
+        platform = (
+            getattr(django_settings, "PLATFORM_DEFAULT_CURRENCY", "") or "USD"
+        ).strip()
+        return platform[:3].upper()
 
     def __str__(self) -> str:
         if self.reference_number:
