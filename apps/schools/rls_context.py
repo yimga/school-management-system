@@ -112,6 +112,98 @@ def quarantine_rls_connection(reason: str) -> None:
     connection.close()
 
 
+_CONNECTION_SCHOOL_ID_BY_SCHEMA: dict[str, str | None] = {}
+
+
+def forget_connection_school_cache(schema_name: str | None = None) -> None:
+    """Drop the memoised schema->school_id mapping (all schemas when None)."""
+    if schema_name is None:
+        _CONNECTION_SCHOOL_ID_BY_SCHEMA.clear()
+    else:
+        _CONNECTION_SCHOOL_ID_BY_SCHEMA.pop(schema_name, None)
+
+
+def resolve_connection_school_id():
+    """PK of the School the CURRENT DB connection is scoped to, or None.
+
+    In schema-per-tenant mode a schema IS a school (``customers.Client`` holds a
+    OneToOne to ``schools.School``), so the connection itself is authoritative
+    even when the row being saved carries a NULL ``school`` FK — which happens
+    routinely, because schema isolation makes the redundant per-row FK easy to
+    omit (seeders and bulk writers both do).
+
+    That NULL is not cosmetic: callers that resolve tenant policy from a row's
+    ``school`` (grading scale, attendance ownership) silently fall back to a
+    platform-neutral default when it is missing — e.g. a /20 Cameroon school
+    resolves to a 100-point scale and accepts a mark of 25.
+
+    ``connection.tenant`` is NOT enough on its own: ``schema_context()`` installs
+    a ``FakeTenant`` carrying only ``schema_name``, so the mapping is resolved
+    from ``customers.Client`` and memoised per schema — a per-row query would be
+    a real cost on bulk paths like roll-call.
+
+    Returns None (never raises) on the public schema, under RLS/shared-table
+    mode, and on non-PostgreSQL connections, where no single school is implied.
+    """
+    schema_name = (getattr(connection, "schema_name", "") or "").strip()
+    if not schema_name or schema_name == "public":
+        return None
+    if schema_name in _CONNECTION_SCHOOL_ID_BY_SCHEMA:
+        return _CONNECTION_SCHOOL_ID_BY_SCHEMA[schema_name]
+
+    school_id = None
+    tenant = getattr(connection, "tenant", None)
+    # A real Client instance already carries the FK; a FakeTenant does not.
+    school_id = getattr(tenant, "school_id", None)
+    if school_id is None:
+        try:
+            from django.apps import apps as django_apps
+
+            client_model = django_apps.get_model("customers", "Client")
+            school_id = (
+                client_model.objects.filter(schema_name=schema_name)
+                .values_list("school_id", flat=True)
+                .first()
+            )
+        except (
+            DatabaseError,
+            OperationalError,
+            ProgrammingError,
+            LookupError,
+            AttributeError,
+            ValueError,
+        ):
+            school_id = None
+
+    _CONNECTION_SCHOOL_ID_BY_SCHEMA[schema_name] = school_id
+    return school_id
+
+
+def resolve_connection_school():
+    """The School the CURRENT DB connection is scoped to, or None.
+
+    Object form of :func:`resolve_connection_school_id` — use the id-only helper
+    on hot write paths that just need the FK.
+    """
+    school_id = resolve_connection_school_id()
+    if school_id is None:
+        return None
+    try:
+        from django.apps import apps as django_apps
+
+        school_model = django_apps.get_model("schools", "School")
+        return school_model.objects.filter(pk=school_id).first()
+    except (
+        DatabaseError,
+        OperationalError,
+        ProgrammingError,
+        LookupError,
+        AttributeError,
+        ValueError,
+    ):
+        return None
+
+
 @contextmanager
 def rls_school(school_id):
     """

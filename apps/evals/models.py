@@ -802,6 +802,42 @@ class Evaluation(models.Model):
     class Meta:
         unique_together = ("academic_year", "term", "subject_assignment", "student")
 
+    def _resolve_grading_school(self):
+        """The school whose grading scale bounds this row's scores.
+
+        ``resolve_school_score_scale(None)`` returns a neutral 100, so every link
+        that fails to find a school silently WIDENS the accepted range: a /20
+        Cameroon school then accepts a mark of 25. The row's own ``school`` FK is
+        nullable and frequently unset (schema isolation makes it redundant, so
+        seeders and bulk writers omit it), and ``SubjectAssignment.school`` is
+        nullable for the same reason — so both original links miss together.
+        Walk the rest of the graph, then fall back to the tenant the connection
+        is scoped to, before conceding None.
+        """
+        school = getattr(self, "school", None)
+        if school is not None:
+            return school
+        for owner_attr, fk_id in (
+            ("subject_assignment", self.subject_assignment_id),
+            ("student", self.student_id),
+            ("academic_year", self.academic_year_id),
+            ("term", self.term_id),
+        ):
+            if not fk_id:
+                continue
+            owner = getattr(self, owner_attr, None)
+            school = getattr(owner, "school", None)
+            if school is not None:
+                return school
+        # Classroom hangs off the assignment, not off this row.
+        sa = getattr(self, "subject_assignment", None) if self.subject_assignment_id else None
+        school = getattr(getattr(sa, "classroom", None), "school", None)
+        if school is not None:
+            return school
+        from apps.schools.rls_context import resolve_connection_school
+
+        return resolve_connection_school()
+
     def clean(self):
         # Score upper-bound = the school's OPERATIONAL grade scale
         # (AssessmentWeights.score_scale via resolve_school_score_scale), NOT the
@@ -810,9 +846,7 @@ class Evaluation(models.Model):
         # scores. Consistent with OCR/EWS validation and how grades are actually scored.
         from apps.evals.grading_provisioning import resolve_school_score_scale
 
-        school = getattr(self, "school", None)
-        if school is None and self.subject_assignment_id:
-            school = getattr(self.subject_assignment, "school", None)
+        school = self._resolve_grading_school()
         max_score = resolve_school_score_scale(school)
 
         score_fields = {

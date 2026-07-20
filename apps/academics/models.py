@@ -945,6 +945,15 @@ class Attendance(models.Model):
             self.school_id = getattr(self.student, "school_id", None) or getattr(
                 self.classroom, "school_id", None
             )
+            if self.school_id is None:
+                # Both links are themselves nullable, and under schema-per-tenant
+                # they are routinely NULL (the schema already isolates the tenant,
+                # so writers omit the redundant FK) — leaving this backfill a
+                # silent no-op and the row invisible to every school_id consumer
+                # above. The connection's tenant IS the school, so ask it last.
+                from apps.schools.rls_context import resolve_connection_school_id
+
+                self.school_id = resolve_connection_school_id()
             update_fields = kwargs.get("update_fields")
             if update_fields is not None and "school" not in update_fields:
                 kwargs["update_fields"] = list(update_fields) + ["school"]
