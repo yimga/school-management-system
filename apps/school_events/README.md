@@ -65,12 +65,10 @@ management commands.
   `school_id`, which the child tables do not have. If you add a `school` FK to a
   child, add it to `SCHOOL_EVENTS_TABLES` in a new migration too, and if you
   query a child directly, scope it through its parent yourself.
-- **`register_for_event` does not enforce capacity today.** `EventTicketTier`
-  exposes `remaining_capacity`, but the view never consults it — it increments
-  `sold_quantity` unconditionally. It is also a read-modify-write
-  (`tier.sold_quantity += quantity; tier.save(...)`) with no `F()` expression and
-  no row lock, so concurrent registrations can lose an increment. Both are real
-  gaps; if you are adding paid ticketing at scale, close them together.
+- **`register_for_event` enforces capacity via `register_for_tier`.** The service
+  locks the tier with `select_for_update`, refuses oversell against
+  `remaining_capacity`, and increments `sold_quantity` with an `F()` update.
+  Paid tiers land RESERVED; free tiers land CONFIRMED.
 - **Registration does not take card/mobile money in-app.** The service sets
   `amount_due` from `price × quantity` and starts paid tiers at RESERVED with
   `amount_paid = 0`. Free tiers go straight to CONFIRMED. Cash/manual settle and

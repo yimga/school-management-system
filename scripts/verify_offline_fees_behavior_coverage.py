@@ -80,6 +80,50 @@ def main(argv: list[str] | None = None) -> int:
         "detail": "test_offline_fees_behavior.py present" if django_test else "MISSING",
     })
 
+    # 4b. Seven-day multiday rails include fees + behavior
+    multiday_sim = _file_contains(
+        "apps/platform_runtime/tests/test_offline_multiday_replay_simulation.py",
+        "test_seven_day_offline_fees_and_behavior_replay",
+    )
+    checks.append({
+        "check": "multiday_server_fees_behavior",
+        "pass": multiday_sim,
+        "detail": (
+            "test_seven_day_offline_fees_and_behavior_replay present"
+            if multiday_sim
+            else "MISSING multiday fees/behavior server test"
+        ),
+    })
+    multiday_e2e = _file_contains(
+        "tests/e2e/offline-multiday-indexeddb.spec.js",
+        "payment_receipt",
+    ) and _file_contains(
+        "tests/e2e/offline-multiday-indexeddb.spec.js",
+        "behavior_incident",
+    )
+    checks.append({
+        "check": "multiday_indexeddb_fees_behavior",
+        "pass": multiday_e2e,
+        "detail": (
+            "IndexedDB e2e enqueues payment_receipt + behavior_incident"
+            if multiday_e2e
+            else "MISSING IndexedDB fees/behavior enqueue"
+        ),
+    })
+    behavior_handler = _file_contains(
+        "apps/platform_runtime/offline_workflow_apply.py",
+        "WORKFLOW_BEHAVIOR_INCIDENT",
+    )
+    checks.append({
+        "check": "behavior_incident_workflow_handler",
+        "pass": behavior_handler,
+        "detail": (
+            "WORKFLOW_BEHAVIOR_INCIDENT handler present"
+            if behavior_handler
+            else "MISSING behavior_incident offline handler"
+        ),
+    })
+
     # 5. Payment action type registered
     payment_type = _file_contains(
         "apps/platform_runtime/offline_action_types.py", "PAYMENT_PROOF"

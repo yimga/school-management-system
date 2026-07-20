@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 WORKFLOW_SUBSTITUTE_HANDOVER = "substitute_handover"
 WORKFLOW_LOST_BELONGINGS_MINT = "lost_belongings_mint"
 WORKFLOW_LOST_BELONGINGS_RECOVER = "lost_belongings_recover"
+WORKFLOW_BEHAVIOR_INCIDENT = "behavior_incident"
 
 # Finance + payroll workflows delegate to domain handlers (batch 1511).
 
@@ -69,6 +70,8 @@ def try_apply_field_capture_workflow(
         return _apply_lost_belongings_mint_capture(school_id, user_id, fields, payload)
     if workflow == WORKFLOW_LOST_BELONGINGS_RECOVER:
         return _apply_lost_belongings_recover_capture(school_id, user_id, fields, payload)
+    if workflow == WORKFLOW_BEHAVIOR_INCIDENT:
+        return _apply_behavior_incident_capture(school_id, user_id, fields, payload)
     from apps.finance.offline_workflow_handlers import apply_finance_workflow
 
     finance_result = apply_finance_workflow(
@@ -149,6 +152,95 @@ def _persist_workflow_note(
     enriched["title"] = title[:200]
     enriched.setdefault("kind", "note")
     return _persist_student_note(school_id, user_id, enriched)
+
+
+def _apply_behavior_incident_capture(
+    school_id: int,
+    user_id: int,
+    fields: dict[str, Any],
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Persist offline behavior capture into ``academics.Incident`` (Metric #25).
+
+    Idempotent on ``client_offline_id`` stored in the description prefix so a
+    7-day reconnect storm does not duplicate incidents.
+    """
+    from datetime import date as date_cls
+
+    from apps.academics.models import Incident
+    from apps.people.models import StudentProfile
+
+    student_id = (
+        payload.get("student_id")
+        or fields.get("student_id")
+        or payload.get("entity_id")
+    )
+    if student_id is None or str(student_id).strip() == "":
+        return {"ok": False, "error": "student_id is required for behavior_incident"}
+
+    try:
+        student = StudentProfile.objects.get(pk=int(student_id), school_id=school_id)
+    except (StudentProfile.DoesNotExist, TypeError, ValueError):
+        return {"ok": False, "error": "student not found for school"}
+
+    raw_type = str(fields.get("incident_type") or fields.get("type") or "OTHER").strip()
+    type_map = {
+        "tardy": Incident.Type.TARDINESS,
+        "tardiness": Incident.Type.TARDINESS,
+        "behavior": Incident.Type.BEHAVIOR,
+        "absence": Incident.Type.ABSENCE,
+        "other": Incident.Type.OTHER,
+    }
+    incident_type = type_map.get(raw_type.lower(), raw_type.upper())
+    if incident_type not in {c.value for c in Incident.Type}:
+        incident_type = Incident.Type.OTHER
+
+    raw_sev = str(fields.get("severity") or Incident.Severity.LOW).strip().upper()
+    severity = (
+        raw_sev
+        if raw_sev in {c.value for c in Incident.Severity}
+        else Incident.Severity.LOW
+    )
+
+    raw_date = str(fields.get("date") or "").strip()
+    try:
+        incident_date = date_cls.fromisoformat(raw_date) if raw_date else date_cls.today()
+    except ValueError:
+        incident_date = date_cls.today()
+
+    client_id = _client_offline_id(payload)
+    description = str(fields.get("description") or "").strip()
+    if client_id:
+        marker = f"[offline:{client_id}]"
+        existing = Incident.objects.filter(
+            school_id=school_id,
+            student_id=student.pk,
+            description__startswith=marker,
+        ).first()
+        if existing is not None:
+            return {
+                "ok": True,
+                "incident_id": existing.pk,
+                "idempotent": True,
+                "workflow": WORKFLOW_BEHAVIOR_INCIDENT,
+            }
+        description = f"{marker} {description}".strip()
+
+    incident = Incident.objects.create(
+        school_id=school_id,
+        student=student,
+        incident_type=incident_type,
+        date=incident_date,
+        description=description[:4000],
+        severity=severity,
+        status=Incident.Status.OPEN,
+        created_by_id=user_id if user_id else None,
+    )
+    return {
+        "ok": True,
+        "incident_id": incident.pk,
+        "workflow": WORKFLOW_BEHAVIOR_INCIDENT,
+    }
 
 
 def _apply_substitute_handover_capture(

@@ -102,4 +102,59 @@ test.describe("SODP multi-day IndexedDB queue", () => {
     });
     expect(afterReload).toBe(8);
   });
+
+  test("seven fee + behavior days persist in Dexie outbox across reload", async ({
+    page,
+  }) => {
+    await mountOfflineStack(page, { clearOutbox: true });
+
+    const summary = await page.evaluate(async () => {
+      for (let day = 1; day <= 7; day += 1) {
+        const isoDate = `2026-06-${String(day).padStart(2, "0")}`;
+        window.rmcOfflineEnqueue({
+          action_type: "payment_receipt",
+          invoice_id: 501,
+          amount: "10.00",
+          payment_method: "CASH",
+          client_offline_id: `fee-e2e-${isoDate}`,
+          idempotency_key: `fee-e2e-${isoDate}`,
+        });
+        window.rmcOfflineEnqueue({
+          action_type: "notes_report",
+          student_id: 77,
+          title: `Behavior ${isoDate}`,
+          body: JSON.stringify({
+            workflow: "behavior_incident",
+            fields: {
+              incident_type: "tardy",
+              severity: "LOW",
+              description: `Offline tardy ${isoDate}`,
+              date: isoDate,
+            },
+          }),
+          client_offline_id: `beh-e2e-${isoDate}`,
+          idempotency_key: `beh-e2e-${isoDate}`,
+        });
+      }
+      await new Promise((r) => setTimeout(r, 250));
+      const pending = await window.SMSOfflineDB.outboxPending();
+      return {
+        count: pending.length,
+        actionTypes: pending.map((row) => row.action_type || ""),
+      };
+    });
+
+    expect(summary.count).toBe(14);
+    expect(summary.actionTypes.filter((t) => t === "payment_receipt").length).toBe(7);
+    expect(summary.actionTypes.filter((t) => t === "notes_report").length).toBe(7);
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await mountOfflineStack(page, { clearOutbox: false });
+
+    const afterReload = await page.evaluate(async () => {
+      const pending = await window.SMSOfflineDB.outboxPending();
+      return pending.length;
+    });
+    expect(afterReload).toBe(14);
+  });
 });

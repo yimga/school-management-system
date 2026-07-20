@@ -1,14 +1,72 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-07-20 (Cursor **A↔B Wave 35** @ HEAD)  
-**Loop:** Prompt A near-miss burn (#13 hold TTL + PSP bridge, #7/#26 M-Pesa soak) → **NO-GO** (EXTERNAL)  
+**Last refreshed:** 2026-07-20 (Cursor **A↔B Wave 36** @ HEAD)  
+**Loop:** Explore near-misses → A burns #25/#4 + README honesty → **NO-GO** (EXTERNAL)  
 **Tree:** HEAD = `origin/main`
 
 ### Active claims (do not collide)
 
 | Agent | Owns | Files | Status |
 |-------|------|-------|--------|
-| **Cursor (this session)** | A↔B Wave 35 loop | stale holds, PSP ticket bridge, M-Pesa soak | **DONE** (NO-GO EXTERNAL) |
+| **Cursor (this session)** | A↔B Wave 36 loop | fees/behavior 7d, moat scaffold, README | **DONE** (NO-GO EXTERNAL) |
+
+---
+
+## Wave 36 — 2026-07-20 (Prompt A · residual near-miss from explore)
+
+### Prompt A fixes shipped
+
+| Slice | Implementation | Proof | SHA |
+|-------|----------------|-------|-----|
+| **#25 CRDT/offline** | `behavior_incident` → `Incident`; 7d fees+behavior server + IndexedDB e2e | multiday **OK**; Playwright **2/2**; coverage PASS | *(this wave)* |
+| **#4 Report cards** | `verify_report_card_moat_local_proof.py` scaffold (Actions still EXTERNAL) | `REPORT_CARD_MOAT_SCAFFOLD_PASS` | *(this wave)* |
+| **#13 docs** | README capacity claims match `register_for_tier` lock/F() | honesty | *(this wave)* |
+
+### Prompt B delta scorecard (Wave 36)
+
+| # | Score | A+? | Note |
+|---|------:|-----|------|
+| 1 | **98** | YES | maintain |
+| 2 | 88 | NO | Lighthouse score artifact EXTERNAL |
+| 3 | 98 | YES | maintain |
+| 4 | **97** | NO | moat local scaffold PASS; Actions green EXTERNAL |
+| 5 | **98** | YES | maintain |
+| 6 | 90 | NO | live charges EXTERNAL |
+| 7 | **98** | YES | maintain (Wave 35) |
+| 8 | **98** | YES | maintain |
+| 9 | 96 | NO | prod ReBAC EXTERNAL (settings_test flip deferred — suite risk) |
+| 10 | 94 | NO | Actions runner unavailable EXTERNAL |
+| 11 | 98 | YES | maintain |
+| 12 | 98 | YES | maintain |
+| 13 | **98** | YES | maintain |
+| 14 | 98 | YES | maintain |
+| 15 | **98** | YES | maintain |
+| 16 | 90 | NO | Actions runner unavailable EXTERNAL |
+| 17 | 93 | NO | Lighthouse EXTERNAL |
+| 18–21 | 98 | YES | maintain |
+| 22 | 95 | NO | S3/side-DB EXTERNAL |
+| 23–24 | 98+ | YES | maintain |
+| 25 | **96** | NO | fees/behavior in 7d rail; PG CRDT EXTERNAL |
+| 26 | **93** | NO | live ≥3 EXTERNAL |
+| 27 | 90 | NO | physical replicas EXTERNAL |
+| 28 | 90 | NO | independent volume EXTERNAL |
+
+| S# | Repo | Note |
+|----|-----:|------|
+| S4 | 93 | tied to #26 |
+| S5 | 96 | tied to #25 |
+| S6 | 90 | pledge published |
+| S8 | 55 | pilot unsigned EXTERNAL |
+
+**OVERALL:** avg ≈ **96.0** · min **88** (#2) · **19/28 ≥98**  
+**DECISION: NO-GO** — EXTERNAL: Actions runners, live PSP secrets, PG CRDT, DR volume, Lighthouse ≥98 artifact, signed pilots, physical residency
+
+### Ordered gap list → next A/B
+1. **Restore GitHub Actions runners** (EXTERNAL)
+2. **Live PSP sandbox secrets** EXTERNAL
+3. **PG CRDT** EXTERNAL
+4. **DR / Lighthouse artifacts / pilots** EXTERNAL
+5. Optional thin: #9 settings_test ReBAC only if suite-safe; record local moat proof JSON after armed run
 
 ---
 

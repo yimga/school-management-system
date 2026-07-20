@@ -73,6 +73,13 @@ class TestOfflineBehaviorIncidentContract(SimpleTestCase):
         self.assertIsNotNone(structured)
         self.assertEqual(structured.get("workflow"), "behavior_incident")
 
+    def test_behavior_incident_handler_constant_registered(self):
+        from apps.platform_runtime.offline_workflow_apply import (
+            WORKFLOW_BEHAVIOR_INCIDENT,
+        )
+
+        self.assertEqual(WORKFLOW_BEHAVIOR_INCIDENT, "behavior_incident")
+
     def test_behavior_payload_without_workflow_becomes_note(self):
         """A plain body without workflow key is not captured as structured."""
         from apps.platform_runtime.offline_workflow_apply import (

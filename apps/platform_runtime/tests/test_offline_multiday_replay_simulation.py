@@ -271,3 +271,107 @@ class OfflineMultidayReplaySimulationTests(TestCase):
             .get(hw.homework_id, {})
         )
         self.assertIn(str(self.student.pk), subs)
+
+    def test_seven_day_offline_fees_and_behavior_replay(self):
+        """Metric #25: fee receipts + behavior incidents accumulate for 7 days."""
+        import json
+        from decimal import Decimal
+
+        from apps.academics.models import Incident
+        from apps.finance.models import ComplianceProfile, Invoice, OfflinePaymentIntent
+
+        profile = ComplianceProfile.objects.create(
+            name=f"MDFee-{uuid.uuid4().hex[:6]}",
+            country_code="CM",
+        )
+        invoice = Invoice.objects.create(
+            profile=profile,
+            academic_year=self.year,
+            school=self.school,
+            invoice_type=Invoice.InvoiceType.AR,
+            status=Invoice.Status.ISSUED,
+            student=self.student,
+            total_amount=Decimal("70.00"),
+            balance_amount=Decimal("70.00"),
+        )
+
+        base = timezone.now() - timedelta(days=7)
+        action_ids: list[int] = []
+        for day_offset in range(7):
+            pay = enqueue_offline_action(
+                user_id=self.user.pk,
+                school_id=self.school.pk,
+                action_type=OfflineAction.ActionType.PAYMENT_RECEIPT,
+                payload={
+                    "invoice_id": invoice.pk,
+                    "amount": "10.00",
+                    "payment_method": "CASH",
+                    "client_offline_id": f"md-fee-{day_offset}-{self.school.pk}",
+                },
+                idempotency_key=f"md-fee-{day_offset}-{self.school.pk}",
+            )
+            OfflineAction.objects.filter(pk=pay.pk).update(
+                created_at=base + timedelta(days=day_offset, hours=10),
+            )
+            action_ids.append(pay.pk)
+
+            body = json.dumps(
+                {
+                    "workflow": "behavior_incident",
+                    "fields": {
+                        "incident_type": "tardy",
+                        "severity": "LOW",
+                        "description": f"Day {day_offset} tardy",
+                        "date": (base + timedelta(days=day_offset)).date().isoformat(),
+                    },
+                }
+            )
+            beh = enqueue_offline_action(
+                user_id=self.user.pk,
+                school_id=self.school.pk,
+                action_type=OfflineAction.ActionType.NOTES_REPORT,
+                payload={
+                    "body": body,
+                    "student_id": self.student.pk,
+                    "client_offline_id": f"md-beh-{day_offset}-{self.school.pk}",
+                    "title": f"Behavior day {day_offset}",
+                },
+                idempotency_key=f"md-beh-{day_offset}-{self.school.pk}",
+            )
+            OfflineAction.objects.filter(pk=beh.pk).update(
+                created_at=base + timedelta(days=day_offset, hours=11),
+            )
+            action_ids.append(beh.pk)
+
+        first = process_offline_queue(
+            school_id=self.school.pk,
+            user_id=self.user.pk,
+            limit=50,
+        )
+        self.assertGreaterEqual(first.get("synced", 0), 14)
+        self.assertEqual(
+            OfflineAction.objects.filter(
+                pk__in=action_ids,
+                status=OfflineAction.Status.SYNCED,
+            ).count(),
+            14,
+        )
+        self.assertEqual(
+            OfflinePaymentIntent.objects.filter(invoice=invoice).count(),
+            7,
+        )
+        self.assertEqual(
+            Incident.objects.filter(
+                school=self.school,
+                student=self.student,
+                incident_type=Incident.Type.TARDINESS,
+            ).count(),
+            7,
+        )
+
+        second = process_offline_queue(
+            school_id=self.school.pk,
+            user_id=self.user.pk,
+            limit=50,
+        )
+        self.assertEqual(second.get("synced", 0), 0)

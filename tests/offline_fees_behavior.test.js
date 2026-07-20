@@ -34,9 +34,7 @@ function buildFeePaymentPayload({
 
 /**
  * Simulates the payload shape for offline behavior/incident capture.
- * When the server implements `_apply_behavior_incident`, this envelope
- * will be the canonical input. Until then, it falls through to
- * notes_report as a structured field-capture workflow.
+ * Server apply: ``WORKFLOW_BEHAVIOR_INCIDENT`` → ``academics.Incident``.
  */
 function buildBehaviorIncidentPayload({
   studentId,
