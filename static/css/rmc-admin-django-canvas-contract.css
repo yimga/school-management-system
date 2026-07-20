@@ -127,7 +127,8 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[da
   min-width: 0 !important;
 }
 
-body:is(.admin-manager-shell, .admin-premium-shell).change-form :is(pre, code, .readonly, .help, .helptext, label, .form-row) {
+/* Help/readonly/code may wrap; NEVER label/.form-row (letter-strip / cramped labels). */
+body:is(.admin-manager-shell, .admin-premium-shell).change-form :is(pre, code, .readonly, .help, .helptext) {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -1584,7 +1585,13 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
   textarea,
   select,
   .related-widget-wrapper,
-  .selector,
+  .selector
+) {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] :is(
   .readonly,
   .help,
   .helptext
@@ -3563,13 +3570,18 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   margin-inline: 0 !important;
 }
 
-/* Form frame must not inherit overflow-wrap:anywhere into Save/labels. */
+/* ============================================================
+   2026-07-20-miss-nothing-label-wrap: label/.form-row never wrap:anywhere.
+   ============================================================ */
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
   #content-main[data-rmc-admin-form-contract="premium-form-frame"],
 [data-rmc-shell-root="django-admin"] #content-main[data-rmc-admin-form-contract="premium-form-frame"] {
   overflow-wrap: normal !important;
 }
 
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell).change-form
+  :is(label, .form-row > label, .form-row),
+[data-rmc-shell-root="django-admin"] :is(label, .form-row > label),
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
   #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(
     .rmc-django-action,
@@ -3589,4 +3601,23 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 ) {
   overflow-wrap: normal !important;
   word-break: normal !important;
+}
+
+/* Skip-link: body-class only so tenant works before/without unfold html attr. */
+body:is(.admin-manager-shell, .admin-premium-shell) a.skip-link:not(:focus):not(:focus-visible),
+body:is(.admin-manager-shell, .admin-premium-shell) a.skip-link-theme:not(:focus):not(:focus-visible),
+[data-rmc-shell-root="django-admin"] a.skip-link:not(:focus):not(:focus-visible),
+[data-rmc-shell-root="django-admin"] a.skip-link-theme:not(:focus):not(:focus-visible) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }

@@ -1,8 +1,7 @@
 {
   "pass": true,
-  "css_files": 40,
-  "content_pages": 11,
   "expected_cache_bust": "20260720-admin-fullfill-v4",
   "expected_sw": "sms-v4.05.157-admin-miss-nothing-2026-07-20",
+  "content_pages": 11,
   "findings": []
 }

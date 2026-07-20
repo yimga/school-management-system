@@ -23,8 +23,8 @@ ADMIN_TPL = ROOT / "templates" / "admin"
 REPORT = ROOT / "var" / "admin-surface-platformwide-sweep.json"
 
 # Bump together with base_site ?v= and SW CACHE_VERSION on each layout wave.
-EXPECTED_CACHE_BUST = "20260720-admin-fullfill-v3"
-EXPECTED_SW = "sms-v4.05.156-admin-fullfill-no-container-2026-07-20"
+EXPECTED_CACHE_BUST = "20260720-admin-fullfill-v4"
+EXPECTED_SW = "sms-v4.05.157-admin-miss-nothing-2026-07-20"
 
 
 def _read(path: Path) -> str:
@@ -183,6 +183,7 @@ def main() -> int:
         "2026-07-20-action-nowrap",
         "2026-07-19-tools-no-span-explode",
         "2026-07-20-platformwide-no-container",
+        "2026-07-20-miss-nothing-label-wrap",
     ):
         if seal not in canvas:
             add("P0", ROOT / "static" / "css" / "rmc-admin-django-canvas-contract.css", 0, f"seal missing: {seal}")

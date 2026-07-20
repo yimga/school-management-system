@@ -147,8 +147,13 @@ def main() -> int:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "grid-row-auto-fullfill seal missing")
     if "2026-07-20-platformwide-no-container" not in css:
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "platformwide-no-container seal missing")
+    if "2026-07-20-miss-nothing-label-wrap" not in css:
+        add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "miss-nothing-label-wrap seal missing")
     if re.search(r"\.rmc-django-action\s*\{[^}]*overflow-wrap:\s*anywhere", css):
         add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, ".rmc-django-action must not use overflow-wrap:anywhere (save bleed)")
+    css_nc = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    if re.search(r":is\([^)]*\blabel\b[^)]*\)\s*\{[^}]*overflow-wrap\s*:\s*anywhere", css_nc, re.S):
+        add("P0", ROOT / "static/css/rmc-admin-django-canvas-contract.css", 0, "label must not use overflow-wrap:anywhere")
     # Bare Unfold .flex wrappers must not share form-row span-6 half-width
     if re.search(
         r"\.rmc-django-form-body\s*>\s*:is\([^)]*\.flex[^)]*\)\s*\{[^}]*grid-column:\s*span\s*6",
