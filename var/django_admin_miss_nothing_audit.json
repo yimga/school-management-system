@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "expected_cache_bust": "20260720-admin-preview-parity-v6",
-  "expected_sw": "sms-v4.05.159-admin-preview-parity-2026-07-20",
+  "expected_cache_bust": "20260720-admin-preview-parity-v7",
+  "expected_sw": "sms-v4.05.160-admin-approval-html-2026-07-20",
   "content_pages": 11,
   "findings": []
 }

@@ -30,7 +30,7 @@ CHANGE_FORM = ROOT / "templates/admin/change_form.html"
 CHANGE_LIST = ROOT / "templates/admin/change_list.html"
 
 SEAL = "2026-07-20-preview-parity-sot"
-CACHE_BUST = "20260720-admin-preview-parity-v6"
+CACHE_BUST = "20260720-admin-preview-parity-v7"
 
 _WS_GRID_RE = re.compile(
     r"\.ws\s*\{[^}]*grid-template-columns\s*:\s*([^;}]+)",
@@ -126,6 +126,19 @@ def main() -> int:
         errors.append("change_list.html missing data-rmc-django-workspace=change-list")
     if "admin_workspace_tools.html" not in change_form or "admin_workspace_tools.html" not in change_list:
         errors.append("change_form/change_list must include workspace tools (preview col-3)")
+
+    if 'data-rmc-admin-approval-build="2026-07-20-v7"' not in (
+        ROOT / "templates/admin/base.html"
+    ).read_text(encoding="utf-8"):
+        errors.append("admin/base.html must emit data-rmc-admin-approval-build=2026-07-20-v7")
+    if "Staff accounts" not in index_t:
+        errors.append("index_tenant.html must show Staff accounts KPI (approval Surface 1)")
+    if "v7 · approval canvas" not in index_t and "approval canvas" not in index_t:
+        errors.append("index_tenant.html must show visible approval build chip")
+    if "Search school settings, people, academics" not in (
+        ROOT / "templates/components/admin_nav_bridge.html"
+    ).read_text(encoding="utf-8"):
+        errors.append("admin_nav_bridge must use approval search placeholder")
 
     # Ban regressing wide/2-col workbench rails anywhere in live canvas CSS.
     # These are the exact formulas that left empty right gutters + stranded TOOLS.

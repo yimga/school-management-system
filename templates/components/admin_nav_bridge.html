@@ -11,7 +11,7 @@
    The primary nav row still renders below (line ~83 outside this if/else)
    when PRIMARY_CONTROL_PLANE_NAV is populated.{% endcomment %}
 {% else %}
-<link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}?v=20260720-admin-preview-parity-v7">
 
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="admin-nav-bridge" data-shell-nav-bridge="tenant-admin">
@@ -48,7 +48,7 @@
                Verified by scripts/verify_phase3_navigation_command_conformance.py.{% endcomment %}
             <div class="admin-nav-bridge__search-wrap position-relative">
               <label class="visually-hidden" for="cpSearchInputAdmin">{% trans "Search admin" %}</label>
-              <input type="search" id="cpSearchInputAdmin" class="admin-nav-bridge__search form-control form-control-sm" placeholder="{% trans 'Search…' %}" autocomplete="off" aria-label="{% trans 'Search admin' %}" aria-haspopup="listbox">
+              <input type="search" id="cpSearchInputAdmin" class="admin-nav-bridge__search form-control form-control-sm" placeholder="{% trans 'Search school settings, people, academics…' %}" autocomplete="off" aria-label="{% trans 'Search school settings, people, academics' %}" aria-haspopup="listbox">
               <div id="cpSearchResultsAdmin" class="dropdown-menu position-absolute start-0 top-100 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" role="listbox" aria-label="{% trans 'Search results' %}" aria-hidden="true"></div>
             </div>
             <button type="button" class="admin-nav-bridge__shortcuts-btn" id="cpShowShortcutsHelpAdmin" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
@@ -58,7 +58,7 @@
                 <a href="{% url 'super:dashboard' %}" class="admin-nav-bridge__home-btn">{% trans "Control plane" %}</a>
                 <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="admin-nav-bridge__switch-btn" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
             {% else %}
-                <a href="{% url 'siteconfig:console_domains_hub' %}" class="admin-nav-bridge__home-btn">{% trans "Config center" %}</a>
+                <a href="{% url 'siteconfig:console_domains_hub' %}" class="admin-nav-bridge__home-btn admin-nav-bridge__escape--primary">{% trans "Config center" %}</a>
                 <a href="{% url 'siteconfig:feature_control_panel' %}" class="admin-nav-bridge__switch-btn">{% trans "Feature control" %}</a>
                 <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__switch-btn">{% trans "Portal" %}</a>
                 {% if has_permission %}

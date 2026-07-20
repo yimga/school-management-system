@@ -140,6 +140,35 @@ body:not(.control-plane-shell):has(.admin-nav-bridge) {
   text-decoration: none;
 }
 
+/* Approval HTML: Config center is the primary teal escape (not a ghost chip). */
+.admin-nav-bridge__escape--primary,
+.admin-nav-bridge__home-btn.admin-nav-bridge__escape--primary {
+  border: 0;
+  background: linear-gradient(135deg, var(--brand-success, #2dd4a8), var(--school-deep, #0f766e)); /* off-token-allow: brand-token */
+  color: #04241c; /* off-token-allow: brand-token */
+  font-weight: 800;
+}
+
+.admin-nav-bridge__escape--primary:hover,
+.admin-nav-bridge__home-btn.admin-nav-bridge__escape--primary:hover {
+  filter: brightness(1.06);
+  color: #04241c; /* off-token-allow: brand-token */
+}
+
+.rmc-admin-approval-build-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand-success, #2dd4a8) 45%, transparent);
+  background: color-mix(in srgb, var(--brand-success, #2dd4a8) 14%, transparent);
+  color: var(--text-secondary, #b7f5df);
+  font-size: 0.65rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .admin-nav-bridge__stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

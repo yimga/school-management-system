@@ -444,9 +444,56 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
                 "app_count": 0,
                 "section_count": 0,
             }
+        context["tenant_engine_kpis"] = self._tenant_engine_kpis(request)
         if extra_context:
             context.update(extra_context)
         return TemplateResponse(request, self.index_template_name, context)
+
+    @staticmethod
+    def _tenant_engine_kpis(request) -> dict:
+        """Approval HTML Surface 1 metrics: staff / readiness / pending invites."""
+        school = getattr(request, "school", None)
+        staff_accounts = 0
+        pending_invites = 0
+        if school is None:
+            return {
+                "staff_accounts": 0,
+                "config_readiness_pct": 0,
+                "pending_invites": 0,
+            }
+        try:
+            from apps.schools.models import SchoolMembership
+
+            # tenant-isolation-allow: request-school-scoped-membership-count-for-admin-kpi
+            staff_accounts = SchoolMembership.objects.filter(
+                school=school,
+                suspended_at__isnull=True,
+            ).count()
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+            staff_accounts = 0
+        try:
+            from apps.portal.models import PendingGuardianInvite
+
+            # tenant-isolation-allow: request-school-scoped-via-student-fk-for-admin-kpi
+            pending_invites = PendingGuardianInvite.objects.filter(
+                student__school=school,
+                claimed_at__isnull=True,
+            ).count()
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+            pending_invites = 0
+        # Readiness: coarse school-config signal (name + staff + catalog presence).
+        score = 0
+        if getattr(school, "name", None) or getattr(school, "slug", None):
+            score += 40
+        if staff_accounts > 0:
+            score += 40
+        if getattr(school, "schema_name", None) or getattr(school, "slug", None):
+            score += 20
+        return {
+            "staff_accounts": staff_accounts,
+            "config_readiness_pct": min(100, score),
+            "pending_invites": pending_invites,
+        }
 
     def has_permission(self, request):
         if self._is_platform_host(request):

@@ -59,7 +59,7 @@
   </div>
   {% endif %}
 
-  <section class="rmc-django-command-band" data-rmc-django-command-band="admin-index" aria-label="{% trans 'School configuration command surface' %}">
+  <section class="rmc-django-command-band" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="tenant-index-v7" aria-label="{% trans 'School configuration command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% firstof SITE.site_name _("School configuration") %}</span>
       <strong>{% trans "Configuration &amp; records" %}</strong>
@@ -71,6 +71,7 @@
       <span>{% blocktrans with n=admin_catalog.model_count %}{{ n }} models{% endblocktrans %}</span>
       {% endif %}
       <span>{% trans "Searchable catalog" %}</span>
+      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-20-v7" title="{% trans 'Deploy proof — approval HTML parity wave' %}">v7 · approval canvas</span>
     </div>
   </section>
 
@@ -98,7 +99,22 @@
         </div>
       </div>
 
-      {% if admin_catalog %}
+      {% if tenant_engine_kpis %}
+      <div class="cp-kpi-strip" role="group" aria-label="{% trans 'School configuration metrics' %}" data-rmc-tenant-engine-kpis="approval-2026-07-19">
+        <div class="cp-kpi">
+          <div class="cp-kpi__label">{% trans "Staff accounts" %}</div>
+          <div class="cp-kpi__value">{{ tenant_engine_kpis.staff_accounts }}</div>
+        </div>
+        <div class="cp-kpi">
+          <div class="cp-kpi__label">{% trans "Config readiness" %}</div>
+          <div class="cp-kpi__value">{{ tenant_engine_kpis.config_readiness_pct }}%</div>
+        </div>
+        <div class="cp-kpi">
+          <div class="cp-kpi__label">{% trans "Pending invites" %}</div>
+          <div class="cp-kpi__value">{{ tenant_engine_kpis.pending_invites }}</div>
+        </div>
+      </div>
+      {% elif admin_catalog %}
       <div class="cp-kpi-strip" role="group" aria-label="{% trans 'School configuration metrics' %}">
         <div class="cp-kpi">
           <div class="cp-kpi__label">{% trans "Models registered" %}</div>
