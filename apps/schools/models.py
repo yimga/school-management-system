@@ -297,7 +297,30 @@ def _get_governance_operating_mode_choices():
     return GovernanceOperatingMode.choices
 
 
-class LiveSchoolManager(models.Manager):
+class SchoolQuerySet(models.QuerySet):
+    """School querysets delete without chasing relations into tenant schemas.
+
+    ``School.objects.filter(...).delete()`` used to raise
+    ``ProgrammingError: relation "portal_portalfeatureitem" does not exist``
+    whenever it ran in ``public`` under schema-per-tenant: the cascade collector
+    walks every reverse relation, and ~200 of them are tenant tables that do not
+    exist there. See ``apps/schools/deletion.py`` for the full explanation.
+    """
+
+    def delete(self):
+        from apps.schools.deletion import assert_deletable, delete_school_rows
+
+        schools = list(self)
+        for school in schools:
+            assert_deletable(school)
+        deleted_count, by_label, _skipped = delete_school_rows(schools, using=self.db)
+        self._result_cache = None
+        return deleted_count, by_label
+
+    delete.alters_data = True
+
+
+class LiveSchoolManager(models.Manager.from_queryset(SchoolQuerySet)):
     """Opt-in manager that hides soft-deleted schools (deleted_at IS NOT NULL).
 
     Wave L6 (v3.61.6 — 2026-05-22). The default ``School.objects`` is
@@ -744,11 +767,33 @@ class School(models.Model):
     # default and broke ``School.objects`` site-wide. Keep explicit
     # ``objects`` first so legacy callers stay unchanged; new code that
     # should hide soft-deleted rows uses ``School.live_objects``.
-    objects = models.Manager()
+    objects = SchoolQuerySet.as_manager()
     live_objects = LiveSchoolManager()
 
     def __str__(self):
         return self.name
+
+    def delete(self, using=None, keep_parents=False):
+        """Hard-delete, cascading over SHARED relations only.
+
+        The stock implementation cannot run in ``public`` under
+        schema-per-tenant: the collector walks 328 tenant tables that are not
+        there and dies on the first one. Tenant rows are not orphaned by
+        skipping them — they live in the tenant schema and go with it.
+
+        A school that still owns a live tenant schema cannot be deleted at all
+        (its rows hold real cross-schema foreign keys to this row); that raises
+        ``TenantSchemaStillPresent`` naming the schema. Delete both together with
+        ``apps.schools.deletion.delete_school(school, drop_schema=True)``.
+        """
+        from apps.schools.deletion import assert_deletable, delete_school_rows
+
+        assert_deletable(self)
+
+        deleted_count, by_label, _skipped = delete_school_rows([self], using=using)
+        return deleted_count, by_label
+
+    delete.alters_data = True
 
     def clean(self):
         super().clean()
@@ -1488,6 +1533,7 @@ class FundraisingCampaign(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        db_constraint=False,
         related_name="fundraising_campaigns",
         help_text="Optional fund that gifts to this campaign credit by default.",
     )
@@ -1633,6 +1679,7 @@ class AdvancementGift(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        db_constraint=False,
         related_name="advancement_gifts",
         help_text="Optional restricted/scholarship fund this gift credits.",
     )
@@ -1734,6 +1781,7 @@ class InKindDonation(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        db_constraint=False,
         related_name="in_kind_donations",
         help_text="Inventory line created/incremented when this donation is accepted.",
     )
@@ -1843,6 +1891,7 @@ class GrantApplication(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        db_constraint=False,
         related_name="grant_applications",
         help_text="Fund credited when the grant is awarded.",
     )

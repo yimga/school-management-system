@@ -25,8 +25,21 @@ to point at.
 An existing prod database may survive on legacy public tables, but every fresh
 one fails — disaster recovery, a new region, a staging rebuild, a preview env.
 
-This gate does NOT fix the existing violation (that is a schema decision with
-three viable directions). It freezes the count so a NEW one cannot land.
+What counts as a finding
+------------------------
+Only a relation that would emit a REAL ``REFERENCES`` clause. ``db_constraint=False``
+is the remediation — it keeps the ORM relation (still useful inside tenant context,
+where ``search_path`` spans both schemas) while emitting no constraint, so the DDL
+is valid in ``public`` where the target table does not exist. Most cross-boundary
+relations in this codebase were already written that way; only four were not, and
+``schools.0067`` was simply the first of them to run. A gate that reported all of
+them equally would bury four real deploy blockers under twelve already-correct
+fields — the same noise-burial failure that makes a gate get switched off.
+
+Direction matters just as much: TENANT -> SHARED is the normal, legal, ubiquitous
+pattern (~200 sites) and is never a finding.
+
+Baseline is **0**: every crossing is now either constrained-free or marked.
 
 Stdlib only (no Django import), so it runs in the deps-free boundary job.
 
@@ -115,8 +128,22 @@ def _target_label(value: ast.AST) -> str:
     return ""
 
 
+def _is_db_constraint_false(call: ast.Call) -> bool:
+    """True when this field explicitly declares ``db_constraint=False``.
+
+    That is the remediation for a cross-boundary relation, not a workaround: it
+    keeps the ORM relation (useful inside tenant context, where ``search_path``
+    spans both schemas) while emitting no REFERENCES clause — so the DDL is
+    valid in ``public``, where the target table does not exist.
+    """
+    for kw in call.keywords:
+        if kw.arg == "db_constraint":
+            return isinstance(kw.value, ast.Constant) and kw.value.value is False
+    return False
+
+
 def _relation_targets(call: ast.Call) -> list[tuple[str, int]]:
-    """(target_app_label, lineno) for each relation field inside this call."""
+    """(target_app_label, lineno) for each CONSTRAINED relation field in this call."""
     found: list[tuple[str, int]] = []
     func = call.func
     name = ""
@@ -131,7 +158,7 @@ def _relation_targets(call: ast.Call) -> list[tuple[str, int]]:
                 target = _target_label(kw.value)
         if not target and call.args:
             target = _target_label(call.args[0])
-        if target:
+        if target and not _is_db_constraint_false(call):
             found.append((target, call.lineno))
     for child in ast.iter_child_nodes(call):
         if isinstance(child, ast.Call):

@@ -53,6 +53,21 @@ class Migration(migrations.Migration):
     ]
 '''
 
+SHARED_TO_TENANT_UNCONSTRAINED = '''
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+    operations = [
+        migrations.AddField(
+            model_name="advancementgift",
+            name="award_source",
+            field=models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.SET_NULL, to="finance.awardsource"),
+        ),
+    ]
+'''
+
 SHARED_TO_TENANT_ALLOWED = '''
 from django.db import migrations, models
 import django.db.models.deletion
@@ -123,14 +138,31 @@ class CrossTenancyFkScannerTests(unittest.TestCase):
         self.assertEqual(tenancy.get("finance"), "tenant")
         self.assertEqual(tenancy.get("schoolops"), "tenant")
 
-    def test_live_tree_still_detects_the_known_deploy_blocker(self):
-        """schools.0067 must remain visible — it is why this gate exists."""
+    def test_db_constraint_false_is_not_a_finding(self):
+        """The remediation, not a workaround: no REFERENCES clause is emitted.
+
+        Twelve cross-boundary relations already shipped this way. Reporting them
+        would have buried the four genuinely-constrained ones that actually broke
+        `migrate_schemas --shared`.
+        """
+        self._write("schools", "0067_x.py", SHARED_TO_TENANT_UNCONSTRAINED)
+        self.assertEqual(mod.scan(TENANCY), [])
+
+    def test_live_tree_has_no_constrained_crossing(self):
+        """The regression seal: the fresh-DB deploy blocker must stay fixed.
+
+        `apps/schools/migrations/0067_...` used to appear here — a real
+        `ProgrammingError: relation "finance_awardsource" does not exist` on every
+        fresh database. It is fixed, so the live tree must now scan clean, and any
+        reintroduction turns this red.
+        """
         mod.APPS_DIR = self._orig_apps  # scan the REAL tree, not the temp fixture
         findings = mod.scan(mod.load_tenancy_map())
-        paths = {f["path"] for f in findings}
-        self.assertIn(
-            "apps/schools/migrations/0067_advancementgift_award_source_and_more.py",
-            paths,
+        self.assertEqual(
+            findings,
+            [],
+            "a SHARED model regained a constrained FK to a TENANT table; "
+            "`migrate_schemas --shared` will now fail on any fresh database",
         )
 
 

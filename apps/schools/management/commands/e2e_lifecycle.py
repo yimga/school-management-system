@@ -289,43 +289,59 @@ class Command(BaseCommand):
         so a bare ``school.delete()`` raises ProtectedError. Rather than enumerate
         every tenant model, peel the protected set the error itself reports and
         retry — bounded so a genuinely undeletable graph can never loop forever.
+
+        Every attempt runs in its OWN savepoint. On Postgres a failed statement
+        aborts the whole transaction, so the previous ``except: continue`` turned
+        one recoverable delete into a poisoned transaction that failed every
+        later step of the drive for an unrelated reason.
         """
+        from django.db import DatabaseError
         from django.db.models.deletion import ProtectedError
 
+        from apps.schools.db_safety import savepoint_suppress
+
         for _ in range(8):  # magic-number-allow: bounded protected-layer peel
-            try:
+            with savepoint_suppress(
+                DatabaseError, context=f"delete school {school.pk}"
+            ) as attempt:
                 school.delete()
+            if attempt.ok:
                 return True
-            except ProtectedError as exc:
-                protected = list(getattr(exc, "protected_objects", []) or [])
-                if not protected:
-                    return False
-                for obj in protected:
-                    try:
-                        obj.delete()
-                    except ProtectedError:
-                        continue  # deeper layer — next outer iteration peels it
-                    except Exception:  # noqa: BLE001
-                        continue
+            if not isinstance(attempt.error, ProtectedError):
+                return False  # a real database failure, not a protected layer
+            protected = list(getattr(attempt.error, "protected_objects", []) or [])
+            if not protected:
+                return False
+            for obj in protected:
+                # A deeper protected layer is expected — the next outer iteration
+                # peels it. Anything else is logged by the helper, not hidden.
+                with savepoint_suppress(
+                    DatabaseError, context=f"peel protected {obj.__class__.__name__}"
+                ):
+                    obj.delete()
         return False
 
     def _delete_runs(self, school_id: str) -> int:
-        try:
-            from apps.platform_runtime.models import WorkflowRun
+        from django.db import DatabaseError
 
-            n, _ = WorkflowRun.objects.filter(school_id=school_id).delete()
-            return n
-        except Exception:  # noqa: BLE001
-            return 0
+        from apps.schools.db_safety import savepoint_suppress
+
+        from apps.platform_runtime.models import WorkflowRun
+
+        with savepoint_suppress(DatabaseError, context="delete workflow runs") as out:
+            out.result, _ = WorkflowRun.objects.filter(school_id=school_id).delete()
+        return out.result if out.ok else 0
 
     def _delete_events(self, school) -> int:
-        try:
-            from apps.schools.models import SchoolProvisioningEvent
+        from django.db import DatabaseError
 
-            n, _ = SchoolProvisioningEvent.objects.filter(school=school).delete()
-            return n
-        except Exception:  # noqa: BLE001
-            return 0
+        from apps.schools.db_safety import savepoint_suppress
+
+        from apps.schools.models import SchoolProvisioningEvent
+
+        with savepoint_suppress(DatabaseError, context="delete provisioning events") as out:
+            out.result, _ = SchoolProvisioningEvent.objects.filter(school=school).delete()
+        return out.result if out.ok else 0
 
     def _delete_test_users(self, school) -> int:
         """Delete owner users created for this test school (marker'd email domain only)."""
@@ -357,12 +373,15 @@ class Command(BaseCommand):
         """
         if not self._schema_mode() or not self._is_test_school(school):
             return ""
-        try:
-            from apps.schools.tenant_offboarding import get_schema_name
+        from django.db import DatabaseError
 
-            return (get_schema_name(school) or "").strip()
-        except Exception:  # noqa: BLE001
-            return ""
+        from apps.schools.db_safety import savepoint_suppress
+
+        from apps.schools.tenant_offboarding import get_schema_name
+
+        with savepoint_suppress(DatabaseError, context="capture schema name") as out:
+            out.result = (get_schema_name(school) or "").strip()
+        return out.result if out.ok else ""
 
     def _drop_schema_by_name(self, schema_name: str, stdout) -> None:
         """DROP a tenant Postgres schema by its pre-captured, validated name.
@@ -376,27 +395,37 @@ class Command(BaseCommand):
         if not schema.startswith("s_") or not schema.replace("_", "").isalnum():
             stdout.write(f"    (schema drop skipped: {schema!r} is not a tenant 's_' schema)")
             return
-        try:
-            from django.db import connection
+        from django.db import DatabaseError, connection
 
+        from apps.schools.db_safety import savepoint_suppress
+
+        # Savepointed: a failed DROP aborts the transaction on Postgres, and the
+        # teardown loop has more schools to go.
+        with savepoint_suppress(DatabaseError, context=f"drop schema {schema}") as out:
             with connection.cursor() as cur:
                 cur.execute(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE')
+        if out.ok:
             stdout.write(f"    dropped tenant schema: {schema}")
-        except Exception as exc:  # noqa: BLE001
-            stdout.write(f"    (schema drop failed: {type(exc).__name__})")
+        else:
+            stdout.write(f"    (schema drop failed: {type(out.error).__name__})")
 
     def _residue_scan(self) -> dict:
         from django.contrib.auth import get_user_model
 
         from apps.schools.models import School
 
-        try:
-            from apps.platform_runtime.models import WorkflowRun
+        from django.db import DatabaseError
 
+        from apps.schools.db_safety import savepoint_suppress
+
+        from apps.platform_runtime.models import WorkflowRun
+
+        with savepoint_suppress(DatabaseError, context="residue scan") as out:
             live_ids = [str(s.id) for s in School.objects.filter(slug__startswith=TEST_SLUG_PREFIX)]
-            orphan_runs = WorkflowRun.objects.filter(school_id__in=live_ids).count() if live_ids else 0
-        except Exception:  # noqa: BLE001
-            orphan_runs = -1
+            out.result = (
+                WorkflowRun.objects.filter(school_id__in=live_ids).count() if live_ids else 0
+            )
+        orphan_runs = out.result if out.ok else -1
         # schools_remaining uses the slug prefix only (not the flag): this can only
         # OVER-report (a real school misnamed zzt-e2e-* without the flag is refused
         # deletion yet trips the scan) — safe, never hides residue.

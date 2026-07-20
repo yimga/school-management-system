@@ -80,6 +80,8 @@ and the whole operator console via `path("super/", include("apps.schools.super_u
 | Module | `data_residency` | `data_region` (regulatory) vs `regional_cluster` (operational), country→region map, `region_for_alias`. |
 | Module | `conversion_lock_state` | First-value completion recorded explicitly in `school.settings`, never inferred from URLs. |
 | Module | `tenant_schema_guard` | Detects and best-effort heals *missing tables* in a tenant schema (the fake-applied `CreateModel` case). |
+| Module | `deletion` | Hard-deleting a `School` from `public`. Django's cascade collector walks all 328 tenant tables that FK `schools_school` and dies on the first one, so `PublicSchemaCollector` skips relations that live only in tenant schemas. A school that still owns a live schema cannot be deleted at all (those FKs are real, cross-schema) — `assert_deletable` refuses by name; `delete_school(school, drop_schema=True)` removes both together. |
+| Module | `db_safety` | `savepoint_suppress` — the savepoint every swallowed database error needs. Postgres aborts the whole transaction on any statement error, so `except Exception: pass` around a query turns one recoverable failure into every later statement failing for an unrelated reason. Suppress inside a savepoint, and read `outcome.ok` instead of assuming success. |
 | Module | `middleware_tenant_main` | `HealthAwareTenantMainMiddleware` — skips tenant lookup for health probes and returns a 200 "degraded" during Postgres blips so the dyno stays up. |
 | Celery | `provision_school_task` | The provisioning job. |
 | Celery | `reconcile_half_provisioned_tenants_task`, `detect_tenant_table_drift_task` | Durable reconcilers. |

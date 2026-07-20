@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('notes', models.TextField(blank=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('award_source', models.ForeignKey(blank=True, help_text='Fund credited when the grant is awarded.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='grant_applications', to='finance.awardsource')),
+                ('award_source', models.ForeignKey(blank=True, db_constraint=False, help_text='Fund credited when the grant is awarded.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='grant_applications', to='finance.awardsource')),
                 ('renewed_from', models.ForeignKey(blank=True, help_text='Prior grant this application renews.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='renewals', to='schools.grantapplication')),
                 ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='grant_applications', to='schools.school')),
             ],

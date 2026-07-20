@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                 ('is_public', models.BooleanField(default=False, help_text='Show this campaign on the donor portal.')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('award_source', models.ForeignKey(blank=True, help_text='Optional fund that gifts to this campaign credit by default.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fundraising_campaigns', to='finance.awardsource')),
+                ('award_source', models.ForeignKey(blank=True, db_constraint=False, help_text='Optional fund that gifts to this campaign credit by default.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fundraising_campaigns', to='finance.awardsource')),
                 ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='fundraising_campaigns', to='schools.school')),
             ],
             options={

@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='advancementgift',
             name='award_source',
-            field=models.ForeignKey(blank=True, help_text='Optional restricted/scholarship fund this gift credits.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='advancement_gifts', to='finance.awardsource'),
+            field=models.ForeignKey(blank=True, db_constraint=False, help_text='Optional restricted/scholarship fund this gift credits.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='advancement_gifts', to='finance.awardsource'),
         ),
         migrations.AddField(
             model_name='advancementgift',
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('donor', models.ForeignKey(blank=True, help_text='Optional; blank for anonymous in-kind gifts.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='in_kind_donations', to='schools.advancementdonor')),
-                ('inventory_item', models.ForeignKey(blank=True, help_text='Inventory line created/incremented when this donation is accepted.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='in_kind_donations', to='schoolops.inventoryitem')),
+                ('inventory_item', models.ForeignKey(blank=True, db_constraint=False, help_text='Inventory line created/incremented when this donation is accepted.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='in_kind_donations', to='schoolops.inventoryitem')),
                 ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='in_kind_donations', to='schools.school')),
             ],
             options={
