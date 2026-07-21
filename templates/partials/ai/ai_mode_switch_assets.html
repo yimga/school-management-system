@@ -1,0 +1,7 @@
+{% load static %}
+{% comment %}
+  Assets only — no visible mount. The live mount lives in the Tools tray
+  (rmc_tools_tray_context_stack) so it never paints under the civic footer.
+{% endcomment %}
+<link rel="stylesheet" href="{% static 'css/rmc-ai-mode-switch.css' %}">
+<script src="{% static 'js/rmc-ai-mode-switch.js' %}" defer></script>

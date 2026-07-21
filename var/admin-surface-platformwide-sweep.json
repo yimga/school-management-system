@@ -3,6 +3,6 @@
   "css_files": 43,
   "content_pages": 11,
   "expected_cache_bust": "20260721-admin-os-v154",
-  "expected_sw": "sms-v4.06.3-admin-os-v154-2026-07-21",
+  "expected_sw": "sms-v4.06.4-footer-chrome-declutter-2026-07-21",
   "findings": []
 }

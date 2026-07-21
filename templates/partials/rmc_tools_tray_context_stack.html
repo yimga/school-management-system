@@ -11,6 +11,7 @@ Mounted by rmc-operator-tools-tray.js (never rendered in page canvas).
   {% if operator_incident_banner or tenant_incident_banner %}
   {% include "partials/cockpit/_operator_incident_banner.html" %}
   {% endif %}
+  {% include "partials/ai/ai_mode_switch.html" %}
   <div class="rmc-operator-tools__wfp-stack" data-rmc-wfp-tray-region="1">
     <div class="rmc-operator-tools__wfp-chip-slot" data-rmc-wfp-tray-slot="1" aria-label="{% trans 'Workflow progress' %}"></div>
     {% include "components/rmc_workflow_progress_strip.html" %}

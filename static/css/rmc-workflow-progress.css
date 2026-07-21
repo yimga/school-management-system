@@ -122,6 +122,12 @@
   color: var(--surface-bg);
 }
 
+/* Closed WFP cards must never paint as document-flow under the footer. */
+.rmc-wfp-card[data-rmc-wfp-open="false"],
+.rmc-wfp-card[hidden] {
+  display: none !important;
+}
+
 /* ───── Expanded card ───── */
 .rmc-wfp-card {
   position: fixed;
@@ -146,6 +152,18 @@
 
 .rmc-wfp-card[data-rmc-wfp-open="true"] {
   display: flex;
+}
+
+/* Tray-hosted card: stay in the Tools panel, not a body-level overlay. */
+[data-rmc-wfp-tray-region] > .rmc-wfp-card[data-rmc-wfp-open="true"] {
+  position: relative;
+  bottom: auto;
+  right: auto;
+  width: 100%;
+  max-width: none;
+  max-height: min(50vh, 28rem);
+  margin-top: 0.5rem;
+  box-shadow: none;
 }
 
 body[data-rmc-assist-dock="mounted"] .rmc-wfp-card {

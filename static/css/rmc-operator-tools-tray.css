@@ -653,6 +653,12 @@ body[data-rmc-assist-layout="edge-tray"].cp-shell-has-operator-footer
   }
 }
 
+.rmc-operator-tools__ai-mode {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
 /* v4.02.10 — Tools tray context stack (workflow guidance + incidents). */
 .rmc-operator-tools__context-stack {
   display: flex;

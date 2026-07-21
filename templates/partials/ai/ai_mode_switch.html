@@ -1,14 +1,6 @@
 {% load static %}
 {% comment %}
-  AI mode status + switch — a compact, self-contained control.
-
-  Renders the live AI posture (cloud / on-device / guided) and, for users allowed
-  to change it, a mode selector. Reads the platform-wide page-data-rmc-ai-chrome
-  island and POSTs to the scoped endpoint (per-tenant override or operator platform
-  default). The JS degrades silently when the island or a mount is absent, so this
-  partial is safe to include anywhere.
+  Visible AI mode mount for Tools tray / intentional chrome slots only.
+  Do NOT include this from bottom-of-page page-data (that painted under the footer).
 {% endcomment %}
-<link rel="stylesheet" href="{% static 'css/rmc-ai-mode-switch.css' %}">
-<span data-rmc-ai-mode-switch></span>
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<script src="{% static 'js/rmc-ai-mode-switch.js' %}"></script>
+<span data-rmc-ai-mode-switch class="rmc-operator-tools__ai-mode"></span>

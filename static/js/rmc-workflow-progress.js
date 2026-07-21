@@ -535,6 +535,8 @@
     if (!chip || !card) return;
     chip.setAttribute("aria-expanded", state.open ? "true" : "false");
     card.dataset.rmcWfpOpen = state.open ? "true" : "false";
+    // Keep closed cards out of layout even if CSS failed to load (footer pollution).
+    card.hidden = !state.open;
     if (state.open) renderCard();
   }
 
@@ -661,7 +663,15 @@
     if (!shouldConnectStream()) return;
     if (document.getElementById("rmc-wfp-chip")) return;
     var card = buildCard();
-    document.body.appendChild(card);
+    // Prefer Tools tray host so an open card never becomes document-flow
+    // junk under the civic footer (body append + missing CSS caused that).
+    var trayHost = document.querySelector("[data-rmc-wfp-tray-region]");
+    if (trayHost) {
+      trayHost.appendChild(card);
+    } else {
+      card.hidden = true;
+      document.body.appendChild(card);
+    }
 
     var adopted = adoptRegisteredSlotChip();
     var chip = adopted || buildChip();
@@ -674,6 +684,11 @@
       var traySlot = mountChipTarget();
       if (!existing || !traySlot || traySlot.contains(existing)) return;
       traySlot.appendChild(existing);
+      var cardEl = document.getElementById("rmc-wfp-card");
+      var region = document.querySelector("[data-rmc-wfp-tray-region]");
+      if (cardEl && region && !region.contains(cardEl)) {
+        region.appendChild(cardEl);
+      }
     });
 
     var closeBtn = card.querySelector(".rmc-wfp-card__close");

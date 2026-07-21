@@ -1,7 +1,7 @@
 {
   "build_id": "2026-07-21-v15.4",
   "cache_bust": "20260721-admin-os-v154",
-  "sw_version": "sms-v4.06.3-admin-os-v154-2026-07-21",
+  "sw_version": "sms-v4.06.4-footer-chrome-declutter-2026-07-21",
   "seal": "2026-07-21-admin-os-v154",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
@@ -10,7 +10,7 @@
   ],
   "visible_proofs": [
     "data-rmc-admin-approval-build=\"2026-07-21-v15.4\"",
-    "v15.4 \u00b7 Admin OS \u00b7 operator+tenant",
+    "v15.4 · Admin OS · operator+tenant",
     "data-rmc-admin-archetype=\"discover\"",
     "data-rmc-admin-archetype=\"scan\"",
     "data-rmc-admin-archetype=\"edit\"",

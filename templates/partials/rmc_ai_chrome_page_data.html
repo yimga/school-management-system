@@ -1,9 +1,10 @@
 {% comment %}
   Canonical AI chrome page-data island — URLs, flags, RBAC from ai_chrome_config.
   Loaded once per authenticated shell; JS must read page-data-rmc-ai-chrome only.
+  Visible AI mode switch mounts in the Tools tray — never here after the footer.
 {% endcomment %}
 {% if request.user.is_authenticated and AI_CHROME_CONFIG_JSON %}
 <script type="application/json" id="page-data-rmc-ai-chrome" nonce="{{ csp_nonce }}">{{ AI_CHROME_CONFIG_JSON|safe }}</script>
-{% include "partials/ai/ai_mode_switch.html" %}
+{% include "partials/ai/ai_mode_switch_assets.html" %}
 {% endif %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
