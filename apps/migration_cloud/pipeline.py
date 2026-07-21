@@ -371,6 +371,26 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
 
     summary["status"] = bundle.status
     refresh_snapshot(bundle=bundle)
+    try:
+        from apps.migration_cloud.models_audit import MigrationCloudAuditEventType
+        from apps.migration_cloud.services.bundle_lifecycle_audit import safe_bundle_audit
+
+        safe_bundle_audit(
+            bundle,
+            MigrationCloudAuditEventType.BUNDLE_ADVANCED.value,
+            payload_summary={
+                "bundle_id": str(bundle.pk),
+                "status": str(bundle.status),
+                "stages_run": list(summary.get("stages_run") or [])[:12],
+                "artifact_count": int(bundle.artifacts.count()),
+            },
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning(
+            "migration_cloud.pipeline: advance audit failed bundle_id=%s",
+            bundle_id,
+            exc_info=True,
+        )
     return summary
 
 

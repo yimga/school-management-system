@@ -1,0 +1,172 @@
+{
+  "started_at": "2026-07-20T23:05:49.413750+00:00",
+  "finished_at": "2026-07-20T23:06:11.227694+00:00",
+  "apply": true,
+  "checks": [
+    {
+      "name": "school",
+      "status": "PASS",
+      "detail": "reuse slug=uat-mc-intake-methods"
+    },
+    {
+      "name": "ingest:file_upload_csv",
+      "status": "PASS",
+      "detail": "bundle=30 artifacts=1 method=file_upload"
+    },
+    {
+      "name": "advance:file_upload_csv",
+      "status": "PASS",
+      "detail": "status=MAPPED"
+    },
+    {
+      "name": "apply:file_upload_csv",
+      "status": "PASS",
+      "detail": "status=APPLIED"
+    },
+    {
+      "name": "ingest:file_upload_json",
+      "status": "PASS",
+      "detail": "bundle=31 artifacts=1 method=file_upload"
+    },
+    {
+      "name": "advance:file_upload_json",
+      "status": "PASS",
+      "detail": "status=MAPPED"
+    },
+    {
+      "name": "apply:file_upload_json",
+      "status": "PASS",
+      "detail": "status=APPLIED"
+    },
+    {
+      "name": "ingest:file_upload_xlsx",
+      "status": "PASS",
+      "detail": "bundle=32 artifacts=1 method=file_upload"
+    },
+    {
+      "name": "advance:file_upload_xlsx",
+      "status": "PASS",
+      "detail": "status=MAPPED"
+    },
+    {
+      "name": "apply:file_upload_xlsx",
+      "status": "PASS",
+      "detail": "status=APPLIED"
+    },
+    {
+      "name": "ingest:sql_dump_sqlite",
+      "status": "PASS",
+      "detail": "bundle=33 artifacts=1 method=sql_dump"
+    },
+    {
+      "name": "advance:sql_dump_sqlite",
+      "status": "PASS",
+      "detail": "status=MAPPED"
+    },
+    {
+      "name": "apply:sql_dump_sqlite",
+      "status": "PASS",
+      "detail": "status=APPLIED"
+    },
+    {
+      "name": "ingest:archive_zip",
+      "status": "PASS",
+      "detail": "bundle=34 artifacts=2 method=archive"
+    },
+    {
+      "name": "advance:archive_zip",
+      "status": "PASS",
+      "detail": "status=MAPPED"
+    },
+    {
+      "name": "apply:archive_zip",
+      "status": "PASS",
+      "detail": "status=APPLIED"
+    },
+    {
+      "name": "ingest:pdf_transcript",
+      "status": "PASS",
+      "detail": "honest empty/OCR gap \u2014 IntakeError: PDF transcripts.pdf produced no extractable text. Install pdfplumber (digital PDFs) or pytesseract + Tesseract + Poppler binaries (scanned PDFs) fo"
+    },
+    {
+      "name": "ingest:academics_courses_csv",
+      "status": "PASS",
+      "detail": "bundle=36 artifacts=1 method=file_upload"
+    },
+    {
+      "name": "advance:academics_courses_csv",
+      "status": "PASS",
+      "detail": "status=MAPPED"
+    },
+    {
+      "name": "domain:academics",
+      "status": "PASS",
+      "detail": "domains=['academics']"
+    },
+    {
+      "name": "apply:academics_courses_csv",
+      "status": "PASS",
+      "detail": "status=APPLIED"
+    },
+    {
+      "name": "adapter:file_upload",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:archive",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:url",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:sftp",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:s3",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:sql_dump",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:database",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:oauth_folder",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:email",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:api_pull",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:pdf",
+      "status": "PASS",
+      "detail": "registered"
+    },
+    {
+      "name": "adapter:access_db",
+      "status": "PASS",
+      "detail": "registered"
+    }
+  ]
+}

@@ -338,6 +338,16 @@ class MigrationCloudAuditEventType(models.TextChoices):
         "lifecycle.offboarding.purge_completed",
         "School offboarding purge completed",
     )
+    # Bundle pipeline / apply trail (tenant Dominance audit §0.6).
+    # Companion upload/decrypt already emit; advance+apply were the gap.
+    BUNDLE_ADVANCED = (
+        "migration.bundle.advanced",
+        "Migration bundle advanced through profile/classify/map",
+    )
+    BUNDLE_APPLIED = (
+        "migration.bundle.applied",
+        "Migration bundle apply completed (live or dry-run)",
+    )
 
 
 GENESIS_SENTINEL = "genesis"

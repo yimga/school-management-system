@@ -114,8 +114,8 @@ print("runs", list(MigrationRun.objects.filter(school=school).order_by("-started
 
 ## 0.3 End-to-end domain contract matrix
 
-Canonical headers: `accelerators/runmycampus_canonical.py::DOMAIN_CANONICAL_HEADERS` (27 domains).  
-Landers: `landers/*.py` (+ `academics` lander **not** in header SOT).  
+Canonical headers: `accelerators/runmycampus_canonical.py::DOMAIN_CANONICAL_HEADERS` (28 domains; includes `academics`).  
+Landers: `landers/*.py` (including `academics` → Subject).  
 Phantom-field scanner: **0** (2026-07-20).
 
 | Domain | Lander | First-class model | Tenant UI surface (typical) | Land test coverage | Gap |
@@ -148,7 +148,7 @@ Phantom-field scanner: **0** (2026-07-20).
 | athletics_memberships | `athletics_memberships_lander.py` | `TeamMembership` | Athletics roster | same | — |
 | athletics_fixtures | `athletics_fixtures_lander.py` | `Fixture` (+ result) | Athletics fixtures | same | — |
 | custom_fields | `dynamic_field_lander.py` | `metadata.DynamicFieldValue` | Metadata / custom | catch-all | Never drop invariant |
-| academics *(lander only)* | `academics_lander.py` | `academics.Subject` | Subjects | lander | **Not** in `DOMAIN_CANONICAL_HEADERS` — tagger/templates may miss it |
+| academics | `academics_lander.py` | `academics.Subject` | Subjects | lander + header SOT | batch 1772 |
 
 **Verification honesty:** post-apply `verification.py` re-queries visible counts for **students / staff / guardians / finance** only — other domains show “—” for visible count (Salesforce bar gap).
 
@@ -176,6 +176,19 @@ Phantom-field scanner: **0** (2026-07-20).
 
 ---
 
+## Batch 1772 addendum (2026-07-20)
+
+| Item | Status |
+|------|--------|
+| `academics` in `DOMAIN_CANONICAL_HEADERS` + companion mirrors | **DONE** (28 domains; courses→Subject lander) |
+| Bundle advance/apply `MigrationCloudAuditEvent` emission | **DONE** (`migration.bundle.advanced` / `.applied`) |
+| Intake FSM `INTAKE_STATE_ADVANCED` emission | **DONE** |
+| Multi-intake UAT (CSV/JSON/XLSX/SQL/ZIP/PDF + 12 adapters) | **DONE** (`uat_migration_cloud_intake_methods.py` PASS=33 FAIL=0) |
+| Audit events (advance/apply coverage) | **DONE** (was PARTIAL in §0.6) |
+
+
+---
+
 ## 0.5 UX / Shopify bar
 
 | Criterion | Score | Notes |
@@ -199,7 +212,7 @@ Phantom-field scanner: **0** (2026-07-20).
 | RBAC on mutating routes | DONE (code) | Tenant admin / staff gates; API scoped tokens |
 | Tenant queryset scope | PARTIAL | Bundle metadata shared; land under schema — **broken when schema empty** |
 | No secrets in logs | DONE (gate family) | Companion logs sizes/ids not plaintext |
-| Audit events | PARTIAL | Companion upload/decrypt audited; ensure advance/apply emission coverage |
+| Audit events | DONE | Companion upload/decrypt + bundle advance/apply + intake FSM (batch 1772) |
 | API token scopes | DONE | Scoped tokens + throttle middleware |
 | CSRF on forms | DONE | Tenant review/apply forms use `{% csrf_token %}` |
 
@@ -257,9 +270,9 @@ Industry-leader order — implement only after this audit is accepted:
 
 - **Prod bundle state for `new-school` unknown** until operator runs §2.2.  
 - **Payroll / compliance** intentionally DFV — not first-class UI.  
-- **MAA v2 / FACTS-Skyward writes** counsel-blocked.  
-- **Offline MC upload** not in capability implementation gate.  
-- Docstring in `landers/__init__.py` still claims Payslip/ComplianceCheck for payroll/compliance — **doc drift** vs lander honesty notes.
+- **MAA v2 / FACTS-Skyward writes** counsel-blocked (shovel-ready).  
+- **Offline MC upload** DONE (batch 1770).  
+- **`academics` domain** closed in batch 1772 (was missing from `DOMAIN_CANONICAL_HEADERS`).
 
 ---
 

@@ -19,6 +19,7 @@ models, with DFV fallback retained for out-of-order bundles):
     * ``staff``                  → ``apps.people.TeacherProfile``      (upsert on external_id)
     * ``enrollment``             → updates StudentProfile grade_level / enrollment_status / section
     * ``structure``              → provisions the academic scaffold (AcademicYear/Term/Department/Classroom/Specialty/Subject/SubjectAssignment + a target-scoped teacher) for a SPLIT into an empty target, in wave 0 so enrollment+grades resolve
+    * ``academics``              → ``apps.academics.Subject``          (upsert on name; Subject catalog for grades)
     * ``sections``               → ``apps.academics.Classroom``        (upsert on code/slug)
     * ``attendance``             → ``apps.academics.Attendance``       (upsert on student+date)
     * ``grades``                 → ``apps.evals.Evaluation``           (upsert on student+term+subject)

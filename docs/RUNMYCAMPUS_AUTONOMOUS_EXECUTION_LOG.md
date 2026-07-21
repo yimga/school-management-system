@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Migration Cloud academics + bundle audit + multi-intake (batch 1772 - 2026-07-20)
+
+**A. Scope:** Second rigorous Migration Cloud pass after 1771 — close academics canonical-domain gap, advance/apply audit emission, and expand intake-method UAT beyond CSV/ZIP.
+
+**B. Shipped:** `academics` in `DOMAIN_CANONICAL_HEADERS` + UI labels + filename hints (`course`/`subject` → academics); companion-docker/tauri JSON mirrors (28 domains); `BUNDLE_ADVANCED`/`BUNDLE_APPLIED` audit types + `bundle_lifecycle_audit.safe_bundle_audit` wired in pipeline + orchestrator; intake FSM emits `INTAKE_STATE_ADVANCED`; migration `0039`; UAT `uat_migration_cloud_intake_methods.py`.
+
+**C. Proof:** `scan_companion_canonical_headers_drift` 0; `scan_lander_phantom_fields` 0; Django `test_academics_domain_and_bundle_audit_1772` + `test_file_domain_tagger` OK; intake UAT CSV/JSON/XLSX/SQL/ZIP/academics apply PASS; all 12 adapters registered; PDF honest OCR-empty PASS.
+
+**D. Honest:** Prod `new-school` forensic + counsel MAA/FACTS still EXTERNAL. PDF text extract needs pdfplumber/OCR on deploy hosts. Live URL/SFTP/S3/OAuth pulls not hit (need credentials).
+
+**E. Files:** `runmycampus_canonical.py`, companion JSON mirrors, `models_audit.py`, `models_intake.py`, `pipeline.py`, `orchestrator.py`, `services/bundle_lifecycle_audit.py`, migration 0039, tests, UAT script, SOT/log/audit.
+
+**F. Next:** Optional live URL/OAuth UAT with secrets; Render forensic; counsel PDF drops.
+
 ## Slice — Migration Cloud multi-country UAT + student re-apply (batch 1771 - 2026-07-20)
 
 **A. Scope:** End-to-end Migration Cloud on operator + tenant profiles across multiple countries and intake methods; fix every finding.

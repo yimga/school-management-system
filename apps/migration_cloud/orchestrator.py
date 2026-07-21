@@ -262,6 +262,29 @@ def _apply_bundle_inner(
     except Exception:
         pass
 
+    try:
+        from apps.migration_cloud.models_audit import MigrationCloudAuditEventType
+        from apps.migration_cloud.services.bundle_lifecycle_audit import safe_bundle_audit
+
+        safe_bundle_audit(
+            bundle,
+            MigrationCloudAuditEventType.BUNDLE_APPLIED.value,
+            payload_summary={
+                "bundle_id": str(bundle.pk),
+                "dry_run": bool(dry_run),
+                "status": str(new_status if not dry_run else BundleStatus.MAPPED),
+                "created": int(totals.get("created", 0)),
+                "updated": int(totals.get("updated", 0)),
+                "quarantined": int(totals.get("quarantined", 0)),
+            },
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning(
+            "migration_cloud.orchestrator: apply audit failed bundle_id=%s",
+            bundle_id,
+            exc_info=True,
+        )
+
     return ApplyResult(
         bundle_id=bundle.pk,
         dry_run=dry_run,

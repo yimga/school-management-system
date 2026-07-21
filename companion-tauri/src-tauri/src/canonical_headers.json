@@ -1,5 +1,5 @@
 {
-  "_comment": "Mirror of DOMAIN_CANONICAL_HEADERS in apps/migration_cloud/accelerators/runmycampus_canonical.py. Header-match only; cell values pass through verbatim. 27 canonical domains.",
+  "_comment": "Mirror of DOMAIN_CANONICAL_HEADERS in apps/migration_cloud/accelerators/runmycampus_canonical.py. Header-match only; cell values pass through verbatim. 28 canonical domains.",
   "students": [
     "external_id",
     "first_name",
@@ -70,6 +70,14 @@
     "exit_date",
     "section",
     "specialty"
+  ],
+  "academics": [
+    "subject_code",
+    "subject_name",
+    "credits",
+    "department",
+    "name",
+    "code"
   ],
   "sections": [
     "section_external_id",

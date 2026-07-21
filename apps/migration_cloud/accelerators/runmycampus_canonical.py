@@ -138,6 +138,13 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
         "department", "classroom", "specialty", "subject", "coefficient",
         "teacher_ref", "teacher_first_name", "teacher_last_name", "teacher_email",
     },
+    # Subject catalog (AcademicsLander → apps.academics.Subject). Distinct from
+    # ``sections`` (Classroom) and ``structure`` (SPLIT scaffold). Without this
+    # domain, courses.csv identity-maps into custom_fields and grades cannot
+    # resolve Subjects at the target.
+    "academics": {
+        "subject_code", "subject_name", "credits", "department", "name", "code",
+    },
     "sections": {
         "section_external_id", "subject_code", "subject_name",
         "term", "academic_year", "teacher_external_id",
@@ -252,6 +259,7 @@ DOMAIN_UI_LABELS: dict[str, str] = {
     "guardians": "Parents / Guardians",
     "enrollment": "Enrollment",
     "structure": "Academic structure",
+    "academics": "Subjects / Courses",
     "sections": "Classes / Sections",
     "attendance": "Attendance",
     "grades": "Grades / Marks",
@@ -297,8 +305,10 @@ DOMAIN_FILENAME_HINTS: tuple[tuple[str, str], ...] = (
     ("enrol", "enrollment"),
     ("enroll", "enrollment"),
     ("registration", "enrollment"),
-    ("subject", "sections"),
-    ("course", "sections"),
+    # Subject/course catalogs → academics (Subject model), NOT sections
+    # (Classroom). Class/section filenames stay on sections.
+    ("subject", "academics"),
+    ("course", "academics"),
     ("class", "sections"),
     ("section", "sections"),
     ("attendance", "attendance"),

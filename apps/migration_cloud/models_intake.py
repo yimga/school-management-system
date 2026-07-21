@@ -311,34 +311,36 @@ class MigrationIntakeRequest(models.Model):
         try:
             # Imported here to keep this model module import-light and
             # avoid a circular import at app load.
-            from .models_audit import MigrationCloudAuditEvent
+            from .models_audit import (
+                MigrationCloudAuditEvent,
+                MigrationCloudAuditEventType,
+            )
             tenant_slug = getattr(self.tenant, "slug", "") or ""
-            # event_type is not in the registered TextChoices for the
-            # audit log (which only covers companion / MAA / token /
-            # webhook / legacy-hash events). We co-opt the closest
-            # registered type for these transitions:
-            #
-            #   * maa.sign           — for entering MAA_SIGNED
-            #   * companion.upload   — for entering EXTRACTION_IN_PROGRESS
-            #                          (the closest registered event;
-            #                          intake-level transitions are a
-            #                          v3.41+ extension to the audit
-            #                          model's event_type enum)
-            #
-            # For other transitions we still want a forensic trail, but
-            # we don't bend an audit type to fit. The transition is
-            # logged (no PII) at INFO and emitted only when an apt
-            # event_type exists.
             if target_state == MigrationIntakeState.MAA_SIGNED.value:
                 MigrationCloudAuditEvent.objects.record(
                     tenant_slug,
-                    "maa.sign",
+                    MigrationCloudAuditEventType.MAA_SIGN.value,
                     actor=actor,
                     subject=str(self.id),
                     payload_summary={
                         "vendor_source": str(self.vendor_slug)[:64],
                         "intake_id_prefix": str(self.id)[:8],
                         "transition_from": previous_state[:40],
+                    },
+                )
+            else:
+                # Generic intake FSM trail — closes the deferred use of
+                # INTAKE_STATE_ADVANCED (registered since v3.40, unused).
+                MigrationCloudAuditEvent.objects.record(
+                    tenant_slug,
+                    MigrationCloudAuditEventType.INTAKE_STATE_ADVANCED.value,
+                    actor=actor,
+                    subject=str(self.id),
+                    payload_summary={
+                        "vendor_source": str(self.vendor_slug)[:64],
+                        "intake_id_prefix": str(self.id)[:8],
+                        "transition_from": previous_state[:40],
+                        "transition_to": str(target_state)[:40],
                     },
                 )
         except Exception as exc:  # noqa: BLE001 — audit must never break flow
