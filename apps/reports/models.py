@@ -250,6 +250,24 @@ class PromotionRule(models.Model):
         default=False,
         help_text="When enabled, use ITC/ATC rule: pass in at least 5 subjects including at least 2 Professional and 1 Related (in addition to overall average).",
     )
+    # Conditional promotion — a band BELOW the promotion threshold in which the
+    # student still advances, carrying a condition (resit, remedial work,
+    # probation). Every school system has some form of this: the Indian
+    # "compartment", the US "promoted on trial", the French *passage
+    # conditionnel*. NULL = the school does not use it, and behaviour is exactly
+    # as before this field existed.
+    conditional_promotion_average = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=(
+            "Optional. A student whose average falls between this value "
+            "(inclusive) and the promotion average advances with the outcome "
+            "CONDITIONALLY_PROMOTED. Leave empty to disable conditional "
+            "promotion for this scope."
+        ),
+    )
 
     class Meta:
         unique_together = ("academic_year", "classroom")
@@ -259,6 +277,18 @@ class PromotionRule(models.Model):
             raise ValidationError(
                 "Demotion average cannot be higher than promotion average."
             )
+        conditional = self.conditional_promotion_average
+        if conditional is not None:
+            if conditional > self.promotion_average:
+                raise ValidationError(
+                    "Conditional promotion average cannot be higher than the "
+                    "promotion average."
+                )
+            if conditional < self.demotion_average:
+                raise ValidationError(
+                    "Conditional promotion average cannot be lower than the "
+                    "demotion average."
+                )
 
     def __str__(self):
         scope = self.classroom.name if self.classroom else "School default"

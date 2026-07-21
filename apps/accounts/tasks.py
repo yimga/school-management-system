@@ -271,6 +271,11 @@ def _apply_rollover_proposal_impl(
     import logging
     from django.utils import timezone
     from apps.accounts.models import RolloverProposal
+    from apps.people.enrollment_services import (
+        graduate_student,
+        open_enrollment,
+        outcome_for_manual_placement,
+    )
     from apps.people.models import StudentProfile
 
     logger = logging.getLogger(__name__)
@@ -310,6 +315,9 @@ def _apply_rollover_proposal_impl(
             skipped += 1
             continue
         if getattr(item, "is_graduate", False):
+            # Close the enrollment BEFORE the legacy fields are cleared, so the
+            # leaving year is preserved in history rather than blanked (2.2).
+            graduate_student(student, target_year)
             student.academic_year = target_year
             student.classroom = None
             student.status = StudentProfile.Status.ALUMNI
@@ -323,9 +331,24 @@ def _apply_rollover_proposal_impl(
         if next_class is None:
             skipped += 1
             continue
-        student.academic_year = target_year
-        student.classroom = next_class
-        student.save(update_fields=["academic_year", "classroom"])
+        # 2.2: open a NEW enrollment and close the prior one instead of
+        # overwriting the student row. The operator's approved classroom still
+        # wins; only the recorded OUTCOME is derived (same grade => RETAINED).
+        source_enrollment = student.enrollment_for_year(source_year)
+        source_classroom = (
+            source_enrollment.classroom
+            if source_enrollment is not None and source_enrollment.classroom_id
+            else student.classroom
+        )
+        open_enrollment(
+            student,
+            target_year,
+            next_class,
+            entry_date=getattr(target_year, "start_date", None),
+            close_outcome=outcome_for_manual_placement(
+                source_classroom, next_class, item.promotion_status or ""
+            ),
+        )
         updated += 1
 
     proposal.status = RolloverProposal.Status.APPLIED

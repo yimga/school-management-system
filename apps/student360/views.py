@@ -31,12 +31,18 @@ def _student_360_academic(student):
     try:
         from django.apps import apps
 
-        # StudentProfile carries a single classroom FK
-        # (people.StudentProfile.classroom); there is no historical
-        # ClassEnrollment model, so the current placement is the student's
-        # one active enrollment row. Surface it with the same
-        # (.classroom / .academic_year) shape the template expects.
-        if getattr(student, "classroom_id", None):
+        # Real per-year enrollment history (program item 2.2), newest first.
+        # Previously this synthesised a single row from the profile's classroom
+        # FK because promotion overwrote it and no history existed. The template
+        # already renders a list of (.classroom / .academic_year), so the shape
+        # is unchanged; only the number of rows it can now show is.
+        enrollments = list(
+            student.enrollments.select_related("classroom", "academic_year").order_by(
+                "-academic_year__start_date", "-entry_date", "-id"
+            )[:10]
+        )
+        if not enrollments and getattr(student, "classroom_id", None):
+            # Compatibility shim for a tenant whose backfill has not run.
             enrollments = [
                 SimpleNamespace(
                     classroom=student.classroom,

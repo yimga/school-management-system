@@ -317,6 +317,11 @@ def _apply_enrollments(rows: list[dict[str, str]], report: dict[str, Any]) -> No
                 if student.classroom_id != classroom.pk:
                     student.classroom = classroom
                     student.save(update_fields=["classroom"])
+                    # Placements live on people.Enrollment (item 2.2); the
+                    # legacy field is a projection, so both must move together.
+                    from apps.people.enrollment_services import set_placement
+
+                    set_placement(student)
                 written_student += 1
             except Exception as exc:  # noqa: BLE001
                 logger.warning("oneroster enrollments: student-write failed sid=%s err=%s", sid, exc)

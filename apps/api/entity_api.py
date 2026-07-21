@@ -300,6 +300,14 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
             updated = StudentProfile.objects.filter(id__in=student_ids).update(
                 **updates, updated_by=request.user
             )
+            # A queryset .update() skips save() and every signal, so the
+            # enrollment — the source of truth for a placement since item 2.2 —
+            # would otherwise still describe the OLD class. Re-sync explicitly;
+            # the list is operator-supplied and bounded, so a loop is fine.
+            from apps.people.enrollment_services import set_placement
+
+            for student in StudentProfile.objects.filter(id__in=student_ids):
+                set_placement(student)
 
         return Response(
             {"updated": updated, "applied": updates}, status=status.HTTP_200_OK

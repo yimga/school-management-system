@@ -796,10 +796,309 @@ class StudentProfile(models.Model):
                 )
         super().clean()
 
+    # ---- Enrollment derivation (2.2) -------------------------------------
+    # ``classroom``/``academic_year`` above are now a synchronised PROJECTION of
+    # the active Enrollment, kept because ~180 call sites read them. New code
+    # should read these properties instead: they survive promotion, where the
+    # raw fields only ever hold the CURRENT year.
+
+    @property
+    def current_enrollment(self):
+        """The open Enrollment, or None. At most one exists (DB constraint)."""
+        return (
+            self.enrollments.filter(status=Enrollment.Status.ACTIVE)
+            .select_related("classroom", "academic_year", "specialty")
+            .order_by("-entry_date", "-id")
+            .first()
+        )
+
+    @property
+    def current_classroom(self):
+        """Class derived from the active enrollment; legacy field is the fallback.
+
+        The fallback is deliberate and load-bearing: a tenant whose backfill has
+        not run yet, or a student created by a path that has not been moved onto
+        Enrollment, must still resolve a class rather than silently read None.
+        """
+        enrollment = self.current_enrollment
+        if enrollment is not None and enrollment.classroom_id:
+            return enrollment.classroom
+        return self.classroom
+
+    @property
+    def current_academic_year(self):
+        enrollment = self.current_enrollment
+        if enrollment is not None:
+            return enrollment.academic_year
+        return self.academic_year
+
+    def enrollment_for_year(self, academic_year):
+        """This student's enrollment in a GIVEN year — the history lookup."""
+        return (
+            self.enrollments.filter(academic_year=academic_year)
+            .order_by("-entry_date", "-id")
+            .first()
+        )
+
+    def enrollment_history(self):
+        """Chronological placements, oldest first. Basis of a transcript."""
+        return self.enrollments.select_related(
+            "classroom", "academic_year"
+        ).order_by("academic_year__start_date", "entry_date", "id")
+
 
 # Backwards-compatibility alias
 # Older code/tests import `Student` from apps.people.models — keep this alias to avoid ImportError
 Student = StudentProfile
+
+
+class EnrollmentQuerySet(models.QuerySet):
+    def active(self):
+        """The open enrollment — the row the student's CURRENT class derives from."""
+        return self.filter(status=Enrollment.Status.ACTIVE)
+
+    def closed(self):
+        return self.exclude(status=Enrollment.Status.ACTIVE)
+
+    def for_year(self, academic_year):
+        return self.filter(academic_year=academic_year)
+
+    def history(self):
+        """Chronological academic history (oldest first) — transcripts, analytics."""
+        return self.order_by("academic_year__start_date", "entry_date", "id")
+
+
+class Enrollment(models.Model):
+    """One student's placement in one class for one academic year.
+
+    THE POINT OF THIS TABLE. Before it existed a student's class lived only in
+    ``StudentProfile.classroom``/``.academic_year``, so year-end promotion was a
+    destructive ``UPDATE``: last year's placement was overwritten and lost. Three
+    things were therefore impossible — academic history/transcripts, *repeating a
+    year* (nothing could say "Grade 5 in 2025 AND Grade 5 again in 2026"), and any
+    longitudinal or statutory return that needs a per-year roll.
+
+    Promotion now OPENS a new row and CLOSES the prior one. Nothing is overwritten.
+
+    COMPATIBILITY. ``StudentProfile.classroom``/``.academic_year`` remain as a
+    synchronised PROJECTION of the active enrollment (see ``sync_student_row``),
+    because ~180 readers across 20 apps still read them. They are no longer the
+    source of truth; ``StudentProfile.current_classroom`` is.
+
+    COUNTRY NEUTRALITY. ``Outcome`` is the union of what school systems actually
+    record worldwide, not one country's set: a US/UK grade-repeat, a French
+    *redoublement*, an Indian "compartment"/conditional pass, a graduation, a
+    transfer out, a withdrawal. Local wording goes in ``outcome_reason``; the
+    stored code stays comparable across tenants so cross-country analytics work.
+    """
+
+    audit_enabled = True
+
+    class Status(models.TextChoices):
+        """Lifecycle of the ENROLLMENT ROW (not the academic result)."""
+
+        ACTIVE = "ACTIVE", _("Active")
+        COMPLETED = "COMPLETED", _("Completed")
+        WITHDRAWN = "WITHDRAWN", _("Withdrawn")
+        CANCELLED = "CANCELLED", _("Cancelled")
+
+    class Outcome(models.TextChoices):
+        """How the year ENDED for this student. Blank until the year closes."""
+
+        PROMOTED = "PROMOTED", _("Promoted")
+        RETAINED = "RETAINED", _("Retained (repeating the year)")
+        CONDITIONALLY_PROMOTED = (
+            "CONDITIONALLY_PROMOTED",
+            _("Conditionally promoted"),
+        )
+        TRANSFERRED_OUT = "TRANSFERRED_OUT", _("Transferred out")
+        GRADUATED = "GRADUATED", _("Graduated")
+        WITHDRAWN = "WITHDRAWN", _("Withdrawn")
+
+    #: Outcomes that keep the student in the SAME grade next year.
+    RETENTION_OUTCOMES = frozenset({Outcome.RETAINED})
+    #: Outcomes that move the student on to the next grade.
+    ADVANCING_OUTCOMES = frozenset(
+        {Outcome.PROMOTED, Outcome.CONDITIONALLY_PROMOTED}
+    )
+    #: Outcomes that end the student's presence at this school.
+    EXIT_OUTCOMES = frozenset(
+        {Outcome.GRADUATED, Outcome.TRANSFERRED_OUT, Outcome.WITHDRAWN}
+    )
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="enrollments",
+    )
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.PROTECT,
+        related_name="enrollments",
+    )
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="enrollments",
+    )
+    specialty = models.ForeignKey(
+        Specialty,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="enrollments",
+    )
+    section = models.CharField(max_length=80, blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+        db_index=True,
+    )
+    entry_date = models.DateField(null=True, blank=True)
+    exit_date = models.DateField(null=True, blank=True)
+
+    outcome = models.CharField(
+        max_length=32,
+        choices=Outcome.choices,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=_(
+            "How the year ended. Blank while the year is still running."
+        ),
+    )
+    outcome_reason = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text=_(
+            "Free text for the school's own wording or the condition attached "
+            "to a conditional promotion. Never parsed."
+        ),
+    )
+    outcome_recorded_at = models.DateTimeField(null=True, blank=True)
+    #: The average the outcome was decided on — evidence, so a contested
+    #: retention can be re-checked years later without re-running grading.
+    decision_average = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True
+    )
+    #: The enrollment this one succeeds. Makes the history a walkable chain.
+    previous_enrollment = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="next_enrollments",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    objects = EnrollmentQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-entry_date", "-id"]
+        indexes = [
+            models.Index(fields=["school", "academic_year"]),
+            models.Index(fields=["student", "academic_year"]),
+            models.Index(fields=["classroom", "status"]),
+        ]
+        constraints = [
+            # Exactly one OPEN enrollment per student. This is what makes
+            # "current class" a well-defined derivation rather than a guess,
+            # and it is why promotion MUST close the prior row before opening
+            # the next one instead of overwriting a field.
+            models.UniqueConstraint(
+                fields=["student"],
+                condition=models.Q(status="ACTIVE"),
+                name="people_enrollment_one_active_per_student",
+            ),
+        ]
+
+    def __str__(self):
+        where = self.classroom.name if self.classroom_id else "unplaced"
+        return f"{self.student_id} @ {where} ({self.academic_year_id})"
+
+    @property
+    def is_active(self) -> bool:
+        return self.status == self.Status.ACTIVE
+
+    def save(self, *args, **kwargs):
+        sync_student = kwargs.pop("sync_student", True)
+        if self.school_id is None and self.student_id:
+            self.school_id = getattr(self.student, "school_id", None)
+        if self.outcome and self.outcome_recorded_at is None:
+            self.outcome_recorded_at = timezone.now()
+        super().save(*args, **kwargs)
+        if sync_student and self.status == self.Status.ACTIVE:
+            self.sync_student_row()
+
+    def sync_student_row(self) -> bool:
+        """Project this (active) enrollment onto the legacy student-row fields.
+
+        The student row is a CACHE of the active enrollment, kept so that the
+        ~180 existing readers of ``student.classroom`` keep working unchanged.
+        Returns True when it actually wrote.
+        """
+        if self.status != self.Status.ACTIVE or not self.student_id:
+            return False
+        student = self.student
+        changed = []
+        if student.academic_year_id != self.academic_year_id:
+            student.academic_year_id = self.academic_year_id
+            changed.append("academic_year")
+        if student.classroom_id != self.classroom_id:
+            student.classroom_id = self.classroom_id
+            changed.append("classroom")
+        if self.specialty_id and student.specialty_id != self.specialty_id:
+            student.specialty_id = self.specialty_id
+            changed.append("specialty")
+        if not changed:
+            return False
+        student.save(update_fields=changed)
+        return True
+
+    def close(
+        self,
+        outcome: str,
+        *,
+        exit_date=None,
+        status: str | None = None,
+        reason: str = "",
+        decision_average=None,
+    ) -> "Enrollment":
+        """Close this enrollment with a recorded outcome. Never deletes."""
+        if outcome not in dict(self.Outcome.choices):
+            raise ValidationError(f"Unknown enrollment outcome: {outcome!r}")
+        self.outcome = outcome
+        self.outcome_reason = reason or self.outcome_reason
+        self.outcome_recorded_at = timezone.now()
+        if decision_average is not None:
+            self.decision_average = decision_average
+        self.exit_date = exit_date or self.exit_date or timezone.now().date()
+        if status is None:
+            status = (
+                self.Status.WITHDRAWN
+                if outcome
+                in (self.Outcome.WITHDRAWN, self.Outcome.TRANSFERRED_OUT)
+                else self.Status.COMPLETED
+            )
+        self.status = status
+        # sync_student=False: a CLOSED enrollment must not touch the student
+        # row. The successor enrollment owns that projection.
+        self.save(sync_student=False)
+        return self
 
 
 class StudentGuardianQuerySet(models.QuerySet):

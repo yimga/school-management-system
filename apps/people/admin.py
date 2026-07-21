@@ -9,6 +9,7 @@ from apps.portal.models import PendingGuardianInvite
 from apps.finance.models import ReferralReward
 from config.admin import register_tenant_admin
 from .models import (
+    Enrollment,
     TeacherProfile,
     InformationTag,
     StudentNote,
@@ -869,3 +870,43 @@ class StudentNoteAdmin(ModelAdmin):
 
 
 register_tenant_admin(StudentNote, StudentNoteAdmin)
+
+
+class EnrollmentAdmin(ModelAdmin):
+    """Academic history. Placements are created by promotion, not by hand.
+
+    Editing a row here rewrites history, so the outcome trail is read-only:
+    ``outcome_recorded_at`` and ``previous_enrollment`` are set by
+    ``apps.people.enrollment_services`` and must stay auditable.
+    """
+
+    list_display = (
+        "student",
+        "academic_year",
+        "classroom",
+        "status",
+        "outcome",
+        "entry_date",
+        "exit_date",
+    )
+    list_filter = ("status", "outcome", "academic_year", "classroom")
+    list_select_related = ("student", "academic_year", "classroom")
+    list_per_page = settings.DEFAULT_ADMIN_PAGE_SIZE
+    show_full_result_count = False
+    search_fields = (
+        "student__student_code",
+        "student__first_name",
+        "student__last_name",
+    )
+    raw_id_fields = (
+        "school",
+        "student",
+        "classroom",
+        "specialty",
+        "previous_enrollment",
+    )
+    readonly_fields = ("outcome_recorded_at", "created_at", "updated_at")
+    ordering = ("-entry_date", "-id")
+
+
+register_tenant_admin(Enrollment, EnrollmentAdmin)

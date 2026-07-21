@@ -16,6 +16,11 @@ from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services_year_setup import clone_academic_year
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import RolloverProposal, RolloverProposalItem, User
+from apps.people.enrollment_services import (
+    graduate_student,
+    open_enrollment,
+    outcome_for_manual_placement,
+)
 from apps.people.models import StudentProfile, StudentResourceReturn
 from apps.siteconfig.config_service import (
     get_effective_flags,
@@ -191,6 +196,9 @@ def rollover_year(request):
                 skipped_outstanding += 1
                 continue
             if classroom_id == GRADUATE_VALUE:
+                # Close the enrollment BEFORE blanking the legacy fields so the
+                # leaving year survives in history (2.2).
+                graduate_student(s, target_year)
                 s.academic_year = target_year
                 s.classroom = None
                 s.status = StudentProfile.Status.ALUMNI
@@ -206,9 +214,25 @@ def rollover_year(request):
                 continue
             if not new_class:
                 continue
-            s.academic_year = target_year
-            s.classroom = new_class
-            s.save(update_fields=["academic_year", "classroom"])
+            # 2.2: open a new enrollment and close the prior one. The operator's
+            # chosen class still wins; the OUTCOME is derived from it, so a
+            # student left in the same grade is recorded as RETAINED rather than
+            # indistinguishable from a promotion.
+            source_enrollment = s.enrollment_for_year(source_year)
+            source_classroom = (
+                source_enrollment.classroom
+                if source_enrollment is not None and source_enrollment.classroom_id
+                else s.classroom
+            )
+            open_enrollment(
+                s,
+                target_year,
+                new_class,
+                entry_date=getattr(target_year, "start_date", None),
+                close_outcome=outcome_for_manual_placement(
+                    source_classroom, new_class
+                ),
+            )
             updated += 1
             rolled_students.append((s, new_class))
         if notify_parents and rolled_students:

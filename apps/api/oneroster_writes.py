@@ -467,6 +467,11 @@ def _upsert_enrollment(
         changed_fields.append("academic_year")
     if changed_fields:
         student.save(update_fields=[*changed_fields, "updated_at"])
+        # Keep the enrollment (the source of truth for a placement) in step with
+        # the legacy fields this rail writes, or the two disagree (item 2.2).
+        from apps.people.enrollment_services import set_placement
+
+        set_placement(student)
 
     payload = {
         "enrollment": {

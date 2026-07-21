@@ -26,10 +26,25 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db import connection
 
 
-def _table_columns(table_name: str) -> set[str]:
+def _table_columns(table_name: str) -> set[str] | None:
+    """Column names for ``table_name``, or None when the TABLE ITSELF is absent.
+
+    The None case is load-bearing and used to be conflated with the empty set,
+    which made ``ensure_app_school_id_columns`` try to ``ALTER TABLE`` a table
+    that does not exist. That is not a hypothetical: this repair runs from a
+    migration in the MIDDLE of the graph but resolves models from the LIVE
+    registry, so any tenant-app model added after the repair migration was
+    written has no table yet when the repair runs on a fresh database. Adding
+    ``people.Enrollment`` (program item 2.2) made ``people/0067`` die with
+    ``OperationalError: no such table: people_enrollment`` on every fresh DB,
+    which is every disaster-recovery restore, every new region and every CI run.
+
+    A COLUMN repair must never create a table — ``CreateModel`` owns that, and it
+    runs later in the same graph.
+    """
     with connection.cursor() as cursor:
         if table_name not in connection.introspection.table_names(cursor):
-            return set()
+            return None
         return {
             col.name
             for col in connection.introspection.get_table_description(cursor, table_name)
@@ -69,7 +84,11 @@ def ensure_app_school_id_columns(app_label: str) -> list[str]:
         if not _is_school_fk(field):
             continue
         table = model._meta.db_table
-        if field.column in _table_columns(table):
+        columns = _table_columns(table)
+        if columns is None:
+            # Table not created yet in this schema — nothing to repair.
+            continue
+        if field.column in columns:
             continue
         with connection.schema_editor() as editor:
             editor.add_field(model, field)

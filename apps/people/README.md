@@ -52,6 +52,7 @@ apprentice links, retention alerts, information tags).
 | Model | Table | Purpose |
 | --- | --- | --- |
 | `StudentProfile` | `people_studentprofile` | The student record. Soft-deletes by default; `student_code` / `admission_number` are unique **per school**, not globally. |
+| `Enrollment` | `people_enrollment` | One student's placement in one class for one academic year, with a recorded outcome. The academic-history spine: promotion opens a new row and closes the prior one, so nothing is overwritten. At most one row per student may be `ACTIVE` (partial unique constraint). |
 | `TeacherProfile` | `people_teacherprofile` | The staff record joined by scheduling, evals, and payroll. |
 | `StudentGuardian` | `people_studentguardian` | Links a Parent user to one or more students — the parent-portal edge. |
 | `Applicant` | `people_applicant` | Admissions-funnel lead. Reaching the ENROLLED stage triggers `StudentProfile` creation in the same tenant. |
@@ -76,6 +77,7 @@ apprentice links, retention alerts, information tags).
 | Command | `backfill_passport_links` | Heals `StudentProfile.passport` for rows that only had a membership row |
 | Command | `check_badge_expiry_alerts` | Manual run of the badge-expiry sweep |
 | Command | `repair_teacherprofile_updated_at` | Adds the `updated_at` column when tenant-schema drift left it missing |
+| Module | `enrollment_services` | Enrollment lifecycle + rule-honouring promotion (open/close, retention, conditional promotion). The only place a placement may change |
 | Module | `transfer_service` | Wave B engine: export → seal → apply → passport link → reconcile |
 | Module | `merge_service` | Registry-walking FK re-pointer with quarantine |
 | Module | `passport_services` | Tenant-safe passport + vault access |
@@ -96,6 +98,14 @@ guardian follows that link without a tenant session.
   `is_active`, and returns without touching the row — deliberately, to preserve
   academic and legal history when a student leaves. `hard_delete=True` exists
   only for explicit purge workflows. Never assume a delete removed the row.
+- **`StudentProfile.classroom` / `.academic_year` are no longer the source of
+  truth — they are a synchronised projection of the active `Enrollment`.** They
+  are kept because roughly 180 call sites across 20 apps read them, and a
+  big-bang cutover of all of them would be a far larger blast radius than the
+  defect being fixed. Write through `enrollment_services`, not to the fields:
+  a direct field write records no history and no outcome. Read
+  `student.current_classroom` in new code; it survives promotion, the raw field
+  only ever holds the current year.
 - **`student_code` / `admission_number` uniqueness is per-school, and that is
   load-bearing.** Schools issue their own identifiers, and an inter-school
   transfer *deliberately* lands the same number at the target while the source

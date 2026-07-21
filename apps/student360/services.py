@@ -78,11 +78,14 @@ def get_student_360_summary(
             out["academic"]["evaluations_count"] = Evaluation.objects.filter(
                 student=student
             ).count()
-        # A student's class placement is a single FK on the profile
-        # (people.StudentProfile.classroom) — there is no historical
-        # per-year ClassEnrollment model, so the current placement is the
-        # student's one active enrollment.
-        out["academic"]["enrollments_count"] = (
+        # Real per-year enrollment history (program item 2.2). This used to be
+        # hardcoded to `1 if student.classroom_id else 0` because the placement
+        # was a single FK on the profile and no historical model existed, so a
+        # student who had been at the school for five years reported one
+        # enrollment. Falls back to that shim only when the backfill has not
+        # reached this tenant yet.
+        enrollments_count = student.enrollments.count()
+        out["academic"]["enrollments_count"] = enrollments_count or (
             1 if getattr(student, "classroom_id", None) else 0
         )
         # Finance: invoices summary

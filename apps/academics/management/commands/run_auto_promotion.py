@@ -1,22 +1,47 @@
 """
 Plan II: Year-end auto-promotion job.
-Moves students from source academic year to target year using ClassroomPromotionMapping.
-Run after cloning the next year (clone_academic_year) and configuring mappings.
-Usage: python manage.py run_auto_promotion --from-year=2024/2025 --to-year=2025/2026 [--school=UUID] [--dry-run]
+
+Moves students from a source academic year to the target year, HONOURING
+``reports.PromotionRule``. Program item 2.2.
+
+What changed (and why the old shape was wrong): this command used to run
+
+    student.academic_year = to_year
+    student.classroom = m.target_classroom
+    student.save(update_fields=[...])
+
+for every student in the source year. That did three damaging things at once —
+it overwrote last year's placement (so there was no academic history), it made
+*repeating a year* impossible to express, and it never looked at PromotionRule,
+so a failing student advanced identically to a passing one.
+
+It now writes an ``people.Enrollment`` per student per year: the prior year's
+enrollment is CLOSED with a recorded outcome and a new one is OPENED. The
+student row is still kept in step as a projection, so every existing reader of
+``student.classroom`` is unaffected.
+
+Usage: python manage.py run_auto_promotion --from-year=2024/2025 --to-year=2025/2026 \
+        [--school=UUID] [--dry-run] [--no-data-policy=promote|retain|skip]
 """
 
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand
-from django.db import transaction
 
 from apps.academics.models import AcademicYear, ClassroomPromotionMapping
-from apps.people.models import StudentProfile
+from apps.people.enrollment_services import (
+    NO_DATA_POLICIES,
+    NO_DATA_PROMOTE,
+    promote_cohort,
+)
 from apps.schools.rls_context import rls_bypass, rls_school
 
 
 class Command(BaseCommand):
-    help = "Plan II: Auto-promote students from one academic year to the next using ClassroomPromotionMapping."
+    help = (
+        "Plan II: Auto-promote students from one academic year to the next, "
+        "honouring PromotionRule (retention and conditional promotion included)."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -42,6 +67,18 @@ class Command(BaseCommand):
             action="store_true",
             help="Only report what would be done",
         )
+        parser.add_argument(
+            "--no-data-policy",
+            type=str,
+            default=NO_DATA_PROMOTE,
+            choices=list(NO_DATA_POLICIES),
+            help=(
+                "What to do with a student who has no marks or whose scope has "
+                "no PromotionRule. Default 'promote' reproduces the behaviour "
+                "from before promotion rules were honoured, so a school that "
+                "has configured nothing sees no change."
+            ),
+        )
 
     def handle(self, *args, **options):
         school_id = options.get("school")
@@ -56,6 +93,7 @@ class Command(BaseCommand):
         to_name = (options["to_year"] or "").strip()
         school_id = options.get("school")
         dry_run = options.get("dry_run", False)
+        no_data_policy = options.get("no_data_policy") or NO_DATA_PROMOTE
 
         from_year = AcademicYear.objects.filter(name=from_name).first()
         to_year = AcademicYear.objects.filter(name=to_name).first()
@@ -82,37 +120,42 @@ class Command(BaseCommand):
             )
             return
 
-        students = StudentProfile.objects.filter(
-            academic_year=from_year,
-            classroom_id__in=mappings.keys(),
-            is_active=True,
-        ).select_related("classroom")
-        if school_id:
-            students = students.filter(school_id=school_id)
-
-        promoted = 0
-        skipped = 0
-        for student in students:
-            m = mappings.get(student.classroom_id)
-            if not m or not m.target_classroom_id:
-                skipped += 1
-                continue
-            if dry_run:
+        def report(student, decision, enrollment, skip_reason):
+            if skip_reason:
                 self.stdout.write(
-                    f"Would promote: {student.student_code} {student.get_full_name()} "
-                    f"-> {m.target_classroom.name} ({to_name})"
+                    self.style.WARNING(
+                        f"Skipped {student.student_code} {student.get_full_name()}: "
+                        f"{skip_reason}"
+                    )
                 )
-                promoted += 1
-                continue
-            with transaction.atomic():
-                student.academic_year = to_year
-                student.classroom = m.target_classroom
-                student.save(update_fields=["academic_year", "classroom", "updated_at"])
-                promoted += 1
+                return
+            verb = "Would place" if dry_run else "Placed"
+            where = enrollment.classroom.name if enrollment else "(dry run)"
+            self.stdout.write(
+                f"{verb}: {student.student_code} {student.get_full_name()} "
+                f"-> {where} ({to_name}) [{decision.outcome}]"
+            )
+
+        result = promote_cohort(
+            from_year,
+            to_year,
+            school_id=school_id,
+            mappings=mappings,
+            no_data_policy=no_data_policy,
+            dry_run=dry_run,
+            on_student=report,
+        )
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Promotion complete: {promoted} promoted, {skipped} skipped (no mapping)."
+                "Promotion complete: "
+                f"{result.promoted} promoted, "
+                f"{result.conditionally_promoted} conditionally promoted, "
+                f"{result.retained} retained, "
+                f"{result.skipped} skipped."
                 + (" (dry run)" if dry_run else "")
             )
         )
+        if result.skipped_reasons:
+            for reason, count in sorted(result.skipped_reasons.items()):
+                self.stdout.write(f"  skipped[{reason}] = {count}")
