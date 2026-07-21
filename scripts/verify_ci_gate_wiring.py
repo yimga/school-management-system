@@ -43,6 +43,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Reference-integrity family — the "literal string -> runtime registry ->
     # 500/silent" loophole class. All members must always run.
     ("scripts/scan_import_reference_integrity.py", "architectural-boundaries.yml"),
+    # i18n: added 2026-07-21. This gate existed and ran on NO workflow, so the
+    # 19 highest-traffic UI strings could silently fall back to English in every
+    # shipped catalog while nothing noticed.
+    ("scripts/verify_critical_msgid_depth.py", "architectural-boundaries.yml"),
+
     ("scripts/verify_get_model_integrity.py", "ci.yml"),
     ("scripts/verify_url_name_integrity.py", "ci.yml"),
     ("scripts/verify_template_reference_integrity.py", "ci.yml"),

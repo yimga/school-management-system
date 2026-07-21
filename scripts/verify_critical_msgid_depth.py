@@ -40,7 +40,17 @@ CRITICAL_MSGIDS = (
     "MTSS tier updated to %(tier)s (%(count)s open incident(s)).",
 )
 
-LOCALES = ("fr", "es", "pt")
+# The catalogs that Django can actually activate. This checked "pt" until
+# 2026-07-21, which was green and meaningless: 'pt' is not in settings.LANGUAGES,
+# so Django resolves Portuguese to pt_BR and never loads locale/pt. locale/pt held
+# exactly these 19 msgids and nothing else -- a catalog whose only purpose was to
+# satisfy this gate -- while locale/pt_BR, the one that ships, had 0 of 19
+# translated. Every Portuguese-speaking user saw English on all 19 strings while
+# CI reported CRITICAL_MSGID_DEPTH_PASS.
+#
+# A locale listed here must be one settings.LANGUAGES actually serves; otherwise
+# this gate proves nothing about what a user sees.
+LOCALES = ("fr", "es", "pt_BR")
 
 
 def _unescape_po(s: str) -> str:

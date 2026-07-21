@@ -711,6 +711,13 @@ jobs:
         # cannot regress to zero without CI flagging it.
         run: |
           python scripts/scan_locale_coverage.py --compare
+      - name: Critical msgid depth
+        # Ran on ZERO workflows until 2026-07-21, so it guarded nothing. It
+        # asserts that the 19 highest-traffic UI strings are actually translated
+        # in the shipped catalogs (fr / es / pt_BR) rather than silently falling
+        # back to English on a screen a parent uses every day.
+        run: |
+          python scripts/verify_critical_msgid_depth.py
 
   world-engine-i18n-ci:
     name: "World Engine: i18n catalog freshness + compile"

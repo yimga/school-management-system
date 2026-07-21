@@ -56242,3 +56242,67 @@ msgstr ""
 
 msgid "Skip links"
 msgstr ""
+
+# Critical UI pack — merged from the orphaned locale/pt catalog.
+# locale/pt held these 19 strings but 'pt' is absent from settings.LANGUAGES,
+# so Django resolved Portuguese to pt_BR and none of them were ever shown.
+# verify_critical_msgid_depth.py checked 'pt' and passed on a catalog no user
+# could reach, while the catalog that ships had 0 of 19 translated.
+# pt-PT forms normalised to pt-BR (contacto->contato, registar->registrar).
+
+msgid "Intervention contact logged."
+msgstr "Contato de intervenção registrado."
+
+msgid "Could not log contact."
+msgstr "Não foi possível registrar o contato."
+
+msgid "Select a valid student."
+msgstr "Selecione um aluno válido."
+
+msgid "Student not found in this school."
+msgstr "Aluno não encontrado nesta escola."
+
+msgid "No open incidents to update for this student."
+msgstr "Não há incidentes abertos para atualizar para este aluno."
+
+msgid "Booking confirmed."
+msgstr "Reserva confirmada."
+
+msgid "That time slot conflicts with an existing booking."
+msgstr "Esse horário conflita com uma reserva existente."
+
+msgid "Booking not found."
+msgstr "Reserva não encontrada."
+
+msgid "Booking cancelled."
+msgstr "Reserva cancelada."
+
+msgid "Resource name is required."
+msgstr "O nome do recurso é obrigatório."
+
+msgid "Bookable resource added."
+msgstr "Recurso reservável adicionado."
+
+msgid "A resource with that name already exists."
+msgstr "Já existe um recurso com esse nome."
+
+msgid "Resource and start/end times are required."
+msgstr "O recurso e as horas de início/fim são obrigatórios."
+
+msgid "Select a hostel room from this school."
+msgstr "Selecione um quarto de internato desta escola."
+
+msgid "Placement removed from the draft."
+msgstr "Colocação removida do rascunho."
+
+msgid "Sold out"
+msgstr "Esgotado"
+
+msgid "Band"
+msgstr "Faixa"
+
+msgid "Registration recorded."
+msgstr "Inscrição registrada."
+
+msgid "MTSS tier updated to %(tier)s (%(count)s open incident(s))."
+msgstr "Nível MTSS atualizado para %(tier)s (%(count)s incidente(s) aberto(s))."

@@ -140,14 +140,17 @@ LOCALE_DECLARATIONS: dict[str, tuple[str, str]] = {
     # -- tracked but never activated ---------------------------------------
     "pt": (
         "unserved",
-        "locale/pt/LC_MESSAGES/django.po is tracked and is one of the three "
-        "beachhead locales checked by scripts/verify_critical_msgid_depth.py, "
-        "but settings.LANGUAGES ships 'pt-br' only -- Django resolves that to "
-        "locale/pt_BR and never activates 'pt'. So this catalog is maintained "
-        "and gated yet unreachable at runtime. Resolution is either adding "
-        "('pt', ...) to settings.LANGUAGES or folding it into pt_BR; both live "
-        "in config/settings.py, which this gate does not own. Surfaced here so "
-        "it stops being invisible.",
+        "ORPHANED, pending deletion. settings.LANGUAGES ships 'pt-br' only, so "
+        "Django resolves Portuguese to locale/pt_BR and never activates 'pt'. "
+        "locale/pt contained exactly the 19 critical-UI msgids and nothing else "
+        "-- a catalog whose only purpose was to satisfy "
+        "verify_critical_msgid_depth.py, which checked 'pt' and passed while "
+        "locale/pt_BR (the catalog users actually get) had 0 of 19 translated. "
+        "On 2026-07-21 those 19 strings were merged into pt_BR with pt-BR "
+        "orthography and that gate was retargeted to pt_BR, so locale/pt now "
+        "has no consumer at all. It is left on disk only so this declaration "
+        "and the merge land in separate reviewable steps; delete the directory "
+        "and this entry together.",
     ),
 }
 
