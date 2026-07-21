@@ -3422,6 +3422,12 @@ MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_DISABLED = (
 # Pass 12: CORS allowlist. Strict by default; SiteConfig can extend per tenant
 # at request time via a middleware (django-cors-headers honors the dynamic list
 # through CORS_ALLOWED_ORIGINS_REGEXES at startup).
+# Scope CORS to the API surface. Unset, django-cors-headers defaults
+# CORS_URLS_REGEX to ^.*$, which makes CorsMiddleware stamp `Vary: Origin`
+# on EVERY response -- fragmenting CDN cache keys across origins for pages
+# that have nothing to do with cross-origin requests.
+CORS_URLS_REGEX = r"^/api/"
+
 CORS_ALLOWED_ORIGINS = [
     o.strip()
     for o in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
@@ -4096,18 +4102,31 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
     ]
     # Middleware: TenantMain first (strict tenant resolution), then URLConf switch, then school bridge.
     MIDDLEWARE = [
+        # CORS must be first: it has to run above CommonMiddleware and WhiteNoise,
+        # both of which can generate a response before the chain finishes. Production
+        # emitted NO CORS headers at all while this was absent, so adding it is
+        # strictly more permissive -- it cannot start rejecting a client that works
+        # today. Scoped by CORS_URLS_REGEX to /api/ so it does not stamp Vary: Origin
+        # on every response and fragment the CDN cache.
+        "corsheaders.middleware.CorsMiddleware",
         "apps.schools.middleware_tenant_main.HealthAwareTenantMainMiddleware",
         "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",
         "apps.schools.middleware.UrlConfSwitcherMiddleware",
         "apps.schools.middleware.ReservedPublicHostAccessMiddleware",
         "apps.schools.middleware.PublicPathRedirectMiddleware",
         "apps.schools.middleware.TenantSchemaSchoolBridgeMiddleware",
+        # Region -> feature_code RESTRICTED/DISABLED. Needs request.school, so it
+        # sits directly after the school bridge. Dormant until RegionFeatureCompliance
+        # rows exist, so wiring it changes nothing until a region policy is seeded.
+        "apps.compliance.middleware.ComplianceGuardMiddleware",
         "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
         "apps.schools.middleware.TenantSchoolNotFoundMiddleware",
         "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
         "apps.tenancy.middleware_boundary_guard.TenantBoundaryCoreGuardMiddleware",  # Pin school_id + SQL boundary guard
         "apps.tenancy.middleware_rls_jwt.RLSJWTBindingMiddleware",  # v4.00.0: bind app.current_school_id from signed JWT (RLS mode only; no-op under SCHEMA)
         "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
+        # Binds the tenant's outbound email identity; needs request.tenant_runtime.
+        "apps.integrations_marketplace.middleware.TenantEmailBindingMiddleware",
         "django.middleware.security.SecurityMiddleware",
         "config.middleware.BlockScannerPathsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -4117,8 +4136,15 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.common.CommonMiddleware",
         "django.middleware.csrf.CsrfViewMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
+        # Idempotency keys for API writes. Position is load-bearing: above tenant
+        # resolution and auth its _tenant_key/_user_key resolve to 'global'/'anon',
+        # so two tenants sending the same Idempotency-Key to the same path would
+        # replay each other's response bodies. Here the keys are properly scoped.
+        "apps.api.middleware_idempotency.IdempotencyKeyMiddleware",
         "apps.schools.middleware.TenantHostMembershipMiddleware",
         "apps.platform_runtime.middleware_unauthenticated_api_guard.UnauthenticatedApiGuardMiddleware",
+        # Binds workflow progress to the request.
+        "apps.platform_runtime.workflow_request_middleware.WorkflowProgressRequestMiddleware",
         # v4.00.96 Wave F3 — per-user locale preference (django-tenants path).
         "apps.assist_dock.middleware.AssistDockLocaleMiddleware",
         # v4.00.97 Wave G2 — impersonation banner state (django-tenants path).
@@ -4179,6 +4205,12 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.finance.subscription_gate.FinanceSubscriptionGateMiddleware",
         "django_otp.middleware.OTPMiddleware",
         "django.contrib.messages.middleware.MessageMiddleware",
+        # Operator-facing redirect off tenant primary surfaces. Calls messages.warning,
+        # so it must sit after MessageMiddleware. The security half is already covered
+        # by ManagerHostControlPlaneRequiredMiddleware; this restores the UX half.
+        "apps.accounts.middleware.ManagerTenantPrimarySurfaceBlockMiddleware",
+        # Operator siteconfig URLs render in the manager shell; also needs messages.
+        "apps.siteconfig.middleware.OperatorSiteconfigManagerShellMiddleware",
         "apps.siteconfig.middleware.MaintenanceModeMiddleware",
         "apps.siteconfig.middleware.preview_mode.PreviewModeMiddleware",
         "apps.compliance.middleware.IPCountryAccessMiddleware",
@@ -4192,6 +4224,20 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
         "apps.security.embed_frame_middleware.EmbedSameOriginFrameMiddleware",
         "apps.platform_runtime.middleware_transient_db.TransientDatabaseUnavailableMiddleware",
+        # Adds X-RateLimit-Soft-Warn response headers.
+        "apps.migration_cloud.api.rate_limiting.SoftWarnHeaderMiddleware",
+        # No-store on authenticated HTML. Mounted at the BOTTOM deliberately: higher
+        # up it would also stamp public marketing HTML and kill CDN caching.
+        # It respects a pre-existing Cache-Control.
+        "apps.siteconfig.middleware.html_no_cache.HtmlNoCacheMiddleware",
+        # Content-Security-Policy. Absent from this list until now, so production sent
+        # NO CSP header at all. Ships REPORT-ONLY: render.yaml sets CSP_ENFORCE=0 in
+        # the same change, because settings.CSP_ENFORCE defaults to "1" and the
+        # policy's style-src is ('self',) while 380+ templates still carry inline
+        # style=. Report-Only gives violation telemetry with zero user impact.
+        # test_middleware_topology_parity locks the flag to Report-Only while this is
+        # wired, so nobody flips it without retiring the inline-style backlog first.
+        "apps.security.csp_middleware.ContentSecurityPolicyMiddleware",
     ]
     # TenantMiddleware is not used; TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware provide request.school
 

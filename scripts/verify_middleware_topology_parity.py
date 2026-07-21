@@ -93,17 +93,6 @@ DO_NOT_ADD = {
 # means DELETING its entry here.
 KNOWN_GAPS = {
     # --- staged: real controls that must not ship as-is ---
-    "apps.security.csp_middleware.ContentSecurityPolicyMiddleware":
-        "MUST NOT SHIP ENFORCING. CSP_ENFORCE defaults '1' (settings.py:468) and style-src is "
-        "('self',) (csp_middleware.py:36), but 380 non-admin templates still carry inline "
-        "style= and 49 have <style> blocks -> enforcing breaks them. The removal of "
-        "'unsafe-inline' cites scan_inline_style_off_token as proof the 'inline-style backlog "
-        "hit zero'; that scanner is an Apple-HIG TOKEN-compliance checker whose own docstring "
-        "says 'Existing technical debt is allowed' — it never measured the backlog. "
-        "csp_readiness.py:34 still models style-src as ['self','unsafe-inline'] and calls "
-        "inline-style retirement an open docket. Add only with CSP_ENFORCE=0 (Report-Only) in "
-        "render.yaml in the SAME commit, or with 'unsafe-inline' restored to style-src. Keep "
-        "script-src strict.",
     "apps.accounts.middleware_minimum_security_strength.MinimumSecurityStrengthMiddleware":
         "MASS-LOCKOUT AS-IS. SECURITY_ENFORCE_MINIMUM_STRENGTH defaults '1' (settings.py:1338) "
         "-> instant enforcement. Scoring: password 25 + MFA 30 + verified email 20 + passkey 10 "
@@ -121,47 +110,7 @@ KNOWN_GAPS = {
         "first-request POST loses its body). Needs an /api/ bypass + a backfill or "
         "enforcement-date anchor first. MUST sit after ModuleAccessMiddleware (see note below).",
     # --- ordering-sensitive, otherwise real ---
-    "corsheaders.middleware.CorsMiddleware":
-        "Prod emits NO CORS headers at all today (CORS_ALLOWED_ORIGINS is env-driven and unset "
-        "in render.yaml; CORS_ALLOW_ALL_ORIGINS=False; only the tenant-subdomain "
-        "CORS_ALLOWED_ORIGIN_REGEXES is populated). Adding it is strictly MORE permissive — it "
-        "cannot start rejecting a client that works today. Must sit at index 0: above "
-        "CommonMiddleware and above WhiteNoise, both of which generate responses. Pair with "
-        "CORS_URLS_REGEX=r'^/api/' — it is unset, defaulting to ^.*$, which stamps "
-        "Vary: Origin on EVERY response and fragments CDN cache keys.",
-    "apps.api.middleware_idempotency.IdempotencyKeyMiddleware":
-        "Real, but MUST go after AuthenticationMiddleware. In the base list it sits above both "
-        "tenant resolution and auth, so _tenant_key/_user_key (middleware_idempotency.py:54-58) "
-        "always return 'global'/'anon' — keys are NOT tenant-scoped. Added at the wrong "
-        "position, two tenants sharing an Idempotency-Key on the same path replay each other's "
-        "response bodies. Replays return before process_view, so CSRF is not checked on a "
-        "replay (low risk: /api/v1/ is token-auth).",
-    "apps.siteconfig.middleware.html_no_cache.HtmlNoCacheMiddleware":
-        "Real and ungated; respects a pre-existing Cache-Control. But marketing views set none, "
-        "so mounting it high would stamp no-store on all public marketing HTML and kill CDN "
-        "caching. Its docstring claims it covers 503 maintenance pages — false even in base, "
-        "since MaintenanceModeMiddleware short-circuits above it. Add at the bottom (base "
-        "parity); moving it higher is a separate deliberate decision.",
-    "apps.accounts.middleware.ManagerTenantPrimarySurfaceBlockMiddleware":
-        "UX, not security: the security half is already covered by "
-        "ManagerHostControlPlaneRequiredMiddleware (already in the tenants list), which is "
-        "stricter (403 outside MANAGER_HOST_PUBLIC_ACCESS_PREFIXES). What is missing is the "
-        "operator-facing redirect. Calls messages.warning -> must sit AFTER MessageMiddleware.",
-    "apps.platform_runtime.workflow_request_middleware.WorkflowProgressRequestMiddleware":
-        "Real; binds workflow progress to the request. Add after UnauthenticatedApiGuard. "
-        "Weigh the per-request cost before wiring.",
     # --- safe, low blast radius ---
-    "apps.compliance.middleware.ComplianceGuardMiddleware":
-        "Real (region -> feature_code RESTRICTED/DISABLED -> 403) and safe: effectively dormant "
-        "until RegionFeatureCompliance rows exist, and seed_compliance_baseline runs only in the "
-        "powerhouse wave0 gate scripts, not build.sh or render.yaml. Needs request.school, so "
-        "place after TenantSchemaSchoolBridgeMiddleware.",
-    "apps.integrations_marketplace.middleware.TenantEmailBindingMiddleware":
-        "Real tenant email binding; add after TenantRuntimeMiddleware.",
-    "apps.migration_cloud.api.rate_limiting.SoftWarnHeaderMiddleware":
-        "Real soft-warn response headers for Migration Cloud; add at the bottom.",
-    "apps.siteconfig.middleware.OperatorSiteconfigManagerShellMiddleware":
-        "Real operator siteconfig -> manager shell redirect; add after MessageMiddleware.",
     # --- inert behind flags render.yaml never sets: parity-only, no security value today ---
     "apps.schools.middleware_residency.DataResidencyMiddleware":
         "NO-OP: soft-log only unless DATA_RESIDENCY_ENFORCE, which render.yaml does not set. "

@@ -27,6 +27,22 @@ services:
     startCommand: "bash ./scripts/release/render_start_web.sh"
     healthCheckPath: /health/
     envVars:
+      # Content-Security-Policy ships REPORT-ONLY.
+      #
+      # ContentSecurityPolicyMiddleware is now wired into the tenants MIDDLEWARE
+      # list (config/settings.py). Until this wave it was absent there, so NO CSP
+      # header was ever sent in production -- while a zero-tolerance CI gate kept
+      # forcing nonces into templates for a policy that never shipped.
+      #
+      # It must NOT ship enforcing yet. settings.CSP_ENFORCE defaults to "1" and
+      # the policy's style-src is ('self',), but 380+ non-admin templates still
+      # carry inline style= attributes and ~49 have <style> blocks, so enforcing
+      # would break them. Report-Only gives real violation telemetry with no user
+      # impact. Flip to "1" only after the inline-style backlog is genuinely
+      # retired -- scan_inline_style_off_token does NOT measure that backlog (its
+      # own docstring says existing technical debt is allowed).
+      - key: CSP_ENFORCE
+        value: "0"
       # Error + performance monitoring (Sentry / self-hosted GlitchTip).
       # settings.py initialises ONLY `if SENTRY_DSN`, so leaving this unset
       # silently disables monitoring — declare it here so Render prompts for the
@@ -277,6 +293,22 @@ services:
     buildCommand: "./build.sh"
     startCommand: ".venv/bin/celery -A config worker -l info --concurrency=${CELERY_WORKER_CONCURRENCY:-2}"
     envVars:
+      # Content-Security-Policy ships REPORT-ONLY.
+      #
+      # ContentSecurityPolicyMiddleware is now wired into the tenants MIDDLEWARE
+      # list (config/settings.py). Until this wave it was absent there, so NO CSP
+      # header was ever sent in production -- while a zero-tolerance CI gate kept
+      # forcing nonces into templates for a policy that never shipped.
+      #
+      # It must NOT ship enforcing yet. settings.CSP_ENFORCE defaults to "1" and
+      # the policy's style-src is ('self',), but 380+ non-admin templates still
+      # carry inline style= attributes and ~49 have <style> blocks, so enforcing
+      # would break them. Report-Only gives real violation telemetry with no user
+      # impact. Flip to "1" only after the inline-style backlog is genuinely
+      # retired -- scan_inline_style_off_token does NOT measure that backlog (its
+      # own docstring says existing technical debt is allowed).
+      - key: CSP_ENFORCE
+        value: "0"
       - key: DEBUG
         value: "0"
       # Error monitoring. MUST be declared on the worker too, not just web:
@@ -406,6 +438,22 @@ services:
     buildCommand: "./build.sh"
     startCommand: ".venv/bin/celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
     envVars:
+      # Content-Security-Policy ships REPORT-ONLY.
+      #
+      # ContentSecurityPolicyMiddleware is now wired into the tenants MIDDLEWARE
+      # list (config/settings.py). Until this wave it was absent there, so NO CSP
+      # header was ever sent in production -- while a zero-tolerance CI gate kept
+      # forcing nonces into templates for a policy that never shipped.
+      #
+      # It must NOT ship enforcing yet. settings.CSP_ENFORCE defaults to "1" and
+      # the policy's style-src is ('self',), but 380+ non-admin templates still
+      # carry inline style= attributes and ~49 have <style> blocks, so enforcing
+      # would break them. Report-Only gives real violation telemetry with no user
+      # impact. Flip to "1" only after the inline-style backlog is genuinely
+      # retired -- scan_inline_style_off_token does NOT measure that backlog (its
+      # own docstring says existing technical debt is allowed).
+      - key: CSP_ENFORCE
+        value: "0"
       - key: DEBUG
         value: "0"
       # See the worker's SENTRY_DSN note — beat needs its own declaration too.
