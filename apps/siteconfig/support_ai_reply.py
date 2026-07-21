@@ -117,9 +117,21 @@ def run_ai_draft_reply(ticket, *, request=None, tone: str = "warm") -> dict[str,
             request=request,
             school=getattr(ticket, "school", None),
             user_query=(getattr(ticket, "subject", "") or "")[:200],
+            # NOTE: this prompt is a support-ticket body -- arbitrary free
+            # text a parent typed, which routinely contains a child's name
+            # and sometimes a safeguarding or medical disclosure. It used to
+            # pass content_sensitivity="low_pii_ok", which made
+            # services.ai_helpers skip redact_pii precisely when PII had
+            # been detected. That opt-out has been removed; the ticket text
+            # is now redacted before it reaches any model. Triage needs a
+            # category and a priority, not the child.
+            #
+            # Do NOT add a sensitivity_class here. Unbounded user free text
+            # cannot be declared safe for an external model, and
+            # services/tests/test_ai_external_sensitivity_call_sites.py
+            # fails if this site ever declares one.
             metadata={
                 "feature": "support_ai_draft_reply",
-                "content_sensitivity": "low_pii_ok",
             },
             require_available=True,
         )

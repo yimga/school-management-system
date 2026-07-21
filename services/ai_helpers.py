@@ -330,7 +330,21 @@ def invoke_with_request(
                     md["workflow_context"] = wf_ctx
             except Exception:  # noqa: BLE001 — workflow context is best-effort
                 logger.debug("ai_helpers: workflow context bind failed", exc_info=True)
-        if looks_like_pii(prompt, user_query) and md.get("content_sensitivity") != "low_pii_ok":
+        # Redaction is unconditional once PII is detected.
+        #
+        # This used to carry `and md.get("content_sensitivity") != "low_pii_ok"`,
+        # an opt-out that skipped redaction EXACTLY when PII had been found. Its
+        # only two users were apps/siteconfig/support_ai_triage.py and
+        # support_ai_reply.py -- the surface whose prompt is a support-ticket
+        # body, i.e. arbitrary free text a parent typed. A ticket reading "my son
+        # Kwabena in Year 8 has a peanut allergy and is being bullied" was
+        # forwarded verbatim, with the detector having already flagged it.
+        #
+        # Triage needs a category and a priority; it does not need the child's
+        # name. There is no task on this platform whose value depends on sending
+        # an unredacted safeguarding narrative, so the escape hatch is gone
+        # rather than narrowed.
+        if looks_like_pii(prompt, user_query):
             prompt = redact_pii(prompt)
             if user_query:
                 user_query = redact_pii(user_query)
@@ -439,7 +453,10 @@ def invoke_with_request_stream(
         md = guard.metadata
         local_prompt = guard.prompt
         local_user_query = user_query
-        if looks_like_pii(local_prompt, local_user_query) and md.get("content_sensitivity") != "low_pii_ok":
+        # Unconditional, for the same reason as the non-streaming path above.
+        # The streaming surface is the tenant copilot, where the prompt is
+        # whatever the user typed -- if anything, a stronger case for redaction.
+        if looks_like_pii(local_prompt, local_user_query):
             local_prompt = redact_pii(local_prompt)
             if local_user_query:
                 local_user_query = redact_pii(local_user_query)

@@ -10,6 +10,7 @@ recommendation is returned — the recommender NEVER fabricates a template key.
 
 from __future__ import annotations
 
+import json
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -103,6 +104,26 @@ def _score_candidate(o: ExperienceTemplateOverlay, signals: dict[str, Any]) -> f
     return min(score, 1.0)
 
 
+def _extract_json_object(text: Any) -> dict[str, Any] | None:
+    """Pull the first JSON object out of a model response.
+
+    Models wrap JSON in prose or a ```json fence often enough that a bare
+    ``json.loads`` on the whole response is not a real parser. Returning None on
+    anything unparseable keeps the rules fallback as the single failure path.
+    """
+    if not isinstance(text, str):
+        return None
+    start = text.find("{")
+    end = text.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return None
+    try:
+        parsed = json.loads(text[start : end + 1])
+    except (ValueError, TypeError):
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
 def _rules_recommend(signals: dict[str, Any]) -> TemplateRecommendation:
     candidates = _filter_candidates(signals, tenant_safe_only=True)
     if not candidates:
@@ -165,14 +186,37 @@ def recommend_for_school(
             f"Registry keys (tenant-safe only): "
             f"{[o.key for o in OVERLAYS if not o.is_operator_only()]}"
         )
-        payload = ai_helpers.invoke_with_request(
-            request,
+        # This call was broken from the day it was written and had NEVER once
+        # reached the gateway. `invoke_with_request` is keyword-only and takes no
+        # `options` argument, so passing `request` positionally alongside
+        # `options=` raised TypeError on every invocation -- swallowed by the
+        # `except Exception` below, which silently returned the rules result. The
+        # second bug would have bitten even if the first were fixed: the function
+        # returns `(text, meta)` or None, never a dict, so `isinstance(payload,
+        # dict)` rejected it too. An "AI recommender" that has only ever run its
+        # rules fallback.
+        #
+        # sensitivity_class is declared because `signals` is provably
+        # school-level configuration only -- country, region, primary_language,
+        # modules_enabled, connectivity_profile, role (see `_gather_signals`).
+        # No student, guardian or free-text field can enter this prompt. If that
+        # ever changes, drop this declaration first.
+        result = ai_helpers.invoke_with_request(
+            request=request,
             prompt=prompt,
             task_type="EXPERIENCE_TEMPLATE_RECOMMENDER",
-            options={"json_mode": True, "max_output_tokens": 300},
+            metadata={
+                "feature": "experience_template_recommender",
+                "sensitivity_class": "internal",
+                "max_output_tokens": 300,
+            },
         )
     except Exception:
         return _rules_recommend(signals)
+    if not result:
+        return _rules_recommend(signals)
+    text = result[0] if isinstance(result, tuple) else result
+    payload = _extract_json_object(text)
     if not isinstance(payload, dict):
         return _rules_recommend(signals)
     proposed_key = str(payload.get("primary") or "").strip()
