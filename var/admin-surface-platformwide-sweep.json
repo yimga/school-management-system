@@ -1,8 +1,8 @@
 {
   "pass": true,
-  "css_files": 40,
+  "css_files": 41,
   "content_pages": 11,
-  "expected_cache_bust": "20260720-admin-preview-parity-v11",
-  "expected_sw": "sms-v4.05.164-admin-preview-parity-v11-2026-07-20",
+  "expected_cache_bust": "20260720-admin-preview-parity-v12",
+  "expected_sw": "sms-v4.05.165-admin-preview-parity-v12-2026-07-20",
   "findings": []
 }

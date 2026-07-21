@@ -47,7 +47,7 @@
     {% if not is_popup %}
         {% include "admin/includes/admin_workspace_metrics_strip.html" with surface="change-list" %}
     {% endif %}
-    <div id="content-main" class="cp-changelist-live rmc-django-table-panel" data-rmc-admin-changelist-live="1" data-rmc-admin-table-contract="native-table-scroll" data-rmc-django-table-panel="1" x-data="{ filterOpen: false }">
+    <div id="content-main" class="cp-changelist-live rmc-django-table-panel" data-rmc-admin-changelist-live="1" data-rmc-admin-table-contract="native-table-scroll" data-rmc-django-table-panel="1" data-rmc-django-primary-panel="1" x-data="{ filterOpen: false }">
         {% include "unfold/helpers/popup_header.html" %}
 
         {% if not is_popup %}

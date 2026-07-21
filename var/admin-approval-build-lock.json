@@ -1,18 +1,18 @@
 {
-  "build_id": "2026-07-20-v11",
-  "cache_bust": "20260720-admin-preview-parity-v11",
-  "sw_version": "sms-v4.05.164-admin-preview-parity-v11-2026-07-20",
-  "seal": "2026-07-20-preview-parity-sot",
+  "build_id": "2026-07-20-v12",
+  "cache_bust": "20260720-admin-preview-parity-v12",
+  "sw_version": "sms-v4.05.165-admin-preview-parity-v12-2026-07-20",
+  "seal": "2026-07-20-full-fill-v12",
   "approval_previews": [
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
     "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-07-20-v11\"",
-    "v11 \u00b7 approval canvas \u00b7 operator+tenant",
+    "data-rmc-admin-approval-build=\"2026-07-20-v12\"",
+    "v12 \u00b7 full-fill canvas \u00b7 operator+tenant",
     "Staff accounts",
     "Search school settings, people, academics",
-    "rmc-admin-preview-parity-critical",
+    "rmc-admin-approval-surface-v12.css",
     "Platform Backoffice"
   ],
   "hosts": [

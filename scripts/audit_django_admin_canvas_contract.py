@@ -18,6 +18,7 @@ def main() -> int:
     change_form = _read("templates/admin/change_form.html")
     change_list = _read("templates/admin/change_list.html")
     css_path = ROOT / "static/css/rmc-admin-django-canvas-contract.css"
+    approval_css_path = ROOT / "static/css/rmc-admin-approval-surface-v12.css"
 
     if not css_path.is_file():
         errors.append("static/css/rmc-admin-django-canvas-contract.css is missing")
@@ -25,13 +26,44 @@ def main() -> int:
     else:
         css = css_path.read_text(encoding="utf-8")
 
+    if not approval_css_path.is_file():
+        errors.append("static/css/rmc-admin-approval-surface-v12.css is missing")
+        approval_css = ""
+    else:
+        approval_css = approval_css_path.read_text(encoding="utf-8")
+
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260720-admin-preview-parity-v11" not in base_site:
-        errors.append("Django canvas contract link must use the preview-parity-v11 cache bust for deployment visibility")
+    if "?v=20260720-admin-preview-parity-v12" not in base_site:
+        errors.append("Django canvas contracts must use the preview-parity-v12 cache bust for deployment visibility")
     if base_site.count(contract_link) != 1:
         errors.append("Django canvas contract must load exactly once")
+    approval_link = "rmc-admin-approval-surface-v12.css"
+    if base_site.count(approval_link) != 1:
+        errors.append("Django approval v12 layout owner must load exactly once")
+    if approval_link in base_site and base_site.rfind(approval_link) < base_site.rfind("admin-brand-resolved-tokens"):
+        errors.append("Django approval v12 layout owner must load after resolved theme tokens")
+    approval_n = re.sub(r"\s+", "", approval_css)
+    if "minmax(0,1fr)minmax(9.2rem,17%)2.35rem" not in approval_n:
+        errors.append("approval v12 CSS must own the operator main|17% rail|2.35rem tools grid")
+    if "minmax(0,1fr)minmax(9.5rem,18%)2.35rem" not in approval_n:
+        errors.append("approval v12 CSS must own the tenant main|18% rail|2.35rem tools grid")
+    if "@media(max-width:1024px)" not in approval_n:
+        errors.append("approval v12 CSS must stack every workspace at 1024px and below")
+    if "table-layout:fixed!important" not in approval_n or "display:table!important" not in approval_n:
+        errors.append("approval v12 CSS must preserve full native Django tables")
+    if "position:static!important" not in approval_n:
+        errors.append("approval v12 CSS must keep rails, tools and save actions in document flow")
+    if change_list.count('data-rmc-django-primary-panel="1"') != 1:
+        errors.append("change_list.html must mark exactly one primary fill panel")
+    if change_form.count('data-rmc-django-primary-panel="1"') != 1:
+        errors.append("change_form.html must mark exactly one primary fill panel")
+    app_index = _read("templates/admin/app_index.html")
+    if app_index.count("data-rmc-admin-index-canvas=") != 1:
+        errors.append("app_index.html must have exactly one index canvas (nested grids cause the right void)")
+    if app_index.count('data-rmc-django-primary-panel="1"') != 1:
+        errors.append("app_index.html must mark exactly one primary fill panel")
     if base_site.count("rmc_theme_experience_dual_plane_styles.html") != 1:
         errors.append("Django admin theme-experience styles must load exactly once")
     head_only_partials = (
@@ -61,12 +93,12 @@ def main() -> int:
         )
     if base_site.count("admin-nav-bridge-tenant.css") != 1:
         errors.append("base_site must load the tenant nav stylesheet exactly once in <head>")
-    if base_site.count("rmc-tour.css") != 1 or base_site.count(
-        "rmc-portal-row-detail-drawer.css"
-    ) != 1:
-        errors.append("tour and row-drawer styles must each load exactly once from base_site <head>")
-    if "rmc_tour_css_in_head=True" not in base_site or "rmc_row_drawer_css_in_head=True" not in base_site:
-        errors.append("runtime tour/row-drawer partials must be told their CSS is already in <head>")
+    if base_site.count("rmc-tour.css") != 1:
+        errors.append("tour styles must load exactly once from base_site <head>")
+    if "rmc_tour_css_in_head=True" not in base_site:
+        errors.append("runtime tour partial must be told its CSS is already in <head>")
+    if "portal_row_detail_drawer_bundle.html" in base_site or "rmc-portal-row-detail-drawer.css" in base_site:
+        errors.append("Django admin must not mount the global row-detail fixed overlay")
     if "cp_context_drawer_shell.html" in base_site:
         errors.append("Django admin must not render the fixed Context overlay over page-aware tools")
     if "2026-07-20-v11-host-identity-contrast" not in css:

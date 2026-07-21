@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-20T21:56:01.807Z",
+  "generatedAt": "2026-07-20T21:42:26.457Z",
   "suite": "core",
-  "scope": "operator",
-  "only": "operator-user-add",
+  "scope": "both",
+  "only": "operator-app-index,tenant-app-index",
   "models": null,
   "theme": "light",
   "viewport": {
@@ -13,171 +13,135 @@
   "cacheBust": "20260720-admin-preview-parity-v12",
   "serviceWorker": "sms-v4.05.165-admin-preview-parity-v12-2026-07-20",
   "hosts": {
-    "operator": "http://manager.runmycampus.com:8021",
-    "tenant": "http://demo-school.runmycampus.com:8021"
+    "operator": "http://manager.runmycampus.com:8020",
+    "tenant": "http://demo-school.runmycampus.com:8020"
   },
-  "pass": true,
-  "surfaceCount": 1,
+  "pass": false,
+  "surfaceCount": 2,
   "skipped": [],
-  "findings": [],
+  "findings": [
+    {
+      "surface": "operator-app-index",
+      "code": "shell_root_count",
+      "detail": "2"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "http_status",
+      "detail": "504"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "bad_resources",
+      "detail": "[{\"status\":504,\"type\":\"document\",\"url\":\"http://demo-school.runmycampus.com:8020/admin/accounts/\"}]"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "wrong_scope",
+      "detail": "unknown"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "build_mismatch",
+      "detail": ""
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "theme_mismatch",
+      "detail": ""
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "visible_h1_count",
+      "detail": "[]"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "console_errors",
+      "detail": "[\"Failed to load resource: the server responded with a status of 504 (Gateway Timeout)\"]"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "shell_root_count",
+      "detail": "0"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "shell_header_count",
+      "detail": "0"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "workspace_missing",
+      "detail": ""
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "primary_panel_count",
+      "detail": "0"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "page_aware_rail_missing",
+      "detail": "0"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "page_aware_tools_missing",
+      "detail": "0"
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "primary_panel_geometry_missing",
+      "detail": ""
+    },
+    {
+      "surface": "tenant-app-index",
+      "code": "desktop_grid_not_three_columns",
+      "detail": ""
+    }
+  ],
   "results": [
     {
-      "name": "operator-user-add",
+      "name": "operator-app-index",
       "scope": "operator",
-      "kind": "form",
-      "requestedUrl": "http://manager.runmycampus.com:8021/admin/accounts/user/add/",
+      "kind": "app-index",
+      "requestedUrl": "http://manager.runmycampus.com:8020/admin/accounts/",
       "status": 200,
       "navigationError": "",
       "badResources": [],
       "consoleErrors": [],
       "dom": {
-        "url": "http://manager.runmycampus.com:8021/admin/accounts/user/add/",
+        "url": "http://manager.runmycampus.com:8020/admin/accounts/",
         "host": "manager.runmycampus.com",
-        "path": "/admin/accounts/user/add/",
-        "title": "RunMyCampus Admin",
+        "path": "/admin/accounts/",
+        "title": "Accounts & users administration | RunMyCampus Admin",
         "scope": "operator",
         "build": "2026-07-20-v12",
         "buildMatches": true,
         "theme": "light",
         "h1": [
-          "Add user This form"
+          "Accounts & users administration"
         ],
         "pageOverflow": 0,
         "bodyStylesheetLinks": 0,
         "stylesheetCount": 115,
-        "stylesheetHrefs": [
-          "http://manager.runmycampus.com:8021/static/unfold/fonts/inter/styles.css",
-          "http://manager.runmycampus.com:8021/static/unfold/fonts/material-symbols/styles.css",
-          "http://manager.runmycampus.com:8021/static/unfold/css/styles.css",
-          "http://manager.runmycampus.com:8021/static/unfold/css/simplebar/simplebar.css",
-          "http://manager.runmycampus.com:8021/static/vendor/bootstrap/css/bootstrap.min.css",
-          "http://manager.runmycampus.com:8021/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
-          "http://manager.runmycampus.com:8021/static/css/design-tokens.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-app-shell.css",
-          "http://manager.runmycampus.com:8021/static/css/design-tokens-personality.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-class-grammar.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-class-grammar-ext.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-bulk-actions.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-warm-bright-school.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-cool-apple-polish.css",
-          "http://manager.runmycampus.com:8021/static/css/design-tokens-luxury.css",
-          "http://manager.runmycampus.com:8021/static/css/patterns.css",
-          "http://manager.runmycampus.com:8021/static/css/bootstrap-theme-bridge.css",
-          "http://manager.runmycampus.com:8021/static/css/header-no-spillage.css",
-          "http://manager.runmycampus.com:8021/static/css/statement-header.css",
-          "http://manager.runmycampus.com:8021/static/css/design-system-unified.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-components.css",
-          "http://manager.runmycampus.com:8021/static/css/unfold-integration.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-console-themes.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-bell-clock-product.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-sidebar-scroll.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-sidebar-backend-inspired.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-sidebar-polish.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-sidebar-luxury-10x.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-sidebar-disclosure-contract.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-surface-fixes.css",
-          "http://manager.runmycampus.com:8021/static/css/theme-visibility-guard.css",
-          "http://manager.runmycampus.com:8021/static/css/platform-high-end.css",
-          "http://manager.runmycampus.com:8021/static/css/manager-control-plane.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-manager-shell.css",
-          "http://manager.runmycampus.com:8021/static/css/control-plane-ultra.css",
-          "http://manager.runmycampus.com:8021/static/css/surface-themes.css",
-          "http://manager.runmycampus.com:8021/static/css/table-system.css",
-          "http://manager.runmycampus.com:8021/static/css/form-system.css",
-          "http://manager.runmycampus.com:8021/static/css/card-grammar.css",
-          "http://manager.runmycampus.com:8021/static/css/design-system-phase2-enforcement.css",
-          "http://manager.runmycampus.com:8021/static/css/chart-rules.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-base-site-shell.css",
-          "http://manager.runmycampus.com:8021/static/css/portal-ui-components.css",
-          "http://manager.runmycampus.com:8021/static/css/phase2-admin-bundle.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-long-page-grammar.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-cp-parity.css",
-          "http://manager.runmycampus.com:8021/static/css/dashboard-topology-shell.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-platform-chrome-layout.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-page-fold-standards.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-collapsable.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-zero-click-protocol.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-back-to-top.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-section-nav-toc.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-shell-scroll-contract.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-dropdown-viewport-safe.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-page-personality.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-os-grade-density.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-platform-chrome-premium.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-layout-frame-guard.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-operational-center-frame.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-isomorphic-grid.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-isomorphic-grid-sweep.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-layout-token-matrix.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-cp-stacked-header.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-platform-beautify-v4.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-sidebar-rail-contract.css",
-          "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap",
-          "http://manager.runmycampus.com:8021/static/css/manager-cockpit-v7.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-cockpit-skin-v8.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-operator-theme-coherence.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-cp-200x.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-cp-header-200x.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-cp-consolidated-operator-shell.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-cp-activity-tiers.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-admin-modal-overlay-guard.css",
-          "http://manager.runmycampus.com:8021/static/css/admin-platform-catalog.css?v=20260720-admin-preview-parity-v12",
-          "http://manager.runmycampus.com:8021/static/css/admin-200x-shell-overlay.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-admin-v1-200x.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-admin-changelist-live.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-admin-workspace-10x.css?v=20260720-admin-preview-parity-v12",
-          "http://manager.runmycampus.com:8021/static/css/rmc-cp-sidebar-200x.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-platform-inner-pages.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-security-posture-nav.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-canvas-chrome-compact.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-print.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-platform-header.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-corporate-os.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-os-shell.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-global-aesthetic.css",
-          "http://manager.runmycampus.com:8021/static/css/manager-aesthetic-polish.css",
-          "http://manager.runmycampus.com:8021/static/css/control-plane-primary-nav.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-horizontal-nav-rail.css",
-          "http://manager.runmycampus.com:8021/static/css/control-plane-phase1-shell.css",
-          "http://manager.runmycampus.com:8021/static/css/control-plane-skeleton-root.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-vertical-density-platform.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-surface-spacing-contract.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-platform-vertical-compact.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-pagination-grammar.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-admin-mirror.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-backoffice-scroll-10x.css",
-          "http://manager.runmycampus.com:8021/static/css/platform-responsive-touch.css",
-          "http://manager.runmycampus.com:8021/static/css/dashboard-responsive.css",
-          "http://manager.runmycampus.com:8021/static/css/dark-mode-safety-net.css",
-          "http://manager.runmycampus.com:8021/static/css/theme-platform-contrast.css",
-          "http://manager.runmycampus.com:8021/static/css/theme-platform-readability.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-signature-motion.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-command-bar.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-theme-experience-dual-plane.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-nav-sidebar.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-platform-workspace-edge-fit.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-admin-django-canvas-contract.css?v=20260720-admin-preview-parity-v12",
-          "http://manager.runmycampus.com:8021/static/css/rmc-tenant-surface-scroll-contract.css?v=20260720-admin-preview-parity-v12",
-          "http://manager.runmycampus.com:8021/static/css/rmc-tour.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-portal-row-detail-drawer.css",
-          "http://manager.runmycampus.com:8021/static/css/rmc-admin-approval-surface-v12.css?v=20260720-admin-preview-parity-v12"
-        ],
         "duplicateStylesheets": [],
-        "workspace": "change-form",
-        "grid": "854.688px 189.531px 37.5938px",
+        "workspace": "app-index",
+        "grid": "900.906px 195.5px 37.5938px",
         "workspaceWidth": 1150,
         "primary": {
-          "width": 854.6875,
-          "trackWidth": 854.688,
-          "fillRatio": 0.9999994149912015,
-          "left": 297.546875,
-          "right": 1152.234375
+          "width": 900.90625,
+          "trackWidth": 900.906,
+          "fillRatio": 1.0000002774984293,
+          "left": 280,
+          "right": 1180.90625
         },
         "structure": {
-          "shellRoots": 1,
+          "shellRoots": 2,
           "shellHeaders": 1,
           "shellSidebars": 1,
-          "indexCanvases": 0,
+          "indexCanvases": 1,
           "primaryPanels": 1,
           "rails": 1,
           "tools": 1,
@@ -188,14 +152,12 @@
           "Back to top"
         ],
         "table": null,
-        "changelistFilter": null,
         "save": {
-          "present": true,
-          "primary": true,
-          "toggle": true,
-          "menu": true,
-          "menuVisible": false,
-          "menuOperable": true
+          "present": false,
+          "primary": false,
+          "toggle": false,
+          "menu": false,
+          "menuVisible": false
         },
         "tenantSearchPanelInitiallyVisible": false,
         "fixedOverlays": [],
@@ -694,25 +656,154 @@
           "Audit archive records",
           "Add to Quick access",
           "Platform Backoffice",
-          "👤 Accounts & Authentication",
-          "More information: This form",
-          "More information: Scope",
-          "Form",
-          "Audit",
-          "Save",
-          "▾",
-          "Back",
+          "← Back to platform catalog",
+          "Users",
+          "Changelist",
+          "Add",
+          "Operator view",
+          "Relationship tuples",
+          "Changelist",
+          "Operator view",
           "More information: Operator boundary",
-          "More information: New user",
-          "All users",
-          "1General",
+          "More information: Accounts & users administration",
+          "Full catalog",
+          "1 Models",
           "Command palette",
           "Back to top"
         ],
         "loginVisible": false
       },
-      "findings": [],
-      "screenshot": "artifacts/django-admin-canvas-live/2026-07-20-v12-core-light-1440-operator-user-add.png"
+      "findings": [
+        {
+          "code": "shell_root_count",
+          "detail": "2"
+        }
+      ]
+    },
+    {
+      "name": "tenant-app-index",
+      "scope": "tenant",
+      "kind": "app-index",
+      "requestedUrl": "http://demo-school.runmycampus.com:8020/admin/accounts/",
+      "status": 504,
+      "navigationError": "",
+      "badResources": [
+        {
+          "status": 504,
+          "type": "document",
+          "url": "http://demo-school.runmycampus.com:8020/admin/accounts/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 504 (Gateway Timeout)"
+      ],
+      "dom": {
+        "url": "http://demo-school.runmycampus.com:8020/admin/accounts/",
+        "host": "demo-school.runmycampus.com",
+        "path": "/admin/accounts/",
+        "title": "",
+        "scope": "unknown",
+        "build": "",
+        "buildMatches": false,
+        "theme": "",
+        "h1": [],
+        "pageOverflow": 0,
+        "bodyStylesheetLinks": 0,
+        "stylesheetCount": 0,
+        "duplicateStylesheets": [],
+        "workspace": "",
+        "grid": "",
+        "workspaceWidth": 0,
+        "primary": null,
+        "structure": {
+          "shellRoots": 0,
+          "shellHeaders": 0,
+          "shellSidebars": 0,
+          "indexCanvases": 0,
+          "primaryPanels": 0,
+          "rails": 0,
+          "tools": 0,
+          "breadcrumbs": 0
+        },
+        "tools": [],
+        "table": null,
+        "save": {
+          "present": false,
+          "primary": false,
+          "toggle": false,
+          "menu": false,
+          "menuVisible": false
+        },
+        "tenantSearchPanelInitiallyVisible": false,
+        "fixedOverlays": [],
+        "wideFixedBands": [],
+        "internalScrollTraps": [],
+        "rawIcons": [],
+        "interactiveText": [],
+        "loginVisible": false
+      },
+      "findings": [
+        {
+          "code": "http_status",
+          "detail": "504"
+        },
+        {
+          "code": "bad_resources",
+          "detail": "[{\"status\":504,\"type\":\"document\",\"url\":\"http://demo-school.runmycampus.com:8020/admin/accounts/\"}]"
+        },
+        {
+          "code": "wrong_scope",
+          "detail": "unknown"
+        },
+        {
+          "code": "build_mismatch",
+          "detail": ""
+        },
+        {
+          "code": "theme_mismatch",
+          "detail": ""
+        },
+        {
+          "code": "visible_h1_count",
+          "detail": "[]"
+        },
+        {
+          "code": "console_errors",
+          "detail": "[\"Failed to load resource: the server responded with a status of 504 (Gateway Timeout)\"]"
+        },
+        {
+          "code": "shell_root_count",
+          "detail": "0"
+        },
+        {
+          "code": "shell_header_count",
+          "detail": "0"
+        },
+        {
+          "code": "workspace_missing",
+          "detail": ""
+        },
+        {
+          "code": "primary_panel_count",
+          "detail": "0"
+        },
+        {
+          "code": "page_aware_rail_missing",
+          "detail": "0"
+        },
+        {
+          "code": "page_aware_tools_missing",
+          "detail": "0"
+        },
+        {
+          "code": "primary_panel_geometry_missing",
+          "detail": ""
+        },
+        {
+          "code": "desktop_grid_not_three_columns",
+          "detail": ""
+        }
+      ]
     }
   ]
 }

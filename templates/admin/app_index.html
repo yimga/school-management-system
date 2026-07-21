@@ -9,7 +9,7 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<div class="admin-app-index rmc-admin-app-index rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="app-index" data-rmc-admin-surface="smart-app-index" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-scroll-policy="paginate">
+<div class="admin-app-index rmc-admin-app-index rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="app-index" data-rmc-admin-surface="smart-app-index" data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-scroll-policy="paginate">
   <section class="rmc-django-command-band" data-rmc-django-command-band="app-index" aria-label="{% if is_manager_host %}{% trans 'App catalog command surface' %}{% else %}{% trans 'School records for this app' %}{% endif %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
@@ -28,7 +28,7 @@
   </section>
 
   <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
-    <div class="rmc-admin-index-main" data-rmc-django-form-panel="1">
+    <div class="rmc-admin-index-main" data-rmc-django-primary-panel="1">
       <div class="admin-app-index__back mb-2">
         <a href="{% url 'admin:index' %}" class="text-decoration-none small">
           <span aria-hidden="true">←</span> {% if is_manager_host %}{% trans "Back to platform catalog" %}{% else %}{% trans "Back to school catalog" %}{% endif %}

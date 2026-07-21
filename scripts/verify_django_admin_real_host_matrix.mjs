@@ -18,6 +18,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
@@ -79,9 +80,17 @@ function parseArgs(argv) {
 
 const options = parseArgs(process.argv.slice(2));
 const sessionId = (process.env.RMC_ADMIN_SESSIONID || "").trim();
-if (!sessionId) {
+const operatorSessionId = (
+  process.env.RMC_ADMIN_OPERATOR_SESSIONID || sessionId
+).trim();
+const tenantSessionId = (
+  process.env.RMC_ADMIN_TENANT_SESSIONID || sessionId
+).trim();
+if (!operatorSessionId || !tenantSessionId) {
   console.error("DJANGO_ADMIN_REAL_HOST_MATRIX_FAIL");
-  console.error("  - RMC_ADMIN_SESSIONID is required");
+  console.error(
+    "  - RMC_ADMIN_SESSIONID or both RMC_ADMIN_OPERATOR_SESSIONID/RMC_ADMIN_TENANT_SESSIONID are required",
+  );
   process.exit(2);
 }
 
@@ -149,18 +158,37 @@ async function collectDom(page) {
           Number(style.opacity || "1") > 0.01
         );
       };
-      const workspace =
-        document.querySelector(
-          '[data-rmc-django-workspace="guided"] [data-rmc-admin-index-canvas]',
-        ) ||
-        document.querySelector(
-          [
-            "[data-rmc-admin-index-canvas]",
-            '[data-rmc-django-workspace="change-list"]',
-            '[data-rmc-django-workspace="change-form"]',
-            '[data-rmc-django-workspace="app-index"] .rmc-admin-index-canvas',
-          ].join(","),
-        );
+      const workspaceRoot = document.querySelector(
+        [
+          '[data-rmc-django-workspace="change-list"]',
+          '[data-rmc-django-workspace="change-form"]',
+          '[data-rmc-django-workspace="app-index"]',
+          '[data-rmc-django-workspace="admin-index"]',
+          '[data-rmc-django-workspace="guided"]',
+          '[data-rmc-django-workspace="object-history"]',
+          '[data-rmc-django-workspace="delete-confirm"]',
+          '[data-rmc-django-workspace="delete-selected"]',
+        ].join(","),
+      );
+      const layoutGrid =
+        (workspaceRoot?.matches(
+          '[data-rmc-django-workspace="change-list"], [data-rmc-django-workspace="change-form"]',
+        )
+          ? workspaceRoot
+          : workspaceRoot?.querySelector(":scope > [data-rmc-admin-index-canvas]")) ||
+        document.querySelector("[data-rmc-admin-index-canvas]");
+      const primaryPanel =
+        layoutGrid?.querySelector(
+          ":scope > [data-rmc-django-primary-panel], :scope > .rmc-admin-index-main",
+        ) || null;
+      const layoutRect = layoutGrid?.getBoundingClientRect() || null;
+      const primaryRect = primaryPanel?.getBoundingClientRect() || null;
+      const layoutTracks = layoutGrid
+        ? (getComputedStyle(layoutGrid).gridTemplateColumns.match(/-?\d+(?:\.\d+)?px/g) || []).map(
+            (value) => Number.parseFloat(value),
+          )
+        : [];
+      const primaryTrackWidth = layoutTracks[0] || layoutRect?.width || 0;
       const stylesheets = [...document.querySelectorAll('link[rel="stylesheet"]')];
       const stylesheetHrefs = stylesheets.map((element) => element.href);
       const duplicateStylesheets = [
@@ -171,6 +199,27 @@ async function collectDom(page) {
         table?.closest("[data-rmc-django-table-panel], .results, #changelist-form") || null;
       const tableRect = table?.getBoundingClientRect() || null;
       const panelRect = tablePanel?.getBoundingClientRect() || null;
+      const tableAncestry = [];
+      if (table) {
+        let current = table;
+        while (current && tableAncestry.length < 18) {
+          const rect = current.getBoundingClientRect();
+          const style = getComputedStyle(current);
+          tableAncestry.push({
+            tag: current.tagName,
+            id: current.id,
+            className: String(current.className || ""),
+            width: rect.width,
+            display: style.display,
+            grid: style.gridTemplateColumns,
+            flex: style.flex,
+            maxWidth: style.maxWidth,
+            overflowX: style.overflowX,
+          });
+          if (current === primaryPanel) break;
+          current = current.parentElement;
+        }
+      }
       const saveRoot = document.querySelector("[data-rmc-save-compact]");
       const saveToggle = document.querySelector("[data-rmc-save-menu-toggle]");
       const saveMenu = document.querySelector("[data-rmc-save-menu]");
@@ -206,6 +255,7 @@ async function collectDom(page) {
             ".rmc-mv-preview-drawer",
             "[data-rmc-copilot-rail]",
             "[data-rmc-operator-notebook]",
+            "[data-rmc-portal-row-drawer]",
           ].join(","),
         ),
       ]
@@ -214,6 +264,74 @@ async function collectDom(page) {
           id: element.id,
           className: String(element.className || ""),
         }));
+      const wideFixedBands = [...document.body.querySelectorAll("body *")]
+        .filter((element) => {
+          if (
+            !visible(element) ||
+            element.closest("[data-rmc-shell-header], .rmc-app-shell__header")
+          ) {
+            return false;
+          }
+          const rect = element.getBoundingClientRect();
+          const position = getComputedStyle(element).position;
+          return (
+            (position === "fixed" || position === "sticky") &&
+            rect.width >= viewportWidth * 0.72 &&
+            rect.height >= 3 &&
+            rect.height <= 250
+          );
+        })
+        .map((element) => ({
+          tag: element.tagName,
+          id: element.id,
+          className: String(element.className || ""),
+          position: getComputedStyle(element).position,
+          width: element.getBoundingClientRect().width,
+          height: element.getBoundingClientRect().height,
+        }));
+      const railElements = [...document.querySelectorAll("[data-rmc-django-side-panel]")].filter(
+        visible,
+      );
+      const toolsElements = [...document.querySelectorAll("[data-rmc-django-tools]")].filter(
+        visible,
+      );
+      const internalScrollTraps = [primaryPanel, ...railElements, ...toolsElements]
+        .filter(Boolean)
+        .filter((element) => {
+          const style = getComputedStyle(element);
+          return (
+            /(auto|scroll)/.test(style.overflowY) &&
+            element.scrollHeight > element.clientHeight + 2
+          );
+        })
+        .map((element) => ({
+          id: element.id,
+          className: String(element.className || ""),
+          overflowY: getComputedStyle(element).overflowY,
+          clientHeight: element.clientHeight,
+          scrollHeight: element.scrollHeight,
+        }));
+      const visibleCount = (selector) =>
+        [...document.querySelectorAll(selector)].filter(visible).length;
+      const structuralCounts = {
+        shellRoots: document.querySelectorAll(
+          '.rmc-app-shell[data-rmc-shell-root="django-admin"]',
+        ).length,
+        shellHeaders: visibleCount(".rmc-app-shell__header"),
+        shellSidebars: visibleCount(".rmc-app-shell__sidebar"),
+        indexCanvases: document.querySelectorAll("[data-rmc-admin-index-canvas]").length,
+        primaryPanels: layoutGrid
+          ? layoutGrid.querySelectorAll(
+              ":scope > [data-rmc-django-primary-panel], :scope > .rmc-admin-index-main",
+            ).length
+          : 0,
+        rails: railElements.length,
+        tools: toolsElements.length,
+        rowDrawers: document.querySelectorAll("[data-rmc-portal-row-drawer]").length,
+        breadcrumbs: visibleCount(
+          '[aria-label="Breadcrumb"], [aria-label="Breadcrumbs"], nav.breadcrumbs, .breadcrumbs',
+        ),
+      };
       const interactiveText = [
         ...document.querySelectorAll("a, button, input[type=submit], [role=button]"),
       ]
@@ -242,6 +360,12 @@ async function collectDom(page) {
             .replace(/\s+/g, " "),
         );
       const searchPanel = document.querySelector(".admin-nav-bridge .cp-search-results-panel");
+      const formElement = primaryPanel?.querySelector(":scope > form") || null;
+      const formBody = primaryPanel?.querySelector("[data-rmc-django-form-body]") || null;
+      const actionsSlot = primaryPanel?.querySelector("[data-rmc-django-actions-slot]") || null;
+      const formRect = formElement?.getBoundingClientRect() || null;
+      const formBodyRect = formBody?.getBoundingClientRect() || null;
+      const actionsRect = actionsSlot?.getBoundingClientRect() || null;
       return {
         url: location.href,
         host: location.hostname,
@@ -263,14 +387,25 @@ async function collectDom(page) {
         pageOverflow: Math.max(0, document.documentElement.scrollWidth - viewportWidth),
         bodyStylesheetLinks: document.body.querySelectorAll('link[rel="stylesheet"]').length,
         stylesheetCount: stylesheets.length,
+        stylesheetHrefs,
         duplicateStylesheets,
-        workspace: workspace
-          ? workspace.getAttribute("data-rmc-django-workspace") ||
-            workspace.getAttribute("data-rmc-admin-index-canvas") ||
+        workspace: layoutGrid
+          ? workspaceRoot?.getAttribute("data-rmc-django-workspace") ||
+            layoutGrid.getAttribute("data-rmc-admin-index-canvas") ||
             "present"
           : "",
-        grid: workspace ? getComputedStyle(workspace).gridTemplateColumns : "",
-        workspaceWidth: workspace ? workspace.getBoundingClientRect().width : 0,
+        grid: layoutGrid ? getComputedStyle(layoutGrid).gridTemplateColumns : "",
+        workspaceWidth: layoutRect?.width || 0,
+        primary: primaryPanel
+          ? {
+              width: primaryRect.width,
+              trackWidth: primaryTrackWidth,
+              fillRatio: primaryRect.width / Math.max(1, primaryTrackWidth),
+              left: primaryRect.left,
+              right: primaryRect.right,
+            }
+          : null,
+        structure: structuralCounts,
         tools: toolTitles,
         table: table
           ? {
@@ -278,10 +413,29 @@ async function collectDom(page) {
               layout: getComputedStyle(table).tableLayout,
               width: tableRect.width,
               panelWidth: panelRect?.width || 0,
+              primaryWidth: primaryRect?.width || 0,
+              panelFillRatio: (panelRect?.width || 0) / Math.max(1, primaryRect?.width || 0),
+              tableFillRatio: tableRect.width / Math.max(1, panelRect?.width || 0),
+              ancestry: tableAncestry,
               escapesPanel:
                 Boolean(panelRect) &&
                 (tableRect.left < panelRect.left - 2 || tableRect.right > panelRect.right + 2),
             }
+          : null,
+        changelistFilter: document.querySelector("#changelist-filter")
+          ? (() => {
+              const element = document.querySelector("#changelist-filter");
+              const rect = element.getBoundingClientRect();
+              const style = getComputedStyle(element);
+              return {
+                visible: visible(element),
+                display: style.display,
+                position: style.position,
+                width: rect.width,
+                height: rect.height,
+                flex: style.flex,
+              };
+            })()
           : null,
         save: {
           present: Boolean(saveRoot),
@@ -290,8 +444,24 @@ async function collectDom(page) {
           menu: Boolean(saveMenu),
           menuVisible: Boolean(saveMenu && visible(saveMenu)),
         },
+        formGeometry: formElement
+          ? {
+              formWidth: formRect.width,
+              bodyWidth: formBodyRect?.width || 0,
+              actionsWidth: actionsRect?.width || 0,
+              primaryWidth: primaryRect?.width || 0,
+              formFillRatio: formRect.width / Math.max(1, primaryRect?.width || 0),
+              bodyFillRatio: (formBodyRect?.width || 0) / Math.max(1, formRect.width),
+              actionsFillRatio:
+                (actionsRect?.width || 0) / Math.max(1, primaryRect?.width || 0),
+              panelDisplay: getComputedStyle(primaryPanel).display,
+              panelGrid: getComputedStyle(primaryPanel).gridTemplateColumns,
+            }
+          : null,
         tenantSearchPanelInitiallyVisible: Boolean(searchPanel && visible(searchPanel)),
         fixedOverlays,
+        wideFixedBands,
+        internalScrollTraps,
         rawIcons,
         interactiveText,
         loginVisible:
@@ -319,6 +489,11 @@ function auditResult(result, surface) {
   };
   expect(result.status === 200, "http_status", String(result.status));
   expect(result.badResources.length === 0, "bad_resources", JSON.stringify(result.badResources));
+  expect(
+    result.failedResources.length === 0,
+    "failed_resources",
+    JSON.stringify(result.failedResources),
+  );
   expect(dom.host === expectedHost(surface.scope), "wrong_host", dom.host);
   expect(dom.scope === surface.scope, "wrong_scope", dom.scope);
   expect(!dom.loginVisible, "login_redirect");
@@ -333,8 +508,26 @@ function auditResult(result, surface) {
     JSON.stringify(dom.duplicateStylesheets),
   );
   expect(dom.fixedOverlays.length === 0, "fixed_overlays", JSON.stringify(dom.fixedOverlays));
+  expect(
+    dom.wideFixedBands.length === 0,
+    "unexpected_wide_fixed_or_sticky_band",
+    JSON.stringify(dom.wideFixedBands),
+  );
+  expect(
+    dom.internalScrollTraps.length === 0,
+    "workspace_internal_vertical_scroll",
+    JSON.stringify(dom.internalScrollTraps),
+  );
   expect(dom.rawIcons.length === 0, "raw_icon_names", JSON.stringify(dom.rawIcons));
   expect(result.consoleErrors.length === 0, "console_errors", JSON.stringify(result.consoleErrors));
+  expect(dom.structure.shellRoots === 1, "shell_root_count", String(dom.structure.shellRoots));
+  expect(dom.structure.shellHeaders === 1, "shell_header_count", String(dom.structure.shellHeaders));
+  expect(dom.structure.shellSidebars <= 1, "shell_sidebar_count", String(dom.structure.shellSidebars));
+  expect(dom.structure.indexCanvases <= 1, "nested_or_duplicate_index_canvas", String(dom.structure.indexCanvases));
+  expect(dom.structure.rails <= 1, "context_rail_count", String(dom.structure.rails));
+  expect(dom.structure.tools <= 1, "tool_strip_count", String(dom.structure.tools));
+  expect(dom.structure.rowDrawers === 0, "unexpected_row_detail_drawer", String(dom.structure.rowDrawers));
+  expect(dom.structure.breadcrumbs <= 1, "breadcrumb_count", String(dom.structure.breadcrumbs));
 
   if (surface.exactPath !== false) {
     expect(normalizePath(dom.url) === normalizePath(surface.url), "unexpected_redirect", dom.url);
@@ -342,6 +535,17 @@ function auditResult(result, surface) {
 
   if (surface.workspace) {
     expect(Boolean(dom.workspace), "workspace_missing");
+    expect(dom.structure.primaryPanels === 1, "primary_panel_count", String(dom.structure.primaryPanels));
+    expect(dom.structure.rails === 1, "page_aware_rail_missing", String(dom.structure.rails));
+    expect(dom.structure.tools === 1, "page_aware_tools_missing", String(dom.structure.tools));
+    expect(Boolean(dom.primary), "primary_panel_geometry_missing");
+    if (dom.primary) {
+      expect(
+        dom.primary.fillRatio >= 0.94 && dom.primary.fillRatio <= 1.03,
+        "primary_track_not_full_fill",
+        JSON.stringify(dom.primary),
+      );
+    }
     const tracks = gridTracks(dom.grid);
     if (options.width <= 1024) {
       expect(tracks.length === 1, "responsive_grid_not_single_column", dom.grid);
@@ -361,16 +565,50 @@ function auditResult(result, surface) {
     expect(dom.table.display === "table", "native_table_display", dom.table.display);
     expect(dom.table.layout === "fixed", "native_table_layout", dom.table.layout);
     expect(!dom.table.escapesPanel, "table_escapes_panel", JSON.stringify(dom.table));
+    expect(
+      dom.table.panelFillRatio >= 0.9,
+      "table_panel_not_full_fill",
+      JSON.stringify(dom.table),
+    );
+    expect(
+      dom.table.tableFillRatio >= 0.9,
+      "native_table_not_full_fill",
+      JSON.stringify(dom.table),
+    );
     expect(!dom.tools.some((title) => /view site/i.test(title)), "view_site_on_list");
   }
   if (surface.kind === "form") {
     expect(!dom.tools.some((title) => /filter/i.test(title)), "filters_on_form");
+    expect(Boolean(dom.formGeometry), "form_geometry_missing");
+    if (dom.formGeometry) {
+      expect(
+        dom.formGeometry.formFillRatio >= 0.9,
+        "form_not_full_fill",
+        JSON.stringify(dom.formGeometry),
+      );
+      expect(
+        dom.formGeometry.bodyFillRatio >= 0.94,
+        "form_body_not_full_fill",
+        JSON.stringify(dom.formGeometry),
+      );
+      expect(
+        dom.formGeometry.actionsFillRatio >= 0.9,
+        "save_actions_not_full_fill",
+        JSON.stringify(dom.formGeometry),
+      );
+      expect(
+        dom.formGeometry.panelDisplay !== "grid" && dom.formGeometry.panelDisplay !== "inline-grid",
+        "form_panel_still_split_grid",
+        JSON.stringify(dom.formGeometry),
+      );
+    }
     if (surface.expectSave !== false) {
       expect(dom.save.present, "compact_save_missing");
       expect(dom.save.primary, "save_primary_missing");
       expect(dom.save.toggle, "save_split_toggle_missing");
       expect(dom.save.menu, "save_split_menu_missing");
       expect(dom.save.menuOperable, "save_split_menu_not_operable");
+      expect(dom.save.menuClosesOnEscape, "save_split_menu_escape_broken");
     }
   }
   if (["index", "app-index"].includes(surface.kind)) {
@@ -406,18 +644,38 @@ function isIgnorableConsoleError(text) {
 
 async function probe(page, surface) {
   const badResources = [];
+  const failedResources = [];
   const consoleErrors = [];
   const documentResponses = [];
   const responseListener = (response) => {
+    const request = response.request();
+    const resourceType = request.resourceType();
     if (response.request().resourceType() === "document") {
       documentResponses.push(response);
     }
+    const redirectLocation = response.headers().location || "";
+    if (
+      resourceType !== "document" &&
+      response.status() >= 300 &&
+      response.status() < 400 &&
+      /\/authentication\/(?:login|mfa\/)/i.test(redirectLocation)
+    ) {
+      badResources.push({
+        status: response.status(),
+        type: resourceType,
+        url: response.url(),
+        reason: `unexpected background auth redirect to ${redirectLocation}`,
+      });
+    }
     if (response.status() < 400) return;
     try {
-      if (HOSTNAMES.has(new URL(response.url()).hostname)) {
+      if (
+        HOSTNAMES.has(new URL(response.url()).hostname) ||
+        ["127.0.0.1", "localhost"].includes(new URL(response.url()).hostname)
+      ) {
         badResources.push({
           status: response.status(),
-          type: response.request().resourceType(),
+          type: resourceType,
           url: response.url(),
         });
       }
@@ -427,11 +685,24 @@ async function probe(page, surface) {
   };
   const consoleListener = (message) => {
     if (message.type() === "error" && !isIgnorableConsoleError(message.text())) {
-      consoleErrors.push(message.text());
+      const location = message.location();
+      consoleErrors.push(
+        location?.url ? `${message.text()} @ ${location.url}:${location.lineNumber || 0}` : message.text(),
+      );
     }
+  };
+  const requestFailedListener = (request) => {
+    const failure = request.failure()?.errorText || "request failed";
+    if (/ERR_ABORTED/i.test(failure)) return;
+    failedResources.push({
+      type: request.resourceType(),
+      url: request.url(),
+      error: failure,
+    });
   };
   page.on("response", responseListener);
   page.on("console", consoleListener);
+  page.on("requestfailed", requestFailedListener);
   let response = null;
   let navigationError = "";
   try {
@@ -445,6 +716,23 @@ async function probe(page, surface) {
       const action = page.locator('select[name="action"]');
       const submit = page.locator('button[name="index"], input[name="index"]').first();
       if ((await selected.count()) && (await action.count()) && (await submit.count())) {
+        // Production correctly emits Secure CSRF cookies, which Chromium will
+        // not retain on this verifier's local HTTP origin. Seed the host-scoped
+        // cookie from Django's rendered token so the non-destructive action
+        // probe can reach the real delete-selected confirmation template.
+        const csrfToken = await page
+          .locator('input[name="csrfmiddlewaretoken"]')
+          .first()
+          .inputValue();
+        await page.context().addCookies([
+          {
+            name: surface.scope === "operator" ? "rmc_manager_csrftoken" : "csrftoken",
+            value: csrfToken,
+            domain: new URL(surface.url).hostname,
+            path: "/",
+            sameSite: "Lax",
+          },
+        ]);
         await selected.check();
         await action.selectOption("delete_selected");
         const navigation = page
@@ -488,11 +776,26 @@ async function probe(page, surface) {
         duplicateStylesheets: [],
         workspace: "",
         grid: "",
+        primary: null,
+        structure: {
+          shellRoots: 0,
+          shellHeaders: 0,
+          shellSidebars: 0,
+          indexCanvases: 0,
+          primaryPanels: 0,
+          rails: 0,
+          tools: 0,
+          rowDrawers: 0,
+          breadcrumbs: 0,
+        },
         tools: [],
         table: null,
         save: {},
+        formGeometry: null,
         tenantSearchPanelInitiallyVisible: false,
         fixedOverlays: [],
+        wideFixedBands: [],
+        internalScrollTraps: [],
         rawIcons: [],
         interactiveText: [],
         loginVisible: false,
@@ -511,6 +814,21 @@ async function probe(page, surface) {
         return rect.width > 0 && rect.height > 0 && style.display !== "none";
       });
     await page.keyboard.press("Escape");
+    await page.waitForTimeout(75);
+    dom.save.menuClosesOnEscape = await page
+      .locator("[data-rmc-save-menu]")
+      .first()
+      .evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return (
+          element.hidden ||
+          rect.width === 0 ||
+          rect.height === 0 ||
+          style.display === "none" ||
+          style.visibility === "hidden"
+        );
+      });
   }
   const result = {
     name: surface.name,
@@ -520,6 +838,7 @@ async function probe(page, surface) {
     status: response?.status() || 0,
     navigationError,
     badResources,
+    failedResources,
     consoleErrors,
     dom,
     findings: [],
@@ -544,11 +863,29 @@ async function probe(page, surface) {
       .replace(/[^a-z0-9_.-]+/gi, "-")
       .toLowerCase();
     const destination = path.join(ARTIFACT_DIR, `${filename}.png`);
+    if (surface.kind === "form" && dom.save?.present) {
+      const saveDestination = path.join(ARTIFACT_DIR, `${filename}-save-actions.png`);
+      await page.screenshot({ path: saveDestination, fullPage: true });
+      result.saveActionsScreenshot = path.relative(ROOT, saveDestination).replaceAll("\\", "/");
+    }
+    await page.evaluate(() => {
+      document
+        .querySelectorAll(
+          ".rmc-app-shell__canvas, .rmc-app-shell__canvas-body, .rmc-shell-canvas-container",
+        )
+        .forEach((element) => {
+          element.scrollTop = 0;
+          element.scrollLeft = 0;
+        });
+      window.scrollTo(0, 0);
+    });
+    await page.waitForTimeout(75);
     await page.screenshot({ path: destination, fullPage: true });
     result.screenshot = path.relative(ROOT, destination).replaceAll("\\", "/");
   }
   page.off("response", responseListener);
   page.off("console", consoleListener);
+  page.off("requestfailed", requestFailedListener);
   return result;
 }
 
@@ -569,7 +906,15 @@ async function findFirstChangeUrl(page, base, listPath) {
 
 async function discoverCoreSurfaces(page) {
   const surfaces = [];
+  const requested = new Set(
+    options.only
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+  );
+  const wanted = (name) => !requested.size || requested.has(name);
   const add = (name, scope, kind, pathName, extra = {}) => {
+    if (!wanted(name)) return;
     surfaces.push({
       name,
       scope,
@@ -581,18 +926,31 @@ async function discoverCoreSurfaces(page) {
   };
 
   if (options.scope !== "tenant") {
-    const operatorUserChange = options.operatorUserId
-      ? `${HOSTS.operator}/admin/accounts/user/${encodeURIComponent(options.operatorUserId)}/change/`
-      : await findFirstChangeUrl(page, HOSTS.operator, "/admin/accounts/user/");
-    if (!operatorUserChange) throw new Error("Could not discover an operator user record");
-    const operatorUserBase = new URL(operatorUserChange).pathname.replace(/change\/$/, "");
+    const operatorNeedsUser = [
+      "operator-user-change",
+      "operator-user-history",
+      "operator-user-delete",
+    ].some(wanted);
+    const operatorUserChange = operatorNeedsUser
+      ? options.operatorUserId
+        ? `${HOSTS.operator}/admin/accounts/user/${encodeURIComponent(options.operatorUserId)}/change/`
+        : await findFirstChangeUrl(page, HOSTS.operator, "/admin/accounts/user/")
+      : "";
+    if (operatorNeedsUser && !operatorUserChange) {
+      throw new Error("Could not discover an operator user record");
+    }
+    const operatorUserBase = operatorUserChange
+      ? new URL(operatorUserChange).pathname.replace(/change\/$/, "")
+      : "";
     add("operator-index", "operator", "index", "/admin/", { screenshot: true });
-    add("operator-app-index", "operator", "app-index", "/admin/accounts/");
+    add("operator-app-index", "operator", "app-index", "/admin/accounts/", { screenshot: true });
     add("operator-user-list", "operator", "list", "/admin/accounts/user/", { screenshot: true });
     add("operator-user-add", "operator", "form", "/admin/accounts/user/add/", {
       screenshot: true,
     });
-    add("operator-user-change", "operator", "form", `${operatorUserBase}change/`);
+    add("operator-user-change", "operator", "form", `${operatorUserBase}change/`, {
+      screenshot: true,
+    });
     add("operator-user-history", "operator", "history", `${operatorUserBase}history/`);
     add("operator-user-delete", "operator", "delete", `${operatorUserBase}delete/`, {
       screenshot: options.width === 1440,
@@ -602,9 +960,16 @@ async function discoverCoreSurfaces(page) {
       exactPath: false,
     });
 
-    const operatorSchoolChange = options.schoolId
-      ? `${HOSTS.operator}/admin/schools/school/${encodeURIComponent(options.schoolId)}/change/`
-      : await findFirstChangeUrl(page, HOSTS.operator, "/admin/schools/school/");
+    const operatorNeedsSchool = [
+      "operator-school-change",
+      "operator-school-guided-delete",
+      "operator-school-waive",
+    ].some(wanted);
+    const operatorSchoolChange = operatorNeedsSchool
+      ? options.schoolId
+        ? `${HOSTS.operator}/admin/schools/school/${encodeURIComponent(options.schoolId)}/change/`
+        : await findFirstChangeUrl(page, HOSTS.operator, "/admin/schools/school/")
+      : "";
     add("operator-schools-list", "operator", "list", "/admin/schools/school/");
     if (operatorSchoolChange) {
       const schoolPath = new URL(operatorSchoolChange).pathname;
@@ -630,18 +995,31 @@ async function discoverCoreSurfaces(page) {
   }
 
   if (options.scope !== "operator") {
-    const tenantUserChange = options.tenantUserId
-      ? `${HOSTS.tenant}/admin/accounts/user/${encodeURIComponent(options.tenantUserId)}/change/`
-      : await findFirstChangeUrl(page, HOSTS.tenant, "/admin/accounts/user/");
-    if (!tenantUserChange) throw new Error("Could not discover a tenant user record");
-    const tenantUserBase = new URL(tenantUserChange).pathname.replace(/change\/$/, "");
+    const tenantNeedsUser = [
+      "tenant-user-change",
+      "tenant-user-history",
+      "tenant-user-delete",
+    ].some(wanted);
+    const tenantUserChange = tenantNeedsUser
+      ? options.tenantUserId
+        ? `${HOSTS.tenant}/admin/accounts/user/${encodeURIComponent(options.tenantUserId)}/change/`
+        : await findFirstChangeUrl(page, HOSTS.tenant, "/admin/accounts/user/")
+      : "";
+    if (tenantNeedsUser && !tenantUserChange) {
+      throw new Error("Could not discover a tenant user record");
+    }
+    const tenantUserBase = tenantUserChange
+      ? new URL(tenantUserChange).pathname.replace(/change\/$/, "")
+      : "";
     add("tenant-index", "tenant", "index", "/admin/", { screenshot: true });
-    add("tenant-app-index", "tenant", "app-index", "/admin/accounts/");
+    add("tenant-app-index", "tenant", "app-index", "/admin/accounts/", { screenshot: true });
     add("tenant-user-list", "tenant", "list", "/admin/accounts/user/", { screenshot: true });
     add("tenant-user-add", "tenant", "form", "/admin/accounts/user/add/", {
       screenshot: true,
     });
-    add("tenant-user-change", "tenant", "form", `${tenantUserBase}change/`);
+    add("tenant-user-change", "tenant", "form", `${tenantUserBase}change/`, {
+      screenshot: true,
+    });
     add("tenant-user-history", "tenant", "history", `${tenantUserBase}history/`);
     add("tenant-user-delete", "tenant", "delete", `${tenantUserBase}delete/`, {
       screenshot: options.width === 1440,
@@ -651,9 +1029,12 @@ async function discoverCoreSurfaces(page) {
       exactPath: false,
     });
 
-    const tenantSettingsChange = options.siteSettingsId
-      ? `${HOSTS.tenant}/admin/siteconfig/sitesettings/${encodeURIComponent(options.siteSettingsId)}/change/`
-      : await findFirstChangeUrl(page, HOSTS.tenant, "/admin/siteconfig/sitesettings/");
+    const tenantNeedsSettings = wanted("tenant-site-settings-change");
+    const tenantSettingsChange = tenantNeedsSettings
+      ? options.siteSettingsId
+        ? `${HOSTS.tenant}/admin/siteconfig/sitesettings/${encodeURIComponent(options.siteSettingsId)}/change/`
+        : await findFirstChangeUrl(page, HOSTS.tenant, "/admin/siteconfig/sitesettings/")
+      : "";
     add("tenant-site-settings-list", "tenant", "list", "/admin/siteconfig/sitesettings/");
     if (tenantSettingsChange) {
       add(
@@ -677,14 +1058,7 @@ async function discoverCoreSurfaces(page) {
       "/admin/brand_experience/themepack/",
     );
   }
-  if (!options.only) return surfaces;
-  const requested = new Set(
-    options.only
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean),
-  );
-  return surfaces.filter((surface) => requested.has(surface.name));
+  return surfaces;
 }
 
 async function discoverSpecializedSurfaces(page) {
@@ -760,6 +1134,8 @@ async function discoverSpecializedSurfaces(page) {
   return { surfaces, skipped };
 }
 
+let activeBrowser = null;
+
 async function main() {
   fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
   const browser = await chromium.launch({
@@ -768,20 +1144,22 @@ async function main() {
       "--host-resolver-rules=MAP manager.runmycampus.com 127.0.0.1, MAP demo-school.runmycampus.com 127.0.0.1",
     ],
   });
+  activeBrowser = browser;
   const context = await browser.newContext({
     viewport: { width: options.width, height: options.height },
     colorScheme: options.theme,
+    serviceWorkers: "block",
   });
   await context.addInitScript((theme) => {
     localStorage.setItem("runmycampus-theme-preference", theme);
   }, options.theme);
   await context.addCookies(
     [
-      ["manager.runmycampus.com", "rmc_manager_sessionid"],
-      ["demo-school.runmycampus.com", "sessionid"],
-    ].map(([domain, name]) => ({
+      ["manager.runmycampus.com", "rmc_manager_sessionid", operatorSessionId],
+      ["demo-school.runmycampus.com", "sessionid", tenantSessionId],
+    ].map(([domain, name, value]) => ({
       name,
-      value: sessionId,
+      value,
       domain,
       path: "/",
       httpOnly: true,
@@ -809,6 +1187,7 @@ async function main() {
     );
   }
   await browser.close();
+  activeBrowser = null;
 
   const findings = results.flatMap((result) =>
     result.findings.map((finding) => ({ surface: result.name, ...finding })),
@@ -831,12 +1210,15 @@ async function main() {
     findings,
     results,
   };
-  const onlySlug = options.only
-    ? `-${options.only.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}`
-    : "";
-  const modelSlug = options.models
-    ? `-${options.models.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}`
-    : "";
+  const artifactSlug = (value) => {
+    if (!value) return "";
+    const normalized = value.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "");
+    if (normalized.length <= 140) return `-${normalized}`;
+    const digest = createHash("sha256").update(normalized).digest("hex").slice(0, 10);
+    return `-${normalized.slice(0, 129)}-${digest}`;
+  };
+  const onlySlug = artifactSlug(options.only);
+  const modelSlug = artifactSlug(options.models);
   const reportName = `real-host-${options.suite}-${options.scope}-${options.theme}-${options.width}${onlySlug}${modelSlug}.json`;
   const reportPath = path.join(ARTIFACT_DIR, reportName);
   fs.writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
@@ -859,7 +1241,11 @@ main()
   .then((code) => {
     process.exitCode = code;
   })
-  .catch((error) => {
+  .catch(async (error) => {
+    if (activeBrowser) {
+      await activeBrowser.close().catch(() => {});
+      activeBrowser = null;
+    }
     console.error("DJANGO_ADMIN_REAL_HOST_MATRIX_FAIL");
     console.error(`  - ${error.stack || error}`);
     process.exitCode = 1;

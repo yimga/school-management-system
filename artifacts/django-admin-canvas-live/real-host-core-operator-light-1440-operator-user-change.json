@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-20T21:56:01.807Z",
+  "generatedAt": "2026-07-20T21:57:24.772Z",
   "suite": "core",
   "scope": "operator",
-  "only": "operator-user-add",
+  "only": "operator-user-change",
   "models": null,
   "theme": "light",
   "viewport": {
@@ -22,25 +22,25 @@
   "findings": [],
   "results": [
     {
-      "name": "operator-user-add",
+      "name": "operator-user-change",
       "scope": "operator",
       "kind": "form",
-      "requestedUrl": "http://manager.runmycampus.com:8021/admin/accounts/user/add/",
+      "requestedUrl": "http://manager.runmycampus.com:8021/admin/accounts/user/1/change/",
       "status": 200,
       "navigationError": "",
       "badResources": [],
       "consoleErrors": [],
       "dom": {
-        "url": "http://manager.runmycampus.com:8021/admin/accounts/user/add/",
+        "url": "http://manager.runmycampus.com:8021/admin/accounts/user/1/change/",
         "host": "manager.runmycampus.com",
-        "path": "/admin/accounts/user/add/",
+        "path": "/admin/accounts/user/1/change/",
         "title": "RunMyCampus Admin",
         "scope": "operator",
         "build": "2026-07-20-v12",
         "buildMatches": true,
         "theme": "light",
         "h1": [
-          "Add user This form"
+          "Change user This form"
         ],
         "pageOverflow": 0,
         "bodyStylesheetLinks": 0,
@@ -184,6 +184,7 @@
           "breadcrumbs": 1
         },
         "tools": [
+          "Add user",
           "Command palette",
           "Back to top"
         ],
@@ -696,23 +697,44 @@
           "Platform Backoffice",
           "👤 Accounts & Authentication",
           "More information: This form",
+          "History",
           "More information: Scope",
           "Form",
           "Audit",
+          "Personal info",
+          "Permissions",
+          "Important dates",
+          "Role",
+          "Profile",
+          "Choose all groups",
+          "Choose selected groups",
+          "Remove selected groups",
+          "Remove all groups",
+          "Choose all user permissions",
+          "Choose selected user permissions",
+          "Remove selected user permissions",
+          "Remove all user permissions",
+          "Discard",
+          "Save changes",
           "Save",
           "▾",
           "Back",
           "More information: Operator boundary",
-          "More information: New user",
+          "More information: admin",
           "All users",
           "1General",
+          "2Personal info",
+          "3Permissions",
+          "4Important dates",
+          "5Role",
+          "6Profile",
+          "Add user",
           "Command palette",
           "Back to top"
         ],
         "loginVisible": false
       },
-      "findings": [],
-      "screenshot": "artifacts/django-admin-canvas-live/2026-07-20-v12-core-light-1440-operator-user-add.png"
+      "findings": []
     }
   ]
 }

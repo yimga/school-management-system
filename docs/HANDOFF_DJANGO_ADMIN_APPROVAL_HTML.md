@@ -55,7 +55,7 @@ Open these first; do not invent ratios or chrome:
 ### Intended deploy proof (must appear on BOTH `/admin/` indexes)
 
 ```text
-v8 · approval canvas · operator+tenant
+v12 · approval canvas · operator+tenant
 ```
 
 ### Lock file
@@ -64,9 +64,9 @@ v8 · approval canvas · operator+tenant
 
 | Key | Value (as of handoff write) |
 | --- | --- |
-| `build_id` | `2026-07-20-v11` |
-| `cache_bust` | `20260720-admin-preview-parity-v11` |
-| `sw_version` | `sms-v4.05.164-admin-preview-parity-v11-2026-07-20` |
+| `build_id` | `2026-07-20-v12` |
+| `cache_bust` | `20260720-admin-preview-parity-v12` |
+| `sw_version` | `sms-v4.05.165-admin-preview-parity-v12-2026-07-20` |
 
 When bumping a wave: edit the **lock first**, then templates / CSS / SW / auditors together.
 
@@ -74,7 +74,11 @@ When bumping a wave: edit the **lock first**, then templates / CSS / SW / audito
 
 ## Current tree hazard (fix first)
 
-As of merge `c59f60d97` (`agent/django-admin-v11-parity` → `main`), lock / SW / auditors are aligned on **v11** / `sms-v4.05.164-admin-preview-parity-v11-2026-07-20`. Offline MC upload remains on main; any future SW bump must update the approval lock + `EXPECTED_SW` pins together or `verify_django_admin_preview_parity.py` fails.
+The v12 repair aligns the lock, template cache-bust, audit pins, security
+baseline and service worker on
+`sms-v4.05.165-admin-preview-parity-v12-2026-07-20`. Any future bump must
+update all of them together or `verify_django_admin_preview_parity.py` and the
+service-worker monotonicity gate fail.
 
 ---
 
@@ -93,6 +97,9 @@ As of merge `c59f60d97` (`agent/django-admin-v11-parity` → `main`), lock / SW 
 
 ### CSS
 
+- `static/css/rmc-admin-approval-surface-v12.css` — sole final layout owner;
+  exact desktop grids, native table fill, form/action fill, and the <=1024px
+  one-column contract
 - `static/css/rmc-admin-django-canvas-contract.css` — terminal seals + approval grids
 - `static/css/rmc-admin-workspace-10x.css` — must stay 3-col (never 2-col clamp)
 - `static/css/admin-nav-bridge-tenant.css`
@@ -109,26 +116,56 @@ As of merge `c59f60d97` (`agent/django-admin-v11-parity` → `main`), lock / SW 
 
 ## How to prove deploy (operator’s test)
 
-1. Deploy a commit that includes `f6e299afb` (or later with lock synced).
-2. Hard refresh / unregister service worker.
-3. Open **operator** `/admin/` **and** **tenant** `/admin/` — both must show the chip.
-4. View Source: search `2026-07-20-v8` and `preview-parity-v8`.
-5. If the chip is missing → **production is not on that commit** (or HTML not rendered). Do not blame CSS first.
+1. Deploy the v12 commit with its synchronized lock and service worker.
+2. Run migrations, then `collectstatic --noinput` before restarting web workers.
+3. Hard refresh / unregister the previous service worker.
+4. Open **operator** `/admin/` **and** **tenant** `/admin/` — both must show the chip.
+5. View Source: search `2026-07-20-v12` and `preview-parity-v12`.
+6. If the chip is missing → **production is not on that commit** (or HTML not rendered). Do not blame CSS first.
 
 ---
 
-## What is still NOT done (Codex should own)
+## v12 repair closeout (2026-07-20)
 
-Gates prove markers/grids exist **in the repo**. They do **not** prove live pixels match the approval mock.
+The previous page was visibly broken for concrete DOM/cascade reasons:
 
-Likely remaining gaps:
+1. `app_index.html` emitted the canvas marker twice, creating a nested approval
+   grid and confining the real catalog to the first inner track.
+2. Unfold's changelist retained its old internal two-column grid even when the
+   filter panel was hidden, so the native table remained left-aligned.
+3. Change forms retained the old `fields | save sidebar` grid; large desktop
+   padding also consumed too much of a 390px canvas.
+4. Older ID-qualified `#cp-main-content` rules beat lower-specificity
+   breakpoint rules at exactly 1024px on the tenant app index.
+5. The tools strip kept a legacy sticky position after becoming full-width on
+   mobile, producing a wide overlay band.
+6. The row-detail drawer and back-to-top controls were included by more than
+   one shell owner; tenant pages did not own all of the drawer's hide behavior.
+7. Production-shaped local checks reused one session across both host scopes,
+   allowing tenant state to contaminate operator evidence. Production Secure
+   CSRF cookies also prevented the HTTP-local bulk-delete confirmation probe.
+8. Auth/MFA checkpoint pages started authenticated shell pollers, leaving
+   orphan background requests that contaminated later host runs.
 
-1. Confirm production HTML actually has the v8 chip (deploy / SW / `collectstatic`).
-2. Changelist / form may still look like “Before” if Unfold or other CSS wins — compare DevTools computed `grid-template-columns` on `[data-rmc-django-workspace]`.
-3. Tenant catalog storytelling vs approval domain cards (People / Academics / Finance / Brand) may still be a raw model dump.
-4. Operator topbar / search / escapes may still not match operator approval “After” chrome.
-5. Compact Save ▾ visual weight vs approval mock.
-6. If chip is present but layout still wrong → **specificity / DOM structure**, not deploy.
+The v12 owner fixes those causes, not just their screenshots. Real-host
+evidence under `artifacts/django-admin-canvas-live/` covers operator and tenant
+index, app index, native changelist, add/change/history/delete,
+delete-selected confirmation, guided school actions, Site Settings,
+registries, runtime and specialized templates. Representative routes pass in
+light and dark at 1440, 1024, 768 and 390px with HTTP 200, correct scope, one
+visible H1, no horizontal overflow, no duplicate/body stylesheet links, no
+unexpected fixed overlays, full native tables and working split Save controls.
+The specialized dark run reached 11 valid scoped custom-model forms and
+recorded seven host/model combinations as expected scope skips.
+
+The real-host verifier now:
+
+- uses separate operator and tenant session cookies;
+- treats authentication redirects and background 4xx/5xx resources as failures;
+- verifies DOM cardinality, computed tracks, fill ratios, overlays and controls;
+- seeds only the correct host-scoped CSRF cookie for the non-destructive
+  delete-selected confirmation probe; and
+- closes Chromium on thrown errors and hashes overlong Windows artifact names.
 
 ---
 
@@ -137,7 +174,12 @@ Likely remaining gaps:
 ```bash
 python scripts/verify_django_admin_preview_parity.py
 python scripts/audit_django_admin_canvas_contract.py
+python scripts/audit_django_admin_surface_leftovers.py
+python scripts/sweep_django_admin_platformwide_layout.py
 python scripts/audit_django_admin_miss_nothing.py
+python scripts/verify_service_worker_version.py --check-monotonic
+node scripts/verify_django_admin_real_host_matrix.mjs --suite core ...
+node scripts/verify_django_admin_real_host_matrix.mjs --suite specialized ...
 ```
 
 ---
@@ -155,7 +197,7 @@ python scripts/audit_django_admin_miss_nothing.py
 
 User opens operator + tenant `/admin/` after deploy and sees:
 
-1. The **v8 chip** (or the next bumped chip from the lock), and  
+1. The **v12 chip** (or the next synchronized chip from the lock), and
 2. Layout matching approval **After**: full-fill main | ~17–18% rail | 2.35rem tools; no right void; page-aware tools; host-correct identity chrome.
 
 ---
