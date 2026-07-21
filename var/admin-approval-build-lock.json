@@ -1,7 +1,7 @@
 {
   "build_id": "2026-07-21-v15.2",
   "cache_bust": "20260721-admin-os-v152",
-  "sw_version": "sms-v4.06.0-max-super-tenant-parity-2026-07-21",
+  "sw_version": "sms-v4.06.1-footer-civic-restore-2026-07-21",
   "seal": "2026-07-21-admin-os-v152",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",

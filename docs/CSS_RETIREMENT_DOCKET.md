@@ -397,8 +397,9 @@ each commit (`sms-v4.05.78`→`v4.05.82`). Zero migrations. Every commit FF-push
 - **P2 header + P3 footer** (`13faea328`): restyled the stock Bootstrap header controls (`.btn-outline-secondary`,
   search wrapper `:focus-within`, `.badge.bg-light` role pill) to the designed token look — markup untouched so
   Bootstrap/JS behaviours hold; token-only so off-token stays clean. Footer decorative mid-row (clock/weather,
-  FERPA/ISO pillars, social, app badges, contacts) now lean-by-default on tenant working pages, restored via
-  `cockpit.footer.show_rich_midrow`; manager operator footer unchanged.
+  FERPA/ISO pillars, social, app badges, contacts) was briefly lean-by-default on tenant pages via
+  `cockpit.footer.show_rich_midrow`; **restored always-on 2026-07-21** (full civic mid-row on tenant standard footer).
+  Manager operator footer unchanged.
 - **P4 width-to-width + compact** (`91308b398`): relaxed the two width caps that re-introduced side gutters
   (role-home `.page-wrap` 1760px + inner-page 1280px) to `var(--rmc-shell-max-width, none)` — full-bleed by
   default, still tenant-configurable; narrow forms keep `.content-measure`. Pinned `data-rmc-density` on the

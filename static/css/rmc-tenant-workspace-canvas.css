@@ -59,24 +59,15 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-
   position: relative;
   flex: 0 0 auto;
   z-index: 1028;
-  max-height: min(22dvh, 9.5rem);
-  overflow-x: clip;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  /* Full civic footer (brand + midrow + legal) must size to content.
+     The old max-height: min(22dvh, 9.5rem) + overflow-y:auto was sized for the
+     lean brand/legal strip and clipped the restored mid-row into a broken
+     scroll pocket. Live height is published as --rmc-tenant-footer-h by
+     rmc-tenant-shell-metrics.js for the copilot rail clearance. */
+  max-height: none;
+  overflow: visible;
   border-top: 1px solid var(--hairline);
   background: var(--surface-popover, #fff); /* off-token-allow: opaque-pin-fallback */
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 38%, transparent) transparent;
-}
-
-html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-footer::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
-}
-
-html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-footer::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--text-tertiary) 34%, transparent); /* off-token-allow: footer-scroll-thumb */
-  border-radius: 4px;
 }
 
 /* FULL-BLEED HEADER + LIVE BANNER (2026-06-28) — owner: "the header and footer

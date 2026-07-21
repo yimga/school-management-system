@@ -3,6 +3,6 @@
   "css_files": 43,
   "content_pages": 11,
   "expected_cache_bust": "20260721-admin-os-v152",
-  "expected_sw": "sms-v4.06.0-max-super-tenant-parity-2026-07-21",
+  "expected_sw": "sms-v4.06.1-footer-civic-restore-2026-07-21",
   "findings": []
 }

@@ -1,12 +1,12 @@
 {
   "date": "2026-07-21",
-  "generated_at": "2026-07-21T11:46:24+00:00",
+  "generated_at": "2026-07-21T14:44:49+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 0,
-  "raw": "sms-v4.06.0-max-super-tenant-parity-2026-07-21",
+  "patch": 1,
+  "raw": "sms-v4.06.1-footer-civic-restore-2026-07-21",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "max-super-tenant-parity",
+  "slug": "footer-civic-restore",
   "valid": true
 }
