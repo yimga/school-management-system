@@ -76,12 +76,23 @@
       <span>{% blocktrans with n=admin_catalog.model_count %}{{ n }} models{% endblocktrans %}</span>
       {% endif %}
       <a class="rmc-django-band-action rmc-django-band-action--primary" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Config center" %}</a>
+      <a class="rmc-django-band-action" href="{% url 'siteconfig:feature_control_panel' %}">{% trans "Feature control" %}</a>
       <a class="rmc-django-band-action" href="{{ portal_home_url|default:'/' }}">{% trans "Portal" %}</a>
+      <a class="rmc-django-band-action" href="#rmc-tenant-admin-sec-catalog" data-rmc-section-anchor>{% trans "Browse models" %}</a>
       <button type="button" class="rmc-django-band-action" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K</button>
       <button type="button" class="rmc-django-band-action" data-rmc-admin-keymap-open="1" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">?</button>
-      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-21-v15.3" title="{% trans 'Deploy proof — Admin OS v15.3 on tenant /admin/' %}">v15.3 · Admin OS · operator+tenant</span>
+      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-21-v15.4" title="{% trans 'Deploy proof — Admin OS v15.4 on tenant /admin/' %}">v15.4 · Admin OS · operator+tenant</span>
     </div>
   </section>
+
+  {% if admin_catalog and admin_catalog.sections %}
+  <nav class="rmc-section-nav mt-2 mb-1" aria-label="{% trans 'Catalog sections' %}" data-rmc-section-nav-curated="1">
+    <a class="rmc-django-band-action" href="#rmc-tenant-admin-sec-catalog" data-rmc-section-anchor>{% trans "Model catalog" %}</a>
+    {% for section in admin_catalog.sections %}
+    <a class="rmc-django-band-action" href="#rmc-tenant-admin-sec-{{ forloop.counter }}" data-rmc-section-anchor>{{ section.title }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
 
   <div class="rmc-admin-discover-canvas" data-rmc-admin-index-canvas="tenant" data-rmc-admin-discover="1">
     <div class="rmc-admin-index-main" data-rmc-django-primary-panel="1" id="content-main">

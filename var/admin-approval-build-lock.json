@@ -1,16 +1,16 @@
 {
-  "build_id": "2026-07-21-v15.3",
-  "cache_bust": "20260721-admin-os-v153",
-  "sw_version": "sms-v4.06.2-admin-os-v153-2026-07-21",
-  "seal": "2026-07-21-admin-os-v153",
+  "build_id": "2026-07-21-v15.4",
+  "cache_bust": "20260721-admin-os-v154",
+  "sw_version": "sms-v4.06.3-admin-os-v154-2026-07-21",
+  "seal": "2026-07-21-admin-os-v154",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
     "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-07-21-v15.3\"",
-    "v15.3 \u00b7 Admin OS \u00b7 operator+tenant",
+    "data-rmc-admin-approval-build=\"2026-07-21-v15.4\"",
+    "v15.4 \u00b7 Admin OS \u00b7 operator+tenant",
     "data-rmc-admin-archetype=\"discover\"",
     "data-rmc-admin-archetype=\"scan\"",
     "data-rmc-admin-archetype=\"edit\"",
@@ -19,7 +19,8 @@
     "Platform Backoffice",
     "rmc-admin-transfer-panel",
     "rmc_info_tag",
-    "data-rmc-layout-owner=\"approval-v15-critical\""
+    "data-rmc-layout-owner=\"approval-v15-critical\"",
+    "admin_v1_index_surface_previews.html"
   ],
   "hosts": [
     "operator",

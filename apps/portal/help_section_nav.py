@@ -50,10 +50,10 @@ def tenant_help_section_nav_items() -> list[dict[str, str]]:
 
 
 def admin_catalog_section_nav_items() -> list[dict[str, str]]:
+    """On-page anchors for operator Discover index (catalog + live surface sections)."""
     return [
-        {"id": "rmc-admin-sec-hero", "label": str(_("Overview"))},
         {"id": "rmc-admin-sec-catalog", "label": str(_("Model catalog"))},
         {"id": "rmc-admin-sec-tags", "label": str(_("Platform tags"))},
-        {"id": "rmc-admin-sec-changelist", "label": str(_("Changelist preview"))},
-        {"id": "rmc-admin-sec-changeform", "label": str(_("Change form preview"))},
+        {"id": "rmc-admin-sec-changelist", "label": str(_("Changelist"))},
+        {"id": "rmc-admin-sec-changeform", "label": str(_("Change form"))},
     ]

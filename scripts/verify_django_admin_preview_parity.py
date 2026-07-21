@@ -196,8 +196,8 @@ def main() -> int:
         errors.append("operator + tenant indexes must set data-rmc-admin-archetype=discover")
     if "cp-steering" in index_op:
         errors.append("operator index must not render cp-steering fluff banner")
-    if "admin_v1_index_surface_previews.html" in index_op:
-        errors.append("operator index must not include surface preview fluff")
+    if "admin_v1_index_surface_previews.html" not in index_op:
+        errors.append("operator index must restore live surface sections (tags/changelist/changeform)")
     if "admin_workspace_metrics_strip.html" in change_form or "admin_workspace_metrics_strip.html" in change_list:
         errors.append("change_form/change_list must not include metrics strip (v15 zero fluff)")
     if "rmc-django-view-toggle" in change_form or "admin_change_form_mode_panels.html" in change_form:

@@ -258,6 +258,14 @@ def main() -> int:
         errors.append("FAIL tenant index missing Config center primary")
     else:
         oks.append("OK tenant Config primary")
+    if "feature_control_panel" not in ten:
+        errors.append("FAIL tenant index missing Feature control CTA")
+    else:
+        oks.append("OK tenant Feature control")
+    if "admin_v1_index_surface_previews.html" not in op:
+        errors.append("FAIL op index missing restored surface sections")
+    else:
+        oks.append("OK op surface sections")
 
     # Build lock consistency
     lock = json.loads(read("var/admin-approval-build-lock.json"))

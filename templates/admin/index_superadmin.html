@@ -24,7 +24,7 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% comment %}v15 Discover (operator): 1-col · search-first · one primary + More ▾ · no steering · no tools column.{% endcomment %}
+{% comment %}v15 Discover (operator): 1-col · catalog + live surface sections · no steering/KPI/tools column.{% endcomment %}
 <div class="cp-admin-v1-index cp-admin-index rmc-admin-catalog-index rmc-django-workspace" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-admin-surface="smart-index" data-rmc-admin-archetype="discover" data-rmc-django-workspace="admin-index" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated" data-rmc-scroll-policy="paginate">
 
   {% if PREVIEW_MODE_ENABLED %}
@@ -60,9 +60,17 @@
       </details>
       <button type="button" class="rmc-django-band-action" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K</button>
       <button type="button" class="rmc-django-band-action" data-rmc-admin-keymap-open="1" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">?</button>
-      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-21-v15.3" title="{% trans 'Deploy proof — Admin OS v15.3 on operator /admin/' %}">v15.3 · Admin OS · operator+tenant</span>
+      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-21-v15.4" title="{% trans 'Deploy proof — Admin OS v15.4 on operator /admin/' %}">v15.4 · Admin OS · operator+tenant</span>
     </div>
   </section>
+
+  {% if admin_catalog_section_nav_items %}
+  <nav class="rmc-section-nav mx-4 mt-2" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
+    {% for item in admin_catalog_section_nav_items %}
+    <a class="rmc-django-band-action" href="#{{ item.id }}" data-rmc-section-anchor>{{ item.label }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
 
   <div class="rmc-admin-discover-canvas mx-4" data-rmc-admin-index-canvas="operator" data-rmc-admin-workspace-scope="operator" data-rmc-admin-discover="1">
     <div class="rmc-admin-index-main" data-rmc-django-primary-panel="1" id="content-main">
@@ -143,6 +151,9 @@
         </ul>
         {% endif %}
       </section>
+
+      {% comment %}Live surface sections (Platform tags · Schools changelist · Change form) — restored v15.4.{% endcomment %}
+      {% include "admin/partials/admin_v1_index_surface_previews.html" %}
     </div>
   </div>
 </div>
