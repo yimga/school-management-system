@@ -29,7 +29,7 @@ ADMIN = ROOT / "templates" / "admin"
 UNFOLD = ROOT / "templates" / "unfold"
 REPORT = ROOT / "var" / "django_admin_miss_nothing_audit.json"
 
-EXPECTED_CACHE_BUST = "20260721-admin-os-v154"
+EXPECTED_CACHE_BUST = "20260721-admin-os-v154b"
 EXPECTED_SW = "sms-v4.06.4-footer-chrome-declutter-2026-07-21"
 
 REQUIRED_SEALS = (

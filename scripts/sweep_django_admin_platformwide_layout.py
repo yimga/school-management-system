@@ -23,7 +23,7 @@ ADMIN_TPL = ROOT / "templates" / "admin"
 REPORT = ROOT / "var" / "admin-surface-platformwide-sweep.json"
 
 # Bump together with base_site ?v= and SW CACHE_VERSION on each layout wave.
-EXPECTED_CACHE_BUST = "20260721-admin-os-v154"
+EXPECTED_CACHE_BUST = "20260721-admin-os-v154b"
 EXPECTED_SW = "sms-v4.06.4-footer-chrome-declutter-2026-07-21"
 
 

@@ -1393,3 +1393,15 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   display: block;
   min-width: 0;
 }
+
+/* Horizontal on-page section jumps (not sticky left-rail .rmc-section-nav) */
+[data-rmc-shell-root="django-admin"] .rmc-admin-section-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-section-jumps .rmc-django-band-action {
+  text-decoration: none;
+}

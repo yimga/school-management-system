@@ -330,6 +330,8 @@ def main() -> int:
     env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
     gate_cmds = [
         ["python", "scripts/verify_admin_os_three_click_sla.py"],
+        ["python", "scripts/verify_admin_os_sections_restore.py"],
+        ["python", "scripts/verify_surface_preview_interactivity.py"],
         ["python", "scripts/verify_django_admin_preview_parity.py"],
         ["python", "scripts/audit_django_admin_canvas_contract.py"],
         ["python", "scripts/audit_django_admin_miss_nothing.py"],

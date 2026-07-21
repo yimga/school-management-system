@@ -35,7 +35,7 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260721-admin-os-v154" not in base_site:
+    if "?v=20260721-admin-os-v154b" not in base_site:
         errors.append("Django canvas contracts must use the preview-parity-v13 cache bust for deployment visibility")
     if base_site.count(contract_link) != 1:
         errors.append("Django canvas contract must load exactly once")
@@ -672,12 +672,16 @@ def _audit_intelligent_index_surfaces() -> list[str]:
         errors.append("templates/admin/index_superadmin.html Discover must not include steering/rail fluff")
     if "admin_v1_index_surface_previews.html" not in operator_index:
         errors.append("templates/admin/index_superadmin.html must include live surface sections")
+    if "rmc-admin-section-jumps" not in operator_index:
+        errors.append("templates/admin/index_superadmin.html must expose horizontal section jumps")
     if "admin_workspace_tools.html" in operator_index or "admin_workspace_tools.html" in tenant_index:
         errors.append("Discover indexes must not include tools column (v15 1-col)")
     if "feature_control_panel" not in tenant_index:
         errors.append("templates/admin/index_tenant.html must restore Feature control CTA")
-    if "admin_catalog_section_nav_items" not in operator_index and "rmc-admin-sec-tags" not in operator_index:
-        errors.append("operator index must expose on-page section nav for restored sections")
+    if "rmc-admin-section-jumps" not in tenant_index:
+        errors.append("templates/admin/index_tenant.html must expose catalog section jumps")
+    if 'class="rmc-section-nav"' in operator_index or 'class="rmc-section-nav"' in tenant_index:
+        errors.append("Discover indexes must not use sticky .rmc-section-nav (use rmc-admin-section-jumps)")
 
     base = _read("templates/admin/base.html")
     if "tenant_admin_decision_banner.html" in base:

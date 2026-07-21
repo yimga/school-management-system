@@ -86,7 +86,7 @@
   </section>
 
   {% if admin_catalog and admin_catalog.sections %}
-  <nav class="rmc-section-nav mt-2 mb-1" aria-label="{% trans 'Catalog sections' %}" data-rmc-section-nav-curated="1">
+  <nav class="rmc-admin-section-jumps mt-2 mb-1" aria-label="{% trans 'Catalog sections' %}" data-rmc-section-nav-curated="1">
     <a class="rmc-django-band-action" href="#rmc-tenant-admin-sec-catalog" data-rmc-section-anchor>{% trans "Model catalog" %}</a>
     {% for section in admin_catalog.sections %}
     <a class="rmc-django-band-action" href="#rmc-tenant-admin-sec-{{ forloop.counter }}" data-rmc-section-anchor>{{ section.title }}</a>
