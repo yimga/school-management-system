@@ -58,6 +58,11 @@ def generate_school_health_insight(school, user) -> dict[str, Any]:
         school,
         user=user,
         prompt_type="school_health_insight",
+        # External-tier declaration (gateway is deny-by-default). SAFE: the
+        # context is a literal 4-key projection of calculate_school_health —
+        # two integers, one enum-ish status string and one aggregate COUNT.
+        # No student row, name, guardian contact or narrative is reachable.
+        sensitivity_class="internal",
     )
     return structure_ai_recommendation(
         recommendation_key="school_health.ai",
@@ -89,6 +94,10 @@ def generate_onboarding_next_action_insight(school, user) -> dict[str, Any]:
         school,
         user=user,
         prompt_type="onboarding_next",
+        # External-tier declaration (gateway is deny-by-default). SAFE: the
+        # entire context is ``{"percent": <int>}`` — ``pct`` is coerced with
+        # int() above. Nothing else can enter this prompt.
+        sensitivity_class="internal",
     )
     return structure_ai_recommendation(
         recommendation_key="onboarding.ai",
@@ -174,6 +183,11 @@ def generate_anomaly_risk_nudge(school, user) -> dict[str, Any] | None:
         user=user,
         prompt_type="anomaly_risk_nudge",
         content_sensitivity="standard",
+        # External-tier declaration (gateway is deny-by-default). SAFE: the
+        # context is a literal 4-key dict of aggregates — status (enum-ish),
+        # score (int), onboarding_percent (int), has_report_schedules (bool).
+        # No individual student/guardian row is reachable from this prompt.
+        sensitivity_class="internal",
     )
     return structure_ai_recommendation(
         recommendation_key="anomaly_risk.ai",

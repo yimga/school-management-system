@@ -56,7 +56,17 @@ def api_live_banner_suggest_program(request: HttpRequest) -> JsonResponse:
                 task_type="setup_recommend",
                 prompt=prompt,
                 user_query="",
-                metadata={"surface": "live_banner_studio_suggest"},
+                metadata={
+                    "surface": "live_banner_studio_suggest",
+                    # External-tier sensitivity declaration (gateway is deny-by-default).
+                    # SAFE: ``prompt`` above is a constant string literal with ZERO
+                    # interpolation and ``user_query`` is empty, so no student,
+                    # guardian, staff or tenant-authored text can reach the model.
+                    # Contrast api_live_banner_draft_emergency below, which
+                    # interpolates operator-typed ``topic`` and is deliberately
+                    # left undeclared (denied).
+                    "sensitivity_class": "internal",
+                },
             )
             result = invoke_with_request(
                 task_type="setup_recommend",

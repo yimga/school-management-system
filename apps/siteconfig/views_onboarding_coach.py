@@ -114,7 +114,17 @@ def api_onboarding_coach(request):
                 task_type="setup_recommend",
                 prompt=prompt,
                 user_query="",
-                metadata={"surface": "onboarding_coach"},
+                metadata={
+                    "surface": "onboarding_coach",
+                    # External-tier sensitivity declaration (gateway is deny-by-default).
+                    # SAFE: the prompt interpolates exactly two values — ``score``,
+                    # an integer setup-health percentage, and the label of
+                    # ``recommended_next``, which is drawn from the static
+                    # STEP_DEFINITIONS registry in apps/setup_studio/services.py.
+                    # Neither is student, guardian or staff data, and no
+                    # user-authored free text enters the prompt (user_query="").
+                    "sensitivity_class": "internal",
+                },
             )
             result = invoke_with_request(
                 task_type="setup_recommend",

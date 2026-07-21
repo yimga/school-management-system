@@ -251,6 +251,15 @@ def _try_cloud_generation(
     if tone is not None:
         metadata["palette_tone"] = str(tone)
     metadata["copilot_rbac_skip"] = "system-palette-generation-no-user-query"
+    # External-tier sensitivity declaration (services.ai_gateway is deny-by-default).
+    # SAFE because the prompt is closed over three bounded, non-personal inputs and
+    # nothing else: ``seed_hex`` is forced through ``_normalize_hex`` (a strict
+    # ``#RRGGBB`` hex validator that returns None for anything else, defaulted to
+    # "#4F46E5"), ``mode`` is a ``PaletteMode`` literal, and ``tone`` is only ever
+    # used as a key into the fixed ``_TONE_DIRECTIVES`` table. There is no student,
+    # guardian, staff or free-text input reachable from this prompt, and
+    # ``user_query`` is never supplied.
+    metadata["sensitivity_class"] = "internal"
     try:
         invocation = invoke_with_request(
             task_type="STUDIO_OS_ASSISTANT",

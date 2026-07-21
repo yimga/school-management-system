@@ -158,6 +158,16 @@ class InstitutionProfileSuggestView(LoginRequiredMixin, View):
                         school=school,
                         user_query="classify",
                         require_available=False,
+                        metadata={
+                            # External-tier sensitivity declaration (gateway is
+                            # deny-by-default). SAFE: the only interpolated value
+                            # is ``school.name`` — the tenant organisation's own
+                            # public identity, set at provisioning — truncated to
+                            # 80 chars. No student, guardian, staff, health or
+                            # narrative field is reachable from this prompt, and
+                            # ``user_query`` is the constant "classify".
+                            "sensitivity_class": "internal",
+                        },
                     )
                     if result is not None:
                         raw, meta = result

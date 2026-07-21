@@ -88,6 +88,7 @@ def run_ai_prompt(
     user=None,
     prompt_type: str = "generic",
     content_sensitivity: str = "standard",
+    sensitivity_class: str | None = None,
 ) -> tuple[str, dict[str, Any]]:
     """
     Run a single assistant prompt through the AI gateway when North Star AI is enabled.
@@ -97,6 +98,14 @@ def run_ai_prompt(
 
     Tenant isolation: ``school`` must match the active tenant; metadata includes
     ``school_id`` for gateway audit.
+
+    ``sensitivity_class`` is the caller's OPT-IN declaration that this specific
+    payload may leave the platform for the external premium tier. The gateway
+    (``services.ai_gateway._data_tier_allows_premium``) is deny-by-default: when
+    this is left as ``None`` — which is every caller unless it proves otherwise —
+    the external tier is skipped and the call degrades to the local/rules tiers.
+    Only declare it from a call site whose prompt is closed over bounded,
+    non-personal inputs.
     """
     cfg = get_ai_runtime_config(school=school)
     if not cfg.get("enabled"):
@@ -128,6 +137,8 @@ def run_ai_prompt(
     }
     if user is not None and getattr(user, "pk", None):
         md["user_id"] = user.pk
+    if sensitivity_class:
+        md["sensitivity_class"] = str(sensitivity_class).strip().lower()
     ext_ok = bool(cfg.get("external_network_allowed"))
     high_pii = (content_sensitivity or "").strip().lower() in (
         "high_pii",
