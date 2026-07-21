@@ -2,7 +2,7 @@
 
 **Audience:** Codex / next agent  
 **Date:** 2026-07-20  
-**Status:** Partial ship on `main`; live visual parity with approval HTML still disputed by operator.  
+**Status:** v13 density + full-fill shipped locally pending push; live visual parity with approval HTML still requires deploy proof (v13 chip on both hosts).  
 **Not a parallel strategy doc.** Execution ledger remains `docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`. This file is an operational handoff only.
 
 ---
@@ -55,7 +55,7 @@ Open these first; do not invent ratios or chrome:
 ### Intended deploy proof (must appear on BOTH `/admin/` indexes)
 
 ```text
-v12 · approval canvas · operator+tenant
+v13 · density+full-fill · operator+tenant
 ```
 
 ### Lock file
@@ -64,9 +64,9 @@ v12 · approval canvas · operator+tenant
 
 | Key | Value (as of handoff write) |
 | --- | --- |
-| `build_id` | `2026-07-20-v12` |
-| `cache_bust` | `20260720-admin-preview-parity-v12` |
-| `sw_version` | `sms-v4.05.165-admin-preview-parity-v12-2026-07-20` |
+| `build_id` | `2026-07-21-v13` |
+| `cache_bust` | `20260721-admin-density-full-fill-v13` |
+| `sw_version` | `sms-v4.05.166-admin-density-full-fill-v13-2026-07-21` |
 
 When bumping a wave: edit the **lock first**, then templates / CSS / SW / auditors together.
 
@@ -76,7 +76,7 @@ When bumping a wave: edit the **lock first**, then templates / CSS / SW / audito
 
 The v12 repair aligns the lock, template cache-bust, audit pins, security
 baseline and service worker on
-`sms-v4.05.165-admin-preview-parity-v12-2026-07-20`. Any future bump must
+`sms-v4.05.166-admin-density-full-fill-v13-2026-07-21`. Any future bump must
 update all of them together or `verify_django_admin_preview_parity.py` and the
 service-worker monotonicity gate fail.
 
@@ -97,7 +97,7 @@ service-worker monotonicity gate fail.
 
 ### CSS
 
-- `static/css/rmc-admin-approval-surface-v12.css` — sole final layout owner;
+- `static/css/rmc-admin-approval-surface-v13.css` — sole final layout owner;
   exact desktop grids, native table fill, form/action fill, and the <=1024px
   one-column contract
 - `static/css/rmc-admin-django-canvas-contract.css` — terminal seals + approval grids
@@ -120,7 +120,7 @@ service-worker monotonicity gate fail.
 2. Run migrations, then `collectstatic --noinput` before restarting web workers.
 3. Hard refresh / unregister the previous service worker.
 4. Open **operator** `/admin/` **and** **tenant** `/admin/` — both must show the chip.
-5. View Source: search `2026-07-20-v12` and `preview-parity-v12`.
+5. View Source: search `2026-07-21-v13` and `preview-parity-v12`.
 6. If the chip is missing → **production is not on that commit** (or HTML not rendered). Do not blame CSS first.
 
 ---
@@ -205,3 +205,127 @@ User opens operator + tenant `/admin/` after deploy and sees:
 ## Related Cursor context
 
 Prior Cursor work on this slice lived in the local agent transcript for this repo (admin full-fill / preview parity / approval HTML). Prefer this handoff + the two approval HTML files over re-auditing from scratch.
+
+---
+
+## AGGRESSIVE v13 PROMPT — paste into Codex / Cursor (2026-07-21)
+
+Copy everything below the line into a fresh agent run. Do **not** dilute it.
+
+---
+
+```text
+YOU ARE AN UNCOMPROMISING LEAD UI/UX ARCHITECT + DJANGO ADMIN SURFACE ENGINEER.
+
+MISSION (NON-NEGOTIABLE)
+Implement the APPROVED design-preview HTML on EVERY Django admin surface for BOTH hosts:
+  • Operator: manager…/admin/  (Platform Backoffice)
+  • Tenant:   {school}.…/admin/  (school configuration engine)
+This is PLATFORM-WIDE. Screenshots of “Change user” are PROOF OF FAILURE CLASS — not the only pages to fix.
+Tenant /admin/ must look and feel as premium as operator /admin/. Host chrome differs (identity, CTAs, rail copy) — density, fill, and polish do NOT.
+
+APPROVAL SOURCES OF TRUTH (OPEN FIRST — DO NOT INVENT)
+1. var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html
+2. var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html
+3. docs/HANDOFF_DJANGO_ADMIN_APPROVAL_HTML.md
+4. var/admin-approval-build-lock.json  (bump to v13 together with SW + ?v=)
+
+CONTRACT FROM APPROVAL HTML (LOCK THESE)
+• Operator .ws = minmax(0,1fr) minmax(9.2rem,17%) 2.35rem
+• Tenant   .ws = minmax(0,1fr) minmax(9.5rem,18%) 2.35rem
+• Main track FULL-FILL — no right void, no decorative empty column inside main
+• Tables: width 100%; table-layout: fixed; no left-aligned skinny table
+• TOOLS strip page-aware: index ≠ list ≠ form (no inert Filters / View site / + when surface cannot use them)
+• Operator: Platform Backoffice; fleet CTAs on INDEX ONLY
+• Tenant: school Config / Feature control / Portal — NEVER Studio / Invite school / Operator boundary chrome
+• Forms: Compact Save ▾ (split primary + menu), actions in-flow (not a floating wall)
+
+WHY THE OPERATOR STILL HATES THE LIVE SURFACE (FIX THESE EXACT DEFECTS)
+Live Change user / forms still show:
+1. LEAKING / BLEEDING — regions collide: left nav bleed into canvas, rail into main, Unfold/Bootstrap leftovers piercing approval owner CSS, sticky overlays, double chrome, nested workspace grids.
+2. CRAMPING WHILE SPACE EXISTS — huge vertical dual-list “Available | Chosen” permission/group/role widgets, tall multi-selects, sparse one-column field stacks, oversized left nav density with tiny type.
+3. LEFTLY ALIGNED WASTE — labels/inputs cling to the left ~50–60% of the MAIN track; the right half of MAIN is dead air. That is NOT “full-fill.” Full-fill means the MAIN column’s content grid USES the main track width (2-up / auto-fit field rows; wide widgets only when needed).
+4. UNNECESSARILY LONG PAGES — filter_horizontal / selector stacks force multi-viewport scrolls when creative condensation would keep the form ≤ ~2–3 folds.
+5. PREMIUM GAP — tenant /admin/ must match operator polish (tokens, radii, hairlines, empty states, skeletons, compact Save, page-aware tools). Different identity chrome ≠ cheaper UI.
+
+CREATIVE CONDENSATION (REQUIRED — NOT OPTIONAL POLISH)
+Replace or wrap Django’s vertical space hogs with premium patterns that KEEP functionality:
+A. PERMISSIONS / GROUPS / ROLES / M2M
+   - Default: collapsible “Transfer” accordion sections with numbered headers (1 Permissions · 2 Groups · 3 Roles).
+   - Prefer searchable dual-pane that is HEIGHT-CAPPED (e.g. max 12–14 rem lists) + internal scroll — NEVER unbounded page-length growth.
+   - Where ModelAdmin allows, offer a compact mode: searchable multi-select / combobox / chip-picker instead of full-height selector (keep Django POST field names intact).
+B. FIELD LAYOUT
+   - Short scalar fields: 2-column (desktop) / 1-column (≤1024) auto-fit grid spanning FULL main width.
+   - Only textarea / selector / related-widget / readonly blocks span full row.
+   - Kill leftover max-width caps on .vTextField / Unfold form shells that recenter or left-pin fields.
+C. SIDEBAR / NAV
+   - Reduce visual cramp: clearer section hierarchy, truncate long labels with title tooltips, no double “ADVANCED” walls; keep scroll inside nav — do not shrink MAIN to feed nav.
+D. RAIL
+   - Dense but calm: numbered “On this page” anchors, Form pulse compact, no endless empty list items.
+E. INDEX / LIST / APP INDEX
+   - Catalog cards auto-fit full main; changelist native table 100% fill; no left void beside hidden filter panel.
+
+CASCADE / OWNERSHIP RULES (ALREADY BIT US)
+• Sole final layout owner remains the approval surface CSS (bump v12 → v13 file or evolve v12 in place + rename owner attr).
+• Beat #cp-main-content / rmc-admin-workspace-10x 2-col clamps — NEVER collapse tools away on desktop.
+• No nested [data-rmc-django-workspace] grids (app_index double-marker class of bug).
+• Bump lock + cache_bust + SW + template ?v= + chip on BOTH index_superadmin.html AND index_tenant.html TOGETHER.
+• Visible proof chip MUST change (e.g. `v13 · density+full-fill · operator+tenant`) so deploy cannot look “unchanged.”
+
+SCOPE (AUDIT THEN IMPLEMENT — PLATFORM WIDE)
+Hosts: operator + tenant.
+Surfaces (all must pass density + fill + no-bleed):
+  index, app_index, changelist, change_form, add, history, delete, delete_selected,
+  object tools, inlines, custom admin templates under templates/admin/**,
+  school guided delete / waive, Site Settings, registries, runtime defaults,
+  specialized model forms on both hosts.
+Do NOT “fix only Change user.” Change user is the canary.
+
+AUDIT FIRST (WRITE FINDINGS, THEN CODE)
+1. Diff live templates/CSS against BOTH approval HTMLs section-by-section (Before vs After).
+2. AST/CSS scan for: max-width caps on form controls, 2-col workspace clamps, nested workspace, sticky tools overlays, filter_horizontal unbounded height, left-pinned Unfold form layouts.
+3. List every leftover that causes left-void or page-length bloat; fix by severity.
+4. Extend scripts/verify_django_admin_preview_parity.py + miss-nothing / canvas / real-host matrix with DENSITY checks:
+   - main content fill ratio (no large empty right half inside MAIN)
+   - .selector / .selector-available max-height capped
+   - form-rows computed columns ≥ 2 at ≥1280px when ≥4 scalar fields present
+   - page fold heuristic: change_form primary modules should not exceed policy without accordion/tabs
+5. Run real-host matrix core + specialized on operator AND tenant after implement.
+
+IMPLEMENTATION ORDER
+1. Lock → v13 build_id / cache_bust / sw_version / seal
+2. CSS owner: full-fill MAIN content grids + kill left-void; height-cap selectors; tighten nav/rail density
+3. Templates: accordion/numbered M2M wrappers; compact Save; page-aware tools; tenant vs operator chrome honesty
+4. JS (static, CSP-nonce safe): optional enhance search-filter inside capped selectors; no console.log
+5. Chip on BOTH indexes
+6. Gates green + commit + push
+7. Deploy proof instructions: both /admin/ show v13 chip; View Source has new build id; Change user shows 2-up scalars + capped permission transfer (not a mile-long page)
+
+DEFINITION OF DONE (USER-VISIBLE — AUDITS ALONE FAIL)
+Operator AND tenant after hard refresh:
+  ✓ v13 chip visible on both indexes
+  ✓ No right void in MAIN; fields use width intelligently (2-up scalars)
+  ✓ Permissions/groups/roles do NOT dominate page length (capped + accordion/numbered)
+  ✓ No region bleed; tools page-aware; tables full width
+  ✓ Tenant premium parity with operator (different chrome, same craft)
+  ✓ python scripts/verify_django_admin_preview_parity.py PASS
+  ✓ canvas / miss-nothing / platformwide sweep PASS
+  ✓ real-host matrix core (both hosts) PASS for index + changelist + change_form canaries
+  ✓ Pushed to main; SW monotonic; lock synchronized
+
+BANNED
+• Narrative-only “parity” without chip bump + visual density change
+• Fixing only the two screenshot URLs
+• CSS-ratio-only without form condensation
+• Leaving filter_horizontal full-page-tall “because Django default”
+• Parallel strategy docs — record in SOT §11.4 + autonomous log AFTER green ship
+• Touching backend_* portal shells for this wave
+
+START NOW: read both approval HTMLs + current rmc-admin-approval-surface-v13.css + change_form.html + submit_line.html + admin_workspace_tools.html, then implement v13 end-to-end.
+```
+
+---
+
+### Operator feedback that triggered v13 (2026-07-21)
+
+Screenshots of live Change user still show left-void in MAIN, mile-tall permission dual-lists, cramped nav, and incomplete approval HTML fidelity — despite v12 full-fill grid shipping. v13 is the **density + intelligent fill + condensation** wave on top of the grid contract.

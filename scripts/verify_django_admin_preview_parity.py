@@ -31,7 +31,7 @@ OPERATOR_PREVIEW = (
 TENANT_PREVIEW = (
     ROOT / "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html"
 )
-CANVAS_CSS = ROOT / "static/css/rmc-admin-approval-surface-v12.css"
+CANVAS_CSS = ROOT / "static/css/rmc-admin-approval-surface-v13.css"
 BASE_SITE = ROOT / "templates/admin/base_site.html"
 BASE = ROOT / "templates/admin/base.html"
 NAV_BRIDGE = ROOT / "templates/components/admin_nav_bridge.html"
@@ -203,10 +203,10 @@ def main() -> int:
 
     if 'data-rmc-layout-owner="legacy-disabled"' not in base_site or 'media="not all"' not in base_site:
         errors.append("base_site must disable the stale inline preview-parity layout owner")
-    if base_site.count("rmc-admin-approval-surface-v12.css") != 1:
-        errors.append("base_site must load exactly one v12 approval layout owner")
-    if base_site.rfind("rmc-admin-approval-surface-v12.css") < base_site.rfind("admin-brand-resolved-tokens"):
-        errors.append("v12 approval layout owner must be last-loaded after resolved theme tokens")
+    if base_site.count("rmc-admin-approval-surface-v13.css") != 1:
+        errors.append("base_site must load exactly one v13 approval layout owner")
+    if base_site.rfind("rmc-admin-approval-surface-v13.css") < base_site.rfind("admin-brand-resolved-tokens"):
+        errors.append("v13 approval layout owner must be last-loaded after resolved theme tokens")
 
     if "rmc-django-save-compact" not in submit:
         errors.append("submit_line.html must implement compact Save (preview save-compact)")
@@ -245,13 +245,22 @@ def main() -> int:
     if "data-rmc-admin-preview-url" in change_form:
         errors.append("shared change form must not advertise a staged generic preview URL")
     if "--rmc-admin-v12-operator-rail: minmax(9.2rem, 17%)" not in css:
-        errors.append("v12 CSS must seal operator host rail identity")
+        errors.append("approval CSS must seal operator host rail identity")
     if "--rmc-admin-v12-tenant-rail: minmax(9.5rem, 18%)" not in css:
-        errors.append("v12 CSS must seal tenant host rail identity")
+        errors.append("approval CSS must seal tenant host rail identity")
     if "@media (max-width: 1024px)" not in css:
-        errors.append("v12 CSS must seal tablet/mobile workspaces to one track at 1024px")
+        errors.append("approval CSS must seal tablet/mobile workspaces to one track at 1024px")
     if "position: static !important" not in css:
-        errors.append("v12 CSS must keep page rails, tools and save actions in document flow")
+        errors.append("approval CSS must keep page rails, tools and save actions in document flow")
+    if "--rmc-admin-v13-transfer-h" not in css:
+        errors.append("v13 CSS must height-cap .selector transfer lists (--rmc-admin-v13-transfer-h)")
+    if "rmc-admin-transfer-panel" not in css:
+        errors.append("v13 CSS must style numbered collapsible transfer panels")
+    if "max-w-2xl" not in css or "max-width: none !important" not in css:
+        errors.append("v13 CSS must neutralize Unfold max-w-2xl left-void on form controls")
+    workspace_js = _read(ROOT / "static/js/rmc-admin-workspace.js")
+    if "initTransferCondensation" not in workspace_js or "rmc-admin-transfer-panel" not in workspace_js:
+        errors.append("rmc-admin-workspace.js must condense M2M selectors into transfer panels")
     app_index = _read(ROOT / "templates/admin/app_index.html")
     if app_index.count("data-rmc-admin-index-canvas=") != 1:
         errors.append("app_index must render one canvas; a nested duplicate recreates the right void")
@@ -277,10 +286,8 @@ def main() -> int:
     if "minmax(9.2rem, 17%)" not in workspace_10x and "minmax(9.2rem,17%)" not in workspace_10x:
         errors.append("workspace-10x must use operator approval grid minmax(9.2rem, 17%)")
 
-    if "2026-07-20-full-fill-v12" not in css:
-        errors.append(
-            "canvas CSS missing 2026-07-20-full-fill-v12 terminal ownership seal"
-        )
+    if seal not in css:
+        errors.append(f"canvas CSS missing terminal ownership seal {seal}")
     seal_and_after = css[css.find(seal) :] if seal in css else ""
     if "#cp-main-content" not in seal_and_after:
         errors.append(f"{seal} (or later) must include #cp-main-content specificity override")

@@ -23,8 +23,8 @@ ADMIN_TPL = ROOT / "templates" / "admin"
 REPORT = ROOT / "var" / "admin-surface-platformwide-sweep.json"
 
 # Bump together with base_site ?v= and SW CACHE_VERSION on each layout wave.
-EXPECTED_CACHE_BUST = "20260720-admin-preview-parity-v12"
-EXPECTED_SW = "sms-v4.05.165-admin-preview-parity-v12-2026-07-20"
+EXPECTED_CACHE_BUST = "20260721-admin-density-full-fill-v13"
+EXPECTED_SW = "sms-v4.05.166-admin-density-full-fill-v13-2026-07-21"
 
 
 def _read(path: Path) -> str:

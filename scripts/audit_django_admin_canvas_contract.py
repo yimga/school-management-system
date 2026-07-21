@@ -18,7 +18,7 @@ def main() -> int:
     change_form = _read("templates/admin/change_form.html")
     change_list = _read("templates/admin/change_list.html")
     css_path = ROOT / "static/css/rmc-admin-django-canvas-contract.css"
-    approval_css_path = ROOT / "static/css/rmc-admin-approval-surface-v12.css"
+    approval_css_path = ROOT / "static/css/rmc-admin-approval-surface-v13.css"
 
     if not css_path.is_file():
         errors.append("static/css/rmc-admin-django-canvas-contract.css is missing")
@@ -27,7 +27,7 @@ def main() -> int:
         css = css_path.read_text(encoding="utf-8")
 
     if not approval_css_path.is_file():
-        errors.append("static/css/rmc-admin-approval-surface-v12.css is missing")
+        errors.append("static/css/rmc-admin-approval-surface-v13.css is missing")
         approval_css = ""
     else:
         approval_css = approval_css_path.read_text(encoding="utf-8")
@@ -35,26 +35,26 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260720-admin-preview-parity-v12" not in base_site:
-        errors.append("Django canvas contracts must use the preview-parity-v12 cache bust for deployment visibility")
+    if "?v=20260721-admin-density-full-fill-v13" not in base_site:
+        errors.append("Django canvas contracts must use the preview-parity-v13 cache bust for deployment visibility")
     if base_site.count(contract_link) != 1:
         errors.append("Django canvas contract must load exactly once")
-    approval_link = "rmc-admin-approval-surface-v12.css"
+    approval_link = "rmc-admin-approval-surface-v13.css"
     if base_site.count(approval_link) != 1:
-        errors.append("Django approval v12 layout owner must load exactly once")
+        errors.append("Django approval v13 layout owner must load exactly once")
     if approval_link in base_site and base_site.rfind(approval_link) < base_site.rfind("admin-brand-resolved-tokens"):
-        errors.append("Django approval v12 layout owner must load after resolved theme tokens")
+        errors.append("Django approval v13 layout owner must load after resolved theme tokens")
     approval_n = re.sub(r"\s+", "", approval_css)
     if "minmax(0,1fr)minmax(9.2rem,17%)2.35rem" not in approval_n:
-        errors.append("approval v12 CSS must own the operator main|17% rail|2.35rem tools grid")
+        errors.append("approval v13 CSS must own the operator main|17% rail|2.35rem tools grid")
     if "minmax(0,1fr)minmax(9.5rem,18%)2.35rem" not in approval_n:
-        errors.append("approval v12 CSS must own the tenant main|18% rail|2.35rem tools grid")
+        errors.append("approval v13 CSS must own the tenant main|18% rail|2.35rem tools grid")
     if "@media(max-width:1024px)" not in approval_n:
-        errors.append("approval v12 CSS must stack every workspace at 1024px and below")
+        errors.append("approval v13 CSS must stack every workspace at 1024px and below")
     if "table-layout:fixed!important" not in approval_n or "display:table!important" not in approval_n:
-        errors.append("approval v12 CSS must preserve full native Django tables")
+        errors.append("approval v13 CSS must preserve full native Django tables")
     if "position:static!important" not in approval_n:
-        errors.append("approval v12 CSS must keep rails, tools and save actions in document flow")
+        errors.append("approval v13 CSS must keep rails, tools and save actions in document flow")
     if change_list.count('data-rmc-django-primary-panel="1"') != 1:
         errors.append("change_list.html must mark exactly one primary fill panel")
     if change_form.count('data-rmc-django-primary-panel="1"') != 1:

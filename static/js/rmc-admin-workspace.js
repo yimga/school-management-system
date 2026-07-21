@@ -217,11 +217,56 @@
     refresh();
   }
 
+  /**
+   * Collapse Django filter_horizontal / selector rows into numbered <details>
+   * so change forms stop becoming mile-long pages. Keeps widget DOM intact for
+   * SelectFilter2 / admin JS. First transfer stays open; later ones start closed.
+   */
+  function initTransferCondensation() {
+    var body = document.querySelector(
+      '[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]'
+    );
+    if (!body) return;
+
+    var selectors = body.querySelectorAll(".selector");
+    if (!selectors.length) return;
+
+    Array.prototype.forEach.call(selectors, function (sel, index) {
+      if (sel.closest("details.rmc-admin-transfer-panel")) return;
+      var row = sel.closest(".form-row") || sel.parentElement;
+      if (!row || row.getAttribute("data-rmc-m2m-wrapped") === "1") return;
+      if (row.parentElement && row.parentElement.matches("details.rmc-admin-transfer-panel")) {
+        return;
+      }
+
+      var labelEl = row.querySelector("label, .form-label, legend");
+      var label = labelEl ? (labelEl.textContent || "").replace(/\s+/g, " ").trim() : "";
+      if (!label) label = "Transfer list";
+      if (label.length > 64) label = label.slice(0, 63) + "…";
+
+      var details = document.createElement("details");
+      details.className = "rmc-admin-transfer-panel";
+      details.setAttribute("data-rmc-m2m-condensed", "1");
+      details.open = index === 0;
+
+      var summary = document.createElement("summary");
+      summary.textContent = label;
+      details.appendChild(summary);
+
+      var parent = row.parentNode;
+      if (!parent) return;
+      parent.insertBefore(details, row);
+      details.appendChild(row);
+      row.setAttribute("data-rmc-m2m-wrapped", "1");
+    });
+  }
+
   ready(function () {
     initOnThisPage();
     initViewToggle();
     initPreviewOpeners();
     initChangelistRail();
     initPageAwarePulse();
+    initTransferCondensation();
   });
 })();
