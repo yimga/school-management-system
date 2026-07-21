@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from .sms_base import SMSProvider, SMSResult
+from .sms_base import SMSProvider, SMSResult, sms_sdk_available
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +28,8 @@ _SMS_AFRICASTALKING_SEND_ERRORS: tuple[type[BaseException], ...] = (
 class AfricasTalkingSMSProvider(SMSProvider):
     """SMS via AfricasTalking API."""
 
+    provider_key = "africastalking"
+
     def __init__(self, site_settings: Any):
         self.site_settings = site_settings
 
@@ -39,9 +41,18 @@ class AfricasTalkingSMSProvider(SMSProvider):
         sender_id: str | None = None,
         idempotency_key: str | None = None,
     ) -> SMSResult:
+        if not sms_sdk_available(self.provider_key):
+            # Deploy defect, not a tenant misconfiguration: say which one.
+            logger.error(
+                "AfricasTalking SDK not installed -- SMS cannot be sent. Pin "
+                "`africastalking` in requirements.txt (build.sh installs that "
+                "file only).",
+                extra={"scope": "sms_africastalking.sdk_missing"},
+            )
+            return SMSResult(ok=False, error="africastalking_sdk_not_installed")
         api_key = getattr(self.site_settings, "sms_api_key", None)
         if not api_key:
-            return SMSResult(ok=False, error="AfricasTalking api_key not set")
+            return SMSResult(ok=False, error="africastalking_api_key_not_set")
         from_ = (
             sender_id
             or getattr(self.site_settings, "sms_sender_id", None)

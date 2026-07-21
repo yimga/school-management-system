@@ -31,6 +31,49 @@
     window.alert(msg);
   }
 
+  /**
+   * Report the real outcome of an offline enqueue.
+   *
+   * Every call site here used to toast "Saved on this device" unconditionally,
+   * immediately after an enqueue that could not report failure. When the device
+   * outbox was full, or localStorage rejected the write, the row was discarded
+   * and the teacher was told it was safe. On a multi-day offline stretch that is
+   * a whole register lost with nobody watching.
+   *
+   * rmcOfflineEnqueue now returns {ok, reason}. Success is claimed ONLY on an
+   * explicit ok === true. Anything else -- including a missing or malformed
+   * return from an older cached build -- is reported as not-saved, because the
+   * safe direction for "did the write land?" is to assume it did not.
+   */
+  function reportQueued(result, successMsg) {
+    if (result && result.ok === true) {
+      toast(successMsg, 'success');
+      return true;
+    }
+    var reason = result && result.reason ? String(result.reason) : 'unknown';
+    if (reason === 'capability_denied') {
+      toast('This form is not enabled for offline capture on your account. Nothing was saved.', 'warning');
+    } else if (reason === 'outbox_full') {
+      toast('NOT SAVED — this device’s offline store is full. Reconnect to sync what is already queued, then save again.', 'danger');
+    } else {
+      toast('NOT SAVED — this device could not store the entry. Reconnect and save again, or record it on paper.', 'danger');
+    }
+    return false;
+  }
+
+  /** Summarise a batch enqueue truthfully: partial failure is not success. */
+  function reportQueuedBatch(okCount, failCount, noun) {
+    if (failCount === 0 && okCount > 0) {
+      toast('Queued ' + okCount + ' ' + noun + '. Open Offline sync when you reconnect.', 'success');
+      return;
+    }
+    if (okCount === 0) {
+      toast('NOT SAVED — none of the ' + noun + ' could be stored on this device. Reconnect and try again, or record them on paper.', 'danger');
+      return;
+    }
+    toast('PARTIALLY SAVED — ' + okCount + ' of ' + (okCount + failCount) + ' ' + noun + ' stored. The rest were NOT saved; reconnect and re-enter them.', 'danger');
+  }
+
   function wireAttendance(form) {
     form.addEventListener('submit', function (ev) {
       if (navigator.onLine || !enabled()) return;
@@ -49,7 +92,8 @@
         return;
       }
       var selects = form.querySelectorAll('select[name^="status_"]');
-      var n = 0;
+      var okRows = 0;
+      var failRows = 0;
       selects.forEach(function (sel) {
         var m = sel.name.match(/^status_(\d+)/);
         if (!m) return;
@@ -74,14 +118,15 @@
             status: status,
           };
         }
-        window.rmcOfflineEnqueue({
+        var res = window.rmcOfflineEnqueue({
           action_type: 'attendance',
           payload: payload,
           idempotency_key: idem,
         });
-        n += 1;
+        if (res && res.ok === true) okRows += 1;
+        else failRows += 1;
       });
-      toast('Queued ' + n + ' attendance row(s). Open Offline sync when you reconnect.', 'success');
+      reportQueuedBatch(okRows, failRows, 'attendance row(s)');
     });
   }
 
@@ -122,7 +167,8 @@
         if (field === 'remarks') byStudent[sid].remarks = String(inp.value || '');
         else byStudent[sid][field + '_score'] = parseMaybeNum(inp.value);
       });
-      var count = 0;
+      var okMarks = 0;
+      var failMarks = 0;
       Object.keys(byStudent).forEach(function (sid) {
         var row = byStudent[sid];
         var hasNum =
@@ -133,7 +179,7 @@
           row.practical_score != null ||
           (row.remarks && row.remarks.length);
         if (!hasNum) return;
-        window.rmcOfflineEnqueue({
+        var markRes = window.rmcOfflineEnqueue({
           action_type: 'grading',
           payload: {
             subject_assignment_id: saId,
@@ -149,9 +195,10 @@
           },
           idempotency_key: 'grade-' + saId + '-' + sid + '-' + termId,
         });
-        count += 1;
+        if (markRes && markRes.ok === true) okMarks += 1;
+        else failMarks += 1;
       });
-      toast('Queued ' + count + ' offline mark row(s).', 'success');
+      reportQueuedBatch(okMarks, failMarks, 'offline mark row(s)');
     });
   }
 
@@ -173,7 +220,7 @@
       var idem = (idemEl && idemEl.value) ? idemEl.value : ('offline-rcpt-' + inv + '-' + Date.now());
       if (idemEl) idemEl.value = idem;
       var amountStr = amt && amt.value ? amt.value : bal;
-      window.rmcOfflineEnqueue({
+      reportQueued(window.rmcOfflineEnqueue({
         action_type: 'payment_receipt',
         payload: {
           invoice_id: parseInt(inv, 10),
@@ -184,8 +231,7 @@
           client_offline_id: idem.slice(0, 64),
         },
         idempotency_key: idem.slice(0, 128),
-      });
-      toast('Payment details queued (no file). Upload the receipt when you are online.', 'success');
+      }), 'Payment details queued (no file). Upload the receipt when you are online.');
     });
   }
 
@@ -211,7 +257,7 @@
         return;
       }
       ev.preventDefault();
-      window.rmcOfflineEnqueue({
+      reportQueued(window.rmcOfflineEnqueue({
         action_type: 'notes_report',
         payload: {
           body: body,
@@ -220,8 +266,7 @@
           kind: 'quick_capture',
         },
         idempotency_key: 'note-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
-      });
-      toast('Note queued for sync.', 'success');
+      }), 'Note queued for sync.');
     });
   }
 
@@ -265,7 +310,7 @@
       });
       var title = workflow.replace(/[_-]+/g, ' ').slice(0, 200);
       var idem = workflow + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
-      window.rmcOfflineEnqueue({
+      reportQueued(window.rmcOfflineEnqueue({
         action_type: 'notes_report',
         payload: {
           body: body,
@@ -273,8 +318,7 @@
           kind: 'note',
         },
         idempotency_key: idem.slice(0, 128),
-      });
-      toast('Saved on this device — open Offline sync when you reconnect.', 'success');
+      }), 'Saved on this device — open Offline sync when you reconnect.');
     });
   }
 
@@ -293,7 +337,7 @@
         return;
       }
       var idem = 'hw-' + homeworkId + '-' + studentId + '-' + Date.now();
-      window.rmcOfflineEnqueue({
+      reportQueued(window.rmcOfflineEnqueue({
         action_type: 'homework_submission',
         payload: {
           homework_id: homeworkId,
@@ -301,8 +345,7 @@
           submission_text: body,
         },
         idempotency_key: idem.slice(0, 128),
-      });
-      toast('Homework queued for sync when you reconnect.', 'success');
+      }), 'Homework queued for sync when you reconnect.');
     });
   }
 
@@ -320,7 +363,7 @@
         return;
       }
       var idem = 'support-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
-      window.rmcOfflineEnqueue({
+      reportQueued(window.rmcOfflineEnqueue({
         action_type: 'support.ticket',
         payload: {
           subject: subject,
@@ -328,8 +371,7 @@
           category: categoryEl ? String(categoryEl.value || 'SUPPORT') : 'SUPPORT',
         },
         idempotency_key: idem,
-      });
-      toast('Support message queued. It will send when you reconnect.', 'success');
+      }), 'Support message queued. It will send when you reconnect.');
     });
   }
 
@@ -357,7 +399,7 @@
         ? idemEl.value
         : ('don-' + donorName.toLowerCase().replace(/\s+/g, '-').slice(0, 40) + '-' + amount + '-' + Date.now());
       if (idemEl) idemEl.value = idem;
-      window.rmcOfflineEnqueue({
+      reportQueued(window.rmcOfflineEnqueue({
         action_type: 'donation.intake',
         payload: {
           donor_name: donorName,
@@ -368,8 +410,7 @@
           client_offline_id: idem.slice(0, 64),
         },
         idempotency_key: idem.slice(0, 128),
-      });
-      toast('Donation saved on this device — it will sync when you reconnect.', 'success');
+      }), 'Donation saved on this device — it will sync when you reconnect.');
     });
   }
 
@@ -465,7 +506,7 @@
       var labelEl = form.querySelector('[name="label"]');
       var label = labelEl ? String(labelEl.value || '') : '';
       _stageMcBlobs(idem, files, { uploadUrl: form.action || '', label: label }).then(function () {
-        window.rmcOfflineEnqueue({
+        reportQueued(window.rmcOfflineEnqueue({
           action_type: 'migration_cloud_upload',
           payload: {
             filenames: files.map(function (f) { return f.name; }),
@@ -475,8 +516,7 @@
             pending_local_blobs: true,
           },
           idempotency_key: idem.slice(0, 128),
-        });
-        toast('Files saved on this device. They will upload when you reconnect.', 'success');
+        }), 'Files saved on this device. They will upload when you reconnect.');
       }).catch(function () {
         toast('Could not store files offline on this device.', 'warning');
       });

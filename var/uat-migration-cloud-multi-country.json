@@ -1,0 +1,625 @@
+{
+  "started_at": "2026-07-20T21:27:16.909313+00:00",
+  "finished_at": "2026-07-20T21:36:51.024694+00:00",
+  "apply": true,
+  "passed": 72,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "create_school",
+      "status": "PASS",
+      "detail": "id=dbec0ee0-0d96-4621-bcee-090b158ccd3c country=CM",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "schema_binding",
+      "status": "PASS",
+      "detail": "s_dbec0ee00d964621bcee090b158ccd3c",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "intake:file_upload",
+      "status": "PASS",
+      "detail": "bundle=15 artifacts=1",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "advance:15",
+      "status": "PASS",
+      "detail": "status=MAPPED",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "apply:15",
+      "status": "PASS",
+      "detail": "status=APPLIED",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "intake:archive",
+      "status": "PASS",
+      "detail": "bundle=16 artifacts=2",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "advance:16",
+      "status": "PASS",
+      "detail": "status=MAPPED",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "apply:16",
+      "status": "PASS",
+      "detail": "status=APPLIED",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:tenant_home",
+      "status": "PASS",
+      "detail": "/t/uat-mc-buea-cm/school/setup/migration-cloud/ -> 200",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:tenant_upload",
+      "status": "PASS",
+      "detail": "/t/uat-mc-buea-cm/school/setup/migration-cloud/upload/ -> 200",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:tenant_connect",
+      "status": "PASS",
+      "detail": "/t/uat-mc-buea-cm/school/setup/migration-cloud/connect/ -> 200",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:operator_console",
+      "status": "SKIP",
+      "detail": "/super/migration/ -> 403 (tenant owner)",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:operator_cc",
+      "status": "SKIP",
+      "detail": "/super/migration/command-center/ -> 403 (tenant owner)",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:operator_health",
+      "status": "SKIP",
+      "detail": "/super/migration/health/ -> 403 (tenant owner)",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:operator_new",
+      "status": "SKIP",
+      "detail": "/super/migration/new/ -> 403 (tenant owner)",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:portal_mirror",
+      "status": "PASS",
+      "detail": "/t/uat-mc-buea-cm/portal/configure/migration/ -> 403 (gate ok)",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:op_console",
+      "status": "PASS",
+      "detail": "/super/migration/ -> 200",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:op_cc",
+      "status": "PASS",
+      "detail": "/super/migration/command-center/ -> 200",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:op_health",
+      "status": "PASS",
+      "detail": "/super/migration/health/ -> 200",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:op_new",
+      "status": "PASS",
+      "detail": "/super/migration/new/ -> 200",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:op_templates",
+      "status": "PASS",
+      "detail": "/super/migration/templates/ -> 200",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "http:tenant_upload_post",
+      "status": "PASS",
+      "detail": "-> 200",
+      "country": "CM",
+      "slug": "uat-mc-buea-cm"
+    },
+    {
+      "name": "create_school",
+      "status": "PASS",
+      "detail": "id=8e784833-4497-4e72-9228-234982283e46 country=NG",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "schema_binding",
+      "status": "PASS",
+      "detail": "s_8e78483344974e729228234982283e46",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "intake:file_upload",
+      "status": "PASS",
+      "detail": "bundle=17 artifacts=1",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "advance:17",
+      "status": "PASS",
+      "detail": "status=MAPPED",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "apply:17",
+      "status": "PASS",
+      "detail": "status=APPLIED",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "intake:archive",
+      "status": "PASS",
+      "detail": "bundle=18 artifacts=2",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "advance:18",
+      "status": "PASS",
+      "detail": "status=MAPPED",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "apply:18",
+      "status": "PASS",
+      "detail": "status=APPLIED",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:tenant_home",
+      "status": "PASS",
+      "detail": "/t/uat-mc-lagos-ng/school/setup/migration-cloud/ -> 200",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:tenant_upload",
+      "status": "PASS",
+      "detail": "/t/uat-mc-lagos-ng/school/setup/migration-cloud/upload/ -> 200",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:tenant_connect",
+      "status": "PASS",
+      "detail": "/t/uat-mc-lagos-ng/school/setup/migration-cloud/connect/ -> 200",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:operator_console",
+      "status": "SKIP",
+      "detail": "/super/migration/ -> 403 (tenant owner)",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:operator_cc",
+      "status": "SKIP",
+      "detail": "/super/migration/command-center/ -> 403 (tenant owner)",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:operator_health",
+      "status": "SKIP",
+      "detail": "/super/migration/health/ -> 403 (tenant owner)",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:operator_new",
+      "status": "SKIP",
+      "detail": "/super/migration/new/ -> 403 (tenant owner)",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:portal_mirror",
+      "status": "PASS",
+      "detail": "/t/uat-mc-lagos-ng/portal/configure/migration/ -> 403 (gate ok)",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:op_console",
+      "status": "PASS",
+      "detail": "/super/migration/ -> 200",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:op_cc",
+      "status": "PASS",
+      "detail": "/super/migration/command-center/ -> 200",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:op_health",
+      "status": "PASS",
+      "detail": "/super/migration/health/ -> 200",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:op_new",
+      "status": "PASS",
+      "detail": "/super/migration/new/ -> 200",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:op_templates",
+      "status": "PASS",
+      "detail": "/super/migration/templates/ -> 200",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "http:tenant_upload_post",
+      "status": "PASS",
+      "detail": "-> 200",
+      "country": "NG",
+      "slug": "uat-mc-lagos-ng"
+    },
+    {
+      "name": "create_school",
+      "status": "PASS",
+      "detail": "id=2e1d1f6a-936f-467e-bce3-04c7e138429f country=US",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "schema_binding",
+      "status": "PASS",
+      "detail": "s_2e1d1f6a936f467ebce304c7e138429f",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "intake:file_upload",
+      "status": "PASS",
+      "detail": "bundle=19 artifacts=1",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "advance:19",
+      "status": "PASS",
+      "detail": "status=MAPPED",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "apply:19",
+      "status": "PASS",
+      "detail": "status=APPLIED",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "intake:archive",
+      "status": "PASS",
+      "detail": "bundle=20 artifacts=2",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "advance:20",
+      "status": "PASS",
+      "detail": "status=MAPPED",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "apply:20",
+      "status": "PASS",
+      "detail": "status=APPLIED",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:tenant_home",
+      "status": "PASS",
+      "detail": "/t/uat-mc-austin-us/school/setup/migration-cloud/ -> 200",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:tenant_upload",
+      "status": "PASS",
+      "detail": "/t/uat-mc-austin-us/school/setup/migration-cloud/upload/ -> 200",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:tenant_connect",
+      "status": "PASS",
+      "detail": "/t/uat-mc-austin-us/school/setup/migration-cloud/connect/ -> 200",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:operator_console",
+      "status": "SKIP",
+      "detail": "/super/migration/ -> 403 (tenant owner)",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:operator_cc",
+      "status": "SKIP",
+      "detail": "/super/migration/command-center/ -> 403 (tenant owner)",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:operator_health",
+      "status": "SKIP",
+      "detail": "/super/migration/health/ -> 403 (tenant owner)",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:operator_new",
+      "status": "SKIP",
+      "detail": "/super/migration/new/ -> 403 (tenant owner)",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:portal_mirror",
+      "status": "PASS",
+      "detail": "/t/uat-mc-austin-us/portal/configure/migration/ -> 403 (gate ok)",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:op_console",
+      "status": "PASS",
+      "detail": "/super/migration/ -> 200",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:op_cc",
+      "status": "PASS",
+      "detail": "/super/migration/command-center/ -> 200",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:op_health",
+      "status": "PASS",
+      "detail": "/super/migration/health/ -> 200",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:op_new",
+      "status": "PASS",
+      "detail": "/super/migration/new/ -> 200",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:op_templates",
+      "status": "PASS",
+      "detail": "/super/migration/templates/ -> 200",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "http:tenant_upload_post",
+      "status": "PASS",
+      "detail": "-> 200",
+      "country": "US",
+      "slug": "uat-mc-austin-us"
+    },
+    {
+      "name": "create_school",
+      "status": "PASS",
+      "detail": "id=be9d86c4-8a80-4ce8-86f6-26e5d154edec country=GH",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "schema_binding",
+      "status": "PASS",
+      "detail": "s_be9d86c48a804ce886f626e5d154edec",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "intake:file_upload",
+      "status": "PASS",
+      "detail": "bundle=21 artifacts=1",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "advance:21",
+      "status": "PASS",
+      "detail": "status=MAPPED",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "apply:21",
+      "status": "PASS",
+      "detail": "status=APPLIED",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "intake:archive",
+      "status": "PASS",
+      "detail": "bundle=22 artifacts=2",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "advance:22",
+      "status": "PASS",
+      "detail": "status=MAPPED",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "apply:22",
+      "status": "PASS",
+      "detail": "status=APPLIED",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:tenant_home",
+      "status": "PASS",
+      "detail": "/t/uat-mc-accra-gh/school/setup/migration-cloud/ -> 200",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:tenant_upload",
+      "status": "PASS",
+      "detail": "/t/uat-mc-accra-gh/school/setup/migration-cloud/upload/ -> 200",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:tenant_connect",
+      "status": "PASS",
+      "detail": "/t/uat-mc-accra-gh/school/setup/migration-cloud/connect/ -> 200",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:operator_console",
+      "status": "SKIP",
+      "detail": "/super/migration/ -> 403 (tenant owner)",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:operator_cc",
+      "status": "SKIP",
+      "detail": "/super/migration/command-center/ -> 403 (tenant owner)",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:operator_health",
+      "status": "SKIP",
+      "detail": "/super/migration/health/ -> 403 (tenant owner)",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:operator_new",
+      "status": "SKIP",
+      "detail": "/super/migration/new/ -> 403 (tenant owner)",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:portal_mirror",
+      "status": "PASS",
+      "detail": "/t/uat-mc-accra-gh/portal/configure/migration/ -> 403 (gate ok)",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:op_console",
+      "status": "PASS",
+      "detail": "/super/migration/ -> 200",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:op_cc",
+      "status": "PASS",
+      "detail": "/super/migration/command-center/ -> 200",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:op_health",
+      "status": "PASS",
+      "detail": "/super/migration/health/ -> 200",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:op_new",
+      "status": "PASS",
+      "detail": "/super/migration/new/ -> 200",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:op_templates",
+      "status": "PASS",
+      "detail": "/super/migration/templates/ -> 200",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    },
+    {
+      "name": "http:tenant_upload_post",
+      "status": "PASS",
+      "detail": "-> 200",
+      "country": "GH",
+      "slug": "uat-mc-accra-gh"
+    }
+  ]
+}

@@ -6,6 +6,117 @@
 (function () {
   var LS_KEY = 'rmc-offline-outbox-v1';
   var FLUSHING = false;
+
+  /**
+   * OUTBOX CAPACITY + EVICTION POLICY  (batch: globalization 0.4)
+   * -------------------------------------------------------------
+   * The localStorage rail is the fallback outbox for devices without
+   * IndexedDB. localStorage is a hard-capped, shared, ~5MB-per-origin
+   * store. A teacher on a 2G line can be offline for DAYS, so this queue
+   * can genuinely grow until the store refuses the write.
+   *
+   * POLICY: REFUSE-NEW. At capacity we reject the INCOMING write and say
+   * so loudly; we never evict an older unsynced row to make room.
+   * Rationale: an old unsynced row is work the user was ALREADY told was
+   * saved — dropping it is silent data loss after the fact, with nobody
+   * watching. A new row can be refused in front of the user, who is
+   * standing right there and can still act (reconnect and sync, free
+   * space, or write it on paper). Loud refusal beats silent deletion.
+   *
+   * Two ceilings, whichever binds first:
+   *   MAX_OUTBOX_ROWS  — bounds the flush loop (one POST per row).
+   *   MAX_OUTBOX_CHARS — keeps us well under the origin quota so other
+   *                      offline subsystems (drafts, WAL, caches) still
+   *                      have room; localStorage quotas are counted in
+   *                      UTF-16 code units, which is what String.length
+   *                      returns.
+   * BACK_PRESSURE_RATIO — we warn the user BEFORE the queue is full, so
+   * they stop doing work they are about to lose rather than finding out
+   * at the moment of refusal.
+   */
+  var MAX_OUTBOX_ROWS = 2000;
+  var MAX_OUTBOX_CHARS = 2000000;
+  var BACK_PRESSURE_RATIO = 0.8;
+  var STORAGE_ALERT_ID = 'rmc-offline-storage-alert';
+  var LAST_STORAGE_ALERT = '';
+
+  function isQuotaError(err) {
+    if (!err) return false;
+    var name = err.name || '';
+    return (
+      name === 'QuotaExceededError' ||
+      name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      err.code === 22 ||
+      err.code === 1014
+    );
+  }
+
+  /**
+   * User-visible storage alarm. Deliberately NOT a console line and NOT a
+   * transient toast: when a teacher's work was refused they must be able
+   * to read it after the fact, so the banner persists until dismissed.
+   * Rendered with inline styles + role="alert" so it works on any page,
+   * with no CSS bundle and no toast library present. Also re-broadcast as
+   * a DOM event so producer scripts (rmc-offline-portal-forms.js et al.)
+   * can suppress their own "Saved on this device" toast.
+   */
+  function emitStorageAlert(level, message) {
+    try {
+      document.dispatchEvent(
+        new CustomEvent('rmc-offline-storage-alert', {
+          bubbles: true,
+          detail: { level: level, message: message },
+        })
+      );
+    } catch (e) { /* CustomEvent unsupported — banner below still runs */ }
+    try {
+      if (level === 'error' && typeof console !== 'undefined' && console.error) {
+        console.error('[rmc-offline] ' + message);
+      }
+    } catch (e) { /* no console */ }
+    try {
+      if (!document.body) return;
+      var host = document.getElementById(STORAGE_ALERT_ID);
+      if (!host) {
+        host = document.createElement('div');
+        host.id = STORAGE_ALERT_ID;
+        host.setAttribute('role', 'alert');
+        host.setAttribute('aria-live', 'assertive');
+        host.style.cssText =
+          'position:fixed;left:0;right:0;top:0;z-index:2147483000;padding:12px 16px;' +
+          'font:600 14px/1.4 system-ui,sans-serif;text-align:left;';
+        var text = document.createElement('span');
+        text.setAttribute('data-rmc-storage-alert-text', '');
+        host.appendChild(text);
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.setAttribute('data-rmc-storage-alert-dismiss', '');
+        close.textContent = 'Dismiss';
+        close.style.cssText =
+          'margin-left:12px;border:1px solid currentColor;background:transparent;' +
+          'color:inherit;border-radius:4px;padding:2px 8px;cursor:pointer;';
+        close.addEventListener('click', function () {
+          if (host.parentNode) host.parentNode.removeChild(host);
+          LAST_STORAGE_ALERT = '';
+        });
+        host.appendChild(close);
+        document.body.appendChild(host);
+      }
+      host.setAttribute('data-rmc-storage-alert-level', level);
+      host.style.background = level === 'error' ? '#b00020' : '#8a6100';
+      host.style.color = '#fff';
+      var span = host.querySelector('[data-rmc-storage-alert-text]');
+      if (span) span.textContent = message;
+      LAST_STORAGE_ALERT = level + ':' + message;
+    } catch (e) { /* DOM unavailable — the event above already fired */ }
+  }
+
+  function warnStorageOnce(message) {
+    // Back-pressure repeats on every enqueue; only repaint when it changes
+    // so we do not thrash the DOM while a teacher marks a whole register.
+    if (LAST_STORAGE_ALERT === 'warning:' + message) return;
+    emitStorageAlert('warning', message);
+  }
   var globalRoot =
     typeof globalThis !== 'undefined'
       ? globalThis
@@ -136,10 +247,100 @@
     }
   }
 
-  function writeOutboxLS(rows) {
+  /**
+   * Persist the outbox. Returns { ok, reason } — NEVER swallows a failed
+   * write. A silent failure here is the worst bug this file can have: the
+   * UI toasts "Saved on this device" while the day's work never landed.
+   *
+   * We also read the value back: some storage implementations (Safari
+   * private mode, quota-throttled WebViews) accept setItem without
+   * throwing and then persist nothing. setItem returning is NOT proof the
+   * write landed — probe the effect.
+   */
+  function writeOutboxLS(rows, preSerialized) {
+    var serialized = preSerialized;
+    if (typeof serialized !== 'string') {
+      try {
+        serialized = JSON.stringify(rows);
+      } catch (e) {
+        return { ok: false, reason: 'serialize_failed', error: e };
+      }
+    }
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify(rows));
-    } catch (e) { /* quota */ }
+      localStorage.setItem(LS_KEY, serialized);
+    } catch (e) {
+      return {
+        ok: false,
+        reason: isQuotaError(e) ? 'quota_exceeded' : 'storage_unavailable',
+        error: e,
+      };
+    }
+    try {
+      if (localStorage.getItem(LS_KEY) !== serialized) {
+        return { ok: false, reason: 'write_not_persisted' };
+      }
+    } catch (e) {
+      return { ok: false, reason: 'storage_unavailable', error: e };
+    }
+    return { ok: true, reason: '' };
+  }
+
+  /**
+   * Capacity gate for ONE new row. Returns { ok, warn, reason, rows, chars,
+   * serialized }. ok === false means the queue is full and the new row must
+   * be refused (see REFUSE-NEW policy at the top of this file). `serialized`
+   * is handed to writeOutboxLS so the hot path stringifies the outbox once,
+   * not twice.
+   */
+  function capacityForNewRow(rows, candidate) {
+    var serialized = '';
+    try {
+      serialized = JSON.stringify(rows.concat([candidate]));
+    } catch (e) {
+      return { ok: false, warn: false, reason: 'serialize_failed', rows: rows.length, chars: 0 };
+    }
+    var chars = serialized.length;
+    var nextRows = rows.length + 1;
+    if (nextRows > MAX_OUTBOX_ROWS) {
+      return { ok: false, warn: true, reason: 'row_cap', rows: rows.length, chars: chars };
+    }
+    if (chars > MAX_OUTBOX_CHARS) {
+      return { ok: false, warn: true, reason: 'byte_cap', rows: rows.length, chars: chars };
+    }
+    var warn =
+      nextRows >= Math.floor(MAX_OUTBOX_ROWS * BACK_PRESSURE_RATIO) ||
+      chars >= Math.floor(MAX_OUTBOX_CHARS * BACK_PRESSURE_RATIO);
+    return {
+      ok: true,
+      warn: warn,
+      reason: '',
+      rows: nextRows,
+      chars: chars,
+      serialized: serialized,
+    };
+  }
+
+  function outboxFullMessage(cap) {
+    return (
+      'NOT SAVED — the offline queue on this device is full (' +
+      cap.rows +
+      ' item(s) still waiting to sync). Your latest entry was refused so ' +
+      'that earlier unsynced work is not lost. Reconnect and sync before ' +
+      'entering more.'
+    );
+  }
+
+  function writeFailedMessage(reason) {
+    var why =
+      reason === 'quota_exceeded'
+        ? 'this device has run out of storage'
+        : 'this device refused to store it';
+    return (
+      'NOT SAVED — your last entry could not be stored offline because ' +
+      why +
+      '. Do not close this page: reconnect and save again, or record it ' +
+      'on paper.'
+    );
   }
 
   function countLocal() {
@@ -234,12 +435,23 @@
     return globalRoot.RMCIamSnapshot.hasCapability(code);
   }
 
+  /**
+   * Enqueue one action. ALWAYS returns a result object:
+   *   { ok: true,  storage: 'indexeddb'|'localstorage', id, settled? }
+   *   { ok: false, reason: '...' }
+   * Callers MUST NOT report "saved" without checking `ok` — the whole
+   * point of this rail is that the user is offline and has no other
+   * confirmation that their work survived.
+   */
   function enqueueAction(payload) {
-    if (!payload || typeof payload !== 'object') return;
+    if (!payload || typeof payload !== 'object') return { ok: false, reason: 'invalid_payload' };
     var actionType = payload.action_type || payload.type;
-    if (!actionType) return;
+    if (!actionType) return { ok: false, reason: 'missing_action_type' };
     if (!offlineActionAllowed(actionType)) {
-      return;
+      // Capability-denied drops are reported to the caller (ok:false) but
+      // deliberately raise no storage banner: this is an authorization
+      // decision, not a storage failure.
+      return { ok: false, reason: 'capability_denied' };
     }
 
     var owner = currentUserId();
@@ -254,17 +466,52 @@
     };
 
     if (window.SMSOfflineDB && typeof window.SMSOfflineDB.outboxEnqueue === 'function') {
-      window.SMSOfflineDB.outboxEnqueue(row).then(function () {
-        updateBar();
-        flushIfOnline();
-      });
-    } else {
-      var rows = readOutboxLS();
-      rows.push({ id: row.id, payload: payload, ts: new Date().toISOString(), owner: owner });
-      writeOutboxLS(rows);
+      // IndexedDB writes are async, so `ok` here is "accepted", not
+      // "durable". `settled` resolves to the durable result; a rejection
+      // raises the same user-visible alarm as the localStorage rail so a
+      // caller that ignores the promise still cannot show a false success.
+      var settled = window.SMSOfflineDB.outboxEnqueue(row)
+        .then(function () {
+          updateBar();
+          flushIfOnline();
+          return { ok: true, storage: 'indexeddb', id: row.id };
+        })
+        .catch(function (err) {
+          emitStorageAlert('error', writeFailedMessage(isQuotaError(err) ? 'quota_exceeded' : 'storage_unavailable'));
+          return { ok: false, reason: 'indexeddb_write_failed', error: err };
+        });
+      return { ok: true, storage: 'indexeddb', id: row.id, settled: settled };
+    }
+    var rows = readOutboxLS();
+    var lsRow = { id: row.id, payload: payload, ts: new Date().toISOString(), owner: owner };
+    var cap = capacityForNewRow(rows, lsRow);
+    if (!cap.ok) {
+      // REFUSE-NEW: keep every older unsynced row, reject this one loudly.
+      emitStorageAlert('error', outboxFullMessage(cap));
       updateBar();
       flushIfOnline();
+      return { ok: false, reason: 'outbox_full', detail: cap.reason, queued: rows.length };
     }
+    rows.push(lsRow);
+    var written = writeOutboxLS(rows, cap.serialized);
+    if (!written.ok) {
+      emitStorageAlert('error', writeFailedMessage(written.reason));
+      updateBar();
+      return { ok: false, reason: written.reason, queued: rows.length - 1 };
+    }
+    if (cap.warn) {
+      warnStorageOnce(
+        'Offline storage is nearly full — ' +
+          cap.rows +
+          ' of ' +
+          MAX_OUTBOX_ROWS +
+          ' item(s) queued on this device. Reconnect and sync soon or new ' +
+          'entries will be refused.'
+      );
+    }
+    updateBar();
+    flushIfOnline();
+    return { ok: true, storage: 'localstorage', id: row.id, queued: cap.rows };
   }
 
   function applyServerConflictCount(summary) {
@@ -332,7 +579,19 @@
       });
     });
     return chain.then(function () {
-      writeOutboxLS(remaining);
+      var pruned = writeOutboxLS(remaining);
+      if (!pruned.ok) {
+        // The shrunken list did not persist, so the pre-flush list is still
+        // on disk. Nothing is LOST (idempotency_key makes the replay safe),
+        // but the queue will not drain — tell the user instead of looping
+        // silently forever.
+        emitStorageAlert(
+          'error',
+          'Sync problem — this device would not update its offline queue, ' +
+            'so synced items may be sent again. Your work is not lost. ' +
+            'Free up space on this device.'
+        );
+      }
       if (processUrl && synced > 0) {
         return runProcessQueue().then(function () { return { ok: true, drained: synced }; });
       }
@@ -400,8 +659,24 @@
   }
 
   window.rmcOfflineEnqueue = enqueueAction;
+  // Published so producer UIs and tests can reason about capacity without
+  // duplicating the constants (see REFUSE-NEW policy at the top).
+  window.rmcOfflineOutboxLimits = {
+    maxRows: MAX_OUTBOX_ROWS,
+    maxChars: MAX_OUTBOX_CHARS,
+    backPressureRatio: BACK_PRESSURE_RATIO,
+    storageKey: LS_KEY,
+    alertElementId: STORAGE_ALERT_ID,
+  };
   window.rmcOfflineDrainLocal = function () {
-    writeOutboxLS([]);
+    var cleared = writeOutboxLS([]);
+    if (!cleared.ok) {
+      emitStorageAlert(
+        'error',
+        'This device would not clear its offline queue. Items may reappear ' +
+          'until storage is available again.'
+      );
+    }
     if (window.SMSOfflineDB && window.SMSOfflineDB.outboxPending) {
       window.SMSOfflineDB.outboxPending().then(function (rows) {
         if (!rows || !rows.length) return;

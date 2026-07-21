@@ -1,0 +1,55 @@
+# Frontend unit suite (vitest).
+#
+# WHY THIS EXISTS
+# ---------------
+# The vitest suite covers `src/**` AND the plain `static/js/*.js` IIFEs -- including
+# the offline outbox, whose tests assert that a teacher is never told "Saved on this
+# device" when the write was actually discarded.
+#
+# Until this workflow existed, the ONLY job that ran `vitest run` was
+# `analytics-viz.yml`, whose `paths` filter is scoped to the analytics
+# visualisation feature (`src/**`, `apps/analytics/services/**`,
+# `static/js/rmc-analytics-viz-loader.js`, ...). A pull request that changed
+# `static/js/offline-queue-client.js` and its tests therefore ran the suite on
+# ZERO jobs -- the tests existed, passed locally, and guarded nothing in CI.
+#
+# That is the same defect class this repo's gate work keeps finding: a check that
+# is present but cannot fire. Offline data-loss regressions are exactly what CI
+# must catch, because they are invisible in review and silent in production.
+
+name: JS unit tests
+
+on:
+  pull_request:
+    paths:
+      - "static/js/**"
+      - "src/**"
+      - "tests/**"
+      - "vitest.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/js-unit-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  vitest:
+    name: vitest
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Syntax-check the plain static JS the suite exercises
+        # `new Function(src)` in the tests would surface a syntax error too, but a
+        # dedicated parse gives a readable failure instead of a stack inside jsdom.
+        run: |
+          node --check static/js/offline-queue-client.js
+          node --check static/js/rmc-offline-portal-forms.js
+      - name: Run vitest
+        run: npx vitest run

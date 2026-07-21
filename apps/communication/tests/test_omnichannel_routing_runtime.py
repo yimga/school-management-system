@@ -9,6 +9,7 @@ from apps.communication.channel_adapter import (
     ChannelAddress,
     ChannelMessage,
     ChannelUnavailableError,
+    LoopbackTestAdapter,
     _LogOnlyAdapter,
     register_log_only_defaults,
     registry,
@@ -43,7 +44,9 @@ class OmnichannelRoutingRuntimeTests(SimpleTestCase):
             reg.select(preferred_channels=["email"])
 
     def test_send_message_propagates_adapter_audit(self) -> None:
-        register_log_only_defaults()
+        # Loopback double (not _LogOnlyAdapter): only a test fixture is allowed
+        # to report success without a transport.
+        registry().register(LoopbackTestAdapter(channel="email", adapter_id="loopback:email", cost_rank=5))
         events: list[dict] = []
         result = send_message(
             tenant_id="t1",
@@ -56,6 +59,23 @@ class OmnichannelRoutingRuntimeTests(SimpleTestCase):
         # Whichever channel was selected from the preferred list must surface in audit.
         self.assertEqual(events[0]["channel"], result.channel)
         self.assertIn(result.channel, {"whatsapp", "email"})
+
+    def test_cheapest_reachable_feature_phone_channel_is_not_reported_delivered(self) -> None:
+        """A dispatcher asking for the cheapest reachable channel must not be
+        told a USSD/IVR placeholder delivered the message (item 0.3)."""
+        register_log_only_defaults()
+        events: list[dict] = []
+        result = send_message(
+            tenant_id="t1",
+            address=ChannelAddress(channel="ussd", address="+237600000000"),
+            message=ChannelMessage(subject="x", body_text="Fees due"),
+            preferred_channels=["ussd", "ivr"],
+            audit=events.append,
+        )
+        self.assertFalse(result.success)
+        self.assertTrue(result.simulated)
+        self.assertTrue(events[0]["simulated"])
+        self.assertFalse(events[0]["success"])
 
     def test_router_picks_in_order_when_reliability_tied(self) -> None:
         reg = ChannelAdapterRegistry()

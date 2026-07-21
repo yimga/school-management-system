@@ -330,7 +330,12 @@
     {% include "partials/rmc_ai_chrome_page_data.html" %}
     {% include "partials/rmc_assist_dock_labels.html" %}
     {% endif %}
-    {% if request.user.is_authenticated %}
+    {% comment %}Authentication checkpoints are deliberately quiet: loading the
+       assist dock, fleet SSE/poller, command bar, or workflow heartbeat while an
+       operator is verifying MFA creates unauthenticated redirect loops and can
+       starve the checkpoint/admin request pool. The full operator runtime boots
+       immediately after the verified redirect returns to the control plane.{% endcomment %}
+    {% if request.user.is_authenticated and request.path|slice:":16" != "/authentication/" %}
     {% comment %} v4.00.91: registry SOT island for the assist dock. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
     {% include "partials/rmc_nav_sidebar_page_data.html" %}

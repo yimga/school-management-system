@@ -80,6 +80,23 @@ pynacl>=1.5,<2.0
 requests>=2.31.0
 pywebpush>=2.0,<3.0
 
+# SMS transport SDKs. NOT optional: apps/communication/sms_router.py routes
+# every SMS through a country-aware provider chain
+# (CM/NG/KE/GH -> africastalking then twilio; US/GB -> twilio then
+# africastalking), and apps/communication/providers/sms_{twilio,africastalking}.py
+# import these modules at send time. build.sh -- the buildCommand for every
+# Render service in render.yaml -- installs requirements.txt ONLY and never
+# requirements_optional.txt, so an SDK pinned in the optional file would be
+# absent from the deployed image and every feature-phone parent would silently
+# receive nothing. Both are pure-Python wheels whose only heavy transitive dep
+# (requests / PyJWT) is already pinned above, so carrying them in the core file
+# costs ~2 MB. Credentials stay per-tenant (SiteSettings) and both providers
+# stay inert until a tenant selects sms_provider, so pinning the SDK activates
+# nothing on its own -- it only makes a configured tenant's send actually work
+# and makes an unconfigured one fail LOUDLY instead of importing nothing.
+twilio>=9.0,<10
+africastalking>=1.2,<2
+
 # REST API
 djangorestframework>=3.14.0
 djangorestframework-simplejwt>=5.3.0

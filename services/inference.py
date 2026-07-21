@@ -21,28 +21,324 @@ logger = logging.getLogger(__name__)
 AI_INFERENCE_CACHE_TTL = 300
 
 
+# ---------------------------------------------------------------------------
+# Locale-extensible PII redaction registry.
+#
+# The platform is global; PII shapes are not. National ID formats, phone
+# shapes, address forms and name ORDER all vary by country, so the patterns
+# below are declared as data and extended per deployment through Django
+# settings rather than by editing this module.
+#
+# Two sets, deliberately separated:
+#
+#   HARD identifiers — strong, unambiguous personal identifiers (email,
+#       phone). Their presence in free text means "this payload is personal
+#       data"; callers deciding whether a third-party processor may see the
+#       payload treat a hard hit as a refusal signal.
+#   SOFT shapes — patterns that carry PII in context but are far too common
+#       to classify on their own (dates, which are the usual carrier of a
+#       date of birth). Always REDACTED, never used alone to classify.
+#
+# Extend either set without touching this file:
+#
+#   settings.AI_PII_REDACTION_PATTERNS = [
+#       {"name": "in_aadhaar", "pattern": r"\\b\\d{4}\\s\\d{4}\\s\\d{4}\\b",
+#        "replacement": "[id redacted]", "hard": True, "flags": 0},
+#   ]
+#   settings.AI_PII_METADATA_FIELDS = ["tutor_group_leader"]
+#   settings.AI_PII_METADATA_FIELDS_EXEMPT = ["campus_name"]
+#
+# Structured metadata is handled separately from free text: a child's name or
+# date of birth is not reliably matchable by regex in any locale, but it IS
+# known verbatim from the record, so ``redact_known_values`` scrubs the literal
+# values (and their tokens, covering locale-varying name order).
+# ---------------------------------------------------------------------------
+
+_PatternSpec = tuple[str, re.Pattern, str]
+
+_BASE_HARD_PII_PATTERNS: tuple[_PatternSpec, ...] = (
+    (
+        "email",
+        re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", re.IGNORECASE),
+        "[email redacted]",
+    ),
+    # Phone: digits with common separators (e.g. +237 6 12 34 56 78, 612345678)
+    ("phone", re.compile(r"\+?[\d\s\-\.\(\)]{10,20}"), "[phone redacted]"),
+)
+
+# Numeric dates in any component order (YMD / DMY / MDY) — one component is a
+# four-digit year, which keeps this locale-neutral without matching every
+# hyphenated digit run (e.g. a national ID or a phone number).
+_BASE_SOFT_PII_PATTERNS: tuple[_PatternSpec, ...] = (
+    (
+        "date",
+        re.compile(
+            r"\b(?:\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{4})\b"
+        ),
+        "[date redacted]",
+    ),
+)
+
+# Structured metadata keys that carry personal data. Substring match, lowercased.
+_BASE_PII_METADATA_FIELDS: tuple[str, ...] = (
+    "name",
+    "surname",
+    "forename",
+    "dob",
+    "birth",
+    "guardian",
+    "parent_contact",
+    "next_of_kin",
+    "kin_",
+    "emergency_contact",
+    "email",
+    "phone",
+    "mobile",
+    "msisdn",
+    "telephone",
+    "whatsapp",
+    "address",
+    "postcode",
+    "postal_code",
+    "zip_code",
+    "national_id",
+    "identity_number",
+    "id_number",
+    "passport",
+    "ssn",
+    "tax_id",
+    "matricule",
+)
+
+# Keys that merely contain "name" but describe a thing, not a person. Kept as
+# data so a deployment can extend it (AI_PII_METADATA_FIELDS_EXEMPT).
+_BASE_PII_METADATA_EXEMPT: tuple[str, ...] = (
+    "school_name",
+    "campus_name",
+    "tenant_name",
+    "org_name",
+    "organisation_name",
+    "organization_name",
+    "district_name",
+    "model_name",
+    "task_name",
+    "tier_name",
+    "provider_name",
+    "file_name",
+    "filename",
+    "field_name",
+    "column_name",
+    "table_name",
+    "report_name",
+    "class_name",
+    "subject_name",
+    "course_name",
+    "term_name",
+    "plan_name",
+    "role_name",
+    "action_name",
+    "event_name",
+    "template_name",
+    "workflow_name",
+    "product_name",
+    "brand_name",
+)
+
+_MAX_METADATA_DEPTH = 6
+
+
+def _extra_pii_patterns() -> tuple[list[_PatternSpec], list[_PatternSpec]]:
+    """Compile deployment-supplied patterns. Returns (hard, soft)."""
+    raw = getattr(settings, "AI_PII_REDACTION_PATTERNS", None) or ()
+    hard: list[_PatternSpec] = []
+    soft: list[_PatternSpec] = []
+    if not isinstance(raw, (list, tuple)):
+        return hard, soft
+    for entry in raw:
+        try:
+            if isinstance(entry, dict):
+                name = str(entry.get("name") or "custom").strip() or "custom"
+                pattern = entry.get("pattern")
+                replacement = str(entry.get("replacement") or f"[{name} redacted]")
+                is_hard = bool(entry.get("hard", True))
+                flags = int(entry.get("flags") or 0)
+            elif isinstance(entry, (list, tuple)) and len(entry) >= 2:
+                name = str(entry[0]).strip() or "custom"
+                pattern = entry[1]
+                replacement = str(entry[2]) if len(entry) > 2 else f"[{name} redacted]"
+                is_hard = bool(entry[3]) if len(entry) > 3 else True
+                flags = 0
+            else:
+                continue
+            if not pattern:
+                continue
+            compiled = re.compile(str(pattern), flags)
+        except (re.error, TypeError, ValueError) as exc:
+            logger.warning("Ignoring invalid AI_PII_REDACTION_PATTERNS entry: %s", exc)
+            continue
+        (hard if is_hard else soft).append((name, compiled, replacement))
+    return hard, soft
+
+
+def _soft_pii_patterns() -> list[_PatternSpec]:
+    return list(_BASE_SOFT_PII_PATTERNS) + _extra_pii_patterns()[1]
+
+
+def _hard_pii_patterns() -> list[_PatternSpec]:
+    return list(_BASE_HARD_PII_PATTERNS) + _extra_pii_patterns()[0]
+
+
+def pii_redaction_patterns() -> list[_PatternSpec]:
+    """Full redaction set. Soft shapes run first so a date is labelled a date
+    rather than being swallowed by the broader phone rule."""
+    return _soft_pii_patterns() + _hard_pii_patterns()
+
+
+def _apply_patterns(text: str, patterns: list[_PatternSpec]) -> str:
+    out = text
+    for _name, compiled, replacement in patterns:
+        out = compiled.sub(replacement, out)
+    return out
+
+
+def _merged_field_list(setting_name: str, base: tuple[str, ...]) -> tuple[str, ...]:
+    extra = getattr(settings, setting_name, None) or ()
+    items = list(base)
+    if isinstance(extra, (list, tuple, set, frozenset)):
+        items.extend(str(x).strip().lower() for x in extra if str(x).strip())
+    elif isinstance(extra, str):
+        items.extend(p.strip().lower() for p in extra.split(",") if p.strip())
+    return tuple(dict.fromkeys(items))
+
+
+def pii_metadata_fields() -> tuple[str, ...]:
+    """Metadata key fragments that mark a field as carrying personal data."""
+    return _merged_field_list("AI_PII_METADATA_FIELDS", _BASE_PII_METADATA_FIELDS)
+
+
+def pii_metadata_exempt_fields() -> frozenset[str]:
+    """Keys that look personal by substring but name a thing, not a person."""
+    return frozenset(
+        _merged_field_list("AI_PII_METADATA_FIELDS_EXEMPT", _BASE_PII_METADATA_EXEMPT)
+    )
+
+
+def _coerce_pii_scalar(value: Any) -> str:
+    if value is None or isinstance(value, bool):
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    isoformat = getattr(value, "isoformat", None)
+    if callable(isoformat):
+        try:
+            return str(isoformat()).strip()
+        except (TypeError, ValueError):
+            return ""
+    if isinstance(value, (int, float)):
+        return str(value).strip()
+    return ""
+
+
+def iter_pii_values_in_metadata(metadata: Any, *, _depth: int = 0) -> list[str]:
+    """Collect the literal personal values carried by structured metadata.
+
+    Walks nested dicts/lists and returns the values of keys that match the
+    (extensible) personal-field list. These are exact record values — names,
+    dates of birth, guardian contacts — so they can be scrubbed from outbound
+    text without needing a per-locale name regex.
+    """
+    values: list[str] = []
+    if metadata is None or _depth > _MAX_METADATA_DEPTH:
+        return values
+    if isinstance(metadata, dict):
+        fields = pii_metadata_fields()
+        exempt = pii_metadata_exempt_fields()
+        for key, value in metadata.items():
+            key_l = str(key).strip().lower()
+            personal = key_l not in exempt and any(f in key_l for f in fields)
+            if isinstance(value, dict):
+                values.extend(iter_pii_values_in_metadata(value, _depth=_depth + 1))
+            elif isinstance(value, (list, tuple, set)):
+                for item in value:
+                    if isinstance(item, (dict, list, tuple, set)):
+                        values.extend(
+                            iter_pii_values_in_metadata(item, _depth=_depth + 1)
+                        )
+                    elif personal:
+                        text = _coerce_pii_scalar(item)
+                        if text:
+                            values.append(text)
+            elif personal:
+                text = _coerce_pii_scalar(value)
+                if text:
+                    values.append(text)
+    elif isinstance(metadata, (list, tuple, set)):
+        for item in metadata:
+            values.extend(iter_pii_values_in_metadata(item, _depth=_depth + 1))
+    return values
+
+
+def redact_known_values(text: str, values: Any) -> str:
+    """Scrub exact personal values (and their word tokens) out of ``text``.
+
+    Tokens are scrubbed as well as the whole value because name order is
+    locale-dependent: "Amara Okonkwo" and "Okonkwo Amara" are the same person.
+    """
+    if not text or not isinstance(text, str):
+        return text
+    candidates: set[str] = set()
+    for value in values or ():
+        raw = str(value or "").strip()
+        if len(raw) < 3:
+            continue
+        candidates.add(raw)
+        for token in re.split(r"[\s,;/|]+", raw):
+            token = token.strip(".'\"()[]")
+            if len(token) >= 3:
+                candidates.add(token)
+    out = text
+    for candidate in sorted(candidates, key=len, reverse=True):
+        out = re.sub(re.escape(candidate), "[redacted]", out, flags=re.IGNORECASE)
+    return out
+
+
 def strip_pii_for_inference(text: str) -> str:
     """
-    Redact PII from user-facing text before sending to Ollama.
-    Removes email, phone-like sequences, and optionally names (allowlist safe fields only).
+    Redact PII from user-facing text before sending it to a model.
+    Applies the full (deployment-extensible) redaction registry: dates, email,
+    phone-like sequences, plus any patterns configured for the deployment.
+    """
+    if not text or not isinstance(text, str):
+        return ""
+    return _apply_patterns(text, pii_redaction_patterns()).strip()
+
+
+def contains_hard_pii(text: str) -> bool:
+    """True when free text carries a strong personal identifier.
+
+    Soft shapes are neutralised first so that a bare date is not mistaken for a
+    phone number, and so that a plain calendar date alone does not classify an
+    otherwise-anonymous payload as personal data.
+    """
+    if not text or not isinstance(text, str):
+        return False
+    neutral = _apply_patterns(text, _soft_pii_patterns())
+    return _apply_patterns(neutral, _hard_pii_patterns()) != neutral
+
+
+def redact_for_external_inference(text: str, metadata: Any = None) -> str:
+    """Redaction for text about to leave the platform for a third-party model.
+
+    Stronger than :func:`strip_pii_for_inference`: structured record values
+    supplied in ``metadata`` (student name, date of birth, guardian contacts)
+    are scrubbed literally in addition to the pattern registry.
     """
     if not text or not isinstance(text, str):
         return ""
     out = text
-    # Email
-    out = re.sub(
-        r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+",
-        "[email redacted]",
-        out,
-        flags=re.IGNORECASE,
-    )
-    # Phone: digits with common separators (e.g. +237 6 12 34 56 78, 612345678)
-    out = re.sub(
-        r"\+?[\d\s\-\.\(\)]{10,20}",
-        "[phone redacted]",
-        out,
-    )
-    return out.strip()
+    if metadata is not None:
+        out = redact_known_values(out, iter_pii_values_in_metadata(metadata))
+    return _apply_patterns(out, pii_redaction_patterns()).strip()
 
 
 def _get_registry_model(regional_cluster: str, hardware_tier: str = "default") -> tuple[str | None, str]:

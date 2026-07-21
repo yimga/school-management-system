@@ -9,6 +9,7 @@ from apps.communication.channel_adapter import (
     ChannelAddress,
     ChannelMessage,
     ChannelUnavailableError,
+    LoopbackTestAdapter,
     _LogOnlyAdapter,
     register_log_only_defaults,
     registry,
@@ -33,13 +34,27 @@ class ChannelAdapterRuntimeTests(SimpleTestCase):
             reg.select(preferred_channels=["sms"])
 
     def test_send_message_routes_through_registered_adapter(self) -> None:
-        register_log_only_defaults()
+        # Uses the explicit loopback test double: a *test* fixture may report a
+        # successful send, a deployed adapter may not. _LogOnlyAdapter sends
+        # nothing and therefore now reports success=False (item 0.3).
+        registry().register(LoopbackTestAdapter(channel="email", adapter_id="loopback:email"))
         result = send_message(
             tenant_id="tenant-uuid-1",
             address=ChannelAddress(channel="email", address="parent@example"),
             message=ChannelMessage(subject="Note", body_text="Hello"),
         )
         self.assertTrue(result.success)
+        self.assertEqual(result.adapter_id, "loopback:email")
+
+    def test_log_only_adapter_never_reports_delivery(self) -> None:
+        register_log_only_defaults()
+        result = send_message(
+            tenant_id="tenant-uuid-1",
+            address=ChannelAddress(channel="email", address="parent@example"),
+            message=ChannelMessage(subject="Note", body_text="Hello"),
+        )
+        self.assertFalse(result.success)
+        self.assertTrue(result.simulated)
         self.assertEqual(result.adapter_id, "log-only:email")
 
     def test_audit_callback_receives_hashed_tenant_only(self) -> None:

@@ -485,7 +485,13 @@ def _call_litellm(prompt: str, metadata: dict[str, Any] | None = None, model_key
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
     timeout = timeout_sec if timeout_sec is not None else _request_timeout(metadata)
-    base_messages = [{"role": "user", "content": prompt}]
+    # LiteLLM is a third-party processor: the bytes that leave this process must
+    # be the REDACTED text, never the original. Redaction here (not at the call
+    # site) means no caller can route around it. If it cannot run, we do not call.
+    outbound_prompt = _redact_for_external_transport(prompt, metadata)
+    if outbound_prompt is None:
+        return None, {"provider": "litellm", "error": "redaction_unavailable"}
+    base_messages = [{"role": "user", "content": outbound_prompt}]
 
     def _post(extra: dict[str, Any]) -> tuple[str | None, dict[str, Any], int | None]:
         """One completion attempt. Third element is the HTTP status (None for
@@ -626,30 +632,106 @@ def _safe_schema_default(response_schema: str | None) -> Any:
 
 
 def _payload_contains_pii(*texts: Any) -> bool:
+    """Fail CLOSED: when the detector cannot run, assume the payload is personal data.
+
+    A detector that is unavailable must never be read as "no PII" — that turns
+    an import error into permission to post a student record to a third-party
+    processor.
+    """
     try:
-        from services.inference import strip_pii_for_inference
+        from services.inference import contains_hard_pii
     except ImportError:
-        return False
+        logger.warning(
+            "ai_gateway: PII detector unavailable; treating payload as PII (fail closed)"
+        )
+        return True
     for text in texts:
         if not isinstance(text, str):
             continue
         raw = text.strip()
         if not raw:
             continue
-        if strip_pii_for_inference(raw) != raw:
+        try:
+            if contains_hard_pii(raw):
+                return True
+        except _AI_GATEWAY_RUNTIME_ERRORS as exc:
+            logger.warning(
+                "ai_gateway: PII detection failed (%s); treating payload as PII", exc
+            )
             return True
     return False
 
 
+# Sensitivity classes a caller may declare to permit external (premium)
+# processing. Anything else — including an absent or unrecognised class — is
+# UNKNOWN and denies. Overridable per deployment (settings or env, comma list).
+_DEFAULT_EXTERNAL_SENSITIVITY_ALLOWLIST: tuple[str, ...] = (
+    "low",
+    "medium",
+    "public",
+    "internal",
+)
+
+
+def _external_sensitivity_allowlist() -> frozenset[str]:
+    raw = (
+        getattr(settings, "AI_EXTERNAL_ALLOWED_SENSITIVITY_CLASSES", None)
+        or os.environ.get("AI_EXTERNAL_ALLOWED_SENSITIVITY_CLASSES")
+        or ""
+    )
+    if isinstance(raw, str):
+        items = [p.strip().lower() for p in raw.split(",") if p.strip()]
+    elif isinstance(raw, (list, tuple, set, frozenset)):
+        items = [str(p).strip().lower() for p in raw if str(p).strip()]
+    else:
+        items = []
+    return frozenset(items or _DEFAULT_EXTERNAL_SENSITIVITY_ALLOWLIST)
+
+
 def _data_tier_allows_premium(metadata: dict[str, Any] | None, *, prompt: str = "", user_query: str = "") -> bool:
-    """If payload has PII or tenant disallows external, we must not use premium (litellm) for sensitive data."""
-    if not metadata:
-        return not _payload_contains_pii(prompt, user_query)
-    if metadata.get("sensitivity_class") == "high" or metadata.get("disallow_external_model"):
+    """Whether this payload may be sent to the external premium tier (litellm).
+
+    Deny-by-default. Premium is permitted only when ALL hold:
+      * the tenant/caller has not set ``disallow_external_model``;
+      * the caller explicitly declared a ``sensitivity_class`` on the allowlist
+        — an absent or unrecognised class is UNKNOWN and denies;
+      * no hard personal identifier is detectable in the payload text.
+    """
+    md = metadata or {}
+    if md.get("disallow_external_model"):
+        return False
+    declared = md.get("sensitivity_class")
+    declared_key = str(declared).strip().lower() if declared is not None else ""
+    # Explicit deny kept visible even though the allowlist already excludes it.
+    if declared_key == "high":
+        return False
+    if declared_key not in _external_sensitivity_allowlist():
         return False
     if _payload_contains_pii(prompt, user_query):
         return False
     return True
+
+
+def _redact_for_external_transport(text: str, metadata: dict[str, Any] | None) -> str | None:
+    """Redact a payload that is about to leave the platform.
+
+    Returns ``None`` when redaction cannot be performed; the caller must then
+    NOT make the outbound call (fail closed).
+    """
+    try:
+        from services.inference import redact_for_external_inference
+    except ImportError:
+        logger.warning(
+            "ai_gateway: redactor unavailable; refusing external call (fail closed)"
+        )
+        return None
+    try:
+        return redact_for_external_inference(text, metadata)
+    except _AI_GATEWAY_RUNTIME_ERRORS as exc:
+        logger.warning(
+            "ai_gateway: outbound redaction failed (%s); refusing external call", exc
+        )
+        return None
 
 
 def _budget_limit_per_tenant_per_day() -> int:
