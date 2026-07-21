@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Admin OS v15.3 critical paint fix (batch 1776 - 2026-07-21)
+
+**A. Scope:** User report that Admin OS fixes never landed in the browser despite being on `main`.
+
+**B. Shipped:** Re-enabled critical inline Admin OS layout CSS (`approval-v15-critical`, Discover 1-col + Edit/Scan 3-col); removed `media="not all"`; bumped build/cache/SW to v15.3 / v153; parity gate now requires critical ACTIVE.
+
+**C. Proof:** `verify_django_admin_preview_parity` PASS; `audit_admin_os_cross_wave` PASS (77/0/0); canvas/miss-nothing/three-click/SW PASS.
+
+**D. Honest:** After deploy, hard-refresh both `/admin/` hosts and confirm chip reads **v15.3**.
+
+**E. Files:** `templates/admin/base_site.html` (+ chips/base), `rmc-admin-approval-surface-v15.css`, lock/SW/EXPECTED scripts, preview parity verifier, SOT/log.
+
+**F. Next:** Hard-refresh operator + tenant `/admin/`; unregister old SW if chip still stuck on v15.2.
+
 ## Slice — MAX operator↔tenant /super/ parity Waves 1–5 (batch 1775 - 2026-07-21)
 
 **A. Scope:** Option C Full MAX from approval brief — operator `/super/` + tenant admin twins (Backend/Config/Studio/Configure/Feature Control/Finance). Audit→fix→re-audit loop; residual closeout for sparklines + interactive role tabs.

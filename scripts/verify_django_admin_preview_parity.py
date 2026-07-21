@@ -216,8 +216,22 @@ def main() -> int:
         if not any(proof in h for h in haystacks):
             errors.append(f"visible proof missing from live shell: {proof!r}")
 
-    if 'data-rmc-layout-owner="legacy-disabled"' not in base_site or 'media="not all"' not in base_site:
-        errors.append("base_site must disable the stale inline preview-parity layout owner")
+    if 'id="rmc-admin-preview-parity-critical"' not in base_site:
+        errors.append("base_site must ship the critical Admin OS layout <style> with HTML")
+    if re.search(
+        r'<style[^>]*id="rmc-admin-preview-parity-critical"[^>]*media="not all"',
+        base_site,
+    ) or re.search(
+        r'<style[^>]*media="not all"[^>]*id="rmc-admin-preview-parity-critical"',
+        base_site,
+    ):
+        errors.append(
+            "base_site must NOT disable critical Admin OS layout CSS (media=not all left v15.2 unpainted)"
+        )
+    if 'data-rmc-layout-owner="approval-v15-critical"' not in base_site:
+        errors.append("critical inline style must declare data-rmc-layout-owner=approval-v15-critical")
+    if '[data-rmc-admin-archetype="discover"]' not in base_site:
+        errors.append("critical inline CSS must include Discover 1-col rules (not legacy 3-col index)")
     if base_site.count("rmc-admin-approval-surface-v15.css") != 1:
         errors.append("base_site must load exactly one v15 approval layout owner")
     if base_site.rfind("rmc-admin-approval-surface-v15.css") < base_site.rfind("admin-brand-resolved-tokens"):

@@ -35,7 +35,7 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260721-admin-os-v152" not in base_site:
+    if "?v=20260721-admin-os-v153" not in base_site:
         errors.append("Django canvas contracts must use the preview-parity-v13 cache bust for deployment visibility")
     if base_site.count(contract_link) != 1:
         errors.append("Django canvas contract must load exactly once")

@@ -1,12 +1,12 @@
 {
   "date": "2026-07-21",
-  "generated_at": "2026-07-21T14:44:49+00:00",
+  "generated_at": "2026-07-21T14:48:20+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 1,
-  "raw": "sms-v4.06.1-footer-civic-restore-2026-07-21",
+  "patch": 2,
+  "raw": "sms-v4.06.2-admin-os-v153-2026-07-21",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "footer-civic-restore",
+  "slug": "admin-os-v153",
   "valid": true
 }
