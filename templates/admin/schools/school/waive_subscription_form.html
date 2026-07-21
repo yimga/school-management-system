@@ -7,12 +7,10 @@
 
 {% with guided_rail_title=title guided_rail_lede="Set billing to Complimentary (waived). A waiver note is required for compliance." %}
 <div class="rmc-admin-workspace rmc-django-workspace rmc-django-canvas" data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-guided" data-rmc-django-workspace="guided" data-rmc-scroll-policy="paginate">
-  {% include "admin/includes/admin_workspace_metrics_strip.html" with surface="change-form" hide_workspace_head=True %}
   <section class="rmc-django-command-band" data-rmc-django-command-band="guided" aria-label="{% trans 'Waive subscription command surface' %}">
     <div class="rmc-django-command-band__copy">
-      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
-      <h1 class="rmc-django-command-band__title">{{ title }}</h1>
-      <small>{% trans "Set billing to" %} <strong>{% trans "Complimentary (waived)" %}</strong> {% trans "for the selected school(s). A waiver note is required for compliance." %}</small>
+      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %}</span>
+      <strong>{{ title }}</strong>
     </div>
   </section>
 

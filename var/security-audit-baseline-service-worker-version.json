@@ -1,12 +1,12 @@
 {
   "date": "2026-07-21",
-  "generated_at": "2026-07-21T10:45:00+00:00",
+  "generated_at": "2026-07-21T11:40:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 167,
-  "raw": "sms-v4.05.167-admin-density-v13b-2026-07-21",
-  "reason": "admin density terminal cascade seals v13b",
+  "patch": 170,
+  "raw": "sms-v4.05.170-admin-os-v152-2026-07-21",
+  "reason": "Admin OS v15.2 Waves 0-4 — all 12 innovations",
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-density-v13b",
+  "slug": "admin-os-v152",
   "valid": true
 }

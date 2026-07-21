@@ -255,11 +255,14 @@
       if (label.length > 64) label = label.slice(0, 63) + "…";
 
       var details = document.createElement("details");
-      details.className = "rmc-admin-transfer-panel";
+      // I6: one disclosure grammar (transfer panel + shared rmc-admin-disclosure).
+      details.className = "rmc-admin-transfer-panel rmc-admin-disclosure";
       details.setAttribute("data-rmc-m2m-condensed", "1");
+      details.setAttribute("data-rmc-admin-disclosure", "m2m");
       details.open = index === 0;
 
       var summary = document.createElement("summary");
+      // CSS counter paints the number; keep label short and action-true.
       summary.textContent = label;
       details.appendChild(summary);
 

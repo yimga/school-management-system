@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n l10n admin_urls %}
+{% load i18n l10n admin_urls rmc_explain_tags %}
 
 {% block extrahead %}
   {{ block.super }}
@@ -10,48 +10,45 @@
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="delete-confirm" data-rmc-admin-surface="smart-delete" data-rmc-scroll-policy="paginate">
-  <section class="rmc-django-command-band" data-rmc-django-command-band="delete-selected" aria-label="{% trans 'Bulk delete confirmation' %}">
-    <div class="rmc-django-command-band__copy">
-      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
-      <h1 class="rmc-django-command-band__title">{% blocktrans %}Delete selected {{ objects_name }}?{% endblocktrans %}</h1>
-      <small>{% if is_manager_host %}{% trans "Confirm bulk deletion of these platform records and related objects." %}{% else %}{% trans "Confirm bulk deletion of these school records and related objects." %}{% endif %}</small>
-    </div>
-    <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
-      <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "This school only" %}{% endif %}</span>
-      <span>{% trans "Destructive" %}</span>
-    </div>
-  </section>
-
-  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
-    <div class="rmc-admin-index-main" data-rmc-django-form-panel="1" id="content-main">
-      {% if perms_lacking %}
-        <p>{% blocktrans %}Deleting the selected {{ objects_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
-        <ul>{{ perms_lacking|unordered_list }}</ul>
-      {% elif protected %}
-        <p>{% blocktrans %}Deleting the selected {{ objects_name }} would require deleting the following protected related objects:{% endblocktrans %}</p>
-        <ul>{{ protected|unordered_list }}</ul>
-      {% else %}
-        <p>{% blocktrans %}Are you sure you want to delete the selected {{ objects_name }}? All of the following objects and their related items will be deleted:{% endblocktrans %}</p>
-        {% include "admin/includes/object_delete_summary.html" %}
-        <h2>{% trans "Objects" %}</h2>
-        {% for deletable_object in deletable_objects %}
-          <ul>{{ deletable_object|unordered_list }}</ul>
-        {% endfor %}
-        <form method="post">{% csrf_token %}
-          <div>
+<div class="rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="delete-confirm" data-rmc-admin-surface="smart-delete" data-rmc-admin-archetype="decide" data-rmc-scroll-policy="paginate">
+  <div class="rmc-admin-decide-canvas" data-rmc-admin-decide-canvas="1" id="content-main">
+    <section class="rmc-admin-decide-card" aria-labelledby="rmc-decide-bulk-title">
+      <div class="rmc-admin-decide-card__head">
+        <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %}</span>
+        <h1 id="rmc-decide-bulk-title">{% blocktrans %}Delete selected {{ objects_name }}?{% endblocktrans %}
+          {% trans "Bulk delete" as tip_bulk_title %}
+          {% blocktrans asvar tip_bulk_body %}Confirms deletion of every selected row and permitted related objects. Cancel returns to the list unchanged.{% endblocktrans %}
+          {% rmc_info_tag title=tip_bulk_title body=tip_bulk_body surface="django-admin" placement="bottom" %}
+        </h1>
+      </div>
+      <div class="rmc-admin-decide-card__body">
+        {% if perms_lacking %}
+          <p>{% blocktrans %}Deleting the selected {{ objects_name }} would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
+          <ul>{{ perms_lacking|unordered_list }}</ul>
+        {% elif protected %}
+          <p>{% blocktrans %}Deleting the selected {{ objects_name }} would require deleting the following protected related objects:{% endblocktrans %}</p>
+          <ul>{{ protected|unordered_list }}</ul>
+        {% else %}
+          <p>{% blocktrans %}Are you sure you want to delete the selected {{ objects_name }}? All of the following objects and their related items will be deleted:{% endblocktrans %}</p>
+          {% include "admin/includes/object_delete_summary.html" %}
+          <details class="rmc-admin-disclosure" open>
+            <summary>{% trans "1 · Selected objects" %}</summary>
+            {% for deletable_object in deletable_objects %}
+              <ul>{{ deletable_object|unordered_list }}</ul>
+            {% endfor %}
+          </details>
+          <form method="post" class="rmc-admin-decide-actions">{% csrf_token %}
             {% for obj in queryset %}
             <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk|unlocalize }}">
             {% endfor %}
             <input type="hidden" name="action" value="delete_selected">
             <input type="hidden" name="post" value="yes">
-            <input type="submit" value="{% trans 'Yes, I’m sure' %}">
-            <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link">{% trans "No, take me back" %}</a>
-          </div>
-        </form>
-      {% endif %}
-    </div>
-    {% include "admin/includes/admin_workspace_tools.html" with surface="admin-index" %}
+            <button type="submit" class="rmc-django-band-action rmc-django-band-action--danger">{% trans 'Yes, I’m sure' %}</button>
+            <a href="{% url opts|admin_urlname:'changelist' %}" class="rmc-django-band-action">{% trans "Cancel" %}</a>
+          </form>
+        {% endif %}
+      </div>
+    </section>
   </div>
 </div>
 {% endblock %}

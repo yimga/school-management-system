@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Django /admin/ — Space intelligence AUDIT v14 (operator + tenant)</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#040812; --text:#eef5ff; --muted:#9eb0c9; --dim:#6f819c;
+      --line:rgba(177,200,236,.16); --green:#26d486; --red:#f15b6c;
+      --amber:#f8bf3f; --blue:#4f7dff; --cyan:#4fd1c5; --violet:#8c72ff;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;color:var(--text);min-height:100vh;
+      background:
+        radial-gradient(circle at 78% -10%,rgba(79,125,255,.18),transparent 28%),
+        radial-gradient(circle at 10% 0%,rgba(241,91,108,.08),transparent 22%),
+        linear-gradient(180deg,#07111f,var(--bg));
+    }
+    .page{max-width:1520px;margin:0 auto;padding:28px 20px 100px}
+    .pill{
+      display:inline-flex;padding:5px 11px;border-radius:999px;
+      border:1px solid rgba(241,91,108,.45);background:rgba(241,91,108,.12);
+      color:#ffc3ca;font-size:11px;font-weight:850;letter-spacing:.07em;text-transform:uppercase;
+    }
+    .pill.wait{
+      border-color:rgba(248,191,63,.45);background:rgba(248,191,63,.12);color:#ffe5a4;
+    }
+    h1{margin:10px 0 8px;font-size:clamp(1.5rem,2.4vw,2.2rem);letter-spacing:-.03em;line-height:1.15}
+    .lede{margin:0 0 14px;color:var(--muted);max-width:98ch;line-height:1.55;font-size:14px}
+    .banner{
+      margin:0 0 18px;padding:12px 14px;border-radius:14px;
+      border:1px solid rgba(248,191,63,.4);background:rgba(248,191,63,.09);
+      color:#ffe5a4;font-size:13px;line-height:1.5;
+    }
+    .banner b{color:#fff}
+    .toc{
+      display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px;
+    }
+    .toc a{
+      padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(17,31,53,.7);color:var(--muted);font-size:11px;font-weight:750;
+      text-decoration:none;
+    }
+    .toc a:hover{border-color:rgba(79,125,255,.5);color:var(--text)}
+    .sec{
+      margin:28px 0 10px;font-size:12px;font-weight:900;letter-spacing:.08em;
+      text-transform:uppercase;color:var(--muted);
+    }
+    .sec span{color:var(--dim);font-weight:700;letter-spacing:.04em;text-transform:none;margin-left:8px}
+    table.findings{
+      width:100%;border-collapse:collapse;font-size:12px;
+      border:1px solid var(--line);border-radius:14px;overflow:hidden;
+      background:rgba(13,24,42,.85);
+    }
+    table.findings th,table.findings td{
+      padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;
+    }
+    table.findings th{
+      background:rgba(22,39,65,.85);color:var(--dim);font-size:10px;
+      letter-spacing:.07em;text-transform:uppercase;
+    }
+    table.findings tr:last-child td{border-bottom:0}
+    .sev{
+      display:inline-flex;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:900;
+      letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;
+    }
+    .sev.p0{background:rgba(241,91,108,.2);color:#ffc3ca;border:1px solid rgba(241,91,108,.45)}
+    .sev.p1{background:rgba(248,191,63,.16);color:#ffe5a4;border:1px solid rgba(248,191,63,.4)}
+    .sev.p2{background:rgba(79,125,255,.16);color:#b8cbff;border:1px solid rgba(79,125,255,.35)}
+    .host{
+      display:inline-flex;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:800;
+      border:1px solid var(--line);color:var(--dim);margin-right:3px;
+    }
+    .host.op{border-color:rgba(140,114,255,.4);color:#cbbdff}
+    .host.ten{border-color:rgba(38,212,134,.4);color:#9ff0c6}
+    .matrix{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:8px;
+    }
+    .mx{
+      border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+      background:rgba(17,31,53,.72);min-width:0;
+    }
+    .mx b{display:block;font-size:12px;margin-bottom:4px}
+    .mx span{display:block;font-size:11px;color:var(--dim);line-height:1.4}
+    .mx .bad{color:#ffc3ca}
+    .mx .ok{color:#9ff0c6}
+    .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .panel{
+      border:1px solid var(--line);border-radius:16px;overflow:hidden;min-width:0;
+      background:linear-gradient(180deg,rgba(17,31,53,.96),rgba(9,17,31,.98));
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    .panel-head{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      padding:11px 14px;border-bottom:1px solid var(--line);background:rgba(22,39,65,.72);
+    }
+    .panel-head h2{margin:0;font-size:13px}
+    .panel-head small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+    .tag{
+      font-size:10px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;
+      padding:4px 9px;border-radius:999px;white-space:nowrap;
+    }
+    .tag.before{background:rgba(241,91,108,.18);color:#ffc3ca;border:1px solid rgba(241,91,108,.4)}
+    .tag.after{background:rgba(38,212,134,.16);color:#9ff0c6;border:1px solid rgba(38,212,134,.4)}
+    .mock{padding:12px;background:#070f1c;display:grid;gap:7px;min-height:380px}
+    .chrome{
+      display:flex;justify-content:space-between;gap:8px;align-items:center;
+      min-height:32px;padding:0 10px;border-radius:10px;border:1px solid var(--line);
+      background:rgba(13,24,42,.9);font-size:11px;color:var(--muted);
+    }
+    .chrome b{color:var(--text)}
+    .ws{display:grid;grid-template-columns:minmax(0,1fr) minmax(8.5rem,16%) 2.2rem;gap:7px;min-height:300px}
+    .main,.rail,.tools{
+      border:1px solid var(--line);border-radius:11px;background:rgba(9,17,31,.9);min-width:0;overflow:hidden;
+    }
+    .main{display:grid;grid-template-rows:auto 1fr auto}
+    .band{
+      padding:8px 10px;border-bottom:1px solid var(--line);background:rgba(22,39,65,.4);
+    }
+    .band .eye{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--dim)}
+    .band strong{display:block;font-size:13px;margin-top:2px}
+    .band small{display:block;font-size:10px;color:var(--dim);margin-top:2px;line-height:1.35}
+    .stack{display:grid;gap:5px;padding:8px}
+    .dup{
+      border:1px dashed rgba(241,91,108,.45);border-radius:8px;padding:6px 8px;
+      background:rgba(241,91,108,.07);color:#ffc3ca;font-size:10px;font-weight:800;
+    }
+    .void{
+      border:1px dashed rgba(241,91,108,.4);border-radius:8px;padding:14px 8px;
+      background:rgba(241,91,108,.06);color:#ffc3ca;font-size:10px;font-weight:800;
+      text-align:center;line-height:1.35;
+    }
+    .fill{
+      border:1px solid rgba(38,212,134,.35);border-radius:8px;padding:8px;
+      background:rgba(38,212,134,.07);color:#9ff0c6;font-size:10px;font-weight:800;
+    }
+    .btnrow{display:flex;flex-wrap:wrap;gap:4px}
+    .btn{
+      min-height:26px;padding:0 8px;border-radius:7px;border:1px solid var(--line);
+      background:rgba(255,255,255,.05);color:var(--text);font-size:10px;font-weight:800;
+    }
+    .btn.primary{border:0;background:linear-gradient(135deg,var(--green),#1a9b65);color:#04130b}
+    .btn.ghost{opacity:.4}
+    .btn.waste{border-color:rgba(241,91,108,.4);color:#ffc3ca;background:rgba(241,91,108,.1)}
+    .fields{display:grid;gap:6px}
+    .fields.smart{grid-template-columns:1fr 1fr}
+    .fields.smart .wide{grid-column:1/-1}
+    .field{
+      border:1px solid var(--line);border-radius:8px;padding:7px;background:rgba(5,11,20,.55);
+    }
+    .field label{
+      display:block;font-size:9px;font-weight:900;letter-spacing:.06em;
+      text-transform:uppercase;color:var(--muted);margin-bottom:4px;
+    }
+    .field .in{
+      height:28px;border-radius:6px;border:1px solid var(--line);
+      background:rgba(5,11,20,.9);width:100%;
+    }
+    .field .in.short{width:42%}
+    .rail{padding:8px;display:grid;gap:6px;align-content:start}
+    .rail h4{margin:0;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .box{
+      border:1px solid var(--line);border-radius:8px;padding:7px;
+      background:rgba(5,11,20,.55);font-size:10px;color:var(--dim);line-height:1.35;
+    }
+    .box b{display:block;color:var(--text);margin-bottom:2px}
+    .box.fluff{opacity:.45;text-decoration:line-through}
+    .tools{display:grid;gap:5px;padding:5px;place-content:start center}
+    .tool{
+      width:26px;height:26px;border-radius:7px;border:1px solid var(--line);
+      display:grid;place-items:center;font-size:11px;color:var(--muted);background:rgba(255,255,255,.04);
+    }
+    .tool.dead{opacity:.25}
+    .tool.primary{background:rgba(38,212,134,.18);color:#9ff0c6;border-color:rgba(38,212,134,.4)}
+    .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:6px 8px;border-bottom:1px solid var(--line)}
+    .metric{border:1px solid var(--line);border-radius:7px;padding:5px 6px;background:rgba(5,11,20,.5)}
+    .metric small{display:block;font-size:8px;color:var(--dim);font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+    .metric b{font-size:10px}
+    .metric.fluff{opacity:.4}
+    .save{display:flex;gap:6px;padding:8px;border-top:1px solid var(--line);background:rgba(22,39,65,.4);align-items:center}
+    .save .go{
+      min-height:30px;padding:0 12px;border-radius:8px 0 0 8px;border:0;
+      background:linear-gradient(135deg,var(--green),#1a9b65);color:#04130b;font-size:11px;font-weight:900;
+    }
+    .save .chev{
+      min-height:30px;min-width:28px;border-radius:0 8px 8px 0;border:0;border-left:1px solid rgba(4,19,11,.25);
+      background:#1fbf76;color:#04130b;font-weight:900;
+    }
+    .note{
+      margin-top:14px;border:1px solid rgba(79,125,255,.35);border-radius:14px;
+      padding:14px 16px;background:rgba(79,125,255,.08);font-size:13px;color:var(--muted);line-height:1.5;
+    }
+    .note b{color:var(--text)}
+    .plan{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px;
+    }
+    .step{
+      border:1px solid var(--line);border-radius:14px;padding:14px;
+      background:rgba(17,31,53,.75);
+    }
+    .step .n{
+      display:inline-flex;width:22px;height:22px;border-radius:999px;align-items:center;justify-content:center;
+      background:rgba(79,125,255,.2);color:#b8cbff;font-size:11px;font-weight:900;margin-bottom:8px;
+    }
+    .step b{display:block;font-size:13px;margin-bottom:4px}
+    .step span{display:block;font-size:11px;color:var(--dim);line-height:1.45}
+    .evidence{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      font-size:10px;color:var(--cyan);line-height:1.45;
+    }
+    @media(max-width:1100px){
+      .compare,.matrix,.plan{grid-template-columns:1fr}
+      table.findings{display:block;overflow-x:auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <span class="pill wait">AUDIT ONLY — no live CSS/template ship until you approve</span>
+    <h1>Space intelligence audit — Django <code>/admin/</code> (operator + tenant)</h1>
+    <p class="lede">
+      Honest read of what is still wrong after v13 density patches. The problem is not “one more
+      <code>!important</code>.” It is <b>stacked chrome, duplicate actions, low-value metrics, and
+      cascade debt</b> across every admin surface. This page is the findings board + before/after
+      for the next careful wave (v14). Open in a browser; approve the sequence before any code.
+    </p>
+    <div class="banner">
+      <b>Why prior ships still felt cramped:</b> v13 fixed some Unfold <code>max-w-*</code> and tall
+      M2M lists, but the page still burns fold&nbsp;1 on <b>three headings + three metric chips +
+      duplicate Add/Filters</b>. Width fill without chrome collapse = still feels wasted and cramped.
+    </div>
+
+    <nav class="toc" aria-label="Sections">
+      <a href="#matrix">Surface matrix</a>
+      <a href="#findings">Ranked findings</a>
+      <a href="#ba1">B/A · Index CTA wall</a>
+      <a href="#ba2">B/A · Form chrome stack</a>
+      <a href="#ba3">B/A · List fill + clicks</a>
+      <a href="#ba4">B/A · Field intelligence</a>
+      <a href="#plan">Careful ship plan</a>
+    </nav>
+
+    <!-- MATRIX -->
+    <div class="sec" id="matrix">1 · Surface matrix <span>what each page type still does wrong</span></div>
+    <div class="matrix">
+      <div class="mx">
+        <b>Index</b>
+        <span class="bad">Operator: command band + hero + steering + KPI + catalog = 4 intros before work.</span>
+        <span class="bad">Tenant: similar band + hero; fewer fleet CTAs but still verbose.</span>
+      </div>
+      <div class="mx">
+        <b>Changelist</b>
+        <span class="bad">Head + command band + metrics + tools all repeat Add/Filters/count.</span>
+        <span class="ok">Table full-width contract exists; chrome still steals vertical space.</span>
+      </div>
+      <div class="mx">
+        <b>Change form</b>
+        <span class="bad">Head + metrics + command band + Form/Audit toggle before fields.</span>
+        <span class="bad">2-up CSS fights Unfold fieldset DOM; many rows still left-skinny.</span>
+      </div>
+      <div class="mx">
+        <b>History / delete / app index</b>
+        <span class="bad">Same workspace chrome pattern bolted on; little page-specific value.</span>
+        <span class="bad">Consistency = shared fluff, not shared premium density.</span>
+      </div>
+    </div>
+
+    <!-- FINDINGS -->
+    <div class="sec" id="findings">2 · Ranked findings <span>from live templates — not vibes</span></div>
+    <table class="findings">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Sev</th>
+          <th>Defect</th>
+          <th>Hosts</th>
+          <th>Evidence</th>
+          <th>Fix (when approved)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>F1</td>
+          <td><span class="sev p0">P0</span></td>
+          <td><b>Triple chrome stack on list + form</b><br>Workspace head, metrics strip, and command band all introduce the same page. Fold 1 is narrative, not work.</td>
+          <td><span class="host op">op</span><span class="host ten">ten</span></td>
+          <td class="evidence">change_form.html · change_list.html<br>admin_workspace_metrics_strip.html<br>rmc-django-command-band</td>
+          <td>One command band only. Kill workspace-head on list/form (or merge). Metrics become 1 status line or rail facts — not three chips saying “Scope / Results / Filters.”</td>
+        </tr>
+        <tr>
+          <td>F2</td>
+          <td><span class="sev p0">P0</span></td>
+          <td><b>Duplicate actions = extra clicks + visual noise</b><br>Add / Filters appear in head actions AND tools column (AND often toolbar). Same for View site / History.</td>
+          <td><span class="host op">op</span><span class="host ten">ten</span></td>
+          <td class="evidence">admin_workspace_tools.html<br>metrics_strip head actions<br>change_list Filters button</td>
+          <td>Single owner per action: primary in band; tools column = shortcuts only (⌘K, ↑). Remove duplicate Filters button from toolbar when tools already has it.</td>
+        </tr>
+        <tr>
+          <td>F3</td>
+          <td><span class="sev p0">P0</span></td>
+          <td><b>Operator index CTA wall</b><br>Hero packs New school / Invite / Signup / Config / Studio / ⌘K + section anchors. Steering repeats Config/Studio again. User scrolls past marketing to reach catalog.</td>
+          <td><span class="host op">op</span></td>
+          <td class="evidence">index_superadmin.html<br>cp-hero__actions + cp-steering</td>
+          <td>One primary + one “More ▾”. Steering strip deleted (message → ⓘ tip). Section nav stays compact. Catalog rises into fold 1.</td>
+        </tr>
+        <tr>
+          <td>F4</td>
+          <td><span class="sev p1">P1</span></td>
+          <td><b>Low-value metric chips</b><br>“Scope: Operator / This school” and “Filters: On/Off” are ambient identity, not decisions. They consume horizontal MAIN width and vertical fold.</td>
+          <td><span class="host op">op</span><span class="host ten">ten</span></td>
+          <td class="evidence">admin_workspace_metrics_strip.html<br>rmc-django-metrics--compact</td>
+          <td>Replace with page-true facts only: result count on list; dirty/sections on form — in the rail or band meta, not a 3-card strip.</td>
+        </tr>
+        <tr>
+          <td>F5</td>
+          <td><span class="sev p1">P1</span></td>
+          <td><b>Form fields still not intelligently packed</b><br>v13 2-up targets <code>.form-rows</code>, but Unfold often wraps fields in fieldsets / flex-col gap-6 / max-w utilities that leave left void. User still sees “cramped left, empty right.”</td>
+          <td><span class="host op">op</span><span class="host ten">ten</span></td>
+          <td class="evidence">change_form.html flex.flex-col.gap-6<br>v13 + canvas-contract cascade war<br>~4000-line canvas-contract.css</td>
+          <td>One density owner CSS. Fieldset-aware grid: scalar pairs 2-up; M2M/text wide; collapse fieldsets into numbered <code>&lt;details&gt;</code> after section 2 on long models.</td>
+        </tr>
+        <tr>
+          <td>F6</td>
+          <td><span class="sev p1">P1</span></td>
+          <td><b>Form/Audit view toggle without payoff</b><br>Toggle costs chrome; Audit mode is secondary. If Audit is thin, the toggle is fluff.</td>
+          <td><span class="host op">op</span><span class="host ten">ten</span></td>
+          <td class="evidence">change_form.html view-toggle<br>admin_change_form_mode_panels.html</td>
+          <td>Move Audit into rail “History / pulse” or Save menu. Default surface = form only.</td>
+        </tr>
+        <tr>
+          <td>F7</td>
+          <td><span class="sev p1">P1</span></td>
+          <td><b>CSS cascade debt</b><br>Three layout owners fight: approval-surface-v13 (907), canvas-contract (~3986), workspace-10x (667). Density rules lose to higher-specificity #cp-main-content seals — then get re-sealed — forever.</td>
+          <td><span class="host op">op</span><span class="host ten">ten</span></td>
+          <td class="evidence">base_site.html stylesheet order<br>v13 TERMINAL SEALS comment</td>
+          <td>Freeze: one final layout sheet for workspace grid + form density. Demote canvas-contract to tokens/chrome only. No new !important wars.</td>
+        </tr>
+        <tr>
+          <td>F8</td>
+          <td><span class="sev p2">P2</span></td>
+          <td><b>Tenant object-tools duplication</b><br>Tenant still injects Unfold object-tools into nav-global-side while tools column / band also expose Add.</td>
+          <td><span class="host ten">ten</span></td>
+          <td class="evidence">change_list.html nav-global-side<br>change_form.html nav-global</td>
+          <td>Tenant: hide Unfold object-tools when workspace tools/band present (operator already suppresses some).</td>
+        </tr>
+        <tr>
+          <td>F9</td>
+          <td><span class="sev p2">P2</span></td>
+          <td><b>Long page without condensation grammar</b><br>Catalog details, tall fieldsets, permission M2M (partially capped) still create mile-scroll. Innovation asked for: numbered panels, dropdowns, progressive disclosure — only M2M got a start.</td>
+          <td><span class="host op">op</span><span class="host ten">ten</span></td>
+          <td class="evidence">index catalog-details<br>rmc-admin-transfer-panel (M2M only)</td>
+          <td>Extend numbered <code>&lt;details&gt;</code> to fieldsets 3+ and catalog “View all”; default collapsed with count badge.</td>
+        </tr>
+        <tr>
+          <td>F10</td>
+          <td><span class="sev p2">P2</span></td>
+          <td><b>Host identity drift in copy</b><br>Operator pages still say “guided work stays in Config/Studio” on raw CRUD — correct idea, wrong placement (steering banner). Tenant premium feel requires same density grammar, different CTAs — not a thinner copy of operator chrome.</td>
+          <td><span class="host op">op</span><span class="host ten">ten</span></td>
+          <td class="evidence">index_superadmin steering<br>index_tenant command band</td>
+          <td>Shared density grammar; host-specific primary CTA set (already in approval HTML) — enforce in templates, not CSS only.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- BA1 INDEX -->
+    <div class="sec" id="ba1">3 · Before / after — Operator index (CTA wall → work-first)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Before (live pattern)</h2><small>index_superadmin.html — fold 1 is chrome</small></div>
+          <span class="tag before">Before</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>Platform Backoffice</b> · /admin/</span><span>operator</span></div>
+          <div class="band">
+            <div class="eye">Platform Backoffice</div>
+            <strong>Operator catalog &amp; raw records</strong>
+            <small>Full-canvas records workspace. Guided work stays in Config…</small>
+          </div>
+          <div class="stack">
+            <div class="dup">HERO repeats same title + tip</div>
+            <div class="btnrow">
+              <span class="btn primary">+ New school</span>
+              <span class="btn waste">Invite</span>
+              <span class="btn waste">Signup</span>
+              <span class="btn waste">Config</span>
+              <span class="btn waste">Studio</span>
+              <span class="btn waste">⌘K</span>
+              <span class="btn ghost">§ Models</span>
+              <span class="btn ghost">§ Apps</span>
+            </div>
+            <div class="dup">STEERING: Prefer Config + Studio… (same message again)</div>
+            <div class="metrics">
+              <div class="metric"><small>Models</small><b>240</b></div>
+              <div class="metric"><small>Schools</small><b>18</b></div>
+              <div class="metric"><small>…</small><b>…</b></div>
+            </div>
+            <div class="void">Catalog starts below the fold — the actual job</div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>After (proposed)</h2><small>One band · one primary · catalog in fold 1</small></div>
+          <span class="tag after">After</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>Platform Backoffice</b> · /admin/</span><span>operator</span></div>
+          <div class="band">
+            <div class="eye">Platform Backoffice</div>
+            <strong>Operator catalog</strong>
+            <div class="btnrow" style="margin-top:6px">
+              <span class="btn primary">+ New school</span>
+              <span class="btn">More ▾</span>
+              <span class="btn">⌘K</span>
+              <span style="margin-left:auto;font-size:10px;color:var(--dim)">240 models · searchable</span>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="fill">Search models… &nbsp;|&nbsp; Overview · Accounts · Schools · …</div>
+            <div class="fields smart">
+              <div class="field"><label>Accounts</label><div class="in" style="height:48px"></div></div>
+              <div class="field"><label>Schools</label><div class="in" style="height:48px"></div></div>
+              <div class="field"><label>Billing</label><div class="in" style="height:48px"></div></div>
+              <div class="field"><label>Siteconfig</label><div class="in" style="height:48px"></div></div>
+            </div>
+            <div class="fill">Details collapsed: “View all 42 →” numbered panels</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- BA2 FORM -->
+    <div class="sec" id="ba2">4 · Before / after — Change form (chrome stack → work surface)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Before</h2><small>Head + metrics + band + toggle before fields</small></div>
+          <span class="tag before">Before</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>Change user</b></span><span>tenant /admin/</span></div>
+          <div class="ws">
+            <div class="main">
+              <div>
+                <div class="dup" style="margin:6px;border-radius:8px">H1 Change user + Add/History</div>
+                <div class="metrics">
+                  <div class="metric fluff"><small>Scope</small><b>This school</b></div>
+                  <div class="metric fluff"><small>Sections</small><b>—</b></div>
+                  <div class="metric fluff"><small>Save</small><b>Clean</b></div>
+                </div>
+                <div class="band">
+                  <div class="eye">School configuration</div>
+                  <strong>Change user</strong>
+                  <small>Full-canvas form. Compact Save…</small>
+                  <div class="btnrow" style="margin-top:4px">
+                    <span class="btn primary">Form</span>
+                    <span class="btn waste">Audit</span>
+                  </div>
+                </div>
+              </div>
+              <div class="stack">
+                <div class="fields">
+                  <div class="field"><label>Username</label><div class="in short"></div></div>
+                  <div class="field"><label>Email</label><div class="in short"></div></div>
+                </div>
+                <div class="void">Right half of MAIN empty · fields left-stuck</div>
+              </div>
+              <div class="save"><span class="go">Save</span><span class="chev">▾</span></div>
+            </div>
+            <div class="rail">
+              <h4>Rail</h4>
+              <div class="box fluff"><b>Scope manifesto</b>generic copy</div>
+              <div class="box"><b>On this page</b>empty until scroll</div>
+            </div>
+            <div class="tools">
+              <div class="tool primary">+</div>
+              <div class="tool">?</div>
+              <div class="tool">↗</div>
+              <div class="tool">↑</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>After</h2><small>One band · 2-up fields · rail = facts only</small></div>
+          <span class="tag after">After</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>Change user</b></span><span>tenant /admin/</span></div>
+          <div class="ws">
+            <div class="main">
+              <div class="band">
+                <div class="eye">This school · User</div>
+                <strong>Change user</strong>
+                <div class="btnrow" style="margin-top:4px">
+                  <span class="btn">History</span>
+                  <span style="margin-left:auto;font-size:10px;color:var(--dim)">3 sections · clean</span>
+                </div>
+              </div>
+              <div class="stack">
+                <div class="fields smart">
+                  <div class="field"><label>Username</label><div class="in"></div></div>
+                  <div class="field"><label>Email</label><div class="in"></div></div>
+                  <div class="field"><label>First name</label><div class="in"></div></div>
+                  <div class="field"><label>Last name</label><div class="in"></div></div>
+                  <div class="field wide"><label>1 · Permissions <span style="color:var(--dim)">▾ collapsed · 12 chosen</span></label><div class="in" style="height:36px"></div></div>
+                  <div class="field wide"><label>2 · Groups <span style="color:var(--dim)">▾ collapsed · 2 chosen</span></label><div class="in" style="height:36px"></div></div>
+                </div>
+              </div>
+              <div class="save"><span class="go">Save</span><span class="chev">▾</span><span style="margin-left:auto;font-size:10px;color:var(--dim)">Audit in ▾</span></div>
+            </div>
+            <div class="rail">
+              <h4>Record</h4>
+              <div class="box"><b>Last login</b>2h ago</div>
+              <div class="box"><b>On this page</b>Identity · Access · Meta</div>
+            </div>
+            <div class="tools">
+              <div class="tool">?</div>
+              <div class="tool">↑</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- BA3 LIST -->
+    <div class="sec" id="ba3">5 · Before / after — Changelist (less clicks, full fill)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Before</h2><small>Add×3 · Filters×2 · count×2</small></div>
+          <span class="tag before">Before</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>Users</b></span><span>operator</span></div>
+          <div class="ws">
+            <div class="main">
+              <div>
+                <div class="dup" style="margin:6px">Head: Users + Add + Filters</div>
+                <div class="metrics">
+                  <div class="metric fluff"><small>Scope</small><b>Operator</b></div>
+                  <div class="metric"><small>Results</small><b>128</b></div>
+                  <div class="metric fluff"><small>Filters</small><b>On</b></div>
+                </div>
+                <div class="band">
+                  <strong>Users</strong>
+                  <small>128 records · Native table · Operator scoped</small>
+                </div>
+              </div>
+              <div class="stack">
+                <div class="btnrow">
+                  <span class="btn">Search…</span>
+                  <span class="btn waste">Filters (again)</span>
+                </div>
+                <div class="void" style="min-height:120px">Table starts late · actions duplicated in tools →</div>
+              </div>
+            </div>
+            <div class="rail">
+              <h4>List</h4>
+              <div class="box fluff"><b>Generic</b>scope copy</div>
+            </div>
+            <div class="tools">
+              <div class="tool primary">+</div>
+              <div class="tool">⚡</div>
+              <div class="tool">?</div>
+              <div class="tool">↑</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>After</h2><small>One Add · one Filters · table immediate</small></div>
+          <span class="tag after">After</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><span><b>Users</b></span><span>operator</span></div>
+          <div class="ws">
+            <div class="main">
+              <div class="band">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                  <div>
+                    <div class="eye">Operator · auth</div>
+                    <strong>Users</strong>
+                  </div>
+                  <div class="btnrow">
+                    <span class="btn primary">+ User</span>
+                    <span class="btn">Filters</span>
+                  </div>
+                </div>
+                <small style="margin-top:4px;display:block;color:var(--dim)">128 records</small>
+              </div>
+              <div class="stack">
+                <div class="fill">Search…</div>
+                <div class="fill" style="min-height:160px;display:grid;place-items:center">
+                  Native table width 100% · columns use full MAIN<br>
+                  <span style="opacity:.75;font-weight:700">No second Filters · tools = ⌘K + ↑ only</span>
+                </div>
+              </div>
+            </div>
+            <div class="rail">
+              <h4>This list</h4>
+              <div class="box"><b>Active filters</b>staff · yes</div>
+              <div class="box"><b>Page</b>1 / 7</div>
+            </div>
+            <div class="tools">
+              <div class="tool">?</div>
+              <div class="tool">↑</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- BA4 FIELDS -->
+    <div class="sec" id="ba4">6 · Before / after — Field intelligence (cramp → pack)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Before</h2><small>Vertical stack · left void · mile M2M</small></div>
+          <span class="tag before">Before</span>
+        </div>
+        <div class="mock">
+          <div class="fields">
+            <div class="field"><label>Username</label><div class="in short"></div></div>
+            <div class="field"><label>Email</label><div class="in short"></div></div>
+            <div class="field"><label>First</label><div class="in short"></div></div>
+            <div class="field"><label>Last</label><div class="in short"></div></div>
+            <div class="void">Unused MAIN width</div>
+            <div class="field"><label>Permissions</label><div class="in" style="height:140px"></div></div>
+            <div class="field"><label>Groups</label><div class="in" style="height:140px"></div></div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>After</h2><small>2-up scalars · numbered condensed M2M</small></div>
+          <span class="tag after">After</span>
+        </div>
+        <div class="mock">
+          <div class="fields smart">
+            <div class="field"><label>Username</label><div class="in"></div></div>
+            <div class="field"><label>Email</label><div class="in"></div></div>
+            <div class="field"><label>First</label><div class="in"></div></div>
+            <div class="field"><label>Last</label><div class="in"></div></div>
+            <div class="field wide fill" style="color:#9ff0c6">1 · Permissions ▸ 12 selected · expand to edit</div>
+            <div class="field wide fill" style="color:#9ff0c6">2 · Groups ▸ 2 selected · expand to edit</div>
+            <div class="field wide"><label>Notes</label><div class="in" style="height:52px"></div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PLAN -->
+    <div class="sec" id="plan">7 · Careful ship plan <span>one defect class per commit — no rush</span></div>
+    <div class="plan">
+      <div class="step">
+        <div class="n">1</div>
+        <b>Chrome collapse (F1+F2+F4+F6)</b>
+        <span>Templates only: single command band on list/form; remove metrics strip + duplicate head; tools lose duplicate Add/Filters; Audit → Save menu / rail. Prove with Change user + Users list on both hosts.</span>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <b>Index work-first (F3+F10)</b>
+        <span>Operator: one primary + More ▾; delete steering strip; catalog into fold 1. Tenant: same grammar, school CTAs only. No CSS cascade work yet.</span>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <b>Density owner (F5+F7+F9)</b>
+        <span>One layout CSS for form grids + fieldset condensation. Demote competing rules. Extend numbered details beyond M2M. Then bump cache/SW once.</span>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>What I need from you:</b> Approve this audit (or mark which findings are wrong).
+      Then I implement <b>wave 1 only</b> (chrome collapse) — templates first, both hosts,
+      visual proof on Change user + Users — before touching index or another CSS war.
+      File path for this board:
+      <code>var/design-previews/django-admin-space-intelligence-audit-v14-2026-07-21.html</code>
+    </div>
+  </div>
+</body>
+</html>

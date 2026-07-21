@@ -52,7 +52,8 @@ class AdminPageAwareRailTests(SimpleTestCase):
         labels = {f["label"] for f in rail["facts"]}
         self.assertIn("App", labels)
         self.assertIn("Primary key", labels)
-        self.assertTrue(any(l["label"] == "Access center" for l in rail["guided"]))
+        # v15 I9: Edit rail is live facts + pulse only (guided CTAs stay on guided surfaces).
+        self.assertEqual(rail["guided"], [])
 
     def test_changelist_rail_counts(self):
         opts = SimpleNamespace(

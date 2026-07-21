@@ -25,10 +25,12 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
+{% comment %}v15 Discover (tenant): 1-col · Config primary · no Scope KPI · no tools · no second hero.{% endcomment %}
 <div
   class="tenant-admin-index rmc-admin-catalog-index rmc-django-workspace rmc-django-canvas"
   data-rmc-admin-catalog-index="1"
   data-rmc-admin-surface="smart-index"
+  data-rmc-admin-archetype="discover"
   data-rmc-django-workspace="admin-index"
   data-rmc-admin-workspace-scope="tenant"
   data-rmc-page-fold-nav="required"
@@ -59,85 +61,38 @@
   </div>
   {% endif %}
 
-  <section class="rmc-django-command-band" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="tenant-index-v11" aria-label="{% trans 'School configuration command surface' %}">
+  <section class="rmc-django-command-band" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="tenant-index-v15" aria-label="{% trans 'School configuration command surface' %}">
     <div class="rmc-django-command-band__copy">
-      <span class="rmc-django-command-band__eyebrow">{% firstof SITE.site_name _("School configuration") %}</span>
-      <strong>{% trans "Configuration &amp; records" %}</strong>
-      <small>{% trans "School-scoped configuration engine. Prefer Config center for guided work; open models below for direct records." %}</small>
+      <span class="rmc-django-command-band__eyebrow">{% firstof SITE.site_name _("This school") %}</span>
+      <strong>
+        {% trans "Configuration &amp; records" %}
+        {% trans "Guided domains via Config center. Model catalog below is for direct school-scoped records." as tenant_admin_hero_tip %}
+        {% rmc_info_tag title=_("About this engine") body=tenant_admin_hero_tip surface="django-admin" placement="bottom" %}
+      </strong>
     </div>
-    <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
+    <div class="rmc-django-command-band__meta rmc-django-command-band__actions" aria-label="{% trans 'School actions' %}">
       <span>{% trans "This school only" %}</span>
       {% if admin_catalog %}
       <span>{% blocktrans with n=admin_catalog.model_count %}{{ n }} models{% endblocktrans %}</span>
       {% endif %}
-      <span>{% trans "Searchable catalog" %}</span>
-      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-21-v13" title="{% trans 'Deploy proof — full-fill approval parity on tenant /admin/' %}">v13 · density+full-fill · operator+tenant</span>
+      <a class="rmc-django-band-action rmc-django-band-action--primary" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Config center" %}</a>
+      <a class="rmc-django-band-action" href="{{ portal_home_url|default:'/' }}">{% trans "Portal" %}</a>
+      <button type="button" class="rmc-django-band-action" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K</button>
+      <button type="button" class="rmc-django-band-action" data-rmc-admin-keymap-open="1" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">?</button>
+      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-21-v15.2" title="{% trans 'Deploy proof — Admin OS v15.2 on tenant /admin/' %}">v15.2 · Admin OS · operator+tenant</span>
     </div>
   </section>
 
-  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="tenant">
-    <div class="rmc-admin-index-main" data-rmc-django-primary-panel="1">
-      <div class="tenant-admin-hero rmc-admin-index-hero" id="rmc-tenant-admin-sec-hero" data-rmc-section-anchor>
-        <div class="tenant-admin-hero-label">{% trans "School configuration engine" %}</div>
-        <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
-          {% firstof SITE.site_name _("this school") as school_label %}
-          <h1 class="mb-0">{% blocktrans with school=school_label %}Configure {{ school }}{% endblocktrans %}</h1>
-          {% trans "Guided domains first via Config center and Feature control. The model catalog below is for direct school-scoped records when you need raw row access." as tenant_admin_hero_tip %}
-          {% rmc_info_tag title=_("About this engine") body=tenant_admin_hero_tip surface="django-admin" placement="bottom" %}
-        </div>
-        <div class="tenant-admin-hero-actions rmc-section-nav" role="toolbar" aria-label="{% trans 'Configuration actions' %}" data-rmc-section-nav-curated="1">
-          <a href="{% url 'siteconfig:console_domains_hub' %}" class="tenant-admin-cta-primary">
-            <i class="bi bi-gear-wide-connected" aria-hidden="true"></i> {% trans "Open Config center" %}
-          </a>
-          <a href="{% url 'siteconfig:feature_control_panel' %}" class="tenant-admin-cta-secondary">
-            <i class="bi bi-toggles2" aria-hidden="true"></i> {% trans "Feature control" %}
-          </a>
-          <a href="{{ portal_home_url|default:'/' }}" class="tenant-admin-cta-secondary">
-            <i class="bi bi-house-door" aria-hidden="true"></i> {% trans "Portal" %}
-          </a>
-          <a href="#rmc-tenant-admin-sec-catalog" class="tenant-admin-cta-secondary" data-rmc-section-anchor>{% trans "Browse models" %}</a>
-        </div>
-      </div>
-
-      {% if tenant_engine_kpis %}
-      <div class="cp-kpi-strip" role="group" aria-label="{% trans 'School configuration metrics' %}" data-rmc-tenant-engine-kpis="approval-2026-07-19">
-        <div class="cp-kpi">
-          <div class="cp-kpi__label">{% trans "Staff accounts" %}</div>
-          <div class="cp-kpi__value">{{ tenant_engine_kpis.staff_accounts }}</div>
-        </div>
-        <div class="cp-kpi">
-          <div class="cp-kpi__label">{% trans "Config readiness" %}</div>
-          <div class="cp-kpi__value">{{ tenant_engine_kpis.config_readiness_pct }}%</div>
-        </div>
-        <div class="cp-kpi">
-          <div class="cp-kpi__label">{% trans "Pending invites" %}</div>
-          <div class="cp-kpi__value">{{ tenant_engine_kpis.pending_invites }}</div>
-        </div>
-      </div>
-      {% elif admin_catalog %}
-      <div class="cp-kpi-strip" role="group" aria-label="{% trans 'School configuration metrics' %}">
-        <div class="cp-kpi">
-          <div class="cp-kpi__label">{% trans "Models registered" %}</div>
-          <div class="cp-kpi__value">{{ admin_catalog.model_count }}</div>
-          <div class="cp-kpi__caption">{% blocktrans with n=admin_catalog.app_count %}across {{ n }} apps{% endblocktrans %}</div>
-        </div>
-        <div class="cp-kpi">
-          <div class="cp-kpi__label">{% trans "Sections" %}</div>
-          <div class="cp-kpi__value">{{ admin_catalog.section_count }}</div>
-        </div>
-        <div class="cp-kpi">
-          <div class="cp-kpi__label">{% trans "Scope" %}</div>
-          <div class="cp-kpi__value">{% firstof SITE.site_name _("School") %}</div>
-        </div>
-      </div>
-      {% endif %}
-
+  <div class="rmc-admin-discover-canvas" data-rmc-admin-index-canvas="tenant" data-rmc-admin-discover="1">
+    <div class="rmc-admin-index-main" data-rmc-django-primary-panel="1" id="content-main">
       <section class="cp-section" id="rmc-tenant-admin-sec-catalog" data-rmc-section-anchor aria-labelledby="tenant-catalog-heading">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap mb-2">
           <h2 class="cp-section__title mb-0" id="tenant-catalog-heading">{% trans "Model catalog" %}</h2>
           {% trans "Search and open any registered school model. Counts are live from this tenant admin site." as tenant_catalog_tip %}
           {% rmc_info_tag title=_("Model catalog") body=tenant_catalog_tip surface="django-admin" placement="bottom" %}
         </div>
+
+        <div class="rmc-admin-pins-row" data-rmc-admin-pins="1" hidden aria-label="{% trans 'Pinned and recent models' %}"></div>
 
         <div class="cp-section__row" role="tablist" aria-label="{% trans 'Catalog sections' %}">
           <label class="visually-hidden" for="rmcAdminCatalogSearch">{% trans "Search models" %}</label>
@@ -179,9 +134,9 @@
 
         <div class="rmc-admin-catalog-details mt-3">
           {% for section in admin_catalog.sections %}
-          <details class="rmc-admin-catalog-section" id="rmc-tenant-admin-catalog-sec-{{ forloop.counter }}" data-rmc-admin-catalog-section data-admin-search="{{ section.title|lower }} {% for app in section.apps %}{{ app.app_name|lower }} {{ app.app_label|lower }} {% for model in app.models %}{{ model.search_blob }} {% endfor %}{% endfor %}">
+          <details class="rmc-admin-catalog-section rmc-admin-disclosure" id="rmc-tenant-admin-catalog-sec-{{ forloop.counter }}" data-rmc-admin-catalog-section data-admin-search="{{ section.title|lower }} {% for app in section.apps %}{{ app.app_name|lower }} {{ app.app_label|lower }} {% for model in app.models %}{{ model.search_blob }} {% endfor %}{% endfor %}">
             <summary>
-              <span>{{ section.title }}</span>
+              <span>{% blocktrans with n=forloop.counter title=section.title %}{{ n }} · {{ title }}{% endblocktrans %}</span>
               <span class="small text-muted" data-rmc-section-visible-count>{{ section.model_count }}</span>
             </summary>
             <div class="rmc-admin-catalog-model-grid">
@@ -214,9 +169,6 @@
         {% endif %}
       </section>
     </div>
-
-    {% include "admin/includes/admin_index_context_rail.html" %}
-    {% include "admin/includes/admin_workspace_tools.html" with surface="admin-index" %}
   </div>
 </div>
 {% endblock %}

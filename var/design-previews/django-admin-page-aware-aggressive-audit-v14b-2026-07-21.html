@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AGGRESSIVE — Page-aware admin AUDIT v14b · surfaces must NOT look the same</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#03070f; --text:#eef5ff; --muted:#9eb0c9; --dim:#6a7d97;
+      --line:rgba(177,200,236,.15); --green:#26d486; --red:#f15b6c;
+      --amber:#f8bf3f; --blue:#4f7dff; --cyan:#4fd1c5; --violet:#8c72ff;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;color:var(--text);min-height:100vh;
+      background:
+        radial-gradient(circle at 85% -12%,rgba(241,91,108,.16),transparent 26%),
+        radial-gradient(circle at 8% 0%,rgba(38,212,134,.1),transparent 22%),
+        linear-gradient(180deg,#081222,var(--bg));
+    }
+    .page{max-width:1580px;margin:0 auto;padding:26px 18px 110px}
+    .pill{
+      display:inline-flex;padding:5px 11px;border-radius:999px;
+      border:1px solid rgba(241,91,108,.5);background:rgba(241,91,108,.14);
+      color:#ffc3ca;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;
+    }
+    h1{margin:10px 0 8px;font-size:clamp(1.55rem,2.5vw,2.35rem);letter-spacing:-.035em;line-height:1.1}
+    .lede{margin:0 0 12px;color:var(--muted);max-width:105ch;line-height:1.55;font-size:14px}
+    .banner{
+      margin:0 0 16px;padding:13px 15px;border-radius:14px;
+      border:1px solid rgba(241,91,108,.45);background:rgba(241,91,108,.1);
+      color:#ffc3ca;font-size:13px;line-height:1.5;
+    }
+    .banner b{color:#fff}
+    .law{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 20px;
+    }
+    .law > div{
+      border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+      background:rgba(17,31,53,.78);
+    }
+    .law b{display:block;font-size:12px;margin-bottom:4px;color:#fff}
+    .law span{display:block;font-size:11px;color:var(--dim);line-height:1.4}
+    .toc{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 20px}
+    .toc a{
+      padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(13,24,42,.8);color:var(--muted);font-size:11px;font-weight:750;text-decoration:none;
+    }
+    .toc a:hover{color:#fff;border-color:rgba(79,125,255,.5)}
+    .sec{
+      margin:30px 0 10px;font-size:12px;font-weight:900;letter-spacing:.09em;
+      text-transform:uppercase;color:var(--muted);
+    }
+    .sec em{font-style:normal;color:var(--dim);font-weight:700;letter-spacing:.03em;text-transform:none;margin-left:8px}
+    table.grid{
+      width:100%;border-collapse:collapse;font-size:12px;
+      border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(10,18,32,.9);
+    }
+    table.grid th,table.grid td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+    table.grid th{background:rgba(22,39,65,.9);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim)}
+    table.grid tr:last-child td{border-bottom:0}
+    .kill{color:#ffc3ca;font-weight:800}
+    .keep{color:#9ff0c6;font-weight:800}
+    .diff{color:#ffe5a4;font-weight:800}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;color:var(--cyan)}
+    .compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .panel{
+      border:1px solid var(--line);border-radius:16px;overflow:hidden;min-width:0;
+      background:linear-gradient(180deg,rgba(17,31,53,.97),rgba(8,15,28,.99));
+      box-shadow:0 22px 64px rgba(0,0,0,.4);
+    }
+    .panel-head{
+      display:flex;justify-content:space-between;align-items:center;gap:8px;
+      padding:10px 13px;border-bottom:1px solid var(--line);background:rgba(22,39,65,.75);
+    }
+    .panel-head h2{margin:0;font-size:13px}
+    .panel-head small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+    .tag{font-size:10px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border-radius:999px}
+    .tag.before{background:rgba(241,91,108,.2);color:#ffc3ca;border:1px solid rgba(241,91,108,.45)}
+    .tag.after{background:rgba(38,212,134,.16);color:#9ff0c6;border:1px solid rgba(38,212,134,.4)}
+    .mock{padding:11px;background:#060d18;display:grid;gap:6px;min-height:360px}
+    .chrome{
+      display:flex;justify-content:space-between;align-items:center;gap:8px;
+      min-height:30px;padding:0 9px;border-radius:9px;border:1px solid var(--line);
+      background:rgba(12,22,38,.95);font-size:10px;color:var(--muted);
+    }
+    .chrome b{color:var(--text)}
+    .stamp{
+      font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;
+      padding:2px 7px;border-radius:999px;border:1px solid var(--line);
+    }
+    .stamp.same{border-color:rgba(241,91,108,.5);color:#ffc3ca;background:rgba(241,91,108,.12)}
+    .stamp.diff{border-color:rgba(38,212,134,.5);color:#9ff0c6;background:rgba(38,212,134,.12)}
+    .ws3{display:grid;grid-template-columns:minmax(0,1fr) minmax(8rem,15%) 2.1rem;gap:6px;min-height:280px}
+    .ws2{display:grid;grid-template-columns:minmax(0,1fr) minmax(9rem,17%);gap:6px;min-height:280px}
+    .ws1{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-height:280px}
+    .main,.rail,.tools{
+      border:1px solid var(--line);border-radius:10px;background:rgba(8,15,28,.92);min-width:0;overflow:hidden;
+    }
+    .main{display:flex;flex-direction:column;min-height:0}
+    .band{padding:8px 10px;border-bottom:1px solid var(--line);background:rgba(22,39,65,.42)}
+    .band .eye{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--dim)}
+    .band strong{display:block;font-size:13px;margin-top:2px}
+    .band small{display:block;font-size:10px;color:var(--dim);margin-top:2px;line-height:1.3}
+    .body{padding:8px;flex:1;display:grid;gap:6px;align-content:start}
+    .dup,.void,.x{
+      border:1px dashed rgba(241,91,108,.45);border-radius:8px;padding:7px 8px;
+      background:rgba(241,91,108,.07);color:#ffc3ca;font-size:10px;font-weight:800;line-height:1.35;
+    }
+    .void{text-align:center;padding:16px 8px}
+    .ok{
+      border:1px solid rgba(38,212,134,.35);border-radius:8px;padding:7px 8px;
+      background:rgba(38,212,134,.07);color:#9ff0c6;font-size:10px;font-weight:800;line-height:1.35;
+    }
+    .btnrow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+    .btn{
+      min-height:24px;padding:0 8px;border-radius:7px;border:1px solid var(--line);
+      background:rgba(255,255,255,.05);color:var(--text);font-size:10px;font-weight:800;
+    }
+    .btn.primary{border:0;background:linear-gradient(135deg,var(--green),#1a9b65);color:#04130b}
+    .btn.ghost{opacity:.4}
+    .btn.bad{border-color:rgba(241,91,108,.45);color:#ffc3ca;background:rgba(241,91,108,.12)}
+    .btn.warn{border-color:rgba(248,191,63,.45);color:#ffe5a4;background:rgba(248,191,63,.1)}
+    .fields{display:grid;gap:5px}
+    .fields.two{grid-template-columns:1fr 1fr}
+    .fields.two .wide{grid-column:1/-1}
+    .field{border:1px solid var(--line);border-radius:7px;padding:6px;background:rgba(5,11,20,.55)}
+    .field label{display:block;font-size:8px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+    .in{height:26px;border-radius:5px;border:1px solid var(--line);background:rgba(5,11,20,.9);width:100%}
+    .in.s{width:40%}
+    .rail{padding:8px;display:grid;gap:5px;align-content:start}
+    .rail h4{margin:0;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .box{border:1px solid var(--line);border-radius:7px;padding:6px;background:rgba(5,11,20,.55);font-size:10px;color:var(--dim);line-height:1.3}
+    .box b{display:block;color:var(--text);margin-bottom:2px}
+    .tools{display:grid;gap:4px;padding:5px;place-content:start center}
+    .tool{width:24px;height:24px;border-radius:6px;border:1px solid var(--line);display:grid;place-items:center;font-size:10px;color:var(--muted)}
+    .tool.on{background:rgba(38,212,134,.18);color:#9ff0c6;border-color:rgba(38,212,134,.4)}
+    .tool.off{opacity:.2}
+    .save{display:flex;gap:5px;padding:7px 8px;border-top:1px solid var(--line);background:rgba(22,39,65,.4);align-items:center;margin-top:auto}
+    .go{min-height:28px;padding:0 11px;border:0;border-radius:7px 0 0 7px;background:linear-gradient(135deg,var(--green),#1a9b65);color:#04130b;font-size:11px;font-weight:900}
+    .chev{min-height:28px;min-width:26px;border:0;border-radius:0 7px 7px 0;border-left:1px solid rgba(4,19,11,.25);background:#1fbf76;color:#04130b;font-weight:900}
+    .gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .card{
+      border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(13,24,42,.85);min-width:0;
+    }
+    .card .k{font-size:9px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:6px}
+    .card h3{margin:0 0 6px;font-size:14px}
+    .card p{margin:0;font-size:11px;color:var(--dim);line-height:1.45}
+    .card ul{margin:8px 0 0;padding-left:16px;font-size:11px;color:var(--muted);line-height:1.45}
+    .card li::marker{color:var(--green)}
+    .plan{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+    .step{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(17,31,53,.8)}
+    .step .n{display:inline-flex;width:22px;height:22px;border-radius:999px;align-items:center;justify-content:center;background:rgba(241,91,108,.2);color:#ffc3ca;font-size:11px;font-weight:900;margin-bottom:7px}
+    .step b{display:block;font-size:12px;margin-bottom:4px}
+    .step span{display:block;font-size:11px;color:var(--dim);line-height:1.4}
+    .note{
+      margin-top:16px;border:1px solid rgba(79,125,255,.4);border-radius:14px;
+      padding:14px 16px;background:rgba(79,125,255,.08);font-size:13px;color:var(--muted);line-height:1.5;
+    }
+    .note b{color:var(--text)}
+    @media(max-width:1100px){
+      .law,.compare,.gallery,.plan{grid-template-columns:1fr}
+      table.grid{display:block;overflow-x:auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <span class="pill">AGGRESSIVE AUDIT v14b — surfaces must NOT look the same</span>
+    <h1>Page intelligence = different layouts, not one shell with new labels</h1>
+    <p class="lede">
+      Prior waves kept a <b>cookie-cutter workbench</b> (band + metrics + rail + tools) on every
+      Django admin URL, then swapped copy. That is the opposite of page awareness. This board
+      goes harder: <b>each surface type earns a different geometry, chrome set, and information
+      density</b> — operator vs tenant also diverge where jobs diverge.
+    </p>
+    <div class="banner">
+      <b>Hard rule:</b> If you blur the page and cannot tell index from list from form from delete,
+      the design failed. Shared tokens and quality — <b>not</b> shared chrome stacks.
+    </div>
+
+    <div class="law">
+      <div><b>1 · Job first</b><span>Index = find. List = scan/filter. Form = edit. History = timeline. Delete = decide. App index = dossier. Different jobs → different UI.</span></div>
+      <div><b>2 · Chrome must earn pixels</b><span>If a control is inert on this surface, it is banned — not greyed, not “for consistency.” Gone.</span></div>
+      <div><b>3 · Host identity</b><span>Operator = fleet backoffice. Tenant = school config engine. Same premium bar; different CTAs, rails, and catalogs.</span></div>
+      <div><b>4 · Density ≠ sameness</b><span>2-up forms, table theater, and catalog search grids are three different density systems. Do not force one grid on all.</span></div>
+    </div>
+
+    <nav class="toc">
+      <a href="#matrix">Surface kill matrix</a>
+      <a href="#archetypes">6 archetypes</a>
+      <a href="#ba-cookie">B/A · cookie-cutter crime</a>
+      <a href="#ba-index">B/A · index</a>
+      <a href="#ba-list">B/A · list</a>
+      <a href="#ba-form">B/A · form</a>
+      <a href="#ba-edge">B/A · history/delete</a>
+      <a href="#plan">Ship harder</a>
+    </nav>
+
+    <!-- MATRIX -->
+    <div class="sec" id="matrix">1 · Surface kill matrix <em>what dies on each page type</em></div>
+    <table class="grid">
+      <thead>
+        <tr>
+          <th>Chrome / feature</th>
+          <th>Index</th>
+          <th>Changelist</th>
+          <th>Change form</th>
+          <th>History</th>
+          <th>Delete</th>
+          <th>App index</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>3-col workbench (main|rail|tools)</td>
+          <td class="kill">KILL</td>
+          <td class="keep">KEEP (list-tuned)</td>
+          <td class="keep">KEEP (form-tuned)</td>
+          <td class="kill">KILL → 2-col</td>
+          <td class="kill">KILL → 1-col card</td>
+          <td class="diff">2-col dossier</td>
+        </tr>
+        <tr>
+          <td>Command band + metrics strip + H1 stack</td>
+          <td class="kill">1 search hero only</td>
+          <td class="kill">1 list band</td>
+          <td class="kill">1 form band</td>
+          <td class="kill">1 timeline title</td>
+          <td class="kill">1 decision title</td>
+          <td class="kill">1 app title</td>
+        </tr>
+        <tr>
+          <td>Tools: + Add</td>
+          <td class="kill">BANNED</td>
+          <td class="keep">YES (if perm)</td>
+          <td class="diff">YES only if add-another useful</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+        </tr>
+        <tr>
+          <td>Tools: Filters ⚡</td>
+          <td class="kill">BANNED</td>
+          <td class="keep">YES (only here)</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+        </tr>
+        <tr>
+          <td>Tools: View site ↗</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+          <td class="keep">YES if absolute URL</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+        </tr>
+        <tr>
+          <td>Form / Audit toggle</td>
+          <td class="kill">—</td>
+          <td class="kill">—</td>
+          <td class="kill">KILL → Audit in Save ▾ / rail</td>
+          <td class="kill">—</td>
+          <td class="kill">—</td>
+          <td class="kill">—</td>
+        </tr>
+        <tr>
+          <td>“Scope: Operator/School” metric chips</td>
+          <td class="kill">BANNED everywhere</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+          <td class="kill">BANNED</td>
+        </tr>
+        <tr>
+          <td>Steering / manifesto banners</td>
+          <td class="kill">KILL (ⓘ tip max)</td>
+          <td class="kill">KILL</td>
+          <td class="kill">KILL</td>
+          <td class="kill">KILL</td>
+          <td class="kill">KILL</td>
+          <td class="kill">KILL</td>
+        </tr>
+        <tr>
+          <td>Operator fleet CTAs (Invite/Studio)</td>
+          <td class="diff">Op index More ▾ only</td>
+          <td class="kill">NEVER</td>
+          <td class="kill">NEVER</td>
+          <td class="kill">NEVER</td>
+          <td class="kill">NEVER</td>
+          <td class="kill">NEVER</td>
+        </tr>
+        <tr>
+          <td>Tenant school CTAs (Config/Portal)</td>
+          <td class="diff">Tenant index only</td>
+          <td class="kill">NEVER on model CRUD</td>
+          <td class="kill">NEVER</td>
+          <td class="kill">NEVER</td>
+          <td class="kill">NEVER</td>
+          <td class="diff">App-level escape ok</td>
+        </tr>
+        <tr>
+          <td>Rail content</td>
+          <td class="diff">Shortcuts + recent — not “boundary prose”</td>
+          <td class="diff">Active filters · page · selection</td>
+          <td class="diff">Record facts · on-this-page · dirty</td>
+          <td class="diff">Object identity only</td>
+          <td class="kill">No rail</td>
+          <td class="diff">App models count + jump</td>
+        </tr>
+        <tr>
+          <td>Primary visual</td>
+          <td class="diff">Search + catalog cards</td>
+          <td class="diff">Native table theater</td>
+          <td class="diff">2-up field editor + condensed M2M</td>
+          <td class="diff">Vertical timeline</td>
+          <td class="diff">Centered confirm card</td>
+          <td class="diff">Model list for one app</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ARCHETYPES -->
+    <div class="sec" id="archetypes">2 · Six surface archetypes <em>deliberately different geometries</em></div>
+    <div class="gallery">
+      <div class="card">
+        <div class="k">A · Index = Discovery</div>
+        <h3>Search-first catalog</h3>
+        <p>No tools column. No CRUD +. Catalog is the product. Operator and tenant catalogs share search grammar but different primary CTAs and section sets.</p>
+        <ul>
+          <li>Geometry: 1 main column (+ optional sticky shortcuts)</li>
+          <li>Fold 1 = search + first catalog row</li>
+          <li>Details collapsed / numbered</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="k">B · Changelist = Table theater</div>
+        <h3>Rows own the canvas</h3>
+        <p>Almost all MAIN pixels are the table. One band with title + Add + Filters. Tools = + / ⚡ / ⌘K / ↑ only. Rail = live filter state — never manifesto.</p>
+        <ul>
+          <li>Geometry: 3-col list workbench</li>
+          <li>Bulk actions appear only when rows selected</li>
+          <li>No second Filters button in toolbar</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="k">C · Form = Dense editor</div>
+        <h3>Fields pack; sections collapse</h3>
+        <p>2-up scalars. Numbered &lt;details&gt; for M2M and fieldsets 3+. Sticky Save ▾. No Filters tool. No Form/Audit tab chrome. Rail = this record.</p>
+        <ul>
+          <li>Geometry: 3-col form workbench</li>
+          <li>Long models shrink vertically via disclosure</li>
+          <li>Audit / History via Save ▾ or rail links</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="k">D · History = Timeline</div>
+        <h3>Not a fake form</h3>
+        <p>Kill workbench tools. Two columns: timeline MAIN + object identity rail. Jump back to change form is the only primary CTA.</p>
+        <ul>
+          <li>Geometry: 2-col</li>
+          <li>No metrics strip</li>
+          <li>No + / Filters / View site tools</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="k">E · Delete = Decision</div>
+        <h3>One card. Two outcomes.</h3>
+        <p>Centered decision surface. Related objects as a compact numbered list. Confirm / Cancel only. No rail, no tools column, no catalog chrome.</p>
+        <ul>
+          <li>Geometry: 1-col max-width ~40rem</li>
+          <li>Destructive hierarchy clear</li>
+          <li>Zero fluff copy</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="k">F · App index = Dossier</div>
+        <h3>One app, not mini-home</h3>
+        <p>Not a second operator index. App name + model table for that app only + jump to Config if relevant. Tenant dossier never shows fleet CTAs.</p>
+        <ul>
+          <li>Geometry: 2-col</li>
+          <li>Models list fills MAIN</li>
+          <li>No duplicate hero manifesto</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- BA COOKIE -->
+    <div class="sec" id="ba-cookie">3 · Before / after — the cookie-cutter crime</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Before — every URL wears the same suit</h2><small>Index ≈ List ≈ Form ≈ History</small></div>
+          <span class="tag before">Crime</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>Any /admin/… page</b><span class="stamp same">SAME SHELL</span></div>
+          <div class="ws3">
+            <div class="main">
+              <div class="dup">Band + metrics + H1 (always)</div>
+              <div class="body">
+                <div class="void">Content type changes · chrome does not<br>User cannot tell what job this page is for</div>
+              </div>
+            </div>
+            <div class="rail">
+              <h4>Always</h4>
+              <div class="box"><b>Boundary prose</b>same paragraph</div>
+              <div class="box"><b>Fake KPIs</b>Scope · Canvas</div>
+            </div>
+            <div class="tools">
+              <div class="tool on">+</div>
+              <div class="tool on">⚡</div>
+              <div class="tool">?</div>
+              <div class="tool">↗</div>
+              <div class="tool">↑</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>After — blur test passes</h2><small>Six geometries · page-true tools</small></div>
+          <span class="tag after">Intelligence</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>Surface-specific geometry</b><span class="stamp diff">DIFF BY PAGE</span></div>
+          <div class="body" style="padding:0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <div class="ok">INDEX<br>search + cards<br>no tools col</div>
+            <div class="ok">LIST<br>table theater<br>+ ⚡ only</div>
+            <div class="ok">FORM<br>2-up + Save ▾<br>↗ if URL</div>
+            <div class="ok">HISTORY<br>timeline 2-col<br>no CRUD tools</div>
+            <div class="ok">DELETE<br>1 decision card<br>confirm/cancel</div>
+            <div class="ok">APP<br>dossier 2-col<br>models only</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- BA INDEX -->
+    <div class="sec" id="ba-index">4 · Index — operator vs tenant (different on purpose)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Operator index AFTER</h2><small>Fleet discovery — not a form workbench</small></div>
+          <span class="tag after">Op · A</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>Platform Backoffice</b> · /admin/<span class="stamp diff">DISCOVERY</span></div>
+          <div class="ws1">
+            <div class="main">
+              <div class="band">
+                <div class="eye">Operator · raw records</div>
+                <div class="btnrow" style="justify-content:space-between;margin-top:4px">
+                  <strong style="font-size:15px">Catalog</strong>
+                  <div class="btnrow">
+                    <span class="btn primary">+ New school</span>
+                    <span class="btn">More ▾</span>
+                    <span class="btn">⌘K</span>
+                  </div>
+                </div>
+              </div>
+              <div class="body">
+                <div class="ok">Search models, apps, sections…</div>
+                <div class="fields two">
+                  <div class="field"><label>Accounts</label><div class="in" style="height:44px"></div></div>
+                  <div class="field"><label>Schools</label><div class="in" style="height:44px"></div></div>
+                  <div class="field"><label>Billing</label><div class="in" style="height:44px"></div></div>
+                  <div class="field"><label>Siteconfig</label><div class="in" style="height:44px"></div></div>
+                </div>
+                <div class="ok">No tools column · Invite/Studio buried in More ▾ · no steering banner</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Tenant index AFTER</h2><small>School config engine — different CTA set</small></div>
+          <span class="tag after">Ten · A</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>Northridge High</b> · /admin/<span class="stamp diff">CONFIG ENGINE</span></div>
+          <div class="ws1">
+            <div class="main">
+              <div class="band">
+                <div class="eye">This school only</div>
+                <div class="btnrow" style="justify-content:space-between;margin-top:4px">
+                  <strong style="font-size:15px">Configuration &amp; records</strong>
+                  <div class="btnrow">
+                    <span class="btn primary">Config center</span>
+                    <span class="btn">Portal</span>
+                    <span class="btn">⌘K</span>
+                  </div>
+                </div>
+              </div>
+              <div class="body">
+                <div class="ok">Search school models…</div>
+                <div class="fields two">
+                  <div class="field"><label>People</label><div class="in" style="height:44px"></div></div>
+                  <div class="field"><label>Academics</label><div class="in" style="height:44px"></div></div>
+                  <div class="field"><label>Finance</label><div class="in" style="height:44px"></div></div>
+                  <div class="field"><label>Site settings</label><div class="in" style="height:44px"></div></div>
+                </div>
+                <div class="ok">NEVER: Invite school · Studio · fleet KPIs · New school</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- BA LIST -->
+    <div class="sec" id="ba-list">5 · Changelist — table theater (not mini-form)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Before</h2><small>Form chrome on a list page</small></div>
+          <span class="tag before">Before</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>Users</b><span class="stamp same">LOOKS LIKE FORM</span></div>
+          <div class="ws3">
+            <div class="main">
+              <div class="dup">Head + Scope chips + band repeating “Users”</div>
+              <div class="body">
+                <div class="btnrow"><span class="btn">Search</span><span class="btn bad">Filters</span></div>
+                <div class="void">Table delayed · Add also in tools →</div>
+              </div>
+            </div>
+            <div class="rail"><h4>Generic</h4><div class="box"><b>Manifesto</b>same on every model</div></div>
+            <div class="tools"><div class="tool on">+</div><div class="tool on">⚡</div><div class="tool">?</div><div class="tool off">↗</div><div class="tool">↑</div></div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>After — list archetype only</h2><small>Rows immediately · tools list-true</small></div>
+          <span class="tag after">B · List</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>Users</b> · changelist<span class="stamp diff">TABLE THEATER</span></div>
+          <div class="ws3">
+            <div class="main">
+              <div class="band">
+                <div class="btnrow" style="justify-content:space-between">
+                  <div><div class="eye">auth · user</div><strong>Users · 128</strong></div>
+                  <div class="btnrow"><span class="btn primary">+ User</span><span class="btn">Filters</span></div>
+                </div>
+              </div>
+              <div class="body">
+                <div class="ok">Search…</div>
+                <div class="ok" style="min-height:150px;display:grid;place-items:center;text-align:center">
+                  Full-width native table<br>
+                  <span style="opacity:.8">No Scope chips · no ↗ · no Form/Audit</span>
+                </div>
+              </div>
+            </div>
+            <div class="rail">
+              <h4>This list</h4>
+              <div class="box"><b>Filters</b>staff · active</div>
+              <div class="box"><b>Selected</b>0</div>
+              <div class="box"><b>Page</b>1 / 7</div>
+            </div>
+            <div class="tools"><div class="tool on">+</div><div class="tool on">⚡</div><div class="tool">?</div><div class="tool">↑</div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- BA FORM -->
+    <div class="sec" id="ba-form">6 · Change form — dense editor (not a list with fields)</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Before</h2><small>List tools + Audit toggle + left void</small></div>
+          <span class="tag before">Before</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>Change user</b><span class="stamp same">LIST TOOLS ON FORM</span></div>
+          <div class="ws3">
+            <div class="main">
+              <div class="dup">Metrics · Form|Audit · manifesto lede</div>
+              <div class="body">
+                <div class="field"><label>Username</label><div class="in s"></div></div>
+                <div class="field"><label>Email</label><div class="in s"></div></div>
+                <div class="void">Empty right track</div>
+                <div class="x">Permissions list stretches 3 folds</div>
+              </div>
+              <div class="save"><span class="go">Save</span><span class="chev">▾</span></div>
+            </div>
+            <div class="rail"><h4>Fluff</h4><div class="box"><b>Scope</b>This school</div></div>
+            <div class="tools"><div class="tool on">+</div><div class="tool off">⚡</div><div class="tool">?</div><div class="tool">↗</div><div class="tool">↑</div></div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>After — form archetype only</h2><small>2-up · condensed · form-true tools</small></div>
+          <span class="tag after">C · Form</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>Change user</b> · form<span class="stamp diff">DENSE EDITOR</span></div>
+          <div class="ws3">
+            <div class="main">
+              <div class="band">
+                <div class="eye">This school · user #42</div>
+                <div class="btnrow" style="justify-content:space-between;margin-top:2px">
+                  <strong>Change user</strong>
+                  <span class="btn">History</span>
+                </div>
+              </div>
+              <div class="body">
+                <div class="fields two">
+                  <div class="field"><label>Username</label><div class="in"></div></div>
+                  <div class="field"><label>Email</label><div class="in"></div></div>
+                  <div class="field"><label>First</label><div class="in"></div></div>
+                  <div class="field"><label>Last</label><div class="in"></div></div>
+                  <div class="field wide ok">1 · Permissions ▸ 12 chosen</div>
+                  <div class="field wide ok">2 · Groups ▸ 2 chosen</div>
+                </div>
+              </div>
+              <div class="save"><span class="go">Save</span><span class="chev">▾</span><span style="margin-left:auto;font-size:9px;color:var(--dim)">Audit inside ▾</span></div>
+            </div>
+            <div class="rail">
+              <h4>This record</h4>
+              <div class="box"><b>Last login</b>2h ago</div>
+              <div class="box"><b>On page</b>Identity · Access</div>
+              <div class="box"><b>Dirty</b>no</div>
+            </div>
+            <div class="tools"><div class="tool">↗</div><div class="tool">?</div><div class="tool">↑</div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- BA EDGE -->
+    <div class="sec" id="ba-edge">7 · History + Delete — stop dressing them as CRUD workbenches</div>
+    <div class="compare">
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>History AFTER</h2><small>Timeline · 2-col · no CRUD tools</small></div>
+          <span class="tag after">D · History</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>History · admin</b><span class="stamp diff">TIMELINE</span></div>
+          <div class="ws2">
+            <div class="main">
+              <div class="band">
+                <div class="btnrow" style="justify-content:space-between">
+                  <strong>History</strong>
+                  <span class="btn primary">← Back to form</span>
+                </div>
+              </div>
+              <div class="body">
+                <div class="ok">10:42 · Changed email</div>
+                <div class="ok">Yesterday · Added to Staff</div>
+                <div class="ok">Mon · Created</div>
+                <div class="ok">No + · No Filters · No metrics strip</div>
+              </div>
+            </div>
+            <div class="rail">
+              <h4>Object</h4>
+              <div class="box"><b>admin</b>accounts.user #1</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <div><h2>Delete AFTER</h2><small>One decision card · zero workbench</small></div>
+          <span class="tag after">E · Delete</span>
+        </div>
+        <div class="mock">
+          <div class="chrome"><b>Delete user</b><span class="stamp diff">DECISION</span></div>
+          <div class="ws1">
+            <div class="main" style="max-width:28rem;margin:0 auto;width:100%">
+              <div class="band"><strong>Delete “admin”?</strong><small>This cannot be undone from here.</small></div>
+              <div class="body">
+                <div class="ok">1 · Related log entries (14)</div>
+                <div class="ok">2 · Sessions (2)</div>
+                <div class="btnrow" style="margin-top:8px">
+                  <span class="btn bad">Yes, delete</span>
+                  <span class="btn">Cancel</span>
+                </div>
+                <div class="ok">No rail · no tools · no catalog · no Scope</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PLAN -->
+    <div class="sec" id="plan">8 · Ship harder <em>still careful — but each wave changes geometry, not labels</em></div>
+    <div class="plan">
+      <div class="step">
+        <div class="n">1</div>
+        <b>Surface contracts in templates</b>
+        <span>Per-archetype includes: index discovery shell, list theater, form editor, history timeline, delete card, app dossier. Kill shared metrics strip from list/form/history/delete.</span>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <b>Page-true tools only</b>
+        <span>Rewrite admin_workspace_tools.html against the kill matrix. Inert tools are deleted, not disabled. Host gates for fleet CTAs stay index-only.</span>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <b>Form density owner</b>
+        <span>2-up + numbered condensation for fieldsets/M2M. One CSS owner — demote cascade war. Prove on Change user both hosts.</span>
+      </div>
+      <div class="step">
+        <div class="n">4</div>
+        <b>Index bifurcation</b>
+        <span>Operator vs tenant discovery shells (different CTAs). Catalog into fold 1. Steering/manifesto banners deleted.</span>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>File:</b>
+      <span class="mono">var/design-previews/django-admin-page-aware-aggressive-audit-v14b-2026-07-21.html</span>
+      <br><br>
+      <b>Approve to implement:</b> “ship v14b wave 1” = archetype template split (geometry change), starting with
+      <b>list + form + delete</b> (highest daily pain), then index bifurcation, then history/app.
+      Soft chrome-only cleanup without geometry change is rejected as too weak.
+    </div>
+  </div>
+</body>
+</html>

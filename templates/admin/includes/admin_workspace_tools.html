@@ -1,33 +1,20 @@
 {% load i18n admin_urls %}
 {% comment %}
-  Page/surface-aware 48px tools column.
-  - index / app-index: command palette + back-to-top only (no CRUD + / Filters / View site)
-  - change-list: Add (if allowed) + Filters + command palette + top
-  - change-form / guided: Add (if allowed) + View site (if URL) + command palette + top
+  v15 page-true tools (kill matrix):
+  - discover / audit / decide: no tools column (callers must not include this)
+  - scan (change-list): ⌘K + top only — Add/Filters live in the command band
+  - edit (change-form): View site (if URL) + ⌘K + top — no Filters; no + (add-another via Save ▾)
+  - dossier (app-index): ⌘K + top only
 {% endcomment %}
+{% if surface == "change-list" or surface == "change-form" or surface == "app-index" or surface == "admin-index" %}
 {% trans "Workspace tools" as tools_label %}
-<aside class="rmc-django-tools" data-rmc-django-tools="1" data-rmc-tools-surface="{{ surface|default:'unknown' }}" aria-label="{{ tools_label }}" title="{{ tools_label }}">
-  {% if surface == "change-list" and has_add_permission %}
-    {% url cl.opts|admin_urlname:"add" as add_url %}
-    {% if add_url %}
-    <a class="rmc-django-tool is-primary" href="{% add_preserved_filters add_url is_popup to_field %}" title="{% blocktrans with name=cl.opts.verbose_name %}Add {{ name }}{% endblocktrans %}" aria-label="{% blocktrans with name=cl.opts.verbose_name %}Add {{ name }}{% endblocktrans %}">+</a>
-    {% endif %}
-  {% elif surface == "change-form" and has_add_permission and not add %}
-    {% url opts|admin_urlname:"add" as add_url %}
-    {% if add_url %}
-    <a class="rmc-django-tool is-primary" href="{% add_preserved_filters add_url is_popup to_field %}" title="{% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}" aria-label="{% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}">+</a>
-    {% endif %}
-  {% endif %}
-
-  {% if surface == "change-list" %}
-  <button type="button" class="rmc-django-tool" data-rmc-changelist-open-filters="1" title="{% trans 'Filters' %}" aria-label="{% trans 'Filters' %}">⚡</button>
-  {% endif %}
-
-  <button type="button" class="rmc-django-tool" data-rmc-command-bar-trigger="1" title="{% trans 'Command palette' %}" aria-label="{% trans 'Command palette' %}">?</button>
-
+<aside class="rmc-django-tools" data-rmc-django-tools="1" data-rmc-tools-surface="{{ surface|default:'unknown' }}" data-rmc-tools-kill-matrix="v15" aria-label="{{ tools_label }}" title="{{ tools_label }}">
   {% if surface == "change-form" and has_absolute_url %}
-  <a class="rmc-django-tool" href="{{ absolute_url }}" target="_blank" rel="noopener" title="{% trans 'View site' %}" aria-label="{% trans 'View site' %}">↗</a>
+  <a class="rmc-django-tool is-primary" href="{{ absolute_url }}" target="_blank" rel="noopener" title="{% trans 'View site' %}" aria-label="{% trans 'View site' %}">↗</a>
   {% endif %}
+
+  <button type="button" class="rmc-django-tool" data-rmc-admin-keymap-open="1" title="{% trans 'Keyboard shortcuts' %}" aria-label="{% trans 'Keyboard shortcuts' %}">?</button>
 
   <a class="rmc-django-tool" href="#content-main" title="{% trans 'Back to top' %}" aria-label="{% trans 'Back to top' %}">↑</a>
 </aside>
+{% endif %}

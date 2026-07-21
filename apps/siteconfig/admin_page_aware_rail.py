@@ -144,8 +144,7 @@ def build_change_form_rail(
         pass
     # History / View on site live in workspace head — not duplicated here.
 
-    guided = _guided_from_deck(admin_outcome_deck)
-
+    # v15 I9: no related-outcome wall on Edit — tip lives in command-band ⓘ.
     return {
         "surface": "change-form",
         "is_manager_host": bool(is_manager_host),
@@ -160,7 +159,7 @@ def build_change_form_rail(
         "page_lede": mode_hint,
         "facts": facts,
         "links": links[:5],
-        "guided": guided[:5],
+        "guided": [],
         "pulse_enabled": True,
     }
 
@@ -236,19 +235,15 @@ def build_changelist_rail(
         facts.append({"label": _("Page"), "value": _safe_str(page_num, limit=12)})
 
     links: list[dict[str, str]] = []
-    try:
-        add_url = reverse(f"admin:{app_label}_{model_name}_add")
-        links.append({"label": _("Add %(name)s") % {"name": verbose}, "url": add_url})
-    except NoReverseMatch:
-        pass
+    # v15: Add lives in the Scan command band — do not duplicate in the rail.
 
-    guided = _guided_from_deck(admin_outcome_deck)
     lede = _("Native list for %(name)s.") % {"name": verbose_plural}
     if has_active:
         lede = _("Filtered %(name)s list — clear filters to see the full set.") % {
             "name": verbose_plural
         }
 
+    # v15 I9: list rail = live counts/filters only (no guided CTA wall).
     return {
         "surface": "change-list",
         "is_manager_host": bool(is_manager_host),
@@ -263,7 +258,7 @@ def build_changelist_rail(
         "page_lede": lede,
         "facts": facts,
         "links": links[:4],
-        "guided": guided[:5],
+        "guided": [],
         "pulse_enabled": False,
     }
 

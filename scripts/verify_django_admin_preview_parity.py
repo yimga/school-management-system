@@ -31,7 +31,7 @@ OPERATOR_PREVIEW = (
 TENANT_PREVIEW = (
     ROOT / "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html"
 )
-CANVAS_CSS = ROOT / "static/css/rmc-admin-approval-surface-v13.css"
+CANVAS_CSS = ROOT / "static/css/rmc-admin-approval-surface-v15.css"
 BASE_SITE = ROOT / "templates/admin/base_site.html"
 BASE = ROOT / "templates/admin/base.html"
 NAV_BRIDGE = ROOT / "templates/components/admin_nav_bridge.html"
@@ -187,14 +187,29 @@ def main() -> int:
         errors.append(
             f"operator index_superadmin.html must show visible approval chip for {build_id}"
         )
-    if 'data-rmc-admin-index-canvas="operator"' not in index_op:
-        errors.append("index_superadmin.html must use data-rmc-admin-index-canvas=operator")
-    if 'data-rmc-admin-index-canvas="tenant"' not in index_t:
-        errors.append("index_tenant.html must use data-rmc-admin-index-canvas=tenant")
-    if "admin_workspace_tools.html" not in index_op or "admin_workspace_tools.html" not in index_t:
-        errors.append("operator + tenant indexes must include admin_workspace_tools.html")
-    if "admin_index_context_rail.html" not in index_op or "admin_index_context_rail.html" not in index_t:
-        errors.append("operator + tenant indexes must include admin_index_context_rail.html")
+    if 'data-rmc-admin-index-canvas="operator"' not in index_op and 'data-rmc-admin-discover="1"' not in index_op:
+        errors.append("index_superadmin.html must use discover canvas (operator)")
+    if 'data-rmc-admin-index-canvas="tenant"' not in index_t and 'data-rmc-admin-discover="1"' not in index_t:
+        errors.append("index_tenant.html must use discover canvas (tenant)")
+    # v15 Discover: no tools/rail on index (1-col). Scan/Edit keep tools.
+    if 'data-rmc-admin-archetype="discover"' not in index_op or 'data-rmc-admin-archetype="discover"' not in index_t:
+        errors.append("operator + tenant indexes must set data-rmc-admin-archetype=discover")
+    if "cp-steering" in index_op:
+        errors.append("operator index must not render cp-steering fluff banner")
+    if "admin_v1_index_surface_previews.html" in index_op:
+        errors.append("operator index must not include surface preview fluff")
+    if "admin_workspace_metrics_strip.html" in change_form or "admin_workspace_metrics_strip.html" in change_list:
+        errors.append("change_form/change_list must not include metrics strip (v15 zero fluff)")
+    if "rmc-django-view-toggle" in change_form or "admin_change_form_mode_panels.html" in change_form:
+        errors.append("change_form must not ship Form/Audit toggle chrome (v15)")
+    if 'data-rmc-admin-archetype="edit"' not in change_form:
+        errors.append("change_form must set data-rmc-admin-archetype=edit")
+    if 'data-rmc-admin-archetype="scan"' not in change_list:
+        errors.append("change_list must set data-rmc-admin-archetype=scan")
+    if "rmc_info_tag" not in change_form or "rmc_info_tag" not in change_list:
+        errors.append("change_form/change_list must educate via rmc_info_tag, not manifesto ledes")
+    if "admin_workspace_tools.html" not in change_form or "admin_workspace_tools.html" not in change_list:
+        errors.append("change_form/change_list must include workspace tools (preview col-3)")
 
     for proof in visible_proofs:
         haystacks = (base_site, base, index_t, index_op, nav, css)
@@ -203,21 +218,19 @@ def main() -> int:
 
     if 'data-rmc-layout-owner="legacy-disabled"' not in base_site or 'media="not all"' not in base_site:
         errors.append("base_site must disable the stale inline preview-parity layout owner")
-    if base_site.count("rmc-admin-approval-surface-v13.css") != 1:
-        errors.append("base_site must load exactly one v13 approval layout owner")
-    if base_site.rfind("rmc-admin-approval-surface-v13.css") < base_site.rfind("admin-brand-resolved-tokens"):
-        errors.append("v13 approval layout owner must be last-loaded after resolved theme tokens")
+    if base_site.count("rmc-admin-approval-surface-v15.css") != 1:
+        errors.append("base_site must load exactly one v15 approval layout owner")
+    if base_site.rfind("rmc-admin-approval-surface-v15.css") < base_site.rfind("admin-brand-resolved-tokens"):
+        errors.append("v15 approval layout owner must be last-loaded after resolved theme tokens")
 
     if "rmc-django-save-compact" not in submit:
         errors.append("submit_line.html must implement compact Save (preview save-compact)")
-    if "School configuration engine" not in index_t:
-        errors.append("index_tenant.html must label School configuration engine (tenant approval)")
+    if 'data-rmc-admin-archetype="discover"' not in index_t or "This school only" not in index_t:
+        errors.append("index_tenant.html must be Discover archetype with This school only host voice")
     if 'data-rmc-django-workspace="change-form"' not in change_form:
         errors.append("change_form.html missing data-rmc-django-workspace=change-form")
     if 'data-rmc-django-workspace="change-list"' not in change_list:
         errors.append("change_list.html missing data-rmc-django-workspace=change-list")
-    if "admin_workspace_tools.html" not in change_form or "admin_workspace_tools.html" not in change_list:
-        errors.append("change_form/change_list must include workspace tools (preview col-3)")
     if base_site.count("rmc-admin-django-canvas-contract.css") != 1:
         errors.append("base_site must load the canonical Django canvas contract exactly once")
     if base_site.count("rmc_theme_experience_dual_plane_styles.html") != 1:
@@ -253,13 +266,15 @@ def main() -> int:
     if "position: static !important" not in css:
         errors.append("approval CSS must keep page rails, tools and save actions in document flow")
     if "--rmc-admin-v13-transfer-h" not in css:
-        errors.append("v13 CSS must height-cap .selector transfer lists (--rmc-admin-v13-transfer-h)")
+        errors.append("approval CSS must height-cap .selector transfer lists (--rmc-admin-v13-transfer-h)")
     if "rmc-admin-transfer-panel" not in css:
-        errors.append("v13 CSS must style numbered collapsible transfer panels")
+        errors.append("approval CSS must style numbered collapsible transfer panels")
     if "v13 TERMINAL SEALS" not in css:
-        errors.append("v13 CSS must include terminal #cp-main-content cascade seals")
+        errors.append("approval CSS must include terminal #cp-main-content cascade seals")
+    if "v15 ARCHETYPES" not in css:
+        errors.append("approval CSS must include v15 ARCHETYPES geometry rules")
     if "max-w-2xl" not in css or "max-width: none !important" not in css:
-        errors.append("v13 CSS must neutralize Unfold max-w-2xl left-void on form controls")
+        errors.append("approval CSS must neutralize Unfold max-w-2xl left-void on form controls")
     workspace_js = _read(ROOT / "static/js/rmc-admin-workspace.js")
     if "initTransferCondensation" not in workspace_js or "rmc-admin-transfer-panel" not in workspace_js:
         errors.append("rmc-admin-workspace.js must condense M2M selectors into transfer panels")

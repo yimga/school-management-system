@@ -18,7 +18,7 @@ def main() -> int:
     change_form = _read("templates/admin/change_form.html")
     change_list = _read("templates/admin/change_list.html")
     css_path = ROOT / "static/css/rmc-admin-django-canvas-contract.css"
-    approval_css_path = ROOT / "static/css/rmc-admin-approval-surface-v13.css"
+    approval_css_path = ROOT / "static/css/rmc-admin-approval-surface-v15.css"
 
     if not css_path.is_file():
         errors.append("static/css/rmc-admin-django-canvas-contract.css is missing")
@@ -27,7 +27,7 @@ def main() -> int:
         css = css_path.read_text(encoding="utf-8")
 
     if not approval_css_path.is_file():
-        errors.append("static/css/rmc-admin-approval-surface-v13.css is missing")
+        errors.append("static/css/rmc-admin-approval-surface-v15.css is missing")
         approval_css = ""
     else:
         approval_css = approval_css_path.read_text(encoding="utf-8")
@@ -35,11 +35,11 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260721-admin-density-full-fill-v13b" not in base_site:
+    if "?v=20260721-admin-os-v152" not in base_site:
         errors.append("Django canvas contracts must use the preview-parity-v13 cache bust for deployment visibility")
     if base_site.count(contract_link) != 1:
         errors.append("Django canvas contract must load exactly once")
-    approval_link = "rmc-admin-approval-surface-v13.css"
+    approval_link = "rmc-admin-approval-surface-v15.css"
     if base_site.count(approval_link) != 1:
         errors.append("Django approval v13 layout owner must load exactly once")
     if approval_link in base_site and base_site.rfind(approval_link) < base_site.rfind("admin-brand-resolved-tokens"):
@@ -141,7 +141,7 @@ def main() -> int:
         spec.loader.exec_module(mod)
         _preview_parity_main = mod.main
     if _preview_parity_main() != 0:
-        errors.append("verify_django_admin_preview_parity.py failed (approval HTML ≠ live shell)")
+        errors.append("verify_django_admin_preview_parity.py failed (approval HTML != live shell)")
 
     # tools-no-span-explode: span 20/40 invents empty grid tracks (stripe / dark-bar bug)
     if re.search(r"data-rmc-django-tools[\s\S]{0,200}grid-row:\s*3\s*/\s*span\s*(20|40)", css):
@@ -221,22 +221,26 @@ def main() -> int:
         if "Tenant scoped" in _read(admin_html):
             errors.append(f"{admin_html} must not say Tenant scoped (use This school only)")
     app_index = _read("templates/admin/app_index.html")
-    if "This school only" not in app_index or "School records" not in app_index:
-        errors.append("admin/app_index.html must use school-centric status chips on tenant")
+    if "This school only" not in app_index or 'data-rmc-admin-archetype="dossier"' not in app_index:
+        errors.append("admin/app_index.html must use dossier archetype with This school only host voice")
     banner = _read("templates/admin/includes/tenant_admin_decision_banner.html")
     if "studio_os" in banner or "Operator workflow" in banner or "Decision console" in banner:
         errors.append("tenant_admin_decision_banner must be school-only (no Studio / operator / Decision console)")
     if "School configuration" not in banner:
         errors.append("tenant_admin_decision_banner must use School configuration framing")
-    if 'un == "changelist"' not in base and 'url_name|default:"" == "changelist"' not in base:
-        if 'un == "changelist" or un == "change"' not in base:
-            errors.append("admin/base.html must show tenant decision banner only on changelist/change/add")
+    # v15: decision banner removed from list/form fold-1 (education via ⓘ tips)
+    if "tenant_admin_decision_banner.html" in base:
+        errors.append("admin/base.html must not inject tenant_admin_decision_banner on list/form (v15 zero fluff)")
     history = _read("templates/admin/object_history.html")
     delete = _read("templates/admin/delete_confirmation.html")
     if 'data-rmc-django-workspace="object-history"' not in history:
         errors.append("object_history.html must use rmc-django-workspace markers")
+    if 'data-rmc-admin-archetype="audit"' not in history:
+        errors.append("object_history.html must set data-rmc-admin-archetype=audit")
     if 'data-rmc-django-workspace="delete-confirm"' not in delete:
         errors.append("delete_confirmation.html must use rmc-django-workspace markers")
+    if 'data-rmc-admin-archetype="decide"' not in delete:
+        errors.append("delete_confirmation.html must set data-rmc-admin-archetype=decide")
     app_list = _read("templates/admin/app_list.html")
     # Report Library via Studio must be manager-only
     studio_report = app_list.find("studio_os:output")
@@ -368,12 +372,12 @@ def main() -> int:
         errors.append("admin/change_form.html missing structural change-form workspace marker")
     if 'data-rmc-django-command-band="change-form"' not in change_form:
         errors.append("admin/change_form.html missing structural change-form command band")
-    if 'data-rmc-django-view-toggle="1"' not in change_form:
-        errors.append("admin/change_form.html missing Form/Preview/Audit view toggle")
+    if 'data-rmc-django-view-toggle="1"' in change_form:
+        errors.append("admin/change_form.html must not ship Form/Audit view toggle (v15)")
     if 'data-rmc-django-view-mode="form"' not in change_form:
         errors.append("admin/change_form.html missing default view-mode marker")
-    if "admin_change_form_mode_panels.html" not in change_form:
-        errors.append("admin/change_form.html must include Preview/Audit mode panels")
+    if "admin_change_form_mode_panels.html" in change_form:
+        errors.append("admin/change_form.html must not include mode panels (v15 — Audit via History/Save)")
     if 'rmc-django-form-panel' not in change_form:
         errors.append("admin/change_form.html missing structural form panel class")
     if 'data-rmc-django-form-body="1"' not in change_form:
@@ -396,11 +400,6 @@ def main() -> int:
         errors.append("admin/change_form.html missing smart form surface marker")
     if "admin_preview_card_stage.html" in change_form:
         errors.append("admin/change_form.html must not include staged admin_preview_card_stage.html")
-    mode_panels = _read("templates/admin/includes/admin_change_form_mode_panels.html")
-    if "admin_preview_card_stage.html" in mode_panels or 'data-rmc-django-mode-panel="preview"' in mode_panels:
-        errors.append("admin_change_form_mode_panels.html must not ship staged Live preview (honest: remove until real)")
-    if 'data-rmc-django-mode-panel="audit"' not in mode_panels:
-        errors.append("admin_change_form_mode_panels.html must keep the Audit mode panel")
     rail = _read("templates/admin/includes/admin_change_form_rail.html")
     if "admin_preview_card_stage.html" in rail or 'data-rmc-django-rail-preview="1"' in rail or "rmc-django-preview-card" in rail:
         errors.append("admin_change_form_rail.html must not include staged Live preview")
@@ -413,20 +412,30 @@ def main() -> int:
         errors.append("admin_changelist_rail.html must include page-aware rail cards")
     if 'data-rmc-django-view="preview"' in change_form:
         errors.append("admin/change_form.html must not expose a Preview view toggle without a real preview")
+    if "rmc-django-view-toggle" in change_form or "admin_change_form_mode_panels.html" in change_form:
+        errors.append("admin/change_form.html must not ship Form/Audit toggle chrome (v15 Admin OS)")
     metrics = _read("templates/admin/includes/admin_workspace_metrics_strip.html")
     if '{% trans "Stage" %}' in metrics or ">Stage<" in metrics:
         errors.append("admin_workspace_metrics_strip.html must not claim Preview/Stage when preview is removed")
     tools = _read("templates/admin/includes/admin_workspace_tools.html")
     if 'data-rmc-django-view-jump="preview"' in tools or "data-rmc-django-preview-open" in tools:
         errors.append("admin_workspace_tools.html must not expose staged preview tools")
-    if "admin_workspace_metrics_strip.html" not in change_form:
-        errors.append("admin/change_form.html must include workspace metrics strip")
+    if "data-rmc-django-rail-live" not in _read("templates/admin/includes/admin_page_aware_rail_cards.html"):
+        errors.append("admin_page_aware_rail_cards.html must mark live-rail cards (v15 I9)")
+    if 'data-rmc-django-rail-page="1"' in _read("templates/admin/includes/admin_page_aware_rail_cards.html"):
+        errors.append("admin_page_aware_rail_cards.html must not ship boundary manifesto card (v15 I9)")
+    if "rmc-admin-disclosure" not in _read("static/js/rmc-admin-workspace.js"):
+        errors.append("rmc-admin-workspace.js M2M condensation must use rmc-admin-disclosure (v15 I6)")
+    if "admin_workspace_metrics_strip.html" in change_form or "admin_workspace_metrics_strip.html" in change_list:
+        errors.append("change_form/change_list must not include metrics strip (v15 zero fluff)")
     if "admin_workspace_tools.html" not in change_form:
         errors.append("admin/change_form.html must include 48px workspace tools")
-    if "admin_workspace_metrics_strip.html" not in change_list:
-        errors.append("admin/change_list.html must include workspace metrics strip")
     if "admin_workspace_tools.html" not in change_list:
         errors.append("admin/change_list.html must include 48px workspace tools")
+    if 'data-rmc-admin-archetype="edit"' not in change_form:
+        errors.append("admin/change_form.html must set data-rmc-admin-archetype=edit")
+    if 'data-rmc-admin-archetype="scan"' not in change_list:
+        errors.append("admin/change_list.html must set data-rmc-admin-archetype=scan")
     if 'data-rmc-django-table-pagination="1"' not in change_list:
         errors.append("admin/change_list.html must nest pagination inside table panel")
     if "{% block pagination %}" in change_list[change_list.find("{% block footer %}"):] if "{% block footer %}" in change_list else "":
@@ -446,8 +455,45 @@ def main() -> int:
     workspace_js = _read("static/js/rmc-admin-workspace.js")
     if 'if (mode === "preview") mode = "form";' not in workspace_js:
         errors.append("rmc-admin-workspace.js must refuse staged preview mode (map to form)")
-    if "data-rmc-django-view-mode" not in workspace_js or "setViewMode" not in workspace_js:
-        errors.append("rmc-admin-workspace.js must wire Form/Audit view mode")
+    innovations_js = _read("static/js/rmc-admin-os-innovations.js")
+    if "initSelectionGravity" not in innovations_js or "initKeymap" not in innovations_js:
+        errors.append("rmc-admin-os-innovations.js must ship selection gravity + keymap (v15 waves 2–4)")
+    if "rmc-admin-os-innovations.js" not in base_site:
+        errors.append("base_site must load rmc-admin-os-innovations.js after workspace.js")
+    if "rmc-admin-model-policy.js" not in base_site:
+        errors.append("base_site must load rmc-admin-model-policy.js (v15 I11)")
+    if 'data-rmc-admin-keymap-open="1"' not in tools:
+        errors.append("admin_workspace_tools.html must use ? for keymap (data-rmc-admin-keymap-open)")
+    if 'data-rmc-command-bar-trigger="1"' in tools and 'title="{% trans \'Command palette\' %}"' in tools:
+        errors.append("admin_workspace_tools.html ? must not open command palette (use keymap)")
+    try:
+        from scripts.verify_admin_os_three_click_sla import main as _three_click_main
+    except ImportError:
+        import importlib.util
+
+        _tc = ROOT / "scripts" / "verify_admin_os_three_click_sla.py"
+        spec = importlib.util.spec_from_file_location("verify_admin_os_three_click_sla", _tc)
+        mod = importlib.util.module_from_spec(spec)
+        assert spec and spec.loader
+        spec.loader.exec_module(mod)
+        _three_click_main = mod.main
+    if _three_click_main() != 0:
+        errors.append("verify_admin_os_three_click_sla.py failed (Discover catalog must be ≤3-click reachable)")
+    if 'data-rmc-admin-pins="1"' not in _read("templates/admin/index_superadmin.html"):
+        errors.append("index_superadmin.html must mount pin/recent row (v15 I7)")
+    if 'data-rmc-admin-pins="1"' not in _read("templates/admin/index_tenant.html"):
+        errors.append("index_tenant.html must mount pin/recent row (v15 I7)")
+    if 'data-rmc-admin-selection-gravity="1"' not in change_list:
+        errors.append("change_list.html must mark selection gravity root (v15 I1)")
+    if 'data-rmc-admin-row-peek="1"' not in change_list:
+        errors.append("change_list.html must mark row peek root (v15 I2)")
+    if 'data-rmc-admin-section-radar="1"' not in change_form:
+        errors.append("change_form.html must mark section radar root (v15 I4)")
+    if 'data-rmc-admin-focus-root="1"' not in change_form:
+        errors.append("change_form.html must mark focus mode root (v15 I5)")
+    if "is-bulk-active" not in approval_css or "rmc-admin-os-sheet" not in approval_css:
+        errors.append("approval v15 CSS must include waves 2–4 innovation styles")
+    # setViewMode may remain for legacy; Form/Audit chrome is banned in templates (v15)
     if 'data-rmc-admin-table-contract="native-table-scroll"' not in change_list:
         errors.append("admin/change_list.html missing native table scroll marker")
     if 'data-rmc-django-workspace="change-list"' not in change_list:
@@ -570,12 +616,13 @@ def _audit_intelligent_index_surfaces() -> list[str]:
         'data-rmc-admin-surface="smart-index"',
         'data-rmc-django-workspace="admin-index"',
         'data-rmc-django-command-band="admin-index"',
+        'data-rmc-admin-archetype="discover"',
         'data-rmc-admin-index-canvas="tenant"',
         "rmc-admin-catalog-index",
         "Configuration &amp; records",
-        "School configuration engine",
         "admin_catalog",
-        'surface="admin-index"',
+        "rmc_info_tag",
+        "This school only",
     ):
         if token not in tenant_index:
             errors.append(f"templates/admin/index_tenant.html missing intelligent index token: {token}")
@@ -584,6 +631,10 @@ def _audit_intelligent_index_surfaces() -> list[str]:
         errors.append("templates/admin/index_tenant.html must not use the empty Raw model CRUD-only hero")
     if "Tenant model catalog" in tenant_index or "Tenant Administration" in tenant_index:
         errors.append("templates/admin/index_tenant.html must use school configuration engine identity (not Tenant Administration)")
+    if "cp-steering" in tenant_index or "admin_index_context_rail.html" in tenant_index:
+        errors.append("templates/admin/index_tenant.html Discover must not include steering/rail fluff")
+    if "cp-kpi-strip" in tenant_index:
+        errors.append("templates/admin/index_tenant.html Discover must not include KPI strip fluff")
 
     if "def index(self, request, extra_context=None):" not in admin_py:
         errors.append("config/admin.py TenantAdminSite must override index for catalog context")
@@ -613,18 +664,24 @@ def _audit_intelligent_index_surfaces() -> list[str]:
         errors.append("templates/admin/index_superadmin.html missing catalog index marker")
     if 'data-rmc-django-command-band="admin-index"' not in operator_index:
         errors.append("templates/admin/index_superadmin.html missing admin-index command band")
+    if 'data-rmc-admin-archetype="discover"' not in operator_index:
+        errors.append("templates/admin/index_superadmin.html must set discover archetype")
     if 'data-rmc-admin-index-canvas="operator"' not in operator_index:
         errors.append("templates/admin/index_superadmin.html missing operator index canvas wrapper")
-    if "admin_index_context_rail.html" not in operator_index:
-        errors.append("templates/admin/index_superadmin.html must include shared index context rail")
-    if "admin_index_context_rail.html" not in tenant_index:
-        errors.append("templates/admin/index_tenant.html must include shared index context rail")
+    if "cp-steering" in operator_index or "admin_index_context_rail.html" in operator_index:
+        errors.append("templates/admin/index_superadmin.html Discover must not include steering/rail fluff")
+    if "admin_v1_index_surface_previews.html" in operator_index:
+        errors.append("templates/admin/index_superadmin.html must not include surface preview fluff")
+    if "admin_workspace_tools.html" in operator_index or "admin_workspace_tools.html" in tenant_index:
+        errors.append("Discover indexes must not include tools column (v15 1-col)")
 
     base = _read("templates/admin/base.html")
-    if "tenant_admin_decision_banner" not in base or 'un == "changelist"' not in base:
-        errors.append("admin/base.html must show tenant decision banner only on changelist/change/add")
+    if "tenant_admin_decision_banner.html" in base:
+        errors.append("admin/base.html must not inject tenant_admin_decision_banner (v15 zero fluff)")
     if 'data-rmc-django-workspace="delete-confirm"' not in _read("templates/admin/delete_selected_confirmation.html"):
         errors.append("delete_selected_confirmation.html must use rmc-django-workspace delete-confirm markers")
+    if 'data-rmc-admin-archetype="decide"' not in _read("templates/admin/delete_selected_confirmation.html"):
+        errors.append("delete_selected_confirmation.html must set decide archetype")
 
     # Continuous leftovers loop gate (operator + tenant left-behind surfaces)
     try:

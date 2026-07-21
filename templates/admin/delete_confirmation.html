@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_urls static %}
+{% load i18n admin_urls static rmc_explain_tags %}
 
 {% block extrahead %}
   {{ block.super }}
@@ -10,44 +10,42 @@
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="delete-confirm" data-rmc-admin-surface="smart-delete" data-rmc-scroll-policy="paginate">
-  <section class="rmc-django-command-band" data-rmc-django-command-band="delete-confirm" aria-label="{% trans 'Delete confirmation' %}">
-    <div class="rmc-django-command-band__copy">
-      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
-      <h1 class="rmc-django-command-band__title">{% blocktrans with name=object %}Delete {{ name }}?{% endblocktrans %}</h1>
-      <small>{% if is_manager_host %}{% trans "Confirm deletion of this platform record and related objects." %}{% else %}{% trans "Confirm deletion of this school record and related objects." %}{% endif %}</small>
-    </div>
-    <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
-      <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "This school only" %}{% endif %}</span>
-      <span>{% trans "Destructive" %}</span>
-    </div>
-  </section>
-
-  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
-    <div class="rmc-admin-index-main" data-rmc-django-form-panel="1" id="content-main">
-      {% if perms_lacking %}
-        <p>{% blocktrans with escaped_object=object %}Deleting the {{ object_name }} '{{ escaped_object }}' would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
-        <ul id="deleted-objects">{{ perms_lacking|unordered_list }}</ul>
-      {% elif protected %}
-        <p>{% blocktrans with escaped_object=object %}Deleting the {{ object_name }} '{{ escaped_object }}' would require deleting the following protected related objects:{% endblocktrans %}</p>
-        <ul id="deleted-objects">{{ protected|unordered_list }}</ul>
-      {% else %}
-        <p>{% blocktrans with escaped_object=object %}Are you sure you want to delete the {{ object_name }} "{{ escaped_object }}"? All of the following related items will be deleted:{% endblocktrans %}</p>
-        {% include "admin/includes/object_delete_summary.html" %}
-        <h2>{% trans "Objects" %}</h2>
-        <ul id="deleted-objects">{{ deleted_objects|unordered_list }}</ul>
-        <form method="post">{% csrf_token %}
-          <div>
+{% comment %}v15 Decide archetype: one centered card · confirm/cancel only · no tools · no manifesto.{% endcomment %}
+<div class="rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="delete-confirm" data-rmc-admin-surface="smart-delete" data-rmc-admin-archetype="decide" data-rmc-scroll-policy="paginate">
+  <div class="rmc-admin-decide-canvas" data-rmc-admin-decide-canvas="1" id="content-main">
+    <section class="rmc-admin-decide-card" aria-labelledby="rmc-decide-title">
+      <div class="rmc-admin-decide-card__head">
+        <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %}</span>
+        <h1 id="rmc-decide-title">{% blocktrans with name=object %}Delete {{ name }}?{% endblocktrans %}
+          {% trans "Delete confirmation" as tip_del_title %}
+          {% blocktrans asvar tip_del_body %}This cannot be undone from this screen. Related objects listed below will also be removed when permitted.{% endblocktrans %}
+          {% rmc_info_tag title=tip_del_title body=tip_del_body surface="django-admin" placement="bottom" %}
+        </h1>
+      </div>
+      <div class="rmc-admin-decide-card__body">
+        {% if perms_lacking %}
+          <p>{% blocktrans with escaped_object=object %}Deleting the {{ object_name }} '{{ escaped_object }}' would result in deleting related objects, but your account doesn't have permission to delete the following types of objects:{% endblocktrans %}</p>
+          <ul id="deleted-objects">{{ perms_lacking|unordered_list }}</ul>
+        {% elif protected %}
+          <p>{% blocktrans with escaped_object=object %}Deleting the {{ object_name }} '{{ escaped_object }}' would require deleting the following protected related objects:{% endblocktrans %}</p>
+          <ul id="deleted-objects">{{ protected|unordered_list }}</ul>
+        {% else %}
+          <p>{% blocktrans with escaped_object=object %}Are you sure you want to delete the {{ object_name }} "{{ escaped_object }}"? All of the following related items will be deleted:{% endblocktrans %}</p>
+          {% include "admin/includes/object_delete_summary.html" %}
+          <details class="rmc-admin-disclosure" open>
+            <summary>{% trans "1 · Related objects" %}</summary>
+            <ul id="deleted-objects">{{ deleted_objects|unordered_list }}</ul>
+          </details>
+          <form method="post" class="rmc-admin-decide-actions">{% csrf_token %}
             <input type="hidden" name="post" value="yes">
             {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1">{% endif %}
             {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">{% endif %}
-            <input type="submit" value="{% trans 'Yes, I’m sure' %}">
-            <a href="{% url opts|admin_urlname:'change' object.pk|admin_urlquote %}" class="button cancel-link">{% trans "No, take me back" %}</a>
-          </div>
-        </form>
-      {% endif %}
-    </div>
-    {% include "admin/includes/admin_workspace_tools.html" with surface="admin-index" %}
+            <button type="submit" class="rmc-django-band-action rmc-django-band-action--danger">{% trans 'Yes, I’m sure' %}</button>
+            <a href="{% url opts|admin_urlname:'change' object.pk|admin_urlquote %}" class="rmc-django-band-action">{% trans "Cancel" %}</a>
+          </form>
+        {% endif %}
+      </div>
+    </section>
   </div>
 </div>
 {% endblock %}

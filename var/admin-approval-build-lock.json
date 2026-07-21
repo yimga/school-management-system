@@ -1,21 +1,24 @@
 {
-  "build_id": "2026-07-21-v13",
-  "cache_bust": "20260721-admin-density-full-fill-v13b",
-  "sw_version": "sms-v4.05.167-admin-density-v13b-2026-07-21",
-  "seal": "2026-07-21-density-full-fill-v13",
+  "build_id": "2026-07-21-v15.2",
+  "cache_bust": "20260721-admin-os-v152",
+  "sw_version": "sms-v4.05.170-admin-os-v152-2026-07-21",
+  "seal": "2026-07-21-admin-os-v152",
   "approval_previews": [
+    "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
     "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-07-21-v13\"",
-    "v13 \u00b7 density+full-fill \u00b7 operator+tenant",
-    "Staff accounts",
-    "Search school settings, people, academics",
-    "rmc-admin-approval-surface-v13.css",
+    "data-rmc-admin-approval-build=\"2026-07-21-v15.2\"",
+    "v15.2 · Admin OS · operator+tenant",
+    "data-rmc-admin-archetype=\"discover\"",
+    "data-rmc-admin-archetype=\"scan\"",
+    "data-rmc-admin-archetype=\"edit\"",
+    "rmc-admin-approval-surface-v15.css",
+    "rmc-admin-os-innovations.js",
     "Platform Backoffice",
     "rmc-admin-transfer-panel",
-    "--rmc-admin-v13-transfer-h"
+    "rmc_info_tag"
   ],
   "hosts": [
     "operator",

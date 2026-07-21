@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n rmc_explain_tags %}
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
@@ -9,32 +9,26 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-<div class="admin-app-index rmc-admin-app-index rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="app-index" data-rmc-admin-surface="smart-app-index" data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-scroll-policy="paginate">
+{% comment %}v15 Dossier: 2-col app models · no manifesto · tools = ⌘K + ↑ only.{% endcomment %}
+<div class="admin-app-index rmc-admin-app-index rmc-django-workspace rmc-django-canvas" data-rmc-django-workspace="app-index" data-rmc-admin-surface="smart-app-index" data-rmc-admin-archetype="dossier" data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-scroll-policy="paginate">
   <section class="rmc-django-command-band" data-rmc-django-command-band="app-index" aria-label="{% if is_manager_host %}{% trans 'App catalog command surface' %}{% else %}{% trans 'School records for this app' %}{% endif %}">
     <div class="rmc-django-command-band__copy">
-      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
-      <h1 class="rmc-django-command-band__title">{{ title }}</h1>
-      {% firstof app_list.0.name title as app_label_copy %}
-      {% if is_manager_host %}
-      <small>{% blocktranslate with app=app_label_copy %}Models in {{ app }}. Prefer guided surfaces when available; use changelist for raw row access.{% endblocktranslate %}</small>
-      {% else %}
-      <small>{% blocktranslate with app=app_label_copy %}{{ app }} records for this school. Open a list to manage rows, or Add when you need a new record.{% endblocktranslate %}</small>
-      {% endif %}
+      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %}</span>
+      <strong>
+        {{ title }}
+        {% firstof app_list.0.name title as app_label_copy %}
+        {% blocktrans trimmed asvar tip_app_body with app=app_label_copy %}Models in {{ app }}. Open a changelist for raw rows, or Add for a new record.{% endblocktrans %}
+        {% rmc_info_tag title=_("This app") body=tip_app_body surface="django-admin" placement="bottom" %}
+      </strong>
     </div>
-    <div class="rmc-django-command-band__meta" aria-label="{% trans 'Surface status' %}">
+    <div class="rmc-django-command-band__meta" aria-label="{% trans 'App actions' %}">
+      <a class="rmc-django-band-action" href="{% url 'admin:index' %}">← {% if is_manager_host %}{% trans "Catalog" %}{% else %}{% trans "School catalog" %}{% endif %}</a>
       <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "This school only" %}{% endif %}</span>
-      <span>{% if is_manager_host %}{% trans "App catalog" %}{% else %}{% trans "School records" %}{% endif %}</span>
     </div>
   </section>
 
-  <div class="rmc-admin-index-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
-    <div class="rmc-admin-index-main" data-rmc-django-primary-panel="1">
-      <div class="admin-app-index__back mb-2">
-        <a href="{% url 'admin:index' %}" class="text-decoration-none small">
-          <span aria-hidden="true">←</span> {% if is_manager_host %}{% trans "Back to platform catalog" %}{% else %}{% trans "Back to school catalog" %}{% endif %}
-        </a>
-      </div>
-
+  <div class="rmc-admin-dossier-canvas" data-rmc-admin-index-canvas="{% if is_manager_host %}operator{% else %}tenant{% endif %}">
+    <div class="rmc-admin-index-main" data-rmc-django-primary-panel="1" id="content-main">
       <section id="rmc-admin-app-index-models" data-rmc-section-anchor>
       {% if admin_app_index_models %}
       <div class="rmc-admin-catalog-model-grid mb-3">

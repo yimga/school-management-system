@@ -1,5 +1,33 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Admin OS v15.2 Waves 0–4 (batch 1774 - 2026-07-21)
+
+**A. Scope:** Finish approved Admin OS v15.1 board end-to-end — Wave 0 OS contracts through Wave 4 (all 12 innovations) on operator + tenant `/admin/`.
+
+**B. Shipped:** Wave 0–1 retained (archetypes, I6/I9, kill matrix, ⓘ). Wave 2: I1 bulk dock, I3 dirty Save, I8 keymap. Wave 3: I2 peek (thead labels), I4 radar, I5 focus. Wave 4: I7 pins/recent, I10 host accent, I11 model policy, I12 three-click verifier. Discover band `?` keymap. Build `v15.2` / SW `sms-v4.05.170-admin-os-v152-2026-07-21`.
+
+**C. Proof:** `verify_admin_os_three_click_sla` PASS; preview parity PASS; canvas contract PASS; miss-nothing PASS; SW monotonic OK. **Follow-up audit (same day):** `scripts/audit_admin_os_cross_wave.py` → **ADMIN_OS_CROSS_WAVE_AUDIT_PASS** (OK=77 WARN=0 FAIL=0) covering Waves 0–4 markers, fluff bans, op/tenant CTA parity, build lock/SW/CSS seal, all 8 inits wired, template compile + page-aware tests.
+
+**D. Honest:** Live Playwright blur/3-click still operator-gated; bulk dock needs admin actions; pin seeds heuristic.
+
+**E. Files:** `rmc-admin-os-innovations.js`, `rmc-admin-model-policy.js`, v15 CSS waves block, admin templates (index/list/form/tools/base_site), three-click verifier, canvas audit, lock/SW/SOT/log.
+
+**F. Next:** Hard-refresh both hosts and walk Index → Users → Change → Delete; commit when asked.
+
+## Slice — Admin OS v15.1 Wave 1 (batch 1773 - 2026-07-21)
+
+**A. Scope:** Ship approved Admin OS v15 Wave 1 end-to-end on operator + tenant `/admin/` — full-width job archetypes, zero fluff, education via ⓘ, I6 disclosure + I9 live rail.
+
+**B. Shipped:** Discover/Scan/Edit/Audit/Decide/Dossier shells; kill metrics/steering/Form-Audit/decision-banner; tools kill matrix; live rail facts+pulse only; M2M numbered disclosure; v15 CSS owner; build lock `2026-07-21-v15.1`; SW `sms-v4.05.169-admin-os-v151-2026-07-21`.
+
+**C. Proof:** `verify_django_admin_preview_parity` PASS; `audit_django_admin_canvas_contract` PASS; `audit_django_admin_miss_nothing` PASS; `test_admin_page_aware_rail` 6 OK; `verify_service_worker_version --check-monotonic` (run after).
+
+**D. Honest:** Closed in batch **1774** (Waves 2–4). Live browser blur-test still operator-gated when Django/login unavailable.
+
+**E. Files:** admin templates (index/list/form/history/delete/app_index/tools/rails), `rmc-admin-approval-surface-v15.css`, `rmc-admin-workspace.js`, `admin_page_aware_rail.py`, canvas/parity/miss-nothing/sweep scripts, SW + lock + SOT/log.
+
+**F. Next:** Prove on both hosts (Users list + Change user + Delete + Index); then Wave 2 (selection gravity + dirty Save + page keymap) if approved.
+
 ## Slice — Migration Cloud academics + bundle audit + multi-intake (batch 1772 - 2026-07-20)
 
 **A. Scope:** Second rigorous Migration Cloud pass after 1771 — close academics canonical-domain gap, advance/apply audit emission, and expand intake-method UAT beyond CSV/ZIP.

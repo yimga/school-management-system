@@ -1,23 +1,11 @@
 {% load i18n rmc_explain_tags %}
 {% comment %}
-  Page-aware rail: facts + pulse. Education via ⓘ — no duplicate manifesto prose.
+  v15 I9 live rail only: facts + pulse that change actions.
+  No Scope/boundary manifesto card. Education via ⓘ on the page title row.
+  Related-outcome links only on guided surfaces (Decide/guided actions).
 {% endcomment %}
 {% if rail %}
-<div class="rmc-rail-card" data-rmc-django-rail-page="1">
-  <div class="rmc-rail-h">
-    {{ rail.boundary_title }}
-    {% if rail.boundary_hint %}
-    {% rmc_info_tag title=rail.boundary_title body=rail.boundary_hint surface="django-admin" placement="left" %}
-    {% endif %}
-  </div>
-  <div class="rmc-rail-b">
-    <div class="rmc-rail-scope">
-      <strong class="truncate">{{ rail.boundary_strong }}</strong>
-    </div>
-  </div>
-</div>
-
-<div class="rmc-rail-card" data-rmc-django-rail-this-page="1">
+<div class="rmc-rail-card" data-rmc-django-rail-this-page="1" data-rmc-django-rail-live="1">
   <div class="rmc-rail-h">
     {% if rail.surface == "change-list" %}{% trans "This list" %}{% elif rail.surface == "index" %}{% trans "This catalog" %}{% elif rail.surface == "app-index" %}{% trans "This app" %}{% elif rail.surface == "guided" %}{% trans "This action" %}{% else %}{% trans "This record" %}{% endif %}
     {% if rail.page_lede %}
@@ -25,9 +13,11 @@
     {% endif %}
   </div>
   <div class="rmc-rail-b">
+    {% if rail.boundary_strong %}
     <div class="rmc-rail-scope">
-      <strong class="wrap">{{ rail.page_title }}</strong>
+      <strong class="truncate">{{ rail.boundary_strong }}</strong>
     </div>
+    {% endif %}
     {% if rail.facts %}
     <dl class="rmc-django-rail-facts" data-rmc-django-rail-facts="1">
       {% for fact in rail.facts %}
@@ -49,7 +39,7 @@
 </div>
 
 {% if rail.pulse_enabled %}
-<div class="rmc-rail-card" data-rmc-django-rail-pulse-card="1">
+<div class="rmc-rail-card" data-rmc-django-rail-pulse-card="1" data-rmc-django-rail-live="1">
   <div class="rmc-rail-h">{% trans "Form pulse" %}</div>
   <div class="rmc-rail-b">
     <dl class="rmc-django-rail-facts" data-rmc-django-rail-pulse="1" aria-live="polite"
@@ -72,8 +62,8 @@
 </div>
 {% endif %}
 
-{% if rail.guided %}
-<div class="rmc-rail-card" data-rmc-django-rail-guided="1">
+{% if rail.guided and rail.surface == "guided" %}
+<div class="rmc-rail-card" data-rmc-django-rail-guided="1" data-rmc-django-rail-live="1">
   <div class="rmc-rail-h">{% trans "Related outcomes" %}</div>
   <div class="rmc-rail-b">
     <nav class="rmc-django-rail-links" aria-label="{% trans 'Related outcomes' %}">

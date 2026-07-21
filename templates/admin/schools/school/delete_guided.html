@@ -7,12 +7,10 @@
 
 {% with guided_rail_title="Permanent delete blocked" guided_rail_lede="Use Tenant 360 offboarding — admin hard-delete bypasses inventory and audit." %}
 <div class="rmc-admin-workspace rmc-django-workspace rmc-django-canvas" data-rmc-admin-workspace-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-admin-surface="smart-guided" data-rmc-django-workspace="guided" data-rmc-scroll-policy="paginate">
-  {% include "admin/includes/admin_workspace_metrics_strip.html" with surface="change-form" hide_workspace_head=True %}
   <section class="rmc-django-command-band" data-rmc-django-command-band="guided" aria-label="{% trans 'Guided delete command surface' %}">
     <div class="rmc-django-command-band__copy">
-      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Operator backend" %}{% else %}{% firstof SITE.site_name _("School configuration") %}{% endif %}</span>
-      <h1 class="rmc-django-command-band__title">{% trans "Permanent delete requires offboarding workflow" %}</h1>
-      <small>{% blocktrans with name=object.name %}Deleting school <strong>{{ name }}</strong> from Django admin bypasses inventory, schema drop, and audit receipts.{% endblocktrans %}</small>
+      <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %}</span>
+      <strong>{% trans "Permanent delete requires offboarding workflow" %}</strong>
     </div>
   </section>
 

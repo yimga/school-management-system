@@ -1,0 +1,1385 @@
+/* ============================================================
+   Django admin approval surface v15 — Admin OS
+   2026-07-21-admin-os-v152
+   SOT: var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html
+   Extends v13 full-fill + density with page-aware archetypes:
+   discover / scan / edit / audit / decide / dossier
+   ============================================================ */
+
+
+:root {
+  --rmc-admin-v12-gap: 0.5rem;
+  --rmc-admin-v12-tools: 2.35rem;
+  --rmc-admin-v12-operator-rail: minmax(9.2rem, 17%);
+  --rmc-admin-v12-tenant-rail: minmax(9.5rem, 18%);
+}
+
+/* The shell and every wrapper between its canvas and the page workspace fill
+   the available inline axis. No Tailwind container/max-width may recenter it. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell),
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  > [data-rmc-shell-root="django-admin"],
+[data-rmc-shell-root="django-admin"] :is(
+  .rmc-app-shell__canvas,
+  .rmc-app-shell__canvas-body,
+  .rmc-shell-canvas-container,
+  .cp-page-body,
+  .cp-admin-page-body,
+  .rmc-tenant-admin-page-body,
+  #cp-main-content,
+  #content
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] #content:is(.container, .mx-auto),
+[data-rmc-shell-root="django-admin"] .rmc-shell-canvas-container:is(.container, .mx-auto) {
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+@media (min-width: 1025px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    > [data-rmc-shell-root="django-admin"].rmc-app-shell {
+    grid-template-columns:
+      var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px))
+      minmax(0, 1fr) !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] > .rmc-app-shell__header {
+    grid-column: 1 / -1 !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] > .rmc-app-shell__sidebar {
+    grid-column: 1 !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] > .rmc-app-shell__canvas {
+    grid-column: 2 !important;
+  }
+}
+
+/* One workspace grid only: main | contextual rail | tools. */
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-admin-index-canvas="operator"],
+  [data-rmc-django-workspace="change-list"],
+  [data-rmc-django-workspace="change-form"]
+) {
+  display: grid !important;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(9.2rem, 17%)
+    2.35rem !important;
+  gap: var(--rmc-admin-v12-gap) !important;
+  align-items: start !important;
+  align-content: start !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-admin-index-canvas="tenant"],
+  [data-rmc-admin-workspace-scope="tenant"][data-rmc-django-workspace="change-list"],
+  [data-rmc-admin-workspace-scope="tenant"][data-rmc-django-workspace="change-form"]
+) {
+  display: grid !important;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(9.5rem, 18%)
+    2.35rem !important;
+  gap: var(--rmc-admin-v12-gap) !important;
+  align-items: start !important;
+  align-content: start !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+/* Workspace headings are canvas-wide. They never become anonymous grid items
+   which push the main panel into an implicit row or column. */
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-admin-index-canvas],
+  [data-rmc-django-workspace="change-list"],
+  [data-rmc-django-workspace="change-form"]
+) > :is(
+  [data-rmc-django-workspace-head],
+  [data-rmc-django-metrics],
+  [data-rmc-django-command-band]
+) {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+}
+
+/* Direct grid ownership. */
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-admin-index-canvas],
+  [data-rmc-django-workspace="change-list"],
+  [data-rmc-django-workspace="change-form"]
+) > :is(
+  .rmc-admin-index-main,
+  [data-rmc-django-primary-panel],
+  [data-rmc-django-table-panel],
+  [data-rmc-django-form-panel]
+) {
+  grid-column: 1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+  justify-self: stretch !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-admin-index-canvas],
+  [data-rmc-django-workspace="change-list"],
+  [data-rmc-django-workspace="change-form"]
+) > [data-rmc-django-side-panel] {
+  grid-column: 2 !important;
+  grid-row: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  position: static !important;
+  inset: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-admin-index-canvas],
+  [data-rmc-django-workspace="change-list"],
+  [data-rmc-django-workspace="change-form"]
+) > [data-rmc-django-tools] {
+  grid-column: 3 !important;
+  grid-row: auto !important;
+  width: var(--rmc-admin-v12-tools) !important;
+  min-width: var(--rmc-admin-v12-tools) !important;
+  max-width: var(--rmc-admin-v12-tools) !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+}
+
+/* Hidden view-mode panels must not generate an implicit grid track. */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-mode-panel][hidden] {
+  display: none !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-mode-panel]:not([hidden]) {
+  grid-column: 1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Changelist: every wrapper fills the primary track. The Unfold filter is a
+   genuine on-demand sheet; it never reserves a second invisible column. */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"] :is(
+  [data-rmc-django-table-panel],
+  #changelist,
+  .result-list-wrapper,
+  .changelist-form-container,
+  .rmc-admin-changelist-main,
+  #changelist-form,
+  .results,
+  .results > div
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+  flex-basis: 100% !important;
+  flex-grow: 1 !important;
+}
+
+/* Unfold's `.filtered` rule turns #changelist into a 1fr|300px grid even when
+   its filter sheet is hidden inside the only child. That empty second track is
+   the remaining left-aligned-table/right-void defect. */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  #changelist {
+  display: block !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  :is(.result-list-wrapper, .changelist-form-container) {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 0 !important;
+  padding-inline: 0 !important;
+  overflow: visible !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  .rmc-admin-changelist-main {
+  overflow: visible !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  #changelist-filter {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1050 !important;
+  width: 100vw !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  flex: none !important;
+  margin: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  #changelist-filter > :last-child {
+  width: min(24rem, calc(100vw - 2rem)) !important;
+  max-width: min(24rem, calc(100vw - 2rem)) !important;
+  margin-left: auto !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  :is(.results, #changelist-form) {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  :is(#result_list, .results table) {
+  display: table !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  table-layout: fixed !important;
+  border-collapse: collapse !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  :is(#result_list thead, #result_list tbody) {
+  display: table-row-group !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  #result_list thead {
+  display: table-header-group !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  #result_list tr {
+  display: table-row !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+  #result_list :is(th, td) {
+  display: table-cell !important;
+  float: none !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+
+/* Forms: fieldsets use the whole primary track. Only real field rows form the
+   approval's smart two-column field grid. */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"] :is(
+  [data-rmc-django-form-panel],
+  [data-rmc-django-form-panel] > form,
+  [data-rmc-django-form-body]
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+}
+
+/* The form panel itself is one vertical flow. Older generations made it a
+   fields|save-sidebar grid, which recreated the narrow left form and floating
+   action wall shown in the rejected state. */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"]
+  [data-rmc-django-form-panel] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 0.75rem !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-form"]
+  [data-rmc-django-form-panel] > form {
+  display: block !important;
+  flex: 1 1 auto !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 1rem !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] > :is(
+  fieldset,
+  .module,
+  .aligned,
+  .inline-group,
+  .flex,
+  .form-row
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+  grid-column: 1 / -1 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] .form-rows {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.85rem 1rem !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
+  .form-rows > .form-row {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  grid-column: span 1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
+  .form-rows > .form-row:has(:is(
+    textarea,
+    .vLargeTextField,
+    .selector,
+    .related-widget-wrapper,
+    .readonly,
+    [multiple]
+  )) {
+  grid-column: 1 / -1 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  select,
+  textarea,
+  .related-widget-wrapper,
+  .selector
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Compact Save is part of the form panel flow, never a floating/sticky wall. */
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-django-actions-slot],
+  [data-rmc-admin-submit-contract="sticky-safe-actions"],
+  .rmc-admin-submit-row,
+  .rmc-admin-submit-row__inner,
+  .rmc-django-actions[data-rmc-django-actions="static"]
+) {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+  overflow: visible !important;
+}
+
+[data-rmc-shell-root="django-admin"] .rmc-django-save-compact {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+}
+
+/* Catalogs fill the main track; auto-fit cards consume every available row. */
+[data-rmc-shell-root="django-admin"] :is(
+  .rmc-admin-catalog-model-grid,
+  .admin-app-index__grid,
+  .rmc-admin-domain-grid,
+  .rmc-admin-catalog-grid
+) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)) !important;
+  gap: 0.75rem !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is(
+  .rmc-admin-catalog-model-card,
+  .admin-app-index__card,
+  .rmc-admin-domain-card
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Page-owned rails and actions may be long, but they must remain in document
+   flow. This prevents repeated bands during full-page capture and nested
+   scrollbars inside the canvas. */
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-django-side-panel],
+  [data-rmc-django-tools],
+  [data-rmc-django-actions-slot]
+) {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  :is(
+    [data-rmc-admin-index-canvas],
+    [data-rmc-django-workspace="change-list"],
+    [data-rmc-django-workspace="change-form"]
+  ) > :is([data-rmc-django-side-panel], [data-rmc-django-tools]) {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  overscroll-behavior: auto !important;
+}
+
+/* Approval breakpoint: a single usable column at 1024px and below. */
+@media (max-width: 1024px) {
+  [data-rmc-shell-root="django-admin"] :is(
+    [data-rmc-admin-index-canvas],
+    [data-rmc-django-workspace="change-list"],
+    [data-rmc-django-workspace="change-form"]
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] :is(
+    [data-rmc-admin-index-canvas],
+    [data-rmc-django-workspace="change-list"],
+    [data-rmc-django-workspace="change-form"]
+  ) > * {
+    grid-column: 1 / -1 !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-tools] {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Beat legacy #cp-main-content desktop rules that remain active exactly at
+     1024px. The ID is deliberate: those older rules also use the ID plus host
+     and page classes with !important. */
+  html[data-rmc-admin-html="unfold"] body.admin-manager-shell:is(.change-list, .change-form)
+    .admin-cp-unified-page #cp-main-content
+    :is(
+      [data-rmc-django-workspace="change-list"],
+      [data-rmc-django-workspace="change-form"]
+    ),
+  html[data-rmc-admin-html="unfold"] body.admin-premium-shell:is(.change-list, .change-form)
+    .admin-cp-unified-page #cp-main-content
+    :is(
+      [data-rmc-django-workspace="change-list"],
+      [data-rmc-django-workspace="change-form"]
+    ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  /* App-index canvases are nested one level below the workspace. Tenant
+     bundles still carry an ID-qualified desktop grid, so the responsive owner
+     needs the same #cp-main-content weight at the 1024px boundary. */
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    .admin-cp-unified-page #cp-main-content
+    [data-rmc-admin-index-canvas] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    .admin-cp-unified-page #cp-main-content
+    :is(
+      [data-rmc-admin-index-canvas],
+      [data-rmc-django-workspace="change-list"],
+      [data-rmc-django-workspace="change-form"]
+    ) > :is([data-rmc-django-side-panel], [data-rmc-django-tools]) {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-shell-root="django-admin"]
+    :is(
+      [data-rmc-admin-index-canvas],
+      [data-rmc-django-workspace="change-list"],
+      [data-rmc-django-workspace="change-form"]
+    ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-shell-root="django-admin"]
+    :is(
+      [data-rmc-admin-index-canvas],
+      [data-rmc-django-workspace="change-list"],
+      [data-rmc-django-workspace="change-form"]
+    ) > :is([data-rmc-django-side-panel], [data-rmc-django-tools]) {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Preserve useful breathing room without letting desktop panel padding
+     consume the narrow form canvas or detach Save actions from its edges. */
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    .admin-cp-unified-page #cp-main-content
+    [data-rmc-django-workspace="change-form"]
+    > [data-rmc-django-form-panel] {
+    padding-inline: 0.625rem !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] .form-rows {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
+    .form-rows > .form-row {
+    grid-column: 1 / -1 !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+    :is(.result-list-wrapper, .changelist-form-container) {
+    flex-direction: column !important;
+  }
+}
+
+/* v13 deploy proof chip — both admin indexes. */
+.rmc-admin-approval-build-chip,
+.rmc-admin-approval-build-chip[data-rmc-admin-approval-build="2026-07-21-v13"] {
+  display: inline-flex !important;
+}
+
+
+/* ============================================================
+   v13 DENSITY + INTELLIGENT FILL (2026-07-21)
+   Fixes: left-void from Unfold max-w-2xl, mile-tall .selector,
+   unnumbered sprawling M2M blocks, cramped-but-wasteful forms.
+   Platform-wide: operator + tenant change-form / list / index.
+   ============================================================ */
+
+[data-rmc-shell-root="django-admin"] {
+  --rmc-admin-v13-transfer-h: 10.5rem;
+  --rmc-admin-v13-m2m-pad: 0.65rem 0.85rem;
+}
+
+/* Kill Unfold widget width caps that leave a dead right half in MAIN. */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] :is(
+  input.max-w-2xl,
+  input.max-w-4xl,
+  select.max-w-2xl,
+  select.max-w-4xl,
+  textarea.max-w-2xl,
+  textarea.max-w-4xl,
+  .max-w-2xl,
+  .max-w-4xl
+) {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] :is(
+  .field-line,
+  .field-box,
+  .fieldBox,
+  .flex.flex-col.group,
+  .related-widget-wrapper
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Scalar form-rows: true 2-up across the MAIN track (not a skinny left column). */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] .form-rows.aligned {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.65rem 1rem !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
+  .form-rows.aligned > .form-row {
+  grid-column: span 1 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
+  .form-rows.aligned > .form-row:has(:is(
+    textarea,
+    .vLargeTextField,
+    .selector,
+    .related-widget-wrapper,
+    [multiple],
+    .w-full.flex,
+    .flex.gap-2.items-center:has(input[type="checkbox"])
+  )),
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
+  .form-rows.aligned > .form-row.grid,
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
+  .form-rows.aligned > details.rmc-admin-transfer-panel {
+  grid-column: 1 / -1 !important;
+}
+
+/* Height-capped transfer lists — never grow the page to fit every permission. */
+[data-rmc-shell-root="django-admin"] .selector {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+  gap: 0.5rem 0.65rem !important;
+  align-items: start !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+[data-rmc-shell-root="django-admin"] .selector :is(
+  .selector-available,
+  .selector-chosen
+) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] .selector select {
+  height: var(--rmc-admin-v13-transfer-h) !important;
+  max-height: var(--rmc-admin-v13-transfer-h) !important;
+  min-height: 8rem !important;
+  width: 100% !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+}
+
+[data-rmc-shell-root="django-admin"] select[multiple]:not(.selector select) {
+  max-height: var(--rmc-admin-v13-transfer-h) !important;
+  height: auto !important;
+  overflow-y: auto !important;
+  width: 100% !important;
+}
+
+/* Numbered collapsible transfer panels (JS wraps .form-row:has(.selector)). */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] {
+  counter-reset: rmc-admin-fs rmc-admin-m2m;
+}
+
+[data-rmc-shell-root="django-admin"] details.rmc-admin-transfer-panel {
+  counter-increment: rmc-admin-m2m;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0.35rem 0 0.65rem !important;
+  padding: var(--rmc-admin-v13-m2m-pad) !important;
+  border: 1px solid var(--hairline, rgba(148, 163, 184, 0.28)) !important;
+  border-radius: 0.85rem !important;
+  background: color-mix(in srgb, var(--surface-elevated, #111827) 70%, transparent) !important;
+  grid-column: 1 / -1 !important;
+}
+
+[data-rmc-shell-root="django-admin"] details.rmc-admin-transfer-panel > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text-primary, #e2e8f0);
+  padding: 0.15rem 0 0.35rem;
+}
+
+[data-rmc-shell-root="django-admin"] details.rmc-admin-transfer-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+[data-rmc-shell-root="django-admin"] details.rmc-admin-transfer-panel > summary::before {
+  content: counter(rmc-admin-m2m);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--brand-primary, #6366f1) 22%, transparent);
+  color: var(--text-primary, #e2e8f0);
+  flex: 0 0 auto;
+}
+
+[data-rmc-shell-root="django-admin"] details.rmc-admin-transfer-panel > summary::after {
+  content: "▾";
+  margin-inline-start: auto;
+  opacity: 0.55;
+  font-size: 0.75rem;
+}
+
+[data-rmc-shell-root="django-admin"] details.rmc-admin-transfer-panel[open] > summary::after {
+  content: "▴";
+}
+
+[data-rmc-shell-root="django-admin"] details.rmc-admin-transfer-panel > .form-row {
+  margin-top: 0.5rem !important;
+}
+
+/* Numbered fieldset titles for scanability without extra length. */
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] > fieldset.module {
+  counter-increment: rmc-admin-fs;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] > fieldset.module > h2::before {
+  content: counter(rmc-admin-fs) ". ";
+  color: var(--text-secondary, #94a3b8);
+  font-weight: 700;
+}
+
+/* Sidebar: slightly tighter row rhythm — scroll inside nav, don't steal MAIN. */
+[data-rmc-shell-root="django-admin"] #nav-sidebar .nav-item,
+[data-rmc-shell-root="django-admin"] nav[data-rmc-admin-nav] a {
+  line-height: 1.25 !important;
+}
+
+@media (max-width: 1024px) {
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] .form-rows.aligned {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] .selector {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* ============================================================
+   v13 TERMINAL SEALS (2026-07-21b) — beat #cp-main-content cascade
+   Earlier canvas-contract rules use html+body+#cp-main-content and
+   win over lower-specificity density rules. These terminal seals
+   match that weight so intelligent fill actually lands.
+   ============================================================ */
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  :is(input, select, textarea).max-w-2xl,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  :is(input, select, textarea).max-w-4xl,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  :is(input, select, textarea).max-w-2xl,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  :is(input, select, textarea).max-w-4xl {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.65rem 1rem !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows > .form-row,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows > .form-row {
+  grid-column: span 1 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows > :is(
+    .form-row.grid,
+    .form-row:has(textarea),
+    .form-row:has(.vLargeTextField),
+    .form-row:has(.selector),
+    .form-row:has(.related-widget-wrapper),
+    .form-row:has([multiple]),
+    .form-row:has(.readonly),
+    details.rmc-admin-transfer-panel
+  ),
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows > :is(
+    .form-row.grid,
+    .form-row:has(textarea),
+    .form-row:has(.vLargeTextField),
+    .form-row:has(.selector),
+    .form-row:has(.related-widget-wrapper),
+    .form-row:has([multiple]),
+    .form-row:has(.readonly),
+    details.rmc-admin-transfer-panel
+  ) {
+  grid-column: 1 / -1 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .selector select,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .selector select {
+  height: var(--rmc-admin-v13-transfer-h) !important;
+  max-height: var(--rmc-admin-v13-transfer-h) !important;
+  min-height: 8rem !important;
+  overflow-y: auto !important;
+  width: 100% !important;
+}
+
+@media (max-width: 1024px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    .admin-cp-unified-page #cp-main-content
+    #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+    .form-rows,
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-shell-root="django-admin"]
+    #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+    .form-rows {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+
+/* ============================================================
+   v15 ARCHETYPES — geometry by job (consistency = tokens; intelligence = layout)
+   ============================================================ */
+
+/* Band actions (shared OS control) */
+[data-rmc-shell-root="django-admin"] .rmc-django-band-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--hairline, rgba(177, 200, 236, 0.2));
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  font-size: 0.75rem;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+[data-rmc-shell-root="django-admin"] .rmc-django-band-action--primary {
+  border: 0;
+  background: linear-gradient(135deg, #2bd48a, #189a5f);
+  color: #04130b;
+}
+[data-rmc-shell-root="django-admin"] .rmc-django-band-action--danger {
+  border-color: rgba(241, 91, 108, 0.45);
+  background: rgba(241, 91, 108, 0.14);
+  color: #ffc3ca;
+}
+[data-rmc-shell-root="django-admin"] .rmc-django-command-band__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* More ▾ menu (Discover) */
+[data-rmc-shell-root="django-admin"] .rmc-admin-more-menu {
+  position: relative;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-more-menu > summary {
+  list-style: none;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-more-menu > summary::-webkit-details-marker {
+  display: none;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-more-menu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 40;
+  min-width: 14rem;
+  padding: 0.35rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--hairline, rgba(177, 200, 236, 0.2));
+  background: rgba(13, 24, 42, 0.98);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  display: grid;
+  gap: 0.15rem;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-more-menu__panel a {
+  display: block;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.45rem;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-more-menu__panel a:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Discover: 1-col full width, no rail/tools */
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="discover"],
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-discover="1"] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="discover"] .rmc-admin-index-main,
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-discover="1"] .rmc-admin-index-main {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Decide: centered 1-col card */
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="decide"] .rmc-admin-decide-canvas {
+  display: grid !important;
+  place-items: start center !important;
+  width: 100% !important;
+  padding: 1rem 1rem 2rem !important;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-decide-card {
+  width: min(100%, 40rem) !important;
+  border: 1px solid var(--hairline, rgba(177, 200, 236, 0.2));
+  border-radius: 1rem;
+  background: rgba(9, 16, 28, 0.95);
+  overflow: hidden;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-decide-card__head {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--hairline, rgba(177, 200, 236, 0.2));
+  background: rgba(20, 34, 55, 0.45);
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-decide-card__head h1 {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-decide-card__body {
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-decide-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Audit: 2-col timeline + object rail */
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="audit"] .rmc-admin-audit-canvas {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(9rem, 18%) !important;
+  gap: 0.6rem !important;
+  width: 100% !important;
+  max-width: none !important;
+  padding: 0 0.75rem 1.25rem !important;
+}
+@media (max-width: 1024px) {
+  [data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="audit"] .rmc-admin-audit-canvas {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Dossier: 2-col already via index canvas — force full width main */
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="dossier"] .rmc-admin-dossier-canvas {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(9rem, 18%) 2.15rem !important;
+  gap: 0.6rem !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+@media (max-width: 1024px) {
+  [data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="dossier"] .rmc-admin-dossier-canvas {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Scan + Edit keep 3-col workbench; kill leftover metrics head space */
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="scan"] [data-rmc-django-workspace-head],
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="edit"] [data-rmc-django-workspace-head],
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="scan"] [data-rmc-django-metrics],
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="edit"] [data-rmc-django-metrics] {
+  display: none !important;
+}
+
+/* Disclosure primitive (I6) */
+[data-rmc-shell-root="django-admin"] .rmc-admin-disclosure,
+[data-rmc-shell-root="django-admin"] details.rmc-admin-disclosure {
+  border: 1px solid var(--hairline, rgba(177, 200, 236, 0.2));
+  border-radius: 0.65rem;
+  background: rgba(5, 11, 20, 0.45);
+  padding: 0.15rem 0.65rem;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-disclosure > summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 750;
+  padding: 0.55rem 0;
+}
+
+/* Full-width MAIN for scan/edit (no left void) */
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="scan"] [data-rmc-django-primary-panel],
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="edit"] [data-rmc-django-primary-panel] {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* ============================================================
+   v15 WAVES 2–4 — I1–I5, I7–I8, I10
+   ============================================================ */
+
+/* I1 — Selection gravity bulk dock */
+[data-rmc-shell-root="django-admin"] .rmc-django-command-band.is-bulk-active .rmc-django-command-band__actions > :not([data-rmc-admin-bulk-dock]) {
+  display: none !important;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-bulk-dock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-bulk-dock__count {
+  font-size: 0.75rem;
+  font-weight: 750;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-bulk-dock__select {
+  min-height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--hairline, rgba(177, 200, 236, 0.2));
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  font-size: 0.75rem;
+  max-width: 14rem;
+}
+
+/* I3 — Dirty save pulse */
+[data-rmc-shell-root="django-admin"] .rmc-django-save-split.is-dirty .rmc-django-save-split__primary {
+  background: linear-gradient(135deg, var(--warning-amber, #f5a623), #c47d12) !important;
+  color: var(--text-on-warning, #1a1200) !important;
+  box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.35), 0 0 12px rgba(245, 166, 35, 0.25);
+}
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu__dirty-title {
+  font-size: 0.65rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  padding: 0.35rem 0.5rem 0.15rem;
+}
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu__dirty-list {
+  margin: 0;
+  padding: 0 0.5rem 0.35rem;
+  list-style: none;
+  font-size: 0.72rem;
+  color: var(--text-primary, inherit);
+  max-height: 8rem;
+  overflow-y: auto;
+}
+[data-rmc-shell-root="django-admin"] .rmc-django-save-menu__dirty-list li {
+  padding: 0.15rem 0;
+}
+
+/* I8 / I2 — Shared OS sheet */
+.rmc-admin-os-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: stretch;
+}
+.rmc-admin-os-sheet[hidden] {
+  display: none !important;
+}
+.rmc-admin-os-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+}
+.rmc-admin-os-sheet__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(100%, 22rem);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--hairline, rgba(177, 200, 236, 0.2));
+  background: var(--surface-elevated, rgba(13, 24, 42, 0.98));
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
+}
+.rmc-admin-os-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--hairline, rgba(177, 200, 236, 0.2));
+}
+.rmc-admin-os-sheet__title {
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+.rmc-admin-os-sheet__close {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.35rem;
+}
+.rmc-admin-os-sheet__body {
+  padding: 1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+.rmc-admin-keymap-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+.rmc-admin-keymap-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.78rem;
+}
+.rmc-admin-keymap-kbd {
+  display: inline-flex;
+  min-width: 2.5rem;
+  justify-content: center;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--hairline, rgba(177, 200, 236, 0.25));
+  background: rgba(255, 255, 255, 0.06);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.68rem;
+}
+
+/* I2 — Row peek */
+[data-rmc-shell-root="django-admin"] .rmc-admin-row-peek-btn {
+  margin-left: 0.35rem;
+  padding: 0 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.55));
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--motion-fast, 120ms) var(--ease-out, ease-out);
+}
+[data-rmc-shell-root="django-admin"] #result_list tbody tr:hover .rmc-admin-row-peek-btn,
+[data-rmc-shell-root="django-admin"] #result_list tbody tr:focus-within .rmc-admin-row-peek-btn {
+  opacity: 1;
+}
+[data-rmc-shell-root="django-admin"] #result_list tbody tr.is-peek-focused {
+  outline: 2px solid var(--brand-primary, #4f46e5);
+  outline-offset: -2px;
+}
+.rmc-admin-peek-list {
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+.rmc-admin-peek-list dt {
+  font-size: 0.65rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.55));
+}
+.rmc-admin-peek-list dd {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+}
+
+/* I4 — Section radar */
+[data-rmc-shell-root="django-admin"] .rmc-admin-section-radar {
+  position: absolute;
+  left: 0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.35rem 0;
+  pointer-events: none;
+}
+[data-rmc-shell-root="django-admin"] #content-main[data-rmc-django-form-panel] {
+  position: relative;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-section-radar__dot {
+  pointer-events: auto;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline, rgba(177, 200, 236, 0.35));
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 120ms) var(--ease-out, ease-out);
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-section-radar__dot.is-active {
+  background: var(--brand-primary, #4f46e5);
+  border-color: transparent;
+  transform: scale(1.35);
+}
+
+/* I5 — Focus mode */
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-focus="1"] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-focus="1"] > [data-rmc-django-side-panel],
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-focus="1"] > [data-rmc-django-tools] {
+  display: none !important;
+}
+
+/* I7 — Pin & recent */
+[data-rmc-shell-root="django-admin"] .rmc-admin-pins-row {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-pins-row__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-pins-row__label {
+  font-size: 0.65rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.55));
+  min-width: 3.5rem;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-pins-row__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-pin-chip,
+[data-rmc-shell-root="django-admin"] .rmc-admin-recent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline, rgba(177, 200, 236, 0.2));
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-decoration: none;
+  color: inherit;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-pin-chip__toggle,
+[data-rmc-shell-root="django-admin"] .rmc-admin-catalog-pin {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 0.15rem;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-catalog-model-card {
+  position: relative;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-catalog-pin {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  opacity: 0;
+  transition: opacity var(--motion-fast, 120ms) var(--ease-out, ease-out);
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-catalog-model-card:hover .rmc-admin-catalog-pin {
+  opacity: 1;
+}
+
+/* I10 — Host accent whisper (tenant brand on primary band actions) */
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-workspace-scope="tenant"] .rmc-django-band-action--primary {
+  background: linear-gradient(
+    135deg,
+    var(--school-primary, var(--brand-primary, #6366f1)),
+    color-mix(in srgb, var(--school-primary, var(--brand-primary, #6366f1)) 72%, #000)
+  ) !important;
+  color: var(--text-on-brand, #fff) !important;
+}
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-workspace-scope="operator"] .rmc-django-band-action--primary {
+  background: linear-gradient(135deg, #2bd48a, #189a5f) !important;
+  color: #04130b !important;
+}
