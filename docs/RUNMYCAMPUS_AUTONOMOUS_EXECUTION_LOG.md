@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Admin OS v15.4 restore index sections (batch 1777 - 2026-07-21)
+
+**A. Scope:** Put back missing `/admin/` sections after v15 Discover strip-down.
+
+**B. Shipped:** Operator surface previews (tags/changelist/changeform) + section nav; tenant Feature control + Browse models + catalog section jumps; gates now require those restores; seal v15.4.
+
+**C. Proof:** preview parity PASS; cross-wave PASS (79/0/0).
+
+**D. Honest:** Steering/KPI vanity and Discover tools column stay out (fluff ban).
+
+**E. Files:** index_superadmin/tenant, help_section_nav, parity/canvas/cross-wave gates, lock/SW.
+
+**F. Next:** Hard-refresh `/admin/` and confirm Platform tags + Changelist + Change form sections below catalog.
+
 ## Slice — Admin OS v15.3 critical paint fix (batch 1776 - 2026-07-21)
 
 **A. Scope:** User report that Admin OS fixes never landed in the browser despite being on `main`.
