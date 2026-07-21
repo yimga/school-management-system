@@ -163,7 +163,7 @@ class UxFactoryTenantDashboardTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-ux-role-dashboard="school-command-center"', body)
-        self.assertIn("School Command Center", body)
+        self.assertIn("Admin Home", body)
         self.assertIn('data-rmc-ux-section="what-needs-attention"', body)
         self.assertIn('data-rmc-ux-section="school-readiness"', body)
         self.assertIn('data-rmc-next-action-strip="1"', body)

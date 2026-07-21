@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — MAX operator↔tenant /super/ parity Waves 1–5 (batch 1775 - 2026-07-21)
+
+**A. Scope:** Option C Full MAX from approval brief — operator `/super/` + tenant admin twins (Backend/Config/Studio/Configure/Feature Control/Finance). Audit→fix→re-audit loop; residual closeout for sparklines + interactive role tabs.
+
+**B. Shipped:** `page_status_tags` + shared masthead; wallpaper badge kill; money/setup/mission twins; ops-frame→masthead lift (~64 hubs); Option-A purge; season + **`?mission_role=` tabs** (operator+tenant) + **chip sparklines**; Feature Control + Studio mastheads; Admin Home label consistency; CI scanners; SW `sms-v4.06.0-max-super-tenant-parity-2026-07-21`.
+
+**C. Proof:** wallpaper 0; twin OK (mission+spark+tabs); band-count 97 OK; anti-bleed OK; CI wiring 40; **15** Django tests OK (`test_max_parity_wave_consistency` + prior); re-audit **GAPS NONE**; **`npm run test:e2e:max-parity-fold` → `MAX_PARITY_FOLD_PROOF_PASS`** (4 routes; screenshots in `artifacts/max-parity-fold/`).
+
+**D. Honest:** Marketing landing copy may still say “School Command Center” (intentional).
+
+**E. Files:** masthead/role-tabs/ops-frame, `page_status_tags.py`, money/mission views, label surfaces, MAX scanners + `test_max_parity_wave_consistency.py`, `verify_max_parity_fold_playwright.mjs`, `manager-login.js` (`?cp=1`), `e2e_mfa_bypass.py` (`*.localhost`), billing `stale_n` fix, SOT/log.
+
+**F. Next:** Hard-refresh manager `/super/?mission_role=bursar` + tenant Admin Home role tabs; commit when asked.
+
 ## Slice — Admin OS v15.2 Waves 0–4 (batch 1774 - 2026-07-21)
 
 **A. Scope:** Finish approved Admin OS v15.1 board end-to-end — Wave 0 OS contracts through Wave 4 (all 12 innovations) on operator + tenant `/admin/`.

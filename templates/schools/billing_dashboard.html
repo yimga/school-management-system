@@ -4,83 +4,39 @@
 {% load region_format phase8_tags %}
 {% block cp_title %}{% trans "Platform billing" %}{% endblock %}
 {% block cp_workspace_header %}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-page-archetypes-max.css' %}">
+{% endblock %}
 {% block cp_content %}
-{% include "components/next_action_strip.html" %}
-
 {% comment %} table-pagination-allow: billing-dashboard-5-widget-top-N each-tile-is-bounded-summary {% endcomment %}
 {% url 'super:dashboard' as dashboard_url %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-billing-ux="platform" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+<div class="container-fluid py-2" data-page-archetype="money" data-decision-engine="surface" data-apple-class-billing-ux="platform" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-rmc-work-root="1">
   {% phase8_dashboard_declaration "schools/billing_dashboard.html" %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="platform_billing" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=usage_url primary_label=_("Usage API") secondary_url=dashboard_url secondary_label=_("Back to dashboard") %}
-  {% include "components/world_class_summary_strip.html" with readiness=subscription_count readiness_label=_("Subscriptions") risk=processor_event_count risk_label=_("Processor sync events") next_step=_("Usage") next_step_label=_("Inspect meters") blockers=_("PSP") blockers_label=_("External readiness") %}
-  {% include "components/platform_readiness_strip.html" with inline_field_prefix='billing-dash' hide_inline=1 %}
-  {% include "components/apple_class_data_quality_meter.html" with meter_id="platform-billing-usage-meter" title=_("Usage Meter") value="70" status="external-required" status_label=_("PSP external") body=_("Package and Billing Command Center — Package comparison, entitlement diff, usage meters, billing impact, external PSP status, manual fallback, and processor readiness stay visible before rollout.") %}
-  {% include "studio_os/components/page_header.html" with title=_("Platform billing") subtitle=_("Platform-side accounts, subscriptions, usage, and ledger activity across all schools.") action_url=dashboard_url action_text=_("Back to dashboard") %}
-  <div class="d-flex flex-wrap gap-2 mb-3" style="margin-top: -0.5rem;">
+  {% include "components/rmc_page_masthead.html" %}
+
+  <div class="rmc-money-kpi-grid" aria-label="{% trans 'Billing KPIs' %}">
+    <div class="rmc-money-kpi">
+      <div class="rmc-money-kpi__value">{{ total_posted_charges|format_currency }}</div>
+      <div class="rmc-money-kpi__label">{% trans "Posted charges" %}</div>
+    </div>
+    <div class="rmc-money-kpi">
+      <div class="rmc-money-kpi__value">{{ total_posted_credits|format_currency }}</div>
+      <div class="rmc-money-kpi__label">{% trans "Posted credits" %}</div>
+    </div>
+    <div class="rmc-money-kpi">
+      <div class="rmc-money-kpi__value">{{ billing_account_count }}</div>
+      <div class="rmc-money-kpi__label">{% trans "Billing accounts" %}</div>
+    </div>
+    <div class="rmc-money-kpi">
+      <div class="rmc-money-kpi__value">{{ subscription_count }}</div>
+      <div class="rmc-money-kpi__label">{% trans "Subscriptions" %}</div>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mb-3">
     <a href="{{ usage_url }}" class="btn btn-outline-primary btn-sm">{% trans "Usage API" %}</a>
     <a href="{% url 'super:holding_currency_rollup_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Holding currency rollups" %}</a>
-  </div>
-
-  <div class="row g-3 mb-4">
-    <div class="col-lg-6">
-      {% include "components/ai_guided_assistant_card.html" with assistant_key="billing_usage_explain" card_title=_("Billing & usage explainer") card_hint=_("SKUs, entitlements, and usage concepts. Do not paste payment card or bank data.") %}
-    </div>
-    <div class="col-lg-6">
-      {% url 'api:ai-data-quality-assistant' as api_ai_dq %}
-      {% include "components/ai_json_api_card.html" with api_url=api_ai_dq card_title=_("Data quality assistant (JSON)") card_hint=_('POST body must include {"query":"..."}. Suggests checks and remediation hints from config/help RAG.') field_id="billDashDqJson" default_body='{"query":"What data quality checks should we run before month-end billing closes?"}' %}
-    </div>
-  </div>
-
-  <details class="de-secondary-collapsible mb-2">
-  <summary>{% trans "Expand billing KPIs, breakdowns, and ledger tables" %}</summary>
-  <div class="row g-3 mb-4 rmc-reveal-stagger">
-    <div class="col-md-3 rmc-reveal">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <div class="text-muted small text-uppercase">{% trans "Posted charges" %}</div>
-          <div class="display-6">{{ total_posted_charges|format_currency }}</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 rmc-reveal">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <div class="text-muted small text-uppercase">{% trans "Posted credits" %}</div>
-          <div class="display-6">{{ total_posted_credits|format_currency }}</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 rmc-reveal">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <div class="text-muted small text-uppercase">{% trans "Billing accounts" %}</div>
-          <div class="display-6">{{ billing_account_count }}</div>
-          <div class="small text-muted">
-            {% for row in account_summary %}
-              {{ row.status }}: {{ row.total }}{% if not forloop.last %} | {% endif %}
-            {% empty %}
-              {% trans "No accounts yet." %}
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 rmc-reveal">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <div class="text-muted small text-uppercase">{% trans "Subscriptions" %}</div>
-          <div class="display-6">{{ subscription_count }}</div>
-          <div class="small text-muted">
-            {% for row in subscription_summary %}
-              {{ row.status }}: {{ row.total }}{% if not forloop.last %} | {% endif %}
-            {% empty %}
-              {% trans "No subscriptions yet." %}
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="row g-3 mb-4 rmc-reveal-stagger">
@@ -312,6 +268,5 @@
       </div>
     </div>
   </div>
-  </details>
 </div>
 {% endblock %}

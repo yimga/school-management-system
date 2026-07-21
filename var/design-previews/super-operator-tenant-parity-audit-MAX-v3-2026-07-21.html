@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MAX v3 · Operator ↔ Tenant /super/ — approval brief</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050a14;
+      --text: #f2f6ff;
+      --muted: #a8b8d0;
+      --dim: #7a8ba6;
+      --line: rgba(180, 205, 240, 0.18);
+      --ok: #2dd4a0;
+      --ok-bg: rgba(45, 212, 160, 0.14);
+      --warn: #f5c84c;
+      --warn-bg: rgba(245, 200, 76, 0.14);
+      --bad: #ff6b7a;
+      --bad-bg: rgba(255, 107, 122, 0.14);
+      --op: #7c9cff;
+      --op-bg: rgba(124, 156, 255, 0.16);
+      --ten: #3ecfbf;
+      --ten-bg: rgba(62, 207, 191, 0.14);
+      --mission: #ff8a5b;
+      --fleet: #5b8cff;
+      --money: #2dd4a0;
+      --setup: #c084fc;
+      --monitor: #38bdf8;
+      --paper: #f7f9fc;
+      --paper-ink: #0f1b2d;
+      --paper-muted: #4a5d78;
+      --paper-line: #d5deeb;
+      --radius: 16px;
+      --pad: 18px;
+      --gap: 14px;
+      font-family: "Segoe UI", Inter, ui-sans-serif, system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; color: var(--text); min-height: 100vh; overflow-x: clip; line-height: 1.5;
+      background:
+        radial-gradient(900px 420px at 88% -8%, rgba(124,156,255,.22), transparent 55%),
+        radial-gradient(700px 380px at 4% 10%, rgba(62,207,191,.14), transparent 50%),
+        radial-gradient(560px 280px at 55% 100%, rgba(255,138,91,.1), transparent 45%),
+        linear-gradient(180deg, #07111f 0%, var(--bg) 42%, #03070f 100%);
+    }
+    .page { width: min(1480px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 150px; }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+      font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+    .pill.op { color: #d6e0ff; background: var(--op-bg); border-color: rgba(124,156,255,.45); }
+    .pill.ten { color: #b8fff6; background: var(--ten-bg); border-color: rgba(62,207,191,.45); }
+    .pill.warn { color: #ffe9a8; background: var(--warn-bg); border-color: rgba(245,200,76,.45); }
+    .pill.ok { color: #b8ffe6; background: var(--ok-bg); border-color: rgba(45,212,160,.45); }
+    .pill.max {
+      color: #1a1020; background: linear-gradient(135deg, #ff8a5b, #f5c84c);
+      border-color: transparent; font-weight: 900;
+    }
+    .hero { display: grid; grid-template-columns: 1.3fr .7fr; gap: 18px; margin-bottom: 20px; }
+    @media (max-width: 980px) { .hero { grid-template-columns: 1fr; } }
+    h1 {
+      margin: 0 0 10px; font-size: clamp(1.65rem, 2.7vw, 2.45rem);
+      letter-spacing: -.035em; line-height: 1.12; color: #fff;
+    }
+    .lede { margin: 0; color: var(--muted); font-size: 15px; max-width: 72ch; }
+    .lede strong { color: #fff; }
+    .approve-box {
+      border: 1px solid rgba(245,200,76,.5); border-radius: var(--radius);
+      background: linear-gradient(160deg, rgba(245,200,76,.16), rgba(10,20,36,.95) 55%);
+      padding: var(--pad); overflow: visible;
+    }
+    .approve-box h2 {
+      margin: 0 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--warn);
+    }
+    .approve-box p { margin: 0 0 10px; color: var(--muted); font-size: 13.5px; }
+    .approve-box ol { margin: 0; padding-left: 1.2rem; color: var(--text); font-size: 13.5px; }
+    .approve-box li { margin: .4rem 0; }
+    .approve-box .await {
+      margin-top: 12px; padding: 10px 12px; border-radius: 10px;
+      background: rgba(0,0,0,.25); border: 1px dashed rgba(245,200,76,.45);
+      color: #ffe9a8; font-size: 13px; font-weight: 750;
+    }
+
+    .toc {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; padding: 12px;
+      border: 1px solid var(--line); border-radius: 14px; background: rgba(8,16,30,.65);
+    }
+    .toc a {
+      text-decoration: none; color: var(--muted); padding: 7px 11px; border-radius: 999px;
+      font-size: 12px; font-weight: 750; border: 1px solid transparent;
+    }
+    .toc a:hover, .toc a:focus-visible {
+      color: #fff; border-color: rgba(124,156,255,.5); background: var(--op-bg); outline: none;
+    }
+
+    .sec {
+      margin: 34px 0 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
+    }
+    .sec .n {
+      font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase;
+      color: #1a1020; background: linear-gradient(135deg, #ff8a5b, #f5c84c);
+      padding: 4px 9px; border-radius: 8px;
+    }
+    .sec h2 { margin: 0; font-size: 1.25rem; letter-spacing: -.02em; color: #fff; }
+    .sec .hint { color: var(--dim); font-size: 13px; }
+
+    .banner {
+      margin: 0 0 14px; padding: 14px 16px; border-radius: 14px; font-size: 14px; line-height: 1.55;
+      border: 1px solid rgba(124,156,255,.4); background: var(--op-bg); color: #dce5ff;
+    }
+    .banner.ten { border-color: rgba(62,207,191,.4); background: var(--ten-bg); color: #c9fff8; }
+    .banner.warn { border-color: rgba(245,200,76,.45); background: var(--warn-bg); color: #ffe9a8; }
+    .banner.ok { border-color: rgba(45,212,160,.45); background: var(--ok-bg); color: #b8ffe6; }
+    .banner strong { color: #fff; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
+    @media (max-width: 1000px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+    .card {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: rgba(10,20,36,.92); padding: var(--pad); overflow: visible;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 15px; color: #fff; letter-spacing: -.02em; }
+    .card p, .card li { color: var(--muted); font-size: 13.5px; }
+    .card ul { margin: 8px 0 0; padding-left: 1.15rem; }
+    .card li { margin: .35rem 0; }
+    .tagline {
+      display: inline-flex; margin-bottom: 8px; font-size: 10px; font-weight: 850;
+      letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px;
+    }
+    .tagline.op { background: var(--op-bg); color: #c9d6ff; }
+    .tagline.ten { background: var(--ten-bg); color: #b8fff6; }
+    .tagline.both { background: rgba(255,138,91,.15); color: #ffc4a8; }
+    .tagline.max { background: linear-gradient(135deg, rgba(255,138,91,.3), rgba(245,200,76,.25)); color: #ffe0b8; }
+
+    .prio {
+      display: grid; grid-template-columns: 56px minmax(0, 1fr) 100px; gap: 12px; align-items: start;
+      padding: 12px 0; border-bottom: 1px solid var(--line);
+    }
+    .prio:last-child { border-bottom: 0; }
+    .prio .num {
+      width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+      font-weight: 900; color: #0b1220; background: linear-gradient(135deg, #ff8a5b, #f5c84c);
+    }
+    .prio h3 { margin: 0 0 4px; font-size: 15px; color: #fff; }
+    .prio p { margin: 0; color: var(--muted); font-size: 13px; }
+    .prio .wave-tag {
+      font-size: 10px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase;
+      padding: 4px 8px; border-radius: 8px; text-align: center; border: 1px solid var(--line);
+      color: var(--dim);
+    }
+    .prio .wave-tag.now { background: var(--warn-bg); color: var(--warn); border-color: rgba(245,200,76,.45); }
+    .prio .wave-tag.later { background: rgba(255,255,255,.04); }
+
+    /* mocks */
+    .mock-block { margin: 14px 0 26px; }
+    .mock-head {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+      align-items: center; margin-bottom: 12px;
+    }
+    .mock-head h3 { margin: 0; font-size: 17px; color: #fff; }
+    .mock-head .path { font-size: 12px; color: var(--dim); margin-top: 4px; }
+    .toggle {
+      display: inline-flex; border-radius: 999px; overflow: hidden;
+      border: 1px solid var(--line); background: rgba(8,16,30,.9);
+    }
+    .toggle button {
+      border: 0; background: transparent; color: var(--muted); padding: 9px 14px;
+      font-size: 12px; font-weight: 800; cursor: pointer; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .toggle button.active { background: rgba(124,156,255,.28); color: #fff; }
+    .toggle button:focus-visible { outline: 2px solid var(--op); outline-offset: -2px; }
+
+    .stage {
+      border: 1px solid var(--line); border-radius: 18px; background: #07101c; overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,.35);
+    }
+    .stage-bar {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 10px 14px; border-bottom: 1px solid var(--line);
+      font-size: 12px; color: var(--dim); background: rgba(255,255,255,.03);
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+    .dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+    .qa-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+    .qa {
+      font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+      letter-spacing: .04em; text-transform: uppercase;
+    }
+    .qa.pass { background: var(--ok-bg); color: var(--ok); border: 1px solid rgba(45,212,160,.4); }
+    .qa.fail { background: var(--bad-bg); color: #ffb3bb; border: 1px solid rgba(255,107,122,.45); }
+
+    .canvas { padding: 14px; background: #0a1322; }
+    .panel { display: none; }
+    .panel.show { display: block; }
+    .dual { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 980px) { .dual { grid-template-columns: 1fr; } }
+
+    .frame {
+      border-radius: 14px; overflow: visible; border: 2px solid transparent;
+      background: var(--paper); color: var(--paper-ink); min-height: 400px;
+    }
+    .frame.op { border-color: rgba(124,156,255,.55); }
+    .frame.ten { border-color: rgba(62,207,191,.55); }
+    .frame-label {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 8px 12px; font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase;
+    }
+    .frame.op .frame-label { background: #1e2a4a; color: #d6e0ff; }
+    .frame.ten .frame-label { background: #0f3d3a; color: #b8fff6; }
+
+    .app {
+      display: grid; grid-template-columns: 140px minmax(0, 1fr); min-height: 360px; background: #fff;
+    }
+    .nav {
+      background: #0f172a; color: #cbd5e1; padding: 12px 10px; font-size: 11px; overflow: visible;
+    }
+    .nav .brand { color: #fff; font-weight: 850; margin-bottom: 12px; font-size: 12px; }
+    .nav a {
+      display: block; padding: 7px 9px; border-radius: 8px; color: #94a3b8;
+      text-decoration: none; margin-bottom: 3px; line-height: 1.3;
+    }
+    .nav a.on { background: rgba(91,140,255,.28); color: #fff; font-weight: 750; }
+    .frame.ten .nav a.on { background: rgba(62,207,191,.28); }
+    .main { padding: 14px 16px 18px; background: #f4f7fb; overflow: visible; min-width: 0; }
+    .main.dense { background: #eef1f6; }
+
+    .stack { display: grid; gap: 7px; margin-bottom: 10px; }
+    .band {
+      border: 1px dashed #9aa8bc; border-radius: 8px; padding: 7px 9px;
+      font-size: 11px; color: #5b6d86; background: #e8eef6; line-height: 1.35;
+    }
+    .band.bad { border-style: solid; border-color: #f87171; background: #fef2f2; color: #9f1239; }
+    .band.good { border-style: solid; border-color: #4ade80; background: #f0fdf4; color: #166534; }
+
+    .mast {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px;
+      align-items: flex-start; margin-bottom: 12px;
+    }
+    .mast h4 { margin: 0; font-size: 18px; letter-spacing: -.02em; color: var(--paper-ink); line-height: 1.25; }
+    .eyebrow {
+      font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px;
+    }
+    .eyebrow.money { color: #0f766e; }
+    .eyebrow.setup { color: #7e22ce; }
+    .eyebrow.mission { color: #c2410c; }
+    .eyebrow.fleet { color: #1d4ed8; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px;
+      font-size: 11px; font-weight: 750; border: 1px solid var(--paper-line); background: #fff;
+      color: var(--paper-ink); line-height: 1.2; max-width: 100%; white-space: normal;
+    }
+    .chip .d { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; background: #22c55e; }
+    .chip.warn { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+    .chip.warn .d { background: #f59e0b; }
+    .chip.alert { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+    .chip.alert .d { background: #ef4444; }
+    .chip.cta { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+    .frame.ten .chip.cta { background: #0f766e; border-color: #0f766e; }
+    .chip.info { background: #eff6ff; border-color: #93c5fd; color: #1e40af; }
+    .chip.fresh { background: #f0fdf4; border-color: #86efac; color: #166534; }
+
+    /* sparkline in chip */
+    .spark {
+      display: inline-flex; align-items: flex-end; gap: 1px; height: 14px; margin-left: 2px;
+    }
+    .spark i {
+      display: block; width: 2px; border-radius: 1px; background: #0f766e; opacity: .85;
+    }
+
+    .metrics {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0 0 12px;
+    }
+    @media (max-width: 700px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .metric {
+      background: #fff; border: 1px solid var(--paper-line); border-radius: 12px; padding: 10px; overflow: visible;
+      position: relative;
+    }
+    .metric.accent-money { border-top: 3px solid var(--money); }
+    .metric.accent-setup { border-top: 3px solid var(--setup); }
+    .metric.accent-mission { border-top: 3px solid var(--mission); }
+    .metric.accent-fleet { border-top: 3px solid var(--fleet); }
+    .metric .v { font-size: 20px; font-weight: 850; letter-spacing: -.03em; color: var(--paper-ink); line-height: 1.15; }
+    .metric .k { margin-top: 4px; font-size: 10px; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; color: var(--paper-muted); }
+    .metric .why {
+      margin-top: 6px; font-size: 10px; font-weight: 750; color: #1d4ed8; cursor: default;
+      text-decoration: underline; text-underline-offset: 2px;
+    }
+
+    .why-drawer {
+      margin: 0 0 12px; padding: 10px 12px; border-radius: 10px;
+      background: #eff6ff; border: 1px solid #93c5fd; color: #1e3a8a; font-size: 12px; line-height: 1.45;
+    }
+    .why-drawer strong { color: #0f172a; }
+
+    .tableish { border: 1px solid var(--paper-line); border-radius: 12px; background: #fff; overflow: visible; }
+    .tr {
+      display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, .8fr) minmax(0, .9fr) minmax(0, .8fr);
+      gap: 8px; padding: 9px 11px; font-size: 12px; color: var(--paper-ink);
+      border-bottom: 1px solid #eef2f7; align-items: center;
+    }
+    .tr:last-child { border-bottom: 0; }
+    .tr.head {
+      background: #f8fafc; color: var(--paper-muted); font-size: 10px; font-weight: 850;
+      letter-spacing: .05em; text-transform: uppercase;
+    }
+    .badge {
+      display: inline-flex; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 850; line-height: 1.3;
+    }
+    .badge.live { background: #dcfce7; color: #166534; }
+    .badge.warn { background: #fef3c7; color: #92400e; }
+    .badge.alert { background: #fee2e2; color: #991b1b; }
+
+    .verdict {
+      margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.45; overflow: visible;
+    }
+    .verdict.bad { background: #fef2f2; color: #9f1239; border: 1px solid #fecaca; }
+    .verdict.ok { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+
+    .role-tabs {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+    }
+    .role-tabs button {
+      border: 1px solid var(--paper-line); background: #fff; color: var(--paper-muted);
+      padding: 5px 10px; border-radius: 999px; font-size: 11px; font-weight: 750; cursor: pointer;
+    }
+    .role-tabs button.on { background: #c2410c; border-color: #c2410c; color: #fff; }
+
+    .season {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+    }
+    .season span {
+      padding: 4px 9px; border-radius: 8px; font-size: 10px; font-weight: 800;
+      letter-spacing: .05em; text-transform: uppercase; background: #ffedd5; color: #9a3412;
+      border: 1px solid #fdba74;
+    }
+
+    .gate {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    @media (max-width: 800px) { .gate { grid-template-columns: 1fr; } }
+    .gate .item {
+      padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(8,16,30,.6);
+    }
+    .gate .item h3 { margin: 0 0 6px; font-size: 13px; color: #fff; }
+    .gate .item p { margin: 0; font-size: 12.5px; color: var(--muted); }
+    .gate .item code { font-size: 11px; }
+
+    .wave {
+      display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--line);
+    }
+    .wave:last-child { border-bottom: 0; }
+    .wave .w {
+      font-weight: 900; font-size: 12px; color: #0b1220; line-height: 1.25; text-align: center;
+      background: linear-gradient(135deg, #ff8a5b, #f5c84c); border-radius: 10px; padding: 10px 8px;
+    }
+    .wave .body { color: var(--muted); font-size: 13.5px; }
+    .wave .body strong { color: #fff; }
+
+    .checklist {
+      list-style: none; margin: 0; padding: 0;
+    }
+    .checklist li {
+      display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start;
+      padding: 10px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13.5px;
+    }
+    .checklist li:last-child { border-bottom: 0; }
+    .checklist .box {
+      width: 22px; height: 22px; border-radius: 6px; border: 2px solid rgba(245,200,76,.55);
+      background: rgba(245,200,76,.08);
+    }
+    .checklist strong { color: #fff; }
+
+    .sticky {
+      position: fixed; right: 16px; bottom: 16px; z-index: 50;
+      display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 32px);
+    }
+    .sticky a {
+      text-decoration: none; padding: 10px 14px; border-radius: 999px; font-size: 12px; font-weight: 800;
+      color: #fff; background: rgba(15,27,48,.95); border: 1px solid rgba(124,156,255,.45);
+      box-shadow: 0 12px 32px rgba(0,0,0,.4);
+    }
+    .sticky a.approve {
+      background: linear-gradient(135deg, #ff8a5b, #f5c84c); color: #0b1220; border: 0;
+    }
+    .sticky a:hover { filter: brightness(1.08); }
+
+    .legend-row {
+      display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; font-size: 12px; color: var(--muted);
+    }
+    .legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+    .sw { width: 12px; height: 12px; border-radius: 4px; flex: 0 0 auto; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11.5px; padding: 1px 6px; border-radius: 6px;
+      background: rgba(255,255,255,.07); color: #dce6ff;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <div class="pills">
+          <span class="pill max">MAX v3 · approval brief</span>
+          <span class="pill op">Operator /super/</span>
+          <span class="pill ten">Tenant admin twin</span>
+          <span class="pill warn">No code shipped yet</span>
+          <span class="pill ok">Awaiting your approval</span>
+        </div>
+        <h1>MAX push — see it, then approve</h1>
+        <p class="lede">
+          This file folds HARDER v2 <strong>plus</strong> the max-push layer: chip sparklines,
+          “Why this number?”, role-shaped Mission homes, operational seasons, twin CI gates,
+          and the visibility contract. <strong>Nothing is implemented until you approve.</strong>
+        </p>
+        <div class="legend-row">
+          <span><i class="sw" style="background:var(--op)"></i> Operator</span>
+          <span><i class="sw" style="background:var(--ten)"></i> Tenant</span>
+          <span><i class="sw" style="background:var(--mission)"></i> Mission</span>
+          <span><i class="sw" style="background:var(--money)"></i> Money</span>
+          <span><i class="sw" style="background:var(--setup)"></i> Setup</span>
+          <span><i class="sw" style="background:var(--fleet)"></i> Fleet</span>
+        </div>
+      </div>
+      <aside class="approve-box" id="approval">
+        <h2>Approval checklist</h2>
+        <p>Review the mocks below, then reply in chat with what you want shipped.</p>
+        <ol>
+          <li><strong style="color:#fff">Approve Wave 1 only</strong> — masthead + live tags + kill wallpaper badges</li>
+          <li><strong style="color:#fff">Approve Waves 1–3</strong> — + Money twins + Tenant Admin Home</li>
+          <li><strong style="color:#fff">Approve full MAX</strong> — + sparklines, Why-drawer, seasons, CI gates</li>
+        </ol>
+        <div class="await">Waiting on your message — e.g. “approve waves 1–3” or “approve full MAX”.</div>
+      </aside>
+    </header>
+
+    <nav class="toc" aria-label="Jump">
+      <a href="#approval">Approval</a>
+      <a href="#top3">Top 3 max</a>
+      <a href="#mock-money">Money + sparklines</a>
+      <a href="#mock-role">Role Mission</a>
+      <a href="#mock-gates">CI gates</a>
+      <a href="#backlog">Full backlog</a>
+      <a href="#waves">Proposed waves</a>
+      <a href="#decide">Decide</a>
+    </nav>
+
+    <!-- TOP 3 -->
+    <div class="sec" id="top3">
+      <span class="n">01</span>
+      <h2>Highest-leverage MAX adds (on top of HARDER v2)</h2>
+      <span class="hint">These three move the needle most</span>
+    </div>
+    <div class="card">
+      <div class="prio">
+        <div class="num">1</div>
+        <div>
+          <h3>Twin CI + wallpaper-badge scanner</h3>
+          <p>Operator Money vs tenant Money must share masthead DOM contract. Static <code>Operational</code> / hardcoded <code>ready</code> fails CI. Locks consistency so you never re-argue it.</p>
+        </div>
+        <div class="wave-tag now">Wave 4</div>
+      </div>
+      <div class="prio">
+        <div class="num">2</div>
+        <div>
+          <h3>Role-shaped Mission homes</h3>
+          <p>Same masthead grammar; bursar / principal / registrar (tenant) and fleet / billing / support (operator) get different live chips — not different page layouts.</p>
+        </div>
+        <div class="wave-tag now">Wave 3</div>
+      </div>
+      <div class="prio">
+        <div class="num">3</div>
+        <div>
+          <h3>Chip sparklines + “Why this number?”</h3>
+          <p>Trends inside chips; one-click definition/source/freshness drawer. Replaces explain-strip novels without losing trust.</p>
+        </div>
+        <div class="wave-tag now">Wave 2+</div>
+      </div>
+    </div>
+
+    <!-- MONEY MAX MOCK -->
+    <div class="sec" id="mock-money">
+      <span class="n">02</span>
+      <h2>MAX Money desk — sparklines + Why drawer (twins)</h2>
+    </div>
+    <div class="mock-block" data-mock="money">
+      <div class="mock-head">
+        <div>
+          <h3>Money · before wallpaper vs after MAX</h3>
+          <div class="path">Identical grammar · host-scoped nouns · readable chips · no cramp</div>
+        </div>
+        <div class="toggle" role="group" aria-label="Money toggle">
+          <button type="button" class="active" data-show="before">Before</button>
+          <button type="button" data-show="after">After MAX</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span>Money twins</span>
+          <div class="qa-flags" data-qa="money">
+            <span class="qa fail">Buried KPIs</span>
+            <span class="qa fail">No trends</span>
+            <span class="qa fail">Uneven twins</span>
+          </div>
+        </div>
+        <div class="canvas">
+          <div class="panel before show" data-panel="before">
+            <div class="dual">
+              <div class="frame op">
+                <div class="frame-label"><span>Operator</span><span>/super/billing</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">Control plane</div><a class="on" href="#">Billing?</a></nav>
+                  <div class="main dense">
+                    <div class="stack">
+                      <div class="band bad">Explain + frame + Operational + AI wall</div>
+                      <div class="band bad">KPIs inside &lt;details&gt;</div>
+                    </div>
+                    <div class="verdict bad">No sparkline. No Why. No twin. Cramped chrome.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="frame ten">
+                <div class="frame-label"><span>Tenant</span><span>/finance/</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">School admin</div><a class="on" href="#">Finance</a></nav>
+                  <div class="main dense">
+                    <div class="stack">
+                      <div class="band bad">Different geometry</div>
+                      <div class="band bad">No past-due chip language shared</div>
+                    </div>
+                    <div class="verdict bad">Not the same product language.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel after" data-panel="after">
+            <div class="dual">
+              <div class="frame op">
+                <div class="frame-label"><span>Operator</span><span>Money · fleet</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">Control plane</div><a class="on" href="#">Billing</a></nav>
+                  <div class="main">
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow money">Money · fleet</div>
+                        <h4>Platform billing</h4>
+                      </div>
+                      <div class="chips">
+                        <span class="chip"><span class="d"></span>PSP healthy
+                          <span class="spark" aria-hidden="true"><i style="height:4px"></i><i style="height:7px"></i><i style="height:6px"></i><i style="height:10px"></i><i style="height:9px"></i><i style="height:12px"></i><i style="height:11px"></i></span>
+                        </span>
+                        <span class="chip warn"><span class="d"></span>12 past due
+                          <span class="spark" aria-hidden="true"><i style="height:8px;background:#d97706"></i><i style="height:9px;background:#d97706"></i><i style="height:11px;background:#d97706"></i><i style="height:10px;background:#d97706"></i><i style="height:12px;background:#d97706"></i><i style="height:13px;background:#d97706"></i><i style="height:12px;background:#d97706"></i></span>
+                        </span>
+                        <span class="chip fresh"><span class="d"></span>Updated 2m ago</span>
+                        <span class="chip info">ⓘ Posted vs pending</span>
+                      </div>
+                    </div>
+                    <div class="metrics">
+                      <div class="metric accent-money">
+                        <div class="v">$184k</div><div class="k">Charges</div>
+                        <div class="why">Why this number?</div>
+                      </div>
+                      <div class="metric accent-money"><div class="v">$12k</div><div class="k">Credits</div><div class="why">Why this number?</div></div>
+                      <div class="metric accent-money"><div class="v">842</div><div class="k">Accounts</div><div class="why">Why this number?</div></div>
+                      <div class="metric accent-money"><div class="v">791</div><div class="k">Subs</div><div class="why">Why this number?</div></div>
+                    </div>
+                    <div class="why-drawer">
+                      <strong>Posted charges</strong> — sum of ledger rows with status=posted in last 30d.
+                      Source: billing ledger · Freshness: 2m · Excludes pending PSP captures.
+                    </div>
+                    <div class="tableish">
+                      <div class="tr head"><div>School</div><div>Plan</div><div>Status</div><div></div></div>
+                      <div class="tr"><div>Gilead Tech</div><div>Pro</div><div><span class="badge warn">past due</span></div><div>Ledger →</div></div>
+                      <div class="tr"><div>Buea Academy</div><div>Growth</div><div><span class="badge live">current</span></div><div>Ledger →</div></div>
+                    </div>
+                    <div class="verdict ok">Sparklines in chips. Why-drawer replaces explain strip. Green spine. Work above fold.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="frame ten">
+                <div class="frame-label"><span>Tenant</span><span>Money · this school</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">School admin</div><a class="on" href="#">Finance</a></nav>
+                  <div class="main">
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow money">Money · this school</div>
+                        <h4>Finance</h4>
+                      </div>
+                      <div class="chips">
+                        <span class="chip"><span class="d"></span>PSP healthy
+                          <span class="spark" aria-hidden="true"><i style="height:5px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:11px"></i><i style="height:10px"></i></span>
+                        </span>
+                        <span class="chip warn"><span class="d"></span>3 past due families</span>
+                        <span class="chip fresh"><span class="d"></span>Updated 2m ago</span>
+                        <span class="chip cta">Collect</span>
+                      </div>
+                    </div>
+                    <div class="metrics">
+                      <div class="metric accent-money"><div class="v">XAF 2.1M</div><div class="k">Collected</div><div class="why">Why this number?</div></div>
+                      <div class="metric accent-money"><div class="v">XAF 410k</div><div class="k">Outstanding</div><div class="why">Why this number?</div></div>
+                      <div class="metric accent-money"><div class="v">128</div><div class="k">Invoices</div><div class="why">Why this number?</div></div>
+                      <div class="metric accent-money"><div class="v">3</div><div class="k">Past due</div><div class="why">Why this number?</div></div>
+                    </div>
+                    <div class="why-drawer">
+                      <strong>Outstanding</strong> — open invoice balance for this school only.
+                      Source: finance invoices · Freshness: 2m · Same definition as operator “past due” chip language.
+                    </div>
+                    <div class="tableish">
+                      <div class="tr head"><div>Family</div><div>Term</div><div>Status</div><div></div></div>
+                      <div class="tr"><div>Ngassa · F2</div><div>T2</div><div><span class="badge warn">past due</span></div><div>Invoice →</div></div>
+                      <div class="tr"><div>Mbah · F1</div><div>T2</div><div><span class="badge live">paid</span></div><div>Invoice →</div></div>
+                    </div>
+                    <div class="verdict ok">True twin. Same chips · same Why · same freshness · school nouns.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROLE MISSION -->
+    <div class="sec" id="mock-role">
+      <span class="n">03</span>
+      <h2>MAX Mission — role-shaped chips + season (same layout)</h2>
+    </div>
+    <div class="mock-block" data-mock="role">
+      <div class="mock-head">
+        <div>
+          <h3>Tenant Admin Home · role + season (operator mirror uses fleet roles)</h3>
+          <div class="path">Creativity without fragmentation — one home, smart chips</div>
+        </div>
+        <div class="toggle" role="group" aria-label="Role toggle">
+          <button type="button" class="active" data-show="before">Before</button>
+          <button type="button" data-show="after">After MAX</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span>Role-shaped Mission</span>
+          <div class="qa-flags" data-qa="role">
+            <span class="qa fail">5 hubs</span>
+            <span class="qa fail">Same chips for all roles</span>
+          </div>
+        </div>
+        <div class="canvas">
+          <div class="panel before show" data-panel="before">
+            <div class="dual">
+              <div class="frame ten" style="grid-column: 1 / -1; max-width: 920px; margin: 0 auto; width: 100%;">
+                <div class="frame-label"><span>Tenant today</span><span>Fragmented</span></div>
+                <div class="app">
+                  <nav class="nav">
+                    <div class="brand">School admin</div>
+                    <a class="on" href="#">Backend</a><a href="#">Config</a><a href="#">Studio</a><a href="#">Configure</a><a href="#">Features</a>
+                  </nav>
+                  <div class="main dense">
+                    <div class="stack">
+                      <div class="band bad">Which is home?</div>
+                      <div class="band bad">Bursar sees same wall as principal</div>
+                      <div class="band bad">No enrollment-week mode</div>
+                    </div>
+                    <div class="verdict bad">Fragmentation kills consistency and creativity.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel after" data-panel="after">
+            <div class="dual">
+              <div class="frame op">
+                <div class="frame-label"><span>Operator</span><span>Mission · role chips</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">Control plane</div><a class="on" href="#">Home</a></nav>
+                  <div class="main">
+                    <div class="season"><span>Season · fee week</span></div>
+                    <div class="role-tabs" data-roles="op">
+                      <button type="button" class="on" data-role="fleet">Fleet ops</button>
+                      <button type="button" data-role="billing">Billing</button>
+                      <button type="button" data-role="support">Support</button>
+                    </div>
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow mission">Mission · fleet</div>
+                        <h4>Command</h4>
+                      </div>
+                      <div class="chips" data-role-chips="op">
+                        <span class="chip"><span class="d"></span>103 schools</span>
+                        <span class="chip warn"><span class="d"></span>2 need attention</span>
+                        <span class="chip fresh"><span class="d"></span>Updated 1m ago</span>
+                      </div>
+                    </div>
+                    <div class="metrics">
+                      <div class="metric accent-mission" style="grid-column: span 2">
+                        <div class="v" style="font-size:15px">Globe / pulse stays — text on solid panels</div>
+                        <div class="k">Expressive Mission zone · no type-on-media bleed</div>
+                      </div>
+                      <div class="metric accent-fleet"><div class="v">2</div><div class="k">Attention</div></div>
+                      <div class="metric accent-money"><div class="v">12</div><div class="k">Past due</div></div>
+                    </div>
+                    <div class="verdict ok">Click role tabs in the live mock — chips change, layout does not.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="frame ten">
+                <div class="frame-label"><span>Tenant</span><span>Admin Home · role chips</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">School admin</div><a class="on" href="#">Admin Home</a><a href="#">Finance</a></nav>
+                  <div class="main">
+                    <div class="season"><span>Season · fee week</span></div>
+                    <div class="role-tabs" data-roles="ten">
+                      <button type="button" class="on" data-role="principal">Principal</button>
+                      <button type="button" data-role="bursar">Bursar</button>
+                      <button type="button" data-role="registrar">Registrar</button>
+                    </div>
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow mission">Mission · this school</div>
+                        <h4>Admin Home</h4>
+                      </div>
+                      <div class="chips" data-role-chips="ten">
+                        <span class="chip"><span class="d"></span>Day running</span>
+                        <span class="chip warn"><span class="d"></span>Domain unverified</span>
+                        <span class="chip cta">Continue setup</span>
+                      </div>
+                    </div>
+                    <div class="metrics">
+                      <div class="metric accent-mission" style="grid-column: span 2">
+                        <div class="v" style="font-size:15px">School pulse · attendance · messages</div>
+                        <div class="k">Same Mission grammar as operator</div>
+                      </div>
+                      <div class="metric accent-setup"><div class="v">72%</div><div class="k">Setup</div></div>
+                      <div class="metric accent-money"><div class="v">3</div><div class="k">Past due</div></div>
+                    </div>
+                    <div class="verdict ok">One home. Role chips. Season banner. Teal host frame. No hub war.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CI GATES -->
+    <div class="sec" id="mock-gates">
+      <span class="n">04</span>
+      <h2>MAX consistency machinery (so you stop repeating yourself)</h2>
+    </div>
+    <div class="banner ok">
+      <strong>These are the “set and forget” enforcers.</strong> Once green, wallpaper badges and uneven twins cannot quietly return.
+    </div>
+    <div class="gate">
+      <div class="item">
+        <h3>Wallpaper badge scanner</h3>
+        <p>Fails CI on static <code>Operational</code>, hardcoded catalog <code>ready</code>, and synonym status labels not in the locked vocabulary.</p>
+      </div>
+      <div class="item">
+        <h3>Twin masthead contract</h3>
+        <p>Operator vs tenant Money/Setup/Mission must expose the same slots: title, chips, primary, freshness, optional Why.</p>
+      </div>
+      <div class="item">
+        <h3>Band-count / fold SLA</h3>
+        <p>Max 2 chrome bands above <code>[data-rmc-work-root]</code>. Primary work within ~320px. Cramping becomes a gate, not a debate.</p>
+      </div>
+      <div class="item">
+        <h3>Visibility / anti-bleed</h3>
+        <p>No text parent with overflow:hidden + sticky. Chip contrast AA. Grids use <code>minmax(0,1fr)</code>. Host color only on frame chrome.</p>
+      </div>
+    </div>
+
+    <!-- FULL BACKLOG -->
+    <div class="sec" id="backlog">
+      <span class="n">05</span>
+      <h2>Full MAX backlog (included for approval scope)</h2>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <span class="tagline max">Interaction</span>
+        <h3>Intelligence</h3>
+        <ul>
+          <li>Time-to-first-useful-control instrumentation</li>
+          <li>Saved views + pinned columns (fleet lists both hosts)</li>
+          <li>Role-shaped Mission chips</li>
+          <li>Operational seasons (enrollment / exams / fees)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tagline max">Density</span>
+        <h3>Without cramp</h3>
+        <ul>
+          <li>Chip sparklines (7-day)</li>
+          <li>Row-inline next action</li>
+          <li>ⓘ info-tag graph (kill lede walls)</li>
+          <li>Diff-first Setup map</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tagline max">Craft</span>
+        <h3>Color & motion</h3>
+        <ul>
+          <li>Host chroma lock (indigo / teal)</li>
+          <li>State color lock (4 states only)</li>
+          <li>Quiet motion on save / attention / breach</li>
+          <li>Empty states with exactly one CTA</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tagline max">Trust</span>
+        <h3>Proof</h3>
+        <ul>
+          <li>“Why this number?” drawer</li>
+          <li>Freshness chips everywhere decisions happen</li>
+          <li>AI only in copilot rail (no card walls)</li>
+          <li>Microcopy SOT shared across hosts</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- WAVES -->
+    <div class="sec" id="waves">
+      <span class="n">06</span>
+      <h2>Proposed ship waves (both hosts each wave)</h2>
+    </div>
+    <div class="card">
+      <div class="wave">
+        <div class="w">W1<br>Foundation</div>
+        <div class="body"><strong>Shared masthead</strong> + kill wallpaper badges + tag vocabulary lock + ≤2 chrome bands on billing + school configuration.</div>
+      </div>
+      <div class="wave">
+        <div class="w">W2<br>Money MAX</div>
+        <div class="body"><strong>Money desk twins</strong> + uncollapse KPIs + freshness + sparklines + Why-drawer + green spine.</div>
+      </div>
+      <div class="wave">
+        <div class="w">W3<br>Mission</div>
+        <div class="body"><strong>Tenant Admin Home</strong> convergence + role-shaped chips + season banner + operator Home chip grammar parity.</div>
+      </div>
+      <div class="wave">
+        <div class="w">W4<br>Locks</div>
+        <div class="body"><strong>CI gates</strong> — wallpaper scanner, twin masthead contract, band-count/fold SLA, visibility anti-bleed.</div>
+      </div>
+      <div class="wave">
+        <div class="w">W5<br>Sweep</div>
+        <div class="body"><strong>Archetype CSS</strong> + adaptive density + roll masthead across remaining cookie-cutter hubs + delete meta Option-A strips.</div>
+      </div>
+    </div>
+
+    <!-- DECIDE -->
+    <div class="sec" id="decide">
+      <span class="n">07</span>
+      <h2>Your call</h2>
+    </div>
+    <div class="banner warn">
+      <strong>No implementation until you approve.</strong> Reply in chat with one of the options below (or a custom slice).
+    </div>
+    <div class="card">
+      <ul class="checklist">
+        <li><span class="box" aria-hidden="true"></span><div><strong>Option A — Wave 1 only</strong><br>Masthead + live tags + kill Operational/ready wallpaper on billing + school config (both hosts).</div></li>
+        <li><span class="box" aria-hidden="true"></span><div><strong>Option B — Waves 1–3</strong><br>Foundation + Money MAX twins + Tenant Admin Home / role Mission.</div></li>
+        <li><span class="box" aria-hidden="true"></span><div><strong>Option C — Full MAX (Waves 1–5)</strong><br>Everything in this brief including CI locks and archetype sweep.</div></li>
+        <li><span class="box" aria-hidden="true"></span><div><strong>Option D — Custom</strong><br>Tell me exactly which mocks/gates to include or exclude.</div></li>
+      </ul>
+    </div>
+    <div class="banner ten" style="margin-top:14px">
+      Also still available for reference:
+      <code>super-operator-tenant-parity-audit-HARDER-v2-2026-07-21.html</code> (prior brief).
+      This MAX v3 is the approval source of truth.
+    </div>
+  </div>
+
+  <div class="sticky">
+    <a href="#approval">Approval</a>
+    <a href="#mock-money">Mocks</a>
+    <a href="#decide" class="approve">Decide →</a>
+  </div>
+
+  <script>
+    var ROLE_CHIPS = {
+      op: {
+        fleet: [
+          '<span class="chip"><span class="d"></span>103 schools</span>',
+          '<span class="chip warn"><span class="d"></span>2 need attention</span>',
+          '<span class="chip fresh"><span class="d"></span>Updated 1m ago</span>'
+        ].join(''),
+        billing: [
+          '<span class="chip warn"><span class="d"></span>12 past due</span>',
+          '<span class="chip"><span class="d"></span>PSP healthy</span>',
+          '<span class="chip cta">Open billing</span>',
+          '<span class="chip fresh"><span class="d"></span>Updated 1m ago</span>'
+        ].join(''),
+        support: [
+          '<span class="chip alert"><span class="d"></span>5 open incidents</span>',
+          '<span class="chip warn"><span class="d"></span>2 on-call</span>',
+          '<span class="chip cta">Queue</span>',
+          '<span class="chip fresh"><span class="d"></span>Updated 1m ago</span>'
+        ].join('')
+      },
+      ten: {
+        principal: [
+          '<span class="chip"><span class="d"></span>Day running</span>',
+          '<span class="chip warn"><span class="d"></span>Domain unverified</span>',
+          '<span class="chip cta">Continue setup</span>'
+        ].join(''),
+        bursar: [
+          '<span class="chip warn"><span class="d"></span>3 past due families</span>',
+          '<span class="chip"><span class="d"></span>PSP healthy</span>',
+          '<span class="chip cta">Collect</span>',
+          '<span class="chip fresh"><span class="d"></span>Updated 2m ago</span>'
+        ].join(''),
+        registrar: [
+          '<span class="chip alert"><span class="d"></span>No active term</span>',
+          '<span class="chip warn"><span class="d"></span>14 enrollments pending</span>',
+          '<span class="chip cta">Open academics</span>'
+        ].join('')
+      }
+    };
+
+    function setQa(wrap, after) {
+      var flags = wrap.querySelector('[data-qa]');
+      if (!flags) return;
+      if (after) {
+        flags.innerHTML =
+          '<span class="qa pass">Readable</span>' +
+          '<span class="qa pass">No cramp</span>' +
+          '<span class="qa pass">Twins even</span>' +
+          '<span class="qa pass">MAX features</span>';
+      } else {
+        var id = flags.getAttribute('data-qa');
+        if (id === 'money') {
+          flags.innerHTML =
+            '<span class="qa fail">Buried KPIs</span><span class="qa fail">No trends</span><span class="qa fail">Uneven twins</span>';
+        } else {
+          flags.innerHTML =
+            '<span class="qa fail">5 hubs</span><span class="qa fail">Same chips for all roles</span>';
+        }
+      }
+    }
+
+    document.querySelectorAll('[data-mock]').forEach(function (wrap) {
+      var buttons = wrap.querySelectorAll('.toggle button');
+      var panels = wrap.querySelectorAll('.panel');
+      buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var which = btn.getAttribute('data-show');
+          buttons.forEach(function (b) { b.classList.toggle('active', b === btn); });
+          panels.forEach(function (p) {
+            p.classList.toggle('show', p.getAttribute('data-panel') === which);
+          });
+          setQa(wrap, which === 'after');
+        });
+      });
+    });
+
+    document.querySelectorAll('.role-tabs').forEach(function (tabs) {
+      var host = tabs.getAttribute('data-roles');
+      tabs.querySelectorAll('button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          tabs.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b === btn); });
+          var role = btn.getAttribute('data-role');
+          var target = tabs.parentElement.querySelector('[data-role-chips="' + host + '"]');
+          if (target && ROLE_CHIPS[host] && ROLE_CHIPS[host][role]) {
+            target.innerHTML = ROLE_CHIPS[host][role];
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -614,6 +614,23 @@ jobs:
         run: |
           python scripts/scan_rls_bypass.py --compare
 
+  wallpaper-status-badges:
+    name: Wallpaper status badges (MAX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Scan wallpaper Operational / ready badges
+        run: python scripts/scan_wallpaper_status_badges.py --compare
+      - name: Twin masthead contract
+        run: python scripts/verify_page_masthead_twin_contract.py
+      - name: Band-count / fold SLA
+        run: python scripts/verify_band_count_fold_sla.py
+      - name: Visibility / anti-bleed
+        run: python scripts/scan_visibility_anti_bleed.py
+
   money-float:
     name: "FinTech: float() on money paths (Decimal-only)"
     runs-on: ubuntu-latest

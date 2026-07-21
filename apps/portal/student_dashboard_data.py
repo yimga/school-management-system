@@ -264,13 +264,15 @@ def build_student_home_extras(
     # School operational grade scale (local-first): /20 francophone Bac, /100
     # percentage, /4 GPA — never a hardcoded /20. Resolved once and reused for both
     # the Average KPI denominator and the subject-bar widths so a /100 school, a /20
-    # school and a /4 GPA school each render truthfully. Never raises; defaults to 100.
+    # school and a /4 GPA school each render truthfully. Display denominator only,
+    # so the unknown case opts in explicitly to the neutral 100 (``default=100``);
+    # the resolver fails closed for callers that enforce an upper bound.
     score_scale = 100.0
     if can_view_results:
         try:
             from apps.evals.grading_provisioning import resolve_school_score_scale
 
-            _scale = float(resolve_school_score_scale(school) or 0)
+            _scale = float(resolve_school_score_scale(school, default=100) or 0)
             if _scale > 0:
                 score_scale = _scale
         except _SOFT:

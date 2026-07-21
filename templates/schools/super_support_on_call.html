@@ -20,7 +20,7 @@
 {% url 'super:dashboard' as dashboard_url %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="support_on_call" center_eyebrow=_("Platform operators") center_title=_("Support on-call rotation") center_purpose=_("Primary on-call receives every new ticket; backups are paged when the primary doesn't respond inside SLA.") primary_url=dashboard_url primary_label=_("Back to dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="support_on_call" center_eyebrow=_("Platform operators") center_title=_("Support on-call rotation") center_purpose=_("Primary on-call receives every new ticket; backups are paged when the primary doesn't respond inside SLA.") primary_url=dashboard_url primary_label=_("Back to dashboard") nav_groups=operational_nav_groups %}
   <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>
       <h1 class="h4 mb-1">{% trans "Support on-call rotation" %}</h1>

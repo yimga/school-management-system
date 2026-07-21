@@ -26,7 +26,7 @@
     </div>
     {% endif %}
     {% url 'super:dashboard' as super_dashboard_url %}
-    {% include "components/rmc_operational_center_frame.html" with os_center_key="tenant_health" center_eyebrow=_("Platform operators") center_title="School Health Monitor" center_purpose="Last activity and status per school. API: GET /api/v1/super/tenant-health" primary_url=super_dashboard_url primary_label="Back to Schools" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+    {% include "components/rmc_operational_center_frame.html" with os_center_key="tenant_health" center_eyebrow=_("Platform operators") center_title="School Health Monitor" center_purpose="Last activity and status per school. API: GET /api/v1/super/tenant-health" primary_url=super_dashboard_url primary_label="Back to Schools" nav_groups=operational_nav_groups %}
     <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3" role="search">
       <input type="search" name="q" value="{{ search_query }}" class="form-control" placeholder="{% trans 'Search schools by name or slug' %}" autocomplete="off">
       <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Search" %}</button>

@@ -24,6 +24,13 @@ from apps.platform_runtime.operator_identity import (
     require_platform_scope,
 )
 from apps.platform_runtime.operational_center_nav import billing_command_frame_context
+from apps.platform_runtime.page_status_tags import (
+    STATUS_ATTENTION,
+    STATUS_HEALTHY,
+    build_masthead,
+    chip,
+    sparkline_from_count,
+)
 from apps.schools.control_plane import require_super_access_with_host
 
 from .models import School, TenantApiUsage
@@ -145,11 +152,77 @@ def billing_dashboard(request):
         .get("total")
         or 0
     )
+    past_due = 0
+    try:
+        past_due = sum(
+            int(row.get("total") or 0)
+            for row in subscription_summary
+            if str(row.get("status", "")).lower() in {"past_due", "past-due", "delinquent"}
+        )
+    except Exception:
+        past_due = 0
+    stale_n = int(stale_processor_accounts or 0)
+    chips = [
+        chip(
+            label=f"{billing_account_count} accounts",
+            tone="success",
+            sparkline=sparkline_from_count(billing_account_count),
+        ),
+        chip(
+            label=f"{subscription_count} subscriptions",
+            tone="success",
+            sparkline=sparkline_from_count(subscription_count),
+        ),
+    ]
+    if past_due:
+        chips.append(
+            chip(
+                label=f"{past_due} past due",
+                tone="warning",
+                sparkline=sparkline_from_count(past_due),
+            )
+        )
+    if stale_n:
+        chips.append(chip(label=f"{stale_n} PSP sync issues", tone="danger"))
+    elif processor_event_count:
+        chips.append(chip(label="PSP healthy", tone="success"))
+    chips.append(chip(label="Updated just now", tone="fresh"))
+    masthead = build_masthead(
+        archetype="money",
+        host="operator",
+        eyebrow="Money · fleet",
+        title="Platform billing",
+        purpose=(
+            "Posted charges, credits, accounts, and subscriptions across the fleet. "
+            "PSP posture stays honest — no fake live collection."
+        ),
+        chips=chips,
+        primary_url=reverse("super:usage"),
+        primary_label="Usage API",
+        secondary_url=reverse("super:dashboard"),
+        secondary_label="Back to dashboard",
+        status_key=STATUS_ATTENTION if (past_due or stale_n) else STATUS_HEALTHY,
+        why_items=[
+            {
+                "title": "Posted charges",
+                "body": "Sum of posted platform ledger charge rows.",
+                "source": "Platform ledger",
+                "freshness": "Live on page load",
+            },
+            {
+                "title": "Past due",
+                "body": "Subscriptions in past-due / delinquent status.",
+                "source": "TenantSubscription",
+                "freshness": "Live on page load",
+            },
+        ],
+    )
     return render(
         request,
         "schools/billing_dashboard.html",
         {
             **billing_command_frame_context(),
+            **masthead,
             "trial_schools": trial_schools,
             "account_summary": list(account_summary),
             "subscription_summary": list(subscription_summary),

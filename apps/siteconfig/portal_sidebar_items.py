@@ -1359,7 +1359,7 @@ def build_portal_sidebar_items(request, site):
         items.append(
             {
                 "id": "backend",
-                "label": "Backend Console",
+                "label": "Admin Home",
                 "url": _safe_reverse("accounts:backend_dashboard"),
                 "icon": "bi-gear-fill",
                 "section": "Display & Platform",
@@ -1838,7 +1838,7 @@ _BASELINE_BY_ROLE = {
 # The Command Center + Setup wizards are ALWAYS present (no feature gate) so a brand-new
 # admin can finish provisioning even when the full builder can't run.
 _BASELINE_ADMIN = (
-    ("backend_dashboard", "School Command Center", "accounts:backend_dashboard", "bi-gear-fill", "Admin Panel", None),
+    ("backend_dashboard", "Admin Home", "accounts:backend_dashboard", "bi-gear-fill", "Admin Panel", None),
     ("setup_wizards", "Setup wizards", "setup_studio:tenant_wizard_index", "bi-magic", "Admin Panel", None),
     ("people", "Student Profiles", "accounts:backend_student_list", "bi-person-lines-fill", "People & Access", None),
     ("rbac", "RBAC & Access Control", "accounts:rbac", "bi-diagram-3", "People & Access", None),

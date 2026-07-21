@@ -55,3 +55,15 @@ class ForwardedHostHardeningTest(TestCase):
         host = _request_host_raw(req)
         self.assertEqual(host, tenant)
         self.assertNotEqual(public_host_kind(host), "manager")
+
+    def test_manager_localhost_is_control_plane(self):
+        """Chromium resolves manager.localhost → 127.0.0.1; must select manager_urls."""
+        from apps.schools.host_routing import is_public_host
+        from apps.schools.middleware import _is_base_domain, _get_base_domain
+
+        self.assertEqual(public_host_kind("manager.localhost"), "manager")
+        self.assertEqual(public_host_kind("manager.localhost:8012"), "manager")
+        self.assertEqual(public_host_kind("127.0.0.1"), "local")
+        self.assertEqual(public_host_kind("localhost"), "local")
+        self.assertTrue(is_public_host("manager.localhost"))
+        self.assertTrue(_is_base_domain("manager.localhost", _get_base_domain()))

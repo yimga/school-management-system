@@ -229,7 +229,7 @@ class AdminUiSmokeTests(TestCase):
             ]
         else:
             self.assertContains(response, tenant_quick_link)
-            self.assertContains(response, "Backend Console")
+            self.assertContains(response, "Admin Home")
             quick_paths = [
                 _reverse_tenant_admin("admin:index"),
                 _reverse_tenant_admin(

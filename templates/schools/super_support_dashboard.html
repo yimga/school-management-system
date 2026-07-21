@@ -35,7 +35,7 @@
     </div>
   </div>
   {% endif %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="support_dashboard" center_eyebrow=_("Platform operators") center_title=_("Support mission control") center_purpose=_("Ticket queue, SLA, and support health.") primary_url=dashboard_url primary_label=_("Back to dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="support_dashboard" center_eyebrow=_("Platform operators") center_title=_("Support mission control") center_purpose=_("Ticket queue, SLA, and support health.") primary_url=dashboard_url primary_label=_("Back to dashboard") nav_groups=operational_nav_groups %}
   {% if phase7_de %}
   {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
   {% endif %}

@@ -31,7 +31,7 @@
   <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#orchestration-workbench-main">{% trans "Skip to orchestration runs table" %}</a>
   <div id="orchestration-workbench-main" class="container-fluid py-2 control-plane-shell" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
 {% phase8_dashboard_declaration "orchestration/operator_workbench.html" %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_workbench" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_workbench" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" nav_groups=operational_nav_groups %}
   {% if operator_orchestration_workbench_links %}
   <div class="card shadow-sm border-0 mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>

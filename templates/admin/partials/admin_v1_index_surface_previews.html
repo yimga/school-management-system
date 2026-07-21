@@ -219,7 +219,7 @@
           {% if is_manager_host %}
           <a href="{% url 'super:dashboard' %}">{% trans "Control plane" %}</a>
           {% else %}
-          <a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend Console" %}</a>
+          <a href="{% url 'accounts:backend_dashboard' %}">{% trans "Admin Home" %}</a>
           {% endif %}
           {% endfor %}
         </div>

@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static phase8_tags %}
+{% load static i18n phase8_tags %}
 
 {% block page_archetype %}decision-console{% endblock %}
 {% block title %}Feature Control Panel{% endblock %}
@@ -18,6 +18,9 @@
 
 {% phase8_dashboard_declaration "siteconfig/feature_control_panel.html" %}
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
-{% include "siteconfig/partials/feature_control_panel_body.html" %}
+<div class="container-fluid py-2 rmc-max-suppress-meta-option-a" data-page-archetype="setup" data-rmc-work-root="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_page_masthead.html" with page_archetype="setup" page_host="tenant" masthead_eyebrow=_("Setup · this school") masthead_title=_("Feature Control") masthead_purpose=_("Toggle modules your school is entitled to run. Changes apply to this tenant only.") masthead_chips=masthead_chips %}
+  {% include "siteconfig/partials/feature_control_panel_body.html" %}
+</div>
 <script src="{% static 'js/rmc-live-preview-contract.js' %}"></script>
 {% endblock %}

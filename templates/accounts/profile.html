@@ -61,7 +61,7 @@
               <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">Notifications</a>
               <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:my_delegations' %}">Out of Office / Delegation</a>
               {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'IT_ADMIN' %}
-                <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:backend_dashboard' %}">Backend Console</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:backend_dashboard' %}">{% trans "Admin Home" %}</a>
               {% endif %}
               {% if request.user.role == 'TEACHER' %}
                 <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">Teacher Dashboard</a>
@@ -304,7 +304,7 @@
                   <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.site_settings_url }}">Site Settings</a>
                 {% endif %}
                 {% if admin_context.backend_url %}
-                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.backend_url }}">Backend Console</a>
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.backend_url }}">{% trans "Admin Home" %}</a>
                 {% endif %}
                 {% if admin_context.admin_url %}
                   <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.admin_url }}">{% if is_backend_context %}{% trans "Configuration Engine" %}{% else %}Admin Panel{% endif %}</a>

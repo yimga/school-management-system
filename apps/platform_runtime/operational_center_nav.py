@@ -480,14 +480,15 @@ def change_requests_frame_context() -> dict[str, Any]:
 
 def school_configuration_frame_context() -> dict[str, Any]:
     return {
-        "center_eyebrow": "Tenant-safe school setup",
-        "center_title": "School Configuration Center",
+        "center_eyebrow": "Setup · this school",
+        "center_title": "Configuration",
         "center_purpose": (
             "School settings, blueprints, packs, imports, apps, money, workflows, "
             "offline posture, audit, and security — tenant scoped only. School readiness, "
             "blockers, and next best action stay visible without exposing platform-only actions."
         ),
-        "status_badge_text": "Tenant scoped only",
+        # Live status comes from masthead chips / setup_health — not a static badge.
+        "status_badge_text": "",
         "operational_nav_groups": SCHOOL_CONFIGURATION_NAV_GROUPS,
     }
 
@@ -537,14 +538,14 @@ def migration_center_frame_context() -> dict[str, Any]:
 def billing_command_frame_context() -> dict[str, Any]:
     return {
         "page_provides_own_h1": True,
-        "center_eyebrow": "Platform billing operators",
-        "center_title": "Package and Billing Command Center",
+        "center_eyebrow": "Money · fleet",
+        "center_title": "Platform billing",
         "center_purpose": (
             "Package comparison, entitlement diff, usage meters, billing impact "
             "previews, upgrade and downgrade requests, external PSP status, manual "
             "fallback, and revenue share posture."
         ),
-        "status_badge_text": "External PSP honest",
+        "status_badge_text": "",
         "operational_nav_groups": BILLING_COMMAND_NAV_GROUPS,
     }
 
@@ -613,7 +614,7 @@ def installation_health_frame_context() -> dict[str, Any]:
         "center_purpose": (
             "Last health check per active install — paginated table with refresh actions."
         ),
-        "status_badge_text": "Operational",
+        "status_badge_text": "",
         "operational_nav_groups": INSTALLATION_HEALTH_NAV_GROUPS,
     }
 
@@ -627,7 +628,7 @@ def marketplace_incident_frame_context() -> dict[str, Any]:
             "Central place for marketplace-related incidents. Use the support dashboard "
             "for the full incident queue."
         ),
-        "status_badge_text": "Operational",
+        "status_badge_text": "",
         "operational_nav_groups": MARKETPLACE_GOVERNANCE_NAV_GROUPS,
     }
 
@@ -638,7 +639,7 @@ def package_rollout_frame_context() -> dict[str, Any]:
         "center_eyebrow": "Platform operators",
         "center_title": "Package rollout",
         "center_purpose": "Staged package rollout across tenant installations.",
-        "status_badge_text": "Operational",
+        "status_badge_text": "",
         "operational_nav_groups": BLUEPRINT_MARKETPLACE_NAV_GROUPS,
     }
 
@@ -696,13 +697,13 @@ def tenant_app_catalog_frame_context() -> dict[str, Any]:
 
 def money_center_frame_context() -> dict[str, Any]:
     return {
-        "center_eyebrow": "Finance team",
-        "center_title": "Money Center",
+        "center_eyebrow": "Money · this school",
+        "center_title": "Finance",
         "center_purpose": (
-            "Package comparison, entitlement posture, usage meters, billing impact, manual "
-            "fallback, external PSP status, and revenue honesty in one workspace."
+            "Invoices, fees, payment readiness, usage meters, and manual fallback — "
+            "tenant-scoped money desk twin of platform billing."
         ),
-        "status_badge_text": "Payment readiness visible",
+        "status_badge_text": "",
         "operational_nav_groups": MONEY_CENTER_NAV_GROUPS,
     }
 

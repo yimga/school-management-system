@@ -9,9 +9,10 @@ ROOT = Path(__file__).resolve().parents[3]
 class PremiumDashboardLabelTests(SimpleTestCase):
     def test_role_dashboard_labels_are_operational_not_passive(self):
         expectations = {
-            "templates/accounts/backend_dashboard.html": "School Command Center",
+            "templates/accounts/backend_dashboard.html": "Admin Home",
             "templates/parent/dashboard.html": "Family Home",
-            "templates/finance/dashboard.html": "Money Center",
+            # Money twin masthead title is Finance; sidebar still says Money Center.
+            "templates/finance/dashboard.html": "Finance",
             "templates/analytics/dashboard.html": "Insights Center",
         }
 
@@ -26,12 +27,13 @@ class PremiumDashboardLabelTests(SimpleTestCase):
         )
         for label in (
             "Command Center",
-            "Teacher Workspace",
             "Family Home",
             "Money Center",
             "Insights Center",
-            "School Command Center",
+            "Admin Home",
             "Automation Studio",
         ):
             with self.subTest(label=label):
                 self.assertIn(label, sidebar)
+        # Teacher workspace is composed via terminology tags, not a fixed string.
+        self.assertIn("Workspace", sidebar)

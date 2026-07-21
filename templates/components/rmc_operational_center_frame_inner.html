@@ -1,0 +1,48 @@
+{% load i18n rmc_explain_tags %}
+{% comment %}Inner body for rmc_operational_center_frame — page_host / page_archetype resolved by parent.{% endcomment %}
+<section class="rmc-operational-center-frame{% if page_host == 'tenant' %} rmc-operational-center-frame--tenant{% endif %}"
+         data-rmc-operational-center-frame="1"
+         data-rmc-static-chrome="1"
+         data-rmc-core-context="1"
+         data-rmc-chrome-band="masthead"
+         {% if os_center_key %}data-rmc-os-center="{{ os_center_key }}"{% endif %}
+         aria-labelledby="rmc-ops-center-title">
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+  {% include "components/rmc_page_masthead.html" with masthead_title_id="rmc-ops-center-title" masthead_eyebrow=center_eyebrow|default:masthead_eyebrow masthead_title=center_title|default:masthead_title|default:_("Operations") masthead_purpose=center_purpose|default:masthead_purpose masthead_status_text=status_badge_text|default:masthead_status_text masthead_status_variant=status_badge_variant|default:masthead_status_variant masthead_primary_url=primary_url|default:masthead_primary_url masthead_primary_label=primary_label|default:masthead_primary_label masthead_secondary_url=secondary_url|default:masthead_secondary_url masthead_secondary_label=secondary_label|default:masthead_secondary_label masthead_chips=masthead_chips %}
+
+  {% if jump_a_id and jump_a_label or jump_b_id and jump_b_label or jump_c_id and jump_c_label or jump_d_id and jump_d_label %}
+  <div class="cp-hero__actions cp-hero__actions--toolbar rmc-ops-frame__actions mb-2" role="group" aria-label="{% trans 'Jump to section' %}">
+    {% if jump_a_id and jump_a_label %}<a class="cp-btn cp-btn--ghost rmc-ops-frame__jump truncate" href="#{{ jump_a_id }}" data-rmc-section-anchor>{{ jump_a_label }}</a>{% endif %}
+    {% if jump_b_id and jump_b_label %}<a class="cp-btn cp-btn--ghost rmc-ops-frame__jump truncate" href="#{{ jump_b_id }}" data-rmc-section-anchor>{{ jump_b_label }}</a>{% endif %}
+    {% if jump_c_id and jump_c_label %}<a class="cp-btn cp-btn--ghost rmc-ops-frame__jump truncate" href="#{{ jump_c_id }}" data-rmc-section-anchor>{{ jump_c_label }}</a>{% endif %}
+    {% if jump_d_id and jump_d_label %}<a class="cp-btn cp-btn--ghost rmc-ops-frame__jump truncate" href="#{{ jump_d_id }}" data-rmc-section-anchor>{{ jump_d_label }}</a>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if nav_groups %}
+  <nav class="cp-steering__paths rmc-ops-frame__nav-pills" aria-label="{% trans 'Operational groups' %}" data-rmc-ops-nav-pills="1" data-rmc-chrome-band="ops-nav">
+    {% for group in nav_groups %}
+    <span class="cp-steering__path{% if forloop.first %} is-active{% endif %}"
+          data-rmc-ops-nav-pill="{{ group.key|default:forloop.counter }}"
+          title="{{ group.title }} — {{ group.body }}">{{ group.label }}</span>
+    {% endfor %}
+  </nav>
+  {% endif %}
+
+  {% if nav_groups and not hide_nav_detail %}
+  <div class="rmc-ops-nav-detail" data-rmc-ops-nav-grid="1" data-rmc-chrome-band="ops-nav-detail" data-apple-class-configuration-groups="operating-models runtime-governance trust-money">
+    {% for group in nav_groups %}
+    <article class="rmc-ops-nav-detail__card" data-rmc-ops-nav-card="{{ group.key|default:forloop.counter }}">
+      <span class="rmc-ops-nav-detail__label">{{ group.label }}</span>
+      <h2 class="rmc-ops-nav-detail__title h6 mb-1">
+        <span class="truncate">{{ group.title }}</span>
+        {% if group.body %}{% rmc_info_tag title=group.title body=group.body surface=page_host|default:"operator" %}{% endif %}
+      </h2>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{# Work begins here — fold/band SLA scanners key on this marker. #}
+<div data-rmc-work-root="1" class="rmc-work-root-after-chrome" hidden aria-hidden="true"></div>

@@ -10,7 +10,7 @@
 {% block cp_workspace_header %}{% endblock %}
 
 {% block cp_content %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden rmc-empty-state-sentinel rmc-max-suppress-meta-option-a" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
 {% include "components/next_action_strip.html" %}
@@ -19,9 +19,6 @@
   {% phase8_dashboard_declaration "platform_runtime/configuration_center.html" %}
   {% url 'configuration:change_requests' as wcx_change_requests_url %}
   {% include "components/rmc_operational_center_frame.html" with hide_nav_detail="1" os_center_key=os_center_key center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose nav_groups=configuration_nav_groups primary_url=wcx_change_requests_url primary_label=_("Review change requests") secondary_url="/internal-admin/" secondary_label=_("Open raw fallback") %}
-  {% include "components/tenant_option_a_strip.html" with option_a_tag=_("Operator") option_a_title=_("Full-width platform configuration workspace") option_a_lede=_("Open with the work, not a wall of text. Governed modules stay compact — raw /internal-admin/ remains technical fallback only.") option_a_aria=_("Configuration command surface") option_a_flow_title=_("Governed config path") option_a_flow_hint=_("Review change requests before raw model edits; school-scoped changes stay on the tenant plane.") operational_nav_groups=configuration_nav_groups option_a_empty_label=_("Modules") option_a_empty_title=_("Platform config visible") option_a_empty_body=_("Operator-scoped modules only; external blockers stay honest.") %}
-  {% include "components/platform_readiness_strip.html" with inline_field_prefix='cfg-center' hide_inline=1 %}
-
   {% include "components/world_class_visual_section_header.html" with title=_("Operating model and governance modules") purpose=_("Modules are grouped visually by the job they help an operator complete, not by implementation table names.") action_url=wcx_change_requests_url action_label=_("Open approvals") %}
   <div class="row g-3" data-world-class-module-groups="operating-models runtime-governance data-migration ecosystem trust-money experience">
     {% for module in modules %}

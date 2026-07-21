@@ -90,7 +90,10 @@ def _academic_ok(*, school, student_id, reasons: list[str], snapshot: dict) -> b
         return True
 
     raw_average = sum(scores) / len(scores)
-    score_scale = float(resolve_school_score_scale(school))
+    # Ratio denominator (raw average -> %), not an upper bound: opt in explicitly
+    # to the neutral 100 so an unresolvable school degrades to "already a
+    # percentage" instead of raising mid-eligibility-check.
+    score_scale = float(resolve_school_score_scale(school, default=100))
     if score_scale > 0:
         average_pct = Decimal(str(max(0.0, min(100.0, raw_average / score_scale * 100.0))))
     else:  # defensive — resolver never returns <=0, but never divide by zero

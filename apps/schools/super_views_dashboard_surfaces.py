@@ -577,6 +577,70 @@ def super_dashboard_v2(request):
 
     request.rmc_cp_globe_landing_minimal_chrome = True
     request.rmc_cp_globe_deck_v2 = True
+
+    # MAX Wave 3/5: Operator Home Mission twin — interactive role tabs + season.
+    try:
+        from apps.platform_runtime.page_status_tags import (
+            STATUS_ATTENTION,
+            STATUS_HEALTHY,
+            build_masthead,
+            build_mission_role_tabs,
+            chip,
+            mission_role_chips,
+            resolve_mission_role_from_request,
+            resolve_operational_season,
+            sparkline_from_count,
+        )
+
+        season = resolve_operational_season()
+        overall = str((platform_health or {}).get("overall_status") or "healthy").lower()
+        status_key = (
+            STATUS_HEALTHY
+            if overall in {"healthy", "ok", "up"}
+            else STATUS_ATTENTION
+        )
+        role_key = resolve_mission_role_from_request(request, default_role="admin")
+        role_chips = list(mission_role_chips(role_key, host="operator"))
+        watch_n = len(billing_watchlist) if billing_watchlist is not None else 0
+        chips = [
+            chip(
+                label=f"Platform {overall.upper()}",
+                tone="success" if status_key == STATUS_HEALTHY else "warning",
+                sparkline=sparkline_from_count(100 if status_key == STATUS_HEALTHY else 40),
+            ),
+            *role_chips[:2],
+            chip(
+                label=f"{watch_n} billing watch",
+                tone="warning" if watch_n else "success",
+                sparkline=sparkline_from_count(watch_n),
+            ),
+            chip(label="Updated just now", tone="fresh"),
+        ]
+        masthead_ctx = build_masthead(
+            archetype="mission",
+            host="operator",
+            eyebrow=f"Mission · fleet · {season['label']}",
+            title="Operator Home",
+            purpose=(
+                "Fleet health, money watch, and queues — open the highest-risk "
+                "work first. Globe and pulse stay below this masthead."
+            ),
+            chips=chips,
+            primary_url=reverse("super:command_center"),
+            primary_label="Mission queues",
+            secondary_url=reverse("super:billing_dashboard"),
+            secondary_label="Billing",
+            status_key=status_key,
+        )
+        mission_role_tabs = build_mission_role_tabs(
+            active=role_key,
+            base_url=reverse("super:dashboard"),
+            host="operator",
+        )
+    except Exception:  # noqa: BLE001
+        masthead_ctx = {}
+        season = None
+        mission_role_tabs = []
     response = render(
         request,
         "schools/super_dashboard.html",
@@ -645,6 +709,9 @@ def super_dashboard_v2(request):
             "rmc_cp_globe_deck_v2": True,
             "proof_ledger_url": proof_ledger_url,
             "cockpit_export_pdf_url": cockpit_export_pdf_url,
+            "mission_season": season,
+            "mission_role_tabs": mission_role_tabs,
+            **masthead_ctx,
         },
     )
     response["X-RMC-SuperDashboard-Elapsed-Ms"] = str(

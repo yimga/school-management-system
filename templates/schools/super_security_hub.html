@@ -22,7 +22,7 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="super-security-hub-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-super-security-hub="1" data-page-critical-read="1">
   {% phase8_dashboard_declaration "schools/super_security_hub.html" %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="security_hub" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="security_hub" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" nav_groups=operational_nav_groups %}
   <h1 class="h4 mb-3">{% trans "Security & enterprise audit" %}</h1>
   <p class="text-secondary small mb-4">
     {% trans "Enterprise security command center — live signals plus generated verifier JSON summaries (docs/generated). Live signals: security events, compliance export/permission trail, active sessions. Deep static scan:" %}

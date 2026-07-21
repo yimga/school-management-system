@@ -2,7 +2,7 @@
 {% load admin_health i18n static region_format phase8_tags %}
 {% load terminology_tags glocal_tags %}
 
-{% block backend_title %}{% trans "School Command Center" %}{% endblock %}
+{% block backend_title %}{% trans "Admin Home" %}{% endblock %}
 {% block body_extra_class %}
 backend-shell dashboard-page-backend
 {% if show_setup_landing %} rmc-admin-setup-landing-active{% endif %}
@@ -41,6 +41,7 @@ backend-shell dashboard-page-backend
    + wizard-style step cards) shown on the default v3 canvas while a school is still
    onboarding (gated on show_setup_landing). Token-only; tenant brand + theme flip clean. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-setup-surface.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-page-archetypes-max.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-backend-admin-bento.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-lifecycle-journey.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-post-setup-cockpit.css' %}">
@@ -87,6 +88,25 @@ backend-shell dashboard-page-backend
 {% comment %} table-pagination-allow: dashboard-widget-top-N each-table-is-bounded-summary-not-list {% endcomment %}
   {% admin_health as health %}
   {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
+
+  {% if masthead_title %}
+  <div data-page-archetype="mission" data-rmc-work-root="1" class="mb-3 rmc-max-band-allow">
+    {% if mission_season %}
+    <div class="rmc-page-masthead__season mb-2" data-rmc-mission-season="{{ mission_season.key }}" role="status">
+      <strong>{{ mission_season.label }}</strong>
+      <span class="text-muted"> — {{ mission_season.hint }}</span>
+    </div>
+    {% endif %}
+    {% include "components/rmc_page_masthead.html" %}
+    {% include "components/rmc_mission_role_tabs.html" %}
+    <div class="d-flex flex-wrap gap-2 mt-2" aria-label="{% trans 'Admin deep links' %}">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'school_configuration_center_canonical' %}">{% trans "Configuration" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'school_studio' %}">{% trans "School Studio" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal_configure' %}">{% trans "Configure hub" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}">{% trans "Finance" %}</a>
+    </div>
+  </div>
+  {% endif %}
 
   {% include "partials/tenant/launch_ceremony_banner.html" %}
 
@@ -216,7 +236,9 @@ backend-shell dashboard-page-backend
   {% if not backend_school_config_url %}{% url 'school_configuration_center' as backend_school_config_url %}{% endif %}
   {% comment %} data-page-header {% endcomment %}{% comment %} ds-action-bar {% endcomment %}
   {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): eyebrow added for v8 200x preview parity. {% endcomment %}
-  {% include "partials/luxury_major_audit_contract.html" with eyebrow=_("School operators") title=_("School Command Center") subtitle=_("What is happening, what needs attention, and your next step — without hunting through cards.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
+  {% if not masthead_title %}
+  {% include "partials/luxury_major_audit_contract.html" with eyebrow=_("School operators") title=_("Admin Home") subtitle=_("What is happening, what needs attention, and your next step — without hunting through cards.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
+  {% endif %}
   <!-- rmc-ux-above-fold-end -->
 
   {% if pressing_issues %}

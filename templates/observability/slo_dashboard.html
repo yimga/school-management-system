@@ -14,7 +14,7 @@
 
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "observability/slo_dashboard.html" %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="slo_dashboard" center_eyebrow=_("Platform operators") center_title=_("Operational SLO dashboard") center_purpose=_("Regional webhook delivery and sync conflict SLOs.") primary_url=dashboard_url primary_label=_("Back to Dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="slo_dashboard" center_eyebrow=_("Platform operators") center_title=_("Operational SLO dashboard") center_purpose=_("Regional webhook delivery and sync conflict SLOs.") primary_url=dashboard_url primary_label=_("Back to Dashboard") nav_groups=operational_nav_groups %}
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div class="flex-grow-1"></div>
     <div class="text-end small text-muted">

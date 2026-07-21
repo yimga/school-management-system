@@ -18,7 +18,7 @@
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2 control-plane-shell" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate">
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="orchestration_run_detail" center_eyebrow=_("Platform operators") center_title=_("Orchestration run") center_purpose=_("Review one workflow run, status, retries, and step timeline without leaving the operator plane.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="orchestration_run_detail" center_eyebrow=_("Platform operators") center_title=_("Orchestration run") center_purpose=_("Review one workflow run, status, retries, and step timeline without leaving the operator plane.") primary_url="" primary_label="" nav_groups=operational_nav_groups %}
   <a href="{% url 'super:orchestration_workbench' %}" class="btn btn-sm btn-outline-secondary mb-3">&larr; {% trans "Back to workbench" %}</a>
   <h4 class="mb-1">{{ run.definition.name|default:run.definition.code }} <span class="text-muted">#{{ run.id }}</span></h4>
   <p class="text-muted small mb-3">{{ run.definition.code }}{% if run.definition_version %} &middot; v{{ run.definition_version.version_number }}{% endif %}</p>

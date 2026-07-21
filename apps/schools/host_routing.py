@@ -13,7 +13,7 @@ LOCAL_HOSTS = {
     "127.0.0.1",
     "testserver",
     "admin.localhost",
-    "manager.localhost",
+    # manager.localhost is handled in public_host_kind() → "manager" (control plane).
     "api.localhost",
     "docs.localhost",
     "developer.localhost",
@@ -99,11 +99,29 @@ def is_public_host(host: str) -> bool:
         return True
     except ValueError:
         pass
+    # Reserved platform hosts (incl. manager.localhost for Chromium e2e) are never tenants.
+    kind = public_host_kind(normalized)
+    if kind in {
+        "manager",
+        "api",
+        "docs",
+        "verify",
+        "support",
+        "developer",
+        "base",
+        "local",
+    }:
+        return True
     return normalized in all_public_hosts()
 
 
 def public_host_kind(host: str) -> str | None:
     normalized = normalize_host(host)
+    # Local Chromium resolves ``*.localhost`` → 127.0.0.1 without ``--host-resolver-rules``
+    # (Windows Playwright often ignores MAP for ``*.runmycampus.com`` / HSTS). Prefer this
+    # before LOCAL_HOSTS so control-plane e2e can use ``manager.localhost`` + manager_urls.
+    if normalized == "manager.localhost":
+        return "manager"
     if normalized in LOCAL_HOSTS:
         return "local"
     if normalized.endswith(".onrender.com"):

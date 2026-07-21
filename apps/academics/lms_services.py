@@ -233,7 +233,10 @@ def materialize_evaluation_from_submission(*, submission) -> dict:
         return {"materialized": False, "reason": "no_student_year"}
 
     from apps.academics.models import SubjectAssignment
-    from apps.evals.grading_provisioning import resolve_school_score_scale
+    from apps.evals.grading_provisioning import (
+        UnresolvedScoreScale,
+        resolve_school_score_scale,
+    )
     from apps.evals.models import AssessmentWeights, Evaluation
 
     # Resolve the gradebook SubjectAssignment from the STUDENT's roster dimensions
@@ -258,7 +261,12 @@ def materialize_evaluation_from_submission(*, submission) -> dict:
     if int(getattr(weights, weight_attr, 0) or 0) <= 0:
         return {"materialized": False, "reason": "component_unweighted"}
 
-    scale = resolve_school_score_scale(school)
+    # No default=: this value is WRITTEN to the gradebook, so an unknown scale must
+    # skip the materialization rather than rescale onto an assumed /100 axis.
+    try:
+        scale = resolve_school_score_scale(school)
+    except UnresolvedScoreScale:
+        return {"materialized": False, "reason": "unresolved_score_scale"}
     value = _convert_homework_score(submission.score, assignment.points_possible, scale)
 
     evaluation, _created = Evaluation.objects.get_or_create(

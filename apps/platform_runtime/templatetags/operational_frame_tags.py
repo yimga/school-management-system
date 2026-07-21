@@ -24,7 +24,7 @@ def rmc_operational_frame(
         center_title=title or "Operations",
         center_purpose=subtitle or "",
         center_eyebrow=eyebrow or "Platform operators",
-        status_badge_text=status_badge or "Operational",
+        status_badge_text=status_badge or "",
         primary_url=primary_url or "",
         primary_label=primary_label or "",
         secondary_url=secondary_url or "",

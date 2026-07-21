@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>/super/ parity audit — operator + tenant · 2026-07-21</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#040812; --text:#eef5ff; --muted:#9eb0c9; --dim:#6f819c;
+      --line:rgba(177,200,236,.16); --green:#26d486; --red:#f15b6c;
+      --amber:#f8bf3f; --blue:#4f7dff; --cyan:#4fd1c5; --violet:#8c72ff;
+      --ink:#0b1220; --paper:#f4f7fb; --paper-ink:#152033; --paper-muted:#5b6b82;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;color:var(--text);min-height:100vh;
+      background:
+        radial-gradient(circle at 78% -10%,rgba(79,125,255,.18),transparent 28%),
+        radial-gradient(circle at 10% 0%,rgba(241,91,108,.08),transparent 22%),
+        linear-gradient(180deg,#07111f,var(--bg));
+    }
+    .page{max-width:1520px;margin:0 auto;padding:28px 20px 120px}
+    .pill{
+      display:inline-flex;padding:5px 11px;border-radius:999px;
+      border:1px solid rgba(241,91,108,.45);background:rgba(241,91,108,.12);
+      color:#ffc3ca;font-size:11px;font-weight:850;letter-spacing:.07em;text-transform:uppercase;
+    }
+    .pill.ok{border-color:rgba(38,212,134,.45);background:rgba(38,212,134,.1);color:#9ff0c6}
+    .pill.wait{border-color:rgba(248,191,63,.45);background:rgba(248,191,63,.12);color:#ffe5a4}
+    h1{margin:10px 0 8px;font-size:clamp(1.55rem,2.5vw,2.35rem);letter-spacing:-.03em;line-height:1.12}
+    .lede{margin:0 0 14px;color:var(--muted);max-width:100ch;line-height:1.55;font-size:14px}
+    .banner{
+      margin:0 0 18px;padding:14px 16px;border-radius:14px;
+      border:1px solid rgba(79,125,255,.35);background:rgba(79,125,255,.08);
+      color:#c9d7ff;font-size:13px;line-height:1.55;
+    }
+    .banner b{color:#fff}
+    .banner.warn{
+      border-color:rgba(248,191,63,.4);background:rgba(248,191,63,.09);color:#ffe5a4;
+    }
+    .toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+    .toc a{
+      padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(17,31,53,.7);color:var(--muted);font-size:11px;font-weight:750;
+      text-decoration:none;
+    }
+    .toc a:hover{border-color:rgba(79,125,255,.5);color:var(--text)}
+    .sec{
+      margin:34px 0 10px;font-size:12px;font-weight:900;letter-spacing:.08em;
+      text-transform:uppercase;color:var(--muted);
+    }
+    .sec span{color:var(--dim);font-weight:700;letter-spacing:.04em;text-transform:none;margin-left:8px}
+    .grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    @media (max-width:1100px){.grid2,.grid3{grid-template-columns:1fr}}
+    .card{
+      border:1px solid var(--line);border-radius:16px;background:rgba(13,24,42,.88);
+      padding:14px 16px;
+    }
+    .card h3{margin:0 0 6px;font-size:15px;letter-spacing:-.02em}
+    .card p,.card li{color:var(--muted);font-size:13px;line-height:1.5}
+    .card ul{margin:8px 0 0;padding-left:18px}
+    .kpi{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 18px;
+    }
+    @media (max-width:900px){.kpi{grid-template-columns:1fr 1fr}}
+    .kpi .cell{
+      border:1px solid var(--line);border-radius:14px;padding:12px 14px;
+      background:rgba(17,31,53,.65);
+    }
+    .kpi .n{font-size:28px;font-weight:850;letter-spacing:-.04em;line-height:1}
+    .kpi .l{margin-top:6px;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;font-weight:750}
+    table.findings{
+      width:100%;border-collapse:collapse;font-size:12px;
+      border:1px solid var(--line);border-radius:14px;overflow:hidden;
+      background:rgba(13,24,42,.85);
+    }
+    table.findings th,table.findings td{
+      padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;
+    }
+    table.findings th{
+      background:rgba(22,39,65,.85);color:var(--dim);font-size:10px;
+      letter-spacing:.07em;text-transform:uppercase;
+    }
+    table.findings tr:last-child td{border-bottom:0}
+    .sev{
+      display:inline-flex;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:900;
+      letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;
+    }
+    .sev.p0{background:rgba(241,91,108,.2);color:#ffc3ca;border:1px solid rgba(241,91,108,.45)}
+    .sev.p1{background:rgba(248,191,63,.16);color:#ffe5a4;border:1px solid rgba(248,191,63,.4)}
+    .sev.p2{background:rgba(79,125,255,.16);color:#b8cbff;border:1px solid rgba(79,125,255,.35)}
+    .host{
+      display:inline-flex;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:800;
+      border:1px solid var(--line);color:var(--dim);margin-right:3px;
+    }
+    .host.op{border-color:rgba(140,114,255,.4);color:#cbbdff}
+    .host.ten{border-color:rgba(38,212,134,.4);color:#9ff0c6}
+    .host.both{border-color:rgba(79,209,197,.4);color:#9aefe8}
+    code, .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}
+    code{padding:1px 5px;border-radius:6px;background:rgba(255,255,255,.06);color:#d7e4ff}
+    .mock-wrap{margin:12px 0 22px}
+    .mock-head{
+      display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
+      margin-bottom:10px;
+    }
+    .mock-head h3{margin:0;font-size:15px}
+    .toggle{
+      display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;
+      background:rgba(17,31,53,.8);
+    }
+    .toggle button{
+      border:0;background:transparent;color:var(--muted);padding:7px 12px;
+      font-size:11px;font-weight:800;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;
+    }
+    .toggle button.active{background:rgba(79,125,255,.22);color:#fff}
+    .stage{
+      border:1px solid var(--line);border-radius:18px;overflow:hidden;
+      background:#0a1322;box-shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    .stage-bar{
+      display:flex;align-items:center;gap:8px;padding:8px 12px;
+      border-bottom:1px solid var(--line);background:rgba(255,255,255,.03);
+      font-size:11px;color:var(--dim);
+    }
+    .dot{width:8px;height:8px;border-radius:50%}
+    .dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
+    .canvas{padding:0;min-height:420px;position:relative}
+    .panel{display:none;padding:14px;color:var(--paper-ink);background:
+      linear-gradient(180deg,#eef2f8,#e7edf6)}
+    .panel.show{display:block}
+    .panel.after{background:linear-gradient(180deg,#f7f9fc,#eef3f9)}
+    .shell{
+      display:grid;grid-template-columns:168px 1fr;gap:0;min-height:390px;
+      border:1px solid rgba(20,40,70,.12);border-radius:12px;overflow:hidden;background:#fff;
+    }
+    .shell.tenant{grid-template-columns:156px 1fr}
+    .side{
+      background:#0f172a;color:#cbd5e1;padding:12px 10px;font-size:10px;
+    }
+    .side .brand{font-weight:850;color:#fff;margin-bottom:12px;letter-spacing:-.02em;font-size:12px}
+    .side .nav{display:grid;gap:4px}
+    .side .nav span{
+      display:block;padding:6px 8px;border-radius:8px;color:#94a3b8;
+    }
+    .side .nav span.on{background:rgba(79,125,255,.25);color:#fff;font-weight:750}
+    .main{padding:12px 14px;background:#f8fafc}
+    .crumb{font-size:10px;color:#64748b;margin-bottom:6px}
+    .chrome-stack{display:grid;gap:6px;margin-bottom:8px}
+    .strip{
+      border:1px dashed #94a3b8;border-radius:8px;padding:6px 8px;font-size:10px;color:#64748b;
+      background:#f1f5f9;
+    }
+    .strip.bad{border-color:#f87171;background:#fef2f2;color:#b91c1c}
+    .strip.good{border-style:solid;border-color:#86efac;background:#f0fdf4;color:#166534}
+    .hrow{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:8px}
+    .hrow h4{margin:0;font-size:15px;letter-spacing:-.02em}
+    .eyebrow{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;font-weight:800;margin-bottom:2px}
+    .badge{
+      display:inline-flex;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:850;
+      background:#e2e8f0;color:#475569;
+    }
+    .badge.live{background:#dcfce7;color:#166534}
+    .badge.warn{background:#fef3c7;color:#92400e}
+    .badge.alert{background:#fee2e2;color:#991b1b}
+    .badge.dead{background:#e2e8f0;color:#94a3b8;text-decoration:line-through}
+    .chips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 10px}
+    .chip{
+      display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;
+      font-size:9px;font-weight:750;border:1px solid #cbd5e1;background:#fff;color:#334155;
+    }
+    .chip .dotmini{width:6px;height:6px;border-radius:50%;background:#22c55e}
+    .chip.warn .dotmini{background:#f59e0b}
+    .chip.alert .dotmini{background:#ef4444}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+    .metric{
+      border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff;
+    }
+    .metric .v{font-size:18px;font-weight:850;letter-spacing:-.03em}
+    .metric .k{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+    .tableish{border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#fff}
+    .tr{display:grid;grid-template-columns:1.4fr .7fr .7fr .8fr;gap:6px;padding:7px 9px;font-size:10px;border-bottom:1px solid #f1f5f9}
+    .tr:last-child{border-bottom:0}
+    .tr.head{background:#f8fafc;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:8px}
+    .note{
+      margin-top:8px;font-size:11px;color:#64748b;line-height:1.4;
+    }
+    .callout{
+      margin:8px 0 0;padding:8px 10px;border-radius:10px;font-size:11px;line-height:1.45;
+      border:1px solid #fecaca;background:#fef2f2;color:#991b1c;
+    }
+    .callout.ok{border-color:#86efac;background:#f0fdf4;color:#166534}
+    .archetype{
+      display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:start;
+      padding:10px 0;border-bottom:1px solid var(--line);
+    }
+    .archetype:last-child{border-bottom:0}
+    .arch-name{
+      font-size:12px;font-weight:850;color:#fff;
+    }
+    .arch-name small{display:block;color:var(--dim);font-weight:650;margin-top:2px}
+    .contract ol{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.55}
+    .wave{display:grid;grid-template-columns:80px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+    .wave:last-child{border-bottom:0}
+    .wave .w{font-weight:900;color:var(--cyan);font-size:12px}
+    .sticky-actions{
+      position:fixed;right:16px;bottom:16px;display:flex;gap:8px;z-index:40;
+    }
+    .sticky-actions a{
+      text-decoration:none;padding:10px 12px;border-radius:999px;font-size:11px;font-weight:800;
+      border:1px solid var(--line);background:rgba(13,24,42,.92);color:var(--text);
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    .path{font-size:11px;color:var(--dim);margin-top:4px}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="pill wait">Audit only · no code shipped</div>
+    <h1>/super/ consistency deep dive — operator control plane + tenant admin twin</h1>
+    <p class="lede">
+      Surfaces already look clean. The remaining failure mode is <b style="color:#fff;font-weight:700">vertical chrome stacking + cookie-cutter sameness</b>:
+      every hub opens with the same explain → frame → static “Operational” → readiness → AI cards recipe,
+      before the work. Tenant school admins do not get manager <code>/super/</code>; they get a fragmented twin
+      (Backend + School Configuration + Studio + Configure). This audit makes both planes even — purpose-curated pages,
+      live information tags, full-width intelligence, and breathing room without fluff.
+    </p>
+
+    <div class="banner warn">
+      <b>Scope honesty:</b> Operator = <code>manager…/super/</code> on <code>control_plane_base</code>.
+      Tenant “their /super/” = school admin hubs on <code>portal_base</code>/<code>backend_base</code>
+      (<code>/authentication/backend/</code>, <code>/school/configuration/</code>, <code>/school/studio/</code>, <code>/portal/configure/</code>, Feature Control).
+      Tenant hosts that hit literal <code>/super/*</code> are operator-sealed by middleware — by design.
+    </div>
+
+    <nav class="toc" aria-label="Sections">
+      <a href="#verdict">Verdict</a>
+      <a href="#kpis">Evidence KPIs</a>
+      <a href="#findings">P0–P2 findings</a>
+      <a href="#ba-billing">Before/After · Billing</a>
+      <a href="#ba-config">Before/After · Tenant config</a>
+      <a href="#ba-list">Before/After · Schools list</a>
+      <a href="#archetypes">Page archetypes</a>
+      <a href="#contract">Consistency contract</a>
+      <a href="#waves">Ship waves</a>
+    </nav>
+
+    <div class="sec" id="verdict">01 · Verdict <span>what must change</span></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>What’s already strong</h3>
+        <ul>
+          <li>Full-width canvas policy on CP (<code>rmc-cp-v8-full-width.css</code>) — horizontal max-width traps are largely fixed.</li>
+          <li>Landing personality exists: globe deck / Migration Cloud command center are purpose-curated.</li>
+          <li>Zero-click strip only renders with real triage data — good de-fluff precedent.</li>
+          <li>Tenant backend marks <code>intelligent-full-width</code>; design system + tokens are in place.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What’s still broken (the real pain)</h3>
+        <ul>
+          <li><b style="color:#fff">Cramping is vertical, not horizontal</b> — 4–7 chrome bands before first useful control.</li>
+          <li><b style="color:#fff">~40+ pages</b> stamp static <code>Operational</code> badges (zero signal).</li>
+          <li>Tenant config cards hardcode <code>status: "ready"</code> for every section — theater density.</li>
+          <li>Billing collapses real KPIs behind <code>&lt;details&gt;</code> while stacking two page headers + AI cards.</li>
+          <li>Operator vs tenant use the same Option-A workbench grammar, so hubs feel identical regardless of job.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec" id="kpis">02 · Evidence KPIs <span>from the live template tree</span></div>
+    <div class="kpi">
+      <div class="cell"><div class="n">40+</div><div class="l">Static “Operational” badges</div></div>
+      <div class="cell"><div class="n">60+</div><div class="l">Cookie-cutter center frames</div></div>
+      <div class="cell"><div class="n">5</div><div class="l">Tenant admin hubs overlapping</div></div>
+      <div class="cell"><div class="n">14</div><div class="l">Config cards all “ready”</div></div>
+    </div>
+    <p class="path">Proof anchors: <code>templates/schools/billing_dashboard.html</code> · <code>templates/platform_runtime/school_configuration_center.html</code> · <code>apps/platform_runtime/administration_catalog.py</code> · <code>static/css/rmc-surface-spacing-contract.css</code> (0.5rem pad / 1rem gap — tight by policy)</p>
+
+    <div class="sec" id="findings">03 · Serious findings <span>P0 first</span></div>
+    <table class="findings">
+      <thead>
+        <tr>
+          <th>Sev</th>
+          <th>Host</th>
+          <th>Finding</th>
+          <th>Why it hurts</th>
+          <th>Fix (non-negotiable)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="sev p0">P0</span></td>
+          <td><span class="host both">BOTH</span></td>
+          <td><b>Pre-content chrome stack</b> — explain strip + operational center frame + Option-A/readiness + (often) studio page_header + AI cards</td>
+          <td>First fold is narration. Operators/admins feel cramped even on full-width canvases because useful pixels start below the fold.</td>
+          <td><b>One header system per page.</b> Explain strip OR center frame purpose (not both). Kill duplicate H1/CTAs. AI cards demoted to rail or “Ask” affordance.</td>
+        </tr>
+        <tr>
+          <td><span class="sev p0">P0</span></td>
+          <td><span class="host op">OP</span></td>
+          <td>Billing: KPIs buried in <code>&lt;details&gt;</code> while fluff is expanded</td>
+          <td>Inverts information hierarchy. Month-end work requires expand-click before money is visible.</td>
+          <td>KPIs + live status chips always above the fold. Collapse AI/readiness, never money.</td>
+        </tr>
+        <tr>
+          <td><span class="sev p0">P0</span></td>
+          <td><span class="host ten">TEN</span></td>
+          <td>School Configuration Center stamps every section <code>ready</code> / <code>missing: none</code></td>
+          <td>Badges teach distrust. Real blockers (domain, branding, year, PSP) live elsewhere → extra hops.</td>
+          <td>Drive badges from live readiness: <code>needs setup</code> / <code>attention</code> / <code>healthy</code>. Show only unmet items; hide “none”.</td>
+        </tr>
+        <tr>
+          <td><span class="sev p0">P0</span></td>
+          <td><span class="host both">BOTH</span></td>
+          <td>Static <code>Operational</code> status badge on ~40 hubs</td>
+          <td>Information tags become wallpaper. Live chips on Migration/command center prove the better pattern.</td>
+          <td>Badge must be stateful or omitted. Prefer chip-row of live facts (queues, failures, last sync).</td>
+        </tr>
+        <tr>
+          <td><span class="sev p1">P1</span></td>
+          <td><span class="host both">BOTH</span></td>
+          <td>Cookie-cutter “operational-workbench” archetype on lists, hubs, security, AI, support…</td>
+          <td>Pages look the same; purpose is invisible. Users re-orient every click.</td>
+          <td>Adopt 5 page archetypes (below). Landing ≠ list ≠ money ≠ config ≠ monitor.</td>
+        </tr>
+        <tr>
+          <td><span class="sev p1">P1</span></td>
+          <td><span class="host ten">TEN</span></td>
+          <td>Five overlapping “settings spines”: Backend, School Config, Configure hub, School Studio, Studio OS</td>
+          <td>Click depth + rediscovery tax. Same destinations linked 3–4 ways with different chrome density.</td>
+          <td>One tenant Admin Home with role-aware rails. Other hubs become deep links / sections, not competing homes.</td>
+        </tr>
+        <tr>
+          <td><span class="sev p1">P1</span></td>
+          <td><span class="host op">OP</span></td>
+          <td>Primary nav elevates Funding/Remote Support; Billing &amp; Config stay deep; Home highlight too broad</td>
+          <td>Common money/config tasks cost extra hops; wayfinding lies about where you are.</td>
+          <td>Primary pills by frequency. Narrow Home-current matching. Surface Billing + Config as first-class or flanks.</td>
+        </tr>
+        <tr>
+          <td><span class="sev p1">P1</span></td>
+          <td><span class="host both">BOTH</span></td>
+          <td>Spacing contract pads operational pages at <code>0.5rem</code> + section gap <code>1rem</code> while stacking many bands</td>
+          <td>Tightness + many bands = claustrophobic. Clean surfaces still feel cramped.</td>
+          <td>Fewer bands + larger section breathing (<code>1.25–1.5rem</code> between real sections). Micro-pad only inside dense tables.</td>
+        </tr>
+        <tr>
+          <td><span class="sev p2">P2</span></td>
+          <td><span class="host both">BOTH</span></td>
+          <td>Generic eyebrow copy (“Platform operators”) everywhere</td>
+          <td>Voice is flat; every page announces the same audience.</td>
+          <td>Eyebrow = domain noun only when useful (“Billing”, “Schools”, “Migration”). Else drop it.</td>
+        </tr>
+        <tr>
+          <td><span class="sev p2">P2</span></td>
+          <td><span class="host op">OP</span></td>
+          <td>Dual operator surfaces: <code>/super/</code> vs Unfold <code>/admin/</code> with different density</td>
+          <td>Mode switching fatigue; “same product, two geometries.”</td>
+          <td>Align header/action grammar; keep admin for model CRUD, CP for decisions — never twin hubs for same job.</td>
+        </tr>
+        <tr>
+          <td><span class="sev p2">P2</span></td>
+          <td><span class="host ten">TEN</span></td>
+          <td>Config cards show route paths + <code>tenant_scoped_only</code> code in the body</td>
+          <td>Developer fluff in an admin UI. Burns space that should show school state.</td>
+          <td>Replace with human state lines + one primary CTA. Routes belong in ⓘ info tags, not body.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- BEFORE / AFTER: BILLING -->
+    <div class="sec" id="ba-billing">04 · Before / After — Operator Platform Billing</div>
+    <div class="mock-wrap" data-mock="billing">
+      <div class="mock-head">
+        <div>
+          <h3>Platform billing workbench</h3>
+          <div class="path">Today: <code>templates/schools/billing_dashboard.html</code> — dual headers, readiness, AI cards, KPIs collapsed</div>
+        </div>
+        <div class="toggle" role="group" aria-label="Billing before after">
+          <button type="button" class="active" data-show="before">Before</button>
+          <button type="button" data-show="after">After</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          manager.runmycampus.com/super/billing/ — interactive mock</div>
+        <div class="canvas">
+          <div class="panel before show" data-panel="before">
+            <div class="shell">
+              <aside class="side">
+                <div class="brand">Control plane</div>
+                <div class="nav">
+                  <span>Home</span><span>Studio</span><span>Operations</span>
+                  <span class="on">… Billing buried</span><span>Migration</span><span>Support</span>
+                </div>
+              </aside>
+              <div class="main">
+                <div class="crumb">Super / Billing / Platform billing</div>
+                <div class="chrome-stack">
+                  <div class="strip bad">About this page — long explain strip</div>
+                  <div class="strip bad">Operational center frame · H1 “Platform billing” · badge Operational · Back to dashboard</div>
+                  <div class="strip bad">World-class summary strip (4 meta stats)</div>
+                  <div class="strip bad">Platform readiness strip</div>
+                  <div class="strip bad">Apple-class data quality meter</div>
+                  <div class="strip bad">Studio page_header — H1 AGAIN + Back to dashboard AGAIN</div>
+                  <div class="strip bad">AI explainer card + JSON API card (above money)</div>
+                  <div class="strip bad">&lt;details&gt; Expand billing KPIs… ← real work hidden</div>
+                </div>
+                <div class="callout">First useful number requires an expand click. Two titles. Static Operational badge. Full width wasted on chrome.</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel after" data-panel="after">
+            <div class="shell">
+              <aside class="side">
+                <div class="brand">Control plane</div>
+                <div class="nav">
+                  <span>Home</span><span class="on">Billing</span><span>Operations</span>
+                  <span>Migration</span><span>Support</span><span>Control</span>
+                </div>
+              </aside>
+              <div class="main">
+                <div class="crumb">Billing</div>
+                <div class="hrow">
+                  <div>
+                    <div class="eyebrow">Money · fleet</div>
+                    <h4>Platform billing</h4>
+                  </div>
+                  <div class="chips" style="margin:0;justify-content:flex-end">
+                    <span class="badge live">PSP healthy</span>
+                    <span class="badge warn">12 past-due</span>
+                    <a class="chip" href="#">Usage</a>
+                    <a class="chip" href="#">Rollups</a>
+                  </div>
+                </div>
+                <div class="chips">
+                  <span class="chip"><span class="dotmini"></span>842 accounts</span>
+                  <span class="chip"><span class="dotmini"></span>791 active subs</span>
+                  <span class="chip warn"><span class="dotmini"></span>3 processor sync errors</span>
+                  <span class="chip"><span class="dotmini"></span>Updated 2m ago</span>
+                  <span class="chip" title="Info tag">ⓘ What counts as posted</span>
+                </div>
+                <div class="metrics">
+                  <div class="metric"><div class="v">$184k</div><div class="k">Posted charges</div></div>
+                  <div class="metric"><div class="v">$12.4k</div><div class="k">Credits</div></div>
+                  <div class="metric"><div class="v">842</div><div class="k">Accounts</div></div>
+                  <div class="metric"><div class="v">791</div><div class="k">Subscriptions</div></div>
+                </div>
+                <div class="tableish">
+                  <div class="tr head"><div>School</div><div>Plan</div><div>Status</div><div>Action</div></div>
+                  <div class="tr"><div>Gilead Tech High</div><div>Pro</div><div><span class="badge warn">past due</span></div><div>Open ledger →</div></div>
+                  <div class="tr"><div>Buea Academy</div><div>Growth</div><div><span class="badge live">current</span></div><div>Open ledger →</div></div>
+                  <div class="tr"><div>Moja Skola</div><div>Starter</div><div><span class="badge alert">sync fail</span></div><div>Retry PSP →</div></div>
+                </div>
+                <div class="callout ok">One header. Live tags. Money first. Ask-AI lives in the copilot rail — not a card wall. Full width used for the ledger.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEFORE / AFTER: TENANT CONFIG -->
+    <div class="sec" id="ba-config">05 · Before / After — Tenant School Configuration Center</div>
+    <div class="mock-wrap" data-mock="config">
+      <div class="mock-head">
+        <div>
+          <h3>School Configuration Center (tenant “super” twin)</h3>
+          <div class="path">Today: <code>school_configuration_center.html</code> + catalog all <code>status: ready</code></div>
+        </div>
+        <div class="toggle" role="group" aria-label="Config before after">
+          <button type="button" class="active" data-show="before">Before</button>
+          <button type="button" data-show="after">After</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          school.subdomain/school/configuration/ — interactive mock</div>
+        <div class="canvas">
+          <div class="panel before show" data-panel="before">
+            <div class="shell tenant">
+              <aside class="side">
+                <div class="brand">School admin</div>
+                <div class="nav">
+                  <span>Backend</span><span class="on">Configuration</span>
+                  <span>Configure hub</span><span>Studio</span><span>Feature Control</span>
+                </div>
+              </aside>
+              <div class="main">
+                <div class="chrome-stack">
+                  <div class="strip bad">Operational center frame + Continue setup + Review audit</div>
+                  <div class="strip bad">Option-A strip — “Full-width school configuration workspace” (meta about itself)</div>
+                  <div class="strip bad">Platform readiness strip</div>
+                  <div class="strip bad">Quick profile drawer chrome</div>
+                </div>
+                <div class="metrics" style="grid-template-columns:1fr 1fr">
+                  <div class="metric">
+                    <div style="display:flex;justify-content:space-between"><b style="font-size:12px">School Profile</b><span class="badge">ready</span></div>
+                    <div class="note">Tenant scope: <code>tenant_scoped_only</code><br>Missing: none<br>Route: /siteconfig/console/</div>
+                    <div class="note">Same readiness meter repeated in every card ↓</div>
+                  </div>
+                  <div class="metric">
+                    <div style="display:flex;justify-content:space-between"><b style="font-size:12px">Academic Year</b><span class="badge">ready</span></div>
+                    <div class="note">Missing: none · identical card geometry</div>
+                  </div>
+                </div>
+                <div class="callout">Five hubs compete. Every card says ready. Dev metadata in the body. Tight gutters + stacked strips = cramped.</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel after" data-panel="after">
+            <div class="shell tenant">
+              <aside class="side">
+                <div class="brand">School admin</div>
+                <div class="nav">
+                  <span class="on">Admin Home</span><span>Academics</span>
+                  <span>People</span><span>Finance</span><span>Experience</span>
+                </div>
+              </aside>
+              <div class="main">
+                <div class="hrow">
+                  <div>
+                    <div class="eyebrow">Setup · this school</div>
+                    <h4>Configuration</h4>
+                  </div>
+                  <div class="chips" style="margin:0">
+                    <span class="badge warn">72% ready</span>
+                    <span class="badge alert">Domain unverified</span>
+                    <a class="chip" href="#">Continue blueprints</a>
+                  </div>
+                </div>
+                <div class="chips">
+                  <span class="chip warn"><span class="dotmini"></span>Branding draft</span>
+                  <span class="chip alert"><span class="dotmini"></span>No active term</span>
+                  <span class="chip"><span class="dotmini"></span>Plan: Growth</span>
+                  <span class="chip" title="Info">ⓘ What “ready” means</span>
+                </div>
+                <div class="tableish">
+                  <div class="tr head"><div>Area</div><div>State</div><div>Blocker</div><div></div></div>
+                  <div class="tr"><div>School profile</div><div><span class="badge live">healthy</span></div><div>—</div><div>Edit →</div></div>
+                  <div class="tr"><div>Academic year / term</div><div><span class="badge alert">needs setup</span></div><div>No active term</div><div>Fix now →</div></div>
+                  <div class="tr"><div>Custom domain</div><div><span class="badge warn">attention</span></div><div>DNS pending</div><div>Verify →</div></div>
+                  <div class="tr"><div>Feature set</div><div><span class="badge live">healthy</span></div><div>—</div><div>Review →</div></div>
+                </div>
+                <div class="callout ok">One Admin Home. Live tags only. Blockers first. Info tags hold definitions — body stays action-dense. Breathing between sections, not between fluff bands.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEFORE / AFTER: SCHOOLS LIST -->
+    <div class="sec" id="ba-list">06 · Before / After — Operator Schools list (evenness model)</div>
+    <div class="mock-wrap" data-mock="list">
+      <div class="mock-head">
+        <div>
+          <h3>Schools roster — list archetype (gold standard when cleaned)</h3>
+          <div class="path">Pattern target for every fleet table on both hosts</div>
+        </div>
+        <div class="toggle" role="group" aria-label="List before after">
+          <button type="button" class="active" data-show="before">Before</button>
+          <button type="button" data-show="after">After</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          /super/schools/ — interactive mock</div>
+        <div class="canvas">
+          <div class="panel before show" data-panel="before">
+            <div class="shell">
+              <aside class="side"><div class="brand">Control plane</div><div class="nav"><span class="on">Schools</span></div></aside>
+              <div class="main">
+                <div class="chrome-stack">
+                  <div class="strip bad">Explain + center frame + eyebrow “Platform operators” + badge Operational</div>
+                  <div class="strip bad">Curated operator links card (meta)</div>
+                  <div class="strip">Filter + table (good — but starts late)</div>
+                </div>
+                <div class="callout">Table is strong; the page wastes fold on identical hub chrome shared with Billing/Security/AI.</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel after" data-panel="after">
+            <div class="shell">
+              <aside class="side"><div class="brand">Control plane</div><div class="nav"><span class="on">Schools</span></div></aside>
+              <div class="main">
+                <div class="hrow">
+                  <div><h4 style="margin:0">Schools</h4></div>
+                  <div class="chips" style="margin:0">
+                    <span class="chip"><span class="dotmini"></span>103 live</span>
+                    <span class="chip warn"><span class="dotmini"></span>4 frozen</span>
+                    <span class="chip alert"><span class="dotmini"></span>2 provisioning</span>
+                    <a class="chip" href="#" style="background:#4f46e5;color:#fff;border-color:#4f46e5">Create school</a>
+                  </div>
+                </div>
+                <div class="strip good" style="margin-bottom:8px">Search · region · plan · health — sticky filter bar (no second H1)</div>
+                <div class="tableish">
+                  <div class="tr head"><div>School</div><div>Plan</div><div>Health</div><div></div></div>
+                  <div class="tr"><div>gilead-school</div><div>Pro</div><div><span class="badge warn">inactive</span></div><div>360 →</div></div>
+                  <div class="tr"><div>demo-school</div><div>Growth</div><div><span class="badge live">healthy</span></div><div>360 →</div></div>
+                </div>
+                <div class="callout ok">List archetype: title + live chips + sticky filters + full-bleed table. No center-frame novel. Purpose is obvious in 1 second.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec" id="archetypes">07 · Five page archetypes <span>pages must not all look the same</span></div>
+    <div class="card">
+      <div class="archetype">
+        <div class="arch-name">Mission<span>Landing / command</span></div>
+        <div style="color:var(--muted);font-size:13px;line-height:1.5">
+          Operator Home, Migration command center, Tenant Backend dashboard.
+          Personality allowed (globe, pillars, pulse). Minimal explain. Live chip-row mandatory.
+          <span class="path">Keep curated — do not force workbench chrome onto landings.</span>
+        </div>
+      </div>
+      <div class="archetype">
+        <div class="arch-name">Fleet list<span>Tables / search</span></div>
+        <div style="color:var(--muted);font-size:13px;line-height:1.5">
+          Schools, tickets, incidents, webhooks, users.
+          Title + chips + sticky filters + full-width <code>.rmc-data-table</code>. No Option-A strip. No dual headers.
+        </div>
+      </div>
+      <div class="archetype">
+        <div class="arch-name">Money desk<span>Billing / finance</span></div>
+        <div style="color:var(--muted);font-size:13px;line-height:1.5">
+          KPIs always visible. Status chips for PSP / past-due / sync. Ledger table primary.
+          AI only in rail. Never collapse money behind details.
+        </div>
+      </div>
+      <div class="archetype">
+        <div class="arch-name">Setup map<span>Config / branding / features</span></div>
+        <div style="color:var(--muted);font-size:13px;line-height:1.5">
+          Progress + blockers first. Section rows with live state tags. One CTA per blocker.
+          Definitions in <code>rmc_info_tag</code> ⓘ — not body paragraphs. Tenant + operator config share this grammar.
+        </div>
+      </div>
+      <div class="archetype">
+        <div class="arch-name">Monitor<span>SLO / health / audit</span></div>
+        <div style="color:var(--muted);font-size:13px;line-height:1.5">
+          Stateful pills (Migration-style) + spark/time context + drill-in.
+          Ban static Operational. Prefer “All clear” / “Degraded” / “Breach” from live data.
+        </div>
+      </div>
+    </div>
+
+    <div class="sec" id="contract">08 · Consistency contract <span>stop repeating yourself</span></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Hard rules (both hosts)</h3>
+        <ol>
+          <li><b style="color:#fff">One title system</b> — shell H1 <i>or</i> center frame, never both; never also studio page_header.</li>
+          <li><b style="color:#fff">Live tags or no tags</b> — delete static Operational / ready wallpaper.</li>
+          <li><b style="color:#fff">Work above fold</b> — first interactive control or primary number within ~320px of canvas top.</li>
+          <li><b style="color:#fff">Full width for work</b> — tables/KPIs edge-to-edge of canvas; prose/forms may narrow intentionally.</li>
+          <li><b style="color:#fff">Info tags for definitions</b> — move “what is this” out of strips into ⓘ.</li>
+          <li><b style="color:#fff">Breathing via fewer bands</b> — increase section gap only after chrome count ≤ 2 above content.</li>
+          <li><b style="color:#fff">Archetype attribute</b> — <code>data-page-archetype</code> must be one of the five; CSS contracts per archetype.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Evenness map (operator ↔ tenant)</h3>
+        <ul>
+          <li>Operator Home ↔ Tenant Admin Home (Backend, simplified)</li>
+          <li>Operator Schools/Fleet ↔ Tenant People/Classes lists</li>
+          <li>Operator Billing desk ↔ Tenant Finance desk (same money archetype)</li>
+          <li>Operator Configuration engine ↔ Tenant Configuration (setup map)</li>
+          <li>Operator Migration monitor ↔ Tenant Migration connector (monitor, scoped)</li>
+        </ul>
+        <p>Same archetype grammar, different data scope. Not the same template copy-paste with “Tenant scoped only” text.</p>
+      </div>
+    </div>
+
+    <div class="sec" id="waves">09 · Recommended ship waves <span>implementation order when you say go</span></div>
+    <div class="card">
+      <div class="wave"><div class="w">W1</div><div style="color:var(--muted);font-size:13px;line-height:1.5"><b style="color:#fff">De-chrome kit</b> — shared partial: single page masthead (title, live chips, primary actions, optional ⓘ). Remove dual headers from billing + top 10 hubs. Retire static Operational default in frame context builders.</div></div>
+      <div class="wave"><div class="w">W2</div><div style="color:var(--muted);font-size:13px;line-height:1.5"><b style="color:#fff">Money desk + Schools list</b> — uncollapse KPIs; live PSP/past-due chips; list archetype CSS. Proof on operator billing + schools, tenant finance mirror.</div></div>
+      <div class="wave"><div class="w">W3</div><div style="color:var(--muted);font-size:13px;line-height:1.5"><b style="color:#fff">Tenant Admin Home</b> — collapse five hubs into one spine; Config center consumes live readiness (kill hardcoded ready); Option-A strip only if it carries live metrics.</div></div>
+      <div class="wave"><div class="w">W4</div><div style="color:var(--muted);font-size:13px;line-height:1.5"><b style="color:#fff">Archetype CSS contracts</b> — spacing tokens per archetype (list denser, setup map airier). Gate with a small verifier counting chrome bands + static badges.</div></div>
+      <div class="wave"><div class="w">W5</div><div style="color:var(--muted);font-size:13px;line-height:1.5"><b style="color:#fff">IA polish</b> — primary nav frequency, Home-current narrowing, operator↔tenant evenness checklist in SOT.</div></div>
+    </div>
+
+    <div class="banner" style="margin-top:22px">
+      <b>How to use this file:</b> Toggle Before/After on each mock.
+      This is the audit artifact only — no production templates were modified.
+      Say the word and we implement Wave 1 (de-chrome kit) on both hosts with proof screenshots.
+    </div>
+  </div>
+
+  <div class="sticky-actions">
+    <a href="#verdict">Top</a>
+    <a href="#ba-billing">Mocks</a>
+    <a href="#waves">Waves</a>
+  </div>
+
+  <script>
+    document.querySelectorAll('[data-mock]').forEach(function (wrap) {
+      var buttons = wrap.querySelectorAll('.toggle button');
+      var panels = wrap.querySelectorAll('.panel');
+      buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var which = btn.getAttribute('data-show');
+          buttons.forEach(function (b) { b.classList.toggle('active', b === btn); });
+          panels.forEach(function (p) {
+            p.classList.toggle('show', p.getAttribute('data-panel') === which);
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>

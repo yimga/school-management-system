@@ -83,7 +83,7 @@
   </div>
   <div class="card-footer bg-light text-center">
     {% if is_backend_context %}
-    <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-grid"></i> Backend Console</a>
+    <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-grid"></i> {% trans "Admin Home" %}</a>
     {% if request.user.is_superuser %}
     <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-gear"></i> {% trans "Config center" %}</a>
     {% endif %}

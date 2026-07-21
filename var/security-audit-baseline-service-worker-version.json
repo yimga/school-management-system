@@ -1,12 +1,12 @@
 {
   "date": "2026-07-21",
-  "generated_at": "2026-07-21T11:40:00+00:00",
+  "generated_at": "2026-07-21T11:46:24+00:00",
   "major": 4,
-  "minor": 5,
-  "patch": 170,
-  "raw": "sms-v4.05.170-admin-os-v152-2026-07-21",
-  "reason": "Admin OS v15.2 Waves 0-4 — all 12 innovations",
+  "minor": 6,
+  "patch": 0,
+  "raw": "sms-v4.06.0-max-super-tenant-parity-2026-07-21",
+  "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-os-v152",
+  "slug": "max-super-tenant-parity",
   "valid": true
 }

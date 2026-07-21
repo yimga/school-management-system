@@ -3106,7 +3106,9 @@ def backend_dashboard(request):
     # and "/20" exactly; a /100 or GPA school gets correct thresholds + labels.
     from apps.evals.grading_provisioning import resolve_school_score_scale
 
-    _dash_scale = float(resolve_school_score_scale(school))
+    # Display denominator only (never an upper bound), so the unknown case opts in
+    # explicitly to the neutral 100 rather than getting it silently.
+    _dash_scale = float(resolve_school_score_scale(school, default=100))
     grading_scale_max = (
         int(_dash_scale) if _dash_scale == int(_dash_scale) else round(_dash_scale, 1)
     )
@@ -3711,6 +3713,85 @@ def backend_dashboard(request):
     context["tenant_health"] = resolve_tenant_operational_health(
         getattr(request, "school", None), request=request, surface="admin"
     )
+
+    # MAX Wave 3: Admin Home masthead (Mission twin) — interactive role + season.
+    try:
+        from django.urls import reverse as _rev
+
+        from apps.platform_runtime.page_status_tags import (
+            STATUS_ATTENTION,
+            STATUS_HEALTHY,
+            build_masthead,
+            build_mission_role_tabs,
+            chip,
+            mission_role_chips,
+            resolve_mission_role_from_request,
+            resolve_operational_season,
+            sparkline_from_count,
+        )
+        from apps.schools.setup_health import setup_health_score
+
+        th = context.get("tenant_health") or {}
+        health = setup_health_score(getattr(request, "school", None))
+        unmet = [label for _n, passed, label in health.get("checks", []) if not passed]
+        role_raw = getattr(getattr(request, "user", None), "role", None) or "admin"
+        role_key = resolve_mission_role_from_request(request, default_role=str(role_raw))
+        chips = list(mission_role_chips(role_key, host="tenant"))
+        # Attach sparklines to the first priority chip from live setup score.
+        if chips:
+            chips[0] = chip(
+                label=chips[0]["label"],
+                tone=chips[0]["tone"],
+                sparkline=sparkline_from_count(int(health.get("score") or 0)),
+            )
+        tier = str(th.get("tier") or "").lower()
+        if tier in {"up", "ok", "healthy"}:
+            status_key = STATUS_HEALTHY
+        elif tier in {"degraded", "warn", "warning", "down", "critical"}:
+            chips.insert(0, chip(label="Needs attention", tone="warning"))
+            status_key = STATUS_ATTENTION
+        else:
+            chips.insert(
+                0,
+                chip(
+                    label=f"{health.get('score', 0)}% setup",
+                    tone="warning" if unmet else "success",
+                    sparkline=sparkline_from_count(int(health.get("score") or 0)),
+                ),
+            )
+            status_key = STATUS_ATTENTION if unmet else STATUS_HEALTHY
+        for label in unmet[:2]:
+            chips.append(chip(label=label, tone="danger"))
+        chips.append(chip(label="Updated just now", tone="fresh"))
+        season = resolve_operational_season()
+        try:
+            base_url = _rev("accounts:backend_dashboard")
+        except Exception:  # noqa: BLE001
+            base_url = "/authentication/backend/"
+        context["mission_season"] = season
+        context["mission_role_tabs"] = build_mission_role_tabs(
+            active=role_key, base_url=base_url, host="tenant"
+        )
+        context.update(
+            build_masthead(
+                archetype="mission",
+                host="tenant",
+                eyebrow=f"Mission · {season['label']}",
+                title="Admin Home",
+                purpose=(
+                    "What is happening, what needs attention, and your next step — "
+                    "Configuration, Studio, and Finance stay one click away."
+                ),
+                chips=chips,
+                primary_url="/school/configuration/",
+                primary_label="Configuration",
+                secondary_url="/finance/",
+                secondary_label="Finance",
+                status_key=status_key,
+            )
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
     context.setdefault("show_setup_landing", False)
 

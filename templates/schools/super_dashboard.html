@@ -48,7 +48,19 @@
    that read as empty ruled bands on /super/ while cockpit health still reported
    would_render=true. {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-cp-landing-mode" data-rmc-cp-landing-mode="mission" data-rmc-page-fold-nav="required">
+<div class="rmc-cp-landing-mode" data-rmc-cp-landing-mode="mission" data-rmc-page-fold-nav="required" data-rmc-work-root="1">
+  {% if masthead_title %}
+  <div class="mb-3 rmc-max-band-allow" data-page-archetype="mission">
+    {% if mission_season %}
+    <div class="rmc-page-masthead__season mb-2" data-rmc-mission-season="{{ mission_season.key }}" role="status">
+      <strong>{{ mission_season.label }}</strong>
+      <span class="text-muted"> — {{ mission_season.hint }}</span>
+    </div>
+    {% endif %}
+    {% include "components/rmc_page_masthead.html" %}
+    {% include "components/rmc_mission_role_tabs.html" %}
+  </div>
+  {% endif %}
   <p class="rmc-cp-cockpit-live-stale small text-warning mb-2" data-rmc-cp-cockpit-live-stale hidden aria-live="polite">{% trans "Live metrics may be stale — showing last snapshot." %}</p>
   <div class="rmc-cp-landing-pane" data-rmc-cp-landing-pane="mission">
 <div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-cp-cockpit-live="1" data-rmc-section-nav="curated">

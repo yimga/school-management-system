@@ -256,6 +256,55 @@ def dashboard(request: HttpRequest):
         "activity": activity_rows,
     }
 
+    from apps.platform_runtime.operational_center_nav import money_center_frame_context
+    from apps.platform_runtime.page_status_tags import (
+        STATUS_ATTENTION,
+        STATUS_HEALTHY,
+        build_masthead,
+        chip,
+        sparkline_from_count,
+    )
+
+    chips = [
+        chip(
+            label=f"{overdue_n} past due",
+            tone="warning" if overdue_n else "success",
+            sparkline=sparkline_from_count(overdue_n),
+        ),
+        chip(
+            label=f"{finance_requests_qs.count()} access requests"
+            if finance_requests_qs.exists()
+            else "Inbox clear",
+            tone="warning" if finance_requests_qs.exists() else "success",
+            sparkline=sparkline_from_count(finance_requests_qs.count()),
+        ),
+        chip(label="Updated just now", tone="fresh"),
+    ]
+    masthead = build_masthead(
+        archetype="money",
+        host="tenant",
+        eyebrow="Money · this school",
+        title="Finance",
+        purpose=(
+            "Invoices, fees, payment readiness, and collections for this school. "
+            "Same money-desk grammar as platform billing."
+        ),
+        chips=chips,
+        primary_url=reverse("finance:invoices"),
+        primary_label="Open invoices",
+        secondary_url=reverse("finance:payment_readiness_dashboard"),
+        secondary_label="Payment readiness",
+        status_key=STATUS_ATTENTION if overdue_n else STATUS_HEALTHY,
+        why_items=[
+            {
+                "title": "Past due",
+                "body": "Open invoices past their due date for this school.",
+                "source": "finance invoices",
+                "freshness": "Live on page load",
+            }
+        ],
+    )
+
     context = {
         "profile": profile,
         "hero": hero,
@@ -265,7 +314,6 @@ def dashboard(request: HttpRequest):
         "finance_metrics": finance_metrics,
         **dashboard_data,
     }
-    from apps.platform_runtime.operational_center_nav import money_center_frame_context
 
     context.update(
         {
@@ -278,6 +326,7 @@ def dashboard(request: HttpRequest):
             "finance_request_notifications": finance_requests_qs[:5],
             "finance_request_link": finance_request_link,
             **money_center_frame_context(),
+            **masthead,
         }
     )
     return render(request, "finance/dashboard.html", context)

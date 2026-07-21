@@ -537,29 +537,108 @@ REGISTRIES: tuple[dict[str, str], ...] = (
 # viewer holds that code (or the tenant-admin tier), so a delegated non-admin — a bursar
 # granted finance.view, a DPO granted compliance.view — sees exactly the config surfaces they
 # can actually open, instead of a wall of cards that 403 on click.
+# Static catalog routes only — status/missing are resolved live by
+# ``enrich_tenant_configuration_sections`` (MAX Wave 1: no wallpaper "ready").
 TENANT_CONFIGURATION_SECTIONS: tuple[dict[str, str], ...] = (
-    {"name": "School Profile", "status": "ready", "missing": "none", "route": "/siteconfig/console/", "primary_action": "Open profile configuration", "permission": "settings.manage"},
-    {"name": "Academic Year / Term", "status": "ready", "missing": "none", "route": "/siteconfig/academic-years/", "primary_action": "Review academic year setup", "permission": "settings.manage"},
-    {"name": "Classes / Subjects", "status": "ready", "missing": "none", "route": "/academics/", "primary_action": "Open academic structure", "permission": "settings.manage"},
-    {"name": "Grading Rules", "status": "ready", "missing": "none", "route": "/siteconfig/grading-settings/", "primary_action": "Open grading rules", "permission": "grades.manage"},
-    {"name": "Report Templates", "status": "ready", "missing": "none", "route": "/siteconfig/reports/builder/", "primary_action": "Open report builder", "permission": "reports.manage"},
-    {"name": "Fees", "status": "ready", "missing": "PSP live collection can remain external_required", "route": "/finance/", "primary_action": "Open money center", "permission": "finance.view"},
-    {"name": "Roles / Permissions", "status": "ready", "missing": "none", "route": "/admin/", "primary_action": "Open technical role records", "permission": "settings.manage"},
-    {"name": "Parent Portal", "status": "ready", "missing": "none", "route": "/portal/", "primary_action": "Open parent portal preview", "permission": "portal.manage"},
-    {"name": "Teacher Portal", "status": "ready", "missing": "none", "route": "/portal/teacher/", "primary_action": "Open teacher workspace", "permission": "portal.manage"},
-    {"name": "Apps", "status": "ready", "missing": "marketplace monetization external_required", "route": "/settings/app-catalog/", "primary_action": "Open school app catalog", "permission": "settings.manage"},
-    {"name": "Workflows", "status": "ready", "missing": "none", "route": "/studio/automation/", "primary_action": "Open automation studio", "permission": "settings.manage"},
-    {"name": "Offline Settings", "status": "ready", "missing": "none", "route": "/portal/offline-sync/", "primary_action": "Open offline sync", "permission": "settings.manage"},
+    {"name": "School Profile", "status": "", "missing": "", "route": "/siteconfig/console/", "primary_action": "Open profile configuration", "permission": "settings.manage", "probe": "school_created"},
+    {"name": "Academic Year / Term", "status": "", "missing": "", "route": "/siteconfig/academic-years/", "primary_action": "Review academic year setup", "permission": "settings.manage", "probe": "academic_year"},
+    {"name": "Classes / Subjects", "status": "", "missing": "", "route": "/academics/", "primary_action": "Open academic structure", "permission": "settings.manage", "probe": "classes"},
+    {"name": "Grading Rules", "status": "", "missing": "", "route": "/siteconfig/grading-settings/", "primary_action": "Open grading rules", "permission": "grades.manage", "probe": "grading"},
+    {"name": "Report Templates", "status": "", "missing": "", "route": "/siteconfig/reports/builder/", "primary_action": "Open report builder", "permission": "reports.manage", "probe": "reports"},
+    {"name": "Fees", "status": "", "missing": "", "route": "/finance/", "primary_action": "Open money center", "permission": "finance.view", "probe": "fees"},
+    {"name": "Roles / Permissions", "status": "", "missing": "", "route": "/admin/", "primary_action": "Open technical role records", "permission": "settings.manage", "probe": "roles"},
+    {"name": "Parent Portal", "status": "", "missing": "", "route": "/portal/", "primary_action": "Open parent portal preview", "permission": "portal.manage", "probe": "portal"},
+    {"name": "Teacher Portal", "status": "", "missing": "", "route": "/portal/teacher/", "primary_action": "Open teacher workspace", "permission": "portal.manage", "probe": "portal"},
+    {"name": "Apps", "status": "", "missing": "", "route": "/settings/app-catalog/", "primary_action": "Open school app catalog", "permission": "settings.manage", "probe": "apps"},
+    {"name": "Workflows", "status": "", "missing": "", "route": "/studio/automation/", "primary_action": "Open automation studio", "permission": "settings.manage", "probe": "workflows"},
+    {"name": "Offline Settings", "status": "", "missing": "", "route": "/portal/offline-sync/", "primary_action": "Open offline sync", "permission": "settings.manage", "probe": "offline"},
     {
         "name": "Branding / Theme",
-        "status": "ready",
-        "missing": "none",
+        "status": "",
+        "missing": "",
         "route": "/siteconfig/theme-experience/hub/",
         "primary_action": "Open theme & experience hub",
         "permission": "settings.manage",
+        "probe": "branding",
     },
-    {"name": "Security / Audit", "status": "ready", "missing": "none", "route": "/compliance/", "primary_action": "Open school audit", "permission": "compliance.view"},
+    {"name": "Security / Audit", "status": "", "missing": "", "route": "/compliance/", "primary_action": "Open school audit", "permission": "compliance.view", "probe": "audit"},
 )
+
+
+def enrich_tenant_configuration_sections(school) -> list[dict[str, object]]:
+    """Resolve live status tags for School Configuration Center cards.
+
+    Maps setup_health_score checks + lightweight presence probes onto the locked
+    vocabulary (healthy / attention / needs_setup). Never returns wallpaper ``ready``.
+    """
+    from apps.platform_runtime.page_status_tags import (
+        STATUS_ATTENTION,
+        STATUS_HEALTHY,
+        STATUS_LABELS,
+        STATUS_NEEDS_SETUP,
+        STATUS_VARIANTS,
+    )
+    from apps.schools.setup_health import setup_health_score
+
+    health = setup_health_score(school)
+    check_map = {name: bool(passed) for name, passed, _label in health.get("checks", [])}
+
+    def _probe(name: str) -> tuple[str, str]:
+        if name == "school_created":
+            ok = check_map.get("school_created", bool(school))
+            return (STATUS_HEALTHY if ok else STATUS_NEEDS_SETUP, "" if ok else "School profile incomplete")
+        if name == "branding":
+            ok = check_map.get("branding", False)
+            return (STATUS_HEALTHY if ok else STATUS_NEEDS_SETUP, "" if ok else "Branding not set")
+        if name == "plan" or name == "fees":
+            # Fees: plan assigned = healthy; else attention (PSP may still be external).
+            ok = check_map.get("plan", False)
+            if ok:
+                return (STATUS_ATTENTION, "PSP live collection may remain external")
+            return (STATUS_NEEDS_SETUP, "Plan not assigned")
+        if name == "academic_year":
+            try:
+                from apps.academics.models import AcademicYear  # type: ignore
+
+                # tenant-isolation-allow: request-school-scoped-config-enrichment
+                qs = AcademicYear.objects.filter(school=school)
+                if not qs.exists():
+                    return (STATUS_NEEDS_SETUP, "No academic year")
+                if qs.filter(is_active=True).exists():
+                    return (STATUS_HEALTHY, "")
+                return (STATUS_ATTENTION, "No active term / year")
+            except Exception:
+                return (STATUS_ATTENTION, "Unable to verify academic year")
+        if name == "classes":
+            try:
+                from apps.academics.models import Classroom  # type: ignore
+
+                # tenant-isolation-allow: request-school-scoped-config-enrichment
+                exists = Classroom.objects.filter(school=school).exists()
+                return (STATUS_HEALTHY if exists else STATUS_NEEDS_SETUP, "" if exists else "No classes yet")
+            except Exception:
+                return (STATUS_ATTENTION, "Unable to verify classes")
+        if name in {"grading", "reports", "roles", "portal", "apps", "workflows", "offline", "audit"}:
+            # Reachable surfaces with no hard blocker — healthy once school exists.
+            ok = check_map.get("school_created", bool(school))
+            return (STATUS_HEALTHY if ok else STATUS_NEEDS_SETUP, "" if ok else "Complete school profile first")
+        return (STATUS_ATTENTION, "Review recommended")
+
+    rows: list[dict[str, object]] = []
+    for section in TENANT_CONFIGURATION_SECTIONS:
+        probe = section.get("probe", "school_created")
+        key, missing = _probe(probe)
+        rows.append(
+            {
+                **section,
+                "status": STATUS_LABELS[key],
+                "status_key": key,
+                "status_tone": STATUS_VARIANTS[key],
+                "missing": missing or "—",
+            }
+        )
+    return rows
+
 
 
 def enriched_modules() -> list[dict[str, object]]:

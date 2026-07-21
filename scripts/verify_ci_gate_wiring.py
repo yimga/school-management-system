@@ -65,6 +65,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/audit_template_render_safety.py", "architectural-boundaries.yml"),
     ("scripts/scan_attribute_context_includes.py", "architectural-boundaries.yml"),
     # Money never float; tenant rows always scoped; offline label has code.
+    ("scripts/scan_wallpaper_status_badges.py", "architectural-boundaries.yml"),
+    ("scripts/verify_page_masthead_twin_contract.py", "architectural-boundaries.yml"),
+    ("scripts/verify_band_count_fold_sla.py", "architectural-boundaries.yml"),
+    ("scripts/scan_visibility_anti_bleed.py", "architectural-boundaries.yml"),
     ("scripts/scan_money_float.py", "architectural-boundaries.yml"),
     ("scripts/scan_tenant_queryset_safety.py", "tenant-isolation-scan.yml"),
     # A SHARED model may never FK a TENANT table. Nothing else can catch it:

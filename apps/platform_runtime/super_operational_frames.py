@@ -106,12 +106,13 @@ def resolve_super_operational_frame(
     center_title: str,
     center_purpose: str,
     center_eyebrow: str = "Platform operators",
-    status_badge_text: str = "Operational",
+    status_badge_text: str = "",
     primary_url: str = "",
     primary_label: str = "",
     secondary_url: str = "",
     secondary_label: str = "",
 ) -> dict[str, Any]:
+    # MAX: never default to wallpaper "Operational" — omit badge unless live/descriptive.
     return {
         "page_provides_own_h1": True,
         "os_center_key": slug.replace("-", "_"),

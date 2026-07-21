@@ -10,8 +10,8 @@ from django.utils.dateparse import parse_datetime
 from apps.accounts.permissions import tenant_operator_hub_eligible
 from apps.platform_runtime.administration_catalog import (
     BLUEPRINTS,
-    TENANT_CONFIGURATION_SECTIONS,
     compute_configuration_summary,
+    enrich_tenant_configuration_sections,
     enriched_modules,
     module_by_key,
     resolved_pack_rows,
@@ -456,15 +456,54 @@ def school_configuration_center(request):
         "unmet": [label for _name, passed, label in health["checks"] if not passed],
         "complete": health["score"] >= 100,
     }
+    from apps.platform_runtime.page_status_tags import (
+        STATUS_ATTENTION,
+        STATUS_HEALTHY,
+        STATUS_NEEDS_SETUP,
+        build_masthead,
+        chip,
+    )
+
+    status_key = (
+        STATUS_HEALTHY
+        if school_readiness["complete"]
+        else (STATUS_NEEDS_SETUP if school_readiness["unmet"] else STATUS_ATTENTION)
+    )
+    chips = [
+        chip(
+            label=f"{school_readiness['value']}% ready",
+            tone="success" if school_readiness["complete"] else "warning",
+        ),
+    ]
+    for label in school_readiness["unmet"][:3]:
+        chips.append(chip(label=label, tone="danger"))
+    masthead = build_masthead(
+        archetype="setup",
+        host="tenant",
+        eyebrow="Setup · this school",
+        title="Configuration",
+        purpose=(
+            "Live readiness for school settings, blueprints, packs, and money. "
+            "Blockers first — definitions in info tags."
+        ),
+        chips=chips,
+        primary_url="/school/setup/blueprints/",
+        primary_label="Continue setup",
+        secondary_url="/school/audit/",
+        secondary_label="Review audit trail",
+        status_key=status_key,
+        freshness_label="Live readiness",
+    )
     return render(
         request,
         "platform_runtime/school_configuration_center.html",
         {
             "school": school,
-            "sections": TENANT_CONFIGURATION_SECTIONS,
+            "sections": enrich_tenant_configuration_sections(school),
             "school_readiness": school_readiness,
             "page_marker": "rmc-school-configuration-center",
             **school_configuration_frame_context(),
+            **masthead,
         },
     )
 

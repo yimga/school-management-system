@@ -1307,8 +1307,9 @@ def parent_dashboard(request: HttpRequest):
     # grade scale once (/20 Bac, /100 percentage, /4 GPA) and reuse it for the
     # parent "Average" KPI denominator + subject result-bar widths — the same
     # machinery the student dashboard uses (never a hardcoded /20).
-    # resolve_school_score_scale never raises and defaults to 100; the guard is
-    # belt-and-suspenders against the optional import.
+    # Display denominator only, so this caller opts in explicitly to the neutral
+    # 100 for the unknown case (``default=100``) — the resolver itself now fails
+    # closed and refuses to assume a scale for callers that enforce a bound.
     parent_score_scale_label = None
     parent_average_display = None
     parent_subject_rows = []
@@ -1317,7 +1318,7 @@ def parent_dashboard(request: HttpRequest):
         try:
             from apps.evals.grading_provisioning import resolve_school_score_scale
 
-            _scale = float(resolve_school_score_scale(school) or 0)
+            _scale = float(resolve_school_score_scale(school, default=100) or 0)
             if _scale > 0:
                 parent_score_scale = _scale
         except PORTAL_SOFT_FAILURES:

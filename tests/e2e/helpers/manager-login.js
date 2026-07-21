@@ -72,9 +72,18 @@ async function loginManager(page, opts = {}) {
     process.env.VISUAL_QA_PASSWORD ||
     'VisualQaPass123!';
 
-  const loginUrl = `${MANAGER_BASE_URL.replace(/\/$/, '')}/authentication/login/`;
+  // Unauthenticated manager login without cp=1 / operator next= ejects to
+  // https://runmycampus.com/discover/ (should_show_manager_login_surface).
+  const loginUrl = `${MANAGER_BASE_URL.replace(/\/$/, '')}/authentication/login/?cp=1`;
   const currentUrl = page.url() ? new URL(page.url()) : null;
-  if (!currentUrl || !/\/authentication\/login\/?$/i.test(currentUrl.pathname)) {
+  const nextParam = currentUrl ? currentUrl.searchParams.get('next') || '' : '';
+  const hasOperatorLoginIntent =
+    Boolean(currentUrl) &&
+    /\/authentication\/login\/?$/i.test(currentUrl.pathname) &&
+    (currentUrl.searchParams.get('cp') === '1' ||
+      nextParam.includes('/super/') ||
+      nextParam.includes('/admin/'));
+  if (!hasOperatorLoginIntent) {
     await page.goto(loginUrl, {
       waitUntil: 'domcontentloaded',
       timeout: 60000,
@@ -97,9 +106,10 @@ async function loginManager(page, opts = {}) {
     (url) => !/\/authentication\/login\/?$/i.test(url.pathname),
     { timeout: 90000, waitUntil: 'commit' }
   ).catch(() => null);
+  // Do not use bare #content — login templates often include it and race early.
   const shellReady = page
     .locator(
-      '#cp-main-content, [data-rmc-operator-surface-strip], .admin-cp-unified-page, #content'
+      '#cp-main-content, [data-rmc-operator-surface-strip], .admin-cp-unified-page, [data-rmc-control-plane]'
     )
     .first()
     .waitFor({ state: 'visible', timeout: 90000 })
@@ -107,6 +117,15 @@ async function loginManager(page, opts = {}) {
 
   await page.locator('form').first().evaluate((form) => form.requestSubmit());
   await Promise.race([leftLogin, shellReady]);
+  // Prefer URL leave over a false-positive shell hit on the login document.
+  if (/\/authentication\/login\/?$/i.test(new URL(page.url()).pathname)) {
+    await page
+      .waitForURL((url) => !/\/authentication\/login\/?$/i.test(url.pathname), {
+        timeout: 90000,
+        waitUntil: 'commit',
+      })
+      .catch(() => null);
+  }
   await ensureManagerHost(page);
 
   let pathnameAfterLogin = '';
@@ -129,7 +148,7 @@ async function loginManager(page, opts = {}) {
         .catch(() => null);
       const shellAfterMfa = page
         .locator(
-          '#cp-main-content, [data-rmc-operator-surface-strip], .admin-cp-unified-page, #content'
+          '#cp-main-content, [data-rmc-operator-surface-strip], .admin-cp-unified-page, [data-rmc-control-plane]'
         )
         .first()
         .waitFor({ state: 'visible', timeout: 90000 })
@@ -160,6 +179,16 @@ async function loginManager(page, opts = {}) {
   } catch (_e) {
     throw new Error(`Manager login failed for ${username}: invalid page URL after submit`);
   }
+  // Control-plane landing is success even if chrome is still painting.
+  if (/^\/(super|admin)(\/|$)/i.test(finalUrl.pathname)) {
+    const hostOk = finalUrl.hostname === MANAGER_HOST;
+    if (!hostOk) {
+      throw new Error(
+        `Expected manager host ${MANAGER_HOST} after login; got ${finalUrl.hostname} (${finalUrl.href})`
+      );
+    }
+    return;
+  }
   if (/mfa\/setup/i.test(finalUrl.pathname)) {
     throw new Error(
       `Manager login blocked by MFA setup for ${username} at ${finalUrl.pathname}. ` +
@@ -169,14 +198,14 @@ async function loginManager(page, opts = {}) {
   if (/mfa\/verify/i.test(finalUrl.pathname)) {
     const bodyText = (await page.locator('body').textContent()) || '';
     throw new Error(
-      `Manager MFA verify did not complete for ${username} at ${page.url()}. ` +
+      `Manager MFA verify did not complete for ${username} at ${finalUrl.href}. ` +
         `Page text: ${bodyText.slice(0, 240)}`
     );
   }
   if (/\/authentication\/login\/?$/i.test(finalUrl.pathname)) {
     const bodyText = (await page.locator('body').textContent()) || '';
     throw new Error(
-      `Manager login failed for ${username} at ${page.url()}. Page text: ${bodyText.slice(0, 240)}`
+      `Manager login failed for ${username} at ${finalUrl.href}. Page text: ${bodyText.slice(0, 240)}`
     );
   }
 

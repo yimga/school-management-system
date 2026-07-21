@@ -3,60 +3,51 @@
 {% block rmc_workspace_os_header %}{% endblock %}
 {% load i18n static accounts_extras %}
 
-{% block title %}{% trans "School Configuration Center" %}{% endblock %}
+{% block title %}{% trans "Configuration" %}{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-page-archetypes-max.css' %}">
 <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-tenant-blueprint-option-a.css' %}?v=20260717-option-a-rollout">
 {% endblock %}
 
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 
-{% include "components/next_action_strip.html" %}
+<main class="container-fluid py-3 rmc-max-suppress-meta-option-a" data-page-archetype="setup" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_page_masthead.html" %}
 
-<main class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-option-a-canvas="1">
-  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" hide_nav_detail="1" os_center_key="school_configuration_center" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="/school/setup/blueprints/" primary_label=_("Continue setup") secondary_url="/school/audit/" secondary_label=_("Review audit trail") %}
-  {% include "components/tenant_option_a_strip.html" with option_a_title=_("Full-width school configuration workspace") option_a_lede=_("Open with the work, not a wall of text. Settings, packs, blueprints, and audit stay linked without a stacked prose wall.") option_a_aria=_("Configuration command surface") option_a_flow_title=_("Setup path") option_a_flow_hint=_("Continue blueprints, packs, or imports from the sections below.") %}
-  {% include "components/platform_readiness_strip.html" with inline_field_prefix='school-cfg' hide_inline=1 tenant_label=request.tenant.display_name|default:'' %}
-  {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="school-setup-drawer" role=_("Setup drawer") title=_("Fix setup in place") body=_("School admins can open guided steps from the current page without page hopping.") primary_url="/school/setup/imports/" primary_label=_("Open imports") %}
-
-  <div data-rmc-scroll-policy="paginate" class="row g-3">
-    {% for section in sections %}
-    {% can_access_permission section.permission as sec_ok %}
-    {% if sec_ok %}
-    <div class="col-12 col-lg-6">
-      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-school-configuration-section="{{ section.name }}" data-world-class-tenant-card="1">
-        <div class="card-body">
-          <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
-            <h2 class="h5 mb-0">{{ section.name }}</h2>
-            <span class="rmc-badge rmc-badge--muted border">{{ section.status }}</span>
-          </div>
-          {% if school_readiness.complete %}
-            {% include "components/world_class_readiness_meter.html" with title=_("School readiness score") value=school_readiness.value caption=_("Tenant-safe setup — school, branding, dashboard, and plan are all in place.") %}
-          {% else %}
-            {% blocktrans asvar school_readiness_caption with items=school_readiness.unmet|join:", " %}Pending to reach 100%: {{ items }}{% endblocktrans %}
-            {% include "components/world_class_readiness_meter.html" with title=_("School readiness score") value=school_readiness.value caption=school_readiness_caption %}
+  <div data-rmc-scroll-policy="paginate" class="tableish-setup">
+    <div class="table-responsive">
+      <table class="table table-family table-sm align-middle rmc-data-table mb-0">
+        <caption class="visually-hidden">{% trans "Configuration areas" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Area" %}</th>
+            <th scope="col">{% trans "State" %}</th>
+            <th scope="col">{% trans "Blocker" %}</th>
+            <th scope="col"><span class="visually-hidden">{% trans "Action" %}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for section in sections %}
+          {% can_access_permission section.permission as sec_ok %}
+          {% if sec_ok %}
+          <tr data-school-configuration-section="{{ section.name }}">
+            <td><strong>{{ section.name }}</strong></td>
+            <td>
+              <span class="badge rounded-pill {% if section.status_tone == 'success' %}text-bg-success{% elif section.status_tone == 'warning' %}text-bg-warning{% elif section.status_tone == 'danger' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">{{ section.status }}</span>
+            </td>
+            <td class="small text-muted">{{ section.missing }}</td>
+            <td class="text-end"><a class="btn btn-primary btn-sm" href="{{ section.route }}">{{ section.primary_action }}</a></td>
+          </tr>
           {% endif %}
-          <dl class="row small mb-3">
-            <dt class="col-sm-4">{% trans "Tenant scope" %}</dt>
-            <dd class="col-sm-8"><code>tenant_scoped_only</code></dd>
-            <dt class="col-sm-4">{% trans "Missing pieces" %}</dt>
-            <dd class="col-sm-8">{{ section.missing }}</dd>
-            <dt class="col-sm-4">{% trans "Existing route" %}</dt>
-            <dd class="col-sm-8"><a href="{{ section.route }}">{{ section.route }}</a></dd>
-            <dt class="col-sm-4">{% trans "Next best action" %}</dt>
-            <dd class="col-sm-8">{{ section.primary_action }}</dd>
-          </dl>
-          <a class="btn btn-primary btn-sm" href="{{ section.route }}">{{ section.primary_action }}</a>
-        </div>
-      </article>
+          {% empty %}
+          <tr><td colspan="4" class="text-muted">{% trans "No configuration sections available." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    {% endif %}
-    {% endfor %}
   </div>
   <div class="rmc-wcx-mobile-marker" data-world-class-mobile-layout="stacked">{% trans "Mobile setup keeps actions stacked with large touch targets." %}</div>
 </main>

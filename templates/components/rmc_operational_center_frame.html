@@ -1,64 +1,11 @@
 {% load i18n rmc_explain_tags %}
-{% comment %} Compact operational header — Core vs Context: purpose lives in ⓘ. {% endcomment %}
-<section class="rmc-operational-center-frame{% if tenant_surface %} rmc-operational-center-frame--tenant{% endif %}"
-         data-rmc-operational-center-frame="1"
-         data-rmc-static-chrome="1"
-         data-rmc-core-context="1"
-         {% if os_center_key %}data-rmc-os-center="{{ os_center_key }}"{% endif %}
-         aria-labelledby="rmc-ops-center-title">
-  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="cp-steering rmc-operational-center-frame__steering">
-    <div class="cp-steering__icon" aria-hidden="true">◇</div>
-    <div class="cp-steering__body">
-      {% if center_eyebrow %}
-      <div class="cp-steering__label">{{ center_eyebrow }}</div>
-      {% endif %}
-      <div class="d-flex flex-wrap align-items-center gap-2">
-        <h1 id="rmc-ops-center-title" class="cp-page-h1 mb-0">
-          <span class="truncate">{{ center_title|default:_("Operations") }}</span>
-          {% if center_purpose %}{% rmc_info_tag title=center_title|default:_("Operations") body=center_purpose surface=ops_surface|default:"operator" placement="bottom" %}{% endif %}
-        </h1>
-        {% if status_badge_text %}
-        <span class="badge rounded-pill {% if status_badge_variant == 'success' %}text-bg-success{% elif status_badge_variant == 'warning' %}text-bg-warning{% elif status_badge_variant == 'danger' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">{{ status_badge_text }}</span>
-        {% endif %}
-      </div>
-      {% if primary_url and primary_label or secondary_url and secondary_label or jump_a_id and jump_a_label or jump_b_id and jump_b_label or jump_c_id and jump_c_label or jump_d_id and jump_d_label %}
-      <div class="cp-hero__actions cp-hero__actions--toolbar rmc-ops-frame__actions" role="group" aria-label="{% trans 'Workbench actions' %}">
-        {% if primary_url and primary_label %}<a class="cp-btn cp-btn--primary truncate" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
-        {% if secondary_url and secondary_label %}<a class="cp-btn cp-btn--ghost truncate" href="{{ secondary_url }}">{{ secondary_label }}</a>{% endif %}
-        {% if jump_a_id and jump_a_label or jump_b_id and jump_b_label or jump_c_id and jump_c_label or jump_d_id and jump_d_label %}
-        <span class="cp-hero__actions-sep" aria-hidden="true"></span>
-        <span class="cp-hero__actions-group cp-hero__actions-group--sections" role="group" aria-label="{% trans 'Jump to section' %}">
-          {% if jump_a_id and jump_a_label %}<a class="cp-btn cp-btn--ghost rmc-ops-frame__jump truncate" href="#{{ jump_a_id }}" data-rmc-section-anchor>{{ jump_a_label }}</a>{% endif %}
-          {% if jump_b_id and jump_b_label %}<a class="cp-btn cp-btn--ghost rmc-ops-frame__jump truncate" href="#{{ jump_b_id }}" data-rmc-section-anchor>{{ jump_b_label }}</a>{% endif %}
-          {% if jump_c_id and jump_c_label %}<a class="cp-btn cp-btn--ghost rmc-ops-frame__jump truncate" href="#{{ jump_c_id }}" data-rmc-section-anchor>{{ jump_c_label }}</a>{% endif %}
-          {% if jump_d_id and jump_d_label %}<a class="cp-btn cp-btn--ghost rmc-ops-frame__jump truncate" href="#{{ jump_d_id }}" data-rmc-section-anchor>{{ jump_d_label }}</a>{% endif %}
-        </span>
-        {% endif %}
-      </div>
-      {% endif %}
-    </div>
-    {% if nav_groups %}
-    <nav class="cp-steering__paths" aria-label="{% trans 'Operational groups' %}" data-rmc-ops-nav-pills="1">
-      {% for group in nav_groups %}
-      <span class="cp-steering__path{% if forloop.first %} is-active{% endif %}"
-            data-rmc-ops-nav-pill="{{ group.key|default:forloop.counter }}"
-            title="{{ group.title }} — {{ group.body }}">{{ group.label }}</span>
-      {% endfor %}
-    </nav>
-    {% endif %}
-  </div>
-  {% if nav_groups and not hide_nav_detail %}
-  <div class="rmc-ops-nav-detail" data-rmc-ops-nav-grid="1" data-apple-class-configuration-groups="operating-models runtime-governance trust-money">
-    {% for group in nav_groups %}
-    <article class="rmc-ops-nav-detail__card" data-rmc-ops-nav-card="{{ group.key|default:forloop.counter }}">
-      <span class="rmc-ops-nav-detail__label">{{ group.label }}</span>
-      <h2 class="rmc-ops-nav-detail__title h6 mb-1">
-        <span class="truncate">{{ group.title }}</span>
-        {% if group.body %}{% rmc_info_tag title=group.title body=group.body surface=ops_surface|default:"operator" %}{% endif %}
-      </h2>
-    </article>
-    {% endfor %}
-  </div>
-  {% endif %}
-</section>
+{% comment %}
+MAX Wave 5: operational hubs compose the shared masthead (operator /super/
++ tenant admin twins). Live status only — never wallpaper Operational/ready.
+Nav groups stay below the masthead; work begins at data-rmc-work-root.
+{% endcomment %}
+{% if tenant_surface %}
+  {% include "components/rmc_operational_center_frame_inner.html" with page_host="tenant" page_archetype=page_archetype|default:ops_page_archetype|default:"setup" %}
+{% else %}
+  {% include "components/rmc_operational_center_frame_inner.html" with page_host=page_host|default:ops_surface|default:"operator" page_archetype=page_archetype|default:ops_page_archetype|default:"fleet" %}
+{% endif %}

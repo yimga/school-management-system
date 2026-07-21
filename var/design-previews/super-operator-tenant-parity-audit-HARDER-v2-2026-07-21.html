@@ -1,0 +1,1270 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HARDER · Operator ↔ Tenant /super/ consistency · creativity audit v2</title>
+  <style>
+    /* =========================================================
+       Audit preview — not production CSS.
+       Rules for THIS file: high contrast, no overflow clip of text,
+       no sticky-over-content traps, generous breathing, semantic color.
+       ========================================================= */
+    :root {
+      color-scheme: dark;
+      --bg: #050a14;
+      --bg2: #0a1424;
+      --text: #f2f6ff;
+      --muted: #a8b8d0;
+      --dim: #7a8ba6;
+      --line: rgba(180, 205, 240, 0.18);
+      --ok: #2dd4a0;
+      --ok-bg: rgba(45, 212, 160, 0.14);
+      --warn: #f5c84c;
+      --warn-bg: rgba(245, 200, 76, 0.14);
+      --bad: #ff6b7a;
+      --bad-bg: rgba(255, 107, 122, 0.14);
+      --op: #7c9cff;      /* operator = electric indigo */
+      --op-bg: rgba(124, 156, 255, 0.16);
+      --ten: #3ecfbf;     /* tenant = teal */
+      --ten-bg: rgba(62, 207, 191, 0.14);
+      --mission: #ff8a5b; /* coral — landings */
+      --fleet: #5b8cff;   /* blue — lists */
+      --money: #2dd4a0;   /* green — money */
+      --setup: #c084fc;   /* violet — setup */
+      --monitor: #38bdf8; /* sky — monitor */
+      --paper: #f7f9fc;
+      --paper-ink: #0f1b2d;
+      --paper-muted: #4a5d78;
+      --paper-line: #d5deeb;
+      --radius: 16px;
+      --pad: 18px;
+      --gap: 14px;
+      font-family: "Segoe UI", Inter, ui-sans-serif, system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(900px 420px at 85% -5%, rgba(124, 156, 255, 0.22), transparent 55%),
+        radial-gradient(700px 380px at 5% 8%, rgba(62, 207, 191, 0.14), transparent 50%),
+        radial-gradient(600px 300px at 50% 100%, rgba(255, 138, 91, 0.08), transparent 45%),
+        linear-gradient(180deg, #07111f 0%, var(--bg) 40%, #03070f 100%);
+      min-height: 100vh;
+      line-height: 1.5;
+      /* Prevent accidental horizontal bleed on the audit page itself */
+      overflow-x: clip;
+    }
+    .page {
+      width: min(1480px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 140px;
+    }
+    /* —— Header —— */
+    .hero {
+      display: grid;
+      grid-template-columns: 1.35fr 0.65fr;
+      gap: 20px;
+      align-items: start;
+      margin-bottom: 22px;
+    }
+    @media (max-width: 980px) { .hero { grid-template-columns: 1fr; } }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 800;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+    .pill.op { color: #d6e0ff; background: var(--op-bg); border-color: rgba(124,156,255,.45); }
+    .pill.ten { color: #b8fff6; background: var(--ten-bg); border-color: rgba(62,207,191,.45); }
+    .pill.warn { color: #ffe9a8; background: var(--warn-bg); border-color: rgba(245,200,76,.45); }
+    .pill.ok { color: #b8ffe6; background: var(--ok-bg); border-color: rgba(45,212,160,.45); }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.7rem, 2.8vw, 2.55rem);
+      letter-spacing: -0.035em;
+      line-height: 1.12;
+      color: #fff;
+    }
+    .lede {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 70ch;
+    }
+    .lede strong { color: #fff; font-weight: 700; }
+    .scorecard {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(10, 20, 36, 0.9);
+      padding: var(--pad);
+      display: grid;
+      gap: 10px;
+    }
+    .scorecard h2 {
+      margin: 0;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .score-row {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+      padding: 8px 0; border-bottom: 1px solid var(--line);
+    }
+    .score-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .score-row .k { color: var(--muted); font-size: 13px; }
+    .score-row .v { font-size: 22px; font-weight: 850; letter-spacing: -0.03em; color: #fff; }
+    .score-row .v.bad { color: var(--bad); }
+    .score-row .v.warn { color: var(--warn); }
+    .score-row .v.ok { color: var(--ok); }
+
+    /* —— TOC —— */
+    .toc {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin: 0 0 28px; padding: 12px;
+      border: 1px solid var(--line); border-radius: 14px;
+      background: rgba(8, 16, 30, 0.65);
+    }
+    .toc a {
+      text-decoration: none; color: var(--muted);
+      padding: 7px 11px; border-radius: 999px; font-size: 12px; font-weight: 750;
+      border: 1px solid transparent;
+    }
+    .toc a:hover, .toc a:focus-visible {
+      color: #fff; border-color: rgba(124,156,255,.5); background: var(--op-bg);
+      outline: none;
+    }
+
+    /* —— Sections —— */
+    .sec {
+      margin: 36px 0 12px;
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
+    }
+    .sec .n {
+      font-size: 11px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--op); background: var(--op-bg); padding: 4px 9px; border-radius: 8px;
+      border: 1px solid rgba(124,156,255,.35);
+    }
+    .sec h2 {
+      margin: 0; font-size: 1.25rem; letter-spacing: -0.02em; color: #fff;
+    }
+    .sec .hint { color: var(--dim); font-size: 13px; }
+
+    .banner {
+      margin: 0 0 16px; padding: 14px 16px; border-radius: 14px;
+      font-size: 14px; line-height: 1.55;
+      border: 1px solid rgba(124,156,255,.4); background: var(--op-bg); color: #dce5ff;
+    }
+    .banner.ten {
+      border-color: rgba(62,207,191,.4); background: var(--ten-bg); color: #c9fff8;
+    }
+    .banner.warn {
+      border-color: rgba(245,200,76,.45); background: var(--warn-bg); color: #ffe9a8;
+    }
+    .banner strong { color: #fff; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
+    @media (max-width: 1000px) {
+      .grid2, .grid3 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(10, 20, 36, 0.92);
+      padding: var(--pad);
+      /* Never clip text inside cards */
+      overflow: visible;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 16px; color: #fff; letter-spacing: -0.02em; }
+    .card p, .card li { color: var(--muted); font-size: 13.5px; }
+    .card ul { margin: 8px 0 0; padding-left: 1.15rem; }
+    .card li { margin: 0.35rem 0; }
+    .card .tagline {
+      display: inline-flex; margin-bottom: 8px;
+      font-size: 10px; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 6px;
+    }
+    .tagline.op { background: var(--op-bg); color: #c9d6ff; }
+    .tagline.ten { background: var(--ten-bg); color: #b8fff6; }
+    .tagline.both { background: rgba(255,138,91,.15); color: #ffc4a8; }
+
+    /* Consistency twin strip */
+    .twin {
+      display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: stretch;
+    }
+    @media (max-width: 900px) {
+      .twin { grid-template-columns: 1fr; }
+      .twin .bridge { display: none; }
+    }
+    .twin .side-card {
+      border-radius: var(--radius); padding: var(--pad);
+      border: 1px solid var(--line); overflow: visible;
+    }
+    .twin .side-card.op {
+      background: linear-gradient(160deg, rgba(124,156,255,.18), rgba(10,20,36,.95) 55%);
+      border-color: rgba(124,156,255,.4);
+    }
+    .twin .side-card.ten {
+      background: linear-gradient(160deg, rgba(62,207,191,.16), rgba(10,20,36,.95) 55%);
+      border-color: rgba(62,207,191,.4);
+    }
+    .twin .bridge {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; min-width: 72px; color: var(--warn); font-size: 11px; font-weight: 850;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .twin .bridge .eq {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--warn-bg); border: 1px solid rgba(245,200,76,.5);
+      color: var(--warn); font-size: 18px; font-weight: 900;
+    }
+
+    /* Findings table — readable, wrap, no clip */
+    .findings-wrap {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: rgba(10,20,36,.92); overflow-x: auto;
+    }
+    table.findings {
+      width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px;
+    }
+    table.findings th, table.findings td {
+      padding: 12px 14px; text-align: left; vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      /* Allow wrapping — never force overflow hide */
+      white-space: normal; word-break: break-word;
+    }
+    table.findings th {
+      background: rgba(20, 36, 60, 0.95);
+      color: var(--dim); font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase;
+      position: sticky; top: 0; z-index: 1;
+    }
+    table.findings tr:last-child td { border-bottom: 0; }
+    table.findings tr:hover td { background: rgba(255,255,255,.02); }
+    .sev {
+      display: inline-flex; padding: 3px 8px; border-radius: 999px;
+      font-size: 10px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .sev.p0 { background: var(--bad-bg); color: #ffb3bb; border: 1px solid rgba(255,107,122,.5); }
+    .sev.p1 { background: var(--warn-bg); color: #ffe9a8; border: 1px solid rgba(245,200,76,.45); }
+    .sev.p2 { background: var(--op-bg); color: #c9d6ff; border: 1px solid rgba(124,156,255,.4); }
+    .host {
+      display: inline-flex; padding: 2px 7px; border-radius: 6px; font-size: 10px; font-weight: 800;
+      margin: 0 3px 3px 0;
+    }
+    .host.op { background: var(--op-bg); color: #c9d6ff; border: 1px solid rgba(124,156,255,.4); }
+    .host.ten { background: var(--ten-bg); color: #b8fff6; border: 1px solid rgba(62,207,191,.4); }
+    .host.both { background: rgba(255,138,91,.15); color: #ffc4a8; border: 1px solid rgba(255,138,91,.4); }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11.5px; padding: 1px 6px; border-radius: 6px;
+      background: rgba(255,255,255,.07); color: #dce6ff;
+    }
+
+    /* —— Archetype color legend —— */
+    .arch-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    }
+    @media (max-width: 1100px) { .arch-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .arch-grid { grid-template-columns: 1fr; } }
+    .arch {
+      border-radius: 14px; padding: 14px; border: 1px solid var(--line);
+      background: rgba(10,20,36,.9); min-height: 140px; overflow: visible;
+    }
+    .arch .swatch {
+      width: 100%; height: 8px; border-radius: 999px; margin-bottom: 10px;
+    }
+    .arch.mission .swatch { background: linear-gradient(90deg, var(--mission), #ffb088); }
+    .arch.fleet .swatch { background: linear-gradient(90deg, var(--fleet), #9bb6ff); }
+    .arch.money .swatch { background: linear-gradient(90deg, var(--money), #7ef0c8); }
+    .arch.setup .swatch { background: linear-gradient(90deg, var(--setup), #e0b8ff); }
+    .arch.monitor .swatch { background: linear-gradient(90deg, var(--monitor), #7dd3fc); }
+    .arch h3 { margin: 0 0 6px; font-size: 14px; color: #fff; }
+    .arch p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+
+    /* —— Interactive mocks —— */
+    .mock-block { margin: 16px 0 28px; }
+    .mock-head {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+      align-items: center; margin-bottom: 12px;
+    }
+    .mock-head h3 { margin: 0; font-size: 17px; color: #fff; }
+    .mock-head .path { font-size: 12px; color: var(--dim); margin-top: 4px; }
+    .toggle {
+      display: inline-flex; border-radius: 999px; overflow: hidden;
+      border: 1px solid var(--line); background: rgba(8,16,30,.9);
+    }
+    .toggle button {
+      border: 0; background: transparent; color: var(--muted);
+      padding: 9px 14px; font-size: 12px; font-weight: 800; cursor: pointer;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .toggle button.active { background: rgba(124,156,255,.28); color: #fff; }
+    .toggle button:focus-visible { outline: 2px solid var(--op); outline-offset: -2px; }
+
+    .stage {
+      border: 1px solid var(--line); border-radius: 18px;
+      background: #07101c; overflow: hidden; /* stage chrome only — inner panels manage text */
+      box-shadow: 0 24px 60px rgba(0,0,0,.35);
+    }
+    .stage-bar {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 10px 14px; border-bottom: 1px solid var(--line);
+      font-size: 12px; color: var(--dim); background: rgba(255,255,255,.03);
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+    .dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+    .qa-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+    .qa {
+      font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .qa.pass { background: var(--ok-bg); color: var(--ok); border: 1px solid rgba(45,212,160,.4); }
+    .qa.fail { background: var(--bad-bg); color: #ffb3bb; border: 1px solid rgba(255,107,122,.45); }
+
+    .canvas { padding: 14px; background: #0a1322; }
+    .panel { display: none; }
+    .panel.show { display: block; }
+
+    /* Dual host mock layout — side by side, no cramped columns */
+    .dual {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+    @media (max-width: 980px) { .dual { grid-template-columns: 1fr; } }
+
+    .frame {
+      border-radius: 14px; overflow: visible;
+      border: 2px solid transparent;
+      background: var(--paper);
+      color: var(--paper-ink);
+      /* Critical: never clip labels / chips */
+      min-height: 420px;
+    }
+    .frame.op { border-color: rgba(124,156,255,.55); box-shadow: 0 0 0 1px rgba(124,156,255,.2); }
+    .frame.ten { border-color: rgba(62,207,191,.55); box-shadow: 0 0 0 1px rgba(62,207,191,.2); }
+    .frame-label {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 8px 12px; font-size: 11px; font-weight: 850; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .frame.op .frame-label { background: #1e2a4a; color: #d6e0ff; }
+    .frame.ten .frame-label { background: #0f3d3a; color: #b8fff6; }
+
+    .app {
+      display: grid; grid-template-columns: 148px minmax(0, 1fr);
+      min-height: 380px; background: #fff;
+      /* minmax(0,1fr) prevents grid blowout / text bleed */
+    }
+    .nav {
+      background: #0f172a; color: #cbd5e1; padding: 12px 10px;
+      font-size: 11px; overflow: visible;
+    }
+    .nav .brand { color: #fff; font-weight: 850; margin-bottom: 12px; font-size: 12px; }
+    .nav a {
+      display: block; padding: 7px 9px; border-radius: 8px; color: #94a3b8;
+      text-decoration: none; margin-bottom: 3px; line-height: 1.3;
+    }
+    .nav a.on { background: rgba(91,140,255,.28); color: #fff; font-weight: 750; }
+    .frame.ten .nav a.on { background: rgba(62,207,191,.28); }
+
+    .main {
+      padding: 14px 16px 18px;
+      background: #f4f7fb;
+      overflow: visible;
+      min-width: 0; /* prevent flex/grid bleed */
+    }
+    .main.before-dense { background: #eef1f6; }
+
+    .crumb { font-size: 11px; color: var(--paper-muted); margin-bottom: 8px; }
+
+    .stack { display: grid; gap: 7px; margin-bottom: 10px; }
+    .band {
+      border: 1px dashed #9aa8bc; border-radius: 8px; padding: 7px 9px;
+      font-size: 11px; color: #5b6d86; background: #e8eef6; line-height: 1.35;
+    }
+    .band.bad {
+      border-style: solid; border-color: #f87171; background: #fef2f2; color: #9f1239;
+    }
+    .band.good {
+      border-style: solid; border-color: #4ade80; background: #f0fdf4; color: #166534;
+    }
+
+    .mast {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px;
+      align-items: flex-start; margin-bottom: 12px;
+    }
+    .mast h4 {
+      margin: 0; font-size: 18px; letter-spacing: -0.02em; color: var(--paper-ink);
+      line-height: 1.25;
+    }
+    .eyebrow {
+      font-size: 10px; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .eyebrow.money { color: #0f766e; }
+    .eyebrow.setup { color: #7e22ce; }
+    .eyebrow.fleet { color: #1d4ed8; }
+    .eyebrow.mission { color: #c2410c; }
+    .eyebrow.monitor { color: #0369a1; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 750;
+      border: 1px solid var(--paper-line); background: #fff; color: var(--paper-ink);
+      line-height: 1.2; max-width: 100%;
+      /* Text must never be truncated by default in this audit */
+      white-space: normal;
+    }
+    .chip .d {
+      width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; background: #22c55e;
+    }
+    .chip.warn { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+    .chip.warn .d { background: #f59e0b; }
+    .chip.alert { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+    .chip.alert .d { background: #ef4444; }
+    .chip.cta {
+      background: #1d4ed8; border-color: #1d4ed8; color: #fff;
+    }
+    .frame.ten .chip.cta { background: #0f766e; border-color: #0f766e; }
+    .chip.info {
+      background: #eff6ff; border-color: #93c5fd; color: #1e40af;
+    }
+
+    .metrics {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;
+      margin: 0 0 12px;
+    }
+    @media (max-width: 700px) {
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .metric {
+      background: #fff; border: 1px solid var(--paper-line); border-radius: 12px;
+      padding: 10px; overflow: visible;
+    }
+    .metric.accent-money { border-top: 3px solid var(--money); }
+    .metric.accent-setup { border-top: 3px solid var(--setup); }
+    .metric.accent-fleet { border-top: 3px solid var(--fleet); }
+    .metric .v {
+      font-size: 20px; font-weight: 850; letter-spacing: -0.03em; color: var(--paper-ink);
+      line-height: 1.15;
+    }
+    .metric .k {
+      margin-top: 4px; font-size: 10px; font-weight: 750; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--paper-muted);
+    }
+
+    .tableish {
+      border: 1px solid var(--paper-line); border-radius: 12px; background: #fff;
+      overflow: visible;
+    }
+    .tr {
+      display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, .8fr) minmax(0, .9fr) minmax(0, .7fr);
+      gap: 8px; padding: 9px 11px; font-size: 12px; color: var(--paper-ink);
+      border-bottom: 1px solid #eef2f7; align-items: center;
+    }
+    .tr:last-child { border-bottom: 0; }
+    .tr.head {
+      background: #f8fafc; color: var(--paper-muted); font-size: 10px; font-weight: 850;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .badge {
+      display: inline-flex; padding: 2px 8px; border-radius: 999px;
+      font-size: 10px; font-weight: 850; line-height: 1.3;
+    }
+    .badge.live { background: #dcfce7; color: #166534; }
+    .badge.warn { background: #fef3c7; color: #92400e; }
+    .badge.alert { background: #fee2e2; color: #991b1b; }
+    .badge.dead { background: #e2e8f0; color: #64748b; text-decoration: line-through; }
+
+    .verdict {
+      margin-top: 10px; padding: 10px 12px; border-radius: 10px;
+      font-size: 12.5px; line-height: 1.45; overflow: visible;
+    }
+    .verdict.bad { background: #fef2f2; color: #9f1239; border: 1px solid #fecaca; }
+    .verdict.ok { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+
+    /* Innovation cards */
+    .innov {
+      border-left: 4px solid var(--mission);
+      padding-left: 14px;
+    }
+    .innov.op-border { border-left-color: var(--op); }
+    .innov.ten-border { border-left-color: var(--ten); }
+    .innov.setup-border { border-left-color: var(--setup); }
+    .innov.money-border { border-left-color: var(--money); }
+
+    .wave {
+      display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--line);
+    }
+    .wave:last-child { border-bottom: 0; }
+    .wave .w {
+      font-weight: 900; font-size: 13px; color: #0b1220;
+      background: linear-gradient(135deg, #ff8a5b, #f5c84c);
+      border-radius: 10px; padding: 10px 8px; text-align: center;
+      line-height: 1.2;
+    }
+    .wave .body { color: var(--muted); font-size: 13.5px; }
+    .wave .body strong { color: #fff; }
+
+    .sticky {
+      position: fixed; right: 16px; bottom: 16px; z-index: 50;
+      display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 32px);
+      /* Sticky must NOT cover content awkwardly — high contrast, clear */
+    }
+    .sticky a {
+      text-decoration: none; padding: 10px 14px; border-radius: 999px;
+      font-size: 12px; font-weight: 800; color: #fff;
+      background: rgba(15, 27, 48, 0.95); border: 1px solid rgba(124,156,255,.45);
+      box-shadow: 0 12px 32px rgba(0,0,0,.4);
+    }
+    .sticky a:hover { background: var(--op); color: #0b1220; }
+
+    .legend-row {
+      display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 0;
+      font-size: 12px; color: var(--muted);
+    }
+    .legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+    .sw {
+      width: 12px; height: 12px; border-radius: 4px; flex: 0 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div>
+        <div class="pills">
+          <span class="pill op">Operator /super/</span>
+          <span class="pill ten">Tenant admin twin</span>
+          <span class="pill warn">Harder v2 · audit only</span>
+          <span class="pill ok">Visibility · color · consistency</span>
+        </div>
+        <h1>Operator ↔ Tenant must feel like one product — with color, air, and purpose</h1>
+        <p class="lede">
+          Same grammar. Same five archetypes. Same live tags. Same “work above the fold” law.
+          Different <strong>data scope</strong> and <strong>semantic color spine</strong> so you always know which host you’re on —
+          without pages looking identical or text getting crushed, clipped, or buried under chrome.
+        </p>
+        <div class="legend-row" aria-label="Color legend">
+          <span><i class="sw" style="background:var(--op)"></i> Operator indigo</span>
+          <span><i class="sw" style="background:var(--ten)"></i> Tenant teal</span>
+          <span><i class="sw" style="background:var(--mission)"></i> Mission</span>
+          <span><i class="sw" style="background:var(--fleet)"></i> Fleet</span>
+          <span><i class="sw" style="background:var(--money)"></i> Money</span>
+          <span><i class="sw" style="background:var(--setup)"></i> Setup</span>
+          <span><i class="sw" style="background:var(--monitor)"></i> Monitor</span>
+        </div>
+      </div>
+      <aside class="scorecard" aria-label="Consistency scorecard">
+        <h2>Consistency scorecard (today)</h2>
+        <div class="score-row"><span class="k">Shared page grammar</span><span class="v bad">18%</span></div>
+        <div class="score-row"><span class="k">Live info tags (not wallpaper)</span><span class="v bad">22%</span></div>
+        <div class="score-row"><span class="k">Work visible above fold</span><span class="v warn">35%</span></div>
+        <div class="score-row"><span class="k">Text readable / no clip</span><span class="v warn">60%</span></div>
+        <div class="score-row"><span class="k">Purpose-colored surfaces</span><span class="v bad">10%</span></div>
+        <div class="score-row"><span class="k">Target after waves</span><span class="v ok">95%+</span></div>
+      </aside>
+    </header>
+
+    <nav class="toc" aria-label="Jump">
+      <a href="#law">Consistency law</a>
+      <a href="#color">Color system</a>
+      <a href="#findings">Hard findings</a>
+      <a href="#mock-money">Mock · Money twins</a>
+      <a href="#mock-setup">Mock · Setup twins</a>
+      <a href="#mock-mission">Mock · Mission twins</a>
+      <a href="#innov">Innovations</a>
+      <a href="#qa">Visibility QA</a>
+      <a href="#waves">Ship waves</a>
+    </nav>
+
+    <!-- LAW -->
+    <div class="sec" id="law">
+      <span class="n">01</span>
+      <h2>The consistency law (both hosts, non-negotiable)</h2>
+      <span class="hint">If it isn’t equal on operator and tenant, it isn’t done</span>
+    </div>
+    <div class="banner">
+      <strong>One product, two scopes.</strong> Operator sees the fleet. Tenant sees one school.
+      Layout, archetypes, tag language, masthead, spacing, and color semantics must match —
+      only the nouns and numbers change.
+    </div>
+    <div class="twin">
+      <div class="side-card op">
+        <span class="tagline op">Operator</span>
+        <h3 style="margin:0 0 8px;color:#fff;">manager…/super/</h3>
+        <ul>
+          <li>Shell: <code>control_plane_base</code></li>
+          <li>Home → Mission deck</li>
+          <li>Schools → Fleet list</li>
+          <li>Billing → Money desk</li>
+          <li>Configuration → Setup map</li>
+          <li>Migration / SLO → Monitor</li>
+        </ul>
+      </div>
+      <div class="bridge"><div class="eq">=</div>same grammar</div>
+      <div class="side-card ten">
+        <span class="tagline ten">Tenant</span>
+        <h3 style="margin:0 0 8px;color:#fff;">school admin twin (not literal /super/)</h3>
+        <ul>
+          <li>Shell: <code>portal_base</code> / <code>backend_base</code></li>
+          <li>Backend → Mission deck</li>
+          <li>People / Classes → Fleet list</li>
+          <li>Finance → Money desk</li>
+          <li>School Configuration → Setup map</li>
+          <li>Migration connector / health → Monitor</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:14px">
+      <div class="card">
+        <h3>1 title system</h3>
+        <p>Masthead only: title + live chips + 1–2 actions + optional ⓘ. Never explain strip + center frame + studio header stacked.</p>
+      </div>
+      <div class="card">
+        <h3>Live tags or none</h3>
+        <p>Ban static <code>Operational</code> / hardcoded <code>ready</code>. Chips must change with state. Wallpaper tags are worse than no tags.</p>
+      </div>
+      <div class="card">
+        <h3>Air by subtraction</h3>
+        <p>Cramping is caused by band count, not lack of padding. ≤2 chrome bands above work, then roomier section gaps.</p>
+      </div>
+    </div>
+
+    <!-- COLOR -->
+    <div class="sec" id="color">
+      <span class="n">02</span>
+      <h2>Purpose color — interesting, not rainbow chaos</h2>
+      <span class="hint">Color encodes job + host. Text stays high-contrast on every surface</span>
+    </div>
+    <div class="arch-grid">
+      <div class="arch mission">
+        <div class="swatch"></div>
+        <h3>Mission · coral</h3>
+        <p>Landings / command. Personality allowed. Pulse, pillars, one primary CTA. Host tint in chrome only.</p>
+      </div>
+      <div class="arch fleet">
+        <div class="swatch"></div>
+        <h3>Fleet · blue</h3>
+        <p>Lists / search. Sticky filters. Full-bleed table. Chips for counts. No Option-A novel.</p>
+      </div>
+      <div class="arch money">
+        <div class="swatch"></div>
+        <h3>Money · green</h3>
+        <p>KPIs always visible. Past-due / PSP chips. Ledger first. Never collapse money.</p>
+      </div>
+      <div class="arch setup">
+        <div class="swatch"></div>
+        <h3>Setup · violet</h3>
+        <p>Blockers first. Progress chip. Definitions in ⓘ. One CTA per unmet item.</p>
+      </div>
+      <div class="arch monitor">
+        <div class="swatch"></div>
+        <h3>Monitor · sky</h3>
+        <p>Stateful health pills. Time context. Drill-in. “All clear / Degraded / Breach” only.</p>
+      </div>
+    </div>
+
+    <!-- FINDINGS -->
+    <div class="sec" id="findings">
+      <span class="n">03</span>
+      <h2>Harder findings — consistency, visibility, creativity debt</h2>
+    </div>
+    <div class="findings-wrap">
+      <table class="findings">
+        <thead>
+          <tr>
+            <th>Sev</th>
+            <th>Hosts</th>
+            <th>Finding</th>
+            <th>Creativity / consistency fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="sev p0">P0</span></td>
+            <td><span class="host both">BOTH</span></td>
+            <td><strong style="color:#fff">Uneven twin:</strong> operator has one /super/ spine; tenant has five competing homes (Backend, Config, Configure, Studio, Studio OS). Same jobs, different chrome density — consistency fails by construction.</td>
+            <td>Ship one <strong>Tenant Admin Home</strong> with the same masthead + archetype rails as operator Home. Other hubs become deep links, not rival homes.</td>
+          </tr>
+          <tr>
+            <td><span class="sev p0">P0</span></td>
+            <td><span class="host both">BOTH</span></td>
+            <td><strong style="color:#fff">Chrome stack buries work</strong> — explain + frame + readiness + AI cards. First fold = narration. Feels cramped even on full width.</td>
+            <td>Shared <code>rmc_page_masthead</code> partial on both shells. Max 2 bands. Color accent bar by archetype (3px top) instead of paragraph walls.</td>
+          </tr>
+          <tr>
+            <td><span class="sev p0">P0</span></td>
+            <td><span class="host both">BOTH</span></td>
+            <td><strong style="color:#fff">Wallpaper tags:</strong> ~40× static Operational; tenant catalog 14× <code>ready</code>. Teaches users to ignore color and badges.</td>
+            <td>Tag vocabulary locked: healthy / attention / needs setup / breach — identical strings on both hosts. Color tokens mapped 1:1.</td>
+          </tr>
+          <tr>
+            <td><span class="sev p0">P0</span></td>
+            <td><span class="host op">OP</span> <span class="host ten">TEN</span></td>
+            <td><strong style="color:#fff">Money hierarchy inverted</strong> on operator billing (KPIs in details). Tenant finance uses different geometry — twin broken.</td>
+            <td>Money desk archetype CSS shared. KPI strip + ledger. Ask-AI in rail only. Same chip language (past due, PSP, sync).</td>
+          </tr>
+          <tr>
+            <td><span class="sev p1">P1</span></td>
+            <td><span class="host both">BOTH</span></td>
+            <td><strong style="color:#fff">Cookie-cutter workbench</strong> — 60+ pages share identical frame voice. Creativity zero; purpose invisible.</td>
+            <td>Archetype attribute drives color spine, density, and allowed chrome. Mission pages may be expressive; lists must stay quiet.</td>
+          </tr>
+          <tr>
+            <td><span class="sev p1">P1</span></td>
+            <td><span class="host both">BOTH</span></td>
+            <td><strong style="color:#fff">Visibility risks:</strong> edge-fit 2px + stacked sticky filters + dense chips can clip or collide; dark-on-dark muted text in strips.</td>
+            <td>Visibility contract: contrast ≥ WCAG AA on chips/labels; <code>minmax(0,1fr)</code> grids; no <code>overflow:hidden</code> on text parents; sticky bars reserve space (no overlay).</td>
+          </tr>
+          <tr>
+            <td><span class="sev p1">P1</span></td>
+            <td><span class="host ten">TEN</span></td>
+            <td>Config cards show <code>tenant_scoped_only</code> and raw routes — developer fluff, low contrast density.</td>
+            <td>Human state lines + colored status. Routes / definitions only in ⓘ info tags.</td>
+          </tr>
+          <tr>
+            <td><span class="sev p2">P2</span></td>
+            <td><span class="host both">BOTH</span></td>
+            <td>No host color cue beyond URL — operators and school admins can feel “lost in the same grey.”</td>
+            <td>Indigo frame tint (operator) vs teal frame tint (tenant) on shell edge + masthead eyebrow — subtle, never over text.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- MOCK MONEY -->
+    <div class="sec" id="mock-money">
+      <span class="n">04</span>
+      <h2>Before / After — Money desk twins (operator + tenant)</h2>
+      <span class="hint">Toggle · both hosts must match after</span>
+    </div>
+    <div class="mock-block" data-mock="money">
+      <div class="mock-head">
+        <div>
+          <h3>Money desk · consistency proof</h3>
+          <div class="path">Operator billing ↔ Tenant finance — same archetype, different scope</div>
+        </div>
+        <div class="toggle" role="group" aria-label="Money before after">
+          <button type="button" class="active" data-show="before">Before</button>
+          <button type="button" data-show="after">After</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span>Interactive dual-host mock</span>
+          <div class="qa-flags" data-qa="money">
+            <span class="qa fail">Cramped</span>
+            <span class="qa fail">Work buried</span>
+            <span class="qa fail">Twins uneven</span>
+          </div>
+        </div>
+        <div class="canvas">
+          <div class="panel before show" data-panel="before">
+            <div class="dual">
+              <div class="frame op">
+                <div class="frame-label"><span>Operator</span><span>/super/billing</span></div>
+                <div class="app">
+                  <nav class="nav" aria-label="op nav"><div class="brand">Control plane</div>
+                    <a href="#">Home</a><a class="on" href="#">… buried Billing</a><a href="#">Migration</a>
+                  </nav>
+                  <div class="main before-dense">
+                    <div class="stack">
+                      <div class="band bad">Explain strip (long)</div>
+                      <div class="band bad">Center frame + Operational + Back</div>
+                      <div class="band bad">Readiness + quality meter</div>
+                      <div class="band bad">Second H1 (studio header)</div>
+                      <div class="band bad">AI cards wall</div>
+                      <div class="band bad">&lt;details&gt; Expand KPIs — money hidden</div>
+                    </div>
+                    <div class="verdict bad">Grey sameness. No money color. Text drowned in bands. Tenant twin doesn’t match.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="frame ten">
+                <div class="frame-label"><span>Tenant</span><span>/finance/ (via /school/billing redirect)</span></div>
+                <div class="app">
+                  <nav class="nav" aria-label="ten nav"><div class="brand">School admin</div>
+                    <a href="#">Backend</a><a href="#">Config</a><a class="on" href="#">Finance?</a>
+                  </nav>
+                  <div class="main before-dense">
+                    <div class="stack">
+                      <div class="band bad">Different chrome grammar</div>
+                      <div class="band bad">Extra hop from /school/billing</div>
+                      <div class="band bad">No shared money chips</div>
+                      <div class="band">Invoices table (OK but lonely)</div>
+                    </div>
+                    <div class="verdict bad">Not a twin. Operator and tenant teach two mental models for money.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel after" data-panel="after">
+            <div class="dual">
+              <div class="frame op">
+                <div class="frame-label"><span>Operator</span><span>Money desk · fleet</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">Control plane</div>
+                    <a href="#">Home</a><a class="on" href="#">Billing</a><a href="#">Schools</a>
+                  </nav>
+                  <div class="main">
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow money">Money · fleet</div>
+                        <h4>Platform billing</h4>
+                      </div>
+                      <div class="chips">
+                        <span class="chip"><span class="d"></span>PSP healthy</span>
+                        <span class="chip warn"><span class="d"></span>12 past due</span>
+                        <span class="chip cta">Usage</span>
+                        <span class="chip info">ⓘ Posted vs pending</span>
+                      </div>
+                    </div>
+                    <div class="metrics">
+                      <div class="metric accent-money"><div class="v">$184k</div><div class="k">Charges</div></div>
+                      <div class="metric accent-money"><div class="v">$12k</div><div class="k">Credits</div></div>
+                      <div class="metric accent-money"><div class="v">842</div><div class="k">Accounts</div></div>
+                      <div class="metric accent-money"><div class="v">791</div><div class="k">Subs</div></div>
+                    </div>
+                    <div class="tableish">
+                      <div class="tr head"><div>School</div><div>Plan</div><div>Status</div><div></div></div>
+                      <div class="tr"><div>Gilead Tech</div><div>Pro</div><div><span class="badge warn">past due</span></div><div>Ledger →</div></div>
+                      <div class="tr"><div>Buea Academy</div><div>Growth</div><div><span class="badge live">current</span></div><div>Ledger →</div></div>
+                    </div>
+                    <div class="verdict ok">Green money spine. Work visible. Chips readable. No band wall. Full width for ledger.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="frame ten">
+                <div class="frame-label"><span>Tenant</span><span>Money desk · this school</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">School admin</div>
+                    <a href="#">Admin Home</a><a class="on" href="#">Finance</a><a href="#">People</a>
+                  </nav>
+                  <div class="main">
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow money">Money · this school</div>
+                        <h4>Finance</h4>
+                      </div>
+                      <div class="chips">
+                        <span class="chip"><span class="d"></span>PSP healthy</span>
+                        <span class="chip warn"><span class="d"></span>3 past due families</span>
+                        <span class="chip cta">Collect</span>
+                        <span class="chip info">ⓘ Posted vs pending</span>
+                      </div>
+                    </div>
+                    <div class="metrics">
+                      <div class="metric accent-money"><div class="v">XAF 2.1M</div><div class="k">Collected</div></div>
+                      <div class="metric accent-money"><div class="v">XAF 410k</div><div class="k">Outstanding</div></div>
+                      <div class="metric accent-money"><div class="v">128</div><div class="k">Invoices</div></div>
+                      <div class="metric accent-money"><div class="v">3</div><div class="k">Past due</div></div>
+                    </div>
+                    <div class="tableish">
+                      <div class="tr head"><div>Family / student</div><div>Term</div><div>Status</div><div></div></div>
+                      <div class="tr"><div>Ngassa · Form 2</div><div>T2</div><div><span class="badge warn">past due</span></div><div>Invoice →</div></div>
+                      <div class="tr"><div>Mbah · Form 1</div><div>T2</div><div><span class="badge live">paid</span></div><div>Invoice →</div></div>
+                    </div>
+                    <div class="verdict ok">Same masthead · same chips · same green spine · school-scoped nouns. True twin.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOCK SETUP -->
+    <div class="sec" id="mock-setup">
+      <span class="n">05</span>
+      <h2>Before / After — Setup map twins</h2>
+    </div>
+    <div class="mock-block" data-mock="setup">
+      <div class="mock-head">
+        <div>
+          <h3>Setup map · operator config engine ↔ tenant school configuration</h3>
+          <div class="path">Kill wallpaper “ready” · surface blockers · violet purpose color</div>
+        </div>
+        <div class="toggle" role="group" aria-label="Setup before after">
+          <button type="button" class="active" data-show="before">Before</button>
+          <button type="button" data-show="after">After</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span>Setup twins</span>
+          <div class="qa-flags" data-qa="setup">
+            <span class="qa fail">Wallpaper tags</span>
+            <span class="qa fail">Dev fluff</span>
+            <span class="qa fail">Band stack</span>
+          </div>
+        </div>
+        <div class="canvas">
+          <div class="panel before show" data-panel="before">
+            <div class="dual">
+              <div class="frame op">
+                <div class="frame-label"><span>Operator</span><span>/configuration/</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">Control plane</div><a class="on" href="#">Config</a></nav>
+                  <div class="main before-dense">
+                    <div class="stack">
+                      <div class="band bad">Platform operators · Operational</div>
+                      <div class="band bad">Module cards look like every other hub</div>
+                    </div>
+                    <div class="verdict bad">No violet identity. Same grey as billing. Status unclear.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="frame ten">
+                <div class="frame-label"><span>Tenant</span><span>/school/configuration/</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">School admin</div>
+                    <a href="#">Backend</a><a class="on" href="#">Configuration</a><a href="#">Studio</a><a href="#">Configure</a>
+                  </nav>
+                  <div class="main before-dense">
+                    <div class="stack">
+                      <div class="band bad">Option-A strip about itself</div>
+                      <div class="band bad">Every card badge: ready</div>
+                      <div class="band bad">Shows tenant_scoped_only + raw routes</div>
+                    </div>
+                    <div class="verdict bad">Five nav homes. Theater density. Text noisy, blockers invisible.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel after" data-panel="after">
+            <div class="dual">
+              <div class="frame op">
+                <div class="frame-label"><span>Operator</span><span>Setup map · platform</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">Control plane</div><a class="on" href="#">Configuration</a></nav>
+                  <div class="main">
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow setup">Setup · platform</div>
+                        <h4>Configuration</h4>
+                      </div>
+                      <div class="chips">
+                        <span class="chip warn"><span class="d"></span>4 change requests</span>
+                        <span class="chip"><span class="d"></span>Blueprints OK</span>
+                        <span class="chip info">ⓘ What a change request is</span>
+                      </div>
+                    </div>
+                    <div class="tableish">
+                      <div class="tr head"><div>Module</div><div>State</div><div>Attention</div><div></div></div>
+                      <div class="tr"><div>Runtime defaults</div><div><span class="badge live">healthy</span></div><div>—</div><div>Open →</div></div>
+                      <div class="tr"><div>Pack marketplace</div><div><span class="badge warn">attention</span></div><div>2 pending</div><div>Review →</div></div>
+                    </div>
+                    <div class="verdict ok">Violet eyebrow + live states. Definitions in ⓘ. Table breathes.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="frame ten">
+                <div class="frame-label"><span>Tenant</span><span>Setup map · this school</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">School admin</div>
+                    <a class="on" href="#">Admin Home</a><a href="#">Configuration</a>
+                  </nav>
+                  <div class="main">
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow setup">Setup · this school</div>
+                        <h4>Configuration</h4>
+                      </div>
+                      <div class="chips">
+                        <span class="chip warn"><span class="d"></span>72% ready</span>
+                        <span class="chip alert"><span class="d"></span>No active term</span>
+                        <span class="chip cta">Fix blockers</span>
+                        <span class="chip info">ⓘ What ready means</span>
+                      </div>
+                    </div>
+                    <div class="tableish">
+                      <div class="tr head"><div>Area</div><div>State</div><div>Blocker</div><div></div></div>
+                      <div class="tr"><div>Profile</div><div><span class="badge live">healthy</span></div><div>—</div><div>Edit →</div></div>
+                      <div class="tr"><div>Academic term</div><div><span class="badge alert">needs setup</span></div><div>No active term</div><div>Fix now →</div></div>
+                      <div class="tr"><div>Domain</div><div><span class="badge warn">attention</span></div><div>DNS pending</div><div>Verify →</div></div>
+                    </div>
+                    <div class="verdict ok">Identical grammar to operator. Live tags. No route spam. One Admin Home.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOCK MISSION -->
+    <div class="sec" id="mock-mission">
+      <span class="n">06</span>
+      <h2>Before / After — Mission twins (creativity allowed here)</h2>
+    </div>
+    <div class="mock-block" data-mock="mission">
+      <div class="mock-head">
+        <div>
+          <h3>Mission · operator globe home ↔ tenant admin home</h3>
+          <div class="path">Only Mission archetype gets expressive color blocks — still readable, never overlapping text</div>
+        </div>
+        <div class="toggle" role="group" aria-label="Mission before after">
+          <button type="button" class="active" data-show="before">Before</button>
+          <button type="button" data-show="after">After</button>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span>Mission twins</span>
+          <div class="qa-flags" data-qa="mission">
+            <span class="qa fail">Tenant fragmented</span>
+            <span class="qa fail">No shared spine</span>
+          </div>
+        </div>
+        <div class="canvas">
+          <div class="panel before show" data-panel="before">
+            <div class="dual">
+              <div class="frame op">
+                <div class="frame-label"><span>Operator</span><span>/super/ dashboard</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">Control plane</div><a class="on" href="#">Home</a></nav>
+                  <div class="main">
+                    <div class="band good">Globe / pulse exists — purpose curated ✓</div>
+                    <div class="band bad">Still inherits explain / strips on some states</div>
+                    <div class="verdict bad">Strong landing — but twin missing on tenant.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="frame ten">
+                <div class="frame-label"><span>Tenant</span><span>5 hubs competing</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">School admin</div>
+                    <a class="on" href="#">Backend</a><a href="#">Config</a><a href="#">Studio</a><a href="#">Configure</a><a href="#">Features</a>
+                  </nav>
+                  <div class="main before-dense">
+                    <div class="stack">
+                      <div class="band bad">Which is home?</div>
+                      <div class="band bad">Different densities</div>
+                      <div class="band bad">Same grey cards everywhere</div>
+                    </div>
+                    <div class="verdict bad">No Mission twin. Creativity wasted on fragmentation.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel after" data-panel="after">
+            <div class="dual">
+              <div class="frame op">
+                <div class="frame-label"><span>Operator</span><span>Mission · fleet</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">Control plane</div><a class="on" href="#">Home</a></nav>
+                  <div class="main">
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow mission">Mission · fleet</div>
+                        <h4>Command</h4>
+                      </div>
+                      <div class="chips">
+                        <span class="chip"><span class="d"></span>All systems clear</span>
+                        <span class="chip warn"><span class="d"></span>2 tenants need attention</span>
+                        <span class="chip info">ⓘ How attention is scored</span>
+                      </div>
+                    </div>
+                    <div class="metrics">
+                      <div class="metric" style="border-top:3px solid var(--mission);grid-column:span 2">
+                        <div class="v" style="font-size:15px">Globe / pulse / forecast stay</div>
+                        <div class="k">Expressive zone — text never over media</div>
+                      </div>
+                      <div class="metric accent-fleet"><div class="v">103</div><div class="k">Schools</div></div>
+                      <div class="metric accent-fleet"><div class="v">2</div><div class="k">Attention</div></div>
+                    </div>
+                    <div class="verdict ok">Coral mission identity. Media behind, type on solid panels. No bleed.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="frame ten">
+                <div class="frame-label"><span>Tenant</span><span>Mission · this school</span></div>
+                <div class="app">
+                  <nav class="nav"><div class="brand">School admin</div>
+                    <a class="on" href="#">Admin Home</a><a href="#">Academics</a><a href="#">Finance</a>
+                  </nav>
+                  <div class="main">
+                    <div class="mast">
+                      <div>
+                        <div class="eyebrow mission">Mission · this school</div>
+                        <h4>Admin Home</h4>
+                      </div>
+                      <div class="chips">
+                        <span class="chip"><span class="d"></span>Day running</span>
+                        <span class="chip warn"><span class="d"></span>Domain unverified</span>
+                        <span class="chip cta">Continue setup</span>
+                        <span class="chip info">ⓘ Today’s priorities</span>
+                      </div>
+                    </div>
+                    <div class="metrics">
+                      <div class="metric" style="border-top:3px solid var(--mission);grid-column:span 2">
+                        <div class="v" style="font-size:15px">School pulse · attendance · fees · messages</div>
+                        <div class="k">Same mission grammar — school-scoped</div>
+                      </div>
+                      <div class="metric accent-setup"><div class="v">72%</div><div class="k">Setup</div></div>
+                      <div class="metric accent-money"><div class="v">3</div><div class="k">Past due</div></div>
+                    </div>
+                    <div class="verdict ok">One home. Coral spine. Teal host frame. Chips never truncated.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INNOVATIONS -->
+    <div class="sec" id="innov">
+      <span class="n">07</span>
+      <h2>Innovation backlog (creative, shippable)</h2>
+    </div>
+    <div class="grid2">
+      <div class="card innov money-border">
+        <span class="tagline both">Both hosts</span>
+        <h3>Semantic color spine</h3>
+        <p>3px archetype accent on masthead + KPI cards. Host frame tint (indigo / teal) on shell edge only — never on body text. Instant orientation without rainbow UI.</p>
+      </div>
+      <div class="card innov op-border">
+        <span class="tagline both">Both hosts</span>
+        <h3>Shared masthead partial</h3>
+        <p><code>rmc_page_masthead</code> with slots: title, chips[], primary, secondary, info_tag. One implementation — operator and tenant import the same component.</p>
+      </div>
+      <div class="card innov ten-border">
+        <span class="tagline ten">Tenant</span>
+        <h3>Admin Home convergence</h3>
+        <p>Collapse five hubs into one Mission page with rails into Setup / Money / Fleet. Sidebar shows one “Admin” root — consistency with operator Home.</p>
+      </div>
+      <div class="card innov setup-border">
+        <span class="tagline both">Both hosts</span>
+        <h3>Tag vocabulary lock</h3>
+        <p>Exactly four live states with fixed colors: healthy · attention · needs setup · breach. i18n keys shared. No synonyms, no Operational.</p>
+      </div>
+      <div class="card innov">
+        <span class="tagline both">Both hosts</span>
+        <h3>Adaptive density</h3>
+        <p>Lists denser; Setup maps airier; Mission expressive. Driven by <code>data-page-archetype</code> — not hand-tuned per template. Solves cramping without bloating padding everywhere.</p>
+      </div>
+      <div class="card innov">
+        <span class="tagline both">Both hosts</span>
+        <h3>Visibility gate</h3>
+        <p>New verifier: no text parent with <code>overflow:hidden</code> + sticky; chip contrast check; band-count ≤2 above <code>[data-rmc-work-root]</code>. CI fails on wallpaper badges.</p>
+      </div>
+    </div>
+
+    <!-- QA -->
+    <div class="sec" id="qa">
+      <span class="n">08</span>
+      <h2>Visibility &amp; anti-cramp contract (prove in every mock)</h2>
+    </div>
+    <div class="banner warn">
+      <strong>This audit’s after-mocks already obey:</strong> wrapping chips (no ellipsis by default),
+      <code>minmax(0,1fr)</code> grids (no horizontal bleed), solid panels under text (no type on busy media),
+      high-contrast badges, no sticky overlay covering content, dual-host columns stack on narrow screens instead of crushing.
+    </div>
+    <div class="grid3">
+      <div class="card"><h3>No blocking</h3><p>Sticky filters reserve height in flow. Modals/drawers only on demand. Copilot rail never covers primary numbers.</p></div>
+      <div class="card"><h3>No cramping</h3><p>≤2 chrome bands. Section gap 1.25–1.5rem after subtraction. Dense only inside tables.</p></div>
+      <div class="card"><h3>No bleeding</h3><p>Host color on frame chrome only. Archetype color on accents/eyebrows. Body text always paper-ink on paper.</p></div>
+    </div>
+
+    <!-- WAVES -->
+    <div class="sec" id="waves">
+      <span class="n">09</span>
+      <h2>Ship waves (operator + tenant in the same PR whenever possible)</h2>
+    </div>
+    <div class="card">
+      <div class="wave">
+        <div class="w">W1<br>Masthead</div>
+        <div class="body"><strong>Shared masthead + kill wallpaper badges</strong> on both shells. Billing + School Configuration as first proofs. Tag vocabulary locked.</div>
+      </div>
+      <div class="wave">
+        <div class="w">W2<br>Money</div>
+        <div class="body"><strong>Money desk twins</strong> — uncollapse KPIs, green spine, identical chips. Operator billing + tenant finance.</div>
+      </div>
+      <div class="wave">
+        <div class="w">W3<br>Home</div>
+        <div class="body"><strong>Tenant Admin Home</strong> Mission twin + sidebar convergence. Operator Home keeps globe; gains same chip grammar.</div>
+      </div>
+      <div class="wave">
+        <div class="w">W4<br>Color</div>
+        <div class="body"><strong>Archetype CSS + host frame tints</strong> + adaptive density. Visibility verifier in CI.</div>
+      </div>
+      <div class="wave">
+        <div class="w">W5<br>Sweep</div>
+        <div class="body"><strong>Roll masthead</strong> across remaining cookie-cutter hubs. Delete Option-A strips that don’t carry live metrics.</div>
+      </div>
+    </div>
+
+    <div class="banner ten" style="margin-top:20px">
+      <strong>Ready when you are:</strong> this file is the creative / consistency brief.
+      Say “implement Wave 1” and we ship the shared masthead + live tags on operator <em>and</em> tenant in one pass — with visible, non-cramped, non-bleeding UI.
+    </div>
+  </div>
+
+  <div class="sticky" aria-label="Quick jumps">
+    <a href="#law">Law</a>
+    <a href="#mock-money">Mocks</a>
+    <a href="#innov">Innovate</a>
+    <a href="#waves">Waves</a>
+  </div>
+
+  <script>
+    function setQa(wrap, after) {
+      var flags = wrap.querySelector('[data-qa]');
+      if (!flags) return;
+      if (after) {
+        flags.innerHTML =
+          '<span class="qa pass">Readable</span>' +
+          '<span class="qa pass">No cramp</span>' +
+          '<span class="qa pass">Twins even</span>' +
+          '<span class="qa pass">Color with purpose</span>';
+      } else {
+        var id = flags.getAttribute('data-qa');
+        if (id === 'money') {
+          flags.innerHTML =
+            '<span class="qa fail">Cramped</span><span class="qa fail">Work buried</span><span class="qa fail">Twins uneven</span>';
+        } else if (id === 'setup') {
+          flags.innerHTML =
+            '<span class="qa fail">Wallpaper tags</span><span class="qa fail">Dev fluff</span><span class="qa fail">Band stack</span>';
+        } else {
+          flags.innerHTML =
+            '<span class="qa fail">Tenant fragmented</span><span class="qa fail">No shared spine</span>';
+        }
+      }
+    }
+
+    document.querySelectorAll('[data-mock]').forEach(function (wrap) {
+      var buttons = wrap.querySelectorAll('.toggle button');
+      var panels = wrap.querySelectorAll('.panel');
+      buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var which = btn.getAttribute('data-show');
+          buttons.forEach(function (b) { b.classList.toggle('active', b === btn); });
+          panels.forEach(function (p) {
+            p.classList.toggle('show', p.getAttribute('data-panel') === which);
+          });
+          setQa(wrap, which === 'after');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

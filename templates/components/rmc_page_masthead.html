@@ -1,0 +1,78 @@
+{% load i18n rmc_explain_tags %}
+{% comment %}
+MAX shared masthead — operator /super/ and tenant admin twins.
+Slots: eyebrow, title, optional status, chips, actions, optional ⓘ purpose, optional Why drawer.
+Exactly one H1. Live chips only — never wallpaper Operational/ready.
+{% endcomment %}
+<header
+  class="rmc-page-masthead rmc-page-masthead--{{ page_archetype|default:'fleet' }} rmc-page-masthead--{{ page_host|default:'operator' }}"
+  data-rmc-page-masthead="1"
+  data-page-archetype="{{ page_archetype|default:'fleet' }}"
+  data-rmc-page-host="{{ page_host|default:'operator' }}"
+  data-rmc-work-chrome="masthead"
+>
+  <div class="rmc-page-masthead__row">
+    <div class="rmc-page-masthead__titles">
+      {% if masthead_eyebrow %}
+      <div class="rmc-page-masthead__eyebrow">{{ masthead_eyebrow }}</div>
+      {% endif %}
+      <div class="rmc-page-masthead__title-line">
+        <h1 id="{{ masthead_title_id|default:'rmc-page-masthead-title' }}" class="rmc-page-masthead__title cp-page-h1 mb-0">
+          <span class="truncate">{{ masthead_title|default:_("Workspace") }}</span>
+          {% if masthead_purpose %}
+            {% rmc_info_tag title=masthead_title|default:_("Workspace") body=masthead_purpose surface=page_host|default:"operator" placement="bottom" %}
+          {% endif %}
+        </h1>
+        {% if masthead_status_text %}
+        <span class="badge rounded-pill {% if masthead_status_variant == 'success' %}text-bg-success{% elif masthead_status_variant == 'warning' %}text-bg-warning{% elif masthead_status_variant == 'danger' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">{{ masthead_status_text }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% if masthead_primary_url and masthead_primary_label or masthead_secondary_url and masthead_secondary_label %}
+    <div class="rmc-page-masthead__actions" role="group" aria-label="{% trans 'Primary actions' %}">
+      {% if masthead_primary_url and masthead_primary_label %}
+      <a class="cp-btn cp-btn--primary truncate" href="{{ masthead_primary_url }}">{{ masthead_primary_label }}</a>
+      {% endif %}
+      {% if masthead_secondary_url and masthead_secondary_label %}
+      <a class="cp-btn cp-btn--ghost truncate" href="{{ masthead_secondary_url }}">{{ masthead_secondary_label }}</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% if masthead_chips %}
+  <div class="rmc-page-masthead__chips cp-chip-row" role="list" aria-label="{% trans 'Live status' %}">
+    {% for chip in masthead_chips %}
+      {% if chip.href %}
+      <a class="rmc-page-masthead__chip rmc-page-masthead__chip--{{ chip.tone|default:'neutral' }} cp-chip" href="{{ chip.href }}" role="listitem" title="{{ chip.title|default:chip.label }}">
+        {% if chip.sparkline_points %}
+        <svg class="rmc-page-masthead__spark" viewBox="0 0 36 12" width="36" height="12" aria-hidden="true" focusable="false"><polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="{{ chip.sparkline_points }}"/></svg>
+        {% endif %}
+        <span>{{ chip.label }}</span>
+      </a>
+      {% else %}
+      <span class="rmc-page-masthead__chip rmc-page-masthead__chip--{{ chip.tone|default:'neutral' }} cp-chip" role="listitem" title="{{ chip.title|default:chip.label }}">
+        {% if chip.sparkline_points %}
+        <svg class="rmc-page-masthead__spark" viewBox="0 0 36 12" width="36" height="12" aria-hidden="true" focusable="false"><polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="{{ chip.sparkline_points }}"/></svg>
+        {% endif %}
+        <span>{{ chip.label }}</span>
+      </span>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if masthead_why_items %}
+  <details class="rmc-page-masthead__why">
+    <summary>{% trans "Why these numbers?" %}</summary>
+    <ul class="rmc-page-masthead__why-list">
+      {% for item in masthead_why_items %}
+      <li>
+        <strong>{{ item.title }}</strong>
+        — {{ item.body }}
+        {% if item.source %}<span class="rmc-page-masthead__why-meta">{{ item.source }}</span>{% endif %}
+        {% if item.freshness %}<span class="rmc-page-masthead__why-meta">{{ item.freshness }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+</header>

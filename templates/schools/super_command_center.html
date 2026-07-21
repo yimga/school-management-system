@@ -39,7 +39,7 @@
   </div>
   {% endif %}
 {% phase8_dashboard_declaration "schools/super_command_center.html" %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="command_center" center_eyebrow=_("Platform operators") center_title=_("RunMyCampus Manager") center_purpose=_("Operational queues") primary_url=dashboard_url primary_label=_("Back to control plane") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="command_center" center_eyebrow=_("Platform operators") center_title=_("RunMyCampus Manager") center_purpose=_("Operational queues") primary_url=dashboard_url primary_label=_("Back to control plane") nav_groups=operational_nav_groups %}
   <div class="cp-chip-row mb-3">
     <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'healthy' }}">{% blocktrans with s=platform_health.overall_status|default:"healthy"|upper %}Platform {{ s }}{% endblocktrans %}</span>
     <span class="cp-chip">{% blocktrans with n=command_center.support_backlog_48h_count %}Support backlog 48h+ {{ n }}{% endblocktrans %}</span>

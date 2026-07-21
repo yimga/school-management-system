@@ -22,7 +22,6 @@
     {% include "components/world_class_guided_stepper.html" %}
     {% include "components/apple_class_data_quality_meter.html" with meter_id="migration-data-quality" title=_("Data Quality Meter") value=data_quality_meter.value status=data_quality_meter.status status_label=data_quality_meter.status_label body=_("Field mapping, duplicate warnings, invalid rows, and rollback posture must pass before apply.") %}
     {% include "components/world_class_summary_strip.html" with readiness=summary.rollback_ready readiness_label=_("Rollback ready") risk=summary.exception_runs_open risk_label=_("Open exceptions") next_step=_("Validate") next_step_label=_("Data quality") blockers=summary.quarantine_pending blockers_label=_("Quarantine pending") %}
-    {% include "components/platform_readiness_strip.html" with inline_field_prefix='migration-cloud' hide_inline=1 %}
     <div class="card shadow-sm border-0 page-family-content-card mb-3">
       <div class="card-header bg-dark text-light">{% trans "Migration Cloud operations" %}</div>
       <div class="card-body">

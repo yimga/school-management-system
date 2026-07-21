@@ -21,7 +21,7 @@
   {% trans "Compliance & Audit" as page_title %}
   {% trans "Policy pack, country compliance, audit review, export risk. Enforcement via runtime.compliance." as page_subtitle %}
   {% trans "Back to Trust center" as page_action %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="compliance_overview" center_eyebrow=_("Platform operators") center_title=page_title center_purpose=page_subtitle primary_url=trust_center_url primary_label=page_action status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="compliance_overview" center_eyebrow=_("Platform operators") center_title=page_title center_purpose=page_subtitle primary_url=trust_center_url primary_label=page_action nav_groups=operational_nav_groups %}
   {% if actions %}
   <div class="row g-3" data-compliance-action-grid="1">
     {% for action in actions %}

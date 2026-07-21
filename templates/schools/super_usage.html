@@ -12,7 +12,7 @@
 <div id="super-usage-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-page-critical-read="1">
     {% phase8_dashboard_declaration "schools/super_usage.html" %}
     {% url 'super:dashboard' as super_dashboard_url %}
-    {% include "components/rmc_operational_center_frame.html" with os_center_key="usage" center_eyebrow=_("Platform operators") center_title="Per-school API usage & quotas" center_purpose="Usage is sampled (throttled writes). Quotas are configured in Admin → School quota limits." primary_url=super_dashboard_url primary_label="Back to Schools" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+    {% include "components/rmc_operational_center_frame.html" with os_center_key="usage" center_eyebrow=_("Platform operators") center_title="Per-school API usage & quotas" center_purpose="Usage is sampled (throttled writes). Quotas are configured in Admin → School quota limits." primary_url=super_dashboard_url primary_label="Back to Schools" nav_groups=operational_nav_groups %}
     <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3" role="search">
       <input type="search" name="q" value="{{ search_query }}" class="form-control" placeholder="{% trans 'Search active schools' %}" autocomplete="off">
       <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Search" %}</button>
