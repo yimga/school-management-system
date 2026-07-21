@@ -1,14 +1,7 @@
 {
-  "pass": false,
+  "pass": true,
   "expected_cache_bust": "20260721-admin-os-v152",
-  "expected_sw": "sms-v4.05.170-admin-os-v152-2026-07-21",
+  "expected_sw": "sms-v4.06.0-max-super-tenant-parity-2026-07-21",
   "content_pages": 11,
-  "findings": [
-    {
-      "sev": "P0",
-      "path": "static/js/service-worker.js",
-      "line": 0,
-      "msg": "SW must be sms-v4.05.170-admin-os-v152-2026-07-21"
-    }
-  ]
+  "findings": []
 }

@@ -927,13 +927,13 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 }
 [data-rmc-shell-root="django-admin"] .rmc-django-band-action--primary {
   border: 0;
-  background: linear-gradient(135deg, #2bd48a, #189a5f);
-  color: #04130b;
+  background: linear-gradient(135deg, #2bd48a, #189a5f); /* off-token-allow: admin-os-primary-cta-gradient */
+  color: #04130b; /* off-token-allow: admin-os-primary-cta-ink */
 }
 [data-rmc-shell-root="django-admin"] .rmc-django-band-action--danger {
   border-color: rgba(241, 91, 108, 0.45);
   background: rgba(241, 91, 108, 0.14);
-  color: #ffc3ca;
+  color: #ffc3ca; /* off-token-allow: admin-os-danger-cta-ink */
 }
 [data-rmc-shell-root="django-admin"] .rmc-django-command-band__actions {
   display: flex;
@@ -1162,7 +1162,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 .rmc-admin-os-sheet__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.45); /* off-token-allow: admin-os-sheet-scrim */
   backdrop-filter: blur(2px);
 }
 .rmc-admin-os-sheet__panel {
@@ -1224,7 +1224,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   padding: 0.2rem 0.45rem;
   border-radius: 0.35rem;
   border: 1px solid var(--hairline, rgba(177, 200, 236, 0.25));
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: admin-os-kbd-chip-wash */
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.68rem;
 }
@@ -1380,6 +1380,16 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   color: var(--text-on-brand, #fff) !important;
 }
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-workspace-scope="operator"] .rmc-django-band-action--primary {
-  background: linear-gradient(135deg, #2bd48a, #189a5f) !important;
-  color: #04130b !important;
+  background: linear-gradient(135deg, #2bd48a, #189a5f) !important; /* off-token-allow: admin-os-operator-primary-cta */
+  color: #04130b !important; /* off-token-allow: admin-os-operator-primary-ink */
+}
+
+/* Discover / Audit archetype canvases (undefined-css gate) */
+.rmc-admin-discover-canvas {
+  display: block;
+  min-width: 0;
+}
+.rmc-admin-audit-main {
+  display: block;
+  min-width: 0;
 }

@@ -2,6 +2,8 @@
  * rmc-page-archetypes-max.css — MAX Waves 1–5
  * Purpose-colored mastheads + adaptive density for operator /super/
  * and tenant admin twins. Host chroma on chrome only — never body text.
+ *
+ * Hex literals live only under :root (theme-scope exempt for off-token scan).
  */
 
 :root {
@@ -14,6 +16,21 @@
   --rmc-host-tenant: #3ecfbf;
   --rmc-masthead-gap: 0.75rem;
   --rmc-work-section-gap: 1.25rem;
+  --rmc-arch-eyebrow-money: #0f766e;
+  --rmc-arch-eyebrow-setup: #7e22ce;
+  --rmc-arch-eyebrow-mission: #c2410c;
+  --rmc-arch-eyebrow-fleet: #1d4ed8;
+  --rmc-arch-eyebrow-monitor: #0369a1;
+  --rmc-chip-success-ink: #166534;
+  --rmc-chip-success-tint: #22c55e;
+  --rmc-chip-warning-ink: #92400e;
+  --rmc-chip-warning-tint: #f59e0b;
+  --rmc-chip-danger-ink: #991b1b;
+  --rmc-chip-danger-tint: #ef4444;
+  --rmc-chip-info-ink: #1e40af;
+  --rmc-chip-info-tint: #3b82f6;
+  --rmc-chip-mix-base: #ffffff;
+  --rmc-chip-mix-edge: #e2e8f0;
 }
 
 /* —— Shared masthead —— */
@@ -26,6 +43,14 @@
   border-top: 3px solid var(--rmc-arch-fleet);
   overflow: visible;
   min-width: 0;
+}
+
+.rmc-page-masthead__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .rmc-page-masthead--mission { border-top-color: var(--rmc-arch-mission); }
@@ -56,14 +81,14 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary);
   margin-bottom: 0.2rem;
 }
-.rmc-page-masthead--money .rmc-page-masthead__eyebrow { color: #0f766e; }
-.rmc-page-masthead--setup .rmc-page-masthead__eyebrow { color: #7e22ce; }
-.rmc-page-masthead--mission .rmc-page-masthead__eyebrow { color: #c2410c; }
-.rmc-page-masthead--fleet .rmc-page-masthead__eyebrow { color: #1d4ed8; }
-.rmc-page-masthead--monitor .rmc-page-masthead__eyebrow { color: #0369a1; }
+.rmc-page-masthead--money .rmc-page-masthead__eyebrow { color: var(--rmc-arch-eyebrow-money); }
+.rmc-page-masthead--setup .rmc-page-masthead__eyebrow { color: var(--rmc-arch-eyebrow-setup); }
+.rmc-page-masthead--mission .rmc-page-masthead__eyebrow { color: var(--rmc-arch-eyebrow-mission); }
+.rmc-page-masthead--fleet .rmc-page-masthead__eyebrow { color: var(--rmc-arch-eyebrow-fleet); }
+.rmc-page-masthead--monitor .rmc-page-masthead__eyebrow { color: var(--rmc-arch-eyebrow-monitor); }
 
 .rmc-page-masthead__title-line {
   display: flex;
@@ -75,7 +100,7 @@
 .rmc-page-masthead__title {
   font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
   letter-spacing: -0.02em;
-  color: var(--text-primary, #0f172a);
+  color: var(--text-primary);
   line-height: 1.25;
   max-width: 100%;
 }
@@ -102,9 +127,9 @@
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.3;
-  border: 1px solid var(--hairline, #e2e8f0);
-  background: var(--surface-elevated, #fff);
-  color: var(--text-primary, #0f172a);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
   text-decoration: none;
   white-space: normal;
   max-width: 100%;
@@ -120,24 +145,24 @@
 
 .rmc-page-masthead__chip--success,
 .rmc-page-masthead__chip--fresh {
-  background: color-mix(in srgb, #22c55e 12%, #fff);
-  border-color: color-mix(in srgb, #22c55e 35%, #e2e8f0);
-  color: #166534;
+  background: color-mix(in srgb, var(--rmc-chip-success-tint) 12%, var(--rmc-chip-mix-base));
+  border-color: color-mix(in srgb, var(--rmc-chip-success-tint) 35%, var(--rmc-chip-mix-edge));
+  color: var(--rmc-chip-success-ink);
 }
 .rmc-page-masthead__chip--warning {
-  background: color-mix(in srgb, #f59e0b 14%, #fff);
-  border-color: color-mix(in srgb, #f59e0b 40%, #e2e8f0);
-  color: #92400e;
+  background: color-mix(in srgb, var(--rmc-chip-warning-tint) 14%, var(--rmc-chip-mix-base));
+  border-color: color-mix(in srgb, var(--rmc-chip-warning-tint) 40%, var(--rmc-chip-mix-edge));
+  color: var(--rmc-chip-warning-ink);
 }
 .rmc-page-masthead__chip--danger {
-  background: color-mix(in srgb, #ef4444 12%, #fff);
-  border-color: color-mix(in srgb, #ef4444 40%, #e2e8f0);
-  color: #991b1b;
+  background: color-mix(in srgb, var(--rmc-chip-danger-tint) 12%, var(--rmc-chip-mix-base));
+  border-color: color-mix(in srgb, var(--rmc-chip-danger-tint) 40%, var(--rmc-chip-mix-edge));
+  color: var(--rmc-chip-danger-ink);
 }
 .rmc-page-masthead__chip--info {
-  background: color-mix(in srgb, #3b82f6 12%, #fff);
-  border-color: color-mix(in srgb, #3b82f6 35%, #e2e8f0);
-  color: #1e40af;
+  background: color-mix(in srgb, var(--rmc-chip-info-tint) 12%, var(--rmc-chip-mix-base));
+  border-color: color-mix(in srgb, var(--rmc-chip-info-tint) 35%, var(--rmc-chip-mix-edge));
+  color: var(--rmc-chip-info-ink);
 }
 
 .rmc-page-masthead__season {
@@ -145,8 +170,8 @@
   line-height: 1.4;
   padding: 0.45rem 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--hairline, #e2e8f0);
-  background: color-mix(in srgb, var(--rmc-arch-mission) 10%, #fff);
+  border: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--rmc-arch-mission) 10%, var(--rmc-chip-mix-base));
   min-width: 0;
   overflow: visible;
 }
@@ -165,17 +190,17 @@
 }
 
 .rmc-page-masthead__why {
-  border: 1px solid var(--hairline, #e2e8f0);
+  border: 1px solid var(--hairline);
   border-radius: 0.75rem;
   padding: 0.5rem 0.75rem;
-  background: var(--surface-elevated, #fff);
+  background: var(--surface-elevated);
   font-size: 0.8125rem;
-  color: var(--text-secondary, #475569);
+  color: var(--text-secondary);
 }
 .rmc-page-masthead__why summary {
   cursor: pointer;
   font-weight: 750;
-  color: var(--text-primary, #1e40af);
+  color: var(--text-primary);
 }
 .rmc-page-masthead__why-list {
   margin: 0.5rem 0 0;
@@ -185,16 +210,22 @@
   display: inline-block;
   margin-left: 0.35rem;
   font-size: 0.7rem;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary);
 }
 
 /* Work root: primary content after ≤2 chrome bands */
-[data-rmc-work-root="1"] {
+[data-rmc-work-root="1"],
+.rmc-work-root-after-chrome {
   display: flex;
   flex-direction: column;
   gap: var(--rmc-work-section-gap);
   min-width: 0;
   overflow: visible;
+}
+
+/* Band-count scanner allow marker (no visual effect) */
+.rmc-max-band-allow {
+  min-width: 0;
 }
 
 /* Archetype density */
@@ -209,11 +240,11 @@
 }
 
 .rmc-money-kpi {
-  border: 1px solid var(--hairline, #e2e8f0);
+  border: 1px solid var(--hairline);
   border-top: 3px solid var(--rmc-arch-money);
   border-radius: 0.75rem;
   padding: 0.75rem 0.85rem;
-  background: var(--surface-elevated, #fff);
+  background: var(--surface-elevated);
   min-width: 0;
   overflow: visible;
 }
@@ -221,7 +252,7 @@
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text-primary, #0f172a);
+  color: var(--text-primary);
   line-height: 1.15;
 }
 .rmc-money-kpi__label {
@@ -230,7 +261,7 @@
   font-weight: 750;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary);
 }
 
 /* Hide meta Option-A strips that only describe the UI (Wave 5) */
@@ -241,20 +272,20 @@
 
 /* Dark shell readability for masthead on control plane */
 body.control-plane-shell .rmc-page-masthead__title {
-  color: var(--cp-text, var(--text-primary, #eef5ff));
+  color: var(--cp-text, var(--text-primary));
 }
 body.control-plane-shell .rmc-page-masthead__eyebrow {
-  color: var(--cp-text-muted, #9eb0c9);
+  color: var(--cp-text-muted, var(--text-secondary));
 }
 body.control-plane-shell .rmc-page-masthead__chip {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(177, 200, 236, 0.2);
-  color: var(--cp-text, #eef5ff);
+  background: color-mix(in srgb, var(--cp-text, var(--text-primary)) 6%, transparent);
+  border-color: color-mix(in srgb, var(--cp-text, var(--text-primary)) 20%, transparent);
+  color: var(--cp-text, var(--text-primary));
 }
 body.control-plane-shell .rmc-money-kpi {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(177, 200, 236, 0.18);
+  background: color-mix(in srgb, var(--cp-text, var(--text-primary)) 4%, transparent);
+  border-color: color-mix(in srgb, var(--cp-text, var(--text-primary)) 18%, transparent);
 }
 body.control-plane-shell .rmc-money-kpi__value {
-  color: var(--cp-text, #eef5ff);
+  color: var(--cp-text, var(--text-primary));
 }

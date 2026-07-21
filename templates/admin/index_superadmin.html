@@ -29,7 +29,7 @@
 
   {% if PREVIEW_MODE_ENABLED %}
   <div class="rmc-banner rmc-banner--warning d-flex flex-wrap align-items-center justify-content-between mx-4 mt-3 mb-0">
-    <span>{% trans "Preview mode" %} — {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." %}</span>
+    <span>{% trans "Preview mode" %} — {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." }}</span>
     <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle sandbox" %}</a>
   </div>
   {% endif %}
