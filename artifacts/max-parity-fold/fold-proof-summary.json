@@ -1,0 +1,83 @@
+{
+  "generated_at": "2026-07-21T13:47:50.153Z",
+  "port": "8012",
+  "managerHost": "manager.localhost",
+  "artifactDir": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\artifacts\\max-parity-fold",
+  "manager_transport": "manager.localhost",
+  "tenant_transport": "subdomain-map",
+  "results": [
+    {
+      "name": "tenant-admin-home-mission",
+      "url": "http://demo-school.runmycampus.com:8012/authentication/backend/?mission_role=admin",
+      "ok": true,
+      "failures": [],
+      "fold": {
+        "viewportHeight": 900,
+        "mastheadOk": true,
+        "workRootOk": true,
+        "chromeBandCount": 0,
+        "sparklineCount": 1,
+        "roleTabCount": 4,
+        "workTopPx": 556.5625,
+        "foldsToWork": 0.6184027777777777,
+        "foldOk": true
+      },
+      "screenshot": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\artifacts\\max-parity-fold\\tenant-admin-home-mission.png"
+    },
+    {
+      "name": "tenant-money-finance",
+      "url": "http://demo-school.runmycampus.com:8012/finance/",
+      "ok": true,
+      "failures": [],
+      "fold": {
+        "viewportHeight": 900,
+        "mastheadOk": true,
+        "workRootOk": true,
+        "chromeBandCount": 0,
+        "sparklineCount": 2,
+        "roleTabCount": 0,
+        "workTopPx": 269.546875,
+        "foldsToWork": 0.2994965277777778,
+        "foldOk": true
+      },
+      "screenshot": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\artifacts\\max-parity-fold\\tenant-money-finance.png"
+    },
+    {
+      "name": "operator-home-mission",
+      "url": "http://manager.localhost:8012/super/?mission_role=admin",
+      "ok": true,
+      "failures": [],
+      "fold": {
+        "viewportHeight": 900,
+        "mastheadOk": true,
+        "workRootOk": true,
+        "chromeBandCount": 0,
+        "sparklineCount": 2,
+        "roleTabCount": 4,
+        "workTopPx": 115.5,
+        "foldsToWork": 0.12833333333333333,
+        "foldOk": true
+      },
+      "screenshot": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\artifacts\\max-parity-fold\\operator-home-mission.png"
+    },
+    {
+      "name": "operator-money-billing",
+      "url": "http://manager.localhost:8012/super/billing/",
+      "ok": true,
+      "failures": [],
+      "fold": {
+        "viewportHeight": 900,
+        "mastheadOk": true,
+        "workRootOk": true,
+        "chromeBandCount": 0,
+        "sparklineCount": 2,
+        "roleTabCount": 0,
+        "workTopPx": 343.0625,
+        "foldsToWork": 0.3811805555555556,
+        "foldOk": true
+      },
+      "screenshot": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\artifacts\\max-parity-fold\\operator-money-billing.png"
+    }
+  ],
+  "pass": true
+}
