@@ -37,12 +37,15 @@ from apps.schools.rls import should_apply_rls
 
 TABLES = [
     'academics_academicstructurenode',
+    'academics_curriculumallocation',
     'academics_degreeprogram',
     'academics_graduatemilestone',
     'academics_instructionday',
     'academics_instructionshift',
     'academics_lmsassignment',
     'academics_lmssubmission',
+    'academics_room',
+    'academics_timeslot',
     'academics_transfercourseequivalency',
     'accounts_rolegroup',
     'accounts_rolloverproposal',
@@ -162,15 +165,41 @@ USING_CLAUSE = """(
 
 
 def _existing(cursor, tables):
-    """Only touch tables that actually exist in the current schema."""
+    """Only touch tables that exist AND already carry the ``school_id`` column.
+
+    The table check alone was not enough. ``USING_CLAUSE`` references
+    ``school_id``, so ``CREATE POLICY`` on a table that exists but has not yet
+    been given its school FK fails outright with
+    ``column "school_id" does not exist`` -- aborting ``migrate``.
+
+    That is reachable on a fresh RLS-mode database whenever a LONG-EXISTING
+    table gains its ``school`` FK in a migration ordered after this one. It is
+    exactly what ``academics_room`` / ``academics_timeslot`` do: both tables
+    were created years of migrations ago, and item 2.4
+    (``academics/0070``) adds their ``school`` column while depending on this
+    migration -- so this runs first, finds the tables present, and would build a
+    policy against a column that does not exist yet.
+
+    Skipping is the right behaviour here and is NOT a silent hole, because the
+    table is not left unprotected by accident: the app-local RLS migration that
+    introduces the column is responsible for enabling RLS on it once the column
+    is real (see ``academics/0072_enable_rls_curriculum_room_timeslot.py``), and
+    ``scripts/scan_rls_table_coverage.py`` still requires the table name to
+    appear in some ``*rls*`` migration, so an unprotected table cannot pass the
+    gate unnoticed.
+    """
     cursor.execute(
         """
         SELECT c.relname
         FROM pg_class c
         JOIN pg_namespace n ON n.oid = c.relnamespace
+        JOIN pg_attribute a ON a.attrelid = c.oid
         WHERE c.relkind = 'r'
           AND n.nspname = current_schema()
           AND c.relname = ANY(%s)
+          AND a.attname = 'school_id'
+          AND a.attnum > 0
+          AND NOT a.attisdropped
         """,
         [list(tables)],
     )

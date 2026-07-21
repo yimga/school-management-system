@@ -43,7 +43,12 @@ def _hard_violations(entries: list) -> dict[str, int]:
     by_classroom_slot: dict[tuple, int] = defaultdict(int)
     by_room_slot: dict[tuple, int] = defaultdict(int)
     for e in entries:
-        slot_id = e.time_slot_id
+        # Item 2.3: a slot is only the same occasion within the same week of the
+        # rotation. Week A period 1 and week B period 1 are different lessons, so
+        # the same teacher in both is not a double booking. ``getattr`` default 1
+        # keeps the pure-function contract for the SimpleNamespace stand-ins in
+        # test_scheduling_evaluation_unit_loop2 and for pre-2.3 rows.
+        slot_id = (e.time_slot_id, getattr(e, "cycle_week", 1) or 1)
         by_teacher_slot[(e.teacher_id, slot_id)] += 1
         by_classroom_slot[(e.classroom_id, slot_id)] += 1
         by_room_slot[(e.room_id, slot_id)] += 1
@@ -101,8 +106,16 @@ def _room_utilization(entries: list, schedule) -> dict[str, Any]:
 
     total_rooms = Room.objects.filter(is_available=True).count()
     total_slots = TimeSlot.objects.filter(is_active=True).count()
-    capacity = total_rooms * total_slots
-    booked = len({(e.room_id, e.time_slot_id) for e in entries})
+    # An n-week rotation has n times as many bookable (room, slot) cells.
+    # Every pre-2.3 entry is cycle_week=1, so this is 1 and the ratio is
+    # unchanged for a plain weekly timetable.
+    cycle_weeks = max(
+        [getattr(e, "cycle_week", 1) or 1 for e in entries] or [1]
+    )
+    capacity = total_rooms * total_slots * cycle_weeks
+    booked = len(
+        {(e.room_id, e.time_slot_id, getattr(e, "cycle_week", 1) or 1) for e in entries}
+    )
     return {
         "booked_cells": booked,
         "capacity_cells": capacity,

@@ -32,7 +32,24 @@ class Room(models.Model):
         ("COMPUTER_LAB", "Computer Lab"),
     ]
 
-    name = models.CharField(max_length=100, unique=True)
+    # Item 2.4 (docs/PLATFORM_GLOBALIZATION_PROGRAM.md): Room is tenant-scoped.
+    #
+    # ``name`` used to be ``unique=True`` — GLOBALLY unique. Under schema-per-
+    # tenant (USE_DJANGO_TENANTS=1) that is harmless because each tenant owns
+    # its own ``academics_room`` table, but the platform also ships an RLS mode
+    # (TENANCY_MODE=RLS / USE_DJANGO_TENANTS=0) in which every school shares one
+    # table — and there the constraint means the SECOND school on the instance
+    # cannot create a room called "Lab 1". Nullable, like every other school FK
+    # in this app, so pre-existing rows that cannot be safely attributed stay
+    # visible to everyone rather than being handed to one tenant.
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="academic_rooms",
+    )
+    name = models.CharField(max_length=100)
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES)
     capacity = models.IntegerField()
     capacity_fraction = models.DecimalField(
@@ -74,6 +91,17 @@ class Room(models.Model):
         ordering = ["building", "floor", "name"]
         indexes = [
             models.Index(fields=["room_type", "is_available"]),
+            models.Index(fields=["school", "is_available"]),
+        ]
+        constraints = [
+            # Per-school uniqueness. NULL school (unattributed legacy rows) is
+            # NOT deduplicated by this constraint — SQL NULL never equals NULL —
+            # which is intentional: the backfill refuses to guess an owner, and
+            # tightening those rows retroactively would be the destructive move.
+            models.UniqueConstraint(
+                fields=["school", "name"],
+                name="academics_room_school_name_uniq",
+            ),
         ]
 
     def __str__(self):
@@ -116,6 +144,18 @@ class TimeSlot(models.Model):
         (6, "Sunday"),
     ]
 
+    # Item 2.4: tenant-scoped. The old ``unique_together`` on
+    # (day_of_week, start_time, end_time) carried no school, so on a shared-table
+    # (RLS-mode) deployment the first school to define Monday 08:00-09:00 owned
+    # that period for the whole instance and every other school's "Period 1" was
+    # an IntegrityError. Nullable for the same reason as ``Room.school``.
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="academic_time_slots",
+    )
     day_of_week = models.IntegerField(choices=DAYS_OF_WEEK)
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -124,7 +164,15 @@ class TimeSlot(models.Model):
 
     class Meta:
         ordering = ["day_of_week", "start_time"]
-        unique_together = ("day_of_week", "start_time", "end_time")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "day_of_week", "start_time", "end_time"],
+                name="academics_timeslot_school_period_uniq",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["school", "is_active"]),
+        ]
 
     def __str__(self):
         return f"{self.get_day_of_week_display()} {self.slot_name} ({self.start_time}-{self.end_time})"
@@ -243,6 +291,13 @@ class ScheduleEntry(models.Model):
     )
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     time_slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE)
+    # Item 2.3: which week of the rotation this booking belongs to (1-based).
+    # ``1`` for every pre-existing row and for every school on an ordinary
+    # one-week timetable, so the column is inert until a CurriculumAllocation
+    # asks for cycle_length > 1. It participates in the conflict uniques below
+    # because a teacher standing in a room on week A is NOT double-booked by
+    # standing in the same room at the same period on week B.
+    cycle_week = models.PositiveSmallIntegerField(default=1)
 
     # For handling conflicts/changes
     is_cancelled = models.BooleanField(default=False)
@@ -289,14 +344,18 @@ class ScheduleEntry(models.Model):
         # same (term, shift). ``instruction_shift`` is constant within a plan
         # (``_sync_scope_from_schedule`` copies it from the schedule), so the old
         # shift/term-wide split collapses to one constraint per resource.
+        #
+        # ``cycle_week`` joins both keys (item 2.3). On a one-week timetable it
+        # is always 1, so the constraint is byte-for-byte as strict as before;
+        # on an n-week rotation it is what makes week B expressible at all.
         constraints = [
             models.UniqueConstraint(
-                fields=["schedule", "teacher", "time_slot"],
+                fields=["schedule", "teacher", "time_slot", "cycle_week"],
                 condition=models.Q(is_cancelled=False),
                 name="uniq_schedentry_teacher_slot_in_plan",
             ),
             models.UniqueConstraint(
-                fields=["schedule", "room", "time_slot"],
+                fields=["schedule", "room", "time_slot", "cycle_week"],
                 condition=models.Q(is_cancelled=False),
                 name="uniq_schedentry_room_slot_in_plan",
             ),
@@ -335,6 +394,7 @@ class ScheduleEntry(models.Model):
                 schedule_id=self.schedule_id,
                 teacher=self.teacher,
                 time_slot=self.time_slot,
+                cycle_week=self.cycle_week,
                 is_cancelled=False,
             )
             if teacher_qs.exists():
@@ -346,6 +406,7 @@ class ScheduleEntry(models.Model):
                 schedule_id=self.schedule_id,
                 room=self.room,
                 time_slot=self.time_slot,
+                cycle_week=self.cycle_week,
                 is_cancelled=False,
             )
             if room_qs.exists():
@@ -412,7 +473,29 @@ class TimetableGenerator:
         except TeacherAvailability.DoesNotExist:
             return True  # Assume available if not specified
 
-    def check_room_availability(self, room, time_slot, schedule) -> bool:
+    # -- tenant scoping (item 2.4) -----------------------------------------
+    #
+    # ``Room`` and ``TimeSlot`` now carry a nullable ``school``. Rows with a
+    # school belong to that school; rows with NULL are unattributed legacy
+    # inventory that stays visible to everybody (the backfill refuses to guess
+    # an owner — see academics/0071). So the generator's resource pool is
+    # "mine OR unattributed", which is EXACTLY the pre-2.4 pool for any tenant
+    # whose rows are all NULL, i.e. every tenant on the day this lands.
+
+    @property
+    def school(self):
+        return getattr(self.academic_year, "school", None)
+
+    def _scoped(self, queryset):
+        """Restrict a Room/TimeSlot queryset to this school + unattributed rows."""
+        school = self.school
+        if school is None:
+            return queryset
+        return queryset.filter(
+            models.Q(school__isnull=True) | models.Q(school=school)
+        )
+
+    def check_room_availability(self, room, time_slot, schedule, cycle_week: int = 1) -> bool:
         """Check if room is free of other schedule entries AND confirmed bookings.
 
         Metric 15 (solver-time #10 link): when ``room.bookable_resource`` is set,
@@ -422,7 +505,11 @@ class TimetableGenerator:
         publish would later refuse.
         """
         busy = ScheduleEntry.objects.filter(
-            schedule=schedule, room=room, time_slot=time_slot, is_cancelled=False
+            schedule=schedule,
+            room=room,
+            time_slot=time_slot,
+            cycle_week=cycle_week,
+            is_cancelled=False,
         ).exists()
         if busy:
             return False
@@ -433,25 +520,120 @@ class TimetableGenerator:
         )
 
     def find_suitable_room(
-        self, classroom, subject, time_slot, schedule
+        self, classroom, subject, time_slot, schedule, cycle_week: int = 1
     ) -> Optional[Room]:
         """Find best room for class based on capacity and facilities"""
+        rooms = self.find_suitable_room_for_block(
+            classroom, subject, [time_slot], schedule, cycle_week=cycle_week
+        )
+        return rooms
+
+    def find_suitable_room_for_block(
+        self, classroom, subject, time_slots, schedule, cycle_week: int = 1
+    ) -> Optional[Room]:
+        """Find one room free for EVERY slot of a block (item 2.3, block_length).
+
+        A double laboratory period is one booking of one room across two
+        adjacent slots; handing the two halves to different rooms would move
+        thirty students mid-experiment. So the room must clear the whole block
+        or it is not a candidate.
+        """
         # Get student count for classroom
         student_count = (
             classroom.students.count() if hasattr(classroom, "students") else 30
         )
 
-        # Find rooms with sufficient capacity (prefetch booking link for #10 check)
-        suitable_rooms = Room.objects.filter(
-            is_available=True, capacity__gte=student_count
-        ).select_related("bookable_resource").order_by("capacity")
+        # Find rooms with sufficient capacity (prefetch booking link for #10
+        # check), restricted to this school's + unattributed inventory.
+        suitable_rooms = (
+            self._scoped(
+                Room.objects.filter(is_available=True, capacity__gte=student_count)
+            )
+            .select_related("bookable_resource")
+            .order_by("capacity", "pk")
+        )
 
         # Check availability
         for room in suitable_rooms:
-            if self.check_room_availability(room, time_slot, schedule):
+            if all(
+                self.check_room_availability(room, slot, schedule, cycle_week)
+                for slot in time_slots
+            ):
                 return room
 
         return None
+
+    # -- demand model (item 2.3) -------------------------------------------
+
+    def _block_windows(self, time_slots, block_size, offset):
+        """Yield candidate ``[slot, ...]`` windows of ``block_size`` adjacent slots.
+
+        ``time_slots`` is the canonical (day_of_week, start_time) ordering, so a
+        window of adjacent indices sharing a ``day_of_week`` is a run of
+        consecutive periods on one day — what a double period means. Windows are
+        yielded starting at ``offset`` and wrapping, which is the cycle rotation:
+        week B begins its scan one period later than week A, so a subject does
+        not sit in the same period every single week of the rotation.
+
+        With ``block_size == 1`` and ``offset == 0`` this degenerates to "walk
+        the slots in order" — the exact pre-2.3 scan.
+        """
+        total = len(time_slots)
+        if total == 0 or block_size <= 0:
+            return
+        start_positions = [(offset + i) % total for i in range(total)]
+        for start in start_positions:
+            end = start + block_size
+            if end > total:
+                continue  # A block may not wrap past the end of the week.
+            window = time_slots[start:end]
+            if len({slot.day_of_week for slot in window}) != 1:
+                continue  # A block may not straddle two days.
+            yield window
+
+    def _place_block(self, schedule, classroom, subject, teacher, window, cycle_week):
+        """Try to book one block. Returns True when every slot was written."""
+        for slot in window:
+            if not self.check_teacher_availability(teacher, slot):
+                return False
+            # Teacher already booked this slot, this week of the cycle?
+            if ScheduleEntry.objects.filter(
+                schedule=schedule,
+                teacher=teacher,
+                time_slot=slot,
+                cycle_week=cycle_week,
+                is_cancelled=False,
+            ).exists():
+                return False
+            # Cohort (classroom) already in another subject this slot? The DB
+            # partial-unique constraints cover teacher+room but NOT the cohort,
+            # so guard it here or evaluate_schedule reports a hard violation.
+            if ScheduleEntry.objects.filter(
+                schedule=schedule,
+                classroom=classroom,
+                time_slot=slot,
+                cycle_week=cycle_week,
+                is_cancelled=False,
+            ).exists():
+                return False
+
+        room = self.find_suitable_room_for_block(
+            classroom, subject, window, schedule, cycle_week=cycle_week
+        )
+        if room is None:
+            return False
+
+        for slot in window:
+            ScheduleEntry.objects.create(
+                schedule=schedule,
+                classroom=classroom,
+                subject=subject,
+                teacher=teacher,
+                room=room,
+                time_slot=slot,
+                cycle_week=cycle_week,
+            )
+        return True
 
     def generate_schedule(self, created_by) -> Schedule:
         """
@@ -460,11 +642,27 @@ class TimetableGenerator:
         Algorithm:
         1. Load all classrooms and subjects
         2. Load constraints and teacher availability
-        3. Assign time slots using constraint satisfaction
-        4. Allocate rooms based on capacity and availability
-        5. Validate no conflicts
+        3. Resolve each demand's CurriculumAllocation (periods/week, block
+           length, cycle length) — item 2.3
+        4. Assign time slots using constraint satisfaction, per cycle week
+        5. Allocate rooms based on capacity and availability
+        6. Validate no conflicts
+
+        DEMAND, BEFORE AND AFTER. This method used to place exactly ONE entry
+        per ``SubjectAssignment`` and ``break``. That hardcoded "every subject
+        gets one period a week" into the solver, which is why item 2.3 exists.
+        Demand now comes from :class:`~apps.academics.models.CurriculumAllocation`
+        via :mod:`apps.academics.curriculum_allocation`, whose default is
+        1 period / 1-period blocks / 1-week cycle — identical to the old
+        behaviour, so a tenant with no allocation rows gets its current
+        timetable unchanged.
         """
         from apps.academics.models import SubjectAssignment
+        from apps.academics.curriculum_allocation import (
+            build_allocation_index,
+            plan_cycle_length,
+            resolve_allocation,
+        )
 
         self.load_constraints()
 
@@ -477,10 +675,11 @@ class TimetableGenerator:
             created_by=created_by,
         )
 
-        # Active time slots, ordered so placement is deterministic.
+        # Active time slots, ordered so placement is deterministic. Scoped to
+        # this school's periods plus unattributed legacy rows (item 2.4).
         time_slots = list(
-            TimeSlot.objects.filter(is_active=True).order_by(
-                "day_of_week", "start_time"
+            self._scoped(TimeSlot.objects.filter(is_active=True)).order_by(
+                "day_of_week", "start_time", "pk"
             )
         )
 
@@ -498,55 +697,41 @@ class TimetableGenerator:
             .prefetch_related("teachers")
         )
 
+        allocation_index = build_allocation_index(self.academic_year, self.term)
+
+        demands = []
         for sa in subject_assignments:
-            classroom = sa.classroom
-            subject = sa.subject
             teacher = self._resolve_assignment_teacher(sa)
             if teacher is None:
                 # Nobody to teach it — cannot book a class with no teacher.
                 continue
+            spec = resolve_allocation(
+                sa.classroom_id, sa.subject_id, allocation_index
+            )
+            demands.append((sa, teacher, spec))
 
-            for time_slot in time_slots:
-                # Respect stated teacher availability.
-                if not self.check_teacher_availability(teacher, time_slot):
-                    continue
+        # The plan runs on the longest rotation any subject asks for; a weekly
+        # subject simply recurs in every week of that rotation.
+        cycle_weeks = plan_cycle_length(spec for _sa, _t, spec in demands)
 
-                # Teacher already booked this slot in this draft?
-                teacher_conflict = ScheduleEntry.objects.filter(
-                    schedule=schedule,
-                    teacher=teacher,
-                    time_slot=time_slot,
-                    is_cancelled=False,
-                ).exists()
-                if teacher_conflict:
-                    continue
-
-                # Cohort (classroom) already in another subject this slot? The DB
-                # partial-unique constraints cover teacher+room but NOT the cohort,
-                # so guard it here or evaluate_schedule reports a hard violation.
-                cohort_conflict = ScheduleEntry.objects.filter(
-                    schedule=schedule,
-                    classroom=classroom,
-                    time_slot=time_slot,
-                    is_cancelled=False,
-                ).exists()
-                if cohort_conflict:
-                    continue
-
-                # Find suitable room (schedule-scoped availability check).
-                room = self.find_suitable_room(
-                    classroom, subject, time_slot, schedule
-                )
-                if room:
-                    ScheduleEntry.objects.create(
-                        schedule=schedule,
-                        classroom=classroom,
-                        subject=subject,
-                        teacher=teacher,
-                        room=room,
-                        time_slot=time_slot,
-                    )
-                    break  # Move to next demand.
+        for cycle_week in range(1, cycle_weeks + 1):
+            # Rotation offset — see _block_windows. Zero on week 1, so a
+            # one-week timetable is scanned exactly as it was pre-2.3.
+            offset = (cycle_week - 1) % len(time_slots) if time_slots else 0
+            for sa, teacher, spec in demands:
+                for block_size in spec.blocks():
+                    for window in self._block_windows(
+                        time_slots, block_size, offset
+                    ):
+                        if self._place_block(
+                            schedule,
+                            sa.classroom,
+                            sa.subject,
+                            teacher,
+                            window,
+                            cycle_week,
+                        ):
+                            break  # Block placed; on to the next block.
 
         return schedule
 
@@ -595,10 +780,17 @@ class TimetableGenerator:
 
         entries = ScheduleEntry.objects.filter(schedule=schedule, is_cancelled=False)
 
+        # Every overlap test below is scoped to ``cycle_week`` as well as
+        # ``time_slot``: on an n-week rotation, week A and week B are different
+        # real-world occasions, so sharing a period across them is not a clash.
+        # Pre-2.3 rows all carry cycle_week=1, so this is a no-op for them.
+
         # Check for classroom (student group) double-booking — the real gap.
         for entry in entries:
             overlaps = entries.filter(
-                classroom=entry.classroom, time_slot=entry.time_slot
+                classroom=entry.classroom,
+                time_slot=entry.time_slot,
+                cycle_week=entry.cycle_week,
             ).exclude(pk=entry.pk)
 
             if overlaps.exists():
@@ -615,7 +807,9 @@ class TimetableGenerator:
         # Check for teacher double-booking
         for entry in entries:
             overlaps = entries.filter(
-                teacher=entry.teacher, time_slot=entry.time_slot
+                teacher=entry.teacher,
+                time_slot=entry.time_slot,
+                cycle_week=entry.cycle_week,
             ).exclude(pk=entry.pk)
 
             if overlaps.exists():
@@ -632,7 +826,9 @@ class TimetableGenerator:
         # Check for room double-booking
         for entry in entries:
             overlaps = entries.filter(
-                room=entry.room, time_slot=entry.time_slot
+                room=entry.room,
+                time_slot=entry.time_slot,
+                cycle_week=entry.cycle_week,
             ).exclude(pk=entry.pk)
 
             if overlaps.exists():
@@ -688,10 +884,12 @@ class TimetableGenerator:
             ]:  # Move at most 2 per teacher-day to avoid thrashing
                 slot = entry.time_slot
                 candidates = list(
-                    TimeSlot.objects.filter(
-                        is_active=True,
-                        start_time=slot.start_time,
-                        end_time=slot.end_time,
+                    self._scoped(
+                        TimeSlot.objects.filter(
+                            is_active=True,
+                            start_time=slot.start_time,
+                            end_time=slot.end_time,
+                        )
                     )
                     .exclude(day_of_week=from_day)
                     .order_by("day_of_week")
@@ -706,6 +904,7 @@ class TimetableGenerator:
                         schedule=schedule,
                         room=entry.room,
                         time_slot=target_slot,
+                        cycle_week=entry.cycle_week,
                         is_cancelled=False,
                     ).exists():
                         continue

@@ -364,6 +364,162 @@ class SubjectAssignment(models.Model):
                 raise ValidationError("Third term is not allowed for this classroom.")
 
 
+class CurriculumAllocation(models.Model):
+    """How much weekly teaching time a class owes a subject.
+
+    Item 2.3 of ``docs/PLATFORM_GLOBALIZATION_PROGRAM.md``.
+
+    Before this model the timetable generator derived demand as "one
+    ``SubjectAssignment`` == one lesson" (see the pre-change body of
+    ``apps.academics.scheduling.TimetableGenerator.generate_schedule``, which
+    ``break``-ed out of the slot loop after placing a single entry). Every
+    subject therefore got exactly ONE period a week, which cannot express
+    Maths five times weekly, a double laboratory block, or a two-week
+    rotating cycle — i.e. most of the world's timetables.
+
+    THREE INDEPENDENT KNOBS, deliberately not collapsed into one:
+
+    ``periods_per_week``
+        Lessons this class gets in EACH week of the cycle. Total lessons per
+        cycle is ``periods_per_week * cycle_length``.
+    ``block_length``
+        Consecutive periods per teaching block. ``2`` is a double lab: two
+        adjacent slots on the same day booked together. When
+        ``periods_per_week`` is not a multiple of ``block_length`` the
+        remainder is placed as a shorter trailing block rather than dropped.
+    ``cycle_length``
+        Number of weeks before the timetable repeats. ``1`` is the ordinary
+        one-week timetable; ``2`` is the UK/IE/AU "week A / week B" rotation.
+        Each cycle week is scheduled independently, so week B genuinely
+        differs from week A instead of being a copy.
+
+    SCOPE AND FALLBACK. ``term`` is nullable: a row with ``term=NULL`` is the
+    year-wide allocation for that (classroom, subject), and a row naming a
+    term overrides it for that term only. When NO row matches, the resolver
+    returns ``DEFAULT_ALLOCATION`` (1 period/week, block 1, cycle 1) — which
+    reproduces the pre-2.3 behaviour exactly, so a tenant that never creates
+    an allocation gets the timetable it has today.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="curriculum_allocations",
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name="curriculum_allocations",
+    )
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="curriculum_allocations",
+        help_text="Leave empty to apply to every term of the year.",
+    )
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.CASCADE,
+        related_name="curriculum_allocations",
+        help_text="The class / section this allocation is for.",
+    )
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.CASCADE,
+        related_name="curriculum_allocations",
+    )
+    periods_per_week = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Lessons per week of the cycle. 5 = Maths every weekday.",
+    )
+    block_length = models.PositiveSmallIntegerField(
+        default=1,
+        help_text=(
+            "Consecutive periods per teaching block. 2 = double period "
+            "(e.g. a laboratory session)."
+        ),
+    )
+    cycle_length = models.PositiveSmallIntegerField(
+        default=1,
+        help_text=(
+            "Weeks before the timetable repeats. 1 = ordinary weekly "
+            "timetable; 2 = week A / week B rotation."
+        ),
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["classroom__name", "subject__name"]
+        verbose_name = "Curriculum allocation"
+        verbose_name_plural = "Curriculum allocations"
+        indexes = [
+            models.Index(fields=["academic_year", "term", "classroom"]),
+        ]
+        constraints = [
+            # Two PARTIAL uniques rather than one four-column unique_together:
+            # ``term`` is nullable and NULL never equals NULL in SQL, so a
+            # plain unique would silently permit unlimited duplicate
+            # year-wide rows — the resolver would then pick arbitrarily.
+            models.UniqueConstraint(
+                fields=["academic_year", "term", "classroom", "subject"],
+                condition=Q(term__isnull=False),
+                name="academics_curralloc_term_scoped_uniq",
+            ),
+            models.UniqueConstraint(
+                fields=["academic_year", "classroom", "subject"],
+                condition=Q(term__isnull=True),
+                name="academics_curralloc_year_scoped_uniq",
+            ),
+            models.CheckConstraint(
+                check=Q(periods_per_week__gte=1),
+                name="academics_curralloc_ppw_min_1",
+            ),
+            models.CheckConstraint(
+                check=Q(block_length__gte=1),
+                name="academics_curralloc_block_min_1",
+            ),
+            models.CheckConstraint(
+                check=Q(cycle_length__gte=1),
+                name="academics_curralloc_cycle_min_1",
+            ),
+        ]
+
+    def __str__(self):
+        base = f"{self.classroom} / {self.subject}: {self.periods_per_week}p/wk"
+        if self.block_length > 1:
+            base += f" x{self.block_length}"
+        if self.cycle_length > 1:
+            base += f" ({self.cycle_length}-week cycle)"
+        return base
+
+    def clean(self):
+        if self.block_length and self.periods_per_week:
+            if self.block_length > self.periods_per_week:
+                raise ValidationError(
+                    "block_length cannot exceed periods_per_week — a block "
+                    "longer than the weekly allocation can never be placed."
+                )
+        if self.term_id and self.academic_year_id:
+            if self.term.academic_year_id != self.academic_year_id:
+                raise ValidationError(
+                    "term must belong to the allocation's academic_year."
+                )
+
+    def save(self, *args, **kwargs):
+        # Keep the tenant column in step with the academic graph so RLS-mode
+        # deployments (USE_DJANGO_TENANTS=0) can filter on school_id. Mirrors
+        # the nullable-school pattern used by Subject/SubjectAssignment.
+        if self.school_id is None and self.academic_year_id:
+            self.school_id = self.academic_year.school_id
+        super().save(*args, **kwargs)
+
+
 class CertificationExamSession(models.Model):
     """Certification registration window/session (GCE, OBC, etc)."""
 
