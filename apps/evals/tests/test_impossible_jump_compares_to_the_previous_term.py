@@ -54,12 +54,27 @@ from apps.accounts.models import User
 from apps.evals.models import Evaluation
 from apps.evals.validators import GradeValidator
 from apps.people.models import StudentProfile, TeacherProfile
+from apps.schools.models import School
 
 
 class ImpossibleJumpUsesTheAdjacentTermTests(TestCase):
 
     def setUp(self):
+        # A tenant. The scores below run 40..95, which only validate against a
+        # school whose grading scale is a percentage. This fixture used to create
+        # NO School at all and relied on ``resolve_school_score_scale`` answering a
+        # neutral 100 for "unknown" — that default was the 2.1 defect (it also let a
+        # /20 school accept 25), and the unknown case now clamps to the narrow /20
+        # bound instead. Naming the school is what a real Evaluation always has;
+        # nothing about the impossible-jump assertions below changes.
+        self.school = School.objects.create(
+            name="Impossible Jump School",
+            slug="impossible-jump-school",
+            subdomain="impossible-jump-school",
+            country_code="US",  # us_letter -> 0..100 axis
+        )
         self.year = AcademicYear.objects.create(
+            school=self.school,
             name="2025/2026",
             start_date=date(2025, 9, 1),
             end_date=date(2026, 6, 30),
@@ -75,19 +90,22 @@ class ImpossibleJumpUsesTheAdjacentTermTests(TestCase):
             start=1,
         ):
             self.terms[pos] = Term.objects.create(
+                school=self.school,
                 name=name, academic_year=self.year, position=pos,
                 start_date=start, end_date=end,
             )
-        self.department = Department.objects.create(name="Science", code="SCI-IJ")
+        self.department = Department.objects.create(school=self.school, name="Science", code="SCI-IJ")
         self.specialty = Specialty.objects.create(
-            name="General", code="GEN-IJ", department=self.department
+            school=self.school, name="General", code="GEN-IJ", department=self.department
         )
         self.classroom = Classroom.objects.create(
+            school=self.school,
             name="Form 1", code="F1-IJ", academic_year=self.year,
             department=self.department,
         )
-        self.subject = Subject.objects.create(name="Math IJ")
+        self.subject = Subject.objects.create(school=self.school, name="Math IJ")
         self.teacher = TeacherProfile.objects.create(
+            school=self.school,
             user=User.objects.create_user(username="ij_teacher", password="p"),
         )
         # One assignment PER TERM: Evaluation.clean() enforces
@@ -96,6 +114,7 @@ class ImpossibleJumpUsesTheAdjacentTermTests(TestCase):
         # find anything.
         self.assignments = {
             pos: SubjectAssignment.objects.create(
+                school=self.school,
                 academic_year=self.year, term=self.terms[pos],
                 classroom=self.classroom, specialty=self.specialty,
                 subject=self.subject, coefficient=1,
@@ -103,6 +122,7 @@ class ImpossibleJumpUsesTheAdjacentTermTests(TestCase):
             for pos in self.terms
         }
         self.student = StudentProfile.objects.create(
+            school=self.school,
             first_name="Jump", last_name="Student", student_code="IJ-001",
             academic_year=self.year, classroom=self.classroom,
             specialty=self.specialty,

@@ -164,10 +164,20 @@ class ResolveLocalScaleTypeTests(SimpleTestCase):
         # country-derived band score_scale — francophone -> 20, never the locale 100.
         from decimal import Decimal
 
-        from apps.evals.grading_provisioning import resolve_school_score_scale
+        from apps.evals.grading_provisioning import (
+            UnresolvedScoreScale,
+            resolve_school_score_scale,
+        )
 
         self.assertEqual(resolve_school_score_scale(self._school({}, country_code="FR")), Decimal("20"))
-        self.assertEqual(resolve_school_score_scale(None), Decimal("100"))
+        # Globalization program 2.1: the no-school case used to return a neutral
+        # Decimal("100") — the platform's WIDEST scale — so every caller enforcing
+        # an upper bound silently got MORE permissive when the school link broke
+        # (a /20 school accepting 25). It now fails closed; a caller that only
+        # needs a display denominator opts in with an explicit default.
+        with self.assertRaises(UnresolvedScoreScale):
+            resolve_school_score_scale(None)
+        self.assertEqual(resolve_school_score_scale(None, default=100), Decimal("100"))
 
     def test_scale_config_gpa_and_letter(self):
         from apps.evals.grading_provisioning import _scale_config

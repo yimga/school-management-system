@@ -2000,6 +2000,7 @@ from .models_tooling import (  # noqa: F401
 # (global_registries, admin, and others rely on this).
 from .models_platform_catalog import (  # noqa: F401
     BillingWaiverAuditLog,
+    CountryGradingProfile,
     CountryMultiplier,
     CustomFeatureTicket,
     CustomNuance,

@@ -858,6 +858,70 @@ class CountryMultiplier(models.Model):
         return f"{self.country_code}: {self.multiplier}"
 
 
+class CountryGradingProfile(models.Model):
+    """Country → default grading scale, as DATA (Globalization program 2.1).
+
+    The academic engine ships 15 grading scales, but the country→scale decision
+    used to live entirely in two Python dicts
+    (``apps.governance.academic_pack_bridge._GRADING_PRESET_BY_BUCKET`` →
+    ``apps.evals.grading_provisioning._PRESET_TO_SCALE_TYPE``) whose coarsest leg
+    was a five-continent bucket. That made ten of the fifteen scales unreachable
+    for every school on the platform and actively mis-assigned real systems —
+    Germany and Spain resolved to the UK GCSE 9–1 axis (max 9), so a German 1–6
+    school and a Spanish 0–10 school could not record a valid mark of 10.
+
+    This table is the resolution layer, and follows the ``CountryMultiplier`` /
+    ``SubdivisionTaxRate`` platform-catalog idiom exactly: SHARED (public schema)
+    reference data, one row per ISO country, seeded by a data migration and
+    editable by an operator without a deploy. Adding a country is a row.
+
+    ``scale_type`` deliberately carries NO foreign key to
+    ``evals.GradingScale.ScaleType``: ``apps.evals`` is a TENANT app and this is a
+    SHARED table, and a SHARED→TENANT FK is a known deploy blocker. The value is
+    validated against the live ScaleType choices by
+    ``apps.siteconfig.country_grading_seed.invalid_scale_types``.
+
+    Precedence — a row here is a *default*, never an override. An explicit
+    per-school choice in ``school.settings`` still wins; see
+    ``apps.evals.grading_provisioning.resolve_local_scale_type``.
+    """
+
+    country_code = models.CharField(
+        max_length=3,
+        unique=True,
+        help_text="ISO 3166-1 alpha-2/3 (matches CountryMultiplier).",
+    )
+    scale_type = models.CharField(
+        max_length=50,
+        help_text=(
+            "evals.GradingScale.ScaleType value used as this country's default "
+            "grading scale (e.g. french_0_20, german_1_6, cbse_10, numeric_1_5)."
+        ),
+    )
+    name = models.CharField(
+        max_length=120, blank=True, help_text="Country name (display only)."
+    )
+    notes = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Provenance / caveat for this mapping (e.g. 'Abitur 1–6').",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Inactive rows are ignored by the resolver (falls through to the preset engine).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["country_code"]
+        verbose_name = "Country grading profile"
+        verbose_name_plural = "Country grading profiles"
+
+    def __str__(self):
+        return f"{self.country_code}: {self.scale_type}"
+
+
 class SubdivisionTaxRate(models.Model):
     """Per-subdivision (state / province) tax-rate override (B3).
 

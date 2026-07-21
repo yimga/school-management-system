@@ -22,6 +22,35 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Sentinel for "the caller did not supply a fallback" — distinct from an explicit
+# ``default=None``, which is itself a meaningful choice for display callers.
+_UNSET: Any = object()
+
+
+# The bound to apply when the school — and therefore the scale — is unknown.
+# For an UPPER bound, failing closed means choosing the NARROWEST plausible axis,
+# never the widest: an over-tight bound rejects a legitimate mark loudly, while a
+# 100-point assumption admits an illegitimate one silently. 20 is this platform's
+# historical narrow default and is already what ``_validate_ocr_entries`` and
+# ``_normalized_scale_max`` fall back to, so the three bound-enforcing callers agree.
+UNRESOLVED_SCALE_FALLBACK_MAX = Decimal("20")
+
+
+class UnresolvedScoreScale(RuntimeError):
+    """No score-scale max could be determined for the given school.
+
+    Raised by :func:`resolve_school_score_scale` when it is handed no school (or a
+    school whose scale cannot be derived) and the caller supplied no ``default``.
+
+    This used to be a silent ``Decimal("100")``. Returning the platform's WIDEST
+    scale as the "unknown" answer inverts the safety of every bound built on it:
+    a /20 school whose school link came back empty accepted a mark of 25, which
+    is exactly what a real Cameroon end-to-end run recorded. Callers that need a
+    bound must now handle the unknown; callers that only need a display
+    denominator opt in explicitly with ``default=100``.
+    """
+
+
 # Education-DNA preset key (apps.governance.academic_pack_bridge.resolve_grading_preset_key)
 # → GradingScale.ScaleType. Keeps the country→scale decision in one auditable place.
 _PRESET_TO_SCALE_TYPE: dict[str, str] = {
@@ -96,23 +125,59 @@ def _scale_type_from_cascade(school) -> str:
     return _normalize_scale_type(raw)
 
 
+def country_default_scale_type(country_code: Any) -> str:
+    """The DATA-driven country → scale mapping: ``siteconfig.CountryGradingProfile``.
+
+    Globalization program 2.1. Adding or correcting a country is a row in a SHARED
+    platform-catalog table (seeded by ``siteconfig.country_grading_seed``, editable
+    by an operator), never a code branch — the same idiom as ``CountryMultiplier``
+    and ``SubdivisionTaxRate``.
+
+    Returns "" when the country has no active row, so the caller falls through to
+    the older Education-DNA preset engine rather than losing a mapping.
+    """
+    iso = str(country_code or "").strip().upper()
+    if not iso:
+        return ""
+    try:
+        from django.apps import apps as django_apps
+
+        model = django_apps.get_model("siteconfig", "CountryGradingProfile")
+        raw = (
+            model.objects.filter(country_code__iexact=iso, is_active=True)
+            .values_list("scale_type", flat=True)
+            .first()
+        )
+    except Exception as exc:  # noqa: BLE001 — catalog read is best-effort; preset engine still answers
+        logger.debug("country_default_scale_type lookup failed cc=%s err=%s", iso, exc)
+        return ""
+    normalized = _normalize_scale_type(raw)
+    return normalized if normalized in _VALID_SCALE_TYPES else ""
+
+
 def resolve_local_scale_type(school) -> str:
     """The grading scale a school SHOULD use, local-first. Always a valid ScaleType.
 
     Precedence:
       1. An explicit per-school choice (``school.settings``) — a real admin pick wins.
-      2. The school's COUNTRY Education-DNA preset — the local-first default. A
-         platform-wide ``default_grading_scale`` must NOT override this, or every
-         tenant silently inherits one country's scale (the lock this fix removes).
-      3. The platform-wide default, as a seed-time hint, only when there is no
+      2. The school's COUNTRY row in ``siteconfig.CountryGradingProfile`` — the
+         data-driven national default (Globalization program 2.1).
+      3. The school's COUNTRY Education-DNA preset — the legacy code cascade, kept
+         as a fallback for countries with no catalog row yet. A platform-wide
+         ``default_grading_scale`` must NOT override either country leg, or every
+         tenant silently inherits one country's scale.
+      4. The platform-wide default, as a seed-time hint, only when there is no
          country signal to derive from.
-      4. "percentage" — the most internationally neutral fallback.
+      5. "percentage" — the most internationally neutral fallback.
     """
     explicit = _school_explicit_scale_type(school)
     if explicit in _VALID_SCALE_TYPES:
         return explicit
     country_code = (getattr(school, "country_code", "") or "").strip()
     if country_code:
+        from_catalog = country_default_scale_type(country_code)
+        if from_catalog in _VALID_SCALE_TYPES:
+            return from_catalog
         try:
             from apps.governance.academic_pack_bridge import resolve_grading_preset_key
 
@@ -155,46 +220,66 @@ def _scale_config(scale_type: str) -> dict[str, Any]:
     return config
 
 
-def resolve_school_score_scale(school) -> Decimal:
+def resolve_school_score_scale(school, *, default: Any = _UNSET) -> Decimal:
     """The numeric score-scale MAX a school computes grades on (operational SoT).
 
     Reads the school's default ``AssessmentWeights.score_scale`` — the exact scale
     grade computation and ``GradeConverter`` use — so any scale-bounded check (OCR
     score validation, the early-warning drop yardstick) stays consistent with how
     grades are actually scored: 20 for a francophone /20 school, 100 percentage,
-    4 GPA. Falls back to the country-derived scale's band ``score_scale``, then a
-    neutral 100. Never raises.
+    4 GPA. Falls back to the country-derived scale's band ``score_scale``.
+
+    **Fails closed.** With no school (or a school whose scale cannot be derived at
+    all) there is nothing to bound a mark against, so this raises
+    :class:`UnresolvedScoreScale` unless the caller passes an explicit ``default``.
+    It used to return ``Decimal("100")`` — the platform's WIDEST scale — which
+    turned every broken school link into a silent widening of the accepted range
+    and let a mark of 25 through on a /20 school.
+
+    Pass ``default=100`` (or any value) from callers that only need a display
+    denominator or a ratio and must never break a page render; do NOT pass one
+    from a caller that is enforcing an upper bound.
 
     Deliberately NOT ``apps.evals.grading.max_score_for_school`` (locale-derived):
     that lags the per-school seeded scale — it reports 100 for a /20 francophone
     school whose AssessmentWeights.score_scale is 20 — so using it for an upper-bound
     check would be too lenient and inconsistent with grade computation.
     """
-    if school is None:
-        return Decimal("100")
-    if getattr(school, "pk", None) is not None:
-        try:
-            from apps.evals.models import AssessmentWeights
+    if school is not None:
+        if getattr(school, "pk", None) is not None:
+            try:
+                from apps.evals.models import AssessmentWeights
 
-            weights = (
-                AssessmentWeights.objects.filter(school=school, term=None, classroom=None)
-                .order_by("-academic_year")
-                .first()
-                or AssessmentWeights.objects.filter(school=school)
-                .order_by("-academic_year")
-                .first()
+                weights = (
+                    AssessmentWeights.objects.filter(
+                        school=school, term=None, classroom=None
+                    )
+                    .order_by("-academic_year")
+                    .first()
+                    or AssessmentWeights.objects.filter(school=school)
+                    .order_by("-academic_year")
+                    .first()
+                )
+                if weights is not None and getattr(weights, "score_scale", None):
+                    return Decimal(str(weights.score_scale))
+            except Exception:  # noqa: BLE001 — operational read is best-effort
+                pass
+        try:
+            score_scale = _scale_config(resolve_local_scale_type(school)).get("score_scale")
+            if score_scale:
+                return Decimal(str(score_scale))
+        except Exception as exc:  # noqa: BLE001 — fall through to the fail-closed branch
+            logger.debug(
+                "resolve_school_score_scale band lookup failed school_id=%s err=%s",
+                getattr(school, "pk", None),
+                exc,
             )
-            if weights is not None and getattr(weights, "score_scale", None):
-                return Decimal(str(weights.score_scale))
-        except Exception:  # noqa: BLE001 — operational read is best-effort
-            pass
-    try:
-        score_scale = _scale_config(resolve_local_scale_type(school)).get("score_scale")
-        if score_scale:
-            return Decimal(str(score_scale))
-    except Exception:  # noqa: BLE001 — fall through to neutral default
-        pass
-    return Decimal("100")
+    if default is _UNSET:
+        raise UnresolvedScoreScale(
+            "No grading scale could be resolved for school="
+            f"{getattr(school, 'pk', None)!r}; refusing to assume a 100-point scale."
+        )
+    return Decimal(str(default))
 
 
 def ensure_local_grading_scale(school, *, academic_year=None) -> dict[str, Any]:

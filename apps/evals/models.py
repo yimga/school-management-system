@@ -805,9 +805,11 @@ class Evaluation(models.Model):
     def _resolve_grading_school(self):
         """The school whose grading scale bounds this row's scores.
 
-        ``resolve_school_score_scale(None)`` returns a neutral 100, so every link
-        that fails to find a school silently WIDENS the accepted range: a /20
-        Cameroon school then accepts a mark of 25. The row's own ``school`` FK is
+        ``resolve_school_score_scale`` now REFUSES to answer for a missing school
+        (it used to return a neutral 100, so every link that failed to find a
+        school silently WIDENED the accepted range: a /20 Cameroon school then
+        accepted a mark of 25). Resolving the school here is therefore what keeps
+        a legitimate row saveable, not merely what keeps it bounded. The row's own ``school`` FK is
         nullable and frequently unset (schema isolation makes it redundant, so
         seeders and bulk writers omit it), and ``SubjectAssignment.school`` is
         nullable for the same reason — so both original links miss together.
@@ -844,10 +846,24 @@ class Evaluation(models.Model):
         # locale-derived max_score_for_school which lags the per-school seeded scale
         # (it reports 100 for a /20 francophone school) and would accept out-of-range
         # scores. Consistent with OCR/EWS validation and how grades are actually scored.
-        from apps.evals.grading_provisioning import resolve_school_score_scale
+        from apps.evals.grading_provisioning import (
+            UNRESOLVED_SCALE_FALLBACK_MAX,
+            UnresolvedScoreScale,
+            resolve_school_score_scale,
+        )
 
         school = self._resolve_grading_school()
-        max_score = resolve_school_score_scale(school)
+        # No default= on purpose: this is the upper bound, so it must FAIL CLOSED.
+        # The resolver used to hand back a neutral 100 for an unresolvable school,
+        # which turned a broken link into a silently WIDER accepted range — that is
+        # how a /20 Cameroon school accepted a mark of 25. When the school cannot be
+        # resolved at all we clamp to the NARROWEST bound instead, so the failure
+        # mode over-rejects (loud) rather than over-admits (silent). Same fallback
+        # the OCR validator and the marks-grid `max=` attribute already use.
+        try:
+            max_score = resolve_school_score_scale(school)
+        except UnresolvedScoreScale:
+            max_score = UNRESOLVED_SCALE_FALLBACK_MAX
 
         score_fields = {
             "seq1_score": self.seq1_score,

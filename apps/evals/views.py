@@ -1809,11 +1809,21 @@ def teacher_marks_entry(request: HttpRequest):
             # Local-first: validate against THIS school's operational grading-scale
             # max (the scale grades are computed on), not a hardcoded 0-20 (which
             # rejected valid scores on percentage / GPA scales).
-            from apps.evals.grading_provisioning import resolve_school_score_scale
-
-            validation_errors = _validate_ocr_entries(
-                entries_to_apply, resolve_school_score_scale(getattr(teacher, "school", None))
+            from apps.evals.grading_provisioning import (
+                UnresolvedScoreScale,
+                resolve_school_score_scale,
             )
+
+            # Upper bound: no default= — an unresolvable school must not silently
+            # widen OCR acceptance to /100. Fall back to the NARROWEST historical
+            # bound (/20) rather than the widest, so the failure mode over-rejects.
+            try:
+                _ocr_max_score = resolve_school_score_scale(
+                    getattr(teacher, "school", None)
+                )
+            except UnresolvedScoreScale:
+                _ocr_max_score = Decimal("20")
+            validation_errors = _validate_ocr_entries(entries_to_apply, _ocr_max_score)
 
             # Build existing evaluations for delta preview
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
@@ -2106,11 +2116,19 @@ def teacher_marks_entry(request: HttpRequest):
     # (the operational scale grades are scored on — 20 francophone, 100 percentage,
     # 4 GPA), so a non-/20 tenant can enter valid marks. Cameroon /20 → max="20"
     # (unchanged), mirroring _validate_ocr_entries which uses the same resolver.
-    from apps.evals.grading_provisioning import resolve_school_score_scale
-
-    max_score = _normalized_scale_max(
-        resolve_school_score_scale(getattr(teacher, "school", None))
+    from apps.evals.grading_provisioning import (
+        UnresolvedScoreScale,
+        resolve_school_score_scale,
     )
+
+    # This is the grid's `max=` attribute, i.e. an upper bound — no default=.
+    # ``_normalized_scale_max(None)`` yields the narrow /20 back-compat default,
+    # which is the fail-closed direction for a bound.
+    try:
+        _grid_scale = resolve_school_score_scale(getattr(teacher, "school", None))
+    except UnresolvedScoreScale:
+        _grid_scale = None
+    max_score = _normalized_scale_max(_grid_scale)
 
     # GET: render selection + (optional) student table
     return render(

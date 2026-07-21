@@ -342,7 +342,12 @@ def ews_students_needing_attention(
         try:
             from apps.evals.grading_provisioning import resolve_school_score_scale
 
-            scale = float(resolve_school_score_scale(getattr(teacher_profile, "school", None)))
+            # Drop-yardstick denominator, not a bound: explicit neutral fallback.
+            scale = float(
+                resolve_school_score_scale(
+                    getattr(teacher_profile, "school", None), default=100
+                )
+            )
         except Exception:  # noqa: BLE001 — degrade to a neutral 100-point scale
             scale = 100.0
     # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
