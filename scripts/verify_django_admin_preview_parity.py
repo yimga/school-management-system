@@ -256,11 +256,15 @@ def main() -> int:
         errors.append("v13 CSS must height-cap .selector transfer lists (--rmc-admin-v13-transfer-h)")
     if "rmc-admin-transfer-panel" not in css:
         errors.append("v13 CSS must style numbered collapsible transfer panels")
+    if "v13 TERMINAL SEALS" not in css:
+        errors.append("v13 CSS must include terminal #cp-main-content cascade seals")
     if "max-w-2xl" not in css or "max-width: none !important" not in css:
         errors.append("v13 CSS must neutralize Unfold max-w-2xl left-void on form controls")
     workspace_js = _read(ROOT / "static/js/rmc-admin-workspace.js")
     if "initTransferCondensation" not in workspace_js or "rmc-admin-transfer-panel" not in workspace_js:
         errors.append("rmc-admin-workspace.js must condense M2M selectors into transfer panels")
+    if "TRANSFER_SIZE" not in workspace_js:
+        errors.append("rmc-admin-workspace.js must clamp selector size= attributes")
     app_index = _read(ROOT / "templates/admin/app_index.html")
     if app_index.count("data-rmc-admin-index-canvas=") != 1:
         errors.append("app_index must render one canvas; a nested duplicate recreates the right void")

@@ -1,7 +1,7 @@
 {
   "build_id": "2026-07-21-v13",
-  "cache_bust": "20260721-admin-density-full-fill-v13",
-  "sw_version": "sms-v4.05.166-admin-density-full-fill-v13-2026-07-21",
+  "cache_bust": "20260721-admin-density-full-fill-v13b",
+  "sw_version": "sms-v4.05.167-admin-density-v13b-2026-07-21",
   "seal": "2026-07-21-density-full-fill-v13",
   "approval_previews": [
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",

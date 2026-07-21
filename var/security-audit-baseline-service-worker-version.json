@@ -1,12 +1,12 @@
 {
   "date": "2026-07-21",
-  "generated_at": "2026-07-21T10:30:00+00:00",
+  "generated_at": "2026-07-21T10:45:00+00:00",
   "major": 4,
   "minor": 5,
-  "patch": 166,
-  "raw": "sms-v4.05.166-admin-density-full-fill-v13-2026-07-21",
-  "reason": "admin density + full-fill v13",
+  "patch": 167,
+  "raw": "sms-v4.05.167-admin-density-v13b-2026-07-21",
+  "reason": "admin density terminal cascade seals v13b",
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-density-full-fill-v13",
+  "slug": "admin-density-v13b",
   "valid": true
 }

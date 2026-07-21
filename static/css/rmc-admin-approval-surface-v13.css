@@ -590,8 +590,9 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   }
 }
 
-/* v12 deploy proof is intentionally visible on both admin indexes. */
-.rmc-admin-approval-build-chip[data-rmc-admin-approval-build="2026-07-20-v12"] {
+/* v13 deploy proof chip — both admin indexes. */
+.rmc-admin-approval-build-chip,
+.rmc-admin-approval-build-chip[data-rmc-admin-approval-build="2026-07-21-v13"] {
   display: inline-flex !important;
 }
 
@@ -662,7 +663,9 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
     .flex.gap-2.items-center:has(input[type="checkbox"])
   )),
 [data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
-  .form-rows.aligned > .form-row.grid {
+  .form-rows.aligned > .form-row.grid,
+[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
+  .form-rows.aligned > details.rmc-admin-transfer-panel {
   grid-column: 1 / -1 !important;
 }
 
@@ -787,6 +790,118 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   }
 
   [data-rmc-shell-root="django-admin"] .selector {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* ============================================================
+   v13 TERMINAL SEALS (2026-07-21b) — beat #cp-main-content cascade
+   Earlier canvas-contract rules use html+body+#cp-main-content and
+   win over lower-specificity density rules. These terminal seals
+   match that weight so intelligent fill actually lands.
+   ============================================================ */
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  :is(input, select, textarea).max-w-2xl,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  :is(input, select, textarea).max-w-4xl,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  :is(input, select, textarea).max-w-2xl,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  :is(input, select, textarea).max-w-4xl {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.65rem 1rem !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows > .form-row,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows > .form-row {
+  grid-column: span 1 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows > :is(
+    .form-row.grid,
+    .form-row:has(textarea),
+    .form-row:has(.vLargeTextField),
+    .form-row:has(.selector),
+    .form-row:has(.related-widget-wrapper),
+    .form-row:has([multiple]),
+    .form-row:has(.readonly),
+    details.rmc-admin-transfer-panel
+  ),
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .form-rows > :is(
+    .form-row.grid,
+    .form-row:has(textarea),
+    .form-row:has(.vLargeTextField),
+    .form-row:has(.selector),
+    .form-row:has(.related-widget-wrapper),
+    .form-row:has([multiple]),
+    .form-row:has(.readonly),
+    details.rmc-admin-transfer-panel
+  ) {
+  grid-column: 1 / -1 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .admin-cp-unified-page #cp-main-content
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .selector select,
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+  .selector select {
+  height: var(--rmc-admin-v13-transfer-h) !important;
+  max-height: var(--rmc-admin-v13-transfer-h) !important;
+  min-height: 8rem !important;
+  overflow-y: auto !important;
+  width: 100% !important;
+}
+
+@media (max-width: 1024px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    .admin-cp-unified-page #cp-main-content
+    #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+    .form-rows,
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-shell-root="django-admin"]
+    #content-main[data-rmc-admin-form-contract="premium-form-frame"]
+    .form-rows {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }

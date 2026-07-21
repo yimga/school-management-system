@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "expected_cache_bust": "20260721-admin-density-full-fill-v13",
-  "expected_sw": "sms-v4.05.166-admin-density-full-fill-v13-2026-07-21",
+  "expected_cache_bust": "20260721-admin-density-full-fill-v13b",
+  "expected_sw": "sms-v4.05.167-admin-density-v13b-2026-07-21",
   "content_pages": 11,
   "findings": []
 }

@@ -221,12 +221,22 @@
    * Collapse Django filter_horizontal / selector rows into numbered <details>
    * so change forms stop becoming mile-long pages. Keeps widget DOM intact for
    * SelectFilter2 / admin JS. First transfer stays open; later ones start closed.
+   * Also clamps the HTML size= attribute so Django/SelectFilter cannot force
+   * a tall list even when CSS height is capped.
    */
   function initTransferCondensation() {
     var body = document.querySelector(
       '[data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]'
     );
     if (!body) return;
+
+    var TRANSFER_SIZE = 8;
+    body.querySelectorAll(".selector select[multiple]").forEach(function (sel) {
+      var size = parseInt(sel.getAttribute("size") || "0", 10);
+      if (!size || size > TRANSFER_SIZE) {
+        sel.setAttribute("size", String(TRANSFER_SIZE));
+      }
+    });
 
     var selectors = body.querySelectorAll(".selector");
     if (!selectors.length) return;
@@ -267,6 +277,10 @@
     initPreviewOpeners();
     initChangelistRail();
     initPageAwarePulse();
-    initTransferCondensation();
+    // After SelectFilter2 mutates size=/DOM, then condense.
+    window.setTimeout(initTransferCondensation, 0);
+    window.addEventListener("load", function () {
+      window.setTimeout(initTransferCondensation, 0);
+    });
   });
 })();
