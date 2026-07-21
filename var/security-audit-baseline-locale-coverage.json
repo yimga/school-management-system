@@ -1,4 +1,114 @@
 {
+  "contract_violations": [],
+  "declarations": {
+    "ar": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "de": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "en": {
+      "kind": "source",
+      "reason": "Source catalog: msgid == msgstr identity. Everything else falls back to this, so it must stay effectively complete."
+    },
+    "es": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "fa": {
+      "kind": "stub",
+      "reason": "Catalog is generated but 0 msgids are translated; the locale ships as a pure English fallback so the language chooser and RTL/plural plumbing can be exercised before translation is funded. RTL locale."
+    },
+    "fr": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "ha": {
+      "kind": "stub",
+      "reason": "Catalog is generated but 0 msgids are translated; the locale ships as a pure English fallback so the language chooser and RTL/plural plumbing can be exercised before translation is funded."
+    },
+    "he": {
+      "kind": "stub",
+      "reason": "Catalog is generated but 0 msgids are translated; the locale ships as a pure English fallback so the language chooser and RTL/plural plumbing can be exercised before translation is funded. RTL locale."
+    },
+    "hi": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "it": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "ja": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "pid": {
+      "kind": "stub",
+      "reason": "Catalog is generated but 0 msgids are translated; the locale ships as a pure English fallback so the language chooser and RTL/plural plumbing can be exercised before translation is funded."
+    },
+    "pt": {
+      "kind": "unserved",
+      "reason": "locale/pt/LC_MESSAGES/django.po is tracked and is one of the three beachhead locales checked by scripts/verify_critical_msgid_depth.py, but settings.LANGUAGES ships 'pt-br' only -- Django resolves that to locale/pt_BR and never activates 'pt'. So this catalog is maintained and gated yet unreachable at runtime. Resolution is either adding ('pt', ...) to settings.LANGUAGES or folding it into pt_BR; both live in config/settings.py, which this gate does not own. Surfaced here so it stops being invisible."
+    },
+    "pt_BR": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "ru": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "sw": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "tr": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "ur": {
+      "kind": "stub",
+      "reason": "Catalog is generated but 0 msgids are translated; the locale ships as a pure English fallback so the language chooser and RTL/plural plumbing can be exercised before translation is funded. RTL locale."
+    },
+    "yo": {
+      "kind": "stub",
+      "reason": "Catalog is generated but 0 msgids are translated; the locale ships as a pure English fallback so the language chooser and RTL/plural plumbing can be exercised before translation is funded."
+    },
+    "zh_Hans": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    },
+    "zh_Hant": {
+      "kind": "stub",
+      "reason": "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack is filled (see scripts/verify_critical_msgid_depth.py). Untranslated msgids fall back to English. Promote to 'full' when a translation vendor lands and the floor becomes protective rather than blocking."
+    }
+  },
+  "discovered_locales": [
+    "ar",
+    "de",
+    "en",
+    "es",
+    "fa",
+    "fr",
+    "ha",
+    "he",
+    "hi",
+    "it",
+    "ja",
+    "pid",
+    "pt",
+    "pt_BR",
+    "ru",
+    "sw",
+    "tr",
+    "ur",
+    "yo",
+    "zh_Hans",
+    "zh_Hant"
+  ],
   "expected_locales": [
     "en",
     "ar",
@@ -21,8 +131,28 @@
     "zh_Hans",
     "zh_Hant"
   ],
-  "finding_count": 20,
+  "finding_count": 21,
   "findings": [
+    {
+      "coverage_pct": 1.0,
+      "empty": 16928,
+      "locale": "ar",
+      "plural_incomplete": 0,
+      "plural_msgids": 0,
+      "po_path": "locale/ar/LC_MESSAGES/django.po",
+      "total": 17106,
+      "translated": 178
+    },
+    {
+      "coverage_pct": 1.2,
+      "empty": 16895,
+      "locale": "de",
+      "plural_incomplete": 0,
+      "plural_msgids": 0,
+      "po_path": "locale/de/LC_MESSAGES/django.po",
+      "total": 17106,
+      "translated": 211
+    },
     {
       "coverage_pct": 100.0,
       "empty": 0,
@@ -30,201 +160,193 @@
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/en/LC_MESSAGES/django.po",
-      "total": 14761,
-      "translated": 14761
-    },
-    {
-      "coverage_pct": 1.2,
-      "empty": 14203,
-      "locale": "ar",
-      "plural_incomplete": 0,
-      "plural_msgids": 0,
-      "po_path": "locale/ar/LC_MESSAGES/django.po",
-      "total": 14381,
-      "translated": 178
+      "total": 17477,
+      "translated": 17477
     },
     {
       "coverage_pct": 1.5,
-      "empty": 14170,
-      "locale": "de",
-      "plural_incomplete": 0,
-      "plural_msgids": 0,
-      "po_path": "locale/de/LC_MESSAGES/django.po",
-      "total": 14381,
-      "translated": 211
-    },
-    {
-      "coverage_pct": 1.7,
-      "empty": 14151,
+      "empty": 16857,
       "locale": "es",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/es/LC_MESSAGES/django.po",
-      "total": 14394,
-      "translated": 243
+      "total": 17119,
+      "translated": 262
     },
     {
       "coverage_pct": 0.0,
-      "empty": 14338,
+      "empty": 17063,
       "locale": "fa",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/fa/LC_MESSAGES/django.po",
-      "total": 14338,
+      "total": 17063,
       "translated": 0
     },
     {
-      "coverage_pct": 1.6,
-      "empty": 14528,
+      "coverage_pct": 1.4,
+      "empty": 17225,
       "locale": "fr",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/fr/LC_MESSAGES/django.po",
-      "total": 14761,
-      "translated": 233
+      "total": 17477,
+      "translated": 252
     },
     {
       "coverage_pct": 0.0,
-      "empty": 14761,
+      "empty": 17477,
       "locale": "ha",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/ha/LC_MESSAGES/django.po",
-      "total": 14761,
+      "total": 17477,
       "translated": 0
     },
     {
       "coverage_pct": 0.0,
-      "empty": 14338,
+      "empty": 17063,
       "locale": "he",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/he/LC_MESSAGES/django.po",
-      "total": 14338,
+      "total": 17063,
       "translated": 0
     },
     {
-      "coverage_pct": 1.4,
-      "empty": 14180,
+      "coverage_pct": 1.2,
+      "empty": 16905,
       "locale": "hi",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/hi/LC_MESSAGES/django.po",
-      "total": 14381,
+      "total": 17106,
       "translated": 201
     },
     {
-      "coverage_pct": 1.5,
-      "empty": 14170,
+      "coverage_pct": 1.2,
+      "empty": 16895,
       "locale": "it",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/it/LC_MESSAGES/django.po",
-      "total": 14381,
+      "total": 17106,
       "translated": 211
     },
     {
-      "coverage_pct": 1.5,
-      "empty": 14170,
+      "coverage_pct": 1.2,
+      "empty": 16895,
       "locale": "ja",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/ja/LC_MESSAGES/django.po",
-      "total": 14381,
+      "total": 17106,
       "translated": 211
     },
     {
       "coverage_pct": 0.0,
-      "empty": 14761,
+      "empty": 17477,
       "locale": "pid",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/pid/LC_MESSAGES/django.po",
-      "total": 14761,
+      "total": 17477,
       "translated": 0
     },
     {
-      "coverage_pct": 1.7,
-      "empty": 14152,
+      "coverage_pct": 100.0,
+      "empty": 0,
+      "locale": "pt",
+      "plural_incomplete": 0,
+      "plural_msgids": 0,
+      "po_path": "locale/pt/LC_MESSAGES/django.po",
+      "total": 19,
+      "translated": 19
+    },
+    {
+      "coverage_pct": 1.4,
+      "empty": 16877,
       "locale": "pt_BR",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/pt_BR/LC_MESSAGES/django.po",
-      "total": 14394,
+      "total": 17119,
       "translated": 242
     },
     {
-      "coverage_pct": 1.5,
-      "empty": 14171,
+      "coverage_pct": 1.2,
+      "empty": 16896,
       "locale": "ru",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/ru/LC_MESSAGES/django.po",
-      "total": 14381,
+      "total": 17106,
       "translated": 210
     },
     {
-      "coverage_pct": 1.0,
-      "empty": 14617,
+      "coverage_pct": 0.8,
+      "empty": 17333,
       "locale": "sw",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/sw/LC_MESSAGES/django.po",
-      "total": 14761,
+      "total": 17477,
       "translated": 144
     },
     {
-      "coverage_pct": 1.5,
-      "empty": 14171,
+      "coverage_pct": 1.2,
+      "empty": 16896,
       "locale": "tr",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/tr/LC_MESSAGES/django.po",
-      "total": 14381,
+      "total": 17106,
       "translated": 210
     },
     {
       "coverage_pct": 0.0,
-      "empty": 14338,
+      "empty": 17063,
       "locale": "ur",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/ur/LC_MESSAGES/django.po",
-      "total": 14338,
+      "total": 17063,
       "translated": 0
     },
     {
       "coverage_pct": 0.0,
-      "empty": 14761,
+      "empty": 17477,
       "locale": "yo",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/yo/LC_MESSAGES/django.po",
-      "total": 14761,
+      "total": 17477,
       "translated": 0
     },
     {
-      "coverage_pct": 1.4,
-      "empty": 14180,
+      "coverage_pct": 1.2,
+      "empty": 16905,
       "locale": "zh_Hans",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/zh_Hans/LC_MESSAGES/django.po",
-      "total": 14381,
+      "total": 17106,
       "translated": 201
     },
     {
-      "coverage_pct": 1.5,
-      "empty": 14171,
+      "coverage_pct": 1.2,
+      "empty": 16896,
       "locale": "zh_Hant",
       "plural_incomplete": 0,
       "plural_msgids": 0,
       "po_path": "locale/zh_Hant/LC_MESSAGES/django.po",
-      "total": 14381,
+      "total": 17106,
       "translated": 210
     }
   ],
-  "generated_at": "2026-07-16T12:21:24+00:00",
+  "generated_at": "2026-07-21T11:08:46+00:00",
   "locale_root": "locale",
-  "rule": "track per-locale msgstr coverage; drift-detection only (stub locales ship empty and fall back to English)"
+  "minimum_coverage_pct": 60.0,
+  "rule": "per-locale msgstr coverage. Absolute floor: locales declared 'full' must reach 60%, the source locale 99%; every locale on disk must carry a LOCALE_DECLARATIONS entry with a written reason; plus the original translated-count regression check",
+  "source_minimum_pct": 99.0
 }

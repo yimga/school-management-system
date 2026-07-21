@@ -11,10 +11,33 @@ reports **translation coverage** — for each locale, the fraction of
 msgids that have a non-empty msgstr — so the operator and CI can see
 which locales need translator attention without opening every .po file.
 
-It is intentionally **drift-detection only**, never zero-tolerance:
-stub locales (yo, ha, sw, pid, fr per memory v3.11) ship with msgstr=""
-and fall back to English. A regression is "a locale that USED to have
-coverage drops back to 0 strings."
+ABSOLUTE FLOOR + EXPLICIT DECLARATIONS (2026-07-21)
+---------------------------------------------------
+This gate used to be **regression-only**. That made it structurally incapable
+of failing on the thing that matters: a locale that has *always* been at 0%
+never regressed, so it stayed permanently green. On a platform aiming at 250+
+countries, a locale gate that cannot notice 0% coverage is decoration.
+
+It now enforces a contract instead of a trend:
+
+  1. **Discovery, not a hard-coded tuple.** Every ``locale/<code>/LC_MESSAGES/
+     django.po`` on disk is scanned. The old ``EXPECTED_LOCALES`` tuple was
+     itself a blind spot -- ``locale/pt`` ships a tracked catalog and was never
+     scanned by this gate at all.
+  2. **Every shipping locale must be declared** in ``LOCALE_DECLARATIONS``
+     below, with a kind and a written reason. An undeclared locale is a
+     finding -- adding ``locale/xx`` with 0 translations turns the gate RED.
+  3. **Anything not declared a stub must meet the floor.** ``full`` locales
+     must reach ``MINIMUM_COVERAGE_PCT``; the ``source`` locale must reach
+     ``SOURCE_MINIMUM_PCT``.
+  4. **Declarations cannot rot.** A locale declared ``stub`` that has climbed
+     to the floor is a finding: promote it to ``full`` so the floor starts
+     protecting it.
+  5. The original regression check is retained on top of all of the above.
+
+Stub locales legitimately ship untranslated and fall back to English -- but
+they are now *named with a reason each*, not silently tolerated by the absence
+of a threshold.
 
 Usage:
     python scripts/scan_locale_coverage.py             # write baseline
@@ -50,6 +73,83 @@ EXPECTED_LOCALES = (
     "en", "ar", "de", "es", "fa", "fr", "ha", "he", "hi", "it", "ja",
     "pid", "pt_BR", "ru", "sw", "tr", "ur", "yo", "zh_Hans", "zh_Hant",
 )
+
+# --------------------------------------------------------------------------
+# The coverage contract.
+#
+# MINIMUM_COVERAGE_PCT is the absolute floor for any locale declared ``full``.
+# It is the number that makes this gate able to fail; it is deliberately not
+# derived from current data, because a floor derived from current data is a
+# baseline wearing a floor's clothes.
+#
+# Every locale that ships a catalog must appear in LOCALE_DECLARATIONS with:
+#   kind     -- one of:
+#       "source"   the msgid==msgstr identity catalog; must stay ~complete.
+#       "full"     claimed as a translated locale; MUST meet the floor.
+#       "stub"     deliberately ships below the floor and falls back to
+#                  English at runtime. Requires a written reason. If it ever
+#                  reaches the floor the declaration is stale and the gate
+#                  fails until it is promoted to "full".
+#       "unserved" a catalog is tracked on disk but the code is not in
+#                  settings.LANGUAGES, so Django never activates it. Reported
+#                  as a standing KNOWN GAP on every run.
+#   reason   -- why, in words. Not optional; an empty reason is a finding.
+# --------------------------------------------------------------------------
+MINIMUM_COVERAGE_PCT = 60.0
+SOURCE_MINIMUM_PCT = 99.0
+
+_STUB_BULK_REASON = (
+    "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack "
+    "is filled (see scripts/verify_critical_msgid_depth.py). Untranslated "
+    "msgids fall back to English. Promote to 'full' when a translation vendor "
+    "lands and the floor becomes protective rather than blocking."
+)
+_STUB_ZERO_REASON = (
+    "Catalog is generated but 0 msgids are translated; the locale ships as a "
+    "pure English fallback so the language chooser and RTL/plural plumbing can "
+    "be exercised before translation is funded."
+)
+
+LOCALE_DECLARATIONS: dict[str, tuple[str, str]] = {
+    "en": (
+        "source",
+        "Source catalog: msgid == msgstr identity. Everything else falls back "
+        "to this, so it must stay effectively complete.",
+    ),
+    # -- partially translated bulk catalogs (critical-UI pack only) ---------
+    "ar": ("stub", _STUB_BULK_REASON),
+    "de": ("stub", _STUB_BULK_REASON),
+    "es": ("stub", _STUB_BULK_REASON),
+    "fr": ("stub", _STUB_BULK_REASON),
+    "hi": ("stub", _STUB_BULK_REASON),
+    "it": ("stub", _STUB_BULK_REASON),
+    "ja": ("stub", _STUB_BULK_REASON),
+    "pt_BR": ("stub", _STUB_BULK_REASON),
+    "ru": ("stub", _STUB_BULK_REASON),
+    "sw": ("stub", _STUB_BULK_REASON),
+    "tr": ("stub", _STUB_BULK_REASON),
+    "zh_Hans": ("stub", _STUB_BULK_REASON),
+    "zh_Hant": ("stub", _STUB_BULK_REASON),
+    # -- zero-translation locales ------------------------------------------
+    "fa": ("stub", _STUB_ZERO_REASON + " RTL locale."),
+    "he": ("stub", _STUB_ZERO_REASON + " RTL locale."),
+    "ur": ("stub", _STUB_ZERO_REASON + " RTL locale."),
+    "ha": ("stub", _STUB_ZERO_REASON),
+    "pid": ("stub", _STUB_ZERO_REASON),
+    "yo": ("stub", _STUB_ZERO_REASON),
+    # -- tracked but never activated ---------------------------------------
+    "pt": (
+        "unserved",
+        "locale/pt/LC_MESSAGES/django.po is tracked and is one of the three "
+        "beachhead locales checked by scripts/verify_critical_msgid_depth.py, "
+        "but settings.LANGUAGES ships 'pt-br' only -- Django resolves that to "
+        "locale/pt_BR and never activates 'pt'. So this catalog is maintained "
+        "and gated yet unreachable at runtime. Resolution is either adding "
+        "('pt', ...) to settings.LANGUAGES or folding it into pt_BR; both live "
+        "in config/settings.py, which this gate does not own. Surfaced here so "
+        "it stops being invisible.",
+    ),
+}
 
 # Match a `msgstr "..."`. Multi-line msgstr blocks (the standard PO
 # format) start with `msgstr ""` followed by `"..."` continuation lines.
@@ -173,9 +273,30 @@ def _read_po(path: Path) -> tuple[int, int, int, int, int]:
     return total, translated, empty, plural_msgids, plural_incomplete
 
 
+def _discovered_locales() -> list[str]:
+    """Every ``locale/<code>/LC_MESSAGES/django.po`` actually on disk.
+
+    Discovery is what makes "add a locale with 0 translations" detectable at
+    all: the old hard-coded ``EXPECTED_LOCALES`` tuple simply never looked.
+    """
+    if not LOCALE_ROOT.is_dir():
+        return []
+    return sorted(
+        p.name
+        for p in LOCALE_ROOT.iterdir()
+        if p.is_dir() and (p / "LC_MESSAGES" / "django.po").is_file()
+    )
+
+
+def _locales_to_scan() -> list[str]:
+    return sorted(
+        set(EXPECTED_LOCALES) | set(_discovered_locales()) | set(LOCALE_DECLARATIONS)
+    )
+
+
 def _scan() -> list[LocaleStats]:
     stats: list[LocaleStats] = []
-    for locale in EXPECTED_LOCALES:
+    for locale in _locales_to_scan():
         po = LOCALE_ROOT / locale / "LC_MESSAGES" / "django.po"
         total, translated, empty, plural_msgids, plural_incomplete = _read_po(po)
         pct = (100.0 * translated / total) if total else 0.0
@@ -192,15 +313,92 @@ def _scan() -> list[LocaleStats]:
     return stats
 
 
+def _declaration(locale: str) -> tuple[str, str] | None:
+    return LOCALE_DECLARATIONS.get(locale)
+
+
+def _contract_violations(stats: list[LocaleStats]) -> list[str]:
+    """Absolute-floor + declaration checks. This is what makes the gate able to fail."""
+    violations: list[str] = []
+    on_disk = set(_discovered_locales())
+
+    for s in stats:
+        decl = _declaration(s.locale)
+        if decl is None:
+            violations.append(
+                f"{s.locale}: ships a catalog ({s.po_path}) at "
+                f"{s.coverage_pct:.1f}% but is NOT declared in "
+                f"LOCALE_DECLARATIONS. Declare it 'full' (and meet the "
+                f"{MINIMUM_COVERAGE_PCT:.0f}% floor) or 'stub' with a written "
+                f"reason -- silence is not a declaration."
+            )
+            continue
+        kind, reason = decl
+        if not str(reason).strip():
+            violations.append(f"{s.locale}: declared '{kind}' with an empty reason.")
+        if kind not in ("source", "full", "stub", "unserved"):
+            violations.append(
+                f"{s.locale}: unknown declaration kind {kind!r} "
+                f"(expected source/full/stub/unserved)."
+            )
+            continue
+        if s.locale not in on_disk:
+            if kind != "unserved":
+                violations.append(
+                    f"{s.locale}: declared '{kind}' but no catalog on disk at "
+                    f"{s.po_path} -- remove the declaration or ship the .po."
+                )
+            continue
+        if kind == "source" and s.coverage_pct < SOURCE_MINIMUM_PCT:
+            violations.append(
+                f"{s.locale}: source locale at {s.coverage_pct:.1f}% "
+                f"(floor {SOURCE_MINIMUM_PCT:.0f}%) -- every other locale falls "
+                f"back to it."
+            )
+        elif kind == "full" and s.coverage_pct < MINIMUM_COVERAGE_PCT:
+            violations.append(
+                f"{s.locale}: declared 'full' but only {s.coverage_pct:.1f}% "
+                f"translated (floor {MINIMUM_COVERAGE_PCT:.0f}%)."
+            )
+        elif kind == "stub" and s.coverage_pct >= MINIMUM_COVERAGE_PCT:
+            violations.append(
+                f"{s.locale}: declared 'stub' but has reached "
+                f"{s.coverage_pct:.1f}% -- stale declaration, promote it to "
+                f"'full' so the {MINIMUM_COVERAGE_PCT:.0f}% floor protects it."
+            )
+    return violations
+
+
+def _known_gaps(stats: list[LocaleStats]) -> list[str]:
+    """Declared-but-unresolved situations, surfaced on every run (non-fatal)."""
+    out = []
+    for s in stats:
+        decl = _declaration(s.locale)
+        if decl and decl[0] == "unserved":
+            out.append(f"{s.locale}: {decl[1]}")
+    return out
+
+
 def _baseline_payload(stats: list[LocaleStats]) -> dict:
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "rule": (
-            "track per-locale msgstr coverage; drift-detection only "
-            "(stub locales ship empty and fall back to English)"
+            f"per-locale msgstr coverage. Absolute floor: locales declared "
+            f"'full' must reach {MINIMUM_COVERAGE_PCT:.0f}%, the source locale "
+            f"{SOURCE_MINIMUM_PCT:.0f}%; every locale on disk must carry a "
+            f"LOCALE_DECLARATIONS entry with a written reason; plus the "
+            f"original translated-count regression check"
         ),
         "locale_root": LOCALE_ROOT.relative_to(REPO_ROOT).as_posix(),
         "expected_locales": list(EXPECTED_LOCALES),
+        "discovered_locales": _discovered_locales(),
+        "minimum_coverage_pct": MINIMUM_COVERAGE_PCT,
+        "source_minimum_pct": SOURCE_MINIMUM_PCT,
+        "declarations": {
+            code: {"kind": kind, "reason": reason}
+            for code, (kind, reason) in sorted(LOCALE_DECLARATIONS.items())
+        },
+        "contract_violations": _contract_violations(stats),
         "finding_count": len(stats),  # one per locale; keeps shape consistent
         "findings": [asdict(s) for s in stats],
     }
@@ -216,15 +414,20 @@ def _load_baseline() -> dict | None:
 
 
 def _print_summary(stats: list[LocaleStats]) -> None:
-    print(f"locale coverage: {len(stats)} locale(s)")
+    print(
+        f"locale coverage: {len(stats)} locale(s); floor "
+        f"{MINIMUM_COVERAGE_PCT:.0f}% for 'full', {SOURCE_MINIMUM_PCT:.0f}% for "
+        f"'source'"
+    )
     for s in stats:
-        bar = "[OK ]" if s.translated > 0 else "[stub]"
+        decl = _declaration(s.locale)
+        kind = decl[0] if decl else "UNDECLARED"
         plural_note = (
             f"  plural={s.plural_incomplete}/{s.plural_msgids} incomplete"
             if s.plural_msgids else ""
         )
         print(
-            f"  {bar} {s.locale:8s} {s.translated:5d}/{s.total:5d} "
+            f"  [{kind:9s}] {s.locale:8s} {s.translated:5d}/{s.total:5d} "
             f"({s.coverage_pct:5.1f}%){plural_note}  {s.po_path}"
         )
 
@@ -238,30 +441,53 @@ def _write_baseline(stats: list[LocaleStats]) -> None:
     print(f"  wrote baseline -> {BASELINE_PATH.relative_to(REPO_ROOT)}")
 
 
-def _compare(stats: list[LocaleStats]) -> int:
+def _regressions(stats: list[LocaleStats]) -> list[str]:
     baseline = _load_baseline()
     if baseline is None:
-        _print_summary(stats)
-        print("\nNo baseline on disk. Run without --compare to write one.")
-        return 0
+        return []
     by_locale_now = {s.locale: s.translated for s in stats}
     by_locale_baseline = {
         item["locale"]: item["translated"]
         for item in baseline.get("findings", [])
     }
-    regressions: list[str] = []
-    for locale, base in by_locale_baseline.items():
+    out: list[str] = []
+    for locale, base in sorted(by_locale_baseline.items()):
         cur = by_locale_now.get(locale, 0)
         if base > 0 and cur < base:
-            regressions.append(
-                f"{locale}: translated dropped {base} -> {cur}"
-            )
+            out.append(f"{locale}: translated dropped {base} -> {cur}")
+    return out
+
+
+def _report(stats: list[LocaleStats], *, check_regressions: bool) -> int:
+    """Print the summary and return the process exit code.
+
+    The floor/declaration contract is enforced in BOTH modes: a run that prints
+    violations and exits 0 is exactly the failure mode this gate had.
+    """
     _print_summary(stats)
+    violations = _contract_violations(stats)
+    gaps = _known_gaps(stats)
+    regressions = _regressions(stats) if check_regressions else []
+    if check_regressions and _load_baseline() is None:
+        print("\nNo baseline on disk. Run without --compare to write one.")
+    if gaps:
+        print("\nKNOWN GAPS (declared, non-fatal):")
+        for line in gaps:
+            print(f"  ~ {line}")
+    if violations:
+        print("\nCONTRACT VIOLATIONS:")
+        for line in violations:
+            print(f"  - {line}")
     if regressions:
         print("\nREGRESSIONS:")
         for line in regressions:
             print(f"  - {line}")
+    if violations or regressions:
         return 1
+    print(
+        f"\nLOCALE_COVERAGE_PASS ({len(stats)} locale(s), "
+        f"{len(gaps)} declared known gap(s))"
+    )
     return 0
 
 
@@ -273,12 +499,12 @@ def main() -> int:
     stats = _scan()
     if args.json:
         print(json.dumps(_baseline_payload(stats), indent=2, sort_keys=True))
-        return 0
+        return 1 if _contract_violations(stats) else 0
     if args.compare:
-        return _compare(stats)
-    _print_summary(stats)
+        return _report(stats, check_regressions=True)
+    rc = _report(stats, check_regressions=False)
     _write_baseline(stats)
-    return 0
+    return rc
 
 
 if __name__ == "__main__":

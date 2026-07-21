@@ -94,5 +94,129 @@ class TheaterDetectionTests(unittest.TestCase):
             self.assertEqual(mod.main([]), 1)
 
 
+# ---------------------------------------------------------------------------
+# MUST-FIRE negative controls for the "gate that cannot fail" defect.
+#
+# Until 2026-07-21 this gate concatenated every JS file into one blob and ran
+# ``re.search`` over it, and matched server members with ``\bNAME\b`` over the
+# raw text of offline_queue.py. Both are satisfied by a COMMENT. The tests below
+# reintroduce exactly that defect and assert the gate turns red. Each also
+# asserts that the naive textual check WOULD have passed, so the test proves the
+# gate is doing structural work and is not merely green by accident.
+# ---------------------------------------------------------------------------
+
+# Producer mentioned only in a `//` comment and inside an unrelated string.
+# One honest producer (attendance) is kept so the failure isolates cleanly.
+_COMMENT_ONLY_PRODUCER_JS = """
+// TODO(offline): wire the receipt form with
+//   action_type: 'payment_receipt'
+// nothing below implements it.
+var HELP = "pass action_type: 'payment_receipt' to queue a receipt";
+window.rmcOfflineEnqueue({ action_type: 'attendance', payload: {} });
+"""
+
+# Server member named only in a docstring and a `#` comment.
+_COMMENT_ONLY_SERVER_QUEUE = '''
+def _apply_payload(action, *, force_local=False):
+    """Dispatch. Handles PAYMENT_RECEIPT and PAYMENT_PROOF."""
+    # PAYMENT_RECEIPT / PAYMENT_PROOF: not implemented yet.
+    if at == OfflineAction.ActionType.ATTENDANCE:
+        return _apply_attendance(sid, uid, payload)
+    return {"ok": False, "error": "unknown"}
+'''
+
+
+class CommentOnlyMustFireTests(unittest.TestCase):
+    """Reintroduce the defect; the gate must go red."""
+
+    def _patched_read(self, queue_src):
+        real_read = mod._read
+
+        def _read(path):
+            return queue_src if path == mod.OFFLINE_QUEUE else real_read(path)
+
+        return _read
+
+    def test_producer_only_in_a_comment_is_not_a_producer(self):
+        # The old textual check would have matched this happily.
+        self.assertRegex(_COMMENT_ONLY_PRODUCER_JS, r"action_type\s*:\s*'payment_receipt'")
+        with mock.patch.object(
+            mod, "_js_sources", return_value=[_COMMENT_ONLY_PRODUCER_JS]
+        ):
+            facts = mod._client_producer_facts()
+            self.assertNotIn("payment_receipt", facts["action_types"])
+            # The honest sibling in the same blob still resolves.
+            self.assertIn("attendance", facts["action_types"])
+            report = mod.main(["--json"])
+        self.assertEqual(report, 1)
+
+    def test_server_member_only_in_a_comment_is_not_an_applier(self):
+        # The old textual check would have matched this happily.
+        self.assertRegex(_COMMENT_ONLY_SERVER_QUEUE, r"\bPAYMENT_RECEIPT\b")
+        self.assertRegex(_COMMENT_ONLY_SERVER_QUEUE, r"\bPAYMENT_PROOF\b")
+        dispatched = mod._dispatched_members(
+            _COMMENT_ONLY_SERVER_QUEUE, mod._enum_member_names()
+        )
+        self.assertNotIn("PAYMENT_RECEIPT", dispatched)
+        self.assertNotIn("PAYMENT_PROOF", dispatched)
+        self.assertIn("ATTENDANCE", dispatched)  # the real branch still counts
+
+    def test_whole_gate_red_when_capability_exists_only_as_prose(self):
+        with mock.patch.object(
+            mod, "_js_sources", return_value=[_COMMENT_ONLY_PRODUCER_JS]
+        ), mock.patch.object(
+            mod, "_read", side_effect=self._patched_read(_COMMENT_ONLY_SERVER_QUEUE)
+        ):
+            self.assertEqual(mod.main([]), 1)
+
+    def test_dead_branch_is_not_a_dispatch(self):
+        """A branch that names the member but does no work must not count."""
+        src = (
+            "def _apply_payload(action):\n"
+            "    if at == OfflineActionType.PAYMENT_PROOF:\n"
+            "        pass\n"
+            "    return {'ok': False}\n"
+        )
+        self.assertNotIn(
+            "PAYMENT_PROOF", mod._dispatched_members(src, mod._enum_member_names())
+        )
+
+    def test_ui_surface_in_an_html_comment_does_not_count(self):
+        stripped = mod._strip_markup_comments(
+            '<!-- <form data-rmc-offline-form="payment_receipt"> -->'
+        )
+        self.assertNotIn("payment_receipt", stripped)
+
+
+class JsTokeniserTests(unittest.TestCase):
+    def test_comments_dropped_and_strings_atomic(self):
+        toks = mod._js_tokenize("// x('a')\nvar s = \"y('b')\";\nf('c');")
+        values = [t.value for t in toks if t.kind in mod._STRING_KINDS]
+        self.assertEqual(values, ['"y(\'b\')"', "'c'"])
+
+    def test_enqueue_call_site_resolves_nested_object_literal(self):
+        toks = mod._js_tokenize(
+            "window.rmcOfflineEnqueue({ payload: { note: 'x' }, "
+            "action_type: 'grading' });"
+        )
+        self.assertEqual(mod._enqueued_action_types(toks), {"grading"})
+
+    def test_wal_domain_identifier_resolved_from_enclosing_block(self):
+        toks = mod._js_tokenize(
+            "function wire() {\n"
+            "  let domain;\n"
+            "  if (x) { domain = 'attendance'; } else { domain = 'teacher_attendance'; }\n"
+            "  window.rmcWAL.append(domain, actions);\n"
+            "}\n"
+        )
+        self.assertEqual(
+            mod._wal_appended_domains(toks), {"attendance", "teacher_attendance"}
+        )
+
+    def test_wal_domain_in_a_comment_is_not_appended(self):
+        toks = mod._js_tokenize("// window.rmcWAL.append('billing_charge', a);\n")
+        self.assertEqual(mod._wal_appended_domains(toks), set())
+
+
 if __name__ == "__main__":
     unittest.main()
