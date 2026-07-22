@@ -101,6 +101,19 @@ class PostLoginMfaRoutingTests(TestCase):
             response = resolve_post_login_mfa_redirect(request, self.user)
         self.assertIsNone(response)
 
+    def test_enrolled_owner_still_challenges_during_incomplete_onboarding(self):
+        self.school.settings = {
+            "owner_onboarding": {"step": "mfa", "completed": False}
+        }
+        self.school.save(update_fields=["settings"])
+        SchoolMembership.objects.filter(user=self.user, school=self.school).update(
+            is_school_owner=True
+        )
+        request = self._request()
+        response = resolve_post_login_mfa_redirect(request, self.user)
+        self.assertIsNotNone(response)
+        self.assertIn("/mfa/verify", response["Location"])
+
     def test_mfa_before_manager_handoff_for_tenant_admin(self):
         """Manager-host password must not bounce to school login before MFA."""
         self.client.force_login(self.user)

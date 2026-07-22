@@ -2040,9 +2040,13 @@ if REDIS_URL:
     # instead of silently swallowed.
     DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
 
-# Optional: Redis-backed sessions when Redis is available (shared across workers)
+# Optional: Redis-accelerated sessions when Redis is available (shared across workers).
+# Use cached_db — NOT cache-only. Cache-only + django_redis IGNORE_EXCEPTIONS silently
+# dropped session writes when Redis stalled/missed, so password login 302'd then the
+# next request had no session → bounce back to /authentication/login/ (no MFA screen).
+# cached_db persists to Postgres and uses Redis as a speed layer.
 if REDIS_URL and not RUNNING_TESTS:
-    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
     SESSION_CACHE_ALIAS = "default"
 if RUNNING_TESTS:
     SESSION_ENGINE = "django.contrib.sessions.backends.db"

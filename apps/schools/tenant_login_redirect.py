@@ -92,11 +92,19 @@ def build_public_handoff_to_tenant_workspace(request, school) -> str | None:
         return build_tenant_backend_url(request, school)
     # Portal not fully live yet — never dump an already-authenticated user back
     # onto the tenant login form (password → redirect → login loop). Prefer MFA
-    # verify when still needed, else the post-login redirect / provisioning path.
+    # when a *confirmed* device exists; never send verify without a device (that
+    # looped owners: verify → redirect → login). Otherwise onboarding/redirect.
     try:
         from apps.accounts.middleware import RequireMFAMiddleware
+        from apps.accounts.post_login_mfa import _user_has_mfa_device
 
-        if not RequireMFAMiddleware._is_mfa_verified(request):
+        user = getattr(request, "user", None)
+        if (
+            user
+            and getattr(user, "is_authenticated", False)
+            and _user_has_mfa_device(user)
+            and not RequireMFAMiddleware._is_mfa_verified(request)
+        ):
             path = "/authentication/mfa/verify/"
             try:
                 next_path = reverse("accounts:redirect")

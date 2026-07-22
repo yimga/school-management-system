@@ -163,19 +163,21 @@ def resolve_post_login_mfa_redirect(request, user, *, next_url: str = ""):
     except ImportError:
         pass
 
-    # Wizard owns the MFA step — do not steal the session to verify/setup mid-flow.
-    if _owner_onboarding_incomplete(request, user):
-        return None
-
     has_device = _user_has_mfa_device(user)
     must_have = _user_must_have_mfa(request, user)
 
-    # Confirmed device → always challenge (session not yet verified).
+    # Confirmed device → always challenge (even mid-onboarding). Skipping this
+    # left enrolled owners on exempt onboarding URLs, then bouncing to login when
+    # a later hop required MFA without a verified session.
     if has_device:
         if next_url:
             request.session["mfa_next"] = next_url
         request.session.modified = True
         return redirect(reverse("accounts:mfa_verify"))
+
+    # Wizard owns enrollment when there is no confirmed device yet.
+    if _owner_onboarding_incomplete(request, user):
+        return None
 
     if not must_have:
         return None
