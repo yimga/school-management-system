@@ -7,6 +7,11 @@ tenant schema still 500s on ``academics_incident.school_id``. This leaf runs the
 generic introspection heal (see apps/tenancy/schema_repair.py) over EVERY current
 academics model with a ``school`` FK, so nothing is missed. No-op where columns
 already exist; pure RunPython so ``makemigrations --check`` stays clean.
+
+NOTE: Because this uses the LIVE registry, models that gain a ``school`` FK in a
+*later* migration (e.g. Room/TimeSlot in 0070) can have their column created
+here first. Those later AddField ops MUST be idempotent
+(``SeparateDatabaseAndState`` + column-exists guard) — see academics/0070.
 """
 
 from django.db import migrations
