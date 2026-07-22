@@ -1,7 +1,7 @@
 {
   "build_id": "2026-07-22-v15.7",
   "cache_bust": "20260722-admin-os-v157",
-  "sw_version": "sms-v4.06.10-admin-os-empty-space-r2-2026-07-22",
+  "sw_version": "sms-v4.06.11-header-super-chrome-2026-07-22",
   "seal": "2026-07-22-admin-os-v157",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
