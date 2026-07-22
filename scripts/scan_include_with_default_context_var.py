@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Fail CI when templates use |default:<context_var> / |default_if_none:<context_var>.
+"""Fail CI when templates use eager filter args that are bare context vars.
 
 Django resolves every filter *argument* eagerly — even when the left-hand value
 is already set. A missing context variable raises VariableDoesNotExist and 500s
 the page. Proven on Django 5.2:
 
     {{ a|default:b }}          # raises if b missing, even when a is set
-    {% with z=a|default:b %}   # same
+    {% for x in items|slice:lim %}  # raises if lim missing
+    {{ a|add:b }}              # raises if b missing
     {% include "x" with y=a|default:b %}  # same
+
+Covered filters: ``default``, ``default_if_none``, ``slice``, ``add``.
 
 Safe arguments: string/number literals, None/True/False, _("…") / gettext,
 and ``forloop.*`` (only valid inside ``{% for %}``).
@@ -20,7 +23,7 @@ on the same line or the line above.
 
 Introduced after production 500s on /super/schools/ and /configuration/
 (``Failed lookup for key [ops_surface]``). Expanded 2026-07-22 to scan the
-entire template tree, not only ``{% include with %}``.
+entire template tree and additional eager filter families.
 
 Usage:
   python scripts/scan_include_with_default_context_var.py
@@ -36,10 +39,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Match |default:identifier / |default_if_none:identifier that is NOT a safe
-# literal / builtin / gettext call.
-_DEFAULT_VAR_RE = re.compile(
-    r"\|\s*default(?:_if_none)?\s*:\s*(?!_?\(|[\"']|None\b|True\b|False\b|\d)"
+# Match |default: / |default_if_none: / |slice: / |add: followed by a bare
+# context identifier (not a safe literal / builtin / gettext call).
+_FILTER_ARG_RE = re.compile(
+    r"\|\s*(?:default(?:_if_none)?|slice|add)\s*:\s*"
+    r"(?!_?\(|[\"']|None\b|True\b|False\b|\d)"
     r"([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)"
 )
 
@@ -80,7 +84,7 @@ def _scan_text(path: Path, text: str) -> list[tuple[int, str, str]]:
     raw_lines = text.splitlines()
     # Strip comments for match positions, but keep newlines so line numbers hold.
     cleaned = _COMMENT_RE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
-    for match in _DEFAULT_VAR_RE.finditer(cleaned):
+    for match in _FILTER_ARG_RE.finditer(cleaned):
         var = match.group(1)
         root = var.split(".", 1)[0]
         if root in _SAFE_ROOTS:
@@ -88,7 +92,7 @@ def _scan_text(path: Path, text: str) -> list[tuple[int, str, str]]:
         # Dotted paths (invoice.id, request.user.role) only fail when the root
         # object is missing — same class as any bare {{ invoice.id }}. The
         # production 500 class is a missing TOP-LEVEL name used as a filter arg
-        # (ops_surface, PREVIEW_NOTE, masthead_eyebrow).
+        # (ops_surface, PREVIEW_NOTE, backend_max_items_slice).
         if "." in var:
             continue
         line_no = cleaned.count("\n", 0, match.start()) + 1
@@ -127,13 +131,13 @@ def main() -> int:
     if args.json:
         print(json.dumps({"finding_count": len(findings), "findings": findings}, indent=2))
     else:
-        label = "default-context-var-filter-arg"
+        label = "eager-filter-arg-context-var"
         if not findings:
             print(f"{label}: 0 finding(s)")
         else:
             print(f"{label}: {len(findings)} finding(s)")
             for f in findings:
-                print(f"  {f['path']}:{f['line']}  |default:{f['var']}  :: {f['snippet']}")
+                print(f"  {f['path']}:{f['line']}  |…:{f['var']}  :: {f['snippet']}")
     if args.strict and findings:
         return 1
     return 0

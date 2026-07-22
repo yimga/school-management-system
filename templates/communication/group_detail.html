@@ -68,7 +68,7 @@
                   <form method="post" action="{% url 'communication:group_message_delete' thread_id=thread.id message_id=message.id %}" data-confirm-target="#delMsg{{ message.id }}" class="d-inline">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-link text-danger p-0" data-bs-toggle="modal" data-bs-target="#delMsg{{ message.id }}" data-prevent-submit title="{% trans 'Delete' %}" aria-label="{% trans 'Delete message' %}"><i class="bi bi-trash" aria-hidden="true"></i></button>
-                    {% include "components/confirm_modal.html" with modal_id="delMsg"|add:mid title=_("Delete this message?") body=_("The message will be removed for everyone. This can't be undone.") confirm_label=_("Delete") confirm_class="btn-danger" icon="bi-trash" %}
+                    {% include "components/confirm_modal.html" with modal_id="delMsg"|add:mid title=_("Delete this message?") body=_("The message will be removed for everyone. This can't be undone.") confirm_label=_("Delete") confirm_class="btn-danger" icon="bi-trash" %}{# default-fallback-allow: mid bound by enclosing with #}
                   </form>
                   {% endwith %}
                   {% endif %}

@@ -45,7 +45,9 @@
 
   {% if phase == "preview" %}
   <div class="rmc-banner rmc-banner--info py-2 small mb-3">
-    {% blocktrans with v=valid_count i=invalid_count %}<strong>{{ v }}</strong> valid · <strong>{{ i }}</strong> invalid out of {{ valid_count|add:invalid_count }} parsed rows.{% endblocktrans %}
+    {% with v=valid_count|default:0 i=invalid_count|default:0 %}
+    {% blocktrans with v=v i=i total=v|add:i %}<strong>{{ v }}</strong> valid · <strong>{{ i }}</strong> invalid out of {{ total }} parsed rows.{% endblocktrans %}{# default-fallback-allow: v/i bound above #}
+    {% endwith %}
   </div>
   <div class="table-responsive mb-3">
     <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">

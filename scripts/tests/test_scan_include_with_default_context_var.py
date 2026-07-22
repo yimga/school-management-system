@@ -1,4 +1,4 @@
-"""Stdlib tests for scan_include_with_default_context_var (eager |default:var 500s)."""
+"""Stdlib tests for scan_include_with_default_context_var (eager filter-arg 500s)."""
 
 from __future__ import annotations
 
@@ -44,11 +44,23 @@ class ScanIncludeWithDefaultContextVarTests(unittest.TestCase):
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0][1], "SITE_THEME")
 
+    def test_flags_slice_and_add_context_vars(self):
+        mod = _load()
+        text = (
+            "{% for x in items|slice:backend_max_items_slice %}{{ x }}{% endfor %}\n"
+            "{{ a|add:missing_b }}"
+        )
+        findings = mod._scan_text(Path("t.html"), text)
+        vars_found = {f[1] for f in findings}
+        self.assertEqual(vars_found, {"backend_max_items_slice", "missing_b"})
+
     def test_allows_literal_and_gettext_defaults(self):
         mod = _load()
         text = (
             '{% include "x.html" with a=b|default:"" c=d|default:_("Hi") '
-            "e=f|default:None g=h|default:False %}"
+            "e=f|default:None g=h|default:False %}\n"
+            '{% for x in items|slice:":5" %}{{ x }}{% endfor %}\n'
+            "{{ a|add:2 }}"
         )
         self.assertEqual(mod._scan_text(Path("t.html"), text), [])
 
@@ -65,7 +77,8 @@ class ScanIncludeWithDefaultContextVarTests(unittest.TestCase):
         text = (
             "{% for s in students %}\n"
             "{{ s.get_full_name|default:s }}{# default-fallback-allow: s is for-loop student #}\n"
-            "{% endfor %}"
+            "{% endfor %}\n"
+            "{{ open_n|add:ack_n }}{# default-fallback-allow: ack_n bound by enclosing with #}\n"
         )
         self.assertEqual(mod._scan_text(Path("t.html"), text), [])
 

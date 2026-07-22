@@ -251,7 +251,7 @@
           {% firstof primary_language_code language_code '' as sg_primary %}
           {% with chosen_csv=sg_csv primary=sg_primary %}
             {% for lang in country_pack.languages %}
-              {% with code_marker="|"|add:lang.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}
+              {% with code_marker="|"|add:lang.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}{# default-fallback-allow: chosen_csv bound by enclosing with #}
               <label class="rmc-signup-type-card {% if code_marker in chosen_marker or not chosen_csv and lang.is_default %}rmc-signup-type-card--selected{% endif %}{% if primary == lang.code %} rmc-signup-type-card--primary{% endif %}"
                      data-rmc-language-code="{{ lang.code }}">
                 <input type="checkbox" name="language_codes" value="{{ lang.code }}"
@@ -309,7 +309,7 @@
              data-rmc-multi-select="1">
           {% with chosen_csv=school_type|default:'' %}
             {% for st in country_pack.school_types %}
-              {% with code_marker="|"|add:st.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}
+              {% with code_marker="|"|add:st.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}{# default-fallback-allow: chosen_csv bound by enclosing with #}
               <label class="rmc-signup-type-card {% if code_marker in chosen_marker %}rmc-signup-type-card--selected{% endif %}">
                 <input type="checkbox" name="school_type" value="{{ st.code }}"
                        class="rmc-signup-type-card__input"

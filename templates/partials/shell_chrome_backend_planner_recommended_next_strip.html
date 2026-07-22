@@ -14,7 +14,8 @@
     {% endif %}
   </div>
   <div class="backend-planner-list backend-planner-next">
-    {% for step in recommended_next_steps|slice:backend_max_items_slice %}
+    {% with list_slice=backend_max_items_slice|default:":5" %}
+    {% for step in recommended_next_steps|slice:list_slice %}{# default-fallback-allow: list_slice bound above #}
     <a href="{{ step.url }}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small">
       <span>{% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}</span>
       <i class="bi bi-chevron-right ms-auto"></i>
@@ -22,5 +23,6 @@
     {% empty %}
     <p class="small text-muted mb-1">{% trans "No pending workflow actions." %}</p>
     {% endfor %}
+    {% endwith %}
   </div>
 </section>

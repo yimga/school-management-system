@@ -20,7 +20,7 @@
           <strong>{% trans "Needs eyes" %}</strong>
           <em>{% trans "Open / acknowledged" %}</em>
         </div>
-        <span class="rmc-globe-deck-v2__inc-n">{% with open_n=incident_counts.open|default:0 ack_n=incident_counts.acknowledged|default:0 %}{{ open_n|add:ack_n }}{% endwith %}</span>
+        <span class="rmc-globe-deck-v2__inc-n">{% with open_n=incident_counts.open|default:0 ack_n=incident_counts.acknowledged|default:0 %}{{ open_n|add:ack_n }}{% endwith %}</span>{# default-fallback-allow: ack_n bound by enclosing with #}
       </div>
       <div class="rmc-globe-deck-v2__inc rmc-globe-deck-v2__inc--good">
         <div>

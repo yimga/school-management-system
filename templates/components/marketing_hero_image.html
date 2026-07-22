@@ -19,7 +19,7 @@ corners, hairline border, terracotta accent dot in the bottom-left corner.
 The figure inherits .rmc-reveal--scale on first viewport entry.
 {% endcomment %}
 {% with slug=hero_slug|default:"home" %}
-{% with webp_path="images/marketing/heroes/hero-"|add:slug|add:".webp" jpg_path="images/marketing/heroes/hero-"|add:slug|add:".jpg" %}
+{% with webp_path="images/marketing/heroes/hero-"|add:slug|add:".webp" jpg_path="images/marketing/heroes/hero-"|add:slug|add:".jpg" %}{# default-fallback-allow: slug bound by enclosing with #}
 <figure class="rmc-hero-figure rmc-reveal rmc-reveal--scale" data-hero-slug="{{ slug }}">
   <picture>
     <source srcset="{% static webp_path %}" type="image/webp">

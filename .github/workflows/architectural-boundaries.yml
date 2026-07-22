@@ -1279,10 +1279,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run scanner --strict
-        # Django eagerly resolves EVERY |default: / |default_if_none: argument.
-        # A missing top-level context var 500s the page even when the left-hand
-        # value is set (ops_surface on /super/schools/ + /configuration/, 2026-07-22).
-        # Scans all templates/** and apps/*/templates/** — not only {% include with %}.
+        # Django eagerly resolves EVERY |default: / |default_if_none: / |slice: /
+        # |add: argument. A missing top-level context var 500s the page even when
+        # the left-hand value is set (ops_surface on /super/schools/ + /configuration/,
+        # and |slice:backend_max_items_slice on backend dashboard).
+        # Scans all templates/** and apps/*/templates/**.
         run: |
           python scripts/scan_include_with_default_context_var.py --strict
           python -m unittest scripts.tests.test_scan_include_with_default_context_var -v

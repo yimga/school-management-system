@@ -805,6 +805,8 @@ backend-shell dashboard-page-backend
 
   <details class="de-secondary-collapsible mb-2">
   <summary>{% trans "Expand modular workspace & planner rail" %}</summary>
+  {% comment %}Literal |default:":5" — never |slice:backend_max_items_slice (eager filter-arg 500).{% endcomment %}
+  {% with list_slice=backend_max_items_slice|default:":5" %}
   <div class="backend-v2-workspace {% if not backend_show_workspace_rail %}backend-v2-workspace--single{% endif %}">
     <div
       id="dashboard-layout"
@@ -864,7 +866,7 @@ backend-shell dashboard-page-backend
             {% endif %}
             <div class="dashboard-card-scroll">
               <div class="backend-v2-list">
-                {% for student in at_risk_students|slice:backend_max_items_slice %}
+                {% for student in at_risk_students|slice:list_slice %}{# default-fallback-allow: list_slice bound by enclosing with #}
                 <div class="backend-v2-list-item">
                   <div>
                     <strong>{{ student.name }}</strong>
@@ -912,7 +914,7 @@ backend-shell dashboard-page-backend
             </div>
             <div class="dashboard-card-scroll">
               <div class="backend-v2-list">
-                {% for student in recent_admissions|slice:backend_max_items_slice %}
+                {% for student in recent_admissions|slice:list_slice %}{# default-fallback-allow: list_slice bound by enclosing with #}
                 <div class="backend-v2-list-item">
                   <div>
                     <strong>{{ student.name }}</strong>
@@ -947,7 +949,7 @@ backend-shell dashboard-page-backend
             </div>
             <div class="dashboard-card-scroll">
               <div class="backend-v2-list">
-                {% for activity in recent_activities|slice:backend_max_items_slice %}
+                {% for activity in recent_activities|slice:list_slice %}{# default-fallback-allow: list_slice bound by enclosing with #}
                 <div class="backend-v2-list-item">
                   <div>
                     <strong>{{ activity.object|truncatechars:40 }}</strong>
@@ -979,7 +981,7 @@ backend-shell dashboard-page-backend
             </div>
             <div class="dashboard-card-scroll">
               <div class="backend-v2-list">
-                {% for student in top_performing_students|slice:backend_max_items_slice %}
+                {% for student in top_performing_students|slice:list_slice %}{# default-fallback-allow: list_slice bound by enclosing with #}
                 <div class="backend-v2-list-item">
                   <div>
                     <strong>{{ student.name }}</strong>
@@ -1065,7 +1067,7 @@ backend-shell dashboard-page-backend
             <span class="rmc-badge rmc-badge--muted" id="backendOpsWatchUpdatedAt">{% blocktrans with time=local_time|date:"h:i A" %}Live - {{ time }}{% endblocktrans %}</span>
           </div>
           <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}" data-finance-url="{{ finance_request_link }}">
-            {% for item in operations_watch|slice:backend_max_items_slice %}
+            {% for item in operations_watch|slice:list_slice %}{# default-fallback-allow: list_slice bound by enclosing with #}
             <div class="backend-ops-item {% if item.status == 'warn' %}is-warn{% elif item.status == 'danger' %}is-danger{% endif %}" data-ops-key="{{ item.key }}">
               <div class="backend-ops-item-left">
                 <span class="backend-ops-dot"></span>
@@ -1098,7 +1100,7 @@ backend-shell dashboard-page-backend
             <span class="rmc-badge rmc-badge--muted">{% trans "Top 5" %}</span>
           </div>
           <div class="backend-quick-links-list">
-            {% for quick in quick_links|slice:backend_max_items_slice %}
+            {% for quick in quick_links|slice:list_slice %}{# default-fallback-allow: list_slice bound by enclosing with #}
             <a class="backend-quick-link" href="{{ quick.url }}" data-quick-link-id="{{ quick.id|default:'' }}">
               <span><i class="bi {{ quick.icon }} me-1"></i>{{ quick.label }}</span>
               <i class="bi bi-chevron-right small"></i>
@@ -1130,7 +1132,7 @@ backend-shell dashboard-page-backend
                 <span class="small fw-semibold text-muted">{% trans "Upcoming events" %}</span>
               </div>
               <div class="backend-planner-list backend-planner-events">
-                {% for item in upcoming_events|slice:backend_max_items_slice %}
+                {% for item in upcoming_events|slice:list_slice %}{# default-fallback-allow: list_slice bound by enclosing with #}
                 <div class="backend-quick-link d-flex align-items-start gap-2 small py-1">
                   <span class="rmc-badge flex-shrink-0 backend-planner-date-badge">{{ item.when|format_date }}</span>
                   <div class="min-width-0">
@@ -1162,6 +1164,7 @@ backend-shell dashboard-page-backend
   </div>
   {% comment %} v3.99.24: promoted cockpit widgets land here (data-widget-id ensures drag/hide/undo apply) {% endcomment %}
   {% include "partials/cockpit/_promoted_dashboard_widgets.html" %}
+  {% endwith %}
   </details>
   {{ command_palette|json_script:"backend-command-palette-data" }}
   <div id="backendCommandPalette" class="backend-cmd-palette" aria-hidden="true">

@@ -77,7 +77,7 @@
             {% firstof form.primary_language_code primary_language_code form.language_code language_code '' as rc_primary %}
             {% with chosen_csv=rc_csv primary=rc_primary %}
             {% for lang in country_pack.languages %}
-              {% with code_marker="|"|add:lang.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}
+              {% with code_marker="|"|add:lang.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}{# default-fallback-allow: chosen_csv bound by enclosing with #}
               <label class="rmc-signup-type-card {% if code_marker in chosen_marker or not chosen_csv and lang.is_default %}rmc-signup-type-card--selected{% endif %}{% if primary == lang.code %} rmc-signup-type-card--primary{% endif %}"
                      data-rmc-language-code="{{ lang.code }}">
                 <input type="checkbox" name="language_codes" value="{{ lang.code }}"

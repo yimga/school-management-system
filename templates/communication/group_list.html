@@ -45,7 +45,7 @@
     <div class="col-12 col-md-4">
       <div class="rmc-stat-card h-100">
         <div class="rmc-stat-card__eyebrow">{% trans "Total" %}</div>
-        <div class="rmc-stat-card__value">{{ dept_count|add:mine_count }}</div>
+        <div class="rmc-stat-card__value">{{ dept_count|add:mine_count }}</div>{# default-fallback-allow: mine_count bound by enclosing with #}
         <div class="rmc-stat-card__label">{% trans "Active conversations" %}</div>
       </div>
     </div>

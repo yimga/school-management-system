@@ -63,6 +63,15 @@ class OperationalCenterFrameIncludeTests(SimpleTestCase):
         with self.assertRaises(VariableDoesNotExist):
             tpl.render(Context({"a": "present"}))
 
-    def test_literal_default_is_safe_when_fallback_context_absent(self):
-        tpl = Template('{{ a|default:"literal-ok" }}')
-        self.assertEqual(tpl.render(Context({})), "literal-ok")
+    def test_slice_filter_arg_raises_when_limit_missing(self):
+        tpl = Template("{% for x in items|slice:lim %}{{ x }}{% endfor %}")
+        with self.assertRaises(VariableDoesNotExist):
+            tpl.render(Context({"items": [1, 2, 3]}))
+
+    def test_slice_with_literal_default_binding_is_safe(self):
+        tpl = Template(
+            '{% with lim=backend_max_items_slice|default:":2" %}'
+            "{% for x in items|slice:lim %}{{ x }}{% endfor %}"
+            "{% endwith %}"
+        )
+        self.assertEqual(tpl.render(Context({"items": [1, 2, 3, 4]})), "12")
