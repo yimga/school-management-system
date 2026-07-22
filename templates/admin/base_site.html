@@ -452,7 +452,7 @@
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="preview-cue preview-cue--active">
       <span>
-        <strong>Preview mode</strong> &mdash; {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}
+        <strong>Preview mode</strong> &mdash; {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." }}
       </span>
       <div class="preview-cue-actions">
         <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>

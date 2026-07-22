@@ -48,7 +48,8 @@ Staff theme: /backend uses same ThemePack as /admin. Operator/platform uses dark
   {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
 }
 {% else %}
-{% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
+{% comment %}Never |default:SITE_THEME — Django eagerly resolves filter args and 500s if missing.{% endcomment %}
+{% if SITE_ADMIN_THEME %}{% with theme=SITE_ADMIN_THEME %}
 :root {
   {% if theme.primary_color %}--school-primary: {{ theme.primary_color }};{% endif %}
   {% if theme.accent_color %}--school-accent: {{ theme.accent_color }};{% endif %}
@@ -59,7 +60,18 @@ Staff theme: /backend uses same ThemePack as /admin. Operator/platform uses dark
   {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
   {% if ADMIN_DASHBOARD_PALETTE_CSS_VARS %}{{ ADMIN_DASHBOARD_PALETTE_CSS_VARS }}{% endif %}
 }
-{% endwith %}
+{% endwith %}{% else %}{% with theme=SITE_THEME %}
+:root {
+  {% if theme.primary_color %}--school-primary: {{ theme.primary_color }};{% endif %}
+  {% if theme.accent_color %}--school-accent: {{ theme.accent_color }};{% endif %}
+  --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
+  --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
+  {% if SITE and SITE.header_bg_color %}--header-brand-bg: {{ SITE.header_bg_color }};{% endif %}
+  {% if SITE and SITE.footer_bg_color %}--footer-bg: {{ SITE.footer_bg_color }};{% endif %}
+  {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
+  {% if ADMIN_DASHBOARD_PALETTE_CSS_VARS %}{{ ADMIN_DASHBOARD_PALETTE_CSS_VARS }}{% endif %}
+}
+{% endwith %}{% endif %}
 {% endif %}
 {% endblock %}
 

@@ -1269,7 +1269,7 @@ jobs:
           python scripts/audit_template_render_safety.py --compare
 
   include-with-default-context-var:
-    name: "Include with= |default:missing_var (VariableDoesNotExist 500)"
+    name: "|default:missing_var filter-arg (VariableDoesNotExist 500)"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1279,8 +1279,10 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run scanner --strict
-        # Catches {% include … with x|default:ops_surface %} class that 500'd
-        # /super/schools/ + /configuration/ on 2026-07-22.
+        # Django eagerly resolves EVERY |default: / |default_if_none: argument.
+        # A missing top-level context var 500s the page even when the left-hand
+        # value is set (ops_surface on /super/schools/ + /configuration/, 2026-07-22).
+        # Scans all templates/** and apps/*/templates/** — not only {% include with %}.
         run: |
           python scripts/scan_include_with_default_context_var.py --strict
           python -m unittest scripts.tests.test_scan_include_with_default_context_var -v

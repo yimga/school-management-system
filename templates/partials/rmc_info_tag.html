@@ -16,7 +16,7 @@
     data-bs-placement="{{ placement|default:'top' }}"
     data-bs-title="{{ title }}"
     data-bs-content="{{ body }}"
-    data-rmc-info-what="{{ what|default:body }}"
+    data-rmc-info-what="{% firstof what body %}"
     {% if why %}data-rmc-info-why="{{ why }}"{% endif %}
     {% if watch_outs %}data-rmc-info-watch="{{ watch_outs }}"{% endif %}
     {% if chips %}data-rmc-info-chips="{{ chips }}"{% endif %}

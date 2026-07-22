@@ -56,7 +56,8 @@ backend-shell dashboard-page-backend
      stay inline here because they bind to Django template variables (theme.primary_color,
      theme.accent_color) which can't be resolved at static-file collection time. {% endcomment %}
   <style>
-  {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
+  {% comment %}Never |default:SITE_THEME — Django eagerly resolves filter args and 500s if missing.{% endcomment %}
+  {% if SITE_ADMIN_THEME %}{% with theme=SITE_ADMIN_THEME %}
   :root {
     --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }});
     --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }});
@@ -74,7 +75,25 @@ backend-shell dashboard-page-backend
     --chart-color-1: var(--brand-primary);
     --chart-color-2: var(--brand-accent);
   }
-  {% endwith %}
+  {% endwith %}{% else %}{% with theme=SITE_THEME %}
+  :root {
+    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }});
+    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }});
+    --brand-success: var(--school-success, {{ SITE.success_color|default:"#22c55e" }});
+    --brand-warning: var(--school-warning, {{ SITE.warning_color|default:"#fbbf24" }});
+    --brand-danger: var(--school-danger, {{ SITE.danger_color|default:"#ef4444" }});
+    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }});
+    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }});
+  }
+  body[data-dashboard-page="backend"] {
+    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }});
+    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }});
+    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#4f46e5" }});
+    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#10b981" }});
+    --chart-color-1: var(--brand-primary);
+    --chart-color-2: var(--brand-accent);
+  }
+  {% endwith %}{% endif %}
   </style>
 {% endblock %}
 

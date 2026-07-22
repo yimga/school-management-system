@@ -1,10 +1,8 @@
-"""Stdlib tests for scan_include_with_default_context_var."""
+"""Stdlib tests for scan_include_with_default_context_var (eager |default:var 500s)."""
 
 from __future__ import annotations
 
 import importlib.util
-import sys
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -21,7 +19,7 @@ def _load():
 
 
 class ScanIncludeWithDefaultContextVarTests(unittest.TestCase):
-    def test_flags_ops_surface_default(self):
+    def test_flags_ops_surface_in_include(self):
         mod = _load()
         text = (
             '{% include "x.html" with page_host=page_host|default:ops_surface'
@@ -30,6 +28,21 @@ class ScanIncludeWithDefaultContextVarTests(unittest.TestCase):
         findings = mod._scan_text(Path("t.html"), text)
         self.assertEqual(len(findings), 1)
         self.assertEqual(findings[0][1], "ops_surface")
+
+    def test_flags_plain_variable_default_anywhere(self):
+        """Django 5.2 raises even outside {% include %} when the default arg is missing."""
+        mod = _load()
+        text = "{{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:\"x\" }}"
+        findings = mod._scan_text(Path("t.html"), text)
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0][1], "PREVIEW_NOTE")
+
+    def test_flags_with_tag_default(self):
+        mod = _load()
+        text = "{% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}{{ theme }}{% endwith %}"
+        findings = mod._scan_text(Path("t.html"), text)
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0][1], "SITE_THEME")
 
     def test_allows_literal_and_gettext_defaults(self):
         mod = _load()
@@ -44,6 +57,15 @@ class ScanIncludeWithDefaultContextVarTests(unittest.TestCase):
         text = (
             '{% include "x.html" with report_subtitle=invoice.reference'
             "|default:invoice.id %}"
+        )
+        self.assertEqual(mod._scan_text(Path("t.html"), text), [])
+
+    def test_honors_default_fallback_allow_marker(self):
+        mod = _load()
+        text = (
+            "{% for s in students %}\n"
+            "{{ s.get_full_name|default:s }}{# default-fallback-allow: s is for-loop student #}\n"
+            "{% endfor %}"
         )
         self.assertEqual(mod._scan_text(Path("t.html"), text), [])
 

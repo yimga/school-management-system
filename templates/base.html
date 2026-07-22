@@ -1,6 +1,6 @@
 {% load i18n %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1"
+<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}" data-rmc-regional-ui="1"
       {% if HIGH_CONTRAST_MODE or REDUCED_MOTION %}class="{% if HIGH_CONTRAST_MODE %}pref-high-contrast{% endif %}{% if REDUCED_MOTION %} pref-reduced-motion{% endif %}"{% endif %}
       {% comment %} v3 (2026-05-18) attribute contract: data-theme is always EFFECTIVE
          (light|dark), never "system". Raw preference lives in

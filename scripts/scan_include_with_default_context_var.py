@@ -1,14 +1,26 @@
 #!/usr/bin/env python3
-"""Fail CI when {% include … with %} uses |default:<context_var>.
+"""Fail CI when templates use |default:<context_var> / |default_if_none:<context_var>.
 
-Django resolves every filter argument in an include ``with=`` clause eagerly.
-A missing context variable raises VariableDoesNotExist and 500s the page —
-even when the left-hand value is already set. Literal defaults
-(``|default:""``, ``|default:None``, ``|default:False``, ``|default:_("…")``)
-are safe.
+Django resolves every filter *argument* eagerly — even when the left-hand value
+is already set. A missing context variable raises VariableDoesNotExist and 500s
+the page. Proven on Django 5.2:
+
+    {{ a|default:b }}          # raises if b missing, even when a is set
+    {% with z=a|default:b %}   # same
+    {% include "x" with y=a|default:b %}  # same
+
+Safe arguments: string/number literals, None/True/False, _("…") / gettext,
+and ``forloop.*`` (only valid inside ``{% for %}``).
+
+Loop / ``{% with %}``-bound names that are proven in-scope may carry:
+
+    {# default-fallback-allow: <reason> #}
+
+on the same line or the line above.
 
 Introduced after production 500s on /super/schools/ and /configuration/
-(``Failed lookup for key [ops_surface]`` in rmc_operational_center_frame.html).
+(``Failed lookup for key [ops_surface]``). Expanded 2026-07-22 to scan the
+entire template tree, not only ``{% include with %}``.
 
 Usage:
   python scripts/scan_include_with_default_context_var.py
@@ -17,68 +29,92 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-TEMPLATES = ROOT / "templates"
 
-# Match |default:identifier that is NOT a safe literal / builtin / gettext.
-# Safe: "", '', None, True, False, numbers, _("…"), _('…')
+# Match |default:identifier / |default_if_none:identifier that is NOT a safe
+# literal / builtin / gettext call.
 _DEFAULT_VAR_RE = re.compile(
-    r"\|\s*default\s*:\s*(?!_?\(|[\"']|None\b|True\b|False\b|\d)"
+    r"\|\s*default(?:_if_none)?\s*:\s*(?!_?\(|[\"']|None\b|True\b|False\b|\d)"
     r"([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)"
 )
 
-# Strip Django/HTML comments so retired patterns don't false-positive.
 _COMMENT_RE = re.compile(
     r"\{#.*?#\}|\{%\s*comment\s*%\}.*?\{%\s*endcomment\s*%\}|<!--.*?-->",
     re.DOTALL,
 )
 
-# Multi-line {% include … %} blocks (with= may wrap).
-_INCLUDE_RE = re.compile(r"\{%\s*include\b.*?%\}", re.DOTALL)
+# Same-line or previous-line allow marker (kept in source comments that
+# _COMMENT_RE strips — so we scan the raw text for markers).
+_ALLOW_RE = re.compile(
+    r"\{#\s*default-fallback-allow\s*:\s*[^#]+?#\}|"
+    r"<!--\s*default-fallback-allow\s*:\s*[^-]+?-->",
+    re.IGNORECASE,
+)
+
+_SAFE_ROOTS = frozenset({"True", "False", "None", "forloop"})
+
+
+def _template_roots() -> list[Path]:
+    roots = [ROOT / "templates"]
+    apps = ROOT / "apps"
+    if apps.is_dir():
+        roots.extend(sorted(apps.glob("*/templates")))
+    return [r for r in roots if r.is_dir()]
+
+
+def _line_allowed(raw_lines: list[str], line_idx: int) -> bool:
+    """True when this line or the previous non-empty line carries an allow marker."""
+    for idx in (line_idx, line_idx - 1):
+        if 0 <= idx < len(raw_lines) and _ALLOW_RE.search(raw_lines[idx]):
+            return True
+    return False
 
 
 def _scan_text(path: Path, text: str) -> list[tuple[int, str, str]]:
     findings: list[tuple[int, str, str]] = []
+    raw_lines = text.splitlines()
+    # Strip comments for match positions, but keep newlines so line numbers hold.
     cleaned = _COMMENT_RE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
-    for match in _INCLUDE_RE.finditer(cleaned):
-        block = match.group(0)
-        if " with " not in block and "\nwith " not in block:
-            # still allow `with` immediately after newline inside tag
-            if not re.search(r"\bwith\b", block):
-                continue
-        for var_match in _DEFAULT_VAR_RE.finditer(block):
-            var = var_match.group(1)
-            # Dotted paths (invoice.id, thread.description) only fail when the
-            # root object is missing — same failure mode as any bare include
-            # kwarg. The production 500 class is a missing TOP-LEVEL name used
-            # as a default arg (ops_surface, masthead_eyebrow).
-            if "." in var:
-                continue
-            line_no = cleaned.count("\n", 0, match.start() + var_match.start()) + 1
-            snippet = " ".join(block.split())[:160]
-            findings.append((line_no, var, snippet))
+    for match in _DEFAULT_VAR_RE.finditer(cleaned):
+        var = match.group(1)
+        root = var.split(".", 1)[0]
+        if root in _SAFE_ROOTS:
+            continue
+        # Dotted paths (invoice.id, request.user.role) only fail when the root
+        # object is missing — same class as any bare {{ invoice.id }}. The
+        # production 500 class is a missing TOP-LEVEL name used as a filter arg
+        # (ops_surface, PREVIEW_NOTE, masthead_eyebrow).
+        if "." in var:
+            continue
+        line_no = cleaned.count("\n", 0, match.start()) + 1
+        if _line_allowed(raw_lines, line_no - 1):
+            continue
+        start = max(0, match.start() - 48)
+        end = min(len(cleaned), match.end() + 48)
+        snippet = " ".join(cleaned[start:end].split())[:160]
+        findings.append((line_no, var, snippet))
     return findings
 
 
 def scan() -> list[dict]:
     out: list[dict] = []
-    if not TEMPLATES.is_dir():
-        return out
-    for path in sorted(TEMPLATES.rglob("*.html")):
-        text = path.read_text(encoding="utf-8", errors="replace")
-        for line_no, var, snippet in _scan_text(path, text):
-            out.append(
-                {
-                    "path": str(path.relative_to(ROOT)).replace("\\", "/"),
-                    "line": line_no,
-                    "var": var,
-                    "snippet": snippet,
-                }
-            )
+    for base in _template_roots():
+        for path in sorted(base.rglob("*.html")):
+            text = path.read_text(encoding="utf-8", errors="replace")
+            for line_no, var, snippet in _scan_text(path, text):
+                out.append(
+                    {
+                        "path": path.relative_to(ROOT).as_posix(),
+                        "line": line_no,
+                        "var": var,
+                        "snippet": snippet,
+                    }
+                )
     return out
 
 
@@ -89,14 +125,13 @@ def main() -> int:
     args = parser.parse_args()
     findings = scan()
     if args.json:
-        import json
-
         print(json.dumps({"finding_count": len(findings), "findings": findings}, indent=2))
     else:
+        label = "default-context-var-filter-arg"
         if not findings:
-            print("include-with-default-context-var: 0 finding(s)")
+            print(f"{label}: 0 finding(s)")
         else:
-            print(f"include-with-default-context-var: {len(findings)} finding(s)")
+            print(f"{label}: {len(findings)} finding(s)")
             for f in findings:
                 print(f"  {f['path']}:{f['line']}  |default:{f['var']}  :: {f['snippet']}")
     if args.strict and findings:

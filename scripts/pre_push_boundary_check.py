@@ -61,6 +61,7 @@ GATES: list[tuple[str, list[str]]] = [
     ("template-render-safety", ["audit_template_render_safety.py", "--compare"]),
     ("attribute-context-includes", ["scan_attribute_context_includes.py"]),
     # {% include with x|default:missing_var %} → VariableDoesNotExist 500 (ops_surface class).
+    # |default:missing_var anywhere (not only {% include with %}) → VariableDoesNotExist 500.
     ("include-with-default-context-var", ["scan_include_with_default_context_var.py", "--strict"]),
     ("service-worker-version", ["verify_service_worker_version.py", "--check-monotonic"]),
     # Approval HTML → live admin: fails if build lock / visible chip / grid drift.

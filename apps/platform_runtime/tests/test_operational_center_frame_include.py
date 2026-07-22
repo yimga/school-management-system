@@ -3,11 +3,15 @@
 Production 2026-07-22: /super/schools/ and /configuration/ raised
 VariableDoesNotExist for ops_surface inside
 ``{% include … with page_host=page_host|default:ops_surface|… %}``.
+
+Django resolves every ``|default:`` / ``|default_if_none:`` *argument*
+eagerly — even when the left-hand value is already set. Literal defaults only.
 """
 
 from __future__ import annotations
 
 from django.template import Context, Template
+from django.template.base import VariableDoesNotExist
 from django.test import SimpleTestCase
 
 
@@ -52,3 +56,13 @@ class OperationalCenterFrameIncludeTests(SimpleTestCase):
         )
         html = tpl.render(Context({"nav_groups": []}))
         self.assertIn("rmc-operational-center-frame--tenant", html)
+
+    def test_default_filter_arg_raises_even_when_left_hand_is_set(self):
+        """Seal: Django 5.2 eagerly resolves |default: args (not short-circuit)."""
+        tpl = Template("{{ a|default:missing_fallback }}")
+        with self.assertRaises(VariableDoesNotExist):
+            tpl.render(Context({"a": "present"}))
+
+    def test_literal_default_is_safe_when_fallback_context_absent(self):
+        tpl = Template('{{ a|default:"literal-ok" }}')
+        self.assertEqual(tpl.render(Context({})), "literal-ok")

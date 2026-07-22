@@ -8,7 +8,7 @@ in a tight pair. Weather data is operator-published / future cron-fed.
 {% if cockpit.calendar_weather.enabled and cockpit.calendar_weather.days %}
 {% with cw=cockpit.calendar_weather %}
 <section class="tp-cal-weather" aria-label="{{ cw.title }}" data-rmc-tp-cal-weather data-rmc-cockpit-section="calendar_weather"
-         data-local-timezone="{{ cw.local_timezone|default:HEADER_WEATHER_TIMEZONE|default:'UTC' }}"
+         data-local-timezone="{{ cw.local_timezone|default:'UTC' }}"
          data-global-timezone="UTC">
   <header class="tp-cal-weather__head">
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

@@ -52,7 +52,7 @@
 <div class="container-fluid px-3 px-lg-4">
 <div class="rmc-banner rmc-banner--warning rounded-3 mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
   <div class="small">
-    <strong class="text-uppercase">{% trans "Preview mode" %}</strong> - {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:_("Changes are staged and will not persist until preview is cleared.") }}
+    <strong class="text-uppercase">{% trans "Preview mode" %}</strong> - {{ PREVIEW_BANNER_TEXT|default:_("Changes are staged and will not persist until preview is cleared.") }}
   </div>
   <div class="d-flex gap-2">
     <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle preview" %}</a>

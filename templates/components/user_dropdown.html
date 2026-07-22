@@ -2,7 +2,7 @@
 {% load terminology_tags %}
 {% comment %} Enhanced user dropdown menu — i18n-wrapped 2026-05-12. {% endcomment %}
 {% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 as rmc_unread_count %}
-{% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
+{% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}{# default-fallback-allow: request always present on authenticated shell #}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="user-dropdown-wrapper" data-rmc-shell-viewport-safe="1"
      data-rmc-unread-endpoint="{% url 'api:notification-unread-count' %}"

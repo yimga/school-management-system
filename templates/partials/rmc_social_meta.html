@@ -53,8 +53,10 @@
 {% else %}
   <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/runmycampus-og-card.png' %}">
 {% endif %}
-{% if SITE.twitter_handle or TWITTER_SITE_HANDLE %}
-  <meta name="twitter:site" content="{{ SITE.twitter_handle|default:TWITTER_SITE_HANDLE }}">
+{% if SITE.twitter_handle %}
+  <meta name="twitter:site" content="{{ SITE.twitter_handle }}">
+{% elif TWITTER_SITE_HANDLE %}
+  <meta name="twitter:site" content="{{ TWITTER_SITE_HANDLE }}">
 {% endif %}
 {% if twitter_creator %}<meta name="twitter:creator" content="{{ twitter_creator }}">{% endif %}
 
