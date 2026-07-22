@@ -191,6 +191,8 @@
     {% comment %} 2026-07-22: full-bleed seal + /super/ header chrome seal LAST. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-header-super-chrome-parity.css' %}">
+    {% comment %} 2026-07-22: header/footer/copilot/density finish seals (beats deferred bundles). {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-chrome-finish.css' %}">
     {% endif %}
     {% if request.public_host_kind == 'manager' %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">

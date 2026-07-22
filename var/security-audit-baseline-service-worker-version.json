@@ -1,12 +1,12 @@
 {
   "date": "2026-07-22",
-  "generated_at": "2026-07-22T11:05:00+00:00",
+  "generated_at": "2026-07-22T12:53:06+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 11,
-  "raw": "sms-v4.06.11-header-super-chrome-2026-07-22",
-  "reason": "Sync lock to live SW after Admin OS full-bleed + header-super-chrome co-ship",
+  "patch": 13,
+  "raw": "sms-v4.06.13-tenant-chrome-rootfix-2026-07-22",
+  "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "header-super-chrome",
+  "slug": "tenant-chrome-rootfix",
   "valid": true
 }

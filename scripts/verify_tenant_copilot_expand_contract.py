@@ -55,6 +55,22 @@ def main() -> int:
     if "body[data-rmc-tenant-copilot-rail=\"1\"][data-copilot=\"expanded\"]" not in compact:
         findings.append("rmc-platform-vertical-compact.css: missing tenant expand width rule")
 
+    finish = _read("static/css/rmc-tenant-chrome-finish.css")
+    for needle in (
+        'body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .rmc-tenant-portal-copilot-mount',
+        "width: 360px !important",
+        'data-rmc-copilot-shell="expanded"',
+        "display: none !important",
+        "table.table.table-sm.rmc-data-table[data-density=\"compact\"]",
+        "rmc-tenant-chrome-finish.css",
+    ):
+        if needle == "rmc-tenant-chrome-finish.css":
+            if needle not in portal:
+                findings.append("portal_base.html: must load rmc-tenant-chrome-finish.css")
+            continue
+        if needle not in finish:
+            findings.append(f"rmc-tenant-chrome-finish.css: missing '{needle}'")
+
     if "data-rmc-copilot-mount" not in js:
         findings.append("rmc-copilot-rail.js: findShell must detect floating copilot mount")
 

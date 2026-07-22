@@ -66,8 +66,12 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-
      rmc-tenant-shell-metrics.js for the copilot rail clearance. */
   max-height: none;
   overflow: visible;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   border-top: 1px solid var(--hairline);
-  background: var(--surface-popover, #fff); /* off-token-allow: opaque-pin-fallback */
+  /* Theme tokens only — never hard-fallback to white (spoils dark skins). */
+  background: var(--surface-canvas, var(--surface-bg));
 }
 
 /* FULL-BLEED HEADER + LIVE BANNER (2026-06-28) — owner: "the header and footer

@@ -740,7 +740,12 @@ def _tenant_ai_copilot_rail_defaults() -> dict[str, Any]:
 
 
 def _resolve_tenant_copilot_default_state(request) -> str:
-    """Preview parity (tenant-admin-workspace-preview): open panel during onboarding."""
+    """Preview parity: open panel during onboarding (<70%), else collapsed.
+
+    Width/visibility for expanded are sealed in ``rmc-tenant-chrome-finish.css``
+    (360px when expanded) so auto-open never crushes the Chat/Lens tab strip
+    into the 56px icon rail again.
+    """
     try:
         from apps.platform_runtime.onboarding import get_school_onboarding_progress
 

@@ -1,0 +1,179 @@
+/**
+ * rmc-tenant-chrome-finish.css — 2026-07-22
+ * ------------------------------------------------------------
+ * Seals only the regressions that were still broken in screenshots:
+ *   - header search not stretching like /super/
+ *   - expanded copilot crushed into the 56px icon rail
+ *   - footer not full-bleed under the pinned canvas chrome
+ *   - Compact/Cozy/Roomy defeated by Bootstrap .table-sm
+ *
+ * Load LAST on the tenant portal shell. Do not invent new chrome —
+ * only reinforce contracts that already exist.
+ */
+
+/* ── 1. Header — brand | nav | actions(grow) with search stretch ─────────
+   Use flex (not grid): portal_base can inject a Home link between brand and
+   nav; a 3-column grid stacks that link or invents an implicit track.
+   Growth belongs on .tp-actions so search can flex like /super/. */
+@media (min-width: 992px) {
+  #portalHeader > .container-fluid {
+    display: flex !important; /* style-allow: tenant-chrome-finish-header-flex */
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  #portalHeader > .container-fluid > #preview-header-brand,
+  #portalHeader > .container-fluid > .tp-primary-nav-inline {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: none;
+    min-width: 0;
+  }
+
+  #portalHeader > .container-fluid > .tp-header__vrule {
+    display: none !important;
+  }
+
+  #portalHeader > .container-fluid > .tp-actions.topbar-actions {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    min-width: 0;
+  }
+
+  #portalHeader .topbar-search.header-search-container {
+    flex: 1 1 220px !important;
+    width: auto !important;
+    min-width: 160px !important;
+    max-width: min(420px, 35vw) !important;
+    margin-right: auto !important;
+    margin-left: 0 !important;
+  }
+
+  #portalHeader .topbar-controls,
+  #portalHeader .user-dropdown-wrapper {
+    flex: 0 0 auto !important;
+    margin-left: 0 !important;
+  }
+}
+
+/* ── 2. Copilot — expanded MUST be 360px; collapsed MUST hide panel ──
+   Honor BOTH data-copilot and data-rmc-copilot-shell (JS mirrors both). */
+body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
+  overflow: hidden !important;
+}
+
+body[data-rmc-tenant-copilot-rail="1"]:not([data-copilot="expanded"]):not([data-rmc-copilot-shell="expanded"])
+  .rmc-tenant-portal-copilot-mount,
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="collapsed"]
+  .rmc-tenant-portal-copilot-mount {
+  --rmc-app-shell-copilot-w: 56px;
+  width: 56px !important; /* style-allow: tenant-copilot-collapsed-width-seal */
+  max-width: 56px !important;
+}
+
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .rmc-tenant-portal-copilot-mount,
+body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-shell="expanded"] .rmc-tenant-portal-copilot-mount {
+  --rmc-app-shell-copilot-w: 360px;
+  width: 360px !important; /* style-allow: tenant-copilot-expanded-width-seal */
+  max-width: 360px !important;
+}
+
+body[data-rmc-tenant-copilot-rail="1"]:not([data-copilot="expanded"]):not([data-rmc-copilot-shell="expanded"])
+  .rmc-tenant-portal-copilot-mount
+  .lx-copilot__expanded,
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="collapsed"]
+  .rmc-tenant-portal-copilot-mount
+  .lx-copilot__expanded {
+  display: none !important;
+}
+
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"]
+  .rmc-tenant-portal-copilot-mount
+  .lx-copilot__expanded,
+body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-shell="expanded"]
+  .rmc-tenant-portal-copilot-mount
+  .lx-copilot__expanded {
+  display: flex !important;
+}
+
+body[data-rmc-tenant-copilot-rail="1"]:not([data-copilot="expanded"]):not([data-rmc-copilot-shell="expanded"])
+  .rmc-tenant-portal-copilot-mount
+  .lx-copilot__collapsed,
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="collapsed"]
+  .rmc-tenant-portal-copilot-mount
+  .lx-copilot__collapsed {
+  display: flex !important;
+}
+
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"]
+  .rmc-tenant-portal-copilot-mount
+  .lx-copilot__collapsed,
+body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-shell="expanded"]
+  .rmc-tenant-portal-copilot-mount
+  .lx-copilot__collapsed {
+  display: none !important;
+}
+
+/* Onboarding may start expanded — main canvas must reserve 360px, not 56px. */
+@media (min-width: 1200px) {
+  body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .portal-main-col,
+  body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] #main-content,
+  body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-shell="expanded"] .portal-main-col,
+  body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-shell="expanded"] #main-content {
+    padding-right: calc(360px + var(--rmc-workspace-edge-gap, 2px));
+  }
+}
+
+/* ── 3. Footer — full-bleed pin only (do NOT repaint light footers dark) ──
+   Dark paint belongs to resolved theme tokens already; forcing
+   body.portal-backend-dark footers dark spoiled light-theme schools. */
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-footer,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > [data-rmc-shell-footer="portal"] {
+  position: relative;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > .tp-v3-shell-footer .rmc-civic-footer,
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > [data-rmc-shell-footer="portal"] .rmc-civic-footer {
+  width: 100% !important;
+  max-width: none !important;
+  border-radius: 0;
+}
+
+/* ── 4. Table density beats Bootstrap .table-sm ───────────────── */
+table.table.table-sm.rmc-data-table[data-density="compact"] > :not(caption) > * > *,
+table.table.table-sm.table-family[data-density="compact"] > :not(caption) > * > *,
+table.table.table-sm.table-density-compact > :not(caption) > * > *,
+table.rmc-data-table.table-density-compact > :not(caption) > * > * {
+  padding: var(--table-density-compact, 0.35rem 0.5rem) !important; /* style-allow: density-beats-table-sm */
+  font-size: var(--type-table, 0.875rem);
+}
+
+table.table.table-sm.rmc-data-table[data-density="comfortable"] > :not(caption) > * > *,
+table.table.table-sm.table-family[data-density="comfortable"] > :not(caption) > * > *,
+table.table.table-sm.table-density-comfortable > :not(caption) > * > *,
+table.rmc-data-table.table-density-comfortable > :not(caption) > * > * {
+  padding: var(--table-density-comfortable, 0.5rem 0.75rem) !important; /* style-allow: density-beats-table-sm */
+  font-size: var(--type-table, 0.875rem);
+}
+
+table.table.table-sm.rmc-data-table[data-density="spacious"] > :not(caption) > * > *,
+table.table.table-sm.table-family[data-density="spacious"] > :not(caption) > * > *,
+table.table.table-sm.table-density-spacious > :not(caption) > * > *,
+table.rmc-data-table.table-density-spacious > :not(caption) > * > * {
+  padding: var(--table-density-spacious, 0.75rem 1rem) !important; /* style-allow: density-beats-table-sm */
+  font-size: var(--type-table, 0.875rem);
+}

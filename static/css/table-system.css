@@ -27,7 +27,9 @@
 .rmc-data-table[data-density="compact"] th,
 .rmc-data-table[data-density="compact"] td,
 .rmc-data-table[data-density="condensed"] th,
-.rmc-data-table[data-density="condensed"] td {
+.rmc-data-table[data-density="condensed"] td,
+table.table.table-sm.rmc-data-table[data-density="compact"] > :not(caption) > * > *,
+table.table.table-sm.table-family[data-density="compact"] > :not(caption) > * > * {
   padding:var(--rmc-lit-9481baa3ea);
   font-size: var(--type-table, 0.875rem);
 }
@@ -36,7 +38,9 @@
 .table-family[data-density="comfortable"] th,
 .table-family[data-density="comfortable"] td,
 .rmc-data-table[data-density="comfortable"] th,
-.rmc-data-table[data-density="comfortable"] td {
+.rmc-data-table[data-density="comfortable"] td,
+table.table.table-sm.rmc-data-table[data-density="comfortable"] > :not(caption) > * > *,
+table.table.table-sm.table-family[data-density="comfortable"] > :not(caption) > * > * {
   padding:var(--rmc-lit-fc3114e4bb);
   font-size: var(--type-table, 0.875rem);
 }
@@ -49,7 +53,9 @@
 .rmc-data-table[data-density="spacious"] th,
 .rmc-data-table[data-density="spacious"] td,
 .rmc-data-table[data-density="expanded"] th,
-.rmc-data-table[data-density="expanded"] td {
+.rmc-data-table[data-density="expanded"] td,
+table.table.table-sm.rmc-data-table[data-density="spacious"] > :not(caption) > * > *,
+table.table.table-sm.table-family[data-density="spacious"] > :not(caption) > * > * {
   padding:var(--rmc-lit-eb4effd5cd);
   font-size: var(--type-table, 0.875rem);
 }

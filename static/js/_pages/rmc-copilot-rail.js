@@ -918,7 +918,22 @@
     });
   }
 
+  function syncInitialShellState() {
+    /* Server may stamp body[data-copilot=expanded|collapsed] before JS loads.
+       Mirror to data-rmc-copilot-shell immediately so CSS that keys on either
+       attribute (width + panel visibility) stays in sync on first paint. */
+    if (!document.body || !document.body.hasAttribute("data-copilot")) { return; }
+    var state = document.body.getAttribute("data-copilot") || "collapsed";
+    if (state !== "expanded" && state !== "collapsed") { state = "collapsed"; }
+    document.body.setAttribute("data-rmc-copilot-shell", state);
+    var shell = document.querySelector(".rmc-app-shell[data-copilot], .rmc-app-shell");
+    if (shell && shell.hasAttribute("data-copilot") === false && document.querySelector("[data-rmc-copilot-rail]")) {
+      shell.setAttribute("data-copilot", state);
+    }
+  }
+
   function boot() {
+    syncInitialShellState();
     dedupeFloatingChrome();
     restoreNotebookPosition();
     applyHistoryStateFromStorage();

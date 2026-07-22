@@ -161,7 +161,7 @@
       b.setAttribute("data-density", d);
       b.textContent = DENSITY_LABELS[d] || d;
       b.addEventListener("click", function () {
-        root.setAttribute("data-rmc-density", d);
+        setPlatformDensity(root, d);
         var p = readJSON(PREFS_KEY); p.density = d; writeJSON(PREFS_KEY, p);
         [].slice.call(seg.children).forEach(function (c) { c.classList.toggle("is-active", c === b); });
       });
@@ -280,7 +280,7 @@
       b.setAttribute("data-density", d);
       b.textContent = DENSITY_LABELS[d] || d;
       b.addEventListener("click", function () {
-        root.setAttribute("data-rmc-density", d);
+        setPlatformDensity(root, d);
         var p = readJSON(PREFS_KEY); p.density = d; writeJSON(PREFS_KEY, p);
         [].slice.call(seg.children).forEach(function (c) { c.classList.toggle("is-active", c === b); });
       });
@@ -499,11 +499,21 @@
   }
 
   // ── density (config default + per-user override) ────────────────────────
+  // design-tokens + table rhythm key off html[data-rmc-density=…]. Sidebar
+  // prefs used to only stamp the nav root — Compact/Cozy/Roomy looked dead.
+  function setPlatformDensity(root, val) {
+    if (DENSITIES.indexOf(val) < 0) { return; }
+    if (root) { root.setAttribute("data-rmc-density", val); }
+    if (document.documentElement) {
+      document.documentElement.setAttribute("data-rmc-density", val);
+    }
+  }
+
   function applyDensity(root) {
     var pref = readJSON(PREFS_KEY).density || readJSON(DENSITY_KEY).d; // PREFS wins; legacy fallback
     var dflt = root.getAttribute("data-rmc-sidebar-density") || "comfortable";
     var val = DENSITIES.indexOf(pref) >= 0 ? pref : dflt;
-    root.setAttribute("data-rmc-density", val);
+    setPlatformDensity(root, val);
   }
 
   // ── 3. live awareness badges ────────────────────────────────────────────

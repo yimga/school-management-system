@@ -282,7 +282,8 @@ body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
   top: var(--rmc-app-shell-header-h, 72px);
   right: 0;
   bottom: 8px;
-  width: var(--rmc-app-shell-copilot-w, 44px);
+  width: var(--rmc-app-shell-copilot-w, 56px);
+  max-width: var(--rmc-app-shell-copilot-w, 56px);
   z-index: var(--rmc-copilot-rail-z, 1042);
   pointer-events: none;
   overflow: hidden;
@@ -298,9 +299,11 @@ body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount .lx-copi
   pointer-events: auto;
 }
 
-body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .rmc-tenant-portal-copilot-mount {
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .rmc-tenant-portal-copilot-mount,
+body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-shell="expanded"] .rmc-tenant-portal-copilot-mount {
   --rmc-app-shell-copilot-w: 360px;
-  width: 360px;
+  width: 360px !important; /* style-allow: tenant-copilot-expanded-must-widen */
+  max-width: 360px !important;
 }
 
 body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-page-help="1"] .rmc-help-contextual-drawer {

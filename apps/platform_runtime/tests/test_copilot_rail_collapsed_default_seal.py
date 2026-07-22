@@ -35,10 +35,28 @@ class CopilotRailCollapsedDefaultSeals(SimpleTestCase):
     def test_every_shell_defaults_the_rail_to_collapsed(self):
         for name, path in _SHELLS.items():
             html = path.read_text(encoding="utf-8")
-            self.assertIn(
-                'data-copilot="collapsed"',
-                html,
-                f"{name} must ship the copilot rail collapsed by default",
+            if name == "admin/base.html":
+                # Admin intentionally has no global rail (see template comment).
+                self.assertNotIn(
+                    'data-copilot="expanded"',
+                    html,
+                    f"{name} must not hardcode an expanded copilot rail",
+                )
+                continue
+            literal = 'data-copilot="collapsed"' in html
+            # portal_base binds runtime state with a collapsed template default
+            # (onboarding may still expand via cockpit_context — width sealed in CSS).
+            templated = (
+                "data-copilot=" in html
+                and (
+                    "|default:'collapsed'" in html
+                    or '|default:"collapsed"' in html
+                )
+            )
+            self.assertTrue(
+                literal or templated,
+                f"{name} must ship the copilot rail collapsed by default "
+                f"(literal data-copilot=\"collapsed\" or |default:'collapsed')",
             )
 
     def _workflow_context_handler(self) -> str:
