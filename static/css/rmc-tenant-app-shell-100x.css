@@ -141,13 +141,15 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="document"]:not(.control-
    honors that token, so it is full-bleed by default yet tenant-configurable;
    genuinely narrow content uses .content-measure / .content-max-* locally. */
 html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell):not(.marketing-surface) .portal-main-col > .page-wrap {
-  margin-inline: auto;
+  margin-inline: 0;
   max-width: var(--rmc-shell-max-width, none);
+  width: 100%;
 }
 html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell):not(.marketing-surface) .portal-page-body,
 html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell):not(.marketing-surface) .tp-canvas-body {
   width: 100%;
-  margin-inline: auto;
+  max-width: none;
+  margin-inline: 0;
 }
 
 /* 6. AI-COPILOT RAIL — anchored below the header; expanded panel owns its scroll.

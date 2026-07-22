@@ -164,7 +164,6 @@
     <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}">
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
@@ -189,6 +188,12 @@
        collapsible cp-sidebar v8 groups, compact luxurious task surfaces. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-sidebar-luxury-10x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-cp-parity.css' %}">
+    {% comment %} 2026-07-22: full-bleed seal + /super/ header chrome seal LAST. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-header-super-chrome-parity.css' %}">
+    {% endif %}
+    {% if request.public_host_kind == 'manager' %}
+    <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
     {% endif %}
     {% comment %} v4.02.9: tenant workspace Tools edge-tray (tenant host) + manager portal bridge operator tray. {% endcomment %}
     {% include "partials/rmc_tenant_tools_styles.html" %}
@@ -216,10 +221,10 @@
       {% include "partials/control_plane_unified_header.html" %}
     </header>
     {% else %}
-    {% comment %} Scope Bootstrap dark tokens onto the tenant header when the cockpit skin
-       is dark, so BS components (buttons/dropdowns/forms) inside the header flip too —
-       mirrors the tenant sidebar scoping. CONFIGURABLE via cockpit_shell.skin. {% endcomment %}
-    <div class="tp-header cp-header cp-header--consolidated cp-header--tenant" data-rmc-tenant-header-100x="1" data-rmc-cp-header-200x="1" data-rmc-cp-header-mode="consolidated"{% if cockpit_shell.skin == 'dark' and request.public_host_kind != 'manager' %} data-bs-theme="dark"{% endif %}>
+    {% comment %} Header always uses /super/ dark chrome (rmc-header-super-chrome-parity.css).
+       data-bs-theme=dark so Bootstrap outline controls match operator topbar.
+       Cockpit skin still controls sidebar/canvas — not the header band. {% endcomment %}
+    <div class="tp-header cp-header cp-header--consolidated cp-header--tenant" data-rmc-tenant-header-100x="1" data-rmc-cp-header-200x="1" data-rmc-cp-header-mode="consolidated" data-bs-theme="dark">
     {% comment %} v4.05 (2026-06-25): LIVE banner relocated to the BOTTOM of the header
        stack (operator-parity) — it now renders as the last sub-bar of .tp-header below,
        and rmc-tenant-app-shell-100x.css keeps the whole stack sticky. {% endcomment %}

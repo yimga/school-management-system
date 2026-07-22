@@ -31,19 +31,22 @@
    one slim band, not a 4-tier stack.
    ============================================================ */
 .rmc-civic-footer {
-  /* v3.58.2: further ~12% reduction (16/13 → 10/8) since pages can absorb the freed space. */
-  padding: 10px clamp(16px, 3vw, 32px) 8px;
-  line-height: 1.25;
+  /* 2026-07-22: stop over-crushing the civic footer — keep density calm
+     without making the band look sparse / broken. Structure unchanged. */
+  padding: 12px clamp(16px, 2.5vw, 28px) 10px;
+  line-height: 1.4;
 }
 .rmc-civic-footer__inner {
-  /* v3.58.2: inter-tier gap 7→5 — keeps four tiers but reads as one band. */
-  gap: 5px;
+  gap: 6px;
+  max-width: none;
+  width: 100%;
+  margin-inline: 0;
 }
-.rmc-civic-footer__strip { gap: 4px; }
-.rmc-civic-footer__pill { padding: 2px 8px; }
-.rmc-civic-footer__brand { gap: 6px; font-size: 12px; }
-.rmc-civic-footer__motto { font-size: 11.5px; }
-.rmc-civic-footer__est   { font-size: 11px; }
+.rmc-civic-footer__strip { gap: 6px; }
+.rmc-civic-footer__pill { padding: 3px 10px; }
+.rmc-civic-footer__brand { gap: 6px; font-size: 13px; }
+.rmc-civic-footer__motto { font-size: 12.5px; }
+.rmc-civic-footer__est   { font-size: 12px; }
 
 /* Manager corporate footer — when used alongside civic, keep the
    chrome compact. */

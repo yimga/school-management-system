@@ -1,5 +1,47 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Admin OS v15.7 empty-space round 2 (batch 1780 - 2026-07-22)
+
+**A. Scope:** Second full-surface empty-space pass after v15.6.
+
+**B. Shipped:** Ban ≤1180 `1fr 3rem` phantom tools track (tools already `display:none`); dossier collapse + child span; Audit full-bleed padding; denser catalog model grid; fluid surface-preview changelist/form frames; empty-space gate bans `1fr 3rem`.
+
+**C. Proof:** empty-space PASS; cross-wave PASS; build `2026-07-22-v15.7` / `20260722-admin-os-v157` / SW `sms-v4.06.10-admin-os-empty-space-r2-2026-07-22`.
+
+**D. Honest:** Remaining 720px caps are prose/lede measure; SiteSettings form+preview sidecar is contentful; changelist `-mx-4` is Unfold bleed into page padding.
+
+**E. Files:** canvas-contract, v15, catalog, v1-200x, empty-space verifier, lock/SW.
+
+**F. Next:** Hard-refresh — chip **v15.7**.
+
+## Slice — Admin OS v15.6 empty-space audit all surfaces (batch 1779 - 2026-07-22)
+
+**A. Scope:** Full-surface audit — empty reserved tracks / gutters must be used or removed on operator + tenant `/admin/`.
+
+**B. Shipped:** (1) neutralize ≤1180 Discover `1fr 3rem` phantom tools track; (2) rewrite early change-form 2-col→approval 3-col (tools no longer stranded); (3) scope rail/tools grid-column to `:not([data-rmc-admin-discover])`; (4) Decide full-bleed (drop 40rem centered gutters); (5) dossier selector alignment; (6) drop double `mx-4` insets; (7) wider catalog search; (8) new gate `verify_admin_os_empty_space.py` in cross-wave.
+
+**C. Proof:** empty-space PASS; cross-wave PASS; build `2026-07-22-v15.6` / `20260722-admin-os-v156` / SW live lock (monotonic with peer residual-shell-audit).
+
+**D. Honest:** Edit/Scan/Dossier keep contentful 3-col (real rail+tools). Audit stays 2-col with object rail.
+
+**E. Files:** canvas-contract, v15 CSS, catalog/v1-200x, indexes, siteconfig app_index, empty-space verifier, lock/SW.
+
+**F. Next:** Hard-refresh `/admin/` — chip **v15.6**; confirm Catalog + Decide + Edit fill the canvas.
+
+## Slice — Admin OS v15.5 Discover full-bleed (batch 1778 - 2026-07-22)
+
+**A. Scope:** User report — Catalog (operator + tenant) left a large right gutter and felt not full-width.
+
+**B. Shipped:** Discover Catalog forced to **1-col full-bleed** (beat canvas-contract `#cp-main-content` 3-col that reserved empty rail|tools); denser catalog auto-fill + full-width surface previews; removed double `mx-4` inset on operator discover canvas; build `2026-07-22-v15.5` / `20260722-admin-os-v155` / SW `sms-v4.06.5-admin-os-full-bleed-2026-07-22`.
+
+**C. Proof:** preview parity PASS; sections restore PASS; cross-wave **81/0/0**; canvas/miss-nothing/SW PASS.
+
+**D. Honest:** Edit/Scan stay 3-col (main|rail|tools). Bottom empty after last section is end-of-content in the scroll canvas, not a reserved track.
+
+**E. Files:** `rmc-admin-approval-surface-v15.css`, `rmc-admin-django-canvas-contract.css`, `base_site` critical CSS, index templates, lock/SW, parity gate.
+
+**F. Next:** Hard-refresh `/admin/` (operator + tenant) — chip must read **v15.5**; content should fill canvas edge-to-edge.
+
 ## Slice — Admin OS v15.4 restore index sections (batch 1777 - 2026-07-21)
 
 **A. Scope:** Put back missing `/admin/` sections after v15 Discover strip-down.

@@ -183,30 +183,33 @@ html[data-bs-theme="dark"] body.portal-backend-light .dropdown-item:hover {
   color: #1a1612 !important;
 }
 
-/* Admin nav bridge: theme-aware for light backend (softer bar) */
+/* Admin nav bridge: keep /super/ dark chrome (not brand gradient) on light canvas. */
 body.portal-backend-light .admin-nav-bridge {
-  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.2) !important; /* off-token-allow: white-overlay */
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(var(--cp-glow-indigo, 99, 102, 241), 0.20), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    radial-gradient(700px 200px at 92% -20%, rgba(var(--cp-glow-emerald, 16, 185, 129), 0.16), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    linear-gradient(180deg, #0a0d22 0%, var(--cp-chrome-bg, #07091a) 100%) !important; /* off-token-allow: dark-chrome-header-bg */
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important; /* off-token-allow: dark-chrome-hairline */
 }
 body.portal-backend-light .admin-nav-bridge__brand,
 body.portal-backend-light .admin-nav-bridge__location {
-  color: #fff !important; /* off-token-allow: hex-literal-decorative */
+  color: rgba(255, 255, 255, 0.92) !important; /* off-token-allow: white-overlay */
 }
 body.portal-backend-light .admin-nav-bridge__switch-btn {
-  background: #fff !important; /* off-token-allow: hex-literal-decorative */
-  color: #1a1612 !important; /* off-token-allow: hex-literal-decorative */
-  border: 1px solid rgba(255, 255, 255, 0.5) !important; /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, 0.08) !important; /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92) !important; /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.22) !important; /* off-token-allow: white-overlay */
 }
 body.portal-backend-light .admin-nav-bridge__switch-btn:hover {
-  background: #fffaf0 !important; /* off-token-allow: hex-literal-decorative */
-  color: #1a1612 !important; /* off-token-allow: hex-literal-decorative */
+  background: rgba(255, 255, 255, 0.14) !important; /* off-token-allow: white-overlay */
+  color: #fff !important; /* off-token-allow: hex-literal-decorative */
 }
 body.portal-backend-light .admin-nav-bridge__home-btn {
-  background: rgba(255, 255, 255, 0.2) !important; /* off-token-allow: white-overlay */
-  border-color: rgba(255, 255, 255, 0.4) !important; /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, 0.12) !important; /* off-token-allow: white-overlay */
+  border-color: rgba(255, 255, 255, 0.28) !important; /* off-token-allow: white-overlay */
   color: #fff !important; /* off-token-allow: hex-literal-decorative */
 }
 body.portal-backend-light .admin-nav-bridge__home-btn:hover {
-  background: rgba(255, 255, 255, 0.3) !important; /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, 0.2) !important; /* off-token-allow: white-overlay */
   color: #fff !important; /* off-token-allow: hex-literal-decorative */
 }

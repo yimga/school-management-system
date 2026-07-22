@@ -71,10 +71,10 @@ html[data-rmc-tp-v3-shell="1"] .tp-mission {
 
 html[data-rmc-tp-v3-shell="1"] .tp-mission-surface {
   margin-block: 0.65rem 0.95rem;
-  padding: 0 clamp(0.35rem, 1.2vw, 0.75rem);
-  max-width: min(100%, 1760px);
+  padding: 0 clamp(0.25rem, 0.8vw, 0.5rem);
+  max-width: none;
   width: 100%;
-  margin-inline: auto;
+  margin-inline: 0;
 }
 
 html[data-rmc-tp-v3-shell="1"] .tp-mission-surface::before {

@@ -9,12 +9,12 @@ body.admin-manager-shell .cp-header .cp-nav-row {
   flex-wrap: wrap;
   gap: 8px;
   padding: 8px 20px;
-  justify-content: center;
+  justify-content: flex-start;
   border-bottom: 1px solid var(--cp-chrome-hairline, var(--hairline));
 }
 
 body.admin-manager-shell .cp-primary-nav--admin-backoffice {
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 6px;
   width: 100%;
@@ -532,7 +532,7 @@ body.admin-manager-shell[data-rmc-admin-index-v200x="1"] .cp-hero {
 
 .cp-section__search {
   flex: 1 1 280px;
-  max-width: 420px;
+  max-width: min(40rem, 100%);
 }
 
 .cp-tab {
@@ -786,8 +786,10 @@ body.admin-manager-shell .cp-catalog {
 .cp-changelist.cp-changelist--preview {
   display: grid;
   gap: 18px;
-  grid-template-columns: 248px 1fr;
+  grid-template-columns: minmax(12rem, 18%) minmax(0, 1fr);
   margin: 16px 0 0;
+  width: 100%;
+  max-width: none;
 }
 
 @media (max-width: 1080px) {
@@ -985,8 +987,10 @@ button.cp-pager__pill {
 .cp-form-frame {
   display: grid;
   gap: 18px;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 22%);
   margin: 16px 0 0;
+  width: 100%;
+  max-width: none;
 }
 
 @media (max-width: 1080px) {

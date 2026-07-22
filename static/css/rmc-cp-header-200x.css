@@ -429,7 +429,7 @@ body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-nav-row .cp-primary-n
   gap: 4px;
   padding: 6px 20px;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   margin: 0;
   border-bottom: 1px solid var(--cp-chrome-hairline);
@@ -445,7 +445,7 @@ body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-nav-row .cp-primary-n
 
 body.control-plane-shell .cp-header .cp-primary-nav,
 body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 body.control-plane-shell .cp-header .rmc-app-shell__header,
@@ -615,7 +615,7 @@ body.control-plane-shell [data-shell-chrome="breadcrumb-row"]:has([data-shell-ch
 
 /* /super/ primary nav pills (mirror admin backoffice grammar) */
 body.control-plane-shell .cp-primary-nav--control-plane {
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
   width: 100%;
 }

@@ -17,13 +17,19 @@ body:not(.control-plane-shell):has(.admin-nav-bridge) {
   left: 0;
   right: 0;
   z-index: 1000;
-  background: var(--header-brand-bg, linear-gradient(120deg, #1a1612 0%, #241e18 55%, #2c241d 100%));
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 0.55rem 1rem;
+  /* Match /super/ chrome; seal file reinforces after theme sheets. */
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(var(--cp-glow-indigo, 99, 102, 241), 0.20), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    radial-gradient(700px 200px at 92% -20%, rgba(var(--cp-glow-emerald, 16, 185, 129), 0.16), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    linear-gradient(180deg, #0a0d22 0%, var(--cp-chrome-bg, #07091a) 100%); /* off-token-allow: dark-chrome-header-bg */
+  color: var(--cp-chrome-text, rgba(255, 255, 255, 0.92));
+  box-shadow: none;
+  padding: 10px 20px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+  min-height: 52px;
 }
 
 .admin-nav-bridge__row {

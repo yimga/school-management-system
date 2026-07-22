@@ -16,7 +16,7 @@
   {# Icons required on tenant /admin/ (index CTAs, nav) even without full Bootstrap CSS. #}
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   {% if not is_manager_host %}
-  <link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}?v=20260721-admin-os-v154b">
+  <link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}?v=20260722-admin-os-v157">
   {% endif %}
   <!-- Admin-only design tokens + platform super ultra high-end -->
   {% comment %}
@@ -157,7 +157,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-modal-overlay-guard.css' %}" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260721-admin-os-v154b">
+  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260722-admin-os-v157">
   {% comment %} v3.58.0 (2026-05-22): /admin/ 200x re-skin overlay — re-styles the existing
      Unfold DOM (dashboard-header, stat-card, app-section, buttons) toward the
      v8 200x preview chrome (dark navy gradient, glass surfaces, Source Serif 4
@@ -167,7 +167,7 @@
   <link rel="stylesheet" href="{% static 'css/admin-200x-shell-overlay.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-v1-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260721-admin-os-v154b">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260722-admin-os-v157">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
   {% include "partials/rmc_security_posture_layout_styles.html" %}
@@ -176,8 +176,8 @@
   {% comment %} v4.10.1: tenant backend gets the same spacious change-form body
      contract as operator admin, but without operator-only rails or links. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260721-admin-os-v154b">
-  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260721-admin-os-v154b">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260722-admin-os-v157">
+  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260722-admin-os-v157">
   {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
@@ -215,18 +215,22 @@
   {% if is_manager_host %}
   <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
+  {% else %}
+  {% comment %} Tenant /admin/: same /super/ dark header chrome as portal. {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/rmc-header-super-chrome-parity.css' %}">
   {% endif %}
   {% comment %} v4.10.2: last-loaded Django admin surface contract for both operator
      and tenant backends. Keeps approved canvas-first/full-width rules from being
      undone by older model-specific or Unfold defaults. {% endcomment %}
-  <meta name="rmc-admin-approval-build" content="2026-07-21-v15.4">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260721-admin-os-v154b">
-  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260721-admin-os-v154b">
+  <meta name="rmc-admin-approval-build" content="2026-07-22-v15.7">
+  <meta name="rmc-admin-os-empty-space-gate" content="verify_admin_os_empty_space.py">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260722-admin-os-v157">
+  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260722-admin-os-v157">
   <link rel="stylesheet" href="{% static 'css/rmc-tour.css' %}">
   {% comment %} v15.3: critical Admin OS layout ships INLINE (always on).
        media="not all" left operators on the pre-approval shell whenever ManifestStatic
        / SW served a stale hashed CSS — the reason v15.2 “never landed” in the browser. {% endcomment %}
-  <style id="rmc-admin-preview-parity-critical" nonce="{{ csp_nonce }}" data-rmc-admin-preview-parity="2026-07-21-v15.4" data-rmc-admin-approval-build="2026-07-21-v15.4" data-rmc-layout-owner="approval-v15-critical">
+  <style id="rmc-admin-preview-parity-critical" nonce="{{ csp_nonce }}" data-rmc-admin-preview-parity="2026-07-22-v15.7" data-rmc-admin-approval-build="2026-07-22-v15.7" data-rmc-layout-owner="approval-v15-critical">
     /* Full-bleed content — no Tailwind container recenter. */
     #content, #content.container, #content.mx-auto {
       width: 100% !important;
@@ -254,13 +258,25 @@
     body.admin-premium-shell [data-rmc-django-workspace="change-list"] {
       grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 18%) 2.35rem !important;
     }
-    /* Discover: 1-col full width — never the old 3-col index canvas. */
+    /* Discover: 1-col full width — never the old 3-col index canvas (empty rail|tools = right gutter). */
     [data-rmc-shell-root="django-admin"] [data-rmc-admin-archetype="discover"],
     [data-rmc-shell-root="django-admin"] [data-rmc-admin-discover="1"],
     [data-rmc-shell-root="django-admin"] .rmc-admin-discover-canvas,
-    [data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas] {
+    [data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas][data-rmc-admin-discover="1"],
+    html[data-rmc-admin-html="unfold"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content [data-rmc-admin-discover="1"],
+    html[data-rmc-admin-html="unfold"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content .rmc-admin-discover-canvas,
+    html[data-rmc-admin-html="unfold"] body.admin-manager-shell .admin-cp-unified-page #cp-main-content [data-rmc-admin-index-canvas="operator"][data-rmc-admin-discover="1"],
+    html[data-rmc-admin-html="unfold"] body.admin-premium-shell [data-rmc-shell-root="django-admin"] [data-rmc-admin-discover="1"],
+    html[data-rmc-admin-html="unfold"] body.admin-premium-shell [data-rmc-shell-root="django-admin"] .rmc-admin-discover-canvas,
+    html[data-rmc-admin-html="unfold"] body.admin-premium-shell [data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas="tenant"][data-rmc-admin-discover="1"] {
       display: grid !important;
       grid-template-columns: minmax(0, 1fr) !important;
+      width: 100% !important;
+      max-width: none !important;
+      margin-inline: 0 !important;
+    }
+    [data-rmc-shell-root="django-admin"] [data-rmc-admin-discover="1"] .rmc-admin-index-main {
+      grid-column: 1 / -1 !important;
       width: 100% !important;
       max-width: none !important;
     }
@@ -315,7 +331,7 @@
   {% comment %} v12 is the sole active layout owner and must remain the final
      stylesheet in head so stale component bundles cannot shrink or re-stick
      the approved full-fill canvas. {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-approval-surface-v15.css' %}?v=20260721-admin-os-v154b" data-rmc-admin-layout-owner="approval-v15">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-approval-surface-v15.css' %}?v=20260722-admin-os-v157" data-rmc-admin-layout-owner="approval-v15">
 {% endblock %}
 
 {% block extrahead %}
@@ -494,9 +510,9 @@
   {% if is_manager_host %}
   <script src="{% static 'js/rmc-admin-v1-200x.js' %}" defer></script>
   {% endif %}
-  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260721-admin-os-v154b" defer></script>
-  <script src="{% static 'js/rmc-admin-os-innovations.js' %}?v=20260721-admin-os-v154b" defer></script>
-  <script src="{% static 'js/rmc-admin-model-policy.js' %}?v=20260721-admin-os-v154b" defer></script>
+  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260722-admin-os-v157" defer></script>
+  <script src="{% static 'js/rmc-admin-os-innovations.js' %}?v=20260722-admin-os-v157" defer></script>
+  <script src="{% static 'js/rmc-admin-model-policy.js' %}?v=20260722-admin-os-v157" defer></script>
   {% comment %} Phase G: ⌘K command palette on the admin shell too. {% endcomment %}
   {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
@@ -694,5 +710,5 @@
   {% include "partials/rmc_tour_bootstrap.html" with rmc_tour_css_in_head=True %}
   <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
   {% if request.user.is_authenticated %}{% include 'components/back_to_top.html' %}{% endif %}
-  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260721-admin-os-v154b" defer></script>
+  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260722-admin-os-v157" defer></script>
 {% endblock %}

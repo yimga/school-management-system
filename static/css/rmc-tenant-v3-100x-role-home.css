@@ -109,16 +109,17 @@ html[data-rmc-tp-v3-shell="1"] body.portal-sidebar-tone-light .portal-sidebar-co
   display: none !important;
 }
 
+/* Header paint owned by rmc-header-super-chrome-parity.css (/super/ match). */
 html[data-rmc-tp-v3-shell="1"] body.backend-shell #portalHeader.tp-header__row,
 html[data-rmc-tp-v3-shell="1"] body.tp-v3-role-home #portalHeader.tp-header__row,
 html[data-rmc-tp-v3-shell="1"] body.tp-v3-inner #portalHeader.tp-header__row {
-  background: var(--surface-popover, rgba(255, 255, 255, 0.86));
-  color: var(--text-primary, #0f172a);
-  border-bottom-color: var(--hairline, rgba(15, 23, 42, 0.06));
+  background: transparent;
+  color: inherit;
+  border-bottom: none;
 }
 
 html[data-rmc-tp-v3-shell="1"] .tp-primary-nav {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 /* Header brand (preview tp-brand) */
@@ -227,19 +228,22 @@ html[data-rmc-tp-v3-shell="1"] .tp-breadcrumb__current {
   color: var(--text-secondary, #334155);
 }
 
-/* Canvas */
+/* Canvas — full-bleed between sidebar and copilot rail (no reading-width cap).
+   Owner 2026-07-22: surfaces must sit as close as possible to both sidebars,
+   horizontally and vertically. Genuinely narrow forms opt into .content-measure. */
 html[data-rmc-tp-v3-shell="1"] .tp-canvas-body {
-  padding: 20px 8px 32px;
+  padding: 12px 6px 16px;
   display: flex;
   flex-direction: column;
-  gap: var(--rmc-vertical-section-gap, 20px);
-  max-width: min(1280px, 100%);
-  margin-inline: auto;
+  gap: var(--rmc-vertical-section-gap, 14px);
+  max-width: none;
+  width: 100%;
+  margin-inline: 0;
 }
 
 @media (min-width: 992px) {
   html[data-rmc-tp-v3-shell="1"] .tp-canvas-body {
-    padding: 24px 12px 40px;
+    padding: 14px 8px 18px;
   }
 }
 
@@ -397,7 +401,7 @@ html[data-rmc-tp-v3-role-home="1"] .tp-community-band.rmc-cband {
 html[data-rmc-tp-v3-shell="1"] body.tp-v3-inner .portal-page-body.tp-canvas-body {
   padding-top: 8px;
   max-width: var(--rmc-shell-max-width, none);
-  margin-inline: auto;
+  margin-inline: 0;
 }
 
 /* Inner pages: hide duplicate Studio OS page headers (v3 breadcrumb + tp-header own the story) */
@@ -548,10 +552,11 @@ html[data-rmc-tp-v3-shell="1"] .tp-experience-action--primary small {
 html[data-rmc-tp-v3-shell="1"] .tp-workflow-portal {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-width: min(1220px, 100%);
-  margin-inline: auto;
-  padding: 4px 0 28px;
+  gap: 14px;
+  max-width: none;
+  width: 100%;
+  margin-inline: 0;
+  padding: 4px 0 16px;
 }
 
 html[data-rmc-tp-v3-shell="1"] .tp-workflow-hero,

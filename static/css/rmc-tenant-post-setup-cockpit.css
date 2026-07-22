@@ -20,12 +20,12 @@
   flex: 0 0 auto;
 }
 
-/* Full-width command center — reduce wasted horizontal margins on role-home backend */
+/* Full-width command center — flush to sidebar / copilot rails (2026-07-22). */
 html[data-rmc-tp-v3-shell="1"] body.backend-shell.dashboard-page-backend .portal-page-body.tp-canvas-body,
 html[data-rmc-tp-v3-shell="1"] body.backend-shell.dashboard-page-backend .backend-admin-role-home {
-  max-width: min(1440px, 100%);
+  max-width: none;
   width: 100%;
-  margin-inline: auto;
+  margin-inline: 0;
   min-width: 0;
 }
 

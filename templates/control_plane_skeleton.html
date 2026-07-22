@@ -170,6 +170,10 @@
     <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
+    {% comment %} 2026-07-22: full-bleed seal must load on EVERY control-plane page
+       (not only control_plane_base extrastyle). After cockpit/header skins so
+       edge-fit overrides centered nav + reading-width caps. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}" media="print" onload="this.media='all'">
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}

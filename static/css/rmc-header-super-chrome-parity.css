@@ -1,0 +1,246 @@
+/**
+ * rmc-header-super-chrome-parity.css — 2026-07-22
+ * Seal: every authenticated workspace header matches operator /super/ chrome
+ * (dark band, glow radials, light controls). Loaded LAST so light-skin /
+ * surface-popover header rules cannot win.
+ *
+ * Surfaces:
+ *  - Tenant portal `.tp-header` / `#portalHeader`
+ *  - Tenant Django admin `.admin-nav-bridge` under `[data-rmc-tenant-admin-chrome]`
+ * Manager /super/ and manager /admin/ already use control_plane_unified_header.
+ */
+
+/* ── Shared /super/ chrome paint ── */
+html[data-surface="tenant"] .tp-header.cp-header--tenant,
+html[data-rmc-tp-v3-shell="1"] .tp-header.cp-header--tenant,
+body.portal-body-with-layout:not(.control-plane-shell) .tp-header.cp-header--tenant,
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge {
+  --surface-elevated: #0f1530; /* off-token-allow: always-dark-cockpit-chrome */
+  --surface-popover: #131a35; /* off-token-allow: always-dark-cockpit-chrome */
+  --surface-bg: #07091a; /* off-token-allow: always-dark-cockpit-chrome */
+  --surface-canvas: #0a0d22; /* off-token-allow: always-dark-cockpit-chrome */
+  --text-primary: rgba(255, 255, 255, 0.92); /* off-token-allow: dark-chrome-text-strong */
+  --text-secondary: rgba(255, 255, 255, 0.85); /* off-token-allow: dark-chrome-text */
+  --text-tertiary: rgba(255, 255, 255, 0.55); /* off-token-allow: dark-chrome-text-muted */
+  --text-muted: rgba(255, 255, 255, 0.55); /* off-token-allow: dark-chrome-text-muted */
+  --hairline: rgba(255, 255, 255, 0.08); /* off-token-allow: dark-chrome-hairline */
+  --hairline-strong: rgba(255, 255, 255, 0.14); /* off-token-allow: dark-chrome-hairline-strong */
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(var(--cp-glow-indigo, 99, 102, 241), 0.20), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    radial-gradient(700px 200px at 92% -20%, rgba(var(--cp-glow-emerald, 16, 185, 129), 0.16), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    linear-gradient(180deg, #0a0d22 0%, var(--cp-chrome-bg, #07091a) 100%); /* off-token-allow: dark-chrome-header-bg */
+  color: var(--cp-chrome-text, rgba(255, 255, 255, 0.92));
+  border-bottom: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: none;
+}
+
+/* Inner row inherits — never re-paint light frosted popover */
+html[data-surface="tenant"] #portalHeader.tp-header__row,
+html[data-rmc-tp-v3-shell="1"] #portalHeader.tp-header__row,
+body.portal-body-with-layout:not(.control-plane-shell) #portalHeader.tp-header__row,
+body.portal-body-with-layout:not(.control-plane-shell) #portalHeader.topbar,
+body.portal-body-with-layout:not(.control-plane-shell) #portalHeader.statement-header,
+html[data-rmc-tp-v3-shell="1"] body.backend-shell #portalHeader.tp-header__row,
+html[data-rmc-tp-v3-shell="1"] body.tp-v3-role-home #portalHeader.tp-header__row,
+html[data-rmc-tp-v3-shell="1"] body.tp-v3-inner #portalHeader.tp-header__row {
+  background: transparent !important; /* style-allow: super-chrome-parity-kill-light-band */
+  color: inherit;
+  border-bottom: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Brand + lockup text on dark chrome */
+html[data-surface="tenant"] #preview-header-brand,
+html[data-surface="tenant"] #preview-header-brand .rmc-brand-mark,
+html[data-surface="tenant"] #preview-header-brand a,
+html[data-surface="tenant"] .tp-brand,
+html[data-surface="tenant"] .tp-brand__name,
+html[data-rmc-tp-v3-shell="1"] .tp-brand,
+html[data-rmc-tp-v3-shell="1"] .tp-brand__name {
+  color: var(--cp-chrome-text, rgba(255, 255, 255, 0.92));
+}
+
+/* Search — match /super/ cp-topbar-search-input */
+html[data-surface="tenant"] .tp-header .topbar-search-input,
+html[data-surface="tenant"] .tp-header .cp-topbar-search-input,
+html[data-rmc-tp-v3-shell="1"] .tp-header .topbar-search-input,
+html[data-rmc-tp-v3-shell="1"] .tp-header .cp-topbar-search-input,
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__search {
+  height: var(--rmc-header-control-height, 2rem);
+  min-height: var(--rmc-header-control-height, 2rem);
+  border-radius: var(--rmc-header-control-radius, 999px);
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
+  font-size: var(--type-size-body-sm, 0.875rem);
+}
+
+html[data-surface="tenant"] .tp-header .topbar-search-input::placeholder,
+html[data-surface="tenant"] .tp-header .cp-topbar-search-input::placeholder,
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__search::placeholder {
+  color: rgba(255, 255, 255, 0.55); /* off-token-allow: white-overlay */
+}
+
+html[data-surface="tenant"] .tp-header .topbar-search-input:focus,
+html[data-surface="tenant"] .tp-header .cp-topbar-search-input:focus,
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__search:focus {
+  background: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  border-color: rgba(129, 140, 248, 0.55); /* off-token-allow: rgba-decorative */
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
+  outline: none;
+}
+
+html[data-surface="tenant"] .tp-header .topbar-search-kbd,
+html[data-surface="tenant"] .tp-header .cp-search-kbd {
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.14); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.78); /* off-token-allow: white-overlay */
+}
+
+/* Icon / outline controls → light outline like /super/ */
+html[data-surface="tenant"] .tp-header .btn-outline-secondary,
+html[data-surface="tenant"] .tp-header .btn-outline-light,
+html[data-surface="tenant"] .tp-header .topbar-icon-btn,
+html[data-surface="tenant"] .tp-header .tp-header__menu-btn {
+  color: rgba(255, 255, 255, 0.88); /* off-token-allow: white-overlay */
+  border-color: rgba(255, 255, 255, 0.28); /* off-token-allow: white-overlay */
+  background: transparent;
+}
+
+html[data-surface="tenant"] .tp-header .btn-outline-secondary:hover,
+html[data-surface="tenant"] .tp-header .topbar-icon-btn:hover,
+html[data-surface="tenant"] .tp-header .tp-header__menu-btn:hover {
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
+  border-color: rgba(255, 255, 255, 0.45); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
+}
+
+html[data-surface="tenant"] .tp-header .topbar-icon-btn,
+html[data-surface="tenant"] .tp-header .topbar-icon-btn i {
+  color: rgba(255, 255, 255, 0.88); /* off-token-allow: white-overlay */
+}
+
+/* Role chip on dark band */
+html[data-surface="tenant"] .tp-header .badge.bg-light {
+  background: rgba(255, 255, 255, 0.12) !important; /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92) !important; /* off-token-allow: white-overlay */
+}
+
+/* Primary nav pills on dark header (inline lg+) */
+html[data-surface="tenant"] .tp-header .tp-primary-nav .nav-link,
+html[data-rmc-tp-v3-shell="1"] .tp-header .tp-primary-nav .nav-link {
+  color: rgba(255, 255, 255, 0.78); /* off-token-allow: white-overlay */
+}
+
+html[data-surface="tenant"] .tp-header .tp-primary-nav .nav-link:hover,
+html[data-surface="tenant"] .tp-header .tp-primary-nav .nav-link.active,
+html[data-surface="tenant"] .tp-header .tp-primary-nav .nav-link[aria-current="page"] {
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
+  background: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+}
+
+html[data-surface="tenant"] .tp-header .tp-header__vrule {
+  background: rgba(255, 255, 255, 0.12); /* off-token-allow: white-overlay */
+}
+
+/* Profile chip flush on dark chrome */
+html[data-surface="tenant"] .tp-header .rmc-user-chip,
+html[data-surface="tenant"] .tp-header .user-dropdown-toggle,
+html[data-surface="tenant"] .tp-header [data-rmc-user-menu] {
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
+}
+
+/* LIVE / ticker strip under header stays dark-adjacent */
+html[data-surface="tenant"] .tp-header .tp-header__live-banner,
+html[data-surface="tenant"] .tp-header .rmc-cockpit-ticker--tenant {
+  background: color-mix(in oklab, var(--cp-chrome-bg, #07091a) 88%, transparent);
+  border-bottom-color: rgba(255, 255, 255, 0.08); /* off-token-allow: dark-chrome-hairline */
+  color: rgba(255, 255, 255, 0.78); /* off-token-allow: white-overlay */
+}
+
+/* ── Tenant admin bridge: same paint + denser /super/ band ── */
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge {
+  padding: 10px 20px;
+  min-height: 52px;
+  gap: 0.35rem;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  box-shadow: none;
+}
+
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__row {
+  min-height: calc(52px - 20px);
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 0.75rem 1rem;
+  width: 100%;
+}
+
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__brand {
+  flex: 0 0 auto;
+}
+
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__actions {
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__search-wrap {
+  flex: 1 1 12rem;
+  max-width: min(36rem, 48vw);
+  min-width: 10rem;
+}
+
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__search {
+  width: 100%;
+}
+
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__switch-btn {
+  background: rgba(255, 255, 255, 0.08); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.22); /* off-token-allow: white-overlay */
+  box-shadow: none;
+}
+
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__switch-btn:hover {
+  background: rgba(255, 255, 255, 0.14); /* off-token-allow: white-overlay */
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
+  transform: none;
+  box-shadow: none;
+}
+
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__home-btn,
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__escape--primary {
+  background: rgba(255, 255, 255, 0.12); /* off-token-allow: white-overlay */
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
+  border: 1px solid rgba(255, 255, 255, 0.28); /* off-token-allow: white-overlay */
+}
+
+[data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__shortcuts-btn {
+  color: rgba(255, 255, 255, 0.88); /* off-token-allow: white-overlay */
+  border: 1px solid rgba(255, 255, 255, 0.22); /* off-token-allow: white-overlay */
+  background: transparent;
+  border-radius: var(--rmc-header-control-radius, 999px);
+  min-height: var(--rmc-header-control-height, 2rem);
+  padding: 0 0.65rem;
+}
+
+/* Kill light-theme admin bridge overrides that fight /super/ chrome */
+body.portal-backend-light [data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge,
+body.portal-backend-light .admin-nav-bridge {
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(var(--cp-glow-indigo, 99, 102, 241), 0.20), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    radial-gradient(700px 200px at 92% -20%, rgba(var(--cp-glow-emerald, 16, 185, 129), 0.16), transparent 60%), /* off-token-allow: dark-chrome-header-radial */
+    linear-gradient(180deg, #0a0d22 0%, var(--cp-chrome-bg, #07091a) 100%); /* off-token-allow: dark-chrome-header-bg */
+  color: var(--cp-chrome-text, rgba(255, 255, 255, 0.92));
+}
+
+body.portal-backend-light [data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__brand,
+body.portal-backend-light [data-rmc-tenant-admin-chrome="1"] .admin-nav-bridge__location {
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
+}

@@ -16,41 +16,31 @@
  * re-asserts the class as belt-and-suspenders for the rest of the layer.)
  */
 
-/* ── Header: cp-header consolidated band on tenant ── */
-html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .tp-header.cp-header--tenant {
-  background: var(--surface-popover);
-  border-bottom: 1px solid var(--hairline);
-  box-shadow: var(--elev-1, 0 1px 3px rgba(0, 0, 0, 0.04)); /* off-token-allow: elevation-shadow-default */
-}
-
+/* ── Header: density only — paint lives in rmc-header-super-chrome-parity.css
+   so tenant headers always match /super/ dark chrome (not light surface-popover). ── */
 html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .tp-header.cp-header--tenant .tp-header__row {
   background: transparent;
   border-bottom: none;
 }
 
 html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .tp-header.cp-header--tenant .tp-header__row-inner {
-  min-height: var(--rmc-manager-header-height, calc(64px * 1.1));
+  min-height: var(--rmc-manager-header-height, 52px);
   padding-block: 0.5rem;
 }
 
 html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .tp-header.cp-header--tenant .topbar-search-input,
 html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .tp-header.cp-header--tenant .cp-topbar-search-input {
-  border-radius: var(--radius-lg, 8px);
-  border-color: var(--hairline);
-  background: var(--surface-elevated);
+  border-radius: var(--rmc-header-control-radius, 999px);
   font-size: var(--type-size-sm, 0.8125rem);
-  min-height: var(--rmc-header-control-height, 2.375rem);
+  min-height: var(--rmc-header-control-height, 2rem);
 }
 
 html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .tp-header.cp-header--tenant .topbar-search-kbd,
 html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .tp-header.cp-header--tenant .cp-search-kbd {
   font-size: 10px;
   letter-spacing: 0.04em;
-  color: var(--text-tertiary);
-  border: 1px solid var(--hairline);
   border-radius: 4px;
   padding: 1px 5px;
-  background: var(--surface-canvas);
 }
 
 /* ── Sidebar inner scroll + cp-sidebar v8 on tenant (light skin) ── */

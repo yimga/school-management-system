@@ -62,14 +62,14 @@ body.control-plane-shell #cp-main-content > .container-fluid {
   margin: 0;
 }
 
-/* ── Primary nav under live strip (preview: 6px 20px, centered pills) ── */
+/* ── Primary nav under live strip (edge-spread — start, not center) ── */
 body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav {
   display: flex;
   flex-wrap: nowrap;
   gap: 4px;
   padding: 6px clamp(12px, 2vw, 20px);
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;

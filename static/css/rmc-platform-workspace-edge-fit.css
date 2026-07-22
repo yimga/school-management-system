@@ -141,3 +141,102 @@ body.portal-body-with-layout:not(.control-plane-shell) [class*="content-max-"],
 body.portal-body-with-layout:not(.control-plane-shell) [data-rmc-shell-content-grid="1"] {
   max-inline-size: none !important;
 }
+
+/* ── 2026-07-22 full-bleed seal (tenant + platform) ───────────────────────
+   Kill residual reading-width caps / centered margins on authenticated
+   work canvases so content sits flush to the nav + tools rails. */
+html[data-rmc-tp-v3-shell="1"] .tp-canvas-body,
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-portal,
+html[data-rmc-tp-v3-shell="1"] .portal-page-body,
+html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .portal-main-col > .page-wrap,
+body.control-plane-shell .cp-page-body,
+body.control-plane-shell #cp-main-content,
+body.admin-manager-shell #cp-main-content,
+body.admin-manager-shell .cp-page-body {
+  max-width: none !important;
+  max-inline-size: none !important;
+  width: 100% !important;
+  margin-inline: 0 !important;
+}
+
+/* Footer band uses the full shell width (structure unchanged — CSS only). */
+body.portal-body-with-layout .rmc-civic-footer__inner,
+body.control-plane-shell .rmc-civic-footer__inner,
+body.admin-manager-shell .rmc-civic-footer__inner,
+body.backend-shell .rmc-civic-footer__inner {
+  max-width: none !important;
+  width: 100%;
+  margin-inline: 0;
+}
+
+/* Authenticated shells: never inherit root-base-shell's 1320px reading cap. */
+body.portal-body-with-layout,
+body.control-plane-shell,
+body.admin-manager-shell,
+body.backend-shell,
+html[data-rmc-tp-v3-shell="1"] {
+  --rmc-shell-max-width: none;
+}
+
+body.portal-body-with-layout .rmc-shell-content-grid,
+body.control-plane-shell .rmc-shell-content-grid,
+body.admin-manager-shell .rmc-shell-content-grid,
+body.backend-shell .rmc-shell-content-grid,
+html[data-rmc-tp-v3-shell="1"] .tp-mission-surface,
+html[data-rmc-tp-v3-shell="1"] .backend-admin-role-home {
+  max-width: none !important;
+  max-inline-size: none !important;
+  margin-inline: 0 !important;
+  width: 100%;
+}
+
+/* Operator header: pack utility actions flush to the right edge. */
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__inner,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__inner {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__command,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__command {
+  justify-self: start !important;
+}
+
+/* Operator / admin primary nav — never re-center (beats cockpit-skin / v7). */
+body.control-plane-shell .cp-header .cp-primary-nav,
+body.control-plane-shell .rmc-app-shell__header .cp-primary-nav,
+body.admin-manager-shell .cp-header .cp-primary-nav,
+body.admin-manager-shell .rmc-app-shell__header .cp-primary-nav,
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__nav-slot .cp-primary-nav,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__nav-slot .cp-primary-nav,
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--inline-chrome,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--inline-chrome {
+  justify-content: flex-start !important;
+}
+
+body.control-plane-shell .cp-header__row--utility .user-dropdown-trigger,
+body.admin-manager-shell .cp-header__row--utility .user-dropdown-trigger {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 8px 0 4px !important;
+  border-radius: var(--radius-md, 10px) !important;
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--hairline) !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+/* Footer legal strip — full band width (structure unchanged). */
+body.portal-body-with-layout .rmc-civic-footer__legal,
+body.control-plane-shell .rmc-civic-footer__legal,
+body.admin-manager-shell .rmc-civic-footer__legal,
+body.backend-shell .rmc-civic-footer__legal {
+  max-width: none !important;
+  width: 100%;
+}
+
+/* Teacher dashboard inside tenant shell — kill oversized vertical void. */
+body.portal-body-with-layout .tdm-bg {
+  padding: 12px 0 16px !important;
+  min-height: 0 !important;
+}

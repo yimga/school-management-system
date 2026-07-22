@@ -27,7 +27,10 @@ body {
 }
 
 :root {
-  --rmc-shell-max-width: 1320px;
+  /* Authenticated shells override to none via rmc-platform-workspace-edge-fit /
+     rmc-platform-vertical-compact. Keep a legacy reading default only for
+     bare base.html document shells that never set a body shell class. */
+  --rmc-shell-max-width: none;
   --rmc-shell-gutter: clamp(0.75rem, 1.2vw, 1.25rem);
   --rmc-shell-rhythm-y: clamp(0.75rem, 1.5vw, 1.25rem);
 }

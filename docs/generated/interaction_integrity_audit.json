@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-19T01:42:35.394136+00:00",
-  "verdict": "INTERACTION_INTEGRITY_PASS",
-  "pass_count": 19,
-  "fail_count": 0,
+  "generated_at": "2026-07-22T10:42:54.457986+00:00",
+  "verdict": "INTERACTION_INTEGRITY_FAIL",
+  "pass_count": 17,
+  "fail_count": 2,
   "rows": [
     {
       "id": "1",
@@ -73,7 +73,7 @@
     {
       "id": "12",
       "label": "Manager /admin/ operator civic footer",
-      "status": "PASS",
+      "status": "FAIL",
       "proof": "templates/admin/base.html + rmc_operator_footer_civic.html + base_site.html"
     },
     {
@@ -115,8 +115,8 @@
     {
       "id": "17",
       "label": "Contract tests green",
-      "status": "PASS",
-      "proof": "fast: rotocol=- request_scheme=- server_name=- wizard registry: loaded 37 wizards\n..........................\n----------------------------------------------------------------------\nRan 26 tests in 1.861s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
+      "status": "FAIL",
+      "proof": "fast: rawer.js\\' %}\" defer></script>\\n        {% endif %}\\n\\n    </div>\\n{% endblock %}\\n'\n\n----------------------------------------------------------------------\nRan 26 tests in 4.455s\n\nFAILED (failures=1)\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
     }
   ]
 }

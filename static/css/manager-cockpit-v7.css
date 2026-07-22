@@ -503,11 +503,11 @@
 }
 
 /* ============================================================
-   Primary nav centering (override existing .cp-primary-nav)
+   Primary nav edge-spread (2026-07-22)
    ------------------------------------------------------------
-   The existing partial already uses .cp-primary-nav; this rule
-   ensures pills are centered horizontally inside the header.
+   Start-align pills with the brand/actions band — do not center
+   the nav cluster (creates dead space on the right).
    ============================================================ */
 .rmc-app-shell__header .cp-primary-nav {
-  justify-content: center;
+  justify-content: flex-start;
 }

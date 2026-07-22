@@ -28,13 +28,13 @@
 <div class="cp-admin-v1-index cp-admin-index rmc-admin-catalog-index rmc-django-workspace" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-admin-surface="smart-index" data-rmc-admin-archetype="discover" data-rmc-django-workspace="admin-index" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated" data-rmc-scroll-policy="paginate">
 
   {% if PREVIEW_MODE_ENABLED %}
-  <div class="rmc-banner rmc-banner--warning d-flex flex-wrap align-items-center justify-content-between mx-4 mt-3 mb-0">
+  <div class="rmc-banner rmc-banner--warning d-flex flex-wrap align-items-center justify-content-between mt-3 mb-0">
     <span>{% trans "Preview mode" %} — {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." }}</span>
     <a class="btn btn-sm btn-light" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle sandbox" %}</a>
   </div>
   {% endif %}
 
-  <section class="rmc-django-command-band mx-4 mt-3" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="operator-index-v15" aria-label="{% trans 'Operator admin command surface' %}">
+  <section class="rmc-django-command-band mt-3" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="operator-index-v15" aria-label="{% trans 'Operator admin command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% trans "Platform Backoffice" %}</span>
       <strong>
@@ -60,19 +60,19 @@
       </details>
       <button type="button" class="rmc-django-band-action" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K</button>
       <button type="button" class="rmc-django-band-action" data-rmc-admin-keymap-open="1" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">?</button>
-      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-21-v15.4" title="{% trans 'Deploy proof — Admin OS v15.4 on operator /admin/' %}">v15.4 · Admin OS · operator+tenant</span>
+      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-22-v15.7" title="{% trans 'Deploy proof — Admin OS v15.7 on operator /admin/' %}">v15.7 · Admin OS · operator+tenant</span>
     </div>
   </section>
 
   {% if admin_catalog_section_nav_items %}
-  <nav class="rmc-admin-section-jumps mx-4 mt-2" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
+  <nav class="rmc-admin-section-jumps mt-2" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
     {% for item in admin_catalog_section_nav_items %}
     <a class="rmc-django-band-action" href="#{{ item.id }}" data-rmc-section-anchor>{{ item.label }}</a>
     {% endfor %}
   </nav>
   {% endif %}
 
-  <div class="rmc-admin-discover-canvas mx-4" data-rmc-admin-index-canvas="operator" data-rmc-admin-workspace-scope="operator" data-rmc-admin-discover="1">
+  <div class="rmc-admin-discover-canvas" data-rmc-admin-index-canvas="operator" data-rmc-admin-workspace-scope="operator" data-rmc-admin-discover="1">
     <div class="rmc-admin-index-main" data-rmc-django-primary-panel="1" id="content-main">
       <section class="cp-section" id="rmc-admin-sec-catalog" data-rmc-section-anchor aria-labelledby="cp-catalog-heading">
         <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap mb-2">

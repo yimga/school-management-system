@@ -232,6 +232,24 @@ def main() -> int:
         errors.append("critical inline style must declare data-rmc-layout-owner=approval-v15-critical")
     if '[data-rmc-admin-archetype="discover"]' not in base_site:
         errors.append("critical inline CSS must include Discover 1-col rules (not legacy 3-col index)")
+    if '[data-rmc-admin-index-canvas="operator"][data-rmc-admin-discover="1"]' not in base_site:
+        errors.append(
+            "critical inline CSS must beat #cp-main-content 3-col with Discover dual-attr 1-col "
+            "(operator Catalog right-gutter fix)"
+        )
+    if '[data-rmc-admin-index-canvas="operator"][data-rmc-admin-discover="1"]' not in css:
+        errors.append("v15 CSS must force Discover operator canvas to 1-col full-bleed")
+    if "minmax(0, 1fr) !important" not in css and "minmax(0,1fr)!important" not in _norm(css):
+        errors.append("v15 CSS must declare Discover 1-col minmax(0, 1fr)")
+    # Discover must not share the Edit/Scan 3-col selector list
+    if re.search(
+        r"\[data-rmc-admin-index-canvas=\"operator\"\]\s*,\s*\n?\s*\[data-rmc-django-workspace=\"change-list\"\]",
+        css,
+    ):
+        errors.append(
+            "v15 must not put Discover index-canvas on the Edit/Scan 3-col workbench rule "
+            "(empty rail|tools = right gutter)"
+        )
     if base_site.count("rmc-admin-approval-surface-v15.css") != 1:
         errors.append("base_site must load exactly one v15 approval layout owner")
     if base_site.rfind("rmc-admin-approval-surface-v15.css") < base_site.rfind("admin-brand-resolved-tokens"):

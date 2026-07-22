@@ -210,14 +210,14 @@ html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-he
   border-bottom: 1px solid var(--rmc-cockpit-chrome-hairline, var(--hairline));
 }
 
-/* Primary-nav row spans full width and centers the pills (v8 layout). */
+/* Primary-nav row spans full width; pills start (not center) for edge-spread. */
 html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--inline-chrome,
 html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--inline-chrome {
   grid-column: auto;
   grid-row: auto;
   width: 100%;
   max-width: none;
-  justify-content: center;
+  justify-content: flex-start;
   padding-block: calc(var(--space-2, 8px) * 0.75);
 }
 
@@ -235,8 +235,7 @@ html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-he
   max-width: min(560px, 46vw);
 }
 
-/* Primary nav: spacious v8 pills, allowed to wrap and center instead of a
-   tiny horizontal scroller. */
+/* Primary nav: spacious v8 pills, start-aligned (edge-spread — not centered). */
 html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__nav-slot,
 html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__nav-slot {
   flex: 0 1 auto;
@@ -245,7 +244,7 @@ html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-he
 html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__nav-slot .cp-primary-nav,
 html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__nav-slot .cp-primary-nav {
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: calc(var(--space-2, 8px) * 0.75);
   overflow: visible;
 }

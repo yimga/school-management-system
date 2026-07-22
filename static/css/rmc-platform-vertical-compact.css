@@ -309,7 +309,7 @@ body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-page-help="1"] .rmc-help
 
 body[data-rmc-tenant-copilot-rail="1"] .portal-main-col,
 body[data-rmc-tenant-copilot-rail="1"] #main-content {
-  padding-right: calc(var(--rmc-app-shell-copilot-w, 44px) + 8px);
+  padding-right: calc(var(--rmc-app-shell-copilot-w, 44px) + var(--rmc-workspace-edge-gap, 2px));
   transition: padding-right var(--motion-slow, 420ms cubic-bezier(0.22, 0.61, 0.36, 1));
 }
 
@@ -328,7 +328,7 @@ body[data-rmc-tenant-copilot-rail="1"] #main-content {
 @media (min-width: 1200px) {
   body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .portal-main-col,
   body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] #main-content {
-    padding-right: calc(360px + 8px);
+    padding-right: calc(360px + var(--rmc-workspace-edge-gap, 2px));
   }
 }
 

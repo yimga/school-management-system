@@ -331,6 +331,7 @@ def main() -> int:
     gate_cmds = [
         ["python", "scripts/verify_admin_os_three_click_sla.py"],
         ["python", "scripts/verify_admin_os_sections_restore.py"],
+        ["python", "scripts/verify_admin_os_empty_space.py"],
         ["python", "scripts/verify_surface_preview_interactivity.py"],
         ["python", "scripts/verify_django_admin_preview_parity.py"],
         ["python", "scripts/audit_django_admin_canvas_contract.py"],

@@ -1,12 +1,12 @@
 {
-  "date": "2026-07-21",
-  "generated_at": "2026-07-21T17:40:14+00:00",
+  "date": "2026-07-22",
+  "generated_at": "2026-07-22T10:51:32+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 4,
-  "raw": "sms-v4.06.4-footer-chrome-declutter-2026-07-21",
+  "patch": 11,
+  "raw": "sms-v4.06.11-header-super-chrome-2026-07-22",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "footer-chrome-declutter",
+  "slug": "header-super-chrome",
   "valid": true
 }
