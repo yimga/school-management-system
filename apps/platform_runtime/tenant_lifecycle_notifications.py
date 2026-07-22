@@ -164,7 +164,7 @@ def emit_tenant_lifecycle_notification(
             )
             return {"ok": True, "status": DELIVERY_QUEUED, "event": event}
 
-        if event in (EVENT_PROVISIONING_COMPLETED, EVENT_TENANT_ACTIVATED, EVENT_SETUP_READY):
+        if event in (EVENT_PROVISIONING_COMPLETED, EVENT_SETUP_READY):
             from apps.schools.signup_completion_notifications import (
                 notify_tenant_signup_completed,
             )
@@ -178,6 +178,16 @@ def emit_tenant_lifecycle_notification(
             status = DELIVERY_SENT if delivered else DELIVERY_QUEUED
             record_lifecycle_notification(school, event, status=status, channel="email")
             return {"ok": delivered, "status": status, "event": event}
+
+        if event == EVENT_TENANT_ACTIVATED:
+            # PGL-007: Phase A portal flip is not "ready" — no welcome email.
+            record_lifecycle_notification(school, event, status=DELIVERY_SKIPPED)
+            return {
+                "ok": True,
+                "status": DELIVERY_SKIPPED,
+                "event": event,
+                "reason": "phase_a_no_welcome",
+            }
 
         if event == EVENT_PROVISIONING_STARTED:
             record_lifecycle_notification(school, event, status=DELIVERY_QUEUED)

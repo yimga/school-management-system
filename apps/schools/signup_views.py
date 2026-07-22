@@ -650,21 +650,23 @@ def signup_school(request: HttpRequest):
     # v3.62.8 (Wave 6) — also persist language_code for multilingual countries
     # so the per-language education-system overlay (CM Anglo/Franco, CA EN/FR,
     # BE NL/FR/DE, CH 4 lang, IN 11 lang) is preserved across logins.
+    # PGL-009: shared builder with CLI / other create paths.
+    from apps.schools.school_settings_seed import (
+        build_initial_school_settings,
+        resolve_school_geo_create_fields,
+    )
+
     if country_code or term_preset or school_type or language_code or validated_types:
-        school_settings["localization"] = {
-            "country_code": country_code or "",
-            "calendar_code": term_preset or get_default_calendar_code(country_code),
-            "school_type_code": school_type or "",
-            "education_cycles": list(validated_types),
-            "language_code": language_code or "",
-            "primary_language_code": language_code or "",
-            "language_codes": list(language_codes),
-            "_seeded_at_signup": True,
-        }
-    if country_code:
-        gov_defaults = signup_governance_defaults(country_code)
-        gov_defaults["_seeded_at_signup"] = True
-        school_settings["governance"] = gov_defaults
+        school_settings = build_initial_school_settings(
+            country_code=country_code or "",
+            school_type_code=school_type or "",
+            language_code=language_code or "",
+            language_codes=list(language_codes),
+            education_cycles=list(validated_types),
+            calendar_code=term_preset or "",
+            seed_marker="_seeded_at_signup",
+            include_governance=bool(country_code),
+        )
     # Backwards compatibility: keep the v3.61 term_preset hint for any code
     # path still reading school.settings["term_preset"] directly.
     if term_preset == "uk-3-term" or (term_preset_raw.upper() in ("UK", "GB")):
@@ -729,7 +731,9 @@ def signup_school(request: HttpRequest):
             "label": f"{name} initial migration from {migration_vendor}"[:200],
             "locale_context": locale_ctx,
         }
-    country_defaults = GlobalGeoCatalog.country_defaults(country_code)
+    country_defaults_geo = resolve_school_geo_create_fields(
+        country_code, language_code=language_code or ""
+    )
     create_kwargs = dict(
         name=name,
         slug=slug,
@@ -737,22 +741,18 @@ def signup_school(request: HttpRequest):
         is_active=False,
         is_approved=True,
         country_code=country_code,
-        timezone=str(
-            country_defaults.get("timezone")
-            or getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "UTC")
-        ),
+        timezone=country_defaults_geo["timezone"],
         # Local-first: persist the tenant's own currency + default language from
         # the country pack at creation, so money + anonymous-visitor copy are the
         # school's locale by default instead of a global fallback. Both are blank-
         # tolerant overrides (resolve_currency / default_language doc the cascade).
-        currency=str(country_defaults.get("currency") or "")[:3],
-        default_language=str(
-            language_code or country_defaults.get("default_language") or ""
-        )[:16],
+        currency=country_defaults_geo["currency"],
+        default_language=country_defaults_geo["default_language"],
         # Local-first: auto-assign the data-protection regime from the country (EU→GDPR,
         # US→FERPA, NG→NDPR) so masking/retention/consent apply by default instead of
         # every new tenant landing on NONE. Unmapped countries stay unset for the operator.
-        compliance_region=derive_compliance_region(country_code),
+        # derive_compliance_region(country_code) via resolve_school_geo_create_fields
+        compliance_region=country_defaults_geo["compliance_region"],
         settings=school_settings,
     )
     # Wave 6/10 (v3.62.10) — first-class primary_language. Still also lives in

@@ -197,6 +197,12 @@ services:
         value: "2"
       - key: CELERY_BROKER_SOCKET_TIMEOUT
         value: "4"
+      # Fix D — abort tenant migrate lock-waits (ms). 0 disables.
+      - key: TENANT_MIGRATE_LOCK_TIMEOUT_MS
+        value: "30000"
+      # Broker-up requires live workers for /healthz (inspect.ping).
+      - key: HEALTHZ_REQUIRE_CELERY_WORKERS
+        value: "1"
       # Redis socket bounds for the cache/session client (django_redis). With
       # IGNORE_EXCEPTIONS a stalled cache degrades to a clean miss, never a hang.
       - key: REDIS_SOCKET_CONNECT_TIMEOUT
@@ -355,6 +361,8 @@ services:
         value: "2"
       - key: CELERY_BROKER_SOCKET_TIMEOUT
         value: "4"
+      - key: TENANT_MIGRATE_LOCK_TIMEOUT_MS
+        value: "30000"
       - key: EMAIL_BACKEND
         value: "django.core.mail.backends.smtp.EmailBackend"
       - key: EMAIL_HOST

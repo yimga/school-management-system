@@ -1,0 +1,77 @@
+name: Signup production smoke (Render-armed)
+
+# Operator-gated live proof against deployed marketing host.
+# Does NOT run on PR — requires repository secrets for credentials.
+#
+# Required secrets / vars:
+#   SIGNUP_E2E_BASE_URL   (e.g. https://runmycampus.com)
+#   E2E_USERNAME
+#   E2E_PASSWORD
+# Optional:
+#   SIGNUP_E2E_INACTIVE_SLUG / SIGNUP_E2E_INACTIVE_HOST
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Marketing base URL (overrides secret when set)"
+        required: false
+        default: ""
+      inactive_slug:
+        description: "Optional inactive tenant slug for setup-in-progress check"
+        required: false
+        default: ""
+
+concurrency:
+  group: signup-render-e2e
+  cancel-in-progress: false
+
+jobs:
+  signup-render-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SIGNUP_E2E_BASE_URL: ${{ inputs.base_url || secrets.SIGNUP_E2E_BASE_URL }}
+      E2E_USERNAME: ${{ secrets.E2E_USERNAME }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      SIGNUP_E2E_INACTIVE_SLUG: ${{ inputs.inactive_slug || secrets.SIGNUP_E2E_INACTIVE_SLUG }}
+      SIGNUP_E2E_INACTIVE_HOST: ${{ secrets.SIGNUP_E2E_INACTIVE_HOST }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Require Render target + credentials
+        run: |
+          if [ -z "$SIGNUP_E2E_BASE_URL" ]; then
+            echo "SIGNUP_E2E_BASE_URL secret/input required"
+            exit 1
+          fi
+          if [ -z "$E2E_USERNAME" ] || [ -z "$E2E_PASSWORD" ]; then
+            echo "E2E_USERNAME and E2E_PASSWORD secrets required"
+            exit 1
+          fi
+          echo "Target: $SIGNUP_E2E_BASE_URL"
+
+      - name: Install Playwright
+        run: |
+          npm ci
+          node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Signup production smoke against Render
+        run: npm run test:e2e:signup-production:armed
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: signup-render-e2e
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore

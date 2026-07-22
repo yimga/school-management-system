@@ -331,6 +331,62 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_lander_phantom_fields -v
 
+  migration-cloud-provision-boundary:
+    name: Migration Cloud must not dispatch school provision
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_migration_cloud_provision_boundary.py --compare
+
+  provisioning-broker-topology:
+    name: Broker-up requires worker+beat + defer contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify provisioning broker topology
+        run: |
+          python scripts/verify_provisioning_broker_topology.py
+
+  tenant-migrate-lock-timeout:
+    name: Fix D tenant migrate lock_timeout wiring
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify Fix D lock_timeout contract
+        run: |
+          python scripts/verify_tenant_migrate_lock_timeout.py
+
+  celery-worker-ping-contract:
+    name: Celery worker ping healthz + CLI contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify celery worker ping contract
+        run: |
+          python scripts/verify_celery_worker_ping_contract.py
+
   migration-transaction-side-effects:
     name: No side effects in a migration transaction (deploy-abort seal)
     runs-on: ubuntu-latest

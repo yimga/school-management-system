@@ -1,5 +1,65 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Fix D + worker ping + API seed + Render harness (batch 1784 - 2026-07-22)
+
+**A. Scope:** Stop rushing EXTERNAL labels — finish every repo-contained residual Claude left incomplete after 1783 (Fix D wiring/proof, live worker ping contract, API PGL-009, Phase A SiteSettings, Render-armed Playwright).
+
+**B. Shipped:** settings + render env for `TENANT_MIGRATE_LOCK_TIMEOUT_MS` / `HEALTHZ_REQUIRE_CELERY_WORKERS`; lock_timeout unit tests + verifier; `_check_celery_workers` on healthz + `ping_celery_workers` CLI + contract verifier; `api_create_school` seed parity; Phase A SiteSettings ensure; signup-render workflow + `test:e2e:signup-production:armed`; CI jobs for MC boundary, broker topology, Fix D, worker ping.
+
+**C. Proof:** `TENANT_MIGRATE_LOCK_TIMEOUT_PASS`; `CELERY_WORKER_PING_CONTRACT_PASS`; `PROVISIONING_BROKER_TOPOLOGY_PASS`; MC boundary 0; Django suites (lock_timeout, healthz strict deps, phase_a sitesettings, API seed parity) OK.
+
+**D. Honest:** Executing armed Playwright / `ping_celery_workers --strict` against live Render still needs operator secrets + shell access. Optional Postgres lock-contention soak not claimed.
+
+**E. Files:** onboarding_service (already had SET), settings.py, render.yaml, observability/views.py, ping_celery_workers.py, super_views_provisioning.py, tasks.py Phase A, tests, verifiers, architectural-boundaries.yml, signup-render-e2e.yml, package.json, SOT/log/canvas.
+
+**F. Next:** Operator-gated only — run armed signup smoke + worker ping on Render after deploy.
+
+## Slice — Husk seed gate + broker topology (batch 1783 - 2026-07-22)
+
+**A. Scope:** Close remaining audit residuals — husk operational login + broker-up worker/beat proof.
+
+**B. Shipped:** `ProvisioningSeedGateMiddleware`; `verify_provisioning_broker_topology.py` + CI; PGL-001 ledger updated to DONE (gate); MC provision-boundary CI job restored alongside.
+
+**C. Proof:** `test_provisioning_seed_gate` 4/4 OK; `PROVISIONING_BROKER_TOPOLOGY_PASS`.
+
+**D. Honest:** `is_active` still flips at Phase A for progress; ops shell gated until Phase B. Live worker heartbeat ping EXTERNAL.
+
+**E. Files:** middleware_provisioning_seed_gate.py, settings.py (both stacks), tests, verify_provisioning_broker_topology.py, architectural-boundaries.yml, SOT/log/audit/canvas.
+
+**F. Next:** Optional live Render worker ping; Fix D migrate lock_timeout on staging.
+
+## Slice — Provisioning residuals PGL-007/009 + invite + MC boundary (batch 1782 - 2026-07-22)
+
+**A. Scope:** Close remaining provisioning audit residuals from the e2e audit canvas.
+
+**B. Shipped:** Welcome after Phase B; shared `school_settings_seed`; invite→provision E2E; MC provision-dispatch AST gate (baseline 0) + CI job; signup readiness pass5 aligned to onboarding-claim + phase_b gate.
+
+**C. Proof:** Django suites (signup readiness, portal channels, seed parity, invite E2E, compliance, lifecycle notify, crash-resiliency) OK; `verify_signup_production_readiness` PASS; MC scanner `--compare` 0.
+
+**D. Honest:** Phase A husk login still possible until seed finishes (banner/reconcile remain); worker+beat required when broker accepts tasks.
+
+**E. Files:** tasks.py, signup_completion_notifications.py, tenant_lifecycle_notifications.py, school_settings_seed.py, create_school.py, signup_views.py, tests, scan_migration_cloud_provision_boundary.py, architectural-boundaries.yml, PROVISIONING_TO_GOLIVE_AUDIT.md.
+
+**F. Next:** Optional — defer Phase A `is_active` until Phase B (product risk) or Fix D migrate lock_timeout on staging.
+
+## Slice — Provisioning web-inline migrate ban (batch 1781 - 2026-07-22)
+
+**A. Scope:** End-to-end provisioning audit; close gunicorn mid-migrate booster when Celery queues.
+
+**B. Shipped:** `complete_provisioning_for_school` no longer calls `provision_school_sync` after successful queue; `sync_deferred_to_worker` flag; tests updated (defer + fallback-only sync). Audit canvas: `provisioning-e2e-audit.canvas.tsx`.
+
+**C. Proof:** `apps.schools.tests.test_provisioning_dispatch` OK; `test_signup_production_readiness` OK; prior crash-resiliency 4/4 OK.
+
+**D. Honest:** Worker+beat required when broker is up; PGL-007/009 + invite E2E + MC AST verifier still open.
+
+**E. Files:** tasks.py, tests, SOT/log.
+
+**F. Next:** PGL residuals (closed in 1782+).
+
+**E. Files:** `apps/schools/tasks.py`, `apps/schools/tests/test_provisioning_dispatch.py`, SOT/log, canvas.
+
+**F. Next:** PGL-007 welcome after Phase B, or MC `dispatch_provision_school` boundary verifier.
+
 ## Slice — Admin OS v15.7 empty-space round 2 (batch 1780 - 2026-07-22)
 
 **A. Scope:** Second full-surface empty-space pass after v15.6.

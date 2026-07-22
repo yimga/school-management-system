@@ -9,8 +9,9 @@
  * Live Render (after deploy + credentials):
  *   SIGNUP_E2E_BASE_URL=https://runmycampus.com \
  *   E2E_USERNAME=owner@example.com E2E_PASSWORD='***' \
- *   npm run test:e2e:signup-production
+ *   npm run test:e2e:signup-production:armed
  *
+ * Or GitHub Actions → workflow_dispatch `signup-render-e2e.yml` with secrets.
  * Optional inactive-tenant check (setup-in-progress page):
  *   SIGNUP_E2E_INACTIVE_SLUG=st-jude SIGNUP_E2E_INACTIVE_HOST=st-jude.runmycampus.com \
  *   npm run test:e2e:signup-production

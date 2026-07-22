@@ -143,15 +143,15 @@ Any step requiring operator CLI without documented escape → **CRIT** (none on 
 
 | ID | Lens | Sev | Phase | Finding | Evidence | Impact | Fix | Tier |
 |----|------|-----|-------|---------|----------|--------|-----|------|
-| PGL-001 | B | CRIT | Provision | Phase A activates before Phase B; seed failures leave live broken tenant | `tasks.py:1154-1164`, `1199-1204` | Owner logs in; grades/finance 500 | **DONE (UX)** — tenant banner + readiness `needs_resume` / `phase_b_failed_steps`; reconcile path unchanged | Best |
+| PGL-001 | B | CRIT | Provision | Phase A activates before Phase B; seed failures leave live broken tenant | `tasks.py` + seed gate | Owner logs in; grades/finance 500 | **DONE** — UX banner + **`ProvisioningSeedGateMiddleware`** redirects ops nav to provisioning status until Phase B | Best |
 | PGL-002 | C | CRIT | Setup | `launch_ready` true without academic year | `services.py:1564`, `772-853` | False go-live signal | Academic-year blocker + wizard | Best |
 | PGL-003 | C | CRIT | Setup | `launched_at` set when blocker-only `launch_ready` | `services.py:1621-1626` | Premature launch timestamp | Gate on full launch step | Best |
 | PGL-004 | A | HIGH | First login | 10 progress UIs / 4 engines | See inventory | Cognitive overload | Unified readiness API | Better |
 | PGL-005 | E | HIGH | Go-live | `show_setup_landing` vs `launch_ready` orthogonal | `views.py:2194-2215` | Cockpit before launch ready | Align gates | Best |
 | PGL-006 | B | HIGH | Provision | Extended progress marks COMPLETED when `is_active` | `provisioning_progress.py:96-98` | Misleading seed bar | Document; defer UI fix | Best |
-| PGL-007 | B | HIGH | Provision | Welcome email at Phase A before Phase B | `signup_completion_notifications.py` | “Ready” before seed done | Defer copy timing | Best |
+| PGL-007 | B | HIGH | Provision | Welcome email at Phase A before Phase B | `signup_completion_notifications.py` | “Ready” before seed done | **DONE** — defer to Phase B (`phase_b_complete` gate + finalize after seed) | Best |
 | PGL-008 | B | HIGH | Provision | verify uses daemon thread not durable | `signup_views.py:1704-1722` | Stalled provision | Poll watchdogs exist | Good |
-| PGL-009 | B | HIGH | Provision | `create_school` omits rich signup settings | `create_school.py:186-191` | Divergent seed | Document operator path | Good |
+| PGL-009 | B | HIGH | Provision | `create_school` omits rich signup settings | `create_school.py` + `school_settings_seed.py` | Divergent seed | **DONE** — shared `build_initial_school_settings` / geo fields (signup + CLI + `api_create_school`) | Good |
 | PGL-010 | B | HIGH | Provision | `complete_provisioning` skips sync if portal_ready | `tasks.py:666-686` | Stuck Phase B | `provisioning_needs_resume` | Good |
 | PGL-011 | A | HIGH | Journey | Two URLs `/onboard/` and `/setup-studio/` same view | `config/urls.py:1734-1736` | Confusing bookmarks | Document only | Good |
 | PGL-012 | A | MED | Journey | Verify never sets `is_active` synchronously | `signup_views.py:1625-1628` | Expected async UX | By design | Good |

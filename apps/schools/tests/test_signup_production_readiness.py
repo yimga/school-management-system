@@ -66,6 +66,12 @@ class SignupProductionReadinessTests(TestCase):
             )
         self.school.refresh_from_db(fields=["is_active", "settings"])
         self.assertTrue(result.get("is_active") or self.school.is_active)
+        # Password alone is not "claimed" — stamp the token-gated onboarding step
+        # the real signup path writes after the owner sets their credential.
+        settings = dict(self.school.settings or {})
+        settings["owner_onboarding"] = {"step": "school", "completed": False}
+        self.school.settings = settings
+        self.school.save(update_fields=["settings"])
         payload = build_signup_completed_payload(
             self.school, self.owner.email, admin_user=self.owner
         )
@@ -118,7 +124,11 @@ class SignupProductionReadinessTests(TestCase):
     def test_notify_idempotent_after_completion(self, publish_event):
         publish_event.return_value = object()
         self.school.is_active = True
-        self.school.save(update_fields=["is_active"])
+        self.school.settings = {
+            **(self.school.settings or {}),
+            "provisioning": {"phase_b_complete": True},
+        }
+        self.school.save(update_fields=["is_active", "settings"])
         self.assertTrue(
             notify_tenant_signup_completed(
                 self.school, self.owner.email, admin_user=self.owner
@@ -131,6 +141,31 @@ class SignupProductionReadinessTests(TestCase):
             )
         )
         publish_event.assert_not_called()
+
+    @mock.patch("apps.platform_runtime.event_bus.publish_event")
+    def test_notify_deferred_until_phase_b_complete(self, publish_event):
+        """PGL-007: Phase A alone must not send portal-ready / welcome email."""
+        publish_event.return_value = object()
+        self.school.is_active = True
+        self.school.settings = {
+            **(self.school.settings or {}),
+            "provisioning": {"phase_a_complete": True, "phase_b_complete": False},
+        }
+        self.school.save(update_fields=["is_active", "settings"])
+        self.assertFalse(
+            notify_tenant_signup_completed(
+                self.school, self.owner.email, admin_user=self.owner
+            )
+        )
+        publish_event.assert_not_called()
+        self.school.settings["provisioning"]["phase_b_complete"] = True
+        self.school.save(update_fields=["settings"])
+        self.assertTrue(
+            notify_tenant_signup_completed(
+                self.school, self.owner.email, admin_user=self.owner
+            )
+        )
+        publish_event.assert_called_once()
 
     def test_owner_can_access_own_tenant_subdomain(self):
         self.school.is_active = True

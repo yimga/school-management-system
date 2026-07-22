@@ -250,6 +250,15 @@ def pass5_runtime_integration() -> list[dict[str, str]]:
         school.refresh_from_db(fields=["is_active", "settings"])
         if not result.get("is_active") and not school.is_active:
             findings.append(_finding("pass5", "complete_provisioning_did_not_activate_school"))
+        # Mirror signup: usable password + onboarding step stamp = account_ready.
+        settings_blob = dict(school.settings or {})
+        settings_blob["owner_onboarding"] = {"step": "school"}
+        # Ensure Phase B marker so PGL-007 notify gate can fire in this audit harness.
+        prov = dict(settings_blob.get("provisioning") or {})
+        prov.setdefault("phase_b_complete", True)
+        settings_blob["provisioning"] = prov
+        school.settings = settings_blob
+        school.save(update_fields=["settings"])
         payload = build_signup_completed_payload(school, owner.email, admin_user=owner)
         if not payload.get("tenant_portal_url"):
             findings.append(_finding("pass5", "payload_missing_tenant_portal_url"))

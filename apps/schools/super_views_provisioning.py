@@ -371,6 +371,26 @@ def api_create_school(request):
     school_settings_overrides["provisioning"]["sector_role_description"] = str(
         _sug.get("description") or ""
     )
+    from apps.schools.school_settings_seed import (
+        build_initial_school_settings,
+        resolve_school_geo_create_fields,
+    )
+
+    school_type_code = (data.get("school_type_code") or "").strip()
+    language_code = (data.get("language_code") or data.get("default_language") or "").strip()
+    seed_country = country_code or (
+        default_region.code if default_region else ""
+    )
+    initial_settings = build_initial_school_settings(
+        country_code=seed_country,
+        school_type_code=school_type_code,
+        language_code=language_code,
+        education_cycles=list(education_level_codes or []),
+        seed_marker="_seeded_at_api_create_school",
+    )
+    geo = resolve_school_geo_create_fields(
+        seed_country, language_code=language_code
+    )
     create_kw = dict(
         name=name,
         slug=slug,
@@ -379,13 +399,16 @@ def api_create_school(request):
         default_region=default_region,
         country_code=canonical_country_code or "",
         subdivision=resolved_subdivision,
-        timezone=resolved_timezone,
+        timezone=resolved_timezone or geo["timezone"],
+        currency=geo["currency"],
+        default_language=geo["default_language"] or language_code,
+        compliance_region=geo["compliance_region"],
         primary_color=primary_color,
         accent_color=accent_color,
         custom_domain=custom_domain or "",
         is_active=False,
         is_approved=os.getenv("ENABLE_SCHOOL_APPROVAL_WORKFLOW", "").strip().lower() not in ("1", "true", "yes"),
-        settings={},
+        settings=initial_settings,
         primary_sector=primary_sector,
     )
     if parent_school_id and parent_school:

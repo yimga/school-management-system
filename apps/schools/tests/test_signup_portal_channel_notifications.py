@@ -30,6 +30,7 @@ class SignupPortalChannelNotificationTests(TestCase):
             slug="channel-test",
             subdomain="channel-test",
             is_active=True,
+            settings={"provisioning": {"phase_b_complete": True}},
         )
         self.owner = User.objects.create_user(
             username="owner@channel.test",

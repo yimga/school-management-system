@@ -173,7 +173,10 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def _get_or_create_school(self, School, *, name, slug, country, school_type):
-        from django.conf import settings as dj_settings
+        from apps.schools.school_settings_seed import (
+            build_initial_school_settings,
+            resolve_school_geo_create_fields,
+        )
 
         existing = School.objects.filter(slug=slug).first() or School.objects.filter(
             subdomain=slug
@@ -181,24 +184,13 @@ class Command(BaseCommand):
         if existing:
             return existing, False
 
-        school_settings = {}
-        if country or school_type:
-            school_settings["localization"] = {
-                "country_code": country or "",
-                "school_type_code": school_type or "",
-                "_seeded_by": "create_school_command",
-            }
-
-        timezone_str = "UTC"
-        try:
-            from apps.schools.signup_views import GlobalGeoCatalog
-
-            timezone_str = str(
-                GlobalGeoCatalog.country_defaults(country).get("timezone")
-                or getattr(dj_settings, "DEFAULT_SCHOOL_TIMEZONE", "UTC")
-            )
-        except Exception:  # pragma: no cover - defensive; geo catalog optional
-            timezone_str = getattr(dj_settings, "DEFAULT_SCHOOL_TIMEZONE", "UTC")
+        # PGL-009: same localization + governance + geo defaults as public signup.
+        school_settings = build_initial_school_settings(
+            country_code=country,
+            school_type_code=school_type,
+            seed_marker="_seeded_by_create_school_command",
+        )
+        geo = resolve_school_geo_create_fields(country)
 
         create_kwargs = dict(
             name=name,
@@ -207,9 +199,23 @@ class Command(BaseCommand):
             is_active=False,  # engine flips this to True on successful provision
             is_approved=True,
             country_code=country,
-            timezone=timezone_str,
+            timezone=geo["timezone"],
+            currency=geo["currency"],
+            default_language=geo["default_language"],
+            compliance_region=geo["compliance_region"],
             settings=school_settings,
         )
+        if school_type:
+            try:
+                from apps.siteconfig.country_localization_service import (
+                    resolve_primary_sector_for_school_type,
+                )
+
+                sector = resolve_primary_sector_for_school_type(country, school_type)
+                if sector:
+                    create_kwargs["primary_sector"] = sector[:64]
+            except (ImportError, AttributeError, TypeError, ValueError):
+                pass
         school = School.objects.create(**create_kwargs)
         return school, True
 

@@ -421,6 +421,7 @@ MIDDLEWARE = [
     "apps.accounts.middleware_session_pinning.SessionPinningMiddleware",  # Pillar 1: bind session to (IP, UA-hash); flush on mismatch
     "apps.schools.middleware_conversion_lock.ConversionLockMiddleware",
     "apps.schools.growth_funnel_middleware.GrowthFunnelMiddleware",
+    "apps.schools.middleware_provisioning_seed_gate.ProvisioningSeedGateMiddleware",
     "apps.schools.middleware_activation_gate.ActivationGateMiddleware",
     "apps.marketplace.middleware.AppApiContextMiddleware",  # Developer platform: app API key scope context
     "apps.accounts.middleware.ImpossibleTravelMiddleware",  # World Engine: single trigger for check_impossible_travel after login
@@ -2064,6 +2065,19 @@ if os.getenv("RMC_FORCE_DB_SESSIONS", "").strip().lower() in ("1", "true", "yes"
 # CELERY_BROKER_URL is set explicitly (i.e. once a worker exists). Until then the
 # eager fallback below runs tasks inline, exactly as today.
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "")
+# Tenant schema migrate: abort lock-waits so stuck DDL cannot mask as a healthy
+# heartbeat forever (Fix D). 0 disables. Env-overridable for staging tuning.
+try:
+    TENANT_MIGRATE_LOCK_TIMEOUT_MS = int(
+        os.getenv("TENANT_MIGRATE_LOCK_TIMEOUT_MS", "30000") or "0"
+    )
+except (TypeError, ValueError):
+    TENANT_MIGRATE_LOCK_TIMEOUT_MS = 30000  # magic-number-allow: default 30s tenant-migrate lock-wait
+# When broker is configured, /healthz/ may require at least one Celery worker
+# to answer inspect.ping (closes broker-up / worker-down false green).
+HEALTHZ_REQUIRE_CELERY_WORKERS = os.getenv(
+    "HEALTHZ_REQUIRE_CELERY_WORKERS", "1"
+).strip().lower() in ("1", "true", "yes", "on")
 CELERY_RESULT_BACKEND = (
     "django-db"  # Store task results in Postgres; no Redis required for results
 )
@@ -4156,6 +4170,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.accounts.middleware_session_pinning.SessionPinningMiddleware",
         "apps.schools.middleware_conversion_lock.ConversionLockMiddleware",
         "apps.schools.growth_funnel_middleware.GrowthFunnelMiddleware",
+        "apps.schools.middleware_provisioning_seed_gate.ProvisioningSeedGateMiddleware",
         "apps.schools.middleware_activation_gate.ActivationGateMiddleware",
         "apps.marketplace.middleware.AppApiContextMiddleware",
         "apps.accounts.middleware.ImpossibleTravelMiddleware",

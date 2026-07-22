@@ -41,11 +41,12 @@ class DeriveComplianceRegionTests(SimpleTestCase):
             self.assertIn(derive_compliance_region(cc), valid)
 
     def test_signup_view_assigns_compliance_region(self):
-        # Contract: the signup create path wires the derivation into create_kwargs.
+        # Contract: signup + shared seed builder wire derivation into create kwargs.
         from pathlib import Path
 
-        src = (
-            Path(__file__).resolve().parents[1] / "signup_views.py"
-        ).read_text(encoding="utf-8")
-        self.assertIn("derive_compliance_region(country_code)", src)
-        self.assertIn("compliance_region=derive_compliance_region", src)
+        schools = Path(__file__).resolve().parents[1]
+        signup_src = (schools / "signup_views.py").read_text(encoding="utf-8")
+        seed_src = (schools / "school_settings_seed.py").read_text(encoding="utf-8")
+        self.assertIn("resolve_school_geo_create_fields", signup_src)
+        self.assertIn("derive_compliance_region", seed_src)
+        self.assertIn("compliance_region", signup_src)

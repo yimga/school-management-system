@@ -96,6 +96,23 @@ def _activate_portal_phase_a(
     _merge_provisioning_settings(school, phase_a_complete=True)
     school.is_active = True
     school.save(update_fields=["is_active", "settings", "updated_at"])
+    # Ensure platform SiteSettings baseline exists before first owner request
+    # (context processors / brand cascade must not 500 on a husk portal).
+    try:
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
+
+        get_platform_site_settings_record(create=True)
+    except (
+        ImportError,
+        AttributeError,
+        TypeError,
+        ValueError,
+        DatabaseError,
+        IntegrityError,
+    ):
+        logger.warning(
+            "SiteSettings ensure skipped for school=%s", school_id, exc_info=True
+        )
     # Every tenant goes live on a real plan — the tenant never picks one, and a
     # plan-less school can never bind to the free tier or be nudged to upgrade.
     # Best-effort: a catalog problem must not strand a school mid-provisioning,
@@ -107,9 +124,11 @@ def _activate_portal_phase_a(
             "default-plan binding skipped for school=%s", school_id, exc_info=True
         )
     try:
-        from apps.schools.signup_completion_notifications import finalize_tenant_activation
+        from apps.schools.signup_completion_notifications import (
+            sync_domains_after_portal_phase_a,
+        )
 
-        finalize_tenant_activation(school, contact_email, admin_user=admin_user)
+        sync_domains_after_portal_phase_a(school)
     except ImportError:
         pass
     try:
@@ -800,9 +819,15 @@ def complete_provisioning_for_school(
     school_id: str, contact_email: str = "", **kwargs
 ) -> dict:
     """
-    Queue provisioning when Celery is available, then run sync in-process if the
-    school is still inactive. Owner-critical paths use this so signup does not
-    stall when the worker is asleep or the queue succeeds but nothing consumes it.
+    Queue provisioning when Celery is available.
+
+    When the broker accepted the task (``queued`` and not ``fallback``), do **not**
+    run tenant migrate/seed on the web dyno. Gunicorn's request timeout (often 120s)
+    SIGKILLs mid-migrate and leaves a stuck WorkflowRun; retry ownership belongs to
+    the Celery worker + provision watchdog / failed-auto-requeue / reconcile sweeps.
+
+    Broker-less or queue-unavailable paths still sync via ``dispatch`` fallback so
+    local/dev and degraded topologies keep working.
     """
     from .models import School
 
@@ -818,31 +843,15 @@ def complete_provisioning_for_school(
         portal_ready = bool(school and school.is_active)
 
     if result.get("fallback"):
+        # Sync already ran inside dispatch_provision_school.
         result["sync_completed"] = True
         result["portal_ready"] = portal_ready
         result["is_active"] = portal_ready
         return result
-    if school and not portal_ready:
-        try:
-            provision_school_sync(str(school_id), contact_email=contact_email, **kwargs)
-            result["sync_completed"] = True
-        except _PROVISIONING_FAILURES as exc:
-            result["sync_completed"] = False
-            result["sync_error"] = str(exc)[:200]
-            logger.warning(
-                "complete_provisioning sync failed for school %s: %s",
-                school_id,
-                exc,
-            )
-        school.refresh_from_db(fields=["is_active", "settings"])
-        try:
-            from apps.schools.provisioning_progress import resolve_portal_ready
 
-            portal_ready = resolve_portal_ready(school)
-        except ImportError:
-            portal_ready = bool(school.is_active)
-    else:
-        result["sync_completed"] = False
+    # Queued on Celery — never inline-migrate on the request / kick thread.
+    result["sync_completed"] = False
+    result["sync_deferred_to_worker"] = True
     result["portal_ready"] = portal_ready
     result["is_active"] = portal_ready
     return result
@@ -2221,10 +2230,20 @@ def _do_provision_tracked(
                 )
             except (ImportError, AttributeError, TypeError, ValueError):
                 pass
+            # PGL-007: welcome / portal-ready email only after Phase B seed succeeds.
+            try:
+                from apps.schools.signup_completion_notifications import (
+                    finalize_tenant_activation,
+                )
+
+                finalize_tenant_activation(
+                    school, contact_email, admin_user=admin_user
+                )
+            except ImportError:
+                pass
     logger.info("School %s provisioning seed pass finished", school_id)
 
-    # Legacy tail: provisioning events for observability (email handled by
-    # finalize_tenant_activation → notify_tenant_signup_completed).
+    # Observability: confirm welcome delivery state after Phase B (or note deferral).
     if (contact_email or "").strip():
         recipient_domain = (
             contact_email.split("@", 1)[-1] if "@" in contact_email else ""
@@ -2238,22 +2257,32 @@ def _do_provision_tracked(
             sent = signup_completion_was_delivered(school)
         except ImportError:
             sent = bool(state.get("completed_delivered_at") or state.get("completed_at"))
-        _record_school_event(
-            school,
-            event_type=EVENT_WELCOME_EMAIL_SENT if sent else EVENT_WELCOME_EMAIL_FAILED,
-            status="SUCCESS" if sent else "WARNING",
-            message=(
-                "Portal-ready email sent."
-                if sent
-                else "Portal-ready email not confirmed; check signup_notifications state."
-            ),
-            payload={"recipient_domain": recipient_domain},
-        )
-        if not sent:
-            logger.warning(
-                "Portal-ready email not confirmed for school %s",
-                school_id,
+        prov = dict((school.settings or {}).get("provisioning") or {})
+        if not prov.get("phase_b_complete") and not sent:
+            _record_school_event(
+                school,
+                event_type=EVENT_WELCOME_EMAIL_FAILED,
+                status="INFO",
+                message="Portal-ready email deferred until Phase B seed completes.",
+                payload={"recipient_domain": recipient_domain},
             )
+        else:
+            _record_school_event(
+                school,
+                event_type=EVENT_WELCOME_EMAIL_SENT if sent else EVENT_WELCOME_EMAIL_FAILED,
+                status="SUCCESS" if sent else "WARNING",
+                message=(
+                    "Portal-ready email sent."
+                    if sent
+                    else "Portal-ready email not confirmed; check signup_notifications state."
+                ),
+                payload={"recipient_domain": recipient_domain},
+            )
+            if not sent:
+                logger.warning(
+                    "Portal-ready email not confirmed for school %s",
+                    school_id,
+                )
 
 
 def reconcile_half_provisioned_tenants(

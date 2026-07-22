@@ -394,6 +394,27 @@ def _check_celery_broker_liveness() -> dict:
         return {"status": "degraded", "error": str(exc)[:120]}
 
 
+def _check_celery_workers() -> dict:
+    """Best-effort Celery worker heartbeat (inspect.ping) for /healthz/.
+
+    Broker reachability alone is not enough after batch 1781: tasks enqueue and
+    never drain when the worker is down. Empty broker → ``unavailable`` (eager).
+    Configured broker + zero ping replies → ``degraded``.
+    """
+    broker = (getattr(settings, "CELERY_BROKER_URL", "") or "").strip()
+    if not broker:
+        return {"status": "unavailable", "detail": "broker not configured (eager mode)"}
+    try:
+        from config.celery import app as celery_app
+
+        ping = celery_app.control.inspect(timeout=2.0).ping() or {}
+        if not ping:
+            return {"status": "degraded", "detail": "no workers responded to ping"}
+        return {"status": "ok", "workers": sorted(str(k) for k in ping.keys())}
+    except Exception as exc:  # noqa: BLE001 - liveness check must never crash the probe
+        return {"status": "degraded", "error": str(exc)[:120]}
+
+
 def _redis_cache_configured() -> bool:
     """True when production Redis (or RedisCache) is the active cache backend."""
     redis_url = (getattr(settings, "REDIS_URL", None) or os.getenv("REDIS_URL", "") or "").strip()
@@ -407,16 +428,31 @@ def _redis_cache_configured() -> bool:
         return False
 
 
-def _healthz_configured_deps_failed(cache_result: dict, broker_result: dict) -> bool:
+def _healthz_configured_deps_failed(
+    cache_result: dict,
+    broker_result: dict,
+    workers_result: dict | None = None,
+) -> bool:
     """Fail /healthz only when a *configured* dependency reports degraded.
 
     LocMem cache + eager Celery stay soft-OK so CI/local remain green.
     Queue-depth alone never flips HTTP status (alert signal, not hard fail).
+    Worker ping fails hard when broker is set and HEALTHZ_REQUIRE_CELERY_WORKERS.
     """
     if cache_result.get("status") == "degraded" and _redis_cache_configured():
         return True
     broker = (getattr(settings, "CELERY_BROKER_URL", "") or "").strip()
     if broker and broker_result.get("status") == "degraded":
+        return True
+    require_workers = bool(
+        getattr(settings, "HEALTHZ_REQUIRE_CELERY_WORKERS", True)
+    )
+    if (
+        broker
+        and require_workers
+        and workers_result is not None
+        and workers_result.get("status") == "degraded"
+    ):
         return True
     return False
 
@@ -540,11 +576,12 @@ def healthz(request):
         )
         return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
-    # Cache + broker: Wave 16 strict-deps — when Redis / CELERY_BROKER_URL are
-    # configured, degraded → HTTP 503. Unconfigured (LocMem / eager) stay soft.
+    # Cache + broker + workers: Wave 16 strict-deps — when Redis / CELERY_BROKER_URL
+    # are configured, degraded → HTTP 503. Unconfigured (LocMem / eager) stay soft.
     # Queue-depth remains alert-only (never flips the top-level status alone).
     cache_result = _check_cache_liveness()
     broker_result = _check_celery_broker_liveness()
+    workers_result = _check_celery_workers()
     queue_depth_result = _check_celery_queue_depth()
 
     payload = {
@@ -552,9 +589,10 @@ def healthz(request):
         "database": "ok",
         "cache": cache_result.get("status", "unknown"),
         "celery_broker": broker_result.get("status", "unknown"),
+        "celery_workers": workers_result,
         "celery_queue_depth": queue_depth_result,
     }
-    if _healthz_configured_deps_failed(cache_result, broker_result):
+    if _healthz_configured_deps_failed(cache_result, broker_result, workers_result):
         payload["status"] = "error"
         return JsonResponse(payload, status=503)
     return JsonResponse(payload)

@@ -209,16 +209,28 @@ def notify_tenant_signup_completed(
     force: bool = False,
 ) -> bool:
     """
-    Idempotent portal-ready email after ``school.is_active`` is True.
+    Idempotent portal-ready email after Phase B seed completes (``phase_b_complete``).
 
     Skips when ``completed_delivered_at`` is set unless ``force=True``.
     Returns True when SMTP delivery is confirmed or welcome fallback succeeds.
+
+    PGL-007: refuses to send "ready" copy while Phase B is still incomplete unless
+    ``force=True`` (operator resend / manual activate of a finished school).
     """
     if not school or not getattr(school, "is_active", False):
         return False
     email = (contact_email or "").strip()
     if not email:
         return False
+
+    if not force:
+        prov = dict((getattr(school, "settings", None) or {}).get("provisioning") or {})
+        if not prov.get("phase_b_complete"):
+            logger.info(
+                "portal-ready email deferred until phase_b_complete school=%s",
+                getattr(school, "pk", None),
+            )
+            return False
 
     state = _notification_state(school)
     if state.get("completed_delivered_at") and not force:
@@ -339,7 +351,11 @@ def notify_provisioning_failed_operator(school, contact_email: str, *, error: st
 
 def finalize_tenant_activation(school, contact_email: str = "", **kwargs) -> None:
     """
-    Post-activate hook: sync domains to runtime + send portal-ready comms.
+    Post-seed hook: sync domains to runtime + send portal-ready / welcome comms.
+
+    PGL-007: call only after Phase B completes (or operator force-activate of an
+    already-provisioned school). Phase A portal flip must not send "ready" copy
+    while seed may still be incomplete.
     """
     if not school or not getattr(school, "is_active", False):
         return
@@ -362,13 +378,13 @@ def finalize_tenant_activation(school, contact_email: str = "", **kwargs) -> Non
         )
     try:
         from apps.platform_runtime.tenant_lifecycle_notifications import (
-            EVENT_TENANT_ACTIVATED,
+            EVENT_PROVISIONING_COMPLETED,
             emit_tenant_lifecycle_notification,
         )
 
         emit_tenant_lifecycle_notification(
             school,
-            EVENT_TENANT_ACTIVATED,
+            EVENT_PROVISIONING_COMPLETED,
             contact_email=contact_email,
             admin_user=kwargs.get("admin_user"),
         )
@@ -377,4 +393,27 @@ def finalize_tenant_activation(school, contact_email: str = "", **kwargs) -> Non
             school,
             contact_email,
             admin_user=kwargs.get("admin_user"),
+        )
+
+
+def sync_domains_after_portal_phase_a(school) -> None:
+    """Phase A only — subdomain routing without portal-ready / welcome email."""
+    if not school:
+        return
+    try:
+        from apps.schools.domain_sync import sync_school_domains_to_runtime
+
+        sync_school_domains_to_runtime(school)
+    except (
+        OSError,
+        ConnectionError,
+        ImportError,
+        AttributeError,
+        TypeError,
+        ValueError,
+    ):
+        logger.warning(
+            "phase_a_domain_sync_failed school=%s",
+            getattr(school, "pk", None),
+            exc_info=True,
         )

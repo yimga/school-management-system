@@ -32,11 +32,12 @@ class ProvisioningDispatchTests(TestCase):
         self.assertIsNone(result["job_id"])
         self.assertTrue(school.is_active)
 
-    def test_complete_provisioning_syncs_when_queue_leaves_school_inactive(self):
+    def test_complete_provisioning_defers_to_worker_when_queued(self):
+        """Broker accepted the task — do not inline-migrate on the web path."""
         school = School.objects.create(
-            name="Sync After Queue",
-            slug="sync-after-queue",
-            subdomain="sync-after-queue",
+            name="Defer To Worker",
+            slug="defer-to-worker",
+            subdomain="defer-to-worker",
             is_active=False,
         )
 
@@ -44,19 +45,38 @@ class ProvisioningDispatchTests(TestCase):
             "apps.schools.tasks.provision_school_task.delay",
             return_value=type("R", (), {"id": "job-99"})(),
         ):
-            with patch(
-                "apps.schools.tasks.provision_school_sync",
-                wraps=lambda sid, **kw: School.objects.filter(pk=sid).update(
-                    is_active=True
-                ),
-            ) as sync:
+            with patch("apps.schools.tasks.provision_school_sync") as sync:
                 result = complete_provisioning_for_school(
                     str(school.id), contact_email="owner@example.com"
                 )
 
         self.assertTrue(result["queued"])
+        self.assertFalse(result["fallback"])
+        self.assertFalse(result["sync_completed"])
+        self.assertTrue(result["sync_deferred_to_worker"])
+        sync.assert_not_called()
+        school.refresh_from_db()
+        self.assertFalse(school.is_active)
+        self.assertFalse(result["is_active"])
+
+    def test_complete_provisioning_syncs_only_on_queue_fallback(self):
+        school = School.objects.create(
+            name="Fallback Sync School",
+            slug="fallback-sync-school",
+            subdomain="fallback-sync-school",
+            is_active=False,
+        )
+
+        with patch(
+            "apps.schools.tasks.provision_school_task.delay",
+            side_effect=RuntimeError("broker offline"),
+        ):
+            result = complete_provisioning_for_school(
+                str(school.id), contact_email="owner@example.com"
+            )
+
+        self.assertTrue(result["fallback"])
         self.assertTrue(result["sync_completed"])
-        sync.assert_called_once()
         school.refresh_from_db()
         self.assertTrue(school.is_active)
         self.assertTrue(result["is_active"])
