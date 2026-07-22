@@ -74,12 +74,19 @@ def _generate_backup_tokens(device, count=10):
 
 
 def mfa_has_device(user) -> bool:
+    """True when the user has a *confirmed* TOTP device or a passkey.
+
+    Unconfirmed draft TOTP rows (created when the user clicks “show QR”) must
+    NOT count — otherwise login/middleware send them to MFA *verify* before they
+    have finished enrollment.
+    """
     from apps.accounts.models import UserPasskey
 
-    return bool(
-        user_has_device(user)
-        or UserPasskey.objects.filter(user=user).exists()
-    )
+    try:
+        has_totp = bool(user_has_device(user, confirmed=True))
+    except TypeError:
+        has_totp = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
+    return bool(has_totp or UserPasskey.objects.filter(user=user).exists())
 
 
 def build_mfa_setup_context(request, *, next_url: str = "") -> dict:

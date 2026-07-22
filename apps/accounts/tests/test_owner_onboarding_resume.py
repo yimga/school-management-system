@@ -58,6 +58,13 @@ class OwnerOnboardingResumeTests(TestCase):
             "accounts:owner_onboarding_done",
         )
 
+    def test_mfa_step_resumes_mfa(self):
+        self._set_state(step="mfa", completed=False)
+        self.assertEqual(
+            _owner_onboarding_resume_name(self._req(), self.owner),
+            "accounts:owner_onboarding_mfa",
+        )
+
     def test_completed_returns_none(self):
         self._set_state(step="done", completed=True)
         self.assertIsNone(_owner_onboarding_resume_name(self._req(), self.owner))

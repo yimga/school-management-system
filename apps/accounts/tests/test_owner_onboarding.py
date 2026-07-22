@@ -232,6 +232,8 @@ class OwnerOnboardingFlowTests(TestCase):
         self.assertIn("progress_percent", r2.json())
 
     def test_owner_school_prefers_latest_verified_signup(self):
+        from datetime import timedelta
+
         from django.utils import timezone
 
         from apps.accounts.views_owner_onboarding import _owner_school
@@ -251,6 +253,7 @@ class OwnerOnboardingFlowTests(TestCase):
             school=self.school,
             email=self.user.email,
             verified_at=timezone.now(),
+            expires_at=timezone.now() + timedelta(days=7),
         )
         resolved = _owner_school(self.user)
         self.assertEqual(resolved.pk, self.school.pk)

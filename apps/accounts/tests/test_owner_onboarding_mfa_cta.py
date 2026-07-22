@@ -71,3 +71,14 @@ class OwnerDashboardHrefMfaGateTests(TestCase):
         href = _post_onboarding_dashboard_href(request, self.school)
         self.assertNotIn("owner_onboarding_mfa", href)
         self.assertNotIn("mfa_setup", href)
+
+    def test_waived_owner_gets_direct_dashboard(self):
+        user = User.objects.create_user("mfa_waive", "mfa_waive@example.com", "pw")
+        self.school.settings = {
+            "owner_onboarding": {"completed": True, "mfa_waived": True}
+        }
+        self.school.save(update_fields=["settings"])
+        request = self.factory.get("/authentication/onboarding/done/")
+        request.user = user
+        href = _post_onboarding_dashboard_href(request, self.school)
+        self.assertNotIn("owner_onboarding_mfa", href)

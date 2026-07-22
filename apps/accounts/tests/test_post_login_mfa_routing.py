@@ -61,10 +61,49 @@ class PostLoginMfaRoutingTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/authentication/mfa/verify", response["Location"])
 
+    def test_unconfirmed_device_does_not_send_to_verify(self):
+        TOTPDevice.objects.filter(user=self.user).delete()
+        TOTPDevice.objects.create(user=self.user, name="draft", confirmed=False)
+        request = self._request()
+        with patch(
+            "apps.accounts.post_login_mfa._resolve_enforcement_mode",
+            return_value=("optional", 7),
+        ):
+            response = resolve_post_login_mfa_redirect(request, self.user)
+        self.assertIsNone(response)
+
+    def test_strict_no_device_redirects_to_setup_not_verify(self):
+        TOTPDevice.objects.filter(user=self.user).delete()
+        request = self._request()
+        with patch(
+            "apps.accounts.post_login_mfa._resolve_enforcement_mode",
+            return_value=("strict", None),
+        ):
+            response = resolve_post_login_mfa_redirect(request, self.user)
+        self.assertIsNotNone(response)
+        self.assertIn("/mfa/setup", response["Location"])
+        self.assertNotIn("/mfa/verify", response["Location"])
+
+    def test_incomplete_owner_onboarding_skips_post_login_mfa(self):
+        TOTPDevice.objects.filter(user=self.user).delete()
+        self.school.settings = {
+            "owner_onboarding": {"step": "school", "completed": False}
+        }
+        self.school.save(update_fields=["settings"])
+        SchoolMembership.objects.filter(user=self.user, school=self.school).update(
+            is_school_owner=True
+        )
+        request = self._request()
+        with patch(
+            "apps.accounts.post_login_mfa._resolve_enforcement_mode",
+            return_value=("strict", None),
+        ):
+            response = resolve_post_login_mfa_redirect(request, self.user)
+        self.assertIsNone(response)
+
     def test_mfa_before_manager_handoff_for_tenant_admin(self):
         """Manager-host password must not bounce to school login before MFA."""
         self.client.force_login(self.user)
-        # Simulate login_view order: MFA resolver first, handoff must not win.
         request = self._request(host="manager.runmycampus.com")
         request.public_host_kind = "manager"
         with patch(
@@ -85,7 +124,9 @@ class PostLoginMfaRoutingTests(TestCase):
             },
             HTTP_HOST="mfa-school.runmycampus.com",
         )
-        self.assertEqual(response.status_code, 302, msg=getattr(response, "content", b"")[:500])
+        self.assertEqual(
+            response.status_code, 302, msg=getattr(response, "content", b"")[:500]
+        )
         self.assertIn("/authentication/mfa/verify", response.url)
 
 

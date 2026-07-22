@@ -116,20 +116,46 @@ def _dashboard_redirect():
 
 
 def _owner_mfa_enrolled(user) -> bool:
-    """True when the owner already has a confirmed MFA device.
+    """True when the owner already has a *confirmed* MFA device.
 
-    The provisioned owner's role is ``ADMIN``, which ``BASELINE_REQUIRED_ROLES``
-    makes MFA-required, so ``RequireMFAMiddleware`` forces enrollment at first
-    dashboard access regardless. Surfacing it on the launchpad turns that
-    required step into a visible part of first-run setup (not a surprise
-    redirect); the CTA hides itself once the owner has enrolled.
+    Unconfirmed draft TOTP rows (QR shown, not verified) must not count — those
+    used to route owners into MFA *verify* before enrollment finished.
     """
     try:
-        from django_otp import user_has_device
+        from apps.accounts.mfa_setup_flow import mfa_has_device
 
-        return bool(user_has_device(user))
+        return bool(mfa_has_device(user))
     except Exception:  # noqa: BLE001 - the launchpad must never 500 on an optional CTA
         return False
+
+
+def _owner_mfa_waive_allowed(request, user) -> bool:
+    """True when soft-launch policy lets the owner finish without enrolling yet."""
+    try:
+        from apps.accounts.mfa_defaults import resolve_mfa_enforcement
+        from apps.accounts.post_login_mfa import _resolve_enforcement_mode
+
+        mode, grace_days = _resolve_enforcement_mode(request, user)
+        decision = resolve_mfa_enforcement(
+            must_have_mfa=True,
+            has_device=False,
+            mode=mode,
+            grace_period_days=grace_days,
+            user=user,
+        )
+        return decision.action in ("nudge", "grace", "none")
+    except Exception:  # noqa: BLE001 — default allow waive so new owners are never trapped
+        return True
+
+
+def _owner_mfa_satisfied(request, user, school) -> bool:
+    """Enrolled, waived during onboarding, or soft-launch policy allows continue."""
+    if _owner_mfa_enrolled(user):
+        return True
+    state = onboarding_state(school) if school is not None else {}
+    if state.get("mfa_waived"):
+        return True
+    return _owner_mfa_waive_allowed(request, user)
 
 
 def _post_onboarding_dashboard_href(request, school) -> str:
@@ -166,15 +192,17 @@ def _post_onboarding_dashboard_href(request, school) -> str:
 
     user = getattr(request, "user", None)
     if user and getattr(user, "is_authenticated", False) and not _owner_mfa_enrolled(user):
-        try:
-            # Stay inside the owner-onboarding wizard chrome (step 3 of 4).
-            return reverse("accounts:owner_onboarding_mfa")
-        except Exception:  # noqa: BLE001
+        state = onboarding_state(school) if school is not None else {}
+        # Prefer the wizard MFA step until the owner enrolls or explicitly waives.
+        if not state.get("mfa_waived"):
             try:
-                setup = reverse("accounts:mfa_setup")
-                return f"{setup}?{urlencode({'legacy': '1', 'next': dashboard})}"
+                return reverse("accounts:owner_onboarding_mfa")
             except Exception:  # noqa: BLE001
-                return dashboard
+                try:
+                    setup = reverse("accounts:mfa_setup")
+                    return f"{setup}?{urlencode({'legacy': '1', 'next': dashboard})}"
+                except Exception:  # noqa: BLE001
+                    return dashboard
     return dashboard
 
 
@@ -198,11 +226,13 @@ def _run_owner_provisioning(
         request.session[session_key] = now_ts
     contact_email = (getattr(user, "email", "") or "").strip()
     try:
-        from apps.schools.tasks import kick_complete_provisioning_background
+        # Prefer immediate queue dispatch (worker/outbox). ``kick_*`` alone uses
+        # ``transaction.on_commit``, which is correct after signup verify but can
+        # defer too long (or never fire under TestCase atomic wraps) — owners then
+        # sit forever on an inactive portal / stuck tenant_schema.
+        from apps.schools.tasks import complete_provisioning_for_school
 
-        kick_complete_provisioning_background(
-            str(school.pk), contact_email=contact_email
-        )
+        complete_provisioning_for_school(str(school.pk), contact_email=contact_email)
         school.refresh_from_db(fields=["is_active", "settings", "updated_at"])
         logger.info(
             "owner_onboarding_provision_kicked school_id=%s active=%s",
@@ -415,10 +445,11 @@ def owner_onboarding_school(request):
                     school.save(update_fields=updates)
                 except Exception:  # noqa: BLE001 - never block the wizard on a save error
                     logger.warning("owner_onboarding_school_save_failed", exc_info=True)
-        _set_onboarding(school, step="mfa")
         _finish_provisioning_before_done(request, school, request.user)
         if not _owner_mfa_enrolled(request.user):
+            _set_onboarding(school, step="mfa")
             return redirect("accounts:owner_onboarding_mfa")
+        _set_onboarding(school, step="done")
         return redirect("accounts:owner_onboarding_done")
 
     return render(
@@ -428,14 +459,14 @@ def owner_onboarding_school(request):
     )
 
 
-# ── Step 3: MFA enrollment (required before done) ───────────────────────────
+# ── Step 3: MFA enrollment (setup or waive when policy allows) ───────────────
 @login_required
 @require_http_methods(["GET", "POST"])
 def owner_onboarding_mfa(request):
-    """Required MFA wizard step — same onboarding chrome as school/account.
+    """MFA wizard step — enroll or continue later when soft-launch policy allows.
 
     Renders MFA enrollment inside the owner-onboarding shell (step 3 of 4).
-    Middleware remains a backstop only. Already-enrolled owners skip to done.
+    Middleware remains a backstop only. Already-enrolled / waived owners skip to done.
     """
     from django.urls import reverse
 
@@ -445,7 +476,9 @@ def owner_onboarding_mfa(request):
     school = _owner_school(request.user)
     if school is None:
         return _dashboard_redirect()
-    if onboarding_state(school).get("completed") and _owner_mfa_enrolled(request.user):
+    if onboarding_state(school).get("completed") and _owner_mfa_satisfied(
+        request, request.user, school
+    ):
         return _dashboard_redirect()
 
     if _owner_mfa_enrolled(request.user):
@@ -455,13 +488,21 @@ def owner_onboarding_mfa(request):
     _set_onboarding(school, step="mfa")
     done = reverse("accounts:owner_onboarding_done")
     next_url = _safe_next_url(request, request.POST.get("next") or done, done)
+    waive_allowed = _owner_mfa_waive_allowed(request, request.user)
 
     if request.method == "POST":
+        if "waive_mfa" in request.POST and waive_allowed:
+            _set_onboarding(school, step="done", mfa_waived=True)
+            messages.info(
+                request,
+                _l("You can turn on two-factor authentication later from Security settings."),
+            )
+            return redirect("accounts:owner_onboarding_done")
         outcome, mfa_ctx = handle_mfa_setup_post(request, next_url=next_url)
         if outcome in ("redirect_next", "redirect_profile") or _owner_mfa_enrolled(
             request.user
         ):
-            _set_onboarding(school, step="done")
+            _set_onboarding(school, step="done", mfa_waived=False)
             return redirect("accounts:owner_onboarding_done")
         if outcome == "render" and mfa_ctx:
             mfa_ctx.update(
@@ -470,6 +511,7 @@ def owner_onboarding_mfa(request):
                     "step": 3,
                     "total_steps": _TOTAL_STEPS,
                     "onboarding_mfa": True,
+                    "mfa_waive_allowed": waive_allowed,
                     "next_url": next_url,
                 }
             )
@@ -482,6 +524,7 @@ def owner_onboarding_mfa(request):
             "step": 3,
             "total_steps": _TOTAL_STEPS,
             "onboarding_mfa": True,
+            "mfa_waive_allowed": waive_allowed,
             "next_url": next_url,
         }
     )
@@ -495,9 +538,20 @@ def owner_onboarding_done(request):
     if school is None:
         return _dashboard_redirect()
 
-    # Hard gate: MFA is a wizard step — do not mark onboarding complete until enrolled.
-    if not _owner_mfa_enrolled(request.user):
+    # Soft gate: enrolled, waived, or optional/grace policy — never trap forever.
+    if not _owner_mfa_satisfied(request, request.user, school):
         return redirect("accounts:owner_onboarding_mfa")
+
+    # Stamp completed before any cross-host redirect so a public-host visit still
+    # finishes the wizard (otherwise the tenant hop never sees ``completed``).
+    if not onboarding_state(school).get("completed"):
+        _set_onboarding(school, completed=True, step="done")
+        try:
+            from apps.schools.activation_gate import clear_activation_gate
+
+            clear_activation_gate(school)
+        except ImportError:
+            pass
 
     if request.method == "GET":
         try:
@@ -515,16 +569,7 @@ def owner_onboarding_done(request):
         except (ImportError, AttributeError, TypeError, ValueError):
             pass
     request.school = school
-    # Idempotent: stamp "completed" once, but keep the launchpad reachable on a
-    # refresh (the page is useful — invite team / open Studio / dashboard).
-    if not onboarding_state(school).get("completed"):
-        _set_onboarding(school, completed=True, step="done")
-        try:
-            from apps.schools.activation_gate import clear_activation_gate
-
-            clear_activation_gate(school)
-        except ImportError:
-            pass
+    # Idempotent: completed already stamped above; keep launchpad reachable.
 
     try:
         from apps.schools.provisioning_progress import resolve_portal_ready

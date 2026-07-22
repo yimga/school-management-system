@@ -4,6 +4,7 @@ Provides TOTP setup, QR code generation, and verification
 """
 
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import gettext as _
@@ -110,7 +111,17 @@ def mfa_verify(request):
     has_totp = TOTPDevice.objects.filter(user=request.user, confirmed=True).exists()
     has_passkey = UserPasskey.objects.filter(user=request.user).exists()
     if not has_totp and not has_passkey:
-        return redirect("accounts:redirect")
+        # Never show the code entry page without a confirmed device — that is the
+        # "asked for MFA before I enrolled" trap (often after an unconfirmed draft).
+        setup = reverse("accounts:mfa_setup") + "?legacy=1"
+        next_q = _safe_next_url(
+            request,
+            request.GET.get("next") or request.session.get("mfa_next"),
+            "",
+        )
+        if next_q:
+            setup = f"{setup}&next={next_q}"
+        return redirect(setup)
 
     # Capture next URL (GET) for post-verification redirect
     next_url = _safe_next_url(
@@ -210,13 +221,18 @@ def mfa_required(view_func):
 
         from .models import UserPasskey
 
-        has_mfa = (
-            user_has_device(request.user)
-            or UserPasskey.objects.filter(user=request.user).exists()
-        )
+        try:
+            has_totp = bool(user_has_device(request.user, confirmed=True))
+        except TypeError:
+            has_totp = TOTPDevice.objects.filter(
+                user=request.user, confirmed=True
+            ).exists()
+        has_mfa = has_totp or UserPasskey.objects.filter(user=request.user).exists()
         if has_mfa and not _session_has_valid_mfa(request):
             messages.warning(request, _("Please verify your MFA token."))
             return redirect("accounts:mfa_verify")
+        if not has_mfa:
+            return redirect(reverse("accounts:mfa_setup") + "?legacy=1")
         return view_func(request, *args, **kwargs)
 
     return wrapper

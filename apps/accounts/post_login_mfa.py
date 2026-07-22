@@ -3,6 +3,10 @@
 Keeps password → MFA → destination as one contract so manager/public handoff
 cannot skip the MFA challenge (symptom: password “buffers” then returns to
 the sign-in page, or lands on backend with MFA never shown).
+
+Also respects soft-launch enforcement (optional/grace): brand-new owners must
+not be hard-walled to verify/setup before they finish onboarding or when the
+tenant policy only nudges.
 """
 
 from __future__ import annotations
@@ -30,7 +34,7 @@ def _mfa_remembered(request) -> bool:
 
 
 def _user_has_mfa_device(user) -> bool:
-    """TOTP (confirmed) or passkey — same surface RequireMFAMiddleware uses."""
+    """TOTP (confirmed only) or passkey — same surface RequireMFAMiddleware uses."""
     try:
         from django_otp import user_has_device
         from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -39,8 +43,7 @@ def _user_has_mfa_device(user) -> bool:
             if user_has_device(user, confirmed=True):
                 return True
         except TypeError:
-            if user_has_device(user):
-                return True
+            pass
         if TOTPDevice.objects.filter(user=user, confirmed=True).exists():
             return True
     except (ImportError, AttributeError, TypeError, ValueError):
@@ -99,6 +102,46 @@ def _user_must_have_mfa(request, user) -> bool:
     return False
 
 
+def _resolve_enforcement_mode(request, user):
+    """Return (mode, grace_days) for resolve_mfa_enforcement."""
+    mode = None
+    grace_days = None
+    try:
+        from apps.platform_runtime.config_resolver import get_effective_config
+
+        mode = get_effective_config(
+            key="mfa_enforcement_mode", request=request, default=None
+        )
+        grace_days = get_effective_config(
+            key="mfa_grace_period_days", request=request, default=None
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    if mode is None or str(mode).strip() == "":
+        # Soft-launch façade default (see siteconfig.models_support virtual defaults).
+        mode = "optional"
+    return mode, grace_days
+
+
+def _owner_onboarding_incomplete(request, user) -> bool:
+    """True while the guided owner wizard is in progress (wizard owns MFA step)."""
+    try:
+        from apps.accounts.views_owner_onboarding import (
+            _owner_school,
+            onboarding_state,
+        )
+
+        school = getattr(request, "school", None) or _owner_school(user)
+        if school is None:
+            return False
+        state = onboarding_state(school)
+        if not state:
+            return False
+        return not bool(state.get("completed"))
+    except Exception:  # noqa: BLE001 — login must never 500 on resume probe
+        return False
+
+
 def resolve_post_login_mfa_redirect(request, user, *, next_url: str = ""):
     """
     Return an HttpResponseRedirect to MFA setup/verify, or None to continue.
@@ -120,25 +163,49 @@ def resolve_post_login_mfa_redirect(request, user, *, next_url: str = ""):
     except ImportError:
         pass
 
+    # Wizard owns the MFA step — do not steal the session to verify/setup mid-flow.
+    if _owner_onboarding_incomplete(request, user):
+        return None
+
     has_device = _user_has_mfa_device(user)
     must_have = _user_must_have_mfa(request, user)
 
-    if must_have and not has_device:
-        mfa_setup_url = reverse("accounts:mfa_setup")
-        # legacy=1 → branded enrollment page (wizard engine escape hatch).
-        target = mfa_setup_url + "?legacy=1"
-        if next_url:
-            target = f"{target}&next={next_url}"
-        request.session.modified = True
-        return redirect(target)
-
-    if has_device or must_have:
+    # Confirmed device → always challenge (session not yet verified).
+    if has_device:
         if next_url:
             request.session["mfa_next"] = next_url
         request.session.modified = True
         return redirect(reverse("accounts:mfa_verify"))
 
-    return None
+    if not must_have:
+        return None
+
+    # Required role, no confirmed device — honor soft-launch modes.
+    from apps.accounts.mfa_defaults import resolve_mfa_enforcement
+
+    mode, grace_days = _resolve_enforcement_mode(request, user)
+    decision = resolve_mfa_enforcement(
+        must_have_mfa=True,
+        has_device=False,
+        mode=mode,
+        grace_period_days=grace_days,
+        user=user,
+    )
+    if decision.action in ("nudge", "grace", "none"):
+        request.rmc_mfa_nudge = {
+            "mode": decision.mode,
+            "action": decision.action,
+            "grace_days_remaining": decision.grace_days_remaining,
+        }
+        return None
+
+    # strict / enforce → branded setup (never verify — there is no device yet).
+    mfa_setup_url = reverse("accounts:mfa_setup")
+    target = mfa_setup_url + "?legacy=1"
+    if next_url:
+        target = f"{target}&next={next_url}"
+    request.session.modified = True
+    return redirect(target)
 
 
 def is_mfa_challenge_response(response) -> bool:

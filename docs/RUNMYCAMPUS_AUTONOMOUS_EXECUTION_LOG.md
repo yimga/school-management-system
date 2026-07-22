@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Owner provisioning A–Z MFA + schema kick (batch 1786 - 2026-07-22)
+
+**A. Scope:** Fix confirmation→password/brand incomplete, MFA asked before enroll / no waive, and owner provision kick not reliably queuing tenant_schema work.
+
+**B. Shipped:** confirmed-only MFA; post_login enforcement modes + onboarding exemption; owner waive + soft done gate + completed stamp before host hop; school-step state; `complete_provisioning_for_school` on owner kick; mfa_verify→setup; prompt `docs/prompts/PROVISIONING_AZ_OWNER_MFA_SCHEMA_FIX.md`; A–Z tests.
+
+**C. Proof:** `run_sqlite_memory_tests --fresh` → **18/18 OK** (az_flow + post_login_mfa + mfa_cta + school_step saves/skip).
+
+**D. Honest:** End-to-end schema migrate on Render still requires live worker+beat; this slice ensures the queue is kicked and MFA no longer traps the wizard.
+
+**E. Files:** `post_login_mfa.py`, `mfa_setup_flow.py`, `views_owner_onboarding.py`, `views_mfa.py`, `views.py` resume, `mfa.html`, tests, SOT/log/prompt.
+
+**F. Next:** After deploy, create one live test school A–Z on Render; confirm Celery worker drains Phase B.
+
 ## Slice — Process-gap leftovers (batch 1785 - 2026-07-22)
 
 **A. Scope:** Close honest leftovers after P0–P2 process-gap: transfer async FSM, MFA wizard chrome, non-provision autopilot strength, SOT/log.

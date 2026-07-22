@@ -1651,6 +1651,8 @@ def _owner_onboarding_resume_name(request, user):
         # step (default to the school step).
         if state.get("step") == "done":
             return "accounts:owner_onboarding_done"
+        if state.get("step") == "mfa":
+            return "accounts:owner_onboarding_mfa"
         return "accounts:owner_onboarding_school"
     except Exception:  # noqa: BLE001 — a post-login resume must never break login
         logging.getLogger(__name__).debug(
