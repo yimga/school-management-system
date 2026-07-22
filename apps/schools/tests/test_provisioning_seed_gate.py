@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import HttpResponse
@@ -45,12 +47,13 @@ class ProvisioningSeedGateMiddlewareTests(TestCase):
         )
         self.rf = RequestFactory()
 
-    def _request(self, path: str):
+    def _request(self, path: str, *, query_string: str = ""):
         request = self.rf.get(
             path,
             HTTP_HOST="husk-gate.runmycampus.com",
             HTTP_ACCEPT="text/html",
             HTTP_SEC_FETCH_DEST="document",
+            QUERY_STRING=query_string,
         )
         request.user = self.user
         SessionMiddleware(lambda r: None).process_request(request)
@@ -83,3 +86,28 @@ class ProvisioningSeedGateMiddlewareTests(TestCase):
         mw = ProvisioningSeedGateMiddleware(get_response=lambda r: HttpResponse("ok"))
         response = mw(self._request("/authentication/backend/"))
         self.assertEqual(response.status_code, 200)
+
+    def test_established_school_not_gated_when_workspace_probe_false(self):
+        """Marker-less live schools must keep working even if the probe is wrong.
+
+        After a failed/partial migrate_schemas, coverage-floor can yield
+        ``tenant_workspace_exists is False`` for healthy tenants.
+        ``provisioning_needs_resume`` then returns True — the seed gate must
+        NOT follow that path or every post-login navigation is trapped.
+        """
+        self.school.settings = {}
+        self.school.save(update_fields=["settings"])
+        mw = ProvisioningSeedGateMiddleware(get_response=lambda r: HttpResponse("ok"))
+        with patch(
+            "apps.schools.provisioning_progress.provisioning_needs_resume",
+            return_value=True,
+        ):
+            response = mw(self._request("/authentication/backend/"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_redirect_does_not_forward_auto_query_string(self):
+        mw = ProvisioningSeedGateMiddleware(get_response=lambda r: HttpResponse("ok"))
+        response = mw(self._request("/authentication/backend/", query_string="auto=1"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/school/studio/provisioning", response["Location"])
+        self.assertNotIn("auto=1", response["Location"])

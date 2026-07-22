@@ -49,9 +49,27 @@ def tenant_provisioning_status(request: HttpRequest) -> HttpResponse:
         .values("event_type", "status", "message", "created_at")
     )
 
+    # Phase A can report portal_ready / unified "live" while Phase B seed is
+    # still incomplete. SeedGateMiddleware would bounce School Studio back here;
+    # refuse auto-forward so ?auto=1 cannot loop with the gate.
+    phase_b_pending = False
+    try:
+        from apps.schools.middleware_provisioning_seed_gate import (
+            _phase_a_awaiting_phase_b,
+        )
+
+        phase_b_pending = _phase_a_awaiting_phase_b(school)
+    except ImportError:
+        prov = (getattr(school, "settings", None) or {}).get("provisioning") or {}
+        if isinstance(prov, dict):
+            phase_b_pending = bool(prov.get("phase_a_complete")) and not bool(
+                prov.get("phase_b_complete")
+            )
+
     if (
         unified.get("state") == "live"
         and not unified.get("provisioning_in_flight")
+        and not phase_b_pending
         and request.GET.get("auto") == "1"
     ):
         target = _tenant_reverse("school_studio")

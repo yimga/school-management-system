@@ -3,8 +3,15 @@ Block operational tenant navigation while Phase B seed is still incomplete.
 
 Phase A flips ``is_active`` so the subdomain resolves and progress APIs work,
 but grades/finance/structure still 500 until seed finishes. Document navigations
-are redirected to ``tenant_provisioning_status`` until ``phase_b_complete``
-(or the school is no longer in ``provisioning_needs_resume``).
+are redirected to ``tenant_provisioning_status`` until ``phase_b_complete``.
+
+IMPORTANT: gate ONLY on the explicit Phase A / Phase B markers written by the
+provisioning pipeline. Do NOT use ``provisioning_needs_resume`` here — that
+helper also returns True for marker-less schools whose workspace probe is
+``False`` (coverage below floor after a failed/partial ``migrate_schemas``).
+Wiring that probe into HTTP middleware trapped established schools behind the
+provisioning page after a successful login (looks like "cannot sign in").
+Healers / reconciler / Requeue still use ``provisioning_needs_resume``.
 """
 
 from __future__ import annotations
@@ -13,8 +20,19 @@ from django.http import HttpResponseRedirect
 from django.urls import NoReverseMatch, reverse
 
 
+def _phase_a_awaiting_phase_b(school) -> bool:
+    """True only when Phase A activated the portal and Phase B never finished."""
+    raw = getattr(school, "settings", None) or {}
+    if not isinstance(raw, dict):
+        return False
+    prov = raw.get("provisioning")
+    if not isinstance(prov, dict):
+        return False
+    return bool(prov.get("phase_a_complete")) and not bool(prov.get("phase_b_complete"))
+
+
 class ProvisioningSeedGateMiddleware:
-    """PGL-001 seal: no husk operational shell until Phase B completes."""
+    """PGL-001 seal: no Phase-A husk operational shell until Phase B completes."""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -42,12 +60,7 @@ class ProvisioningSeedGateMiddleware:
         if school is None:
             return None
 
-        try:
-            from apps.schools.provisioning_progress import provisioning_needs_resume
-
-            if not provisioning_needs_resume(school):
-                return None
-        except ImportError:
+        if not _phase_a_awaiting_phase_b(school):
             return None
 
         path = (getattr(request, "path", "") or "").lower()
@@ -66,8 +79,8 @@ class ProvisioningSeedGateMiddleware:
         target = url.lower().rstrip("/")
         if path.rstrip("/") == target:
             return None
-        if request.META.get("QUERY_STRING"):
-            url = f"{url}?{request.META['QUERY_STRING']}"
+        # Never forward QUERY_STRING (especially ?auto=1): tenant_provisioning_status
+        # auto-redirects live portals to School Studio, which is not exempt → loop.
         return HttpResponseRedirect(url)
 
     def _path_exempt(self, path: str) -> bool:
