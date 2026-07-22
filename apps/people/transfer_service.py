@@ -291,6 +291,65 @@ def continue_applying_transfers(*, limit: int = 20) -> dict[str, Any]:
         "failed": failed,
     }
 
+
+def _apply_summary_for_bundle(bundle_id: int | None) -> dict[str, Any]:
+    """Rebuild the sync-shaped apply block from bundle mapping_summary."""
+    if not bundle_id:
+        return {}
+    try:
+        from apps.migration_cloud.models import MigrationBundle
+
+        # tenant-isolation-allow: transfer-await-apply-summary-by-case-owned-bundle-pk
+        bundle = MigrationBundle.objects.filter(pk=bundle_id).only(
+            "mapping_summary", "status"
+        ).first()
+    except Exception:  # noqa: BLE001
+        return {}
+    if bundle is None:
+        return {}
+    totals = (bundle.mapping_summary or {}).get("apply_totals") or {}
+    return {
+        "dry_run": bool(totals.get("dry_run", False)),
+        "status": bundle.status,
+        "total_created": int(totals.get("created") or 0),
+        "total_updated": int(totals.get("updated") or 0),
+        "total_quarantined": int(totals.get("quarantined") or 0),
+    }
+
+
+def run_transfer_case_await_apply(case, *, actor=None) -> dict[str, Any]:
+    """Run the production async path, then drain+continue in-process.
+
+    Prefer this in tests over ``off_http=False`` so the real outbox FSM is
+    exercised while remaining TestCase-transaction-safe (no drain thread).
+    """
+    from unittest.mock import patch
+
+    from apps.platform_runtime.heavy_work_outbox import drain_heavy_work_outbox
+
+    with patch("apps.platform_runtime.heavy_work_outbox.kick_heavy_work_drain"):
+        summary = run_transfer_case(case, actor=actor, off_http=True)
+
+    if not summary.get("queued"):
+        return summary
+
+    # Same-thread drain — avoid the daemon-thread kick that cannot see TestCase rows.
+    drain_heavy_work_outbox(limit=10)
+    continued = continue_transfer_case_if_ready(case, actor=actor)
+    case.refresh_from_db()
+    apply_block = _apply_summary_for_bundle(case.target_bundle_id)
+    return {
+        "case_id": str(case.pk),
+        "status": case.status,
+        "bundle_id": case.target_bundle_id,
+        "queued": False,
+        "awaited": True,
+        "continued": continued,
+        "apply": apply_block,
+        "outbox_id": summary.get("outbox_id"),
+        "reconciled": case.status == "reconciled",
+    }
+
 def _link_passport_and_retire_source(case, source_profile, actor):
     """Design §5 step 5: same passport GUID at both schools; source retires."""
     from apps.interop.student_transfer_export import student_external_ref
@@ -441,6 +500,7 @@ __all__ = [
     "TransferBlockedError",
     "offline_transfer_blockers",
     "run_transfer_case",
+    "run_transfer_case_await_apply",
     "continue_transfer_case_if_ready",
     "continue_applying_transfers",
 ]

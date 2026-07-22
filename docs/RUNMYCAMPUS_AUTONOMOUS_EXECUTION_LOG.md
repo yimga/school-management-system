@@ -4,15 +4,15 @@
 
 **A. Scope:** Close honest leftovers after P0–P2 process-gap: transfer async FSM, MFA wizard chrome, non-provision autopilot strength, SOT/log.
 
-**B. Shipped:** transfer `off_http` + `continue_transfer_case_if_ready` + beat/periodic; owner-onboarding MFA template+view; `retry_failed_step` MC outbox / Celery / stamp; SOT §11.4 batch 1785 + prompt checklist.
+**B. Shipped:** transfer `off_http` + `continue_transfer_case_if_ready` + beat/periodic + `run_transfer_case_await_apply` test helper; owner-onboarding MFA template+view; `retry_failed_step` MC outbox / registry Celery / `track_workflow` celery stamp; SOT §11.4 batch 1785 + prompt checklist.
 
-**C. Proof:** `run_sqlite_memory_tests` on process-gap, MFA CTA, transfer-async-continue, repair suites.
+**C. Proof:** `run_sqlite_memory_tests` on process-gap, MFA CTA, transfer-async-continue, transfer real-apply/split await suites.
 
-**D. Honest:** real-apply transfer tests keep sync `off_http=False`; non-MC workflows without `celery_task_name` get stamp-retry only.
+**D. Honest:** `tenant_school_purge` (manual) still stamp-retries without an explicit task name in payload.
 
-**E. Files:** transfer_service/intake, people/tasks, periodic, settings beat, views_owner_onboarding + mfa.html, workflow_fix_handlers, tests, SOT/log/prompt.
+**E. Files:** transfer_service/intake, people/tasks, periodic, settings beat, views_owner_onboarding + mfa.html, workflow_fix_handlers, workflow_tracker, tests, SOT/log/prompt.
 
-**F. Next:** Optional — wire `celery_task_name` into more workflow trackers so generic autopilot requeues without stamp-only.
+**F. Next:** Optional — map `tenant_school_purge` to a named Celery requeue when operator offboard gains a task envelope.
 
 ## Slice — Fix D + worker ping + API seed + Render harness (batch 1784 - 2026-07-22)
 

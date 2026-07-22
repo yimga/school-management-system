@@ -383,10 +383,20 @@ def _retry_failed_step_by_workflow(
 ) -> dict[str, Any]:
     """Concrete re-drive when payload has no delegated auto_fix_kind.
 
-    Migration Cloud → durable outbox. Named Celery task in payload → .delay().
-    Otherwise stamp the run for retry (same as retry_once_with_backoff).
+    Migration Cloud → durable outbox. Named Celery task (payload or registry)
+    → ``send_task``. Otherwise stamp the run for retry.
     """
     from apps.platform_runtime.models import WorkflowRun
+
+    # Known stuck-default workflows → Celery task name when payload omits one.
+    # Keep in sync with STUCK_DEFAULT_FIX_BY_WORKFLOW retry_failed_step rows.
+    _RETRY_CELERY_TASK_BY_WORKFLOW: dict[str, str] = {
+        "evals_bulk_grades": "evals.process_bulk_grades",
+        "finance_auto_generate_fee_invoices": "finance.auto_generate_fee_invoices",
+        "finance_auto_copy_fee_plans": "finance.auto_copy_fee_plans",
+        "orchestration_process_due": "orchestration.process_due_runs",
+        "tenant_school_offboard_purge": "schools.run_scheduled_tenant_purges",
+    }
 
     bid = _as_int(_payload_first(payload, "bundle_id", "migration_bundle_id"))
 
@@ -451,18 +461,28 @@ def _retry_failed_step_by_workflow(
         return result
 
     task_name = str(
-        _payload_first(payload, "celery_task_name", "task_name", "retry_task_name") or ""
+        _payload_first(payload, "celery_task_name", "task_name", "retry_task_name")
+        or _RETRY_CELERY_TASK_BY_WORKFLOW.get(workflow_key, "")
+        or ""
     ).strip()
     if task_name:
         try:
             from celery import current_app
 
             args = payload.get("celery_task_args") or payload.get("task_args") or []
-            kwargs = payload.get("celery_task_kwargs") or payload.get("task_kwargs") or {}
+            kwargs = dict(
+                payload.get("celery_task_kwargs") or payload.get("task_kwargs") or {}
+            )
             if not isinstance(args, (list, tuple)):
                 args = []
-            if not isinstance(kwargs, dict):
-                kwargs = {}
+            # Prefer explicit payload kwargs; else seed from the stuck run's tenant.
+            if not kwargs:
+                sid = str(getattr(run, "school_id", "") or "").strip()
+                schema = str(getattr(run, "tenant_schema", "") or "").strip()
+                if sid:
+                    kwargs["school_id"] = sid
+                if schema and "schema_name" not in kwargs:
+                    kwargs["schema_name"] = schema
             current_app.send_task(task_name, args=list(args), kwargs=dict(kwargs))
             WorkflowRun.objects.filter(pk=run.pk).update(  # tenant-isolation-allow: workflow-run-update-by-primary-key-row
                 status="running",

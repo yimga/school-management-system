@@ -41,7 +41,7 @@ from apps.people.models import (
 )
 from apps.people.models_transfer import TransferCase
 from apps.people.models_transfer_consent import TransferConsent
-from apps.people.transfer_service import run_transfer_case
+from apps.people.transfer_service import run_transfer_case_await_apply
 from apps.schools.models import School
 
 User = get_user_model()
@@ -147,7 +147,7 @@ class SplitStructureProvisioningTests(TestCase):
         consent.consent()
         case.refresh_from_db()
         self.assertEqual(case.status, TransferCase.Status.APPROVED)
-        summary = run_transfer_case(case, actor=self.operator, off_http=False)
+        summary = run_transfer_case_await_apply(case, actor=self.operator)
         case.refresh_from_db()
         return case, summary
 

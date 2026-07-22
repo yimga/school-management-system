@@ -779,6 +779,14 @@ def track_workflow(
                     payload = payload_resolver(*args, **kwargs) or {}
                 except Exception:
                     logger.warning("workflow_tracker_payload_resolver_failed key=%s", workflow_key)
+            # Stamp Celery identity so stuck autopilot can send_task without a
+            # hand-maintained route in payload (PII-safe kwargs only).
+            try:
+                celery_meta = _celery_retry_payload_from_context()
+                if celery_meta:
+                    payload = {**payload, **celery_meta}
+            except Exception:
+                logger.debug("workflow_tracker_celery_payload_stamp_failed", exc_info=True)
 
             run = begin_run(
                 workflow_key=workflow_key,
@@ -814,6 +822,43 @@ def track_workflow(
 
 # Generic Celery bridge keys flash on sub-second beats; hide until this age (seconds).
 _CHIP_MIN_VISIBLE_SECONDS = 4
+
+# Safe kwargs echoed into WorkflowRun.payload_summary for autopilot send_task.
+_CELERY_RETRY_KWARG_ALLOW = frozenset(
+    {
+        "school_id",
+        "schema_name",
+        "dry_run",
+        "limit",
+        "academic_year_id",
+        "term_id",
+        "max_batch",
+    }
+)
+
+
+def _celery_retry_payload_from_context() -> dict:
+    """PII-safe Celery identity for stuck-run requeue (no bodies / emails)."""
+    try:
+        from celery import current_task
+    except Exception:
+        return {}
+    req = getattr(current_task, "request", None) if current_task is not None else None
+    if req is None:
+        return {}
+    name = str(getattr(current_task, "name", "") or "").strip()
+    if not name:
+        return {}
+    raw_kwargs = dict(getattr(req, "kwargs", None) or {})
+    safe_kwargs = {
+        k: raw_kwargs[k]
+        for k in _CELERY_RETRY_KWARG_ALLOW
+        if k in raw_kwargs and raw_kwargs[k] not in (None, "")
+    }
+    return {
+        "celery_task_name": name,
+        "celery_task_kwargs": safe_kwargs,
+    }
 
 
 def _visible_in_progress_chip(run: Any) -> bool:

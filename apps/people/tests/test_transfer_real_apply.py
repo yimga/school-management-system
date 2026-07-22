@@ -43,6 +43,7 @@ from apps.people.transfer_service import (
     TransferBlockedError,
     offline_transfer_blockers,
     run_transfer_case,
+    run_transfer_case_await_apply,
 )
 from apps.schools.models import School
 
@@ -249,11 +250,11 @@ class TransferRealApplyTests(TestCase):
 
     def test_unapproved_case_refused(self):
         with self.assertRaises(TransferBlockedError):
-            run_transfer_case(self.case, actor=self.operator, off_http=False)
+            run_transfer_case(self.case, actor=self.operator)
 
     def test_real_apply_end_to_end(self):
         self._approve_via_consent()
-        summary = run_transfer_case(self.case, actor=self.operator, off_http=False)
+        summary = run_transfer_case_await_apply(self.case, actor=self.operator)
         self.case.refresh_from_db()
 
         # Case landed in a terminal-success state with the bundle recorded.
@@ -341,10 +342,10 @@ class TransferRealApplyTests(TestCase):
 
     def test_rerun_of_finished_case_refused(self):
         self._approve_via_consent()
-        run_transfer_case(self.case, actor=self.operator, off_http=False)
+        run_transfer_case_await_apply(self.case, actor=self.operator)
         self.case.refresh_from_db()
         with self.assertRaises(TransferBlockedError):
-            run_transfer_case(self.case, actor=self.operator, off_http=False)
+            run_transfer_case(self.case, actor=self.operator)
 
     def test_offline_pending_guard_blocks(self):
         from apps.platform_runtime.models import OfflineAction
@@ -358,7 +359,7 @@ class TransferRealApplyTests(TestCase):
         self.assertTrue(offline_transfer_blockers(self.profile))
         self._approve_via_consent()
         with self.assertRaises(TransferBlockedError):
-            run_transfer_case(self.case, actor=self.operator, off_http=False)
+            run_transfer_case(self.case, actor=self.operator)
         self.case.refresh_from_db()
         self.assertEqual(self.case.status, TransferCase.Status.APPROVED)
 
@@ -366,7 +367,7 @@ class TransferRealApplyTests(TestCase):
         action.status = OfflineAction.Status.SYNCED
         action.save(update_fields=["status"])
         self.assertEqual(offline_transfer_blockers(self.profile), [])
-        summary = run_transfer_case(self.case, actor=self.operator, off_http=False)
+        summary = run_transfer_case_await_apply(self.case, actor=self.operator)
         self.assertIn("bundle_id", summary)
 
 

@@ -230,22 +230,53 @@ class RetryFailedStepStrengthTests(TestCase):
         self.assertTrue(result.get("durable_outbox"))
         self.assertEqual(result.get("outbox_id"), "mc1")
 
-    def test_generic_retry_stamps_running_without_payload_route(self):
+    def test_generic_retry_requeues_registered_celery_task(self):
         from apps.platform_runtime.models import WorkflowRun
         from apps.platform_runtime.workflow_fix_handlers import apply_auto_fix_kind
 
         run = WorkflowRun.objects.create(
             workflow_key="evals_bulk_grades",
             workflow_label="Bulk grades",
-            school_id="1",
+            school_id="school-evals-1",
             status="stuck",
             total_steps=2,
             expected_duration_seconds=300,
             last_heartbeat_at=timezone.now(),
             payload_summary={},
         )
-        result = apply_auto_fix_kind(run=run, kind="retry_failed_step")
+        with patch("celery.current_app.send_task") as send:
+            result = apply_auto_fix_kind(run=run, kind="retry_failed_step")
         self.assertTrue(result.get("ok"))
+        self.assertTrue(result.get("queued_async"))
+        self.assertEqual(result.get("celery_task_name"), "evals.process_bulk_grades")
+        send.assert_called_once()
+        self.assertEqual(send.call_args.args[0], "evals.process_bulk_grades")
+        self.assertEqual(
+            send.call_args.kwargs.get("kwargs", {}).get("school_id"),
+            "school-evals-1",
+        )
+        run.refresh_from_db()
+        self.assertEqual(run.status, "running")
+
+    def test_unregistered_workflow_stamp_retries_without_send_task(self):
+        from apps.platform_runtime.models import WorkflowRun
+        from apps.platform_runtime.workflow_fix_handlers import apply_auto_fix_kind
+
+        run = WorkflowRun.objects.create(
+            workflow_key="tenant_school_purge",
+            workflow_label="Manual purge",
+            school_id="school-purge-1",
+            status="stuck",
+            total_steps=2,
+            expected_duration_seconds=300,
+            last_heartbeat_at=timezone.now(),
+            payload_summary={},
+        )
+        with patch("celery.current_app.send_task") as send:
+            result = apply_auto_fix_kind(run=run, kind="retry_failed_step")
+        self.assertTrue(result.get("ok"))
+        self.assertFalse(result.get("queued_async"))
+        send.assert_not_called()
         run.refresh_from_db()
         self.assertEqual(run.status, "running")
 
