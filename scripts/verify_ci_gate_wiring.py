@@ -64,6 +64,13 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Template render safety + attribute-context layout-frame guard.
     ("scripts/audit_template_render_safety.py", "architectural-boundaries.yml"),
     ("scripts/scan_attribute_context_includes.py", "architectural-boundaries.yml"),
+    # Eager filter-arg VariableDoesNotExist 500 class (ops_surface / slice / add).
+    # Static scanner stays deps-free; completion verifier (static-only in boundaries,
+    # full Django run in ci.yml) is the only allowed "done" proof.
+    ("scripts/scan_include_with_default_context_var.py", "architectural-boundaries.yml"),
+    # Full completion (Django sparse renders + regression module) in ci.yml;
+    # static-only subset also runs in architectural-boundaries.yml.
+    ("scripts/verify_eager_filter_arg_completion.py", "ci.yml"),
     # Money never float; tenant rows always scoped; offline label has code.
     ("scripts/scan_wallpaper_status_badges.py", "architectural-boundaries.yml"),
     ("scripts/verify_page_masthead_twin_contract.py", "architectural-boundaries.yml"),

@@ -1,0 +1,89 @@
+{
+  "generated_at": "2026-07-22T11:47:51.191030+00:00",
+  "static_only": false,
+  "pass_count": 13,
+  "fail_count": 0,
+  "total": 13,
+  "complete": true,
+  "pass_token": "EAGER_FILTER_ARG_COMPLETION_PASS",
+  "rows": [
+    {
+      "check_id": "S1",
+      "label": "Static scanner --strict is 0 findings",
+      "ok": true,
+      "proof": "eager-filter-arg-context-var: 0 finding(s)"
+    },
+    {
+      "check_id": "S2",
+      "label": "Banned production filter-arg patterns absent",
+      "ok": true,
+      "proof": "no banned patterns"
+    },
+    {
+      "check_id": "S3",
+      "label": "Scanner stdlib unit tests green",
+      "ok": true,
+      "proof": "include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_honors_default_fallback_allow_marker) ... ok\ntest_skips_dotted_same_object_defaults (scripts.tests.test_scan_include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_skips_dotted_same_object_defaults) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.502s\n\nOK"
+    },
+    {
+      "check_id": "S4",
+      "label": "CI / pre-push / REQUIRED_GATES wiring present",
+      "ok": true,
+      "proof": "wired"
+    },
+    {
+      "check_id": "S5",
+      "label": "Agent completion prompt present and references PASS token",
+      "ok": true,
+      "proof": "docs/prompts/EAGER_FILTER_ARG_COMPLETION_PROMPT.md"
+    },
+    {
+      "check_id": "R4",
+      "label": "All rmc_operational_center_frame consumers free of banned defaults",
+      "ok": true,
+      "proof": "consumers=64 clean"
+    },
+    {
+      "check_id": "R1a",
+      "label": "Django |default:missing raises even when left is set",
+      "ok": true,
+      "proof": "VariableDoesNotExist raised as expected"
+    },
+    {
+      "check_id": "R1b",
+      "label": "Django |slice:missing raises",
+      "ok": true,
+      "proof": "VariableDoesNotExist raised as expected"
+    },
+    {
+      "check_id": "R1c",
+      "label": "Literal |default binding makes |slice safe without context var",
+      "ok": true,
+      "proof": "'12'"
+    },
+    {
+      "check_id": "R2a",
+      "label": "Ops frame renders without ops_surface / ops_page_archetype",
+      "ok": true,
+      "proof": "len=3110 has_frame=True"
+    },
+    {
+      "check_id": "R2b",
+      "label": "Ops frame tenant branch renders without ops_page_archetype",
+      "ok": true,
+      "proof": "len=1235"
+    },
+    {
+      "check_id": "R3",
+      "label": "Planner strip renders without backend_max_items_slice",
+      "ok": true,
+      "proof": "len=763"
+    },
+    {
+      "check_id": "R5",
+      "label": "Django regression test module green",
+      "ok": true,
+      "proof": " 2026-07-22 07:47:48,458 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- wizard registry: loaded 37 wizards\n.....\n----------------------------------------------------------------------\nRan 5 tests in 0.021s\n\nOK"
+    }
+  ]
+}

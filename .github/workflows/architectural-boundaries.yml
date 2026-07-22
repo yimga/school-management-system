@@ -1269,24 +1269,26 @@ jobs:
           python scripts/audit_template_render_safety.py --compare
 
   include-with-default-context-var:
-    name: "|default:missing_var filter-arg (VariableDoesNotExist 500)"
+    name: "|default/slice/add missing_var (VariableDoesNotExist 500)"
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run scanner --strict
+      - name: Static scanner + completion (static-only)
         # Django eagerly resolves EVERY |default: / |default_if_none: / |slice: /
         # |add: argument. A missing top-level context var 500s the page even when
         # the left-hand value is set (ops_surface on /super/schools/ + /configuration/,
         # and |slice:backend_max_items_slice on backend dashboard).
-        # Scans all templates/** and apps/*/templates/**.
+        # Full Django runtime rows of the completion verifier run in ci.yml.
         run: |
           python scripts/scan_include_with_default_context_var.py --strict
           python -m unittest scripts.tests.test_scan_include_with_default_context_var -v
+          python -m unittest scripts.tests.test_verify_eager_filter_arg_completion -v
+          python scripts/verify_eager_filter_arg_completion.py --static-only
 
   template-tag-loads:
     name: "Template custom tag {% load %} integrity"

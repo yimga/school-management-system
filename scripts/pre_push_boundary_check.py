@@ -62,7 +62,9 @@ GATES: list[tuple[str, list[str]]] = [
     ("attribute-context-includes", ["scan_attribute_context_includes.py"]),
     # {% include with x|default:missing_var %} → VariableDoesNotExist 500 (ops_surface class).
     # |default:missing_var anywhere (not only {% include with %}) → VariableDoesNotExist 500.
+    # Static-only completion proof (full Django rows run in ci.yml).
     ("include-with-default-context-var", ["scan_include_with_default_context_var.py", "--strict"]),
+    ("eager-filter-arg-completion-static", ["verify_eager_filter_arg_completion.py", "--static-only"]),
     ("service-worker-version", ["verify_service_worker_version.py", "--check-monotonic"]),
     # Approval HTML → live admin: fails if build lock / visible chip / grid drift.
     # Prevents another "CSS-only commit looks unchanged after deploy" silent miss.

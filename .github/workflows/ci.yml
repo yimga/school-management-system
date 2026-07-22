@@ -61,6 +61,11 @@ jobs:
         run: python scripts/verify_middleware_topology_parity.py
       - name: Verify every beat entry names a registered task (silent no-op guard)
         run: python scripts/verify_beat_task_registry.py
+      - name: Eager filter-arg VariableDoesNotExist completion (full)
+        # Proof harness for ops_surface / |default:missing / |slice:missing 500s.
+        # Must print EAGER_FILTER_ARG_COMPLETION_PASS. Static-only subset also
+        # runs in architectural-boundaries.yml.
+        run: python scripts/verify_eager_filter_arg_completion.py
       - name: Run Django tests
         run: python manage.py test --noinput -v 0
 
