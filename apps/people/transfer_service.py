@@ -56,8 +56,14 @@ def offline_transfer_blockers(profile) -> list[str]:
     return []
 
 
-def run_transfer_case(case, *, actor=None) -> dict[str, Any]:
-    """Execute one APPROVED transfer case. Returns a summary dict."""
+def run_transfer_case(case, *, actor=None, off_http: bool = True) -> dict[str, Any]:
+    """Execute one APPROVED transfer case. Returns a summary dict.
+
+    Production default ``off_http=True`` stages the envelope on the caller then
+    queues advance+apply on HeavyWorkOutbox; the case stays ``applying`` until
+    :func:`continue_transfer_case_if_ready` (beat/periodic) finishes the FSM.
+    Tests that need an inline apply pass ``off_http=False``.
+    """
     from django.core.cache import cache
 
     lock_key = f"rmc-transfer-run-{case.pk}"
@@ -68,12 +74,12 @@ def run_transfer_case(case, *, actor=None) -> dict[str, Any]:
     if not cache.add(lock_key, "1", timeout=600):  # magic-number-allow: single-flight-lock-ttl-seconds
         raise TransferBlockedError("a run is already in flight for this case")
     try:
-        return _run_transfer_case_locked(case, actor=actor)
+        return _run_transfer_case_locked(case, actor=actor, off_http=off_http)
     finally:
         cache.delete(lock_key)
 
 
-def _run_transfer_case_locked(case, *, actor=None) -> dict[str, Any]:
+def _run_transfer_case_locked(case, *, actor=None, off_http: bool = True) -> dict[str, Any]:
     from apps.people.models import StudentProfile
     from apps.people.models_transfer import TransferCase
 
@@ -132,9 +138,31 @@ def _run_transfer_case_locked(case, *, actor=None) -> dict[str, Any]:
             triggered_by_id=getattr(actor, "pk", None),
             dry_run=False,
             idempotency_key=f"rmc-transfer-case-{case.pk}",
+            off_http=off_http,
         )
         case.target_bundle_id = intake["bundle_id"]
         case.save(update_fields=["target_bundle_id", "updated_at"])
+        if intake.get("queued"):
+            case.history = [
+                *(case.history or []),
+                {
+                    "note": (
+                        f"apply queued on heavy-work outbox "
+                        f"outbox_id={intake.get('outbox_id')}"
+                    ),
+                    "at": timezone.now().isoformat(),
+                },
+            ]
+            case.save(update_fields=["history", "updated_at"])
+            return {
+                "case_id": str(case.pk),
+                "status": case.status,
+                "bundle_id": case.target_bundle_id,
+                "queued": True,
+                "durable_outbox": True,
+                "outbox_id": intake.get("outbox_id"),
+                "apply": intake.get("apply"),
+            }
         target_profile = _link_passport_and_retire_source(case, profile, actor)
     except Exception as exc:  # noqa: BLE001 — apply failure compensates
         _compensate(case, exc)
@@ -162,6 +190,106 @@ def _run_transfer_case_locked(case, *, actor=None) -> dict[str, Any]:
     )
     return summary
 
+
+def continue_transfer_case_if_ready(case, *, actor=None) -> dict[str, Any]:
+    """Advance an APPLYING case once the MC bundle has landed (async FSM).
+
+    Returns ``{advanced: bool, status, reason?}``. Safe to call repeatedly.
+    """
+    from apps.migration_cloud.models import BundleStatus, MigrationBundle
+    from apps.people.models import StudentProfile
+    from apps.people.models_transfer import TransferCase
+
+    case.refresh_from_db()
+    if case.status != TransferCase.Status.APPLYING:
+        return {
+            "advanced": False,
+            "status": case.status,
+            "reason": "not_applying",
+        }
+    if not case.target_bundle_id:
+        return {
+            "advanced": False,
+            "status": case.status,
+            "reason": "missing_bundle",
+        }
+
+    # tenant-isolation-allow: transfer-continue-bundle-pk-owned-by-case-target-school
+    bundle = MigrationBundle.objects.filter(pk=case.target_bundle_id).first()
+    if bundle is None:
+        return {
+            "advanced": False,
+            "status": case.status,
+            "reason": "bundle_missing",
+        }
+    if bundle.status == BundleStatus.FAILED:
+        _compensate(case, RuntimeError("migration bundle failed"))
+        return {"advanced": True, "status": case.status, "reason": "bundle_failed"}
+    if bundle.status not in (BundleStatus.APPLIED, BundleStatus.RECONCILED):
+        return {
+            "advanced": False,
+            "status": case.status,
+            "reason": "bundle_pending",
+            "bundle_status": bundle.status,
+        }
+
+    profile = StudentProfile.objects.filter(
+        school=case.source_school, pk=case.source_profile_pk
+    ).first()
+    if profile is None:
+        case.advance(TransferCase.Status.FAILED, note="source profile missing at continue")
+        return {"advanced": True, "status": case.status, "reason": "source_missing"}
+
+    try:
+        target_profile = _link_passport_and_retire_source(case, profile, actor)
+        case.advance(TransferCase.Status.APPLIED)
+        reconciled = _reconcile(case)
+        _stamp_lineage(case, profile, target_profile)
+        _audit(case, actor)
+    except Exception as exc:  # noqa: BLE001
+        _compensate(case, exc)
+        raise
+
+    return {
+        "advanced": True,
+        "status": case.status,
+        "reconciled": reconciled,
+        "target_profile_pk": str(getattr(target_profile, "pk", "") or ""),
+    }
+
+
+def continue_applying_transfers(*, limit: int = 20) -> dict[str, Any]:
+    """Sweep APPLYING cases whose MC bundles finished (beat / health tick)."""
+    from apps.people.models_transfer import TransferCase
+
+    limit = max(1, min(int(limit or 20), 100))  # magic-number-allow: transfer-continue-sweep-cap
+    # tenant-isolation-allow: platform-transfer-continue-sweep-by-status
+    qs = list(
+        TransferCase.objects.filter(status=TransferCase.Status.APPLYING)
+        .exclude(target_bundle_id__isnull=True)
+        .order_by("updated_at")[:limit]
+    )
+    advanced = 0
+    pending = 0
+    failed = 0
+    for case in qs:
+        try:
+            result = continue_transfer_case_if_ready(case)
+            if result.get("advanced"):
+                advanced += 1
+                if result.get("reason") == "bundle_failed":
+                    failed += 1
+            else:
+                pending += 1
+        except Exception:  # noqa: BLE001 — one case must not abort the sweep
+            logger.exception("transfer_continue_sweep_failed case=%s", case.pk)
+            failed += 1
+    return {
+        "scanned": len(qs),
+        "advanced": advanced,
+        "pending": pending,
+        "failed": failed,
+    }
 
 def _link_passport_and_retire_source(case, source_profile, actor):
     """Design §5 step 5: same passport GUID at both schools; source retires."""
@@ -313,4 +441,6 @@ __all__ = [
     "TransferBlockedError",
     "offline_transfer_blockers",
     "run_transfer_case",
+    "continue_transfer_case_if_ready",
+    "continue_applying_transfers",
 ]

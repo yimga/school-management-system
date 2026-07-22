@@ -428,16 +428,43 @@ def _redis_cache_configured() -> bool:
         return False
 
 
+def _check_celery_beat() -> dict:
+    """Beat liveness via provision-heal canary (env broker alone is not enough).
+
+    Broker unset → unavailable (eager / in-process scheduler owns heals).
+    Broker set + stale/missing canary past grace → degraded (red health).
+    """
+    broker = (getattr(settings, "CELERY_BROKER_URL", "") or "").strip()
+    if not broker:
+        return {
+            "status": "unavailable",
+            "detail": "broker not configured (in-process heal owns schedule)",
+        }
+    try:
+        from apps.platform_runtime.periodic import celery_beat_appears_alive
+
+        if celery_beat_appears_alive():
+            return {"status": "ok", "detail": "provision-heal canary fresh"}
+        return {
+            "status": "degraded",
+            "detail": "beat canary stale — in-process heal should re-enable",
+        }
+    except Exception as exc:  # noqa: BLE001 - liveness check must never crash the probe
+        return {"status": "degraded", "error": str(exc)[:120]}
+
+
 def _healthz_configured_deps_failed(
     cache_result: dict,
     broker_result: dict,
     workers_result: dict | None = None,
+    beat_result: dict | None = None,
 ) -> bool:
     """Fail /healthz only when a *configured* dependency reports degraded.
 
     LocMem cache + eager Celery stay soft-OK so CI/local remain green.
     Queue-depth alone never flips HTTP status (alert signal, not hard fail).
     Worker ping fails hard when broker is set and HEALTHZ_REQUIRE_CELERY_WORKERS.
+    Beat canary fails hard when broker is set and HEALTHZ_REQUIRE_CELERY_BEAT.
     """
     if cache_result.get("status") == "degraded" and _redis_cache_configured():
         return True
@@ -452,6 +479,14 @@ def _healthz_configured_deps_failed(
         and require_workers
         and workers_result is not None
         and workers_result.get("status") == "degraded"
+    ):
+        return True
+    require_beat = bool(getattr(settings, "HEALTHZ_REQUIRE_CELERY_BEAT", True))
+    if (
+        broker
+        and require_beat
+        and beat_result is not None
+        and beat_result.get("status") == "degraded"
     ):
         return True
     return False
@@ -582,6 +617,7 @@ def healthz(request):
     cache_result = _check_cache_liveness()
     broker_result = _check_celery_broker_liveness()
     workers_result = _check_celery_workers()
+    beat_result = _check_celery_beat()
     queue_depth_result = _check_celery_queue_depth()
 
     payload = {
@@ -590,9 +626,12 @@ def healthz(request):
         "cache": cache_result.get("status", "unknown"),
         "celery_broker": broker_result.get("status", "unknown"),
         "celery_workers": workers_result,
+        "celery_beat": beat_result,
         "celery_queue_depth": queue_depth_result,
     }
-    if _healthz_configured_deps_failed(cache_result, broker_result, workers_result):
+    if _healthz_configured_deps_failed(
+        cache_result, broker_result, workers_result, beat_result
+    ):
         payload["status"] = "error"
         return JsonResponse(payload, status=503)
     return JsonResponse(payload)

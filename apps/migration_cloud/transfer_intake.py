@@ -48,6 +48,7 @@ def ingest_transfer_envelope(
     triggered_by_id: int | None = None,
     dry_run: bool = True,
     idempotency_key: str = "",
+    off_http: bool = False,
 ) -> dict[str, Any]:
     """Verify + stage + run one student envelope against the target school.
 
@@ -55,6 +56,9 @@ def ingest_transfer_envelope(
     Idempotent: the bundle key derives from the envelope checksum, so
     re-ingesting the same sealed envelope reuses the same bundle and the
     duplicate CSV artifacts are skipped at registration.
+
+    HTTP / request-thread callers MUST pass ``off_http=True`` so advance+apply
+    land on the durable HeavyWorkOutbox (never inline on gunicorn).
     """
     from apps.interop.transfer_apply import TransferApplyError, verify_envelope_checksum
 
@@ -93,23 +97,32 @@ def ingest_transfer_envelope(
         source_hint=TRANSFER_SOURCE_HINT,
         use_accelerator=True,
         dry_run_apply=dry_run,
+        off_http=off_http,
     )
     logger.info(
-        "transfer_intake.ran bundle=%s school=%s domains=%s dry_run=%s status=%s",
+        "transfer_intake.ran bundle=%s school=%s domains=%s dry_run=%s "
+        "off_http=%s status=%s queued=%s",
         bundle.pk,
         target_school.pk,
         sorted(domain_rows.keys()),
         dry_run,
+        off_http,
         summary.get("bundle_status"),
+        bool(summary.get("queued")),
         extra={"scope": "transfer_intake"},
     )
-    return {
+    out = {
         "bundle_id": bundle.pk,
         "artifacts_registered": registered,
         "bundle_status": summary.get("bundle_status"),
         "advance": summary.get("advance"),
         "apply": summary.get("apply"),
     }
+    if summary.get("queued"):
+        out["queued"] = True
+        out["durable_outbox"] = True
+        out["outbox_id"] = summary.get("outbox_id")
+    return out
 
 
 __all__ = ["TRANSFER_LABEL_PREFIX", "TRANSFER_SOURCE_HINT", "ingest_transfer_envelope"]

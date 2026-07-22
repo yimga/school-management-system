@@ -76,12 +76,36 @@ def run_bundle_pipeline(
     source_hint: str = "",
     use_accelerator: bool = True,
     dry_run_apply: bool = False,
+    off_http: bool = False,
 ) -> dict[str, Any]:
-    """Advance bundle to MAPPED then apply via orchestrator."""
+    """Advance bundle to MAPPED then apply via orchestrator.
+
+    HTTP / request-thread callers MUST pass ``off_http=True`` so advance+apply
+    run on the durable HeavyWorkOutbox (chained on the worker), never inline.
+    """
     bundle = MigrationBundle.objects.get(pk=bundle_id)  # tenant-isolation-allow: connector-bridge-pk
     if source_hint and not bundle.source_hint:
         bundle.source_hint = source_hint
         bundle.save(update_fields=["source_hint", "updated_at"])
+
+    if off_http:
+        from apps.migration_cloud.celery_tasks import enqueue_advance
+
+        queued = enqueue_advance(
+            bundle_id,
+            use_accelerator=use_accelerator,
+            apply_after=True,
+            dry_run_apply=dry_run_apply,
+        )
+        return {
+            "bundle_id": bundle_id,
+            "bundle_status": bundle.status,
+            "queued": True,
+            "durable_outbox": True,
+            "outbox_id": getattr(queued, "outbox_id", None) or getattr(queued, "id", None),
+            "advance": {"queued": True},
+            "apply": {"queued": True, "dry_run": dry_run_apply},
+        }
 
     advance_summary = advance_bundle(bundle_id=bundle_id, use_accelerator=use_accelerator)
     bundle.refresh_from_db()

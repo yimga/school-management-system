@@ -108,6 +108,7 @@ from .views_owner_onboarding import (
     OwnerOnboardingAccountView,
     owner_onboarding_account_provision_progress,
     owner_onboarding_done,
+    owner_onboarding_mfa,
     owner_onboarding_provision_apply_fix,
     owner_onboarding_provision_progress,
     owner_onboarding_provision_status,
@@ -788,6 +789,11 @@ urlpatterns = [
         "onboarding/school/",
         owner_onboarding_school,
         name="owner_onboarding_school",
+    ),
+    path(
+        "onboarding/mfa/",
+        owner_onboarding_mfa,
+        name="owner_onboarding_mfa",
     ),
     path(
         "onboarding/done/",

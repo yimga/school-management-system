@@ -3,6 +3,7 @@
 When Redis or CELERY_BROKER_URL are configured, cache/broker ``degraded``
 must return HTTP 503. LocMem / eager stay soft-OK (CI-safe).
 Queue-depth alone never flips the top-level status.
+Beat canary stale + broker set ⇒ 503 when HEALTHZ_REQUIRE_CELERY_BEAT.
 """
 
 from __future__ import annotations
@@ -13,6 +14,11 @@ from unittest.mock import patch
 from django.test import RequestFactory, SimpleTestCase
 
 _DB_HEALTHY = {"status": "healthy", "response_time_ms": 1.0, "connections": 0}
+_BEAT_OK = {"status": "ok", "detail": "provision-heal canary fresh"}
+_BEAT_DEGRADED = {
+    "status": "degraded",
+    "detail": "beat canary stale — in-process heal should re-enable",
+}
 
 
 class HealthzStrictDepsTests(SimpleTestCase):
@@ -38,6 +44,10 @@ class HealthzStrictDepsTests(SimpleTestCase):
             patch(
                 "apps.observability.views._check_celery_workers",
                 return_value={"status": "ok", "workers": ["w1"]},
+            ),
+            patch(
+                "apps.observability.views._check_celery_beat",
+                return_value=_BEAT_OK,
             ),
             patch(
                 "apps.observability.views._check_celery_queue_depth",
@@ -67,6 +77,10 @@ class HealthzStrictDepsTests(SimpleTestCase):
             patch(
                 "apps.observability.views._check_celery_workers",
                 return_value={"status": "unavailable"},
+            ),
+            patch(
+                "apps.observability.views._check_celery_beat",
+                return_value=_BEAT_DEGRADED,
             ),
             patch(
                 "apps.observability.views._check_celery_queue_depth",
@@ -102,6 +116,10 @@ class HealthzStrictDepsTests(SimpleTestCase):
                 return_value={"status": "unavailable"},
             ),
             patch(
+                "apps.observability.views._check_celery_beat",
+                return_value={"status": "unavailable"},
+            ),
+            patch(
                 "apps.observability.views._check_celery_queue_depth",
                 return_value={"status": "unavailable"},
             ),
@@ -131,6 +149,10 @@ class HealthzStrictDepsTests(SimpleTestCase):
                 return_value={"status": "unavailable"},
             ),
             patch(
+                "apps.observability.views._check_celery_beat",
+                return_value={"status": "unavailable"},
+            ),
+            patch(
                 "apps.observability.views._check_celery_queue_depth",
                 return_value={"status": "unavailable"},
             ),
@@ -157,6 +179,10 @@ class HealthzStrictDepsTests(SimpleTestCase):
             patch(
                 "apps.observability.views._check_celery_workers",
                 return_value={"status": "ok", "workers": ["celery@host"]},
+            ),
+            patch(
+                "apps.observability.views._check_celery_beat",
+                return_value=_BEAT_OK,
             ),
             patch(
                 "apps.observability.views._check_celery_queue_depth",
@@ -190,6 +216,10 @@ class HealthzStrictDepsTests(SimpleTestCase):
             patch(
                 "apps.observability.views._check_celery_workers",
                 return_value={"status": "degraded", "detail": "no workers responded to ping"},
+            ),
+            patch(
+                "apps.observability.views._check_celery_beat",
+                return_value=_BEAT_OK,
             ),
             patch(
                 "apps.observability.views._check_celery_queue_depth",
@@ -230,6 +260,10 @@ class HealthzStrictDepsTests(SimpleTestCase):
                 return_value={"status": "degraded", "detail": "no workers"},
             ),
             patch(
+                "apps.observability.views._check_celery_beat",
+                return_value=_BEAT_OK,
+            ),
+            patch(
                 "apps.observability.views._check_celery_queue_depth",
                 return_value={"status": "ok", "depth": 0, "queue": "celery"},
             ),
@@ -250,6 +284,48 @@ class HealthzStrictDepsTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         payload = json.loads(response.content)
         self.assertEqual(payload["celery_workers"]["status"], "degraded")
+
+    def test_healthz_503_when_beat_degraded_and_broker_url_set(self):
+        with (
+            patch("apps.observability.views.check_db_liveness", return_value=_DB_HEALTHY),
+            patch(
+                "apps.observability.views._check_cache_liveness",
+                return_value={"status": "ok"},
+            ),
+            patch(
+                "apps.observability.views._check_celery_broker_liveness",
+                return_value={"status": "ok"},
+            ),
+            patch(
+                "apps.observability.views._check_celery_workers",
+                return_value={"status": "ok", "workers": ["w1"]},
+            ),
+            patch(
+                "apps.observability.views._check_celery_beat",
+                return_value=_BEAT_DEGRADED,
+            ),
+            patch(
+                "apps.observability.views._check_celery_queue_depth",
+                return_value={"status": "ok", "depth": 0, "queue": "celery"},
+            ),
+            patch("apps.observability.views._redis_cache_configured", return_value=False),
+            patch(
+                "apps.observability.views.settings.CELERY_BROKER_URL",
+                "redis://x:6379/0",
+                create=True,
+            ),
+            patch(
+                "apps.observability.views.settings.HEALTHZ_REQUIRE_CELERY_BEAT",
+                True,
+                create=True,
+            ),
+        ):
+            response = self._call_healthz()
+
+        self.assertEqual(response.status_code, 503)
+        payload = json.loads(response.content)
+        self.assertEqual(payload["status"], "error")
+        self.assertEqual(payload["celery_beat"]["status"], "degraded")
 
 
 class BrokerLivenessUnavailableTests(SimpleTestCase):

@@ -435,7 +435,35 @@ def ensure_default_jobs() -> None:
             description="Finish tenants left live but with Phase B unfinished (bounded, per-school cooldown).",
             tags=("schools", "provisioning", "self-heal", "light"),
         )
+        # Durable heavy-work outbox drain (provision / schema heal / MC). Survives
+        # deploy better than a bare daemon thread — the row stays PENDING until claimed.
+        _REGISTRY["platform.drain_heavy_work_outbox"] = PeriodicJob(
+            name="platform.drain_heavy_work_outbox",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_drain_heavy_work_outbox,
+            description="Drain HeavyWorkOutbox (provision, schema heal, migration advance/apply).",
+            tags=("platform", "outbox", "provisioning", "self-heal", "light"),
+        )
+        _REGISTRY["people.continue_applying_transfers"] = PeriodicJob(
+            name="people.continue_applying_transfers",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_continue_applying_transfers,
+            description="Finish APPLYING student transfers after MC bundles land.",
+            tags=("people", "transfer", "self-heal", "light"),
+        )
         _DEFAULTS_INSTALLED = True
+
+
+def _run_continue_applying_transfers() -> object:
+    from apps.people.transfer_service import continue_applying_transfers
+
+    return continue_applying_transfers(limit=10)
+
+
+def _run_drain_heavy_work_outbox() -> object:
+    from apps.platform_runtime.heavy_work_outbox import drain_heavy_work_outbox
+
+    return drain_heavy_work_outbox(limit=3)
 
 
 def _run_resume_stuck_provisions() -> object:
@@ -606,19 +634,79 @@ def _run_send_parent_digests_weekly() -> object:
 
 
 # --- mode / gating -----------------------------------------------------------
+# Canary job that BOTH beat (CELERY_BEAT_SCHEDULE) and the in-process /health/
+# twin register. Fresh success proves beat (or heal fallback) is actually running.
+BEAT_LIVENESS_CANARY_JOB = "schools.resume_stuck_provisions"
+_BEAT_WATCH_CACHE_KEY = "rmc:beat_canary_watch_started"
+
+
+def celery_beat_liveness_threshold_seconds() -> float:
+    """Stale window for the provision-heal canary (2× interval + small floor)."""
+    floor = 60.0  # magic-number-allow: beat-liveness-grace-floor-seconds
+    return float(PROVISION_HEAL_INTERVAL_SECONDS) * 2.0 + floor
+
+
+def celery_beat_appears_alive(*, now: float | None = None) -> bool:
+    """True when broker topology's heal canary looks live (or no broker).
+
+    Broker set + canary success older than the threshold (or never after grace)
+    ⇒ False — in-process heal must take over and /healthz should go red.
+    """
+    import time
+
+    if not bool((os.getenv("CELERY_BROKER_URL") or "").strip()):
+        return True
+    if now is None:
+        now = time.time()
+    threshold = celery_beat_liveness_threshold_seconds()
+
+    last = _get_last_run(BEAT_LIVENESS_CANARY_JOB)
+    if last is not None and (now - float(last)) < threshold:
+        return True
+
+    try:
+        from django.utils import timezone
+
+        from apps.platform_runtime.models_scheduling import ScheduledJobHeartbeat
+
+        # tenant-isolation-allow: platform-level beat canary heartbeat not tenant-scoped
+        hb = ScheduledJobHeartbeat.objects.filter(
+            job_name=BEAT_LIVENESS_CANARY_JOB
+        ).first()
+        if hb is not None and hb.last_success_at is not None:
+            age = (timezone.now() - hb.last_success_at).total_seconds()
+            return age < threshold
+    except Exception:  # noqa: BLE001 — beat probe must never crash callers
+        logger.debug("celery_beat_appears_alive: heartbeat read failed", exc_info=True)
+
+    # Grace from first observation so a fresh deploy does not flip red before beat's
+    # first tick; past grace with no success ⇒ beat is dead.
+    try:
+        started = cache.get(_BEAT_WATCH_CACHE_KEY)
+        if started is None:
+            cache.add(_BEAT_WATCH_CACHE_KEY, now, timeout=86400)  # magic-number-allow: one-day beat-watch key
+            return True
+        return (now - float(started)) < threshold
+    except Exception:  # noqa: BLE001
+        return True
+
+
 def inprocess_scheduler_enabled() -> bool:
     """Whether the AUTO (health-triggered) scheduler should run.
 
     ``RMC_INPROCESS_SCHEDULER``: ``on`` | ``off`` | ``auto`` (default). In auto
-    mode it is enabled ONLY while no Celery broker is configured — so it yields
-    automatically the moment a real worker + beat are provisioned.
+    mode it yields while a Celery broker is configured **and** the provision-heal
+    canary proves beat is alive. Broker without live beat ⇒ heal stays on
+    (topology honesty — never trust env alone).
     """
     mode = (os.getenv("RMC_INPROCESS_SCHEDULER", "auto") or "auto").strip().lower()
     if mode in ("off", "0", "false", "no", "disabled"):
         return False
     if mode in ("on", "1", "true", "yes", "enabled"):
         return True
-    return not bool((os.getenv("CELERY_BROKER_URL") or "").strip())
+    if not bool((os.getenv("CELERY_BROKER_URL") or "").strip()):
+        return True
+    return not celery_beat_appears_alive()
 
 
 # --- claim / run -------------------------------------------------------------

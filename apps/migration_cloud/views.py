@@ -744,66 +744,22 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
         return v.startswith(("http://", "https://", "sftp://", "s3://"))
 
     def _dispatch_advance(self, request, bundle_id: int) -> None:
-        """Run the post-intake pipeline. Celery if available, sync otherwise.
-
-        We try the broker first; on broker outage or eager-mode, fall back
-        to in-process execution so a broken Celery setup never blocks the
-        operator's migration. Either way the operator gets a status banner.
-        """
+        """Queue post-intake pipeline on durable outbox (never sync on HTTP)."""
         from django.contrib import messages
 
         from .celery_tasks import enqueue_advance
-        from .pipeline import advance_bundle
 
         result = enqueue_advance(bundle_id, use_accelerator=True)
-        if result is not None:
-            # In eager mode (RUNNING_TESTS / dev) .delay() runs inline and
-            # returns a ready AsyncResult — surface the summary directly.
-            from django.conf import settings as _settings
-
-            eager = bool(getattr(_settings, "CELERY_TASK_ALWAYS_EAGER", False))
-            if eager:
-                try:
-                    summary = result.get(disable_sync_subtasks=False)
-                    if summary.get("ok"):
-                        messages.success(
-                            request,
-                            f"Bundle advanced through {', '.join(summary.get('stages_run') or ['(no stages)'])}; "
-                            f"status: {summary.get('status', '?')}.",
-                        )
-                    else:
-                        messages.error(
-                            request,
-                            f"Auto-advance failed: {summary.get('error', '?')}. "
-                            "Open the bundle and retry from the detail page.",
-                        )
-                except Exception as exc:  # noqa: BLE001
-                    messages.error(request, f"Auto-advance failed: {exc}")
-            else:
-                messages.info(
-                    request,
-                    "Auto-advance queued. Refresh the bundle page in a minute "
-                    "to see profile / classify / map progress.",
-                )
-            return
-
-        # Broker outage — run inline so the operator still gets a result.
-        try:
-            summary = advance_bundle(bundle_id=bundle_id, use_accelerator=True)
-            messages.success(
-                request,
-                f"Bundle advanced through {', '.join(summary.get('stages_run') or ['(no stages)'])}; "
-                f"status: {summary.get('status', '?')} (ran inline — broker unavailable).",
-            )
-        except Exception as exc:  # noqa: BLE001
-            logger.exception(
-                "migration_cloud.views: inline-fallback advance failed for bundle %s", bundle_id
-            )
-            messages.error(
-                request,
-                f"Intake landed, but auto-advance failed: {type(exc).__name__}: {exc}. "
-                "Open the bundle and retry from the detail page.",
-            )
+        job_id = getattr(result, "outbox_id", None) or getattr(result, "id", None)
+        messages.info(
+            request,
+            (
+                f"Auto-advance queued (job {job_id}). Refresh the bundle page "
+                "shortly to see profile / classify / map progress."
+                if job_id
+                else "Auto-advance queued. Refresh the bundle page shortly."
+            ),
+        )
 
 
 class MigrationCloudConsoleView(LoginRequiredMixin, View):
@@ -917,8 +873,6 @@ class MigrationCloudAdvanceView(LoginRequiredMixin, View):
     def post(self, request, bundle_id: int, shell: str = "super"):
         from django.http import Http404
 
-        from .pipeline import advance_bundle
-
         # Tenant scope: the portal shell must only drive its OWN bundles. This
         # view (and the DRF action that delegates here) previously ran the
         # pipeline on the raw pk with no tenant check — a cross-tenant IDOR.
@@ -927,10 +881,22 @@ class MigrationCloudAdvanceView(LoginRequiredMixin, View):
         except Http404:
             return JsonResponse({"error": "bundle not found"}, status=404)
         try:
-            summary = advance_bundle(bundle_id=bundle_id, use_accelerator=True)
+            from .celery_tasks import enqueue_advance
+
+            result = enqueue_advance(bundle_id, use_accelerator=True)
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "queued": True,
+                    "durable_outbox": True,
+                    "outbox_id": getattr(result, "outbox_id", None)
+                    or getattr(result, "id", None),
+                    "bundle_id": bundle_id,
+                }
+            )
         except MigrationBundle.DoesNotExist:
             return JsonResponse({"error": "bundle not found"}, status=404)
-        return JsonResponse(summary)
+        return JsonResponse({"error": "enqueue_failed"}, status=500)
 
 
 @method_decorator(
@@ -967,8 +933,6 @@ class MigrationCloudApplyView(LoginRequiredMixin, View):
 
         from apps.accounts.decorators import user_is_tenant_admin
 
-        from .orchestrator import apply_bundle
-
         # Role gate: LoginRequired alone admitted any membership (S2 residual).
         # Portal → tenant-admin tier for the request school; operator shell →
         # staff/superuser (control-plane) before any live or dry-run apply.
@@ -996,34 +960,24 @@ class MigrationCloudApplyView(LoginRequiredMixin, View):
         # Live apply iff the caller explicitly confirmed AND did not set dry_run=1.
         dry_run = dry_run_explicit or not confirmed
         try:
-            result = apply_bundle(bundle_id=bundle_id, dry_run=dry_run)
+            from .celery_tasks import enqueue_apply
+
+            result = enqueue_apply(bundle_id, dry_run=dry_run)
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "queued": True,
+                    "durable_outbox": True,
+                    "dry_run": dry_run,
+                    "outbox_id": getattr(result, "outbox_id", None)
+                    or getattr(result, "id", None),
+                    "bundle_id": bundle_id,
+                }
+            )
         except MigrationBundle.DoesNotExist:
             return JsonResponse({"error": "bundle not found"}, status=404)
         except ValueError as exc:
             return JsonResponse({"error": str(exc)}, status=409)
-        return JsonResponse({
-            "bundle_id": result.bundle_id,
-            "dry_run": result.dry_run,
-            "status": result.status,
-            "totals": {
-                "created": result.total_created,
-                "updated": result.total_updated,
-                "quarantined": result.total_quarantined,
-            },
-            "per_artifact": [
-                {
-                    "artifact_id": o.artifact_id,
-                    "path": o.path_within_bundle,
-                    "domain": o.domain,
-                    "status": o.status,
-                    "migration_run_id": o.migration_run_id,
-                    "created": o.result.created,
-                    "updated": o.result.updated,
-                    "quarantined": o.result.quarantined,
-                }
-                for o in result.per_artifact
-            ],
-        })
 
 
 class MigrationCloudReconcileView(LoginRequiredMixin, View):

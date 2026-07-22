@@ -214,6 +214,15 @@ def provisioning_drive_is_live(school) -> bool:
     return _run_is_live(_latest_run(school))
 
 
+def provision_workflow_run_is_live(run: Any) -> bool:
+    """Public liveness check for a WorkflowRun (Flight Deck + auto-fix UI).
+
+    Heartbeat-dead or wall-clock-expired ``running`` rows are NOT live — operators
+    and autopilot must see an executable auto-fix, never "Diagnostic only".
+    """
+    return _run_is_live(run)
+
+
 def _school_is_settled(school) -> bool:
     """True when there is nothing to do: portal is ready AND Phase B is complete."""
     try:
@@ -277,20 +286,58 @@ def _bump_hourly_resume_count(school_id: str) -> int:
 
 
 def _cancel_dead_run(run) -> None:
-    """Terminally cancel a heartbeat-dead ``running`` zombie so it stops showing
-    as in-flight and the fresh run the kick creates becomes the latest."""
+    """Cancel a heartbeat-dead zombie (``running`` OR ``stuck``).
+
+    Stuck-sweep flips dead ``running`` → ``stuck``; resume must clear BOTH so a
+    fresh kick never leaves dual Flight Deck cards (STUCK + RUNNING).
+    """
     if run is None or getattr(run, "pk", None) is None:
         return
     try:
         from apps.platform_runtime.models import WorkflowRun
 
         # tenant-isolation-allow: provision-watchdog-cancel-dead-zombie-run-by-pk
-        WorkflowRun.objects.filter(pk=run.pk, status="running").update(
+        WorkflowRun.objects.filter(
+            pk=run.pk, status__in=("running", "stuck")
+        ).update(
             status="cancelled",
             ended_at=_now(),
         )
     except Exception:  # noqa: BLE001 — cancel must never break the resume path
         logger.debug("provision_watchdog: cancel dead run failed", exc_info=True)
+
+
+def cancel_unfinished_provision_runs_for_school(school_id: str, *, keep_pk=None) -> int:
+    """Cancel all active provision runs for a school (one-active invariant).
+
+    Returns count cancelled. ``keep_pk`` is preserved when set (e.g. current row).
+    """
+    sid = str(school_id or "").strip()
+    if not sid:
+        return 0
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+
+        qs = WorkflowRun.objects.filter(  # tenant-isolation-allow: provision-single-active-cancel-by-school-id
+            workflow_key=PROVISION_WORKFLOW_KEY,
+            school_id=sid,
+            status__in=("running", "stuck"),
+        )
+        if keep_pk is not None:
+            qs = qs.exclude(pk=keep_pk)
+        return int(
+            qs.update(
+                status="cancelled",
+                ended_at=_now(),
+            )
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug(
+            "provision_watchdog: cancel_unfinished failed school_id=%s",
+            sid,
+            exc_info=True,
+        )
+        return 0
 
 
 def resume_provision_if_stuck(school, *, reason: str = "poll") -> dict:
@@ -329,9 +376,8 @@ def resume_provision_if_stuck(school, *, reason: str = "poll") -> dict:
         )
         return {"action": "capped", "reason": "hourly_cap", "school_id": school_id}
 
-    # Clear the heartbeat-dead zombie so it stops masquerading as in-flight.
-    if run is not None and (getattr(run, "status", "") or "").lower() == "running":
-        _cancel_dead_run(run)
+    # Clear ALL unfinished zombies (running + stuck) so resume never dual-cards.
+    cancel_unfinished_provision_runs_for_school(school_id)
 
     contact_email = _owner_email(school)
     try:

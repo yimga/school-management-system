@@ -100,9 +100,9 @@ def bootstrap_migration_bundle(
 
 def _enqueue_advance(bundle_id: int) -> None:
     try:
-        from apps.migration_cloud.celery_tasks import advance_bundle_task
+        from apps.migration_cloud.celery_tasks import enqueue_advance
 
-        advance_bundle_task.delay(bundle_id, use_accelerator=True)
+        enqueue_advance(bundle_id, use_accelerator=True)
     except Exception as exc:  # noqa: BLE001 — broker optional in dev
         logger.debug("migration_intake.advance enqueue skipped: %s", exc)
 

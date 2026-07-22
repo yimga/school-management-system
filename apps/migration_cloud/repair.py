@@ -73,6 +73,8 @@ class RepairResult:
     updated: int = 0
     quarantined: int = 0
     blockers: list[str] = field(default_factory=list)
+    queued: bool = False
+    outbox_id: str = ""
 
 
 def _resolved_domains(bundle: MigrationBundle) -> set[str]:
@@ -198,16 +200,17 @@ def _summary_message(result) -> str:
     )
 
 
-def repair_bundle(*, bundle_id: int) -> RepairResult:
+def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
     """Re-apply a repairable bundle idempotently, then re-verify.
 
     Returns a :class:`RepairResult`; never raises for the expected refusal /
     financial-abort paths (they are reported honestly with ``ok=False``). The
     bundle is only reset to ``MAPPED`` — the state ``apply_bundle`` requires — for
     bundles that :func:`repair_readiness` cleared.
-    """
-    from .orchestrator import apply_bundle
 
+    HTTP callers MUST pass ``off_http=True`` so the live re-apply lands on the
+    durable HeavyWorkOutbox (never the request thread).
+    """
     # tenant-isolation-allow: repair-bundle-pk-already-tenant-verified-by-calling-view
     # The sole caller (TenantMigrationRepairView.post) resolves the bundle through
     # _tenant_bundle_or_404 FIRST and passes that verified pk, so this re-fetch
@@ -227,10 +230,11 @@ def repair_bundle(*, bundle_id: int) -> RepairResult:
         )
 
     logger.info(
-        "migration_cloud.repair: re-applying bundle %s (was %s, %d open issue(s))",
+        "migration_cloud.repair: re-applying bundle %s (was %s, %d open issue(s)) off_http=%s",
         bundle_id,
         before,
         readiness.issue_count,
+        off_http,
     )
     # Reset to MAPPED so apply_bundle (which requires MAPPED) can re-run. Idempotent
     # upsert means landed rows are updated in place, never duplicated.
@@ -238,6 +242,32 @@ def repair_bundle(*, bundle_id: int) -> RepairResult:
         BundleStatus.MAPPED,
         summary_patch={"repair_requested_at": timezone.now().isoformat()},
     )
+
+    if off_http:
+        from .celery_tasks import enqueue_apply
+
+        queued = enqueue_apply(
+            bundle_id,
+            dry_run=False,
+            reconcile_after=True,
+        )
+        oid = str(
+            getattr(queued, "outbox_id", None) or getattr(queued, "id", "") or ""
+        )
+        return RepairResult(
+            ok=True,
+            ran=False,
+            queued=True,
+            outbox_id=oid,
+            message=(
+                "Repair is queued in the background. Refresh this page in a "
+                "moment to see updated import results."
+            ),
+            before_status=before,
+            after_status=BundleStatus.MAPPED,
+        )
+
+    from .orchestrator import apply_bundle
 
     try:
         result = apply_bundle(bundle_id=bundle_id, dry_run=False)

@@ -188,11 +188,26 @@ class SchedulerModeTests(TestCase):
         self.assertTrue(self._enabled({"RMC_INPROCESS_SCHEDULER": "auto"}))
 
     def test_auto_disabled_when_broker_present(self):
-        self.assertFalse(
-            self._enabled(
-                {"RMC_INPROCESS_SCHEDULER": "auto", "CELERY_BROKER_URL": "redis://x"}
+        with mock.patch(
+            "apps.platform_runtime.periodic.celery_beat_appears_alive",
+            return_value=True,
+        ):
+            self.assertFalse(
+                self._enabled(
+                    {"RMC_INPROCESS_SCHEDULER": "auto", "CELERY_BROKER_URL": "redis://x"}
+                )
             )
-        )
+
+    def test_auto_reenabled_when_broker_present_but_beat_dead(self):
+        with mock.patch(
+            "apps.platform_runtime.periodic.celery_beat_appears_alive",
+            return_value=False,
+        ):
+            self.assertTrue(
+                self._enabled(
+                    {"RMC_INPROCESS_SCHEDULER": "auto", "CELERY_BROKER_URL": "redis://x"}
+                )
+            )
 
     def test_explicit_off(self):
         self.assertFalse(self._enabled({"RMC_INPROCESS_SCHEDULER": "off"}))

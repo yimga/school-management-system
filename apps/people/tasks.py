@@ -32,3 +32,11 @@ def check_badge_expiry_alerts_task(
     for sid in get_active_school_ids():
         _run_with_tenant_context(school_id=sid, runnable=lambda d=days: _run(d))
     return {"ok": True, "days": days}
+
+
+@shared_task(name="people.continue_applying_transfers", ignore_result=False)
+def continue_applying_transfers_task(*, limit: int = 20) -> dict:
+    """Finish APPLYING transfer cases once Migration Cloud bundles land."""
+    from apps.people.transfer_service import continue_applying_transfers
+
+    return continue_applying_transfers(limit=limit)

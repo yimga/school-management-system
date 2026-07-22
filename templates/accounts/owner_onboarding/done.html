@@ -56,8 +56,8 @@
         <i class="bi bi-shield-check me-1"></i>{% trans "Two-factor authentication is on — your account is protected." %}
       </div>
       {% elif mfa_setup_url %}
-      <a href="{{ mfa_setup_url }}" class="btn btn-primary"><i class="bi bi-shield-lock me-1"></i>{% trans "Secure your account — set up two-factor authentication" %}</a>
-      <p class="text-muted small mb-1">{% trans "Recommended for school admins — takes about a minute with any authenticator app." %}</p>
+      <a href="{% if dashboard_href %}{{ dashboard_href }}{% else %}{{ mfa_setup_url }}{% endif %}" class="btn btn-primary"><i class="bi bi-shield-lock me-1"></i>{% trans "Secure your account — set up two-factor authentication" %}</a>
+      <p class="text-muted small mb-1">{% trans "Required for school admins — takes about a minute with any authenticator app. You will continue to your dashboard after setup." %}</p>
       {% endif %}
       {% url 'accounts:tenant_identity_invite' as invite_url %}
       {% if invite_url %}
@@ -69,8 +69,13 @@
       {% endif %}
     </div>
     {% if school_is_live %}
-    <a href="{{ dashboard_href }}" class="btn btn-primary auth-submit mt-3 w-100">
-      <i class="bi bi-speedometer2 me-1"></i>{% trans "Go to my dashboard" %}
+    <a href="{{ dashboard_href }}" class="btn {% if owner_mfa_enrolled %}btn-primary{% else %}btn-outline-primary{% endif %} auth-submit mt-3 w-100">
+      <i class="bi bi-speedometer2 me-1"></i>
+      {% if owner_mfa_enrolled %}
+      {% trans "Go to my dashboard" %}
+      {% else %}
+      {% trans "Continue — set up two-factor authentication" %}
+      {% endif %}
     </a>
     {% else %}
     {% if provisioning_events %}

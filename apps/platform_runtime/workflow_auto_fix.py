@@ -61,9 +61,39 @@ _TAXONOMY: tuple[tuple[re.Pattern[str], dict[str, Any]], ...] = (
         re.compile(r"OperationalError.*(database|schema).*already exists", re.IGNORECASE),
         {
             "remediation_key": "tenant_schema_already_exists",
-            "human_action": "The tenant database schema already exists. If this is a re-run, mark the previous attempt cancelled and retry.",
-            "auto_fix_available": False,
-            "suggested_next": "Open the tenant lifecycle inspector.",
+            "human_action": (
+                "The tenant database schema already exists from a prior attempt. "
+                "Auto fix repairs drift, then re-queues idempotent provisioning."
+            ),
+            "auto_fix_available": True,
+            "auto_fix_kind": "requeue_provision",
+            "healing_chain": [
+                "repair_tenant_schema_drift",
+                "requeue_provision",
+            ],
+            "suggested_next": "Apply fix to heal schema drift and resume setup.",
+        },
+    ),
+    (
+        re.compile(
+            r"(relation .+ does not exist|UndefinedTable|schema drift|missing table|"
+            r"doesn't exist|does not exist)",
+            re.IGNORECASE,
+        ),
+        {
+            "remediation_key": "tenant_schema_missing_relation",
+            "human_action": (
+                "Expected tenant database objects are missing. Auto fix repairs "
+                "schema drift, then re-queues provisioning."
+            ),
+            "auto_fix_available": True,
+            "auto_fix_kind": "requeue_provision",
+            "healing_chain": [
+                "repair_tenant_schema_drift",
+                "run_tenant_migrations",
+                "requeue_provision",
+            ],
+            "suggested_next": "Apply fix — heal schema, migrate, requeue.",
         },
     ),
     # OAuth / integration

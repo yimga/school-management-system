@@ -61,6 +61,7 @@ def _zeroize_mutable(buf: bytearray) -> None:
 
 
 def _enqueue_or_inline_advance(bundle_id: int) -> None:
+    """Kick advance off this thread. Never runs advance_bundle inline on HTTP."""
     try:
         from apps.migration_cloud.celery_tasks import enqueue_advance
 
@@ -68,16 +69,18 @@ def _enqueue_or_inline_advance(bundle_id: int) -> None:
             return
     except Exception:  # noqa: BLE001
         logger.warning(
-            "mc.companion_ingest: enqueue_advance failed bundle_id=%s; inline",
+            "mc.companion_ingest: enqueue_advance failed bundle_id=%s; "
+            "retrying via background kick",
             bundle_id,
+            exc_info=True,
         )
     try:
-        from apps.migration_cloud.pipeline import advance_bundle
+        from apps.migration_cloud.celery_tasks import _kick_advance_off_request
 
-        advance_bundle(bundle_id=bundle_id, use_accelerator=True)
+        _kick_advance_off_request(bundle_id, use_accelerator=True)
     except Exception:  # noqa: BLE001
         logger.exception(
-            "mc.companion_ingest: inline advance failed bundle_id=%s",
+            "mc.companion_ingest: background advance kick failed bundle_id=%s",
             bundle_id,
         )
 

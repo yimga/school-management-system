@@ -773,46 +773,50 @@ def ensure_admin_user_for_school(school, contact_email: str):
     return admin_user, created
 
 
+def _kick_provision_off_request(
+    school_id: str, contact_email: str = "", **kwargs
+) -> dict:
+    """Durable outbox enqueue — NEVER run migrate on the HTTP/caller thread.
+
+    Prefer the HeavyWorkOutbox (survives deploy) over a bare daemon thread.
+    """
+    from apps.platform_runtime.heavy_work_outbox import enqueue_provision_school
+
+    row = enqueue_provision_school(
+        str(school_id), contact_email=contact_email, **kwargs
+    )
+    return {
+        "queued": True,
+        "fallback": False,
+        "durable_outbox": True,
+        "background_thread": False,
+        "job_id": str(getattr(row, "pk", "") or ""),
+        "outbox_id": str(getattr(row, "pk", "") or ""),
+        "message": (
+            "Provisioning queued on durable heavy-work outbox "
+            "(migrate never runs on the HTTP request)."
+        ),
+    }
+
+
 def dispatch_provision_school(
     school_id: str, contact_email: str = "", **kwargs
 ) -> dict:
     """
-    Queue provisioning when Celery is available; otherwise fall back to synchronous provisioning.
-    Returns a stable payload for request-layer audit logging.
+    Queue provisioning via durable HeavyWorkOutbox only.
+
+    CRITICAL: multi-minute ``tenant_schema`` migrate must never own gunicorn.
+    Workers and the /health/ drain execute the outbox; a deploy mid-flight leaves
+    a reclaimable PENDING/PROCESSING row instead of a silent strand.
     """
-    try:
-        result = provision_school_task.delay(
-            str(school_id), contact_email=contact_email, **kwargs
-        )
-        return {
-            "queued": True,
-            "fallback": False,
-            "job_id": getattr(result, "id", None),
-            "message": "Provisioning queued.",
-        }
-    except (
-        AttributeError,
-        ConnectionError,
-        ImportError,
-        KombuOperationalError,
-        OSError,
-        RuntimeError,
-        TypeError,
-        ValueError,
-    ) as exc:
-        logger.warning(
-            "Provisioning queue unavailable for school %s; falling back to sync: %s",
-            school_id,
-            exc,
-        )
-        provision_school_sync(str(school_id), contact_email=contact_email, **kwargs)
-        return {
-            "queued": False,
-            "fallback": True,
-            "job_id": None,
-            "message": "Celery unavailable; provisioning started in synchronous fallback mode.",
-            "reason": str(exc),
-        }
+    from django.conf import settings
+
+    out = _kick_provision_off_request(
+        school_id, contact_email=contact_email, **kwargs
+    )
+    if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+        out["eager_background"] = True
+    return out
 
 
 def complete_provisioning_for_school(
@@ -842,16 +846,13 @@ def complete_provisioning_for_school(
     except ImportError:
         portal_ready = bool(school and school.is_active)
 
-    if result.get("fallback"):
-        # Sync already ran inside dispatch_provision_school.
-        result["sync_completed"] = True
-        result["portal_ready"] = portal_ready
-        result["is_active"] = portal_ready
-        return result
-
-    # Queued on Celery — never inline-migrate on the request / kick thread.
+    # Outbox / eager / broker-fail — never claim sync_completed on the HTTP caller.
     result["sync_completed"] = False
     result["sync_deferred_to_worker"] = True
+    if result.get("durable_outbox"):
+        result["sync_deferred_to_durable_outbox"] = True
+    if result.get("background_thread") or result.get("eager_background"):
+        result["sync_deferred_to_background_thread"] = True
     result["portal_ready"] = portal_ready
     result["is_active"] = portal_ready
     return result
@@ -860,29 +861,26 @@ def complete_provisioning_for_school(
 def kick_complete_provisioning_background(
     school_id: str, contact_email: str = "", **kwargs
 ) -> None:
-    """Best-effort daemon-thread completion so verify_signup stays fast (<1s)."""
-    import threading
+    """Enqueue durable provisioning after commit (verify_signup stays fast)."""
+    from django.db import transaction
 
-    from django.db import close_old_connections, transaction
+    from apps.platform_runtime.heavy_work_outbox import enqueue_provision_school
 
     sid = str(school_id)
     email = (contact_email or "").strip()
     kw = dict(kwargs)
 
-    def _run() -> None:
+    def _go() -> None:
         try:
             from .models import School
 
             school = School.objects.filter(id=sid).only("is_active", "settings").first()
             from apps.schools.provisioning_progress import provisioning_needs_resume
 
-            # Run when the school is not yet active OR when it is active but
-            # Phase B never completed (half-provisioned tenant the operator is
-            # repairing from Tenant 360 / the flight-deck Retry card).
             if school and (
                 not school.is_active or provisioning_needs_resume(school)
             ):
-                complete_provisioning_for_school(sid, contact_email=email, **kw)
+                enqueue_provision_school(sid, contact_email=email, **kw)
         except (
             DatabaseError,
             ImportError,
@@ -896,17 +894,8 @@ def kick_complete_provisioning_background(
                 sid,
                 exc_info=True,
             )
-        finally:
-            close_old_connections()
 
-    def _start() -> None:
-        threading.Thread(
-            target=_run,
-            daemon=True,
-            name=f"provision-kick-{sid[:8]}",
-        ).start()
-
-    transaction.on_commit(_start)
+    transaction.on_commit(_go)
 
 
 # pg_advisory_lock() takes a signed bigint — mask the sha256 slice to 63 bits so the
@@ -1082,6 +1071,21 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             finalize_run,
             pulse_workflow_step,
         )
+
+        # One-active invariant: cancel any leftover running/stuck rows for this
+        # school before creating the new run (poll + beat + operator race seal).
+        try:
+            from apps.schools.provision_watchdog import (
+                cancel_unfinished_provision_runs_for_school,
+            )
+
+            cancel_unfinished_provision_runs_for_school(str(school_id))
+        except Exception:  # noqa: BLE001 — claim must not block provision
+            logger.debug(
+                "cancel_unfinished before begin_run failed school_id=%s",
+                school_id,
+                exc_info=True,
+            )
 
         wf_run = begin_run(
             workflow_key="tenant_school_provision",
@@ -1420,6 +1424,41 @@ def _do_provision_tracked(
             from apps.platform_runtime.workflow_tracker import heartbeat_during
             from apps.schools.onboarding_service import _run_tenant_migrations
             from apps.tenancy.boundary_core_guard import boundary_bypass
+
+            # Pre-heal partial schemas from prior killed migrates BEFORE migrate.
+            # Without this, requeue loops forever on "relation already exists" /
+            # missing-column 500s at the same 53% tenant_schema step.
+            schema_name = str(getattr(tenant_client, "schema_name", "") or "").strip()
+            if schema_name:
+                try:
+                    from io import StringIO
+
+                    from django.core.management import call_command
+
+                    with boundary_bypass(reason="tenant-provision-pre-heal-schema-drift"):
+                        call_command(
+                            "heal_tenant_schema_drift",
+                            "--schema",
+                            schema_name,
+                            "--apply",
+                            stdout=StringIO(),
+                            stderr=StringIO(),
+                        )
+                except SystemExit:
+                    # Exit 1 = drift remaining; migrate below still converges.
+                    pass
+                except (
+                    ImportError,
+                    DatabaseError,
+                    OSError,
+                    RuntimeError,
+                    TypeError,
+                    ValueError,
+                ):
+                    logger.exception(
+                        "Pre-migrate schema heal failed for school %s (continuing)",
+                        school_id,
+                    )
 
             # The full-app-set schema migrate is one long blocking step. Without an
             # intra-step heartbeat a healthy-but-slow migrate (loaded free-tier DB)

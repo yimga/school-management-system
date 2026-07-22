@@ -48,6 +48,7 @@ def run_connector_import(
     quality_override: bool = False,
     dry_run: bool = False,
     dry_run_apply: bool = False,
+    off_http: bool = False,
 ) -> MigrationImportRun:
     # NB: this function is deliberately NOT wrapped in a single
     # ``@transaction.atomic``. The FAILED-status write + audit trail in the
@@ -135,26 +136,54 @@ def run_connector_import(
                 source_hint=connection.source_platform_type,
                 use_accelerator=True,
                 dry_run_apply=dry_run_apply,
+                off_http=off_http,
             )
             apply_block = pipeline.get("apply") or {}
-            import_run.created_counts = {
-                "created": apply_block.get("total_created", 0),
-                "artifacts": pipeline.get("advance", {}).get("artifacts_profiled", 0),
-            }
-            import_run.updated_counts = {"updated": apply_block.get("total_updated", 0)}
-            import_run.skipped_counts = {"quarantined": apply_block.get("total_quarantined", 0)}
-            import_run.rollback_snapshot_reference = f"bundle:{bundle.pk}:{pipeline.get('bundle_status')}"
-            import_run.status = ImportRunStatus.COMPLETED
-            import_run.completed_at = timezone.now()
-            import_run.audit_summary = {
-                "bundle_id": bundle.pk,
-                "bundle_status": pipeline.get("bundle_status"),
-                "dry_run_apply": dry_run_apply,
-                "pipeline": pipeline,
-            }
-            import_run.save()
+            if pipeline.get("queued"):
+                import_run.created_counts = {}
+                import_run.updated_counts = {}
+                import_run.skipped_counts = {}
+                import_run.rollback_snapshot_reference = (
+                    f"bundle:{bundle.pk}:queued:{pipeline.get('outbox_id')}"
+                )
+                # Stay RUNNING until a later observer / refresh sees APPLIED;
+                # HTTP must not block on advance+apply.
+                import_run.status = ImportRunStatus.RUNNING
+                import_run.completed_at = None
+                import_run.audit_summary = {
+                    "bundle_id": bundle.pk,
+                    "bundle_status": pipeline.get("bundle_status"),
+                    "dry_run_apply": dry_run_apply,
+                    "queued": True,
+                    "durable_outbox": True,
+                    "outbox_id": pipeline.get("outbox_id"),
+                    "pipeline": pipeline,
+                }
+                import_run.save()
+            else:
+                import_run.created_counts = {
+                    "created": apply_block.get("total_created", 0),
+                    "artifacts": pipeline.get("advance", {}).get("artifacts_profiled", 0),
+                }
+                import_run.updated_counts = {"updated": apply_block.get("total_updated", 0)}
+                import_run.skipped_counts = {
+                    "quarantined": apply_block.get("total_quarantined", 0)
+                }
+                import_run.rollback_snapshot_reference = (
+                    f"bundle:{bundle.pk}:{pipeline.get('bundle_status')}"
+                )
+                import_run.status = ImportRunStatus.COMPLETED
+                import_run.completed_at = timezone.now()
+                import_run.audit_summary = {
+                    "bundle_id": bundle.pk,
+                    "bundle_status": pipeline.get("bundle_status"),
+                    "dry_run_apply": dry_run_apply,
+                    "pipeline": pipeline,
+                }
+                import_run.save()
 
-            purge_source_credentials(connection)
+            if not pipeline.get("queued"):
+                purge_source_credentials(connection)
     except Exception as exc:  # noqa: BLE001
         # Outside the atomic block above → these writes COMMIT and persist so the
         # failure is not invisible.
@@ -172,6 +201,21 @@ def run_connector_import(
             metadata={"error": str(exc)[:120]},
         )
         raise
+
+    if (import_run.audit_summary or {}).get("queued"):
+        record_connector_import(connection.school_id, status="queued")
+        record_connector_audit(
+            school=connection.school,
+            actor=started_by,
+            event_type="import_queued",
+            source_connection=connection,
+            import_run=import_run,
+            metadata={
+                "bundle_id": import_run.bundle_id,
+                "outbox_id": (import_run.audit_summary or {}).get("outbox_id"),
+            },
+        )
+        return import_run
 
     record_connector_import(connection.school_id, status="completed")
     record_connector_audit(

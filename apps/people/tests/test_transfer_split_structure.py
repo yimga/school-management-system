@@ -147,7 +147,7 @@ class SplitStructureProvisioningTests(TestCase):
         consent.consent()
         case.refresh_from_db()
         self.assertEqual(case.status, TransferCase.Status.APPROVED)
-        summary = run_transfer_case(case, actor=self.operator)
+        summary = run_transfer_case(case, actor=self.operator, off_http=False)
         case.refresh_from_db()
         return case, summary
 

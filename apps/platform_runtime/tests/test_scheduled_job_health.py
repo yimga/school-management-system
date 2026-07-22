@@ -146,7 +146,22 @@ class AutoRecoveryEnabledTests(SimpleTestCase):
             os.environ,
             {"RMC_JOB_AUTO_RECOVER": "auto", "CELERY_BROKER_URL": "redis://x:6379/0"},
         ):
-            self.assertFalse(auto_recovery_enabled())
+            with mock.patch(
+                "apps.platform_runtime.periodic.celery_beat_appears_alive",
+                return_value=True,
+            ):
+                self.assertFalse(auto_recovery_enabled())
+
+    def test_auto_mode_reenabled_when_beat_dead(self):
+        with mock.patch.dict(
+            os.environ,
+            {"RMC_JOB_AUTO_RECOVER": "auto", "CELERY_BROKER_URL": "redis://x:6379/0"},
+        ):
+            with mock.patch(
+                "apps.platform_runtime.periodic.celery_beat_appears_alive",
+                return_value=False,
+            ):
+                self.assertTrue(auto_recovery_enabled())
 
 
 class RecordHeartbeatTests(TestCase):

@@ -590,7 +590,7 @@ class SchoolBatchAuditCloseoutTests(TestCase):
         student.is_active = False
         student.save(update_fields=["status", "is_active"])
         with self.assertRaises(TransferBlockedError):
-            run_transfer_case(case, actor=self.op1)
+            run_transfer_case(case, actor=self.op1, off_http=False)
         case.refresh_from_db()
         self.assertEqual(case.status, TransferCase.Status.APPROVED)
 

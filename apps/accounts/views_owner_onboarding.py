@@ -42,7 +42,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 logger = logging.getLogger(__name__)
 
 _HEX_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
-_TOTAL_STEPS = 3
+_TOTAL_STEPS = 4
 _PASSWORD_RESET_SENTINEL = "set-password"
 
 
@@ -133,32 +133,60 @@ def _owner_mfa_enrolled(user) -> bool:
 
 
 def _post_onboarding_dashboard_href(request, school) -> str:
-    """Dashboard CTA after wizard — never deep-link an inactive tenant subdomain."""
+    """Dashboard CTA after wizard — MFA enrollment first when still required.
+
+    ADMIN owners are MFA-baseline-required. Routing the primary CTA through
+    ``mfa_setup?legacy=1&next=…`` makes enrollment part of onboarding instead of
+    a surprise hard-wall on the first dashboard hit after password setup.
+    """
+    from urllib.parse import urlencode
+
     from django.urls import reverse
 
     from apps.schools.provision_email_urls import school_subdomain_redirect_is_safe
     from apps.schools.tenant_url import build_tenant_backend_url, is_base_domain
 
+    dashboard = ""
     if school and school_subdomain_redirect_is_safe(school):
         try:
             if is_base_domain(request):
-                return build_tenant_backend_url(request, school)
+                dashboard = build_tenant_backend_url(request, school)
         except (AttributeError, ImportError, TypeError, ValueError):
             pass
+        if not dashboard:
+            try:
+                dashboard = reverse("accounts:redirect")
+            except Exception:  # noqa: BLE001 - template fallback must not 500
+                dashboard = ""
+    if not dashboard:
         try:
-            return reverse("accounts:redirect")
-        except Exception:  # noqa: BLE001 - template fallback must not 500
-            pass
-    try:
-        return reverse("accounts:owner_onboarding_done")
-    except Exception:  # noqa: BLE001
-        return "/authentication/onboarding/done/"
+            dashboard = reverse("accounts:owner_onboarding_done")
+        except Exception:  # noqa: BLE001
+            dashboard = "/authentication/onboarding/done/"
+
+    user = getattr(request, "user", None)
+    if user and getattr(user, "is_authenticated", False) and not _owner_mfa_enrolled(user):
+        try:
+            # Stay inside the owner-onboarding wizard chrome (step 3 of 4).
+            return reverse("accounts:owner_onboarding_mfa")
+        except Exception:  # noqa: BLE001
+            try:
+                setup = reverse("accounts:mfa_setup")
+                return f"{setup}?{urlencode({'legacy': '1', 'next': dashboard})}"
+            except Exception:  # noqa: BLE001
+                return dashboard
+    return dashboard
 
 
 def _run_owner_provisioning(
     request, school, user, *, cooldown_seconds: int = 0
 ) -> bool:
-    """Queue + sync provisioning in-request so owners are not blocked by Celery."""
+    """Queue provisioning off the HTTP request (never block gunicorn on migrate).
+
+    The multi-minute ``tenant_schema`` migrate must not run on the request thread —
+    that is the root cause of every owner stalling at ~53%. We always kick a
+    background drive; the provision watchdog resumes if the drive dies.
+    """
     if not school or getattr(school, "is_active", False):
         return True
     if cooldown_seconds:
@@ -170,22 +198,20 @@ def _run_owner_provisioning(
         request.session[session_key] = now_ts
     contact_email = (getattr(user, "email", "") or "").strip()
     try:
-        from apps.schools.tasks import complete_provisioning_for_school
+        from apps.schools.tasks import kick_complete_provisioning_background
 
-        result = complete_provisioning_for_school(
+        kick_complete_provisioning_background(
             str(school.pk), contact_email=contact_email
         )
         school.refresh_from_db(fields=["is_active", "settings", "updated_at"])
         logger.info(
-            "owner_onboarding_provision_complete school_id=%s active=%s queued=%s sync=%s",
+            "owner_onboarding_provision_kicked school_id=%s active=%s",
             getattr(school, "pk", None),
             getattr(school, "is_active", False),
-            result.get("queued"),
-            result.get("sync_completed"),
         )
-        return bool(result.get("is_active"))
+        return bool(getattr(school, "is_active", False))
     except Exception:  # noqa: BLE001 - surface message to owner, never 500 the launchpad
-        logger.warning("owner_onboarding_provision_complete_failed", exc_info=True)
+        logger.warning("owner_onboarding_provision_kick_failed", exc_info=True)
         return False
 
 
@@ -389,8 +415,10 @@ def owner_onboarding_school(request):
                     school.save(update_fields=updates)
                 except Exception:  # noqa: BLE001 - never block the wizard on a save error
                     logger.warning("owner_onboarding_school_save_failed", exc_info=True)
-        _set_onboarding(school, step="done")
+        _set_onboarding(school, step="mfa")
         _finish_provisioning_before_done(request, school, request.user)
+        if not _owner_mfa_enrolled(request.user):
+            return redirect("accounts:owner_onboarding_mfa")
         return redirect("accounts:owner_onboarding_done")
 
     return render(
@@ -400,13 +428,77 @@ def owner_onboarding_school(request):
     )
 
 
-# ── Step 3: You're all set (launchpad) ──────────────────────────────────────
+# ── Step 3: MFA enrollment (required before done) ───────────────────────────
+@login_required
+@require_http_methods(["GET", "POST"])
+def owner_onboarding_mfa(request):
+    """Required MFA wizard step — same onboarding chrome as school/account.
+
+    Renders MFA enrollment inside the owner-onboarding shell (step 3 of 4).
+    Middleware remains a backstop only. Already-enrolled owners skip to done.
+    """
+    from django.urls import reverse
+
+    from apps.accounts.mfa_setup_flow import build_mfa_setup_context, handle_mfa_setup_post
+    from services.post_delete_navigation import safe_next_url as _safe_next_url
+
+    school = _owner_school(request.user)
+    if school is None:
+        return _dashboard_redirect()
+    if onboarding_state(school).get("completed") and _owner_mfa_enrolled(request.user):
+        return _dashboard_redirect()
+
+    if _owner_mfa_enrolled(request.user):
+        _set_onboarding(school, step="done")
+        return redirect("accounts:owner_onboarding_done")
+
+    _set_onboarding(school, step="mfa")
+    done = reverse("accounts:owner_onboarding_done")
+    next_url = _safe_next_url(request, request.POST.get("next") or done, done)
+
+    if request.method == "POST":
+        outcome, mfa_ctx = handle_mfa_setup_post(request, next_url=next_url)
+        if outcome in ("redirect_next", "redirect_profile") or _owner_mfa_enrolled(
+            request.user
+        ):
+            _set_onboarding(school, step="done")
+            return redirect("accounts:owner_onboarding_done")
+        if outcome == "render" and mfa_ctx:
+            mfa_ctx.update(
+                {
+                    "school": school,
+                    "step": 3,
+                    "total_steps": _TOTAL_STEPS,
+                    "onboarding_mfa": True,
+                    "next_url": next_url,
+                }
+            )
+            return render(request, "accounts/owner_onboarding/mfa.html", mfa_ctx)
+
+    ctx = build_mfa_setup_context(request, next_url=next_url)
+    ctx.update(
+        {
+            "school": school,
+            "step": 3,
+            "total_steps": _TOTAL_STEPS,
+            "onboarding_mfa": True,
+            "next_url": next_url,
+        }
+    )
+    return render(request, "accounts/owner_onboarding/mfa.html", ctx)
+
+# ── Step 4: You're all set (launchpad) ──────────────────────────────────────
 @login_required
 @require_http_methods(["GET", "POST"])
 def owner_onboarding_done(request):
     school = _owner_school(request.user)
     if school is None:
         return _dashboard_redirect()
+
+    # Hard gate: MFA is a wizard step — do not mark onboarding complete until enrolled.
+    if not _owner_mfa_enrolled(request.user):
+        return redirect("accounts:owner_onboarding_mfa")
+
     if request.method == "GET":
         try:
             from apps.schools.provision_email_urls import (
@@ -508,7 +600,9 @@ def owner_onboarding_done(request):
             "portal_ready": portal_ready,
             "dashboard_href": _post_onboarding_dashboard_href(request, school),
             "owner_mfa_enrolled": _owner_mfa_enrolled(request.user),
-            "mfa_setup_url": reverse("accounts:mfa_setup"),
+            "mfa_setup_url": _post_onboarding_dashboard_href(request, school)
+            if not _owner_mfa_enrolled(request.user)
+            else reverse("accounts:mfa_setup"),
             "owner_email": (getattr(request.user, "email", "") or "").strip(),
             "provisioning_events": _provisioning_timeline(school),
             "last_provisioning_error": _last_provisioning_error(school),

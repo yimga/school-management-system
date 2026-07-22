@@ -100,7 +100,11 @@ class FlightDeckEnrichmentTests(TestCase):
         self.assertIn("error_fingerprint", payload)
         self.assertEqual(
             payload["error_fingerprint"].get("recommended_chain"),
-            ["requeue_provision"],
+            [
+                "cancel_duplicate_run",
+                "repair_tenant_schema_drift",
+                "requeue_provision",
+            ],
         )
         kinds = [a["kind"] for a in payload["operator_actions"]]
         self.assertIn("apply_fix", kinds)
@@ -112,6 +116,41 @@ class FlightDeckEnrichmentTests(TestCase):
         rem = resolve_effective_remediation(self.run)
         self.assertTrue(rem.get("auto_fix_available"))
         self.assertEqual(rem.get("auto_fix_kind"), "requeue_provision")
+
+    def test_dead_running_tenant_schema_is_not_diagnostic_only(self):
+        """Heartbeat-dead running@tenant_schema must expose executable Auto fix."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        self.run.status = "running"
+        self.run.suggested_remediation = {}
+        self.run.last_heartbeat_at = timezone.now() - timedelta(seconds=600)
+        self.run.started_at = timezone.now() - timedelta(seconds=900)
+        self.run.save(
+            update_fields=[
+                "status",
+                "suggested_remediation",
+                "last_heartbeat_at",
+                "started_at",
+            ]
+        )
+        rem = resolve_effective_remediation(self.run)
+        self.assertTrue(rem.get("auto_fix_available"))
+        self.assertEqual(rem.get("auto_fix_kind"), "requeue_provision")
+        self.assertIn("repair_tenant_schema_drift", rem.get("healing_chain") or [])
+        payload = enrich_run_payload(
+            {
+                "id": self.run.pk,
+                "workflow_key": self.run.workflow_key,
+                "status": "running",
+                "school_id": str(self.school.pk),
+                "suggested_remediation": {},
+            },
+            run=self.run,
+        )
+        kinds = [a["kind"] for a in payload["operator_actions"]]
+        self.assertIn("apply_fix", kinds)
 
     def test_resolve_upgrades_retry_backoff_to_requeue_for_provision(self):
         self.run.suggested_remediation = {

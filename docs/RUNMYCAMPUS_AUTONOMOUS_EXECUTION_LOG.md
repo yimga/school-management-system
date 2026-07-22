@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Process-gap leftovers (batch 1785 - 2026-07-22)
+
+**A. Scope:** Close honest leftovers after P0–P2 process-gap: transfer async FSM, MFA wizard chrome, non-provision autopilot strength, SOT/log.
+
+**B. Shipped:** transfer `off_http` + `continue_transfer_case_if_ready` + beat/periodic; owner-onboarding MFA template+view; `retry_failed_step` MC outbox / Celery / stamp; SOT §11.4 batch 1785 + prompt checklist.
+
+**C. Proof:** `run_sqlite_memory_tests` on process-gap, MFA CTA, transfer-async-continue, repair suites.
+
+**D. Honest:** real-apply transfer tests keep sync `off_http=False`; non-MC workflows without `celery_task_name` get stamp-retry only.
+
+**E. Files:** transfer_service/intake, people/tasks, periodic, settings beat, views_owner_onboarding + mfa.html, workflow_fix_handlers, tests, SOT/log/prompt.
+
+**F. Next:** Optional — wire `celery_task_name` into more workflow trackers so generic autopilot requeues without stamp-only.
+
 ## Slice — Fix D + worker ping + API seed + Render harness (batch 1784 - 2026-07-22)
 
 **A. Scope:** Stop rushing EXTERNAL labels — finish every repo-contained residual Claude left incomplete after 1783 (Fix D wiring/proof, live worker ping contract, API PGL-009, Phase A SiteSettings, Render-armed Playwright).

@@ -2078,6 +2078,11 @@ except (TypeError, ValueError):
 HEALTHZ_REQUIRE_CELERY_WORKERS = os.getenv(
     "HEALTHZ_REQUIRE_CELERY_WORKERS", "1"
 ).strip().lower() in ("1", "true", "yes", "on")
+# Broker set + beat canary stale ⇒ /healthz 503 (topology honesty). Soft-disable
+# only for local/CI when deliberately running without a beat process.
+HEALTHZ_REQUIRE_CELERY_BEAT = os.getenv(
+    "HEALTHZ_REQUIRE_CELERY_BEAT", "1"
+).strip().lower() in ("1", "true", "yes", "on")
 CELERY_RESULT_BACKEND = (
     "django-db"  # Store task results in Postgres; no Redis required for results
 )
@@ -2246,15 +2251,29 @@ CELERY_BEAT_SCHEDULE = {
     # The reconcile entry above cannot reach it: that one requires the
     # phase_a_complete marker, which is only set AFTER tenant_schema succeeds.
     # This entry is what runs the watchdog in the WORKER+BEAT topology — its
-    # in-process /health/ twin stands down whenever CELERY_BROKER_URL is set
-    # (periodic.inprocess_scheduler_enabled, mode "auto"), so without this the
-    # watchdog would never run in production. Both paths share one cache-locked,
-    # per-school single-flight + hourly cap, so running in either (or, during a
-    # topology change, both) cannot double-drive a migrate.
+    # in-process /health/ twin yields only while CELERY_BROKER_URL is set AND the
+    # provision-heal canary proves beat is alive (periodic.inprocess_scheduler_enabled).
+    # Broker without live beat re-enables the /health/ twin (topology honesty).
+    # Both paths share one cache-locked, per-school single-flight + hourly cap.
     "schools-resume-stuck-provisions": {
         "task": "schools.resume_stuck_provisions",
         "schedule": 120.0,
         "options": {"expires": 110},
+    },
+    # Durable heavy-work outbox (provision / schema heal / Migration Cloud).
+    # Daemon-thread kicks are last-resort; this beat keeps the queue draining
+    # when a worker is provisioned.
+    "platform-runtime-drain-heavy-work-outbox": {
+        "task": "platform_runtime.drain_heavy_work_outbox",
+        "schedule": 30.0,
+        "options": {"expires": 25},
+    },
+    # Finish APPLYING student-transfer cases once Migration Cloud bundles land
+    # (async FSM — never block HTTP on advance+apply).
+    "people-continue-applying-transfers": {
+        "task": "people.continue_applying_transfers",
+        "schedule": 60.0,
+        "options": {"expires": 50},
     },
     # Read-only tenant-schema table-drift sweep (apps.schools.tasks
     # .detect_tenant_table_drift_scan): flags any tenant schema missing an

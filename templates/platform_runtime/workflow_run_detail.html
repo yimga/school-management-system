@@ -78,7 +78,16 @@
             <dt class="col-5">{% trans "State" %}</dt>
             <dd class="col-7"><span class="rmc-wf-status {{ detail.status_meta.css_class }}">{{ detail.display_status }}</span></dd>
             <dt class="col-5">{% trans "Auto fix" %}</dt>
-            <dd class="col-7">{{ detail.suggested_remediation.auto_fix_kind|default:"Diagnostic only" }}</dd>
+            <dd class="col-7">
+              {% if detail.suggested_remediation.auto_fix_available and detail.suggested_remediation.auto_fix_kind %}
+                {{ detail.suggested_remediation.auto_fix_kind }}
+                {% if detail.suggested_remediation.healing_chain %}
+                  <div class="text-muted small mt-1">{{ detail.suggested_remediation.healing_chain|join:" → " }}</div>
+                {% endif %}
+              {% else %}
+                {% trans "Diagnostic only" %}
+              {% endif %}
+            </dd>
             <dt class="col-5">{% trans "Copilot context" %}</dt>
             <dd class="col-7">{{ detail.copilot_recovery_context.current_step|default:detail.current_step_name }}</dd>
             {% if detail.remediation_stamp.applied_at %}

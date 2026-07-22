@@ -119,16 +119,23 @@ def auto_recovery_enabled() -> bool:
     """Whether the monitor should auto-recover overdue cron-only jobs.
 
     ``RMC_JOB_AUTO_RECOVER``: ``on`` | ``off`` | ``auto`` (default). In auto mode
-    it is enabled ONLY while no Celery broker is configured — mirroring
-    ``periodic.inprocess_scheduler_enabled`` so it yields automatically the moment
-    a real worker + beat are provisioned.
+    it yields while a Celery broker is configured **and** beat looks alive —
+    mirroring ``periodic.inprocess_scheduler_enabled``. Broker without live beat
+    keeps auto-recovery on so heals are not theater.
     """
     mode = (os.getenv("RMC_JOB_AUTO_RECOVER", "auto") or "auto").strip().lower()
     if mode in ("off", "0", "false", "no", "disabled"):
         return False
     if mode in ("on", "1", "true", "yes", "enabled"):
         return True
-    return not bool((os.getenv("CELERY_BROKER_URL") or "").strip())
+    if not bool((os.getenv("CELERY_BROKER_URL") or "").strip()):
+        return True
+    try:
+        from apps.platform_runtime.periodic import celery_beat_appears_alive
+
+        return not celery_beat_appears_alive()
+    except Exception:  # noqa: BLE001 — fail open to heal when probe breaks
+        return True
 
 
 def select_recovery_candidates(enriched_jobs, *, now=None, max_failures=MAX_AUTO_RECOVERY_FAILURES):

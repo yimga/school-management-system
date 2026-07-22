@@ -20,6 +20,7 @@ Design:
 from __future__ import annotations
 
 from django.db import models
+from django.db.models import Q
 
 
 class WorkflowRunStatus(models.TextChoices):
@@ -114,6 +115,21 @@ class WorkflowRun(models.Model):
             models.Index(
                 fields=["last_heartbeat_at"],
                 name="wfr_heartbeat_idx",
+            ),
+        ]
+        constraints = [
+            # One active provision run per school (zombie dual-card seal).
+            models.UniqueConstraint(
+                fields=["school_id", "workflow_key"],
+                condition=Q(status__in=["running", "stuck"])
+                & ~Q(school_id="")
+                & Q(
+                    workflow_key__in=[
+                        "tenant_school_provision",
+                        "tenant_school_create",
+                    ]
+                ),
+                name="uniq_active_provision_run_per_school",
             ),
         ]
 

@@ -53,6 +53,40 @@ def _requeue_provision_remediation(rem: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _tenant_schema_step_remediation(rem: dict[str, Any], *, run: Any) -> dict[str, Any]:
+    """Executable heal plan for a dead/stuck provision pinned at tenant_schema.
+
+    Auto fix MUST mutate (repair drift → requeue), never leave "Diagnostic only".
+    """
+
+    step = str(getattr(run, "current_step_name", "") or "").strip()
+    out = _requeue_provision_remediation(rem)
+    if step == "tenant_schema":
+        out.update(
+            {
+                "verdict": rem.get("verdict") or "tenant_schema_self_heal",
+                "remediation_key": rem.get("remediation_key")
+                or "tenant_schema_stalled",
+                "human_action": (
+                    "Campus workspace setup stalled while creating the tenant "
+                    "database schema. Auto fix repairs schema drift, then "
+                    "re-queues provisioning (idempotent)."
+                ),
+                "auto_fix_available": True,
+                "auto_fix_kind": "requeue_provision",
+                "healing_chain": [
+                    "cancel_duplicate_run",
+                    "repair_tenant_schema_drift",
+                    "requeue_provision",
+                ],
+                "suggested_next": "Apply fix — cancel duplicates, repair schema, requeue.",
+                "reason": rem.get("reason") or "tenant_schema_dead_running",
+                "source": rem.get("source") or "effective_remediation",
+            }
+        )
+    return out
+
+
 def resolve_effective_remediation(run: Any) -> dict[str, Any]:
     """Remediation envelope used by Flight Deck UI and apply-fix handlers.
 
@@ -60,6 +94,10 @@ def resolve_effective_remediation(run: Any) -> dict[str, Any]:
     so operators are not blocked by stale ``auto_fix_available: false`` in DB.
     Also replaces generic retry/backoff suggestions for provisioning with an
     explicit requeue — retry metadata alone does not restart the Celery job.
+
+    Critical: a heartbeat-dead ``running`` row stuck at ``tenant_schema`` must
+    still surface an *executable* auto-fix (not "Diagnostic only"). Liveness is
+    judged by ``provision_workflow_run_is_live``, matching the watchdog.
     """
 
     rem = dict(getattr(run, "suggested_remediation", None) or {})
@@ -67,12 +105,29 @@ def resolve_effective_remediation(run: Any) -> dict[str, Any]:
     status = (getattr(run, "status", "") or "").lower()
 
     if workflow_key == "tenant_school_provision":
+        dead_running = False
+        if status == "running":
+            try:
+                from apps.schools.provision_watchdog import (
+                    provision_workflow_run_is_live,
+                )
+
+                dead_running = not provision_workflow_run_is_live(run)
+            except Exception:
+                # Fail open toward heal: no heartbeat proof ⇒ treat as dead.
+                dead_running = getattr(run, "last_heartbeat_at", None) is None
+
         if status == "stuck" and not rem.get("auto_fix_kind"):
             from apps.platform_runtime.workflow_fix_handlers import (
                 resolve_stuck_remediation,
             )
 
-            return resolve_stuck_remediation(run=run)
+            base = resolve_stuck_remediation(run=run)
+            return _tenant_schema_step_remediation(base, run=run)
+
+        if dead_running:
+            return _tenant_schema_step_remediation(rem, run=run)
+
         if status in ("failed", "stuck", "cancelled"):
             kind = str(rem.get("auto_fix_kind") or "").strip()
             if kind in _PROVISION_SPECIFIC_FIXES:
@@ -82,7 +137,9 @@ def resolve_effective_remediation(run: Any) -> dict[str, Any]:
                 or kind in _RETRY_ONLY_FIXES
                 or not kind
             ):
-                return _requeue_provision_remediation(rem)
+                return _tenant_schema_step_remediation(rem, run=run)
+            if str(getattr(run, "current_step_name", "") or "").strip() == "tenant_schema":
+                return _tenant_schema_step_remediation(rem, run=run)
     return rem
 
 

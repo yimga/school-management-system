@@ -184,21 +184,26 @@ def _row_hint(artifact) -> str:
     )
 
 def _advance(bundle_id) -> None:
-    """Run profile → classify → map after intake. Celery if up, inline otherwise
-    so a broker outage never blocks the tenant's migration."""
+    """Run profile → classify → map after intake — always off the HTTP thread."""
     try:
         from .celery_tasks import enqueue_advance
 
         if enqueue_advance(bundle_id, use_accelerator=True) is not None:
             return
-    except Exception:  # noqa: BLE001 — fall through to inline
-        logger.warning("mc tenant upload: enqueue_advance failed for %s; inline", bundle_id)
+    except Exception:  # noqa: BLE001 — fall through to background kick
+        logger.warning(
+            "mc tenant upload: enqueue_advance failed for %s; background kick",
+            bundle_id,
+            exc_info=True,
+        )
     try:
-        from .pipeline import advance_bundle
+        from .celery_tasks import _kick_advance_off_request
 
-        advance_bundle(bundle_id=bundle_id, use_accelerator=True)
+        _kick_advance_off_request(bundle_id, use_accelerator=True)
     except Exception:  # noqa: BLE001 — surfaced on the review page instead
-        logger.exception("mc tenant upload: inline advance failed for %s", bundle_id)
+        logger.exception(
+            "mc tenant upload: background advance kick failed for %s", bundle_id
+        )
 
 
 def _sync_tenant_domain_overrides(bundle) -> None:
@@ -602,13 +607,25 @@ class TenantMigrationApplyView(_TenantAdminWriteRequiredMixin, View):
     @idempotent_post
     @safe_500
     def post(self, request, bundle_id: int):
-        from .orchestrator import apply_bundle
-
         bundle = _tenant_bundle_or_404(request, bundle_id)
         confirmed = str(request.POST.get("confirm", "")).lower() in ("1", "true", "yes", "on")
         dry_run = not confirmed
         try:
-            result = apply_bundle(bundle_id=bundle.pk, dry_run=dry_run)
+            from .celery_tasks import enqueue_apply
+
+            result = enqueue_apply(bundle.pk, dry_run=dry_run)
+            messages.info(
+                request,
+                (
+                    "Import queued (dry-run)."
+                    if dry_run
+                    else "Import queued. Refresh shortly for results."
+                ),
+            )
+            return redirect(
+                _connector_reverse(request, "bundle-review", bundle_id=bundle.pk)
+                + f"?queued=1&outbox={getattr(result, 'outbox_id', '')}"
+            )
         except ValueError as exc:
             messages.error(
                 request,
@@ -616,43 +633,6 @@ class TenantMigrationApplyView(_TenantAdminWriteRequiredMixin, View):
                 "moment, refresh, then try again.",
             )
             return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
-
-        summary = {
-            "dry_run": result.dry_run,
-            "status": result.status,
-            "created": result.total_created,
-            "updated": result.total_updated,
-            "quarantined": result.total_quarantined,
-            "per_artifact": [
-                {
-                    "domain": item.domain,
-                    "status": item.status,
-                    "created": item.result.created,
-                    "updated": item.result.updated,
-                    "quarantined": item.result.quarantined,
-                }
-                for item in result.per_artifact
-            ],
-        }
-        if result.dry_run:
-            messages.info(
-                request,
-                "Preview only — nothing was written. Check the numbers below, then "
-                "choose “Import into my school” to make it real.",
-            )
-        else:
-            # Post-apply: re-query the tenant to prove the rows actually landed
-            # and are visible in the school, then refresh so build_context reads
-            # the fresh reconciliation summary.
-            _safe_reconcile(bundle)
-            bundle.refresh_from_db()
-            messages.success(
-                request,
-                f"Imported into your school: {result.total_created} created, "
-                f"{result.total_updated} updated, {result.total_quarantined} held for review.",
-            )
-        context = TenantMigrationReviewView().build_context(request, bundle, apply_result=summary)
-        return render(request, self.template_name, context)
 
 
 class TenantMigrationRetryAdvanceView(_TenantAdminWriteRequiredMixin, View):
@@ -711,10 +691,13 @@ class TenantMigrationRepairView(_TenantAdminWriteRequiredMixin, View):
         from .repair import repair_bundle
 
         bundle = _tenant_bundle_or_404(request, bundle_id)
-        result = repair_bundle(bundle_id=bundle.pk)
+        # Never run apply_bundle on the HTTP thread — durable outbox only.
+        result = repair_bundle(bundle_id=bundle.pk, off_http=True)
         bundle.refresh_from_db()
 
-        if not result.ran:
+        if result.queued:
+            messages.info(request, result.message)
+        elif not result.ran:
             messages.info(request, result.message)
         elif result.ok:
             messages.success(request, result.message)
@@ -722,8 +705,7 @@ class TenantMigrationRepairView(_TenantAdminWriteRequiredMixin, View):
             messages.error(request, result.message)
 
         # Only surface the results/verification banner when the repair actually
-        # re-imported cleanly; otherwise the message above carries the reason and
-        # the review page renders normally (still offering repair if applicable).
+        # re-imported cleanly on this request; queued repairs refresh later.
         apply_result = None
         if result.ran and result.ok:
             apply_result = {

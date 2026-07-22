@@ -2302,3 +2302,6 @@ from .models_agentic_audit import (  # noqa: E402,F401
 from .models_scheduling import (  # noqa: E402,F401
     ScheduledJobHeartbeat,
 )
+from .models_heavy_work_outbox import (  # noqa: E402,F401
+    HeavyWorkOutbox,
+)

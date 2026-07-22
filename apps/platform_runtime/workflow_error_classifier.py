@@ -79,7 +79,13 @@ def _cross_cutting_preflight(text: str, chain: list[str]) -> list[str]:
         r"connectionerror|timeout|readtimeout|connecttimeout|httperror.*5\d\d",
         text,
     ):
-        if "retry_once_with_backoff" not in out and "retry_failed_step" not in out:
+        # Provision requeue already retries the job — do not prepend a no-op
+        # retry_once_with_backoff that only stamps metadata.
+        if (
+            "retry_once_with_backoff" not in out
+            and "retry_failed_step" not in out
+            and "requeue_provision" not in out
+        ):
             out.insert(0, "retry_once_with_backoff")
     if re.search(r"invalid_grant|token.*expired|expired.*token", text):
         if "refresh_oauth_token_and_retry" not in out:
@@ -203,6 +209,31 @@ def _classify_provision(run: Any, text: str) -> ErrorFingerprint:
             ),
             fix_summary="Clear stale locks if present, then re-queue provisioning.",
             chain=["clear_stale_lock", "requeue_provision"],
+            confidence="high",
+            requires_network=True,
+            safe_for_autopilot=True,
+        )
+
+    step = str(getattr(run, "current_step_name", "") or "").strip()
+    if step == "tenant_schema":
+        return _strategy_fingerprint(
+            workflow_key=workflow_key,
+            text=text,
+            run=run,
+            class_key="tenant_schema_stalled",
+            title="Tenant schema step stalled",
+            cause=(
+                "Campus workspace setup did not finish creating or migrating the "
+                "tenant database schema."
+            ),
+            fix_summary=(
+                "Repair tenant schema drift, then re-queue idempotent provisioning."
+            ),
+            chain=[
+                "cancel_duplicate_run",
+                "repair_tenant_schema_drift",
+                "requeue_provision",
+            ],
             confidence="high",
             requires_network=True,
             safe_for_autopilot=True,

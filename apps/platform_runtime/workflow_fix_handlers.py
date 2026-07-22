@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from io import StringIO
 from typing import Any
 
@@ -9,6 +10,8 @@ from django.core.cache import cache
 from django.core.management import call_command
 from django.db.models import Q
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 _REMEDIATED_PAYLOAD_KEY = "workflow_fix_remediation"
 _DEFER_REMEDIATION_STAMP = False
@@ -106,7 +109,10 @@ AUTO_FIX_HANDLER_CATALOG: dict[str, dict[str, Any]] = {
         "mode": "execute",
         "confidence": "conditional",
         "requires_network": False,
-        "description": "Routes to a workflow-specific step retry handler when metadata is present.",
+        "description": (
+            "Re-drives the failed step: Migration Cloud via durable outbox, "
+            "named Celery tasks from the run payload, else marks the run for retry."
+        ),
     },
     "replay_webhook": {
         "label": "Replay webhook",
@@ -368,6 +374,151 @@ def _chain_to_kind(run: Any, kind: str, source_kind: str) -> dict[str, Any]:
     return result
 
 
+def _retry_failed_step_by_workflow(
+    *,
+    run: Any,
+    workflow_key: str,
+    payload: dict[str, Any],
+    source_kind: str,
+) -> dict[str, Any]:
+    """Concrete re-drive when payload has no delegated auto_fix_kind.
+
+    Migration Cloud → durable outbox. Named Celery task in payload → .delay().
+    Otherwise stamp the run for retry (same as retry_once_with_backoff).
+    """
+    from apps.platform_runtime.models import WorkflowRun
+
+    bid = _as_int(_payload_first(payload, "bundle_id", "migration_bundle_id"))
+
+    if workflow_key == "migration_bundle_advance":
+        if not bid:
+            return {"ok": False, "reason": "missing_bundle_id", "kind": source_kind}
+        from apps.migration_cloud.celery_tasks import enqueue_advance
+
+        queued = enqueue_advance(int(bid), use_accelerator=True)
+        result = {
+            "ok": True,
+            "applied": source_kind,
+            "workflow_key": workflow_key,
+            "bundle_id": int(bid),
+            "durable_outbox": True,
+            "outbox_id": getattr(queued, "outbox_id", None) or getattr(queued, "id", None),
+            "queued_async": True,
+            "refresh_deck": True,
+            "healing_poll_ms": 2500,
+        }
+        result["remediation"] = _mark_run_remediated(run=run, kind=source_kind, result=result)
+        return result
+
+    if workflow_key == "migration_bundle_apply":
+        if not bid:
+            return {"ok": False, "reason": "missing_bundle_id", "kind": source_kind}
+        from apps.migration_cloud.celery_tasks import enqueue_apply
+
+        dry_run = bool(payload.get("dry_run", False))
+        queued = enqueue_apply(int(bid), dry_run=dry_run)
+        result = {
+            "ok": True,
+            "applied": source_kind,
+            "workflow_key": workflow_key,
+            "bundle_id": int(bid),
+            "dry_run": dry_run,
+            "durable_outbox": True,
+            "outbox_id": getattr(queued, "outbox_id", None) or getattr(queued, "id", None),
+            "queued_async": True,
+            "refresh_deck": True,
+            "healing_poll_ms": 2500,
+        }
+        result["remediation"] = _mark_run_remediated(run=run, kind=source_kind, result=result)
+        return result
+
+    if workflow_key == "migration_bundle_fetch_assets":
+        if not bid:
+            return {"ok": False, "reason": "missing_bundle_id", "kind": source_kind}
+        from apps.migration_cloud.celery_tasks import enqueue_fetch_assets
+
+        queued = enqueue_fetch_assets(int(bid))
+        result = {
+            "ok": True,
+            "applied": source_kind,
+            "workflow_key": workflow_key,
+            "bundle_id": int(bid),
+            "queued_async": queued is not None,
+            "refresh_deck": True,
+            "healing_poll_ms": 2500,
+        }
+        result["remediation"] = _mark_run_remediated(run=run, kind=source_kind, result=result)
+        return result
+
+    task_name = str(
+        _payload_first(payload, "celery_task_name", "task_name", "retry_task_name") or ""
+    ).strip()
+    if task_name:
+        try:
+            from celery import current_app
+
+            args = payload.get("celery_task_args") or payload.get("task_args") or []
+            kwargs = payload.get("celery_task_kwargs") or payload.get("task_kwargs") or {}
+            if not isinstance(args, (list, tuple)):
+                args = []
+            if not isinstance(kwargs, dict):
+                kwargs = {}
+            current_app.send_task(task_name, args=list(args), kwargs=dict(kwargs))
+            WorkflowRun.objects.filter(pk=run.pk).update(  # tenant-isolation-allow: workflow-run-update-by-primary-key-row
+                status="running",
+                last_heartbeat_at=timezone.now(),
+                payload_summary={
+                    **payload,
+                    "retry_requested_at": timezone.now().isoformat(),
+                    "retry_kind": source_kind,
+                    "retry_task_name": task_name,
+                },
+            )
+            result = {
+                "ok": True,
+                "applied": source_kind,
+                "workflow_key": workflow_key,
+                "celery_task_name": task_name,
+                "queued_async": True,
+                "refresh_deck": True,
+                "healing_poll_ms": 2500,
+            }
+            result["remediation"] = _mark_run_remediated(
+                run=run, kind=source_kind, result=result
+            )
+            return result
+        except Exception as exc:  # noqa: BLE001 — fall through to stamp-only retry
+            logger.warning(
+                "retry_failed_step celery requeue failed workflow=%s task=%s: %s",
+                workflow_key,
+                task_name,
+                type(exc).__name__,
+            )
+
+    WorkflowRun.objects.filter(pk=run.pk).update(  # tenant-isolation-allow: workflow-run-update-by-primary-key-row
+        status="running",
+        last_heartbeat_at=timezone.now(),
+        payload_summary={
+            **payload,
+            "retry_requested_at": timezone.now().isoformat(),
+            "retry_kind": source_kind,
+        },
+    )
+    result = {
+        "ok": True,
+        "applied": source_kind,
+        "workflow_key": workflow_key,
+        "note": (
+            "Run marked for retry. Re-invoke the originating action or wait for "
+            "the next scheduled sweep."
+        ),
+        "refresh_deck": True,
+        "healing_poll_ms": 2500,
+    }
+    result["remediation"] = _mark_run_remediated(run=run, kind=source_kind, result=result)
+    return result
+
+
 def apply_auto_fix_kind(*, run: Any, kind: str, defer_remediation_stamp: bool = False) -> dict[str, Any]:
     """Execute a supported ``auto_fix_kind``. Returns JSON-serializable result."""
 
@@ -424,7 +575,14 @@ def _apply_auto_fix_kind_impl(*, run: Any, kind: str) -> dict[str, Any]:
             )
             or ""
         ).strip()
-        return _chain_to_kind(run, route_kind, kind)
+        if route_kind:
+            return _chain_to_kind(run, route_kind, kind)
+        return _retry_failed_step_by_workflow(
+            run=run,
+            workflow_key=workflow_key,
+            payload=payload,
+            source_kind=kind,
+        )
 
     if kind == "replay_webhook":
         platform_event_id = _as_int(_payload_first(payload, "platform_event_id", "event_id"))
@@ -558,7 +716,19 @@ def _apply_auto_fix_kind_impl(*, run: Any, kind: str) -> dict[str, Any]:
             },
         )
         if not cancelled:
-            return {"ok": False, "reason": "duplicate_run_not_found", "kind": kind}
+            # No duplicates is success for a healing chain step — continue to repair.
+            result = {
+                "ok": True,
+                "applied": kind,
+                "cancelled": 0,
+                "cancelled_run_ids": [],
+                "skipped": True,
+                "reason": "duplicate_run_not_found",
+                "refresh_deck": True,
+                "healing_poll_ms": 2500,
+            }
+            result["remediation"] = _mark_run_remediated(run=run, kind=kind, result=result)
+            return result
         result = {
             "ok": True,
             "applied": kind,
@@ -599,22 +769,32 @@ def _apply_auto_fix_kind_impl(*, run: Any, kind: str) -> dict[str, Any]:
         ).strip()
         if not tenant_schema:
             return {"ok": False, "reason": "missing_tenant_schema", "kind": kind}
-        stdout = StringIO()
-        stderr = StringIO()
-        call_command(
-            "heal_tenant_schema_drift",
-            "--schema",
-            tenant_schema,
-            "--apply",
-            stdout=stdout,
-            stderr=stderr,
+        from apps.platform_runtime.heavy_work_outbox import enqueue_heavy_work
+        from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+        row = enqueue_heavy_work(
+            HeavyWorkOutbox.Kind.HEAL_TENANT_SCHEMA,
+            school_id=str(getattr(run, "school_id", "") or ""),
+            tenant_schema=tenant_schema,
+            payload={
+                "tenant_schema": tenant_schema,
+                "workflow_run_id": str(getattr(run, "pk", "") or ""),
+            },
+            idempotency_key=f"heal-schema:{tenant_schema}:{getattr(run, 'pk', '')}",
+            kick=True,
         )
         result = {
             "ok": True,
             "applied": kind,
             "tenant_schema": tenant_schema,
-            "stdout": stdout.getvalue()[-1200:],
-            "stderr": stderr.getvalue()[-1200:],
+            "queued_async": True,
+            "durable_outbox": True,
+            "job_id": str(row.pk),
+            "outbox_id": str(row.pk),
+            "note": (
+                "Schema heal queued on durable heavy-work outbox "
+                "(never on the Flight Deck HTTP request)."
+            ),
             "refresh_deck": True,
             "healing_poll_ms": 2500,
         }
@@ -622,19 +802,37 @@ def _apply_auto_fix_kind_impl(*, run: Any, kind: str) -> dict[str, Any]:
         return result
 
     if kind == "run_tenant_migrations":
-        stdout = StringIO()
-        stderr = StringIO()
-        call_command(
-            "run_tenant_migrations",
-            "--noinput",
-            stdout=stdout,
-            stderr=stderr,
+        tenant_schema = str(
+            getattr(run, "tenant_schema", "") or payload.get("tenant_schema") or ""
+        ).strip()
+        from apps.platform_runtime.heavy_work_outbox import enqueue_heavy_work
+        from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+        row = enqueue_heavy_work(
+            HeavyWorkOutbox.Kind.RUN_TENANT_MIGRATIONS,
+            school_id=str(getattr(run, "school_id", "") or ""),
+            tenant_schema=tenant_schema,
+            payload={
+                "tenant_schema": tenant_schema,
+                "workflow_run_id": str(getattr(run, "pk", "") or ""),
+            },
+            idempotency_key=(
+                f"migrate-schema:{tenant_schema or 'all'}:{getattr(run, 'pk', '')}"
+            ),
+            kick=True,
         )
         result = {
             "ok": True,
             "applied": kind,
-            "stdout": stdout.getvalue()[-1200:],
-            "stderr": stderr.getvalue()[-1200:],
+            "tenant_schema": tenant_schema,
+            "queued_async": True,
+            "durable_outbox": True,
+            "job_id": str(row.pk),
+            "outbox_id": str(row.pk),
+            "note": (
+                "Tenant migrations queued on durable heavy-work outbox "
+                "(never on the Flight Deck HTTP request)."
+            ),
             "refresh_deck": True,
             "healing_poll_ms": 2500,
         }
@@ -991,6 +1189,16 @@ def resolve_stuck_remediation(*, run: Any) -> dict[str, Any]:
             ),
             "reason": "stuck",
             "source": "stuck_sweep",
+            "healing_chain": (
+                [
+                    "cancel_duplicate_run",
+                    "repair_tenant_schema_drift",
+                    "requeue_provision",
+                ]
+                if str(getattr(run, "current_step_name", "") or "").strip()
+                == "tenant_schema"
+                else ["requeue_provision"]
+            ),
         }
     if kind and auto_fix_kind_is_executable(kind):
         from apps.platform_runtime.workflow_recovery_playbook import (

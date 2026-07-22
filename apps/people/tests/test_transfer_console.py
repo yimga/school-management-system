@@ -217,7 +217,7 @@ class TransferConsoleTests(TestCase):
         self.assertTrue(cache.add(lock_key, "1", timeout=60))
         try:
             with self.assertRaises(TransferBlockedError) as ctx:
-                run_transfer_case(case)
+                run_transfer_case(case, off_http=False)
             # The LOCK must be the refusal (not the draft-status guard) —
             # that is what proves single-flight.
             self.assertIn("already in flight", str(ctx.exception))

@@ -465,6 +465,7 @@ class MigrationCloudConnectorImportView(LoginRequiredMixin, View):
                 started_by=request.user,
                 idempotency_key=request.POST.get("idempotency_key"),
                 quality_override=request.POST.get("quality_override") == "on",
+                off_http=True,
             )
         except ValueError as exc:
             # Blocked-import conditions (no rows, quality below threshold,

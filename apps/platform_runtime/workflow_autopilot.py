@@ -102,6 +102,10 @@ def try_auto_apply_on_failure(*, run_pk: int) -> bool:
     try:
         from apps.platform_runtime.models import WorkflowRun
         from apps.platform_runtime.workflow_fix_handlers import apply_auto_fix_kind
+        from apps.platform_runtime.workflow_healing import (
+            apply_healing_for_run,
+            healing_supported_for_run,
+        )
     except Exception:
         return False
 
@@ -120,7 +124,14 @@ def try_auto_apply_on_failure(*, run_pk: int) -> bool:
         tenant_schema=run.tenant_schema or "",
     ):
         return False
-    result = apply_auto_fix_kind(run=run, kind=kind)
+    if healing_supported_for_run(run, kind=kind):
+        result = apply_healing_for_run(
+            run=run,
+            kind=kind,
+            actor_user_id="autopilot",
+        )
+    else:
+        result = apply_auto_fix_kind(run=run, kind=kind)
     if result.get("ok"):
         record_apply_log(
             run_id=run.pk,
@@ -183,9 +194,10 @@ def try_auto_apply_on_stuck(*, run_pk: int) -> dict[str, Any]:
     """Unattended remediation for a STUCK run, gated by WorkflowAutopilotPolicy.
 
     Safe-by-default: with no enabling policy this only proposes (``shadow``) and
-    mutates nothing. When the policy enables the kind it applies the same narrow,
-    idempotent handler the manual Retry button uses, bounded by a per-school
-    circuit breaker, and logs every outcome to WorkflowAutopilotApplyLog.
+    mutates nothing. When the policy enables the kind it applies the same healing
+    chain the manual Apply fix button uses (schema repair → requeue for
+    provisioning), bounded by a per-school circuit breaker, and logs every
+    outcome to WorkflowAutopilotApplyLog.
     """
 
     try:
@@ -193,6 +205,10 @@ def try_auto_apply_on_stuck(*, run_pk: int) -> dict[str, Any]:
         from apps.platform_runtime.workflow_fix_handlers import (
             STUCK_DEFAULT_FIX_BY_WORKFLOW,
             apply_auto_fix_kind,
+        )
+        from apps.platform_runtime.workflow_healing import (
+            apply_healing_for_run,
+            healing_supported_for_run,
         )
     except Exception:
         return {"applied": False, "reason": "import_failed"}
@@ -234,7 +250,14 @@ def try_auto_apply_on_stuck(*, run_pk: int) -> dict[str, Any]:
         )
         return {"applied": False, "reason": "circuit_open", "kind": kind}
 
-    result = apply_auto_fix_kind(run=run, kind=kind)
+    if healing_supported_for_run(run, kind=kind):
+        result = apply_healing_for_run(
+            run=run,
+            kind=kind,
+            actor_user_id="autopilot",
+        )
+    else:
+        result = apply_auto_fix_kind(run=run, kind=kind)
     ok = bool(result.get("ok"))
     record_apply_log(
         run_id=run.pk,

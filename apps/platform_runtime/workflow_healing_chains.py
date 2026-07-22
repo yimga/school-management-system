@@ -10,7 +10,12 @@ from apps.platform_runtime.workflow_registry import WORKFLOWS, all_workflow_keys
 
 # Explicit chain overrides (most-specific wins over module defaults).
 _CHAIN_OVERRIDES: dict[str, list[str]] = {
-    "tenant_school_provision": ["requeue_provision"],
+    # Cancel zombie duplicates, repair partial schema, then requeue — the 53% loop.
+    "tenant_school_provision": [
+        "cancel_duplicate_run",
+        "repair_tenant_schema_drift",
+        "requeue_provision",
+    ],
     "tenant_school_create": ["requeue_provision"],
     "marketplace_webhook_deliver_due": ["replay_webhook"],
     "migration_bundle_apply": ["retry_failed_step"],

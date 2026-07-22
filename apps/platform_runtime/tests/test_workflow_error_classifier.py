@@ -58,3 +58,18 @@ class WorkflowErrorClassifierTests(TestCase):
         run = self._provision_run(message="something unexpected blew up")
         fp = classify_workflow_run(run)
         self.assertEqual(fp.recommended_chain, ["requeue_provision"])
+
+    def test_tenant_schema_step_gets_repair_then_requeue(self):
+        run = self._provision_run(message="killed by gunicorn timeout")
+        run.current_step_name = "tenant_schema"
+        run.save(update_fields=["current_step_name"])
+        fp = classify_workflow_run(run)
+        self.assertEqual(fp.class_key, "tenant_schema_stalled")
+        self.assertEqual(
+            fp.recommended_chain,
+            [
+                "cancel_duplicate_run",
+                "repair_tenant_schema_drift",
+                "requeue_provision",
+            ],
+        )

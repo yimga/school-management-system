@@ -56,13 +56,24 @@ def _step_label(kind: str) -> str:
 
 
 def _should_skip_step(run: Any, kind: str) -> str | None:
-    if kind != "clear_stale_lock":
+    if kind == "clear_stale_lock":
+        payload = getattr(run, "payload_summary", None) or {}
+        for key in ("lock_key", "cache_lock_key", "stale_lock_key"):
+            if payload.get(key):
+                return None
+        return "no_lock_key_in_payload"
+    if kind == "cancel_duplicate_run":
+        # Always attempt — handler returns not_found when none exist (treat as skip).
         return None
-    payload = getattr(run, "payload_summary", None) or {}
-    for key in ("lock_key", "cache_lock_key", "stale_lock_key"):
-        if payload.get(key):
-            return None
-    return "no_lock_key_in_payload"
+    if kind in ("repair_tenant_schema_drift", "run_tenant_migrations"):
+        schema = str(
+            getattr(run, "tenant_schema", "")
+            or (getattr(run, "payload_summary", None) or {}).get("tenant_schema")
+            or ""
+        ).strip()
+        if not schema:
+            return "missing_tenant_schema"
+    return None
 
 
 def _classify_run(run: Any, *, request: Any | None) -> Any:
@@ -186,7 +197,11 @@ def apply_healing_for_run(
             "Self-healing launched. Progress updates live on this card."
         ),
         "remediated_run_id": getattr(run, "pk", None),
-        **{k: v for k, v in last_result.items() if k not in ("ok", "reason")},
+        **{
+            k: v
+            for k, v in last_result.items()
+            if k not in ("ok", "reason", "applied")
+        },
     }
 
 

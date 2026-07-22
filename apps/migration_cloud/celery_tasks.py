@@ -89,34 +89,93 @@ def apply_bundle_task(self, bundle_id: int, dry_run: bool = True) -> dict[str, A
         return {"ok": False, "bundle_id": bundle_id, "error": str(exc)}
 
 
-def enqueue_advance(bundle_id: int, *, use_accelerator: bool = True):
-    """Best-effort enqueue. Returns the AsyncResult, or None if Celery is
-    unavailable; the caller should fall back to synchronous advance.
+def _kick_advance_off_request(
+    bundle_id: int,
+    *,
+    use_accelerator: bool = True,
+    apply_after: bool = False,
+    dry_run_apply: bool = True,
+) -> object:
+    """Queue advance on durable outbox — never on the HTTP caller."""
+    from apps.platform_runtime.heavy_work_outbox import enqueue_heavy_work
+    from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
 
-    A broker outage must not block intake — that would defeat the whole
-    point of moving the work off-thread. We always have the synchronous
-    pipeline.advance_bundle() as a fallback.
-    """
-    try:
-        return advance_bundle_task.delay(bundle_id, use_accelerator)
-    except Exception:  # noqa: BLE001 — broker outage / no worker pool
-        logger.warning(
-            "migration_cloud.celery_tasks: enqueue_advance failed; caller should fall back",
-            exc_info=True,
-        )
-        return None
+    bid = int(bundle_id)
+    suffix = "pipeline" if apply_after else "advance"
+    row = enqueue_heavy_work(
+        HeavyWorkOutbox.Kind.MC_ADVANCE_BUNDLE,
+        bundle_id=bid,
+        payload={
+            "bundle_id": bid,
+            "use_accelerator": bool(use_accelerator),
+            "apply_after": bool(apply_after),
+            "dry_run_apply": bool(dry_run_apply),
+        },
+        idempotency_key=f"mc-{suffix}:{bid}:active",
+        kick=True,
+    )
+    return type(
+        "OutboxAdvance",
+        (),
+        {"id": str(row.pk), "outbox_id": str(row.pk), "durable_outbox": True},
+    )()
 
 
-def enqueue_apply(bundle_id: int, *, dry_run: bool = True):
-    """Best-effort enqueue for apply. Same fallback contract as enqueue_advance."""
-    try:
-        return apply_bundle_task.delay(bundle_id, dry_run)
-    except Exception:  # noqa: BLE001
-        logger.warning(
-            "migration_cloud.celery_tasks: enqueue_apply failed; caller should fall back",
-            exc_info=True,
-        )
-        return None
+def _kick_apply_off_request(
+    bundle_id: int,
+    *,
+    dry_run: bool = True,
+    reconcile_after: bool = False,
+) -> object:
+    """Queue apply on durable outbox — never on the HTTP caller."""
+    from apps.platform_runtime.heavy_work_outbox import enqueue_heavy_work
+    from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+    bid = int(bundle_id)
+    row = enqueue_heavy_work(
+        HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE,
+        bundle_id=bid,
+        payload={
+            "bundle_id": bid,
+            "dry_run": bool(dry_run),
+            "reconcile_after": bool(reconcile_after),
+        },
+        idempotency_key=f"mc-apply:{bid}:{'dry' if dry_run else 'live'}:active",
+        kick=True,
+    )
+    return type(
+        "OutboxApply",
+        (),
+        {"id": str(row.pk), "outbox_id": str(row.pk), "durable_outbox": True},
+    )()
+
+
+def enqueue_advance(
+    bundle_id: int,
+    *,
+    use_accelerator: bool = True,
+    apply_after: bool = False,
+    dry_run_apply: bool = True,
+):
+    """Enqueue advance on durable outbox (never sync on HTTP)."""
+    return _kick_advance_off_request(
+        bundle_id,
+        use_accelerator=use_accelerator,
+        apply_after=apply_after,
+        dry_run_apply=dry_run_apply,
+    )
+
+
+def enqueue_apply(
+    bundle_id: int,
+    *,
+    dry_run: bool = True,
+    reconcile_after: bool = False,
+):
+    """Enqueue apply on durable outbox (never sync on HTTP)."""
+    return _kick_apply_off_request(
+        bundle_id, dry_run=dry_run, reconcile_after=reconcile_after
+    )
 
 
 @shared_task(name="migration_cloud.fetch_assets", bind=True, ignore_result=False)

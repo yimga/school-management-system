@@ -350,6 +350,7 @@ def workflow_stuck_alert_sweep_task() -> dict:
     the email matrix (60 min per (event_type, recipient))."""
     try:
         from datetime import timedelta as _td
+        from django.db.models import F, Q
         from django.utils import timezone as _tz
 
         from apps.platform_runtime.models import WorkflowRun
@@ -358,23 +359,44 @@ def workflow_stuck_alert_sweep_task() -> dict:
         from apps.platform_runtime.workflow_autopilot import try_auto_apply_on_stuck
 
         now = _tz.now()
-        # Scan only rows where status=running AND last_heartbeat is at least
-        # 1.5 × the smallest reasonable expected duration ago.
+        # Include missing heartbeats — a SIGKILL mid-tenant_schema never writes one.
         candidates = list(
             # tenant-isolation-allow: platform-workflow-stuck-no-tenant-scope
-            WorkflowRun.objects.filter(
-                status="running",
-                last_heartbeat_at__lt=now - _td(seconds=30),
-            ).order_by("-last_heartbeat_at")[:500]
+            WorkflowRun.objects.filter(status="running")
+            .filter(
+                Q(last_heartbeat_at__lt=now - _td(seconds=30))
+                | Q(last_heartbeat_at__isnull=True)
+            )
+            .order_by(F("last_heartbeat_at").asc(nulls_first=True))[:500]
         )
         published = 0
         auto_applied = 0
         for run in candidates:
             try:
                 expected = max(int(run.expected_duration_seconds or 30), 5)
-                threshold = _td(seconds=expected * 1.5)
-                if (now - run.last_heartbeat_at) <= threshold:
+                # Provisioning tenant_schema uses the watchdog staleness window
+                # (~120s), not 1.5× expected (900s for a 600s migrate). Waiting
+                # 15 minutes before flipping to stuck leaves operators on
+                # "Running / Diagnostic only" while the schema step is already dead.
+                if run.workflow_key == "tenant_school_provision":
+                    try:
+                        from apps.schools.provision_watchdog import (
+                            provision_resume_stale_seconds,
+                        )
+
+                        threshold = _td(seconds=provision_resume_stale_seconds())
+                    except Exception:
+                        threshold = _td(seconds=expected * 1.5)
+                else:
+                    threshold = _td(seconds=expected * 1.5)
+                if run.last_heartbeat_at and (now - run.last_heartbeat_at) <= threshold:
                     continue
+                # No heartbeat at all on a provision run past the stale window
+                # from started_at — also stuck.
+                if run.last_heartbeat_at is None:
+                    started = run.started_at or now
+                    if (now - started) <= threshold:
+                        continue
                 publish_event(
                     "workflow.run.stuck",
                     {
@@ -462,6 +484,17 @@ def scheduled_job_health_monitor_task() -> dict:
         stale = [f for f in findings if f.is_stale]
         return {"ok": True, "checked": len(findings), "stale": len(stale)}
     except Exception as exc:
+        return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
+
+
+@shared_task(name="platform_runtime.drain_heavy_work_outbox")
+def drain_heavy_work_outbox_task(limit: int = 3) -> dict:
+    """Drain durable heavy-work outbox (provision / schema heal / MC advance)."""
+    try:
+        from apps.platform_runtime.heavy_work_outbox import drain_heavy_work_outbox
+
+        return {"ok": True, **drain_heavy_work_outbox(limit=limit)}
+    except Exception as exc:  # noqa: BLE001
         return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
 
 
