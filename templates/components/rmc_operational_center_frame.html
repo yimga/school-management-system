@@ -3,9 +3,14 @@
 MAX Wave 5: operational hubs compose the shared masthead (operator /super/
 + tenant admin twins). Live status only — never wallpaper Operational/ready.
 Nav groups stay below the masthead; work begins at data-rmc-work-root.
+
+IMPORTANT: never use `|default:some_context_var` inside `{% include … with %}`.
+Django resolves EVERY filter argument eagerly; a missing var raises
+VariableDoesNotExist and 500s the page (ops_surface / ops_page_archetype).
+Literal defaults only.
 {% endcomment %}
 {% if tenant_surface %}
-  {% include "components/rmc_operational_center_frame_inner.html" with page_host="tenant" page_archetype=page_archetype|default:ops_page_archetype|default:"setup" %}
+  {% include "components/rmc_operational_center_frame_inner.html" with page_host="tenant" page_archetype=page_archetype|default:"setup" %}
 {% else %}
-  {% include "components/rmc_operational_center_frame_inner.html" with page_host=page_host|default:ops_surface|default:"operator" page_archetype=page_archetype|default:ops_page_archetype|default:"fleet" %}
+  {% include "components/rmc_operational_center_frame_inner.html" with page_host=page_host|default:"operator" page_archetype=page_archetype|default:"fleet" %}
 {% endif %}

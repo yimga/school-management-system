@@ -1268,6 +1268,23 @@ jobs:
         run: |
           python scripts/audit_template_render_safety.py --compare
 
+  include-with-default-context-var:
+    name: "Include with= |default:missing_var (VariableDoesNotExist 500)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --strict
+        # Catches {% include … with x|default:ops_surface %} class that 500'd
+        # /super/schools/ + /configuration/ on 2026-07-22.
+        run: |
+          python scripts/scan_include_with_default_context_var.py --strict
+          python -m unittest scripts.tests.test_scan_include_with_default_context_var -v
+
   template-tag-loads:
     name: "Template custom tag {% load %} integrity"
     runs-on: ubuntu-latest

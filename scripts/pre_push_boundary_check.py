@@ -60,6 +60,8 @@ GATES: list[tuple[str, list[str]]] = [
     ("inline-style-off-token", ["scan_inline_style_off_token.py", "--compare"]),
     ("template-render-safety", ["audit_template_render_safety.py", "--compare"]),
     ("attribute-context-includes", ["scan_attribute_context_includes.py"]),
+    # {% include with x|default:missing_var %} → VariableDoesNotExist 500 (ops_surface class).
+    ("include-with-default-context-var", ["scan_include_with_default_context_var.py", "--strict"]),
     ("service-worker-version", ["verify_service_worker_version.py", "--check-monotonic"]),
     # Approval HTML → live admin: fails if build lock / visible chip / grid drift.
     # Prevents another "CSS-only commit looks unchanged after deploy" silent miss.

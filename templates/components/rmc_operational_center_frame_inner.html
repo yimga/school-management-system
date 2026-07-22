@@ -9,7 +9,9 @@
          aria-labelledby="rmc-ops-center-title">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 
-  {% include "components/rmc_page_masthead.html" with masthead_title_id="rmc-ops-center-title" masthead_eyebrow=center_eyebrow|default:masthead_eyebrow masthead_title=center_title|default:masthead_title|default:_("Operations") masthead_purpose=center_purpose|default:masthead_purpose masthead_status_text=status_badge_text|default:masthead_status_text masthead_status_variant=status_badge_variant|default:masthead_status_variant masthead_primary_url=primary_url|default:masthead_primary_url masthead_primary_label=primary_label|default:masthead_primary_label masthead_secondary_url=secondary_url|default:masthead_secondary_url masthead_secondary_label=secondary_label|default:masthead_secondary_label masthead_chips=masthead_chips %}
+  {% comment %}Optional keys use literal |default:"" only — never |default:other_var
+     (Django resolves every filter arg in {% include with %}; missing vars 500).{% endcomment %}
+  {% include "components/rmc_page_masthead.html" with masthead_title_id="rmc-ops-center-title" masthead_eyebrow=center_eyebrow|default:"" masthead_title=center_title|default:_("Operations") masthead_purpose=center_purpose|default:"" masthead_status_text=status_badge_text|default:"" masthead_status_variant=status_badge_variant|default:"" masthead_primary_url=primary_url|default:"" masthead_primary_label=primary_label|default:"" masthead_secondary_url=secondary_url|default:"" masthead_secondary_label=secondary_label|default:"" masthead_chips=masthead_chips|default:"" %}
 
   {% if jump_a_id and jump_a_label or jump_b_id and jump_b_label or jump_c_id and jump_c_label or jump_d_id and jump_d_label %}
   <div class="cp-hero__actions cp-hero__actions--toolbar rmc-ops-frame__actions mb-2" role="group" aria-label="{% trans 'Jump to section' %}">

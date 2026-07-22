@@ -18,7 +18,7 @@
           </span>
         </a>
         {% else %}
-        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" lockup_layout="inline" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=cockpit_shell.brand_pill|default:rmc_shell.control_plane_product_subtitle|default:_("Manager") %}
+        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" lockup_layout="inline" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=cockpit_shell.brand_pill|default:_("Manager") %}
         {% comment %} Brand tagline under the wordmark/pill. CONFIGURABLE via the per-surface
            cockpit_shell.tagline (brand_experience cascade) with legacy cockpit.brand.tagline
            fallback. Renders only when non-empty so existing surfaces aren't visually changed. {% endcomment %}
