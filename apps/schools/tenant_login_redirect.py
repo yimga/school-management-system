@@ -90,14 +90,32 @@ def build_public_handoff_to_tenant_workspace(request, school) -> str | None:
         return None
     if school_subdomain_redirect_is_safe(school):
         return build_tenant_backend_url(request, school)
+    # Portal not fully live yet — never dump an already-authenticated user back
+    # onto the tenant login form (password → redirect → login loop). Prefer MFA
+    # verify when still needed, else the post-login redirect / provisioning path.
+    try:
+        from apps.accounts.middleware import RequireMFAMiddleware
+
+        if not RequireMFAMiddleware._is_mfa_verified(request):
+            path = "/authentication/mfa/verify/"
+            try:
+                next_path = reverse("accounts:redirect")
+                path = f"{path}?{urlencode({'next': next_path})}"
+            except Exception:
+                pass
+            return build_tenant_authentication_url(school, path)
+    except ImportError:
+        pass
     try:
         next_path = reverse("accounts:owner_onboarding_done")
     except Exception:
         next_path = "/authentication/onboarding/done/"
-    login_path = "/authentication/login/"
-    if next_path:
-        login_path = f"{login_path}?{urlencode({'next': next_path})}"
-    return build_tenant_authentication_url(school, login_path)
+    try:
+        redirect_path = reverse("accounts:redirect")
+    except Exception:
+        redirect_path = "/authentication/redirect/"
+    # Prefer redirect (will land on provisioning/onboarding) over a fresh login.
+    return build_tenant_authentication_url(school, redirect_path or next_path)
 
 
 def redirect_to_tenant_workspace(request, school):

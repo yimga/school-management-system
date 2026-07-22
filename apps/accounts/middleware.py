@@ -714,7 +714,8 @@ class RequireMFAMiddleware:
         "/authentication/login/",
         "/authentication/logout/",
         "/authentication/redirect/",
-        "/authentication/backend/",
+        # Do NOT bypass /authentication/backend/ — that let password login soft-skip
+        # MFA and land on the dashboard (or bounce to login after a failed handoff).
         "/authentication/claim-invite/",
         "/admin/login/",
         "/admin/logout/",

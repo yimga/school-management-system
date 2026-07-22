@@ -4362,7 +4362,21 @@ def login_view(request):
                 messages.warning(request, _("You must set a new password to continue."))
                 return redirect(password_change_url)
 
-            # Tenant staff must not follow manager-host MFA / activation next chains.
+            # MFA BEFORE any cross-host handoff. Handoff used to run first on the
+            # manager host and bounce tenant staff to a school login/backend URL
+            # without ever showing MFA (password → spinner → sign-in again).
+            try:
+                from apps.accounts.post_login_mfa import resolve_post_login_mfa_redirect
+
+                mfa_resp = resolve_post_login_mfa_redirect(
+                    request, user, next_url=next_url or ""
+                )
+                if mfa_resp is not None:
+                    return mfa_resp
+            except ACCOUNTS_SOFT_FAILURES:
+                pass
+
+            # Tenant staff must not stay on manager-host activation next chains.
             if is_manager_host:
                 from apps.accounts.manager_login_next import (
                     build_public_login_redirect_url,
@@ -4377,75 +4391,6 @@ def login_view(request):
                     if handoff is not None:
                         return handoff
                     return redirect(build_public_login_redirect_url(request))
-
-            # MFA enforcement: if required or configured, route to setup/verify first.
-            try:
-                from django_otp import user_has_device
-                from django_otp.plugins.otp_totp.models import TOTPDevice
-
-                require_all_staff = get_effective_config(
-                    key="require_mfa_all_staff", request=request, default=False
-                )
-                required_roles = (
-                    get_effective_config(key="require_mfa_roles", request=request)
-                    or []
-                )
-
-                role = (getattr(user, "role", "") or "").upper()
-                must_have_mfa = False
-                if require_all_staff and user.is_staff:
-                    must_have_mfa = True
-                elif required_roles:
-                    required_normalized = [
-                        r.upper() if isinstance(r, str) else str(r).upper()
-                        for r in required_roles
-                    ]
-                    if role in required_normalized:
-                        must_have_mfa = True
-
-                try:
-                    has_device = user_has_device(user, confirmed=True)
-                except TypeError:
-                    has_device = user_has_device(user)
-                if not has_device:
-                    has_device = TOTPDevice.objects.filter(
-                        user=user, confirmed=True
-                    ).exists()
-
-                def _mfa_remembered():
-                    until_raw = request.session.get("mfa_verified_until")
-                    if not until_raw:
-                        return False
-                    try:
-                        until_dt = timezone.datetime.fromisoformat(until_raw)
-                        if timezone.is_naive(until_dt):
-                            until_dt = timezone.make_aware(
-                                until_dt, timezone.get_current_timezone()
-                            )
-                        if timezone.now() <= until_dt:
-                            return True
-                    except (TypeError, ValueError):
-                        pass
-                    request.session.pop("mfa_verified_until", None)
-                    return False
-
-                if must_have_mfa and not has_device:
-                    mfa_setup_url = reverse("accounts:mfa_setup")
-                    if next_url:
-                        return redirect(mfa_setup_url + "?next=" + next_url)
-                    return redirect(mfa_setup_url)
-
-                if (has_device or must_have_mfa) and not _mfa_remembered():
-                    from apps.accounts.e2e_mfa_bypass import e2e_mfa_bypass_active
-
-                    if e2e_mfa_bypass_active(request):
-                        request.session["mfa_verified"] = True
-                    else:
-                        if next_url:
-                            request.session["mfa_next"] = next_url
-                        return redirect(reverse("accounts:mfa_verify"))
-            except ACCOUNTS_SOFT_FAILURES:
-                pass
 
             # When on base domain and user has a school membership, send them to tenant subdomain (Backend is subdomain-only)
             if not getattr(request, "school", None):
