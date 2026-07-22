@@ -851,6 +851,14 @@ urlpatterns = [
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_status, name="status"),
     path("status/", obs_views.public_status, name="public_status"),
+    # rbac-allow: browser-csp-report-uri-csrf-exempt-anonymous
+    path(
+        "security/csp-report/",
+        __import__(
+            "apps.security.csp_report_view", fromlist=["csp_violation_report"]
+        ).csp_violation_report,
+        name="csp_violation_report",
+    ),
     # rbac-allow: public-tenant-discovery-pre-login
     path("find/", find_school, name="find_school"),
     # rbac-allow: public-tenant-discovery-pre-login

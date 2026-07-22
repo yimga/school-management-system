@@ -503,6 +503,14 @@ urlpatterns = [
     path("-/version/", obs_views.public_version, name="public_version"),
     path("api/system/version/", obs_views.public_version, name="api_system_version"),
     path("version.json", obs_views.public_version, name="public_version_json"),
+    # rbac-allow: browser-csp-report-uri-csrf-exempt-anonymous
+    path(
+        "security/csp-report/",
+        __import__(
+            "apps.security.csp_report_view", fromlist=["csp_violation_report"]
+        ).csp_violation_report,
+        name="csp_violation_report",
+    ),
     path("status/", obs_views.public_status, name="status"),
     path("metrics/", obs_views.metrics, name="metrics"),
     path(

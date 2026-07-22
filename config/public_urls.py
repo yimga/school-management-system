@@ -190,6 +190,14 @@ urlpatterns = [
     # SOT batch 1204 / 1199: CDN-safe aliases (identical JSON) on the public urlconf.
     path("api/system/version/", obs_views.public_version, name="api_system_version"),
     path("version.json", obs_views.public_version, name="public_version_json"),
+    # rbac-allow: browser-csp-report-uri-csrf-exempt-anonymous
+    path(
+        "security/csp-report/",
+        __import__(
+            "apps.security.csp_report_view", fromlist=["csp_violation_report"]
+        ).csp_violation_report,
+        name="csp_violation_report",
+    ),
     path(
         "authentication/",
         include(("apps.accounts.urls", "accounts"), namespace="accounts"),

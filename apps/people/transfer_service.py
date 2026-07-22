@@ -258,17 +258,55 @@ def continue_transfer_case_if_ready(case, *, actor=None) -> dict[str, Any]:
     }
 
 
-def continue_applying_transfers(*, limit: int = 20) -> dict[str, Any]:
-    """Sweep APPLYING cases whose MC bundles finished (beat / health tick)."""
+def _transfer_continue_schema_names() -> list[str | None]:
+    """Schemas that may hold ``TransferCase`` (TENANT_APPS only under django-tenants).
+
+    ``None`` means the current connection / single-schema mode (SQLite tests,
+    RLS shared-DB). Never query ``public`` for TransferCase when tenants mode
+    is on — the table is not created there and blows the health-tick ERROR.
+    """
+    from django.conf import settings
+
+    if not getattr(settings, "USE_DJANGO_TENANTS", False):
+        return [None]
+    try:
+        from django_tenants.utils import get_tenant_model
+    except ImportError:
+        return [None]
+    names: list[str | None] = []
+    # tenant-isolation-allow: platform-transfer-continue-enumerate-tenant-schemas-for-sweep
+    for client in get_tenant_model().objects.exclude(schema_name="public").only(
+        "schema_name"
+    ):
+        name = str(getattr(client, "schema_name", "") or "").strip()
+        if name:
+            names.append(name)
+    return names
+
+
+def _continue_applying_transfers_in_schema(*, limit: int) -> dict[str, Any]:
+    """Sweep APPLYING cases in the *current* schema connection."""
+    from django.db import ProgrammingError, connection
+    from django.db.utils import OperationalError
+
     from apps.people.models_transfer import TransferCase
 
-    limit = max(1, min(int(limit or 20), 100))  # magic-number-allow: transfer-continue-sweep-cap
-    # tenant-isolation-allow: platform-transfer-continue-sweep-by-status
-    qs = list(
-        TransferCase.objects.filter(status=TransferCase.Status.APPLYING)
-        .exclude(target_bundle_id__isnull=True)
-        .order_by("updated_at")[:limit]
-    )
+    # tenant-isolation-allow: transfer-continue-sweep-by-status-inside-active-schema
+    try:
+        qs = list(
+            TransferCase.objects.filter(status=TransferCase.Status.APPLYING)
+            .exclude(target_bundle_id__isnull=True)
+            .order_by("updated_at")[:limit]
+        )
+    except (ProgrammingError, OperationalError) as exc:
+        # Unmigrated / husk schema — skip, do not fail the whole periodic tick.
+        logger.warning(
+            "transfer_continue_skip_missing_table schema=%s err=%s",
+            getattr(connection, "schema_name", "") or "default",
+            type(exc).__name__,
+        )
+        return {"scanned": 0, "advanced": 0, "pending": 0, "failed": 0, "skipped": True}
+
     advanced = 0
     pending = 0
     failed = 0
@@ -289,7 +327,55 @@ def continue_applying_transfers(*, limit: int = 20) -> dict[str, Any]:
         "advanced": advanced,
         "pending": pending,
         "failed": failed,
+        "skipped": False,
     }
+
+
+def continue_applying_transfers(*, limit: int = 20) -> dict[str, Any]:
+    """Sweep APPLYING cases whose MC bundles finished (beat / health tick).
+
+    Under ``USE_DJANGO_TENANTS``, walks every tenant schema — ``TransferCase``
+    lives in TENANT_APPS, not public.
+    """
+    from contextlib import nullcontext
+
+    limit = max(1, min(int(limit or 20), 100))  # magic-number-allow: transfer-continue-sweep-cap
+    remaining = limit
+    totals = {
+        "scanned": 0,
+        "advanced": 0,
+        "pending": 0,
+        "failed": 0,
+        "schemas": 0,
+        "schemas_skipped": 0,
+    }
+
+    schema_names = _transfer_continue_schema_names()
+    if not schema_names:
+        return totals
+
+    try:
+        from django_tenants.utils import schema_context
+    except ImportError:
+        schema_context = None  # type: ignore[assignment,misc]
+
+    for schema_name in schema_names:
+        if remaining <= 0:
+            break
+        if schema_name and schema_context is not None:
+            ctx = schema_context(schema_name)
+        else:
+            ctx = nullcontext()
+        with ctx:
+            part = _continue_applying_transfers_in_schema(limit=remaining)
+        totals["schemas"] += 1
+        if part.get("skipped"):
+            totals["schemas_skipped"] += 1
+            continue
+        for key in ("scanned", "advanced", "pending", "failed"):
+            totals[key] += int(part.get(key) or 0)
+        remaining = max(0, remaining - int(part.get("scanned") or 0))
+    return totals
 
 
 def _apply_summary_for_bundle(bundle_id: int | None) -> dict[str, Any]:

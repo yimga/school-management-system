@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from apps.people.models_transfer import TransferCase
 from apps.people.transfer_service import (
+    continue_applying_transfers,
     continue_transfer_case_if_ready,
     run_transfer_case,
 )
@@ -58,3 +59,52 @@ class TransferContinueWhenBundleReadyTests(TestCase):
         self.assertEqual(out.get("reason"), "bundle_pending")
         self.case.refresh_from_db()
         self.assertEqual(self.case.status, TransferCase.Status.APPLYING)
+
+    def test_continue_applying_transfers_sweep_finds_applying_case(self):
+        from apps.migration_cloud.models import BundleStatus
+
+        bundle = MagicMock()
+        bundle.status = BundleStatus.MAPPED
+        with patch(
+            "apps.migration_cloud.models.MigrationBundle.objects.filter"
+        ) as filt:
+            filt.return_value.first.return_value = bundle
+            out = continue_applying_transfers(limit=10)
+        self.assertEqual(out.get("scanned"), 1)
+        self.assertEqual(out.get("pending"), 1)
+        self.assertEqual(out.get("advanced"), 0)
+
+
+class TransferContinueTenantSafeTests(SimpleTestCase):
+    """No DB — seals the production public-schema UndefinedTable failure mode."""
+
+    def test_continue_applying_transfers_skips_missing_table(self):
+        from django.db import ProgrammingError
+
+        with patch(
+            "apps.people.transfer_service._transfer_continue_schema_names",
+            return_value=[None],
+        ), patch(
+            "apps.people.models_transfer.TransferCase.objects.filter",
+            side_effect=ProgrammingError("relation people_transfercase does not exist"),
+        ):
+            out = continue_applying_transfers(limit=5)
+        self.assertEqual(out.get("scanned"), 0)
+        self.assertEqual(out.get("schemas_skipped"), 1)
+
+    def test_schema_names_exclude_public_when_tenants_on(self):
+        from apps.people.transfer_service import _transfer_continue_schema_names
+
+        fake_client = MagicMock(schema_name="tenant_x")
+        with patch(
+            "django.conf.settings.USE_DJANGO_TENANTS", True, create=True
+        ), patch(
+            "django_tenants.utils.get_tenant_model"
+        ) as gtm:
+            qs = MagicMock()
+            qs.exclude.return_value.only.return_value = [fake_client]
+            gtm.return_value.objects = qs
+            names = _transfer_continue_schema_names()
+        self.assertEqual(names, ["tenant_x"])
+        qs.exclude.assert_called_once_with(schema_name="public")
+
