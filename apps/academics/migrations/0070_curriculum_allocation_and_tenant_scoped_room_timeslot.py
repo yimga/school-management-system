@@ -40,13 +40,19 @@ def _column_exists(table_name: str, column_name: str) -> bool:
         }
 
 
-def _ensure_live_school_fk(model_attr: str) -> None:
-    """Add ``school_id`` via the live model only when the column is absent."""
-    import apps.academics.models as academics_models
+def _ensure_school_fk_column(apps, model_attr: str) -> None:
+    """Add ``school_id`` when the column is absent, via the HISTORICAL model.
 
-    model = getattr(academics_models, model_attr, None)
-    if model is None:
-        return
+    The model is resolved from the migration-state registry (``apps.get_model``),
+    NOT a live ``import apps.academics.models``: the ``school`` FK is declared in
+    this same operation's ``state_operations``, so a fresh replay adds exactly the
+    field this migration froze. A live import would instead re-read whatever
+    ``Room``/``TimeSlot.school`` looks like in current code — silent replay drift
+    the moment that field definition ever changes (and invisible to
+    ``scan_migration_model_imports``, which does not see the aliased in-function
+    import).
+    """
+    model = apps.get_model("academics", model_attr)
     table = model._meta.db_table
     if _column_exists(table, "school_id"):
         return
@@ -56,11 +62,11 @@ def _ensure_live_school_fk(model_attr: str) -> None:
 
 
 def ensure_room_school_fk(apps, schema_editor):
-    _ensure_live_school_fk("Room")
+    _ensure_school_fk_column(apps, "Room")
 
 
 def ensure_timeslot_school_fk(apps, schema_editor):
-    _ensure_live_school_fk("TimeSlot")
+    _ensure_school_fk_column(apps, "TimeSlot")
 
 
 def noop(apps, schema_editor):
