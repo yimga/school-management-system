@@ -36,8 +36,9 @@ class InterventionRedFlagsView(View):
             return err
         try:
             from apps.analytics.models import RiskFactor
+            from apps.api.api_contract import parse_int_param
 
-            threshold = int(request.GET.get("threshold", 80))
+            threshold = parse_int_param(request.GET.get("threshold"), 80, minimum=0, maximum=100)
             qs = (
                 RiskFactor.objects.filter(school=school, score__gte=threshold)
                 .select_related("student", "student__user")

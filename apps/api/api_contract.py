@@ -52,6 +52,34 @@ def api_error(
     return JsonResponse(body, status=status)
 
 
+def parse_int_param(
+    raw: Any,
+    default: int,
+    *,
+    minimum: int | None = None,
+    maximum: int | None = None,
+) -> int:
+    """Coerce a request-supplied value to an int, never raising.
+
+    A bare ``int(request.GET.get("days"))`` on attacker/client-controlled input
+    raises ``ValueError``/``TypeError`` on ``?days=abc`` — and the DRF RFC-7807
+    handler only translates ``ValidationError``, so it escapes as a 500 (plain
+    ``django.views.View`` endpoints have no handler at all). This returns
+    ``default`` on any non-numeric input and clamps into ``[minimum, maximum]``
+    when those bounds are given, so a malformed query param degrades to the
+    default instead of crashing the endpoint.
+    """
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        value = default
+    if minimum is not None:
+        value = max(minimum, value)
+    if maximum is not None:
+        value = min(maximum, value)
+    return value
+
+
 def parse_pagination(
     request: HttpRequest,
     *,

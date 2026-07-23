@@ -12,9 +12,11 @@ self-verifying path that reuses the REAL provisioning engine (no parallel
 fake codepath):
 
   1. Create (or reuse) the School row.
-  2. Provision it SYNCHRONOUSLY via complete_provisioning_for_school() — the
-     same engine signup uses, but guaranteed to finish in-process. No queue,
-     no worker, no spinner-forever.
+  2. Provision it SYNCHRONOUSLY via provision_school_sync() — the same engine
+     signup's durable outbox drains, but run inline so it is guaranteed to
+     finish in-process. No queue, no worker, no spinner-forever. (The HTTP
+     path uses complete_provisioning_for_school(), which only ENQUEUES — a CLI
+     has no gunicorn timeout, so it runs the migrate/seed itself.)
   3. Create the owner ADMIN and give them a REAL, usable password (operator
      path — no magic link, no token wizard).
   4. SELF-VERIFY the four things that historically break, and FAIL LOUDLY if
@@ -88,8 +90,8 @@ class Command(BaseCommand):
     def handle(self, *args, **opts):
         from apps.schools.models import School
         from apps.schools.tasks import (
-            complete_provisioning_for_school,
             ensure_admin_user_for_school,
+            provision_school_sync,
         )
 
         name = (opts["name"] or "").strip()
@@ -115,13 +117,18 @@ class Command(BaseCommand):
         self.stdout.write(f"  {verb} School id={school.id} slug={school.slug}")
 
         # --- 2. Provision SYNCHRONOUSLY via the real engine ---------------- #
+        # NOTE: complete_provisioning_for_school() only ENQUEUES onto the durable
+        # heavy-work outbox (correct for the HTTP path — a multi-minute migrate
+        # must never own gunicorn). A management command has no request timeout,
+        # so it runs the same engine the outbox drain runs — provision_school_sync
+        # — INLINE, and is therefore actually finished when _verify() runs below.
         self.stdout.write("  Provisioning (synchronous, full engine)…")
-        result = complete_provisioning_for_school(str(school.id), contact_email=email)
-        portal_ready = bool(result.get("portal_ready") or result.get("is_active"))
-        self.stdout.write(
-            f"    dispatch={ 'sync' if result.get('fallback') or result.get('sync_completed') else 'queued' } "
-            f"portal_ready={portal_ready}"
-        )
+        provision_school_sync(str(school.id), contact_email=email)
+        school.refresh_from_db()
+        from apps.schools.provisioning_progress import resolve_portal_ready
+
+        portal_ready = bool(resolve_portal_ready(school))
+        self.stdout.write(f"    dispatch=sync portal_ready={portal_ready}")
 
         # --- 3. Owner ADMIN with a REAL, usable password ------------------ #
         admin_user, _ = ensure_admin_user_for_school(school, email)

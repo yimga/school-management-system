@@ -32,7 +32,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from apps.schools.models import School, SignupVerification
-        from apps.schools.tasks import complete_provisioning_for_school
+        from apps.schools.tasks import provision_school_sync
 
         slugs = [s.strip().lower() for s in options["slug"] if (s or "").strip()]
         qs = School.objects.filter(is_active=False)
@@ -77,11 +77,12 @@ class Command(BaseCommand):
             if options["dry_run"]:
                 self.stdout.write(f"DRY-RUN would provision {label}")
                 continue
-            result = complete_provisioning_for_school(
-                str(school.pk), contact_email=email
-            )
+            # Run the engine INLINE (not complete_provisioning_for_school, which
+            # only enqueues onto the durable outbox — a management process that
+            # returns would kill the background drain thread mid-migrate and
+            # strand the tenant on a broker-less host). A CLI has no request
+            # timeout, so it drives provisioning itself and is actually done
+            # when we re-read is_active below.
+            provision_school_sync(str(school.pk), contact_email=email)
             school.refresh_from_db(fields=["is_active"])
-            self.stdout.write(
-                f"{label}: active={school.is_active} sync={result.get('sync_completed')} "
-                f"queued={result.get('queued')}"
-            )
+            self.stdout.write(f"{label}: active={school.is_active} (provisioned inline)")

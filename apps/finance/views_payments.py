@@ -1165,17 +1165,25 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             )
     except FINANCE_SOFT_FAILURES as e:
         logger.exception("Transaction error processing webhook %s: %s", reference_id, e)
-        try:
-            webhook_log = WebhookLog.objects.get(
+        # (reference_id, provider) is NOT unique — audit/reject rows are written
+        # with idempotency_bucket="" — so .get() here could raise
+        # MultipleObjectsReturned, an uncaught 500 that also drops the status
+        # write. Take the most recent matching row instead.
+        webhook_log = (
+            WebhookLog.objects.filter(
                 reference_id=reference_id, provider=provider_code
             )
+            .order_by("-id")
+            .first()
+        )
+        if webhook_log is not None:
             webhook_log.status = WebhookLog.Status.FAILED
             webhook_log.error_message = f"Transaction error: {str(e)[:200]}"
             webhook_log.response_status = 500
             webhook_log.save(
                 update_fields=["status", "error_message", "response_status"]
             )
-        except WebhookLog.DoesNotExist:
+        else:
             _create_webhook_log(
                 reference_id=reference_id,
                 signature_valid=True,

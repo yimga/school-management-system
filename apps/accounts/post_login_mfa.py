@@ -34,16 +34,16 @@ def _mfa_remembered(request) -> bool:
 
 
 def _user_has_mfa_device(user) -> bool:
-    """TOTP (confirmed only) or passkey — same surface RequireMFAMiddleware uses."""
+    """Confirmed TOTP or passkey — the same surface RequireMFAMiddleware uses.
+
+    A StaticDevice (backup codes) deliberately does NOT count: django_otp's
+    ``user_has_device(confirmed=True)`` would include it, but a backup-codes-only
+    user can't complete mfa_verify (it needs TOTP/passkey), so counting it would
+    wall them in a verify<->setup bounce.
+    """
     try:
-        from django_otp import user_has_device
         from django_otp.plugins.otp_totp.models import TOTPDevice
 
-        try:
-            if user_has_device(user, confirmed=True):
-                return True
-        except TypeError:
-            pass
         if TOTPDevice.objects.filter(user=user, confirmed=True).exists():
             return True
     except (ImportError, AttributeError, TypeError, ValueError):

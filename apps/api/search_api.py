@@ -173,9 +173,11 @@ class GlobalSearchAPI(View):
         )
 
     def get(self, request):
+        from apps.api.api_contract import parse_int_param
+
         query = request.GET.get("q", "").strip()
         search_type = request.GET.get("type", "all")
-        limit = int(request.GET.get("limit", 20))
+        limit = parse_int_param(request.GET.get("limit"), 20, minimum=1, maximum=100)
 
         # Validate query
         if len(query) < 2:

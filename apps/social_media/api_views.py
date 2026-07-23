@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.api.api_contract import parse_int_param
 from apps.api.permissions import IsAdminUser
 from apps.social_media.models import SocialModerationItem
 from apps.social_media.scope import (
@@ -178,7 +179,7 @@ class SocialAttributionAPI(APIView):
             utm_source=request.data.get("utm_source") or "",
             utm_medium=request.data.get("utm_medium") or "",
             utm_campaign=request.data.get("utm_campaign") or "",
-            amount_cents=int(request.data.get("amount_cents") or 0),
+            amount_cents=parse_int_param(request.data.get("amount_cents"), 0, minimum=0),
             transaction_id=request.data.get("transaction_id") or "",
             post_id=request.data.get("post_id") or "",
         )

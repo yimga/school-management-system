@@ -126,7 +126,9 @@ class NotificationViewSet(viewsets.ViewSet):
         if is_read is not None:
             queryset = queryset.filter(is_read=is_read.lower() == "true")
 
-        days = int(request.query_params.get("days", 7))
+        from apps.api.api_contract import parse_int_param
+
+        days = parse_int_param(request.query_params.get("days"), 7)
         start_date = timezone.now() - timedelta(days=days)
         queryset = queryset.filter(created_at__gte=start_date)
 

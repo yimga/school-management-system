@@ -830,8 +830,13 @@ def complete_provisioning_for_school(
     SIGKILLs mid-migrate and leaves a stuck WorkflowRun; retry ownership belongs to
     the Celery worker + provision watchdog / failed-auto-requeue / reconcile sweeps.
 
-    Broker-less or queue-unavailable paths still sync via ``dispatch`` fallback so
-    local/dev and degraded topologies keep working.
+    This function is ENQUEUE-ONLY: it always returns ``sync_completed=False`` and
+    reads ``portal_ready`` immediately after enqueue (so a fresh school reports
+    ``False`` here — the durable outbox drain finishes the work later). It is the
+    correct entry point for the HTTP/request path. A caller that needs the school
+    to be *actually provisioned* on return (a management command — no gunicorn
+    timeout) must call ``provision_school_sync`` directly instead; there is NO
+    synchronous fallback inside this function.
     """
     from .models import School
 

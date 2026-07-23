@@ -585,7 +585,9 @@ class PaymentViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def recent(self, request):
         """Get recent payments"""
-        limit = int(request.query_params.get("limit", 10))
+        from apps.api.api_contract import parse_int_param
+
+        limit = parse_int_param(request.query_params.get("limit"), 10, minimum=1, maximum=100)
         queryset = self.get_queryset()[:limit]
 
         serializer = self.get_serializer(queryset, many=True)

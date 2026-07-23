@@ -199,7 +199,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": "Classroom not found"}, status=status.HTTP_404_NOT_FOUND
             )
-        except ValueError:
+        except (ValueError, TypeError):
+            # Non-str/missing date (strptime TypeError) or non-numeric classroom
+            # id (int-coercion ValueError) — malformed input, not a server fault.
             return Response(
                 {"error": "Invalid date format. Use YYYY-MM-DD"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -324,22 +326,24 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 continue
             try:
                 dt = datetime.strptime(date_str, "%Y-%m-%d").date()
-            except ValueError:
+            except (ValueError, TypeError):
                 continue
             try:
                 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
                 classroom = Classroom.objects.get(pk=classroom_id)
-            except Classroom.DoesNotExist:
+                att, created = Attendance.objects.update_or_create(
+                    student_id=student_id,
+                    classroom=classroom,
+                    date=dt,
+                    defaults={
+                        "status": rec["status"],
+                        "remarks": str(rec.get("remarks", ""))[:255],
+                    },
+                )
+            except (Classroom.DoesNotExist, ValueError, TypeError):
+                # Non-numeric classroom/student id in this record — skip it,
+                # don't 500 the whole bulk request.
                 continue
-            att, created = Attendance.objects.update_or_create(
-                student_id=student_id,
-                classroom=classroom,
-                date=dt,
-                defaults={
-                    "status": rec["status"],
-                    "remarks": str(rec.get("remarks", ""))[:255],
-                },
-            )
             if att and (att.school_id is None and getattr(request, "school", None)):
                 att.school = request.school
                 att.save(update_fields=["school"])

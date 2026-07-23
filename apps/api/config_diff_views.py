@@ -3,6 +3,7 @@ Config diff API (Section 29.4): compare effective policy/settings between contex
 Staff or config_diff capability required.
 """
 
+from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
@@ -58,7 +59,10 @@ class ConfigDiffAPI(View):
             try:
                 school_a = School.objects.get(pk=school_id, is_active=True)
                 school_b = School.objects.get(pk=compare_school_id, is_active=True)
-            except School.DoesNotExist:
+            except (School.DoesNotExist, ValidationError, ValueError, TypeError):
+                # School.id is a UUIDField — a malformed id string raises
+                # ValidationError (not DoesNotExist); treat it as "not found",
+                # never a 500.
                 return JsonResponse({"detail": "School not found."}, status=404)
             if not (
                 getattr(user, "is_superuser", False) or getattr(user, "is_staff", False)

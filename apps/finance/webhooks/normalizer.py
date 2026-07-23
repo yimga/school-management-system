@@ -89,16 +89,28 @@ def normalize_provider_payload(
         amount = _decimal_amount(payload.get("amount"))
         currency = str(payload.get("currency") or _platform_default_currency()).upper()[:3]
     elif provider_slug == "stripe":
-        obj = payload.get("data", {}).get("object", {}) if payload.get("object") is None else {}
-        if not isinstance(obj, dict):
-            obj = payload.get("object") if isinstance(payload.get("object"), dict) else {}
+        # Guard the intermediate access, not just the result: a crafted body
+        # like {"data": "x"} would make payload["data"].get("object") raise
+        # AttributeError — an unauthenticated, pre-signature 500 on the public
+        # webhook. Each level is isinstance-checked before it is walked.
+        data = payload.get("data")
+        if payload.get("object") is None and isinstance(data, dict):
+            candidate = data.get("object")
+            obj = candidate if isinstance(candidate, dict) else {}
+        else:
+            obj = {}
         event_id = str(obj.get("id") or payload.get("id") or "").strip()
         status = str(obj.get("status") or payload.get("type") or "").strip().lower()
         amount = _decimal_amount(obj.get("amount_received") or obj.get("amount", 0)) / Decimal("100")
         currency = str(obj.get("currency") or "usd").upper()[:3]
         meta = obj.get("metadata") if isinstance(obj.get("metadata"), dict) else meta
     elif provider_slug == "razorpay":
-        entity = payload.get("payload", {}).get("payment", {}).get("entity", {})
+        # Walk the envelope defensively — {"payload": "x"} or
+        # {"payload": {"payment": "x"}} would raise AttributeError on the chained
+        # .get() before the isinstance fallback below could run.
+        section = payload.get("payload")
+        payment = section.get("payment") if isinstance(section, dict) else None
+        entity = payment.get("entity") if isinstance(payment, dict) else None
         if not isinstance(entity, dict):
             entity = payload
         event_id = str(entity.get("id") or "").strip()

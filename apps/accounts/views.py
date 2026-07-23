@@ -4588,8 +4588,21 @@ def logout_view(request):
         except (ImportError, AttributeError, TypeError, ValueError):
             host_kind = None
     if host_kind == "base":
-        return redirect("marketing_landing")
-    return redirect(reverse("accounts:login"))
+        response = redirect("marketing_landing")
+    else:
+        response = redirect(reverse("accounts:login"))
+    # Revoke the durable MFA device-trust cookie on explicit logout. Otherwise the
+    # signed "remember this device" cookie (up to 30 days) outlives a normal
+    # logout, so the next person to sign in with this account on a shared browser
+    # skips the MFA challenge. A password change already rotates the fingerprint;
+    # this closes plain logout, the common case.
+    try:
+        from apps.accounts.mfa_device_trust import clear_device_trust_cookie
+
+        clear_device_trust_cookie(response)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    return response
 
 
 def school_picker(request):

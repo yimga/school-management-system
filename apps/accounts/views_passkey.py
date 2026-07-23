@@ -184,11 +184,22 @@ def passkey_authentication_verify(request):
         from datetime import timedelta
         from django.utils import timezone
 
+        response = JsonResponse({"ok": True})
         remember = data.get("remember_device") is True
         if remember:
             until = timezone.now() + timedelta(days=14)
             request.session["mfa_verified_until"] = until.isoformat()
-        return JsonResponse({"ok": True})
+            # Issue the durable device-trust cookie too — parity with the TOTP
+            # path (mfa_setup_flow.apply_device_trust_on_enroll / views_mfa). A
+            # per-session marker alone drops on a session flush / re-login, the
+            # exact case the cookie exists to survive.
+            try:
+                from apps.accounts.mfa_device_trust import set_device_trust_cookie
+
+                set_device_trust_cookie(response, request.user, request)
+            except (AttributeError, TypeError, ValueError, OSError):
+                pass
+        return response
     except (ValueError, TypeError, KeyError, json.JSONDecodeError, AttributeError) as e:
         return JsonResponse({"error": str(e)}, status=400)
 

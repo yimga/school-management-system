@@ -120,7 +120,9 @@ def cartescolaire_placeholder(request):
             status=400,
         )
 
-    limit = min(max(int(request.GET.get("limit", 500)), 1), 5000)
+    from apps.api.api_contract import parse_int_param
+
+    limit = parse_int_param(request.GET.get("limit"), 500, minimum=1, maximum=5000)
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     students_qs = (
         StudentProfile.objects.filter(academic_year=active_year, is_active=True)

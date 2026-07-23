@@ -1122,8 +1122,9 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
     def retry_failed(self, request):
         """Reset FAILED rows so the client can replay sync_batch."""
         from apps.sync_engine import services
+        from apps.api.api_contract import parse_int_param
 
-        max_retries = int(request.data.get("max_retries", 5))
+        max_retries = parse_int_param(request.data.get("max_retries"), 5, minimum=0, maximum=100)
         return Response(services.retry_failed_sync_items(request.user.id, max_retries=max_retries))
 
     @action(detail=True, methods=["post"])

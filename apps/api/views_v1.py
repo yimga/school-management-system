@@ -1269,7 +1269,9 @@ class VocationalCertificationsExpiringView(View):
         school, err = _require_tenant_member(request)
         if err:
             return err
-        days = int(request.GET.get("days", 30))
+        from apps.api.api_contract import parse_int_param
+
+        days = parse_int_param(request.GET.get("days"), 30, minimum=0, maximum=3650)  # magic-number-allow: ten-year-ceiling-for-days-window
         from datetime import timedelta
         from django.utils import timezone
         from apps.people.models import VocationalCertification
@@ -2051,7 +2053,9 @@ class PaymentDisputeListView(View):
         status_filter = request.GET.get("status")
         if status_filter:
             qs = qs.filter(status=status_filter)
-        limit = min(int(request.GET.get("limit", 50) or 50), 200)
+        from apps.api.api_contract import parse_int_param
+
+        limit = parse_int_param(request.GET.get("limit"), 50, minimum=1, maximum=200)
         items = []
         for d in qs[:limit]:
             items.append(

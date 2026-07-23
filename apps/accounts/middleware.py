@@ -765,7 +765,6 @@ class RequireMFAMiddleware:
             return self.get_response(request)
 
         try:
-            from django_otp import user_has_device
             from django_otp.plugins.otp_totp.models import TOTPDevice
 
             # config-resolver-allow: MFA enforcement tests patch this module symbol and drive this exact call path (Mock site namespace)
@@ -801,16 +800,12 @@ class RequireMFAMiddleware:
                 if role and str(role).strip().upper() in required_normalized:
                     must_have_mfa = True
 
-            try:
-                has_device = user_has_device(user, confirmed=True)
-            except TypeError:
-                has_device = user_has_device(user)
-
-            # Ensure only confirmed TOTP devices count as configured MFA
-            if not has_device:
-                has_device = TOTPDevice.objects.filter(
-                    user=user, confirmed=True
-                ).exists()
+            # Only a confirmed TOTP device or a passkey counts as configured MFA.
+            # NOT django_otp's user_has_device(confirmed=True): that also counts a
+            # StaticDevice (backup codes), and a backup-codes-only user can't
+            # complete mfa_verify (it needs TOTP/passkey), so counting it would
+            # wall them in a verify<->setup bounce.
+            has_device = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
             # WebAuthn/Passkey also counts as MFA (25.5, 29.1)
             if not has_device:
                 from apps.accounts.models import UserPasskey

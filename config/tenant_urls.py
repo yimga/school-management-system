@@ -174,18 +174,14 @@ def school_surface_redirect(request, surface: str):
 
 
 def permission_denied(request, exception):
-    is_admin_forbidden = (
-        request.path.startswith("/admin")
-        and request.user.is_authenticated
-        and request.user.is_staff
-        and not request.user.is_superuser
-    )
-    return render(
-        request,
-        "errors/403.html",
-        {"is_admin_forbidden": is_admin_forbidden},
-        status=403,
-    )
+    # Delegate to the shared hardened handler: it coerces request.user (error
+    # views can run without AuthenticationMiddleware) and NEVER raises — a 403
+    # whose template render fails (e.g. a tenant-scoped context processor doing
+    # DB work for an anonymous hit) must not escalate into a 500, the same
+    # guarantee server_error/page_not_found already carry on this host.
+    from config.error_handlers import permission_denied as _shared_permission_denied
+
+    return _shared_permission_denied(request, exception)
 
 
 def page_not_found(request, exception):

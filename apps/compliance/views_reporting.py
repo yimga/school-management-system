@@ -140,7 +140,9 @@ class DataAccessReportView(View):
 
     def get(self, request):
         school = get_compliance_scope_school(request)
-        days = int(request.GET.get("days", 30))
+        from apps.api.api_contract import parse_int_param
+
+        days = parse_int_param(request.GET.get("days"), 30, minimum=0, maximum=3650)  # magic-number-allow: ten-year-ceiling-for-days-window
         start_date = timezone.now() - timedelta(days=days)
 
         # Get access logs for period

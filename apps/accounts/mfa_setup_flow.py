@@ -12,7 +12,6 @@ import qrcode
 from django.conf import settings
 from django.contrib import messages
 from django.utils.translation import gettext as _
-from django_otp import user_has_device
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
@@ -117,13 +116,16 @@ def mfa_has_device(user) -> bool:
     Unconfirmed draft TOTP rows (created when the user clicks “show QR”) must
     NOT count — otherwise login/middleware send them to MFA *verify* before they
     have finished enrollment.
+
+    A StaticDevice (backup codes) must NOT count either: django_otp's
+    ``user_has_device(confirmed=True)`` would include it, but backup codes are a
+    secondary factor — a user holding only backup codes can't complete
+    mfa_verify (which needs TOTP/passkey), so treating them as "enrolled" bounces
+    them between verify and setup. Check confirmed TOTP explicitly instead.
     """
     from apps.accounts.models import UserPasskey
 
-    try:
-        has_totp = bool(user_has_device(user, confirmed=True))
-    except TypeError:
-        has_totp = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
+    has_totp = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
     return bool(has_totp or UserPasskey.objects.filter(user=user).exists())
 
 
@@ -161,13 +163,29 @@ def build_mfa_setup_context(request, *, next_url: str = "") -> dict:
     }
 
 
+def _device_qr_context(request, device) -> dict:
+    """QR image + secret + id for an (unconfirmed) TOTP device.
+
+    Shared by the "show QR" step and the invalid-token re-render, so a mistyped
+    code doesn't throw the QR/secret/device_id away and bounce the user back to
+    the start screen.
+    """
+    provisioning_uri = build_totp_provisioning_uri(request, device)
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(provisioning_uri)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    img_str = base64.b64encode(buffer.getvalue()).decode()
+    return {"qr_code": img_str, "secret_key": device.key, "device_id": device.id}
+
+
 def handle_mfa_setup_post(request, *, next_url: str = "") -> tuple[str, dict | None]:
     """
     Process MFA setup POST. Returns (outcome, context).
     outcome: redirect_profile | redirect_mfa_setup | render | none
     """
-    from apps.accounts.views_passkey import _webauthn_available
-
     user = request.user
     inline = request.POST.get("mfa_inline") == "1"
 
@@ -175,24 +193,8 @@ def handle_mfa_setup_post(request, *, next_url: str = "") -> tuple[str, dict | N
         device, _created = TOTPDevice.objects.get_or_create(user=user, name="default")
         device.confirmed = False
         device.save()
-        provisioning_uri = build_totp_provisioning_uri(request, device)
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(provisioning_uri)
-        qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffer = BytesIO()
-        img.save(buffer, format="PNG")
-        img_str = base64.b64encode(buffer.getvalue()).decode()
         ctx = build_mfa_setup_context(request, next_url=next_url)
-        ctx.update(
-            {
-                "has_mfa": mfa_has_device(user),
-                "qr_code": img_str,
-                "secret_key": device.key,
-                "device_id": device.id,
-                "use_passkey": _webauthn_available(),
-            }
-        )
+        ctx.update(_device_qr_context(request, device))
         return ("render", ctx)
 
     if "verify_token" in request.POST:
@@ -200,20 +202,27 @@ def handle_mfa_setup_post(request, *, next_url: str = "") -> tuple[str, dict | N
         device_id = request.POST.get("device_id")
         try:
             device = TOTPDevice.objects.get(id=device_id, user=user)
-            if device.verify_token(token):
-                device.confirmed = True
-                device.save()
-                request.session["mfa_verified"] = True
-                messages.success(request, _("MFA has been successfully enabled!"))
-                if inline:
-                    return ("redirect_profile", None)
-                if next_url:
-                    return ("redirect_next", None)
-                return ("redirect_mfa_setup", None)
-            messages.error(request, _("Invalid token. Please try again."))
-        except TOTPDevice.DoesNotExist:
+        except (TOTPDevice.DoesNotExist, ValueError, TypeError):
+            # A non-numeric/absent device_id makes the ORM's int coercion raise
+            # ValueError/TypeError — that must not 500; treat it as "not found".
             messages.error(request, _("Device not found."))
-        return ("render", build_mfa_setup_context(request, next_url=next_url))
+            return ("render", build_mfa_setup_context(request, next_url=next_url))
+        if device.verify_token(token):
+            device.confirmed = True
+            device.save()
+            request.session["mfa_verified"] = True
+            messages.success(request, _("MFA has been successfully enabled!"))
+            if inline:
+                return ("redirect_profile", None)
+            if next_url:
+                return ("redirect_next", None)
+            return ("redirect_mfa_setup", None)
+        # Wrong code — re-render WITH the same device's QR/secret/device_id so the
+        # user retries in place instead of being bounced to the start screen.
+        messages.error(request, _("Invalid token. Please try again."))
+        ctx = build_mfa_setup_context(request, next_url=next_url)
+        ctx.update(_device_qr_context(request, device))
+        return ("render", ctx)
 
     if "disable_mfa" in request.POST:
         TOTPDevice.objects.filter(user=user).delete()
