@@ -219,31 +219,23 @@ def photo_upload_upload(request, token):
             status=400,
         )
 
-    if hasattr(file_obj, "content_type") and file_obj.content_type:
-        if not file_obj.content_type.startswith("image/"):
-            return JsonResponse({"error": "File must be an image"}, status=400)
-    if hasattr(file_obj, "size") and file_obj.size and file_obj.size > 10 * 1024 * 1024:
-        return JsonResponse({"error": "Image too large (max 10MB)"}, status=400)
-
-    # Magic-byte gate: the declared content_type above is client-supplied and
-    # spoofable. A renamed SVG declared ``image/svg+xml`` passes the
-    # ``startswith("image/")`` check, is then stored as a profile photo and
-    # served — a stored-XSS vector (SVG can carry <script>). The brand-asset
-    # path already rejects SVG by sniffing the magic bytes for exactly this
-    # reason; apply the same contract to this anonymous, token-only upload.
-    # Raster PNG/JPEG/WebP only; never trust the declared type or filename.
-    from apps.schools.school_brand_assets import sniff_image_mime
+    # Validate by content, not the spoofable declared content_type / filename.
+    # The shared primitive enforces the size cap + a magic-byte sniff (a renamed
+    # SVG declared ``image/svg+xml`` would otherwise be stored as a profile photo
+    # and served — a stored-XSS vector) + the malware-scan hook. Raster
+    # PNG/JPEG/WebP only for this anonymous, token-only upload.
+    from apps.security.upload_validation import (
+        SAFE_IMAGE_MIMES,
+        UploadValidationError,
+        validate_uploaded_file,
+    )
 
     try:
-        file_obj.seek(0)
-        head = file_obj.read(32)
-        file_obj.seek(0)
-    except (AttributeError, ValueError, OSError):
-        head = b""
-    if sniff_image_mime(head) not in ("image/png", "image/jpeg", "image/webp"):
-        return JsonResponse(
-            {"error": "Photo must be a PNG, JPEG, or WebP image"}, status=400
+        validate_uploaded_file(
+            file_obj, allowed_mimes=SAFE_IMAGE_MIMES, max_bytes=10 * 1024 * 1024
         )
+    except UploadValidationError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
 
     token_obj.photo = file_obj
     token_obj.save(update_fields=["photo"])
