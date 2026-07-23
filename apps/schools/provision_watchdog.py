@@ -61,6 +61,7 @@ Triggers (both wired so healing does not depend on Celery beat):
 from __future__ import annotations
 
 import logging
+import re
 from datetime import timedelta
 from typing import Any
 
@@ -144,6 +145,30 @@ def provision_resume_wall_clock_ceiling_seconds() -> int:
     # Never allow a ceiling low enough to cancel a genuinely-slow migrate: floor
     # comfortably above expected_duration (600s) plus the heartbeat margin.
     return max(value, 1200)  # magic-number-allow: wall-clock-ceiling-floor-20min
+
+
+def provision_max_no_progress_resumes() -> int:
+    """Consecutive auto-resumes with ZERO forward progress after which a school's
+    provisioning is declared terminally ``needs_attention`` and auto-resume STOPS.
+
+    Ends the "requeue ~12x/hour forever" loop for a DETERMINISTIC failure (a
+    genuinely broken migration, a permanently-missing column) WITHOUT ever falsely
+    terminating a slow-but-converging migrate: the streak only advances when
+    ``_provision_progress_signature`` did NOT increase since the previous resume
+    (a killed migrate that applied more tables, or a run that reached a further
+    milestone, resets the streak to 0). Generous default so only a truly wedged
+    provision terminates; a human ``manual`` retry always overrides. Env/settings
+    overridable (no hardcoding). Kept strictly below ``provision_resume_max_per_hour``
+    (12) so terminal fires within the first hour, before the hourly cap matters.
+    """
+    from django.conf import settings
+
+    raw = getattr(settings, "PROVISION_MAX_NO_PROGRESS_RESUMES", None)
+    try:
+        value = int(raw) if raw is not None else 8
+    except (TypeError, ValueError):
+        value = 8
+    return max(value, 3)
 
 
 def _now():
@@ -285,6 +310,190 @@ def _bump_hourly_resume_count(school_id: str) -> int:
         return 1
 
 
+# --- Forward-progress detection + terminal 'needs attention' state -----------
+#
+# Ordered provisioning milestones (durable ``SchoolProvisioningEvent`` types). The
+# INDEX of the furthest-present milestone is a monotonic "how far did we get"
+# signal that survives restarts and is tenancy-mode-agnostic.
+_PROGRESS_MILESTONE_EVENTS: tuple[str, ...] = (
+    "STARTED",
+    "PROFILE_APPLIED",
+    "TENANT_SCHEMA_READY",
+    "ACADEMIC_YEAR_READY",
+    "PORTAL_READY",
+    "COMPLETED",
+)
+
+_SCHEMA_NAME_RE = re.compile(r"^[A-Za-z0-9_]+$")
+
+
+def _furthest_milestone_index(school) -> int:
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+
+        present = set(
+            # tenant-isolation-allow: provision-progress-milestone-events-by-school-fk
+            SchoolProvisioningEvent.objects.filter(
+                school=school, event_type__in=_PROGRESS_MILESTONE_EVENTS
+            ).values_list("event_type", flat=True)
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return 0
+    furthest = 0
+    for idx, event_type in enumerate(_PROGRESS_MILESTONE_EVENTS):
+        if event_type in present:
+            furthest = idx
+    return furthest
+
+
+def _tenant_schema_migration_count(school) -> int:
+    """Applied-migration count in this school's tenant schema (schema mode only).
+
+    This is the signal that a KILLED-but-converging migrate is making progress:
+    each cycle applies more migrations, so the count climbs even while the
+    ``tenant_schema`` step never reaches ``TENANT_SCHEMA_READY``. Returns 0 in RLS
+    mode (where the step is a no-op) and on ANY error — a 0 never fabricates
+    progress, it only fails to detect it (biasing toward NOT terminating).
+    """
+    try:
+        from apps.schools.domain_sync import use_django_tenants
+
+        if not use_django_tenants():
+            return 0
+        from apps.customers.models import Client
+
+        sid = str(getattr(school, "pk", "") or getattr(school, "id", "") or "")
+        client = (
+            # tenant-isolation-allow: provision-progress-tenant-client-by-school-id
+            Client.objects.filter(school_id=sid).only("schema_name").first()
+        )
+        schema = str(getattr(client, "schema_name", "") or "").strip()
+        if not schema or not _SCHEMA_NAME_RE.match(schema):
+            return 0
+        from django.db import connection
+
+        with connection.cursor() as cur:
+            # schema is our OWN Client-row value validated against _SCHEMA_NAME_RE
+            # (no user input); the table may not exist yet on a bare schema → except.
+            cur.execute(f'SELECT count(*) FROM "{schema}".django_migrations')
+            row = cur.fetchone()
+        return int(row[0]) if row else 0
+    except Exception:  # noqa: BLE001 — a progress probe must never break healing
+        return 0
+
+
+def _provision_progress_signature(school) -> tuple[int, int]:
+    """(furthest milestone index, tenant-schema applied-migration count).
+
+    A resume made FORWARD PROGRESS iff this signature INCREASED since the previous
+    resume (lexicographic: a further milestone, or the same milestone with more
+    migrations applied). Only when it does NOT increase does the no-progress streak
+    advance toward the terminal ``needs_attention`` state.
+    """
+    return (_furthest_milestone_index(school), _tenant_schema_migration_count(school))
+
+
+def _read_provisioning_settings(school) -> dict:
+    raw = getattr(school, "settings", None) or {}
+    if not isinstance(raw, dict):
+        return {}
+    block = raw.get("provisioning")
+    return dict(block) if isinstance(block, dict) else {}
+
+
+def _write_provisioning_settings(school, **updates) -> None:
+    """Durably merge keys into ``school.settings['provisioning']`` (best-effort).
+
+    Re-reads the row FRESH and merges so a concurrent phase-A/B write from the live
+    drive is not clobbered; only the disjoint healing keys here are touched. Uses
+    ``.update()`` (no save signals). Also syncs the in-memory object so a caller
+    re-reading ``school.settings`` in the same request sees the change.
+    """
+    sid = str(getattr(school, "pk", "") or getattr(school, "id", "") or "")
+    if not sid:
+        return
+    try:
+        from apps.schools.models import School
+
+        # tenant-isolation-allow: provision-watchdog-heal-metadata-by-pk
+        obj = School.objects.filter(pk=sid).only("settings").first()
+        if obj is None:
+            return
+        blob = dict(obj.settings if isinstance(obj.settings, dict) else {})
+        prov = dict(blob.get("provisioning") or {})
+        prov.update(updates)
+        blob["provisioning"] = prov
+        # tenant-isolation-allow: provision-watchdog-heal-metadata-by-pk
+        School.objects.filter(pk=sid).update(settings=blob)
+        mem = getattr(school, "settings", None)
+        if isinstance(mem, dict):
+            mem_prov = mem.get("provisioning")
+            if not isinstance(mem_prov, dict):
+                mem_prov = {}
+            mem_prov.update(updates)
+            mem["provisioning"] = mem_prov
+    except Exception:  # noqa: BLE001 — healing metadata write is best-effort
+        logger.debug(
+            "provision_watchdog: settings write failed sid=%s", sid, exc_info=True
+        )
+
+
+def provision_needs_attention(school) -> bool:
+    """True when auto-resume has GIVEN UP (terminal) — surfaced to owner/operator."""
+    return bool(_read_provisioning_settings(school).get("needs_attention"))
+
+
+def clear_provision_needs_attention(school) -> None:
+    """Clear the terminal marker — a human is (re)driving; give it a fresh chance.
+
+    Called when a drive actually BEGINS (see ``_do_provision``): auto-resume and
+    the requeue sweep both SKIP a needs_attention school, so reaching a fresh drive
+    means an explicit human retry.
+    """
+    prov = _read_provisioning_settings(school)
+    if prov.get("needs_attention") or prov.get("no_progress_streak"):
+        _write_provisioning_settings(school, needs_attention=False, no_progress_streak=0)
+
+
+def _alert_needs_attention(school, *, streak: int, signature: tuple[int, int]) -> None:
+    """One-time operator/owner signal that provisioning is terminally stuck.
+
+    Only reached on the TRANSITION into needs_attention (the guard in
+    ``resume_provision_if_stuck`` returns before here once the flag is set), so it
+    fires once, not every tick.
+    """
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+
+        SchoolProvisioningEvent.log_event(
+            school=school,
+            event_type="PROVISION_NEEDS_ATTENTION",
+            status="ERROR",
+            message=(
+                "Provisioning auto-resume stopped after repeated attempts with no "
+                "forward progress — needs a human (retry or contact support)."
+            ),
+            payload={"no_progress_streak": streak, "signature": list(signature)},
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        logger.debug(
+            "provision_watchdog: needs-attention event log failed", exc_info=True
+        )
+    try:
+        from apps.schools.tasks import (
+            _emit_provisioning_failed_notification,
+            resolve_provisioning_contact_email,
+        )
+
+        _emit_provisioning_failed_notification(
+            school,
+            resolve_provisioning_contact_email(school),
+            error="Provisioning is stuck and needs attention (auto-resume exhausted).",
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        logger.debug("provision_watchdog: needs-attention alert failed", exc_info=True)
+
+
 def _cancel_dead_run(run) -> None:
     """Cancel a heartbeat-dead zombie (``running`` OR ``stuck``).
 
@@ -353,7 +562,25 @@ def resume_provision_if_stuck(school, *, reason: str = "poll") -> dict:
     if not school_id:
         return {"action": "none", "reason": "no_school_id"}
 
+    prov = _read_provisioning_settings(school)
+    manual = reason == "manual"
+
+    # Terminal 'needs attention': auto-resume has GIVEN UP. Auto callers back off
+    # so the loop stops instead of requeuing ~12x/hour forever; a human retry
+    # (reason="manual", or a fresh drive via _do_provision) overrides and clears it.
+    if prov.get("needs_attention") and not manual:
+        return {
+            "action": "needs_attention",
+            "reason": "needs_attention",
+            "school_id": school_id,
+        }
+
     if _school_is_settled(school):
+        # Success clears any accrued terminal/streak state.
+        if prov.get("needs_attention") or prov.get("no_progress_streak"):
+            _write_provisioning_settings(
+                school, needs_attention=False, no_progress_streak=0
+            )
         return {"action": "none", "reason": "settled", "school_id": school_id}
 
     run = _latest_run(school)
@@ -375,6 +602,55 @@ def resume_provision_if_stuck(school, *, reason: str = "poll") -> dict:
             reason,
         )
         return {"action": "capped", "reason": "hourly_cap", "school_id": school_id}
+
+    # Forward-progress / terminal detection — only at a genuine resume point. The
+    # streak advances ONLY when this drive made no forward progress since the last
+    # resume (milestone did not advance AND no new migrations applied), so a
+    # slow-but-converging migrate is never falsely terminated.
+    signature = _provision_progress_signature(school)
+    prev_signature = tuple(prov.get("resume_progress_signature") or ())
+    streak = int(prov.get("no_progress_streak") or 0)
+    made_progress = (not prev_signature) or (signature > prev_signature)
+    if manual:
+        streak = 0  # human override: a fresh chance
+    elif made_progress:
+        streak = 0
+    else:
+        streak += 1
+
+    if not manual and streak >= provision_max_no_progress_resumes():
+        # Clean up the dead zombie run that triggered terminal, so the owner/Flight
+        # Deck sees the honest 'needs attention' state, not a lingering 'running' card.
+        cancel_unfinished_provision_runs_for_school(school_id)
+        _write_provisioning_settings(
+            school,
+            needs_attention=True,
+            needs_attention_at=_now().isoformat(),
+            no_progress_streak=streak,
+            resume_progress_signature=list(signature),
+        )
+        _alert_needs_attention(school, streak=streak, signature=signature)
+        logger.warning(
+            "provision_watchdog: school_id=%s declared needs_attention after %s "
+            "no-progress resumes (signature=%s)",
+            school_id,
+            streak,
+            signature,
+        )
+        return {
+            "action": "needs_attention",
+            "reason": "no_forward_progress",
+            "school_id": school_id,
+            "streak": streak,
+        }
+
+    _write_provisioning_settings(
+        school,
+        needs_attention=False,
+        no_progress_streak=streak,
+        resume_progress_signature=list(signature),
+        resume_attempts_total=int(prov.get("resume_attempts_total") or 0) + 1,
+    )
 
     # Clear ALL unfinished zombies (running + stuck) so resume never dual-cards.
     cancel_unfinished_provision_runs_for_school(school_id)
@@ -495,9 +771,24 @@ def resume_stuck_provisions(*, limit: int = 10, reason: str = "sweep") -> dict:
     fires in the default no-beat topology. Idempotent + single-flighted per
     school, so a duplicate/late tick re-drives nothing already in flight.
     """
+    # Surface a non-draining outbox queue (schools stuck PENDING with NO
+    # WorkflowRun — invisible to the run-keyed sweep below). Runs every tick,
+    # independent of whether any run is dead.
+    stale_pending = 0
+    try:
+        from apps.platform_runtime.heavy_work_outbox import (
+            reconcile_stale_pending_provisions,
+        )
+
+        stale_pending = int(
+            reconcile_stale_pending_provisions().get("stale_pending") or 0
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        logger.debug("provision_watchdog: stale-pending reconcile skipped", exc_info=True)
+
     school_ids = _dead_running_school_ids(limit)
     if not school_ids:
-        return {"ok": True, "scanned": 0, "resumed": 0}
+        return {"ok": True, "scanned": 0, "resumed": 0, "stale_pending": stale_pending}
     try:
         from apps.schools.models import School
     except ImportError:
@@ -519,6 +810,7 @@ def resume_stuck_provisions(*, limit: int = 10, reason: str = "sweep") -> dict:
         "scanned": len(school_ids),
         "resumed": resumed,
         "settled": settled,
+        "stale_pending": stale_pending,
     }
     if resumed:
         logger.info("provision_watchdog: sweep summary=%s", summary)

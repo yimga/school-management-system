@@ -100,6 +100,10 @@ class ProvisionWatchdogTests(TestCase):
         self.assertEqual(second["reason"], "debounced")
         kick.assert_called_once()  # exactly one migrate re-drive, not a herd
 
+    # Isolate the HOURLY-CAP backstop from the (orthogonal) terminal
+    # needs_attention backstop, which otherwise fires first (default 8 no-progress
+    # resumes < the 12/hr cap). Both are exercised separately elsewhere.
+    @override_settings(PROVISION_MAX_NO_PROGRESS_RESUMES=100)
     def test_hourly_cap_stops_runaway_resumes(self):
         with patch("apps.schools.tasks.kick_complete_provisioning_background") as kick:
             resumed = 0

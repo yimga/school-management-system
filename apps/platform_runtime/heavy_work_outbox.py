@@ -197,6 +197,68 @@ def _reclaim_stale_processing() -> int:
     )
 
 
+# A provision row PENDING longer than this means the queue is NOT draining (broker
+# up but no worker consuming it, and the /health/ in-process drain disabled or
+# unpinged). Such a row never became a WorkflowRun, so every provisioning watchdog
+# is structurally blind to it — this is the one signal that surfaces the gap.
+_STALE_PENDING_ALERT_SECONDS = 600  # magic-number-allow: stale-pending-provision-outbox-alert-seconds
+
+
+def stale_pending_provision_count(
+    *, older_than_seconds: int = _STALE_PENDING_ALERT_SECONDS
+) -> int:
+    """Count of PROVISION_SCHOOL rows PENDING longer than the threshold."""
+    from datetime import timedelta
+
+    from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+    cutoff = timezone.now() - timedelta(seconds=max(60, int(older_than_seconds or 0)))
+    try:
+        return int(
+            # tenant-isolation-allow: platform-heavy-work-outbox-stale-pending-count
+            HeavyWorkOutbox.objects.filter(
+                kind=HeavyWorkOutbox.Kind.PROVISION_SCHOOL,
+                status=HeavyWorkOutbox.Status.PENDING,
+                created_at__lt=cutoff,
+            ).count()
+        )
+    except Exception:  # noqa: BLE001 — a health probe must never raise
+        logger.debug("stale_pending_provision_count failed", exc_info=True)
+        return 0
+
+
+def reconcile_stale_pending_provisions(
+    *, older_than_seconds: int = _STALE_PENDING_ALERT_SECONDS
+) -> dict[str, Any]:
+    """Surface + nudge a non-draining provision queue (WorkflowRun-independent).
+
+    The provisioning watchdogs all key on a ``WorkflowRun``, which only exists once
+    a row has been DRAINED — so a row stuck PENDING is invisible to all of them.
+    This closes that blind spot: it logs a WARNING (ops visibility) whenever a
+    PROVISION_SCHOOL row has been PENDING past the threshold, and kicks a drain as
+    belt-and-suspenders (a live worker drains it; the /health/-tick in-process
+    drain is worker-independent). Wired into the provisioning watchdog sweep (beat
+    + /health/ tick). Best-effort — never raises into the sweep.
+    """
+    stale = stale_pending_provision_count(older_than_seconds=older_than_seconds)
+    if stale <= 0:
+        return {"stale_pending": 0, "kicked": False}
+    logger.warning(
+        "heavy_work_outbox: %s PROVISION_SCHOOL row(s) PENDING > %ss — the queue is "
+        "not draining (no WorkflowRun exists yet, so provisioning watchdogs are "
+        "blind). Check the celery worker / in-process /health/ drain.",
+        stale,
+        older_than_seconds,
+    )
+    kicked = False
+    try:
+        kick_heavy_work_drain()
+        kicked = True
+    except Exception:  # noqa: BLE001 — the nudge is best-effort
+        logger.debug("heavy_work_outbox: stale-pending drain kick failed", exc_info=True)
+    return {"stale_pending": stale, "kicked": kicked}
+
+
 def _execute_row(row) -> None:
     from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
 

@@ -761,12 +761,22 @@ def resolve_provisioning_progress(
     if run is not None and status != "succeeded":
         progress_percent = _progress_from_extended_steps(extended_steps)
 
+    # Terminal 'needs attention': the watchdog gave up auto-resuming after repeated
+    # no-progress attempts (see provision_watchdog.resume_provision_if_stuck). This
+    # is the honest end-state for a deterministically-broken provision — the owner
+    # must see it (with a retry), not a bar that keeps implying progress.
+    needs_attention = bool(_provisioning_settings(school).get("needs_attention"))
+
     # Stuck detection: a run that's gone silent past its heartbeat is "running"
     # by status but should be surfaced as delayed so the UI stops pretending to
     # advance and the watchdog/owner can act. The no-run fallback also raises this
     # (a STARTED event with no WorkflowRun past the expected budget) — without the
-    # OR, that signal was dropped because this line only consulted ``run``.
-    stuck = (status == "running" and _run_is_stuck(run)) or fallback_stuck
+    # OR, that signal was dropped because this line only consulted ``run``. A
+    # needs_attention school is stuck too, so the existing retry UI (keyed on
+    # ``stuck === true``) surfaces without any template change.
+    stuck = (
+        (status == "running" and _run_is_stuck(run)) or fallback_stuck or needs_attention
+    )
 
     # Completion summary (the owner-facing "here's what we set up" report) is
     # only worth computing once the portal is ready — keep early polls cheap.
@@ -778,6 +788,11 @@ def resolve_provisioning_progress(
     completed_at = _iso_or_none(getattr(run, "ended_at", None)) if run is not None else None
     elapsed_seconds = _elapsed_seconds(run)
     current_phase, phase_message = _phase_descriptor(flags, status)
+    if needs_attention and not flags["portal_ready"] and status != "succeeded":
+        current_phase = "needs_attention"
+        phase_message = str(
+            _("Setup needs attention — please retry, or contact support if it keeps failing.")
+        )
 
     payload: dict[str, Any] = {
         "ok": True,
@@ -808,6 +823,7 @@ def resolve_provisioning_progress(
         ),
         "blocking_error": blocking,
         "stuck": stuck,
+        "needs_attention": needs_attention,
         "completed_at": completed_at,
         "elapsed_seconds": elapsed_seconds,
         "current_phase": current_phase,

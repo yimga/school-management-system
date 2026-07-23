@@ -1092,6 +1092,20 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                 exc_info=True,
             )
 
+        # A fresh drive is starting. Auto-resume and the requeue sweep both SKIP a
+        # needs_attention school, so reaching here means an explicit human retry —
+        # clear the terminal marker so provisioning gets a clean slate.
+        try:
+            from apps.schools.provision_watchdog import clear_provision_needs_attention
+
+            clear_provision_needs_attention(school)
+        except (ImportError, AttributeError, TypeError, ValueError):
+            logger.debug(
+                "clear needs_attention before begin_run failed school_id=%s",
+                school_id,
+                exc_info=True,
+            )
+
         wf_run = begin_run(
             workflow_key="tenant_school_provision",
             steps=("admin_user", "profile", "tenant_schema", "seed_data", "activate"),

@@ -524,6 +524,32 @@ def _run_school_is_settled(run) -> bool:
         return False
 
 
+def _run_school_needs_attention(run) -> bool:
+    """True when the watchdog has declared this run's school terminally stuck.
+
+    A ``needs_attention`` school must be excluded from auto-requeue: the watchdog
+    already gave up after repeated no-progress resumes, so re-driving it here would
+    resurrect the exact ~forever loop the terminal state exists to end. A human
+    retry clears the flag (``_do_provision`` → ``clear_provision_needs_attention``).
+    Fails OPEN (False) so an unknown school still gets its normal remediation.
+    """
+    try:
+        from apps.schools.models import School
+        from apps.schools.provision_watchdog import provision_needs_attention
+
+        school = School.objects.filter(pk=getattr(run, "school_id", "") or "").first()
+        if school is None:
+            return False
+        return bool(provision_needs_attention(school))
+    except Exception:  # noqa: BLE001 — the guard must never break the sweep
+        logger.debug(
+            "needs-attention check failed for run=%s; treating as not terminal",
+            getattr(run, "pk", None),
+            exc_info=True,
+        )
+        return False
+
+
 def provision_failure_clearable_after_success(run) -> bool:
     """True when an operator may clear this provision failure from the Flight Deck.
 
@@ -763,6 +789,7 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
         requeued = 0
         settled_skipped = 0
         settled_resolved = 0
+        needs_attention_skipped = 0
         for run in candidates:
             try:
                 # A run can be FAILED while its school is fully provisioned: the
@@ -779,6 +806,12 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
                     settled_skipped += 1
                     if _resolve_stale_provisioned_run(run):
                         settled_resolved += 1
+                    continue
+                # Terminal 'needs attention': the watchdog gave up after repeated
+                # no-progress resumes. Re-driving here would resurrect the ~forever
+                # loop; skip until a human retry clears the flag.
+                if _run_school_needs_attention(run):
+                    needs_attention_skipped += 1
                     continue
                 rem = resolve_effective_remediation(run)
                 if rem.get("auto_fix_kind") != "requeue_provision":
@@ -810,6 +843,7 @@ def workflow_failed_provision_auto_requeue_sweep_task() -> dict:
             "requeued": requeued,
             "settled_skipped": settled_skipped,
             "settled_resolved": settled_resolved,
+            "needs_attention_skipped": needs_attention_skipped,
         }
     except Exception as exc:
         return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
