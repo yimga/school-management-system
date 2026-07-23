@@ -30,6 +30,21 @@ class CanonicalPaymentWebhookEvent:
         return self.status in {"success", "completed", "paid", "successful"}
 
 
+def is_explicit_non_success(
+    event: Optional["CanonicalPaymentWebhookEvent"],
+) -> bool:
+    """True when a webhook EXPLICITLY reports a non-success status.
+
+    A payment webhook that carries a concrete non-success status (``failed`` /
+    ``declined`` / ``cancelled`` / ``reversed`` / ``pending`` …) must NOT post a
+    Payment — recording one would grant enrollment clearance for money that never
+    settled. An empty / undetermined status returns ``False`` so a provider that
+    omits status is never blocked (no regression), and ``None`` (unparseable /
+    no normalizer branch) also returns ``False``.
+    """
+    return bool(event is not None and event.status and not event.is_success())
+
+
 def _decimal_amount(value: Any) -> Decimal:
     try:
         return Decimal(str(value or "0"))

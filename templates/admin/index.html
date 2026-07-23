@@ -11,15 +11,18 @@
    instead of extending it — which is why the v8 200x overlay never
    landed visually on /admin/ even though it was wired in base_site.html. {% endcomment %}
 {{ block.super }}
-{% comment %}SITE_ADMIN_THEME is always injected by site_settings CP — never |default:SITE (eager 500).{% endcomment %}
+{% comment %}SITE_ADMIN_THEME is always injected by site_settings CP. When no admin
+   ThemePack applies it is None, so each property falls back to the school brand
+   (SITE.*, a dotted arg — no eager-resolution 500) before the literal, instead of
+   jumping straight to a hardcoded hex (which ignored tenant brand). {% endcomment %}
 {% with ADMIN_THEME=SITE_ADMIN_THEME %}
 <style>
     :root {
-    --brand-primary: {{ ADMIN_THEME.primary_color|default:"#667eea" }};
-    --brand-accent: {{ ADMIN_THEME.accent_color|default:"#ff9f43" }};
-    --brand-success: {{ ADMIN_THEME.success_color|default:"#22c55e" }};
-    --brand-warning: {{ ADMIN_THEME.warning_color|default:"#fbbf24" }};
-    --brand-danger: {{ ADMIN_THEME.danger_color|default:"#ef4444" }};
+    --brand-primary: {{ ADMIN_THEME.primary_color|default:SITE.primary_color|default:"#667eea" }};
+    --brand-accent: {{ ADMIN_THEME.accent_color|default:SITE.accent_color|default:"#ff9f43" }};
+    --brand-success: {{ ADMIN_THEME.success_color|default:SITE.success_color|default:"#22c55e" }};
+    --brand-warning: {{ ADMIN_THEME.warning_color|default:SITE.warning_color|default:"#fbbf24" }};
+    --brand-danger: {{ ADMIN_THEME.danger_color|default:SITE.danger_color|default:"#ef4444" }};
     --surface-dark: {{ SITE.admin_sidebar_surface_color|default:"#2d2d2d" }};
     --border-dark: {{ SITE.admin_sidebar_border_color|default:"#404040" }};
     --surface-deep: {{ ADMIN_THEME.background_color|default:"#1a1a1a" }};

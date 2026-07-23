@@ -61,6 +61,10 @@ EXCLUDE_FILE_SUFFIXES = (
 )
 EXCLUDE_FILENAMES = {
     "scan_tenant_queryset_safety.py",
+    # A Django app's top-level ``tests.py`` is a test module (same intent as the
+    # ``tests/`` dir + ``_test.py``/``_tests.py`` exclusions above); test code
+    # must not inflate the production finding count.
+    "tests.py",
 }
 
 # Kwargs that prove the queryset is bounded to a single tenant or an

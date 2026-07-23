@@ -132,7 +132,10 @@ class RazorpayGateway(BasePaymentGateway):
             if status and body:
                 pstatus = str(body.get("status") or "").strip().lower()
                 return GatewayResult(
-                    success=pstatus in {"paid", "captured", "attempted"},
+                    # Razorpay order status "attempted" = a payment was tried but
+                    # has NOT succeeded (the order stays "attempted" even on a
+                    # failed payment); only "paid"/"captured" are settled.
+                    success=pstatus in {"paid", "captured"},
                     transaction_id=str(body.get("id") or transaction_id),
                     message=f"Razorpay status: {pstatus or 'unknown'}",
                     raw_response={

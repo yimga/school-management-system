@@ -245,6 +245,7 @@ def annual_average_for(student: StudentProfile, academic_year) -> Optional[float
     from apps.reports.services import _annual_average_for_student
 
     terms = list(
+        # tenant-isolation-allow: term-lookup-bounded-by-tenant-scoped-academic-year-fk
         Term.objects.filter(academic_year=academic_year).order_by(
             "position", "start_date"
         )
@@ -406,6 +407,7 @@ def resolve_target_classroom(
     if decision.advances:
         mapping = mappings.get(source_classroom.pk)
         return getattr(mapping, "target_classroom", None) if mapping else None
+    # tenant-isolation-allow: classroom-match-bounded-by-tenant-academic-year-then-conditional-school-id
     same_grade = Classroom.objects.filter(
         academic_year=target_year, name=source_classroom.name
     )
@@ -507,6 +509,7 @@ def promote_cohort(
             f"no_data_policy must be one of {NO_DATA_POLICIES}, got {no_data_policy!r}"
         )
     if mappings is None:
+        # tenant-isolation-allow: promotion-mapping-bounded-by-tenant-source-and-target-year-then-conditional-school-id
         mapping_qs = ClassroomPromotionMapping.objects.filter(
             source_year=source_year, target_year=target_year
         ).select_related("source_classroom", "target_classroom")
@@ -514,6 +517,7 @@ def promote_cohort(
             mapping_qs = mapping_qs.filter(school_id=school_id)
         mappings = {m.source_classroom_id: m for m in mapping_qs}
 
+    # tenant-isolation-allow: active-students-bounded-by-tenant-source-year-then-conditional-school-id
     students = StudentProfile.objects.filter(
         academic_year=source_year, is_active=True
     ).select_related("classroom", "specialty")

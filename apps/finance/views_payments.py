@@ -846,7 +846,10 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         )
         return HttpResponseBadRequest("Webhook payload must be a JSON object.")
 
-    from apps.finance.webhooks.normalizer import normalize_provider_payload
+    from apps.finance.webhooks.normalizer import (
+        is_explicit_non_success,
+        normalize_provider_payload,
+    )
 
     metadata_block = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
     canonical_event = normalize_provider_payload(
@@ -985,6 +988,37 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             if canonical_event.event_id:
                 reference_id = canonical_event.event_id
 
+    # SFDP: a validly-signed webhook that EXPLICITLY reports a non-success status
+    # (failed / declined / cancelled / reversed / pending …) must never post a
+    # Payment — record_provider_payment feeds the fractional ledger and grants
+    # enrollment clearance, so posting a failed callback would clear a student who
+    # never paid. Gate ONLY on an explicit status: an empty/undetermined status
+    # (a provider that omits it) preserves prior behaviour, so no legitimate
+    # payment is blocked. The success vocabulary is normalized in the normalizer.
+    if is_explicit_non_success(canonical_event):
+        _create_webhook_log(
+            reference_id=reference_id,
+            signature_valid=True,
+            status=WebhookLog.Status.INVALID,
+            response_status=200,
+            error_message=(
+                f"Non-success PSP status '{canonical_event.status}' — no payment posted"
+            ),
+        )
+        logger.info(
+            "Ignoring non-success %s webhook ref=%s status=%s (no payment posted)",
+            provider_slug,
+            reference_id,
+            canonical_event.status,
+        )
+        return JsonResponse(
+            {
+                "status": "ignored",
+                "reason": "psp_status_not_success",
+                "psp_status": canonical_event.status,
+            },
+            status=200,
+        )
 
     is_valid, error_msg = PaymentValidator.validate_amount(amount)
     if not is_valid:

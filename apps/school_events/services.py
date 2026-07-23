@@ -260,7 +260,12 @@ def create_ticket_invoice_for_registration(
     existing_id = meta.get("invoice_id")
     if existing_id:
         try:
-            return Invoice.objects.get(pk=int(existing_id))
+            # Scope the reuse lookup to the event's school so a stray/foreign
+            # invoice_id can never resolve cross-tenant (falls through to a
+            # fresh invoice below on mismatch).
+            return Invoice.objects.get(
+                pk=int(existing_id), school=getattr(locked.event, "school", None)
+            )
         except (Invoice.DoesNotExist, TypeError, ValueError):
             pass
 

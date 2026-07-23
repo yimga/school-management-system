@@ -36,6 +36,7 @@ def enqueue_heavy_work(
     existing = None
     if key:
         existing = (
+            # tenant-isolation-allow: platform-provisioning-outbox-in-public-schema-deduped-by-global-idempotency-key
             HeavyWorkOutbox.objects.filter(
                 idempotency_key=key,
                 status__in=(
