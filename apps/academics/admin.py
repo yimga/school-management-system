@@ -11,6 +11,7 @@ from .models import (
     ClassroomPromotionMapping,
     Subject,
     SubjectAssignment,
+    CurriculumAllocation,
     CourseSyllabus,
     ClassBooklist,
     Incident,
@@ -115,6 +116,57 @@ class SubjectAssignmentAdmin(ModelAdmin):
         "subject__name",
         "academic_year__name",
     )
+
+
+class CurriculumAllocationAdmin(ModelAdmin):
+    """Tenant producer for item 2.3 — periods/week each class owes a subject.
+
+    The timetable generator CONSUMES this model
+    (:func:`apps.academics.curriculum_allocation.build_allocation_index`), but
+    before this registration nothing let a tenant admin CREATE a row: the model
+    had a live consumer and no producer, so every school silently fell back to
+    ``DEFAULT_ALLOCATION`` (1 period/week) and the three knobs
+    (``periods_per_week`` / ``block_length`` / ``cycle_length``) were
+    unreachable. Registering here on the tenant admin site (schema-isolated,
+    like every sibling academic model) makes them reachable end-to-end.
+    """
+
+    list_display = (
+        "academic_year",
+        "term",
+        "classroom",
+        "subject",
+        "periods_per_week",
+        "block_length",
+        "cycle_length",
+        "is_active",
+    )
+    list_filter = ("academic_year", "term", "classroom", "is_active")
+    search_fields = (
+        "classroom__name",
+        "subject__name",
+        "academic_year__name",
+    )
+    # ``school`` is a nullable defense-in-depth column the resolver never
+    # filters on (it scopes by the tenant-bound ``academic_year`` FK). It points
+    # at the SHARED ``schools.School`` table, so exposing it as a form field
+    # would render a cross-tenant dropdown on the tenant admin. Hide it and
+    # stamp it from the request's tenant on save instead.
+    exclude = ("school",)
+    readonly_fields = ("created_at", "updated_at")
+
+    def save_model(self, request, obj, form, change):
+        if obj.school_id is None:
+            school = getattr(request, "school", None)
+            # Only stamp a genuine School instance; leave NULL otherwise (the
+            # resolver tolerates NULL — it never filters on school).
+            if (
+                school is not None
+                and school.__class__.__name__ == "School"
+                and getattr(school, "pk", None)
+            ):
+                obj.school = school
+        super().save_model(request, obj, form, change)
 
 
 class CourseSyllabusAdmin(ModelAdmin):
@@ -384,6 +436,7 @@ class IncidentAdmin(ModelAdmin):
 
 register_tenant_admin(Incident, IncidentAdmin)
 register_tenant_admin(SubjectAssignment, SubjectAssignmentAdmin)
+register_tenant_admin(CurriculumAllocation, CurriculumAllocationAdmin)
 register_tenant_admin(CourseSyllabus, CourseSyllabusAdmin)
 register_tenant_admin(ClassBooklist, ClassBooklistAdmin)
 

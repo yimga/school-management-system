@@ -15,7 +15,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, time
 
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from apps.academics.curriculum_allocation import (
     DEFAULT_ALLOCATION,
@@ -349,3 +349,56 @@ class NoAllocationParityTests(_GraphMixin, TestCase):
 
         # And nothing entered the rotation.
         self.assertEqual({e.cycle_week for e in entries}, {1})
+
+
+class CurriculumAllocationProducerTests(SimpleTestCase):
+    """Item 2.3 PRODUCER must-fire: the model must be reachable end-to-end.
+
+    The timetable generator has consumed ``CurriculumAllocation`` since
+    migration ``0070``, but a live consumer with no producer means every school
+    silently falls back to ``DEFAULT_ALLOCATION`` (1 period/week) forever — the
+    three demand knobs are unreachable. These DB-free assertions go red if the
+    tenant-admin registration (the only producer) is removed or the knobs drop
+    off the change list, i.e. if the feature reverts to inert.
+    """
+
+    @staticmethod
+    def _tenant_admin():
+        # Importing the app's admin module runs its registrations; cached after
+        # the first import so this never double-registers.
+        import apps.academics.admin  # noqa: F401
+        from config.admin import tenant_admin_site
+
+        return tenant_admin_site
+
+    def test_registered_on_tenant_admin_site(self):
+        self.assertIn(
+            CurriculumAllocation,
+            self._tenant_admin()._registry,
+            "CurriculumAllocation must be registered on the tenant admin site so "
+            "a tenant admin can actually create allocation rows.",
+        )
+
+    def test_not_registered_on_platform_admin_site(self):
+        # A tenant/academic model must not leak onto the operator (manager-host)
+        # backoffice.
+        import apps.academics.admin  # noqa: F401
+        from config.admin import platform_admin_site
+
+        self.assertNotIn(CurriculumAllocation, platform_admin_site._registry)
+
+    def test_demand_knobs_are_visible_columns(self):
+        model_admin = self._tenant_admin()._registry[CurriculumAllocation]
+        for knob in ("periods_per_week", "block_length", "cycle_length"):
+            self.assertIn(
+                knob,
+                model_admin.list_display,
+                f"{knob} must be visible so an admin can see and manage demand.",
+            )
+
+    def test_school_fk_excluded_from_tenant_form(self):
+        # ``school`` is nullable, unused by the resolver, and points at the
+        # SHARED ``schools.School`` table — exposing it on the tenant admin would
+        # render a cross-tenant dropdown. It must be excluded and stamped on save.
+        model_admin = self._tenant_admin()._registry[CurriculumAllocation]
+        self.assertIn("school", tuple(model_admin.exclude or ()))
