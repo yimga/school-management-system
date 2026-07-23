@@ -138,4 +138,12 @@
         {% endif %}
 
     </div>
+    {% if is_manager_host %}
+    {% include 'components/back_to_top.html' %}
+    {% comment %}Manager host: .rmc-app-shell is the fixed-height scroll canvas, so the
+       back-to-top sits OUTSIDE it (sibling of the shell) — inside, it is clipped/
+       scroll-bound pre-hydration; components__back_to_top.js only hoists to <body>
+       when it finds the button inside .rmc-app-shell. The tenant-admin include stays
+       inside <main> above. emit_once dedupes if the chrome-scripts partial also ran.{% endcomment %}
+    {% endif %}
 {% endblock %}
