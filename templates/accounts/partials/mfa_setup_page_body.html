@@ -71,6 +71,10 @@
             {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
             <label class="visually-hidden" for="mfa-setup-token">{% trans "6-digit code" %}</label>
             {% include "components/security_checkpoint_otp.html" with input_id="mfa-setup-token" autofocus=True %}
+            <label class="rmc-security-checkpoint__trust d-flex align-items-center gap-2 mt-2">
+              <input type="checkbox" id="mfa-setup-remember-device" name="remember_device" value="1"{% if remember_device_default %} checked{% endif %}>
+              {% trans "Trust this device — don't ask for a code again on this browser" %}
+            </label>
             <button type="submit" name="verify_token" class="btn btn-primary w-100 mt-2"><i class="bi bi-check2 me-1"></i>{% trans "Verify and enable MFA" %}</button>
           </form>
 

@@ -193,7 +193,11 @@ def _post_onboarding_dashboard_href(request, school) -> str:
     user = getattr(request, "user", None)
     if user and getattr(user, "is_authenticated", False) and not _owner_mfa_enrolled(user):
         state = onboarding_state(school) if school is not None else {}
-        # Prefer the wizard MFA step until the owner enrolls or explicitly waives.
+        # Deliberate security-adoption nudge: keep the primary CTA pointed at the
+        # MFA step until the owner enrolls or explicitly waives — even in optional
+        # mode. This is not a loop: ``owner_onboarding_mfa`` redirects a
+        # completed + satisfied owner straight to the dashboard, so the nudge is a
+        # single hop, and an enrolled/waived owner returns the real dashboard here.
         if not state.get("mfa_waived"):
             try:
                 return reverse("accounts:owner_onboarding_mfa")
@@ -470,7 +474,11 @@ def owner_onboarding_mfa(request):
     """
     from django.urls import reverse
 
-    from apps.accounts.mfa_setup_flow import build_mfa_setup_context, handle_mfa_setup_post
+    from apps.accounts.mfa_setup_flow import (
+        apply_device_trust_on_enroll,
+        build_mfa_setup_context,
+        handle_mfa_setup_post,
+    )
     from services.post_delete_navigation import safe_next_url as _safe_next_url
 
     school = _owner_school(request.user)
@@ -503,7 +511,13 @@ def owner_onboarding_mfa(request):
             request.user
         ):
             _set_onboarding(school, step="done", mfa_waived=False)
-            return redirect("accounts:owner_onboarding_done")
+            # The owner just proved possession of their device. Carry that proof
+            # forward (opt-in "trust this device") so the hand-off to the tenant
+            # dashboard — and their next login from this browser — is not a fresh
+            # MFA wall the moment after they enrolled.
+            resp = redirect("accounts:owner_onboarding_done")
+            apply_device_trust_on_enroll(request, resp)
+            return resp
         if outcome == "render" and mfa_ctx:
             mfa_ctx.update(
                 {
@@ -513,6 +527,7 @@ def owner_onboarding_mfa(request):
                     "onboarding_mfa": True,
                     "mfa_waive_allowed": waive_allowed,
                     "next_url": next_url,
+                    "remember_device_default": True,
                 }
             )
             return render(request, "accounts/owner_onboarding/mfa.html", mfa_ctx)
@@ -526,6 +541,7 @@ def owner_onboarding_mfa(request):
             "onboarding_mfa": True,
             "mfa_waive_allowed": waive_allowed,
             "next_url": next_url,
+            "remember_device_default": True,
         }
     )
     return render(request, "accounts/owner_onboarding/mfa.html", ctx)

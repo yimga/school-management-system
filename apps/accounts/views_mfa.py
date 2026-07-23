@@ -15,7 +15,11 @@ from django_otp import user_has_device, login as otp_login
 from django.utils import timezone
 from datetime import timedelta
 
-from apps.accounts.mfa_setup_flow import build_mfa_setup_context, handle_mfa_setup_post
+from apps.accounts.mfa_setup_flow import (
+    apply_device_trust_on_enroll,
+    build_mfa_setup_context,
+    handle_mfa_setup_post,
+)
 from services.post_delete_navigation import safe_next_url as _safe_next_url
 from apps.accounts.e2e_mfa_bypass import e2e_mfa_bypass_active
 
@@ -76,11 +80,17 @@ def mfa_setup(request):
     if request.method == "POST":
         outcome, ctx = handle_mfa_setup_post(request, next_url=next_url)
         if outcome == "redirect_profile":
-            return redirect("accounts:user_profile")
+            resp = redirect("accounts:user_profile")
+            apply_device_trust_on_enroll(request, resp)
+            return resp
         if outcome == "redirect_next" and next_url:
-            return redirect(next_url)
+            resp = redirect(next_url)
+            apply_device_trust_on_enroll(request, resp)
+            return resp
         if outcome == "redirect_mfa_setup":
-            return redirect("accounts:mfa_setup")
+            resp = redirect("accounts:mfa_setup")
+            apply_device_trust_on_enroll(request, resp)
+            return resp
         if outcome == "render" and ctx:
             return render(request, _mfa_template(request, "accounts/mfa_setup.html"), ctx)
 

@@ -73,6 +73,44 @@ def _generate_backup_tokens(device, count=10):
     return tokens
 
 
+def apply_device_trust_on_enroll(request, response) -> None:
+    """Make a just-completed MFA enrollment durable when the owner opted to trust
+    this device.
+
+    Confirming a TOTP is a proof-of-possession — the same proof the verify page
+    accepts — so the freshly-enrolled owner should not be re-challenged for a code
+    seconds later when the wizard hands them to their dashboard, nor on their next
+    login from this same browser within the trust window. This mirrors the verify
+    page's ``_mark_mfa_verified_and_redirect``: it sets the session markers and
+    issues the signed, password-revocable device-trust cookie (which — see
+    ``mfa_device_trust`` — is scoped to the session's own domain so it actually
+    carries to the tenant subdomain).
+
+    Scoped to the enroll-confirm action only (``verify_token`` in POST), so a
+    ``disable_mfa`` / ``regen_backup`` POST never mints trust, and only when the
+    owner left the box ticked (opt-out on a shared machine).
+    """
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    if "verify_token" not in request.POST:
+        return
+    if request.POST.get("remember_device") != "1":
+        return
+    request.session["mfa_verified"] = True
+    request.session["mfa_verified_until"] = (
+        timezone.now() + timedelta(days=14)
+    ).isoformat()
+    try:
+        from apps.accounts.mfa_device_trust import set_device_trust_cookie
+
+        set_device_trust_cookie(response, request.user, request)
+    except (AttributeError, TypeError, ValueError, OSError):
+        # Trust cookie is best-effort; enrollment still succeeded.
+        pass
+
+
 def mfa_has_device(user) -> bool:
     """True when the user has a *confirmed* TOTP device or a passkey.
 

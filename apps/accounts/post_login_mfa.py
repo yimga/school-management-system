@@ -154,6 +154,24 @@ def resolve_post_login_mfa_redirect(request, user, *, next_url: str = ""):
     if request.session.get("mfa_verified") or _mfa_remembered(request):
         return None
 
+    # A durable "trust this device" cookie means this browser already passed MFA
+    # within the trust window. That is the cookie's PRIMARY stated purpose — "not
+    # re-prompted on a re-login" — but only RequireMFAMiddleware honoured it, and
+    # the middleware never sees this path: login redirects straight to
+    # /mfa/verify/ (an exempt URL) before any gated page runs. So a device the
+    # owner explicitly trusted during setup was still hard-prompted for a code on
+    # its very next login. Honour it here too — re-establish the session flag and
+    # continue — exactly as the middleware does (signed, user-bound, revoked by a
+    # password change).
+    try:
+        from apps.accounts.mfa_device_trust import device_trust_valid
+
+        if device_trust_valid(request, user):
+            request.session["mfa_verified"] = True
+            return None
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+
     try:
         from apps.accounts.e2e_mfa_bypass import e2e_mfa_bypass_active
 

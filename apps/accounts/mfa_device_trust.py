@@ -43,6 +43,24 @@ def device_trust_max_age_seconds() -> int:
     return days * 24 * 60 * 60
 
 
+def _device_trust_cookie_domain():
+    """Cookie ``domain`` — aligned with the session cookie, never broader.
+
+    The session cookie is scoped to the parent domain in production
+    (``SESSION_COOKIE_DOMAIN = ".runmycampus.com"`` in render.yaml) so login
+    carries across every tenant subdomain. Without matching that here, the
+    device-trust cookie is HOST-ONLY: an owner who ticks "remember this device"
+    while enrolling on the base/public host gets a cookie that is simply absent
+    on their tenant subdomain — so the durability guarantee this module exists to
+    provide ("survives a session reset") silently fails the moment they cross
+    hosts, and they are re-challenged for MFA on the very tenant they just set up.
+
+    Scoping the trust cookie to exactly the session's domain (``None`` in dev,
+    where it is unset) keeps it no broader than the session it backs.
+    """
+    return getattr(settings, "SESSION_COOKIE_DOMAIN", None) or None
+
+
 def _fingerprint(user) -> str:
     """Short digest that changes when the user's password changes (revocation).
 
@@ -94,6 +112,7 @@ def set_device_trust_cookie(response, user, request) -> None:
         DEVICE_TRUST_COOKIE,
         issue_device_trust_token(user),
         max_age=device_trust_max_age_seconds(),
+        domain=_device_trust_cookie_domain(),
         httponly=True,
         secure=secure,
         samesite="Lax",
@@ -101,5 +120,10 @@ def set_device_trust_cookie(response, user, request) -> None:
 
 
 def clear_device_trust_cookie(response) -> None:
-    """Drop the device-trust cookie (e.g. on 'log out of all devices')."""
-    response.delete_cookie(DEVICE_TRUST_COOKIE)
+    """Drop the device-trust cookie (e.g. on 'log out of all devices').
+
+    Must pass the same ``domain`` used to set it — ``delete_cookie`` only clears
+    a domain-scoped cookie when the domain matches, otherwise the trust survives
+    a "log out of all devices".
+    """
+    response.delete_cookie(DEVICE_TRUST_COOKIE, domain=_device_trust_cookie_domain())
