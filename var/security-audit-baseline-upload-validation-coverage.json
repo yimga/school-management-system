@@ -1,5 +1,5 @@
 {
-  "finding_count": 34,
+  "finding_count": 32,
   "findings": [
     {
       "path": "apps/academics/views_syllabus.py",
@@ -120,16 +120,6 @@
       "path": "apps/portal/views_lms.py",
       "function": "student_assignment_submit",
       "line": 129
-    },
-    {
-      "path": "apps/portal/views_onboarding.py",
-      "function": "student_onboarding_wizard",
-      "line": 174
-    },
-    {
-      "path": "apps/portal/views_onboarding.py",
-      "function": "teacher_onboarding_wizard",
-      "line": 23
     },
     {
       "path": "apps/portal/views_support_quick.py",
