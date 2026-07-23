@@ -1,4 +1,18 @@
-"""Gateway registry: resolve gateway by school and method (Phase 3). Prefer policy from request.tenant_runtime when in request context."""
+"""Gateway registry: resolve gateway by school and method (Phase 3). Prefer policy from request.tenant_runtime when in request context.
+
+STATUS — dormant/scaffolded rail (verified 2026-07-23): ``get_gateway`` and the
+``BasePaymentGateway`` surface it returns (``initiate`` / ``check_status`` /
+``parse_webhook``) currently have NO production callers. Some concrete gateways
+here (e.g. ``razorpay``/``mercado_pago``) DO issue real HTTP in ``initiate`` — do
+not mistake that for a live rail: nothing invokes it yet.
+
+The LIVE inbound webhook path is ``apps.finance.webhooks.normalizer``
+(``normalize_provider_payload``, wired in ``apps.finance.views_payments``), NOT
+``parse_webhook`` here. Bringing an outbound rail live is gated on external PSP
+credentials / partner certification tracked per adapter in
+``apps.billing.psp_adapter_registry`` (``adapter_status``). Until a caller is
+wired end-to-end, treat this module as scaffolding, not a settled payment path.
+"""
 
 from decimal import Decimal
 from typing import Any, Dict, Optional
