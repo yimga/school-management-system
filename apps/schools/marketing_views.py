@@ -2604,6 +2604,16 @@ def blog_post_detail(request, slug: str):
 @require_GET
 def marketing_page(request, page_slug: str):
     normalized_slug = (page_slug or "").strip().lower()
+    # These platform pages render the PUBLIC marketing shell, which reverses
+    # public-host-only URL names ({% url 'find_school' %}, 'global_login_discovery',
+    # 'tour_steps_public_api', …). On a tenant subdomain those names aren't
+    # registered — an unavoidable NoReverseMatch 500 as the shell renders. A
+    # platform legal/marketing page is not tenant-scoped anyway, so send the
+    # visitor to the canonical public-host copy instead of 500ing.
+    if getattr(request, "school", None) is not None:
+        from apps.schools.provision_email_urls import build_public_site_url
+
+        return redirect(build_public_site_url(f"/{normalized_slug}/"))
     reg_s, var_s = _marketing_content_file_params()
     loaded = _load_marketing_page_from_file(
         normalized_slug, region=reg_s, variant=var_s

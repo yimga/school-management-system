@@ -10,7 +10,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.shortcuts import redirect
 from django.urls import include, path
 from django.views.decorators.cache import cache_page
-from rest_framework.schemas import get_schema_view
+from drf_spectacular.views import SpectacularAPIView
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template.response import TemplateResponse
 from django.http import HttpResponseForbidden
@@ -144,13 +144,11 @@ def api_schema_ui(request):
     )
 
 
-_schema_view_raw = cache_page(60)(
-    get_schema_view(
-        title="RunMyCampus API",
-        description="Entity/analytics/session claims schema for frontend orchestration",
-        version="1.0.0",
-    )
-)
+# drf-spectacular is the platform's schema generator (see config/urls.py). DRF's
+# own get_schema_view calls AutoSchema.get_operation() with the legacy signature,
+# which the drf-spectacular AutoSchema on every view does not accept — a hard 500
+# on /api/schema/ for this host. Use the same generator config.urls uses.
+_schema_view_raw = cache_page(60)(SpectacularAPIView.as_view())
 
 
 @login_required

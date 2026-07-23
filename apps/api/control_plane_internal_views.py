@@ -30,6 +30,16 @@ class _ControlPlaneOperatorMixin(LoginRequiredMixin, UserPassesTestMixin):
         return user_has_control_plane_access(getattr(self.request, "user", None))
 
 
+def _safe_reverse(name, **kwargs):
+    """reverse(name) or "" — the operator namespaces (super:/configuration:/admin:)
+    aren't registered on the tenant host, where this manifest is also reachable;
+    an unguarded reverse there is a NoReverseMatch 500 on the whole response."""
+    try:
+        return reverse(name, **kwargs)
+    except NoReverseMatch:
+        return ""
+
+
 class ControlPlaneBridgeManifestAPIView(_ControlPlaneOperatorMixin, View):
     """
     GET JSON manifest of every ``super:admin_bridge`` entry for scripts/Terraform/docsgen.
@@ -67,11 +77,18 @@ class ControlPlaneBridgeManifestAPIView(_ControlPlaneOperatorMixin, View):
         for spec in SUPER_FIRST_PAIRED_SPECS:
             super_url_name = (spec.get("super_url_name") or "").strip()
             bridge_key = (spec.get("bridge_key") or "").strip()
+            try:
+                super_url = reverse(super_url_name) if super_url_name else None
+            except NoReverseMatch:
+                # The super:* namespace isn't registered on the tenant host, and
+                # this manifest is reachable there too — omit the operator-only
+                # link rather than 500 the whole response.
+                super_url = None
             entry = {
                 "slug": spec["slug"],
                 "label": str(spec["label"]),
                 "super_url_name": super_url_name or None,
-                "super_url": reverse(super_url_name) if super_url_name else None,
+                "super_url": super_url,
                 "bridge_key": bridge_key or None,
             }
             if bridge_key:
@@ -93,10 +110,10 @@ class ControlPlaneBridgeManifestAPIView(_ControlPlaneOperatorMixin, View):
             "surface_spine": parity.get("spine", []),
             "surface_parity_ok": bool(parity.get("spine_ok"))
             and bool(parity.get("pairs_ok")),
-            "operator_policy": reverse("super:operator_policy"),
-            "platform_operator_hub": reverse("super:platform_operator_hub"),
-            "configuration_center": reverse("configuration:center"),
-            "platform_admin_index": reverse("admin:index"),
-            "slo_targets_api": reverse("api:api-br-slo-targets"),
+            "operator_policy": _safe_reverse("super:operator_policy"),
+            "platform_operator_hub": _safe_reverse("super:platform_operator_hub"),
+            "configuration_center": _safe_reverse("configuration:center"),
+            "platform_admin_index": _safe_reverse("admin:index"),
+            "slo_targets_api": _safe_reverse("api:api-br-slo-targets"),
         }
         return JsonResponse(payload)

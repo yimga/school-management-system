@@ -33,6 +33,40 @@ _EVALS_NOTIFICATION_SEND_ERRORS = (
 logger = logging.getLogger(__name__)
 
 
+def _tenant_portal_link(school, path: str) -> str:
+    """Absolute HTTPS link on the school's own tenant host for email/SMS CTAs.
+
+    ``settings.BASE_URL`` was never defined in any deployment, so every
+    ``hasattr``-guarded ``f"{settings.BASE_URL}…"`` link here silently degraded
+    to ``"#"`` (a dead button in the daily deadline-reminder email) or a
+    host-less relative path (unclickable from an email client). Route through
+    the canonical tenant-host builder (verified custom domain > subdomain)
+    instead; an operator-defined ``BASE_URL`` still wins as an override.
+    """
+    path = path if path.startswith("/") else f"/{path}"
+    override = (getattr(settings, "BASE_URL", "") or "").strip()
+    if override:
+        return f"{override.rstrip('/')}{path}"
+    try:
+        from apps.schools.provision_email_urls import build_tenant_authentication_url
+
+        if school is not None:
+            return build_tenant_authentication_url(school, path)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    return path  # last resort: relative path — still better than a dead "#"
+
+
+def _whatsapp_default_portal_link() -> str:
+    """Fallback CTA when a WhatsApp template context supplies no portal_link."""
+    try:
+        from apps.schools.provision_email_urls import build_public_discovery_url
+
+        return build_public_discovery_url()
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return ""
+
+
 class NotificationService:
     """Handles SMS, Email, digests, and WhatsApp deeplinks."""
 
@@ -62,9 +96,10 @@ class NotificationService:
                 "student_name": student.get_full_name(),
                 "term_name": term.label,
                 "academic_year": term.academic_year.name,
-                "portal_link": f"{settings.BASE_URL}/portal/parent/results/{student.id}/"
-                if hasattr(settings, "BASE_URL")
-                else "#",
+                "portal_link": _tenant_portal_link(
+                    getattr(student, "school", None),
+                    f"/portal/parent/results/{student.id}/",
+                ),
             }
 
             html_message = render_to_string("emails/grade_publication.html", context)
@@ -105,10 +140,8 @@ class NotificationService:
             from apps.schoolops.sms_templates import render_grade_published_sms
             from apps.communication.comms_locale import locale_target_for_user
 
-            portal_link = (
-                f"{settings.BASE_URL}/portal/results/{student.id}/"
-                if hasattr(settings, "BASE_URL")
-                else "portal"
+            portal_link = _tenant_portal_link(
+                getattr(student, "school", None), f"/portal/results/{student.id}/"
             )
             guardian_user = getattr(guardian, "guardian_user", None)
             locale = locale_target_for_user(guardian_user) or "en"
@@ -154,9 +187,9 @@ class NotificationService:
                 "deadline_at": deadline_at,
                 "days_left": days_left,
                 "subject_count": subject_count,
-                "entry_link": f"{settings.BASE_URL}/evals/teacher/marks/entry/"
-                if hasattr(settings, "BASE_URL")
-                else "#",
+                "entry_link": _tenant_portal_link(
+                    getattr(teacher, "school", None), "/evals/teacher/marks/entry/"
+                ),
             }
 
             html_message = render_to_string("emails/deadline_reminder.html", context)
@@ -290,9 +323,7 @@ class NotificationService:
             "guardian_name": context.get("guardian_name", "Parent"),
             "student_name": context.get("student_name", "your child"),
             "term_name": context.get("term_name", "this term"),
-            "portal_link": context.get(
-                "portal_link", getattr(settings, "BASE_URL", "")
-            ),
+            "portal_link": context.get("portal_link") or _whatsapp_default_portal_link(),
             "ticket_id": context.get("ticket_id", ""),
         }
         message = template.format(**safe_context)
@@ -307,12 +338,14 @@ class NotificationService:
     def send_grade_approval_request_email(self, approver, approval_request) -> bool:
         """Notify approvers when a teacher submits grades for review."""
         try:
-            base_url = getattr(settings, "BASE_URL", "")
-            link = ""
-            if base_url:
-                link = f"{base_url.rstrip('/')}/evals/grade-approvals/{approval_request.id}/"
-            else:
-                link = f"/evals/grade-approvals/{approval_request.id}/"
+            school = getattr(
+                getattr(approval_request, "teacher", None), "school", None
+            ) or getattr(
+                getattr(approval_request, "academic_year", None), "school", None
+            )
+            link = _tenant_portal_link(
+                school, f"/evals/grade-approvals/{approval_request.id}/"
+            )
 
             subject = (
                 f"Grade Approval Needed · {approval_request.subject_assignment.subject.name}"

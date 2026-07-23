@@ -161,6 +161,20 @@ def school_feedback_center(request):
 
 @login_required
 def role_feedback_center(request, role):
+    # This page renders the tenant portal shell (role_center.html extends
+    # portal_base.html → {% url 'portal:...' %}). The 'portal' namespace is not
+    # registered on the control-plane (manager) host, so rendering it there is a
+    # NoReverseMatch 500. The feedback app is mounted on the manager host for its
+    # operator (super/*) routes; these teacher/parent/student surfaces are tenant
+    # pages that leaked in. Send an operator to their own feedback console.
+    if getattr(request, "public_host_kind", None) == "manager":
+        from django.urls import NoReverseMatch, reverse
+
+        try:
+            return redirect(reverse("manager_feedback_loop"))
+        except NoReverseMatch:
+            return redirect("/")
+
     category_map = {
         "teacher": TEACHER_CATEGORIES,
         "parent": PARENT_CATEGORIES,

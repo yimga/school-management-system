@@ -16,7 +16,7 @@ from __future__ import annotations
 import uuid
 
 from django.http import JsonResponse
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 from apps.api.deprecation import build_deprecation_manifest_block
 from apps.siteconfig.billing_sku_registry import manifest_plan_entitlements_block
@@ -110,6 +110,19 @@ def curated_api_v1_discovery_urls(base: str) -> dict[str, str]:
     }
 
 
+def _safe_abs(base: str, name: str) -> str:
+    """Absolute URL for ``name`` on this host, or "" if it isn't routed here.
+
+    The discovery manifest is served on the tenant host too, where some route
+    names (e.g. ``lti_jwks``) aren't registered — a bare ``reverse`` there is a
+    NoReverseMatch 500 on the whole manifest.
+    """
+    try:
+        return f"{base}{reverse(name)}"
+    except NoReverseMatch:
+        return ""
+
+
 def build_api_v1_manifest_data(request) -> dict:
     """Return manifest dict (shared by v1 JsonResponse and v2 extended manifest)."""
     base = request.build_absolute_uri("/").rstrip("/")
@@ -118,9 +131,11 @@ def build_api_v1_manifest_data(request) -> dict:
         "health": f"{base}/healthz/",
         "openapi_staff": f"{base}/api/schema/",
         "developer_public_api_doc": f"{base}/developers/api-docs/",
-        "interop_edfi": f"{base}{reverse('api:interop-edfi')}",
-        "interop_ceds": f"{base}{reverse('api:interop-ceds')}",
-        "interop_district_readiness_sample": f"{base}{reverse('api:interop-district-readiness-sample')}",
+        "interop_edfi": _safe_abs(base, "api:interop-edfi"),
+        "interop_ceds": _safe_abs(base, "api:interop-ceds"),
+        "interop_district_readiness_sample": _safe_abs(
+            base, "api:interop-district-readiness-sample"
+        ),
         **curated_api_v1_discovery_urls(base),
     }
     return {
@@ -139,7 +154,7 @@ def build_api_v1_manifest_data(request) -> dict:
             "idempotency": "Optional header Idempotency-Key; X-Webhook-Idempotency-Key on outbound",
         },
         "lti": {
-            "jwks": f"{base}{reverse('lti_jwks')}",
+            "jwks": _safe_abs(base, "lti_jwks"),
             "configure_lti_tool_jwks_uri": "Set lti_tool_jwks_uri + lti_tool_issuer on LTI ServiceIntegration for signed id_token verify.",
         },
     }

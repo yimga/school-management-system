@@ -310,10 +310,29 @@ def run_support_ticket_reply_hooks(
             try:
                 from apps.siteconfig.email_palette import resolve_email_palette
 
+                # Absolute tenant-host link for the "Open ticket" CTA — without it
+                # the template's |default:'#' made the button dead in every send
+                # from this path (views_support_quick passes it; this hook didn't).
+                ticket_url = ""
+                try:
+                    from django.urls import NoReverseMatch, reverse
+
+                    from apps.schools.provision_email_urls import (
+                        build_tenant_authentication_url,
+                    )
+
+                    ticket_url = build_tenant_authentication_url(
+                        ticket.school,
+                        reverse("portal:support_ticket_detail", args=[ticket.pk]),
+                    )
+                except (NoReverseMatch, ImportError, AttributeError, TypeError, ValueError):
+                    ticket_url = ""
+
                 ctx = {
                     "ticket": ticket,
                     "reply_body": body_text[:8000],
                     "school": ticket.school,
+                    "ticket_url": ticket_url,
                     # Branded inline-hex palette (no request here — supply explicitly).
                     "brand_email": resolve_email_palette(site=ticket.school),
                 }

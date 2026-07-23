@@ -6,7 +6,7 @@ from pathlib import Path
 from django.conf import settings
 from django.db.models import Q
 from django.http import JsonResponse
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 from apps.api.rate_limit import throttle_ip_request
 from apps.interop.district_readiness import parse_district_readiness_dict
@@ -243,23 +243,22 @@ def lti13_readiness(request):
         else:
             payload["status"] = "ready"
         if integration:
+            # LTI routes aren't registered on every host (e.g. the tenant host
+            # serves this endpoint but not lti_jwks); a bare reverse there would
+            # 500 the whole response. Omit any endpoint that isn't routed here.
+            def _abs(name, *args):
+                try:
+                    return request.build_absolute_uri(reverse(name, args=args))
+                except NoReverseMatch:
+                    return ""
+
             payload["endpoints"] = {
-                "oidc_login": request.build_absolute_uri(
-                    reverse("lti_launch", args=[integration.pk])
-                ),
-                "oidc_callback": request.build_absolute_uri(
-                    reverse("lti_launch_callback", args=[integration.pk])
-                ),
-                "jwks": request.build_absolute_uri(reverse("lti_jwks")),
-                "ags_lineitems": request.build_absolute_uri(
-                    reverse("lti_ags_lineitems", args=[integration.pk])
-                ),
-                "nrps_memberships": request.build_absolute_uri(
-                    reverse("lti_nrps_memberships", args=[integration.pk])
-                ),
-                "deep_linking": request.build_absolute_uri(
-                    reverse("lti_deep_linking", args=[integration.pk])
-                ),
+                "oidc_login": _abs("lti_launch", integration.pk),
+                "oidc_callback": _abs("lti_launch_callback", integration.pk),
+                "jwks": _abs("lti_jwks"),
+                "ags_lineitems": _abs("lti_ags_lineitems", integration.pk),
+                "nrps_memberships": _abs("lti_nrps_memberships", integration.pk),
+                "deep_linking": _abs("lti_deep_linking", integration.pk),
             }
     return JsonResponse(payload, status=status)
 

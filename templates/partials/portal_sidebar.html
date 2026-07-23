@@ -37,7 +37,7 @@ SiteSettings.cockpit_payload.
     </div>
     <div class="sidebar-info">
       <h6>{{ request.user.get_full_name|default:request.user.username }}</h6>
-      <p>{% if SHOW_ROLE_SWITCHER %}{% trans "Viewing as" %}: {{ EFFECTIVE_PORTAL_ROLE|default:"Portal User" }}{% else %}{{ EFFECTIVE_PORTAL_ROLE|default:request.user.role|default:"Portal User" }}{% endif %}</p>
+      <p>{% if SHOW_ROLE_SWITCHER %}{% trans "Viewing as" %}: {{ EFFECTIVE_PORTAL_ROLE|default:"Portal User" }}{% else %}{{ EFFECTIVE_PORTAL_ROLE|default:"Portal User" }}{% endif %}</p>
     </div>
   </div>
   {% if SHOW_ROLE_SWITCHER %}
@@ -68,7 +68,7 @@ SiteSettings.cockpit_payload.
      data-preview-label="{% trans 'Sidebar navigation' %}"
      data-preview-changes="{% trans 'Menu items, order from Site Settings' %}">
   {% if request.user.is_authenticated %}
-    {% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
+    {% with nav_role=EFFECTIVE_PORTAL_ROLE %}{# EFFECTIVE_PORTAL_ROLE is set by siteconfig context processor (role for authed, "" for anon) — never touch request.user.role, which raises for AnonymousUser on public shell pages #}
     {% comment %}Phase 16: Quick access (pinned) items at top{% endcomment %}
     {% if PINNED_SIDEBAR_ITEMS %}
       {% if tp_v3_tenant_shell %}
@@ -358,7 +358,7 @@ SiteSettings.cockpit_payload.
   <a class="nav-link nav-pill" href="{% url 'kb:user_contributions' %}">
     <i class="bi bi-trophy me-2"></i>{% trans "My Contributions" %}
   </a>
-  {% if request.user.is_staff and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'PARENT' and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'STUDENT' %}
+  {% if request.user.is_staff and EFFECTIVE_PORTAL_ROLE != 'PARENT' and EFFECTIVE_PORTAL_ROLE != 'STUDENT' %}
     <a class="nav-link nav-pill" href="/admin/" aria-label="{% trans 'Advanced admin fallback: open in Django admin' %}"><i class="bi bi-shield-lock me-2"></i>{% trans "Open Admin" %}</a>
   {% endif %}
 </div>

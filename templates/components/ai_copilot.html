@@ -1,6 +1,6 @@
 {% load static i18n %}
 {% comment %} AI Copilot Assistant - RBAC Compatible {% endcomment %}
-{% with nav_role=EFFECTIVE_PORTAL_ROLE|default:request.user.role %}
+{% with nav_role=EFFECTIVE_PORTAL_ROLE %}{# EFFECTIVE_PORTAL_ROLE set by context processor; request.user.role raises for anon #}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="ai-copilot-wrapper ai-copilot-above-footer">
   <!-- Floating AI Button -->

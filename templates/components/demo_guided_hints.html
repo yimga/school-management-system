@@ -6,7 +6,7 @@
     <span class="text-muted small fw-normal ms-1">{% trans "(tap to expand)" %}</span>
   </summary>
   {% if request.user.is_authenticated %}
-  {% with role=EFFECTIVE_PORTAL_ROLE|default:request.user.role|default:''|upper %}
+  {% with role=EFFECTIVE_PORTAL_ROLE|default:''|upper %}
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="d-flex flex-wrap gap-2 mt-2 mb-2" data-rmc-demo-guided-ctas="1">
     {% if role == 'PARENT' %}
