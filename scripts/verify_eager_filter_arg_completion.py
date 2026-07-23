@@ -1,13 +1,25 @@
 #!/usr/bin/env python3
-"""Completion gate: eager filter-arg VariableDoesNotExist 500 class is 100% sealed.
+"""Completion gate for the eager filter-arg VariableDoesNotExist 500 class.
 
 This is the proof harness for the production failure class that 500'd
 ``/super/schools/`` and ``/configuration/`` on 2026-07-22
 (``Failed lookup for key [ops_surface]``).
 
+Scope, stated honestly: this gate proves the class is sealed across the
+*complete builtin argument-taking filter surface* — the static scanner
+(``scan_include_with_default_context_var.py``) now covers every builtin filter
+that takes an argument, not just the original four — AND proves the underlying
+Django mechanism behaviorally (R1) plus sparse renders of the specific frames
+that 500'd (R2/R3). It does NOT render every template under every possible
+context, and it does not see argument-taking *custom* template filters, so it is
+a strong static+behavioral proof of the known class, not an absolute
+"no template can ever 500" guarantee.
+
 Django resolves every filter *argument* eagerly. A missing top-level context
-variable used as ``|default:``, ``|default_if_none:``, ``|slice:``, or ``|add:``
-argument raises ``VariableDoesNotExist`` — even when the left-hand value is set.
+variable used as an argument to ANY argument-taking builtin filter
+(``|default:``, ``|default_if_none:``, ``|slice:``, ``|add:``, ``|truncatewords:``,
+``|ljust:``, ``|date:``, …) raises ``VariableDoesNotExist`` — even when the
+left-hand value is set.
 
 This verifier does NOT stop at "scanner is green". It must PASS every row:
 

@@ -14,12 +14,14 @@
 <div class="rmc-skeleton-block" data-layout="{{ layout }}" aria-busy="true" aria-label="{% trans 'Loading content' %}">
   {% if layout == 'card-grid' %}
     <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+      {# default-fallback-allow: rows-is-with-bound-with-default-5-on-line-12 #}
       {% for i in "x"|rjust:rows %}
         <div class="rmc-skeleton rmc-skeleton--card"></div>
       {% endfor %}
     </div>
   {% elif layout == 'list' %}
     <div class="d-flex flex-column gap-3">
+      {# default-fallback-allow: rows-is-with-bound-with-default-5-on-line-12 #}
       {% for i in "x"|rjust:rows %}
         <div class="d-flex align-items-center gap-3">
           <span class="rmc-skeleton rmc-skeleton--avatar"></span>
@@ -39,6 +41,7 @@
           </tr>
         </thead>
         <tbody>
+          {# default-fallback-allow: rows-is-with-bound-with-default-5-on-line-12 #}
           {% for r in "x"|rjust:rows %}
             <tr>
               {% for i in "xxxxx" %}<td><span class="rmc-skeleton rmc-skeleton--line" style="width:{% cycle 80 60 90 50 75 %}%"></span></td>{% endfor %}
@@ -49,6 +52,7 @@
     </div>
   {% elif layout == 'form' %}
     <div class="d-flex flex-column gap-3">
+      {# default-fallback-allow: rows-is-with-bound-with-default-5-on-line-12 #}
       {% for i in "x"|rjust:rows %}
         <div>
           <div class="rmc-skeleton rmc-skeleton--line" style="width: 25%; margin-bottom: 0.4rem;"></div>

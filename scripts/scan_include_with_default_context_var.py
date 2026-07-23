@@ -10,7 +10,10 @@ the page. Proven on Django 5.2:
     {{ a|add:b }}              # raises if b missing
     {% include "x" with y=a|default:b %}  # same
 
-Covered filters: ``default``, ``default_if_none``, ``slice``, ``add``.
+Covered filters: the complete argument-taking builtin filter surface (see
+``_ARG_FILTERS`` below) — not just the original four. Every builtin filter that
+takes an argument resolves that argument eagerly, so the 500 class is identical
+regardless of the filter name.
 
 Safe arguments: string/number literals, None/True/False, _("…") / gettext,
 and ``forloop.*`` (only valid inside ``{% for %}``).
@@ -39,10 +42,44 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Match |default: / |default_if_none: / |slice: / |add: followed by a bare
-# context identifier (not a safe literal / builtin / gettext call).
+# Match any argument-taking builtin filter followed by a bare context
+# identifier (not a safe literal / builtin / gettext call). EVERY filter that
+# takes an argument resolves that argument eagerly via ``Variable(arg).resolve``
+# at render time, so a missing top-level name used as the argument raises
+# ``VariableDoesNotExist`` regardless of which filter it is — not just the
+# original four (default / default_if_none / slice / add). The set below is the
+# complete argument-taking builtin filter surface (django/template/defaultfilters.py).
+_ARG_FILTERS = (
+    "default_if_none",  # must precede ``default`` in the alternation
+    "default",
+    "slice",
+    "add",
+    "divisibleby",
+    "floatformat",
+    "get_digit",
+    "stringformat",
+    "ljust",
+    "rjust",
+    "center",
+    "cut",
+    "wordwrap",
+    "truncatechars_html",  # must precede ``truncatechars``
+    "truncatechars",
+    "truncatewords_html",  # must precede ``truncatewords``
+    "truncatewords",
+    "urlizetrunc",
+    "date",
+    "time",
+    "timesince",
+    "timeuntil",
+    "pluralize",
+    "yesno",
+    "dictsortreversed",  # must precede ``dictsort``
+    "dictsort",
+    "join",
+)
 _FILTER_ARG_RE = re.compile(
-    r"\|\s*(?:default(?:_if_none)?|slice|add)\s*:\s*"
+    r"\|\s*(?:" + "|".join(_ARG_FILTERS) + r")\s*:\s*"
     r"(?!_?\(|[\"']|None\b|True\b|False\b|\d)"
     r"([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)"
 )
