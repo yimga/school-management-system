@@ -2,12 +2,16 @@
 Tests for photo upload by token: feature flag, permissions, cleanup command, rate limit.
 """
 
+import tempfile
 from io import StringIO
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
+
+_PHOTO_TEST_MEDIA = tempfile.mkdtemp(prefix="rmc_photo_upload_test_")
 
 from apps.portal.models import PhotoUploadToken
 from apps.people.models import StudentProfile, TeacherProfile
@@ -166,6 +170,58 @@ class CleanupPhotoUploadTokensCommandTests(TestCase):
         call_command("cleanup_photo_upload_tokens", stdout=out)
         self.assertIn("No expired tokens", out.getvalue())
         self.assertTrue(PhotoUploadToken.objects.filter(pk=token.pk).exists())
+
+
+@override_settings(MEDIA_ROOT=_PHOTO_TEST_MEDIA)
+class PhotoUploadMagicByteTests(TestCase):
+    """The anonymous token upload endpoint gates on sniffed magic bytes:
+    real raster PNG/JPEG/WebP only. A renamed SVG or a payload with a spoofed
+    ``image/*`` content_type is rejected before it is ever stored — the
+    stored-XSS defense the brand-asset path already enforces."""
+
+    def setUp(self):
+        _site_with_photo_upload_remote(True)
+        self.token = PhotoUploadToken.objects.create(
+            purpose=PhotoUploadToken.Purpose.REGISTRATION
+        )
+
+    def _upload(self, uploaded):
+        url = reverse("portal:photo_upload_upload", kwargs={"token": self.token.token})
+        return self.client.post(url, {"photo": uploaded})
+
+    def test_real_png_is_accepted(self):
+        png = SimpleUploadedFile(
+            "photo.png", b"\x89PNG\r\n\x1a\nthe-rest", content_type="image/png"
+        )
+        response = self._upload(png)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json().get("ok"))
+        self.token.refresh_from_db()
+        self.assertTrue(self.token.photo)
+
+    def test_svg_declared_as_image_is_rejected(self):
+        svg = SimpleUploadedFile(
+            "photo.svg",
+            b"<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>",
+            content_type="image/svg+xml",
+        )
+        response = self._upload(svg)
+        self.assertEqual(response.status_code, 400)
+        self.token.refresh_from_db()
+        self.assertFalse(self.token.photo)
+
+    def test_spoofed_content_type_is_rejected(self):
+        # HTML/script bytes with a lying image/png content_type: passes the weak
+        # startswith("image/") check but fails the magic-byte sniff.
+        evil = SimpleUploadedFile(
+            "evil.png",
+            b"<html><body><script>alert(1)</script></body></html>",
+            content_type="image/png",
+        )
+        response = self._upload(evil)
+        self.assertEqual(response.status_code, 400)
+        self.token.refresh_from_db()
+        self.assertFalse(self.token.photo)
 
 
 class PhotoUploadRateLimitTests(TestCase):
