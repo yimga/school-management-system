@@ -300,6 +300,20 @@ jobs:
         run: |
           python scripts/scan_config_resolver_fragmentation.py --compare
 
+  upload-validation-coverage:
+    name: Upload-validation coverage ratchet
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_upload_validation_coverage.py --compare
+
   granular-rbac-adoption:
     name: Granular-RBAC adoption ratchet
     runs-on: ubuntu-latest
