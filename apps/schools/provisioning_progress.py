@@ -58,6 +58,17 @@ _STEP_LABELS: dict[str, str] = {
     "phase_b": _("Finishing optional setup"),
 }
 
+# Real provisioning budget — MIRRORS ``begin_run(expected_duration_seconds=600)``
+# in ``apps/schools/tasks.py``. The ``tenant_schema`` step migrates a fresh tenant
+# schema (~500 migrations, legitimately minutes). The no-run fallback below uses
+# this so its time-based estimate tracks the ACTUAL budget instead of the old 180s
+# guess, which raced the fake bar to 85% in under 3 minutes and then sat there —
+# implying progress that was not happening. Past this ceiling with still no
+# ``WorkflowRun``, the fallback surfaces an honest ``stuck`` state (the drive never
+# recorded a run — begin_run swallowed an error, the worker died, or the outbox row
+# never drained) so the owner sees the retry affordance, not a frozen fake bar.
+_PROVISION_EXPECTED_SECONDS = 600  # magic-number-allow: provision-expected-duration-mirrors-begin_run
+
 
 def _provisioning_settings(school) -> dict[str, Any]:
     raw = getattr(school, "settings", None) or {}
@@ -510,9 +521,34 @@ def _progress_while_run_not_yet_visible(school) -> dict[str, Any]:
     steps = _default_steps()
     if started_at is not None:
         age = max(0, int((timezone.now() - started_at).total_seconds()))
-        expected = 180  # magic-number-allow: provision-expected-duration-seconds
+        expected = _PROVISION_EXPECTED_SECONDS
+        # Past the full expected budget with STILL no WorkflowRun, the drive never
+        # recorded a run (begin_run swallowed an error, the worker died, or the
+        # outbox row never drained). Stop climbing a fake bar and tell the truth so
+        # the owner poll surfaces the "needs attention" panel + retry button
+        # (rmc-tenant-provision-progress.js already renders it on stuck === true)
+        # instead of a bar frozen at a percentage that implies progress.
+        if age > expected:
+            return {
+                "status": "running",
+                "progress_percent": min(
+                    85, max(8, int(round((age / expected) * 100)))
+                ),
+                "current_key": "tenant_schema",
+                "current_label": str(
+                    _("This is taking longer than usual — you can retry setup.")
+                ),
+                "steps": steps,
+                "workflow_run_id": None,
+                "eta": 0,
+                "stuck": True,
+                "remediation": _suggested_remediation_payload(None),
+            }
+        # Cadence tracks the real budget: ~1/len steps of the window per step, so
+        # the estimate no longer sprints through all five steps in 180s.
+        seconds_per_step = max(1, expected // len(PROVISION_STEP_KEYS))
         pct = min(85, max(8, int(round((age / expected) * 100))))
-        active_idx = min(len(PROVISION_STEP_KEYS) - 1, age // 36)
+        active_idx = min(len(PROVISION_STEP_KEYS) - 1, age // seconds_per_step)
         active_key = PROVISION_STEP_KEYS[active_idx]
         for idx, step in enumerate(steps):
             if idx < active_idx:
@@ -527,6 +563,7 @@ def _progress_while_run_not_yet_visible(school) -> dict[str, Any]:
             "steps": steps,
             "workflow_run_id": None,
             "eta": max(5, expected - age),
+            "stuck": False,
             "remediation": _suggested_remediation_payload(None),
         }
 
@@ -539,6 +576,7 @@ def _progress_while_run_not_yet_visible(school) -> dict[str, Any]:
         "steps": steps,
         "workflow_run_id": None,
         "eta": 90,
+        "stuck": False,
         "remediation": _suggested_remediation_payload(None),
     }
 
@@ -666,6 +704,7 @@ def resolve_provisioning_progress(
     unified = resolve_unified_lifecycle(school)
     flags = resolve_phase_flags(school)
     run = _latest_workflow_run(school)
+    fallback_stuck = False
 
     if run is not None:
         steps = _steps_from_run(run)
@@ -702,6 +741,7 @@ def resolve_provisioning_progress(
         workflow_run_id = fallback["workflow_run_id"]
         eta = fallback["eta"]
         remediation = fallback["remediation"]
+        fallback_stuck = bool(fallback.get("stuck"))
 
     blocking = _blocking_error(school, run)
 
@@ -723,8 +763,10 @@ def resolve_provisioning_progress(
 
     # Stuck detection: a run that's gone silent past its heartbeat is "running"
     # by status but should be surfaced as delayed so the UI stops pretending to
-    # advance and the watchdog/owner can act.
-    stuck = status == "running" and _run_is_stuck(run)
+    # advance and the watchdog/owner can act. The no-run fallback also raises this
+    # (a STARTED event with no WorkflowRun past the expected budget) — without the
+    # OR, that signal was dropped because this line only consulted ``run``.
+    stuck = (status == "running" and _run_is_stuck(run)) or fallback_stuck
 
     # Completion summary (the owner-facing "here's what we set up" report) is
     # only worth computing once the portal is ready — keep early polls cheap.

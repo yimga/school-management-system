@@ -244,20 +244,21 @@ def _execute_row(row) -> None:
         schema = str(row.tenant_schema or payload.get("tenant_schema") or "").strip()
         stdout, stderr = StringIO(), StringIO()
         if schema:
-            try:
-                from django_tenants.utils import schema_context
-            except ImportError:
-                schema_context = None
-            if schema_context is not None:
-                with schema_context(schema):
-                    call_command(
-                        "migrate",
-                        "--run-syncdb",
-                        interactive=False,
-                        stdout=stdout,
-                        stderr=stderr,
-                    )
-                return
+            # Single-schema migrate. A flag-less ``migrate`` here is django_tenants'
+            # ``MigrateSchemasCommand`` with no scope → "sync both" = public + EVERY
+            # tenant schema, ignoring the ``schema_context`` (the executor sets the
+            # schema itself). ``migrate_schemas --tenant --schema=<this>`` migrates
+            # only this one — same fix as onboarding_service._run_tenant_migrations.
+            call_command(
+                "migrate_schemas",
+                schema_name=schema,
+                tenant=True,
+                run_syncdb=True,
+                interactive=False,
+                stdout=stdout,
+                stderr=stderr,
+            )
+            return
         call_command(
             "run_tenant_migrations",
             "--noinput",

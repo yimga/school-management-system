@@ -142,20 +142,46 @@ def _discard_connection() -> None:
 
 
 def _run_tenant_migrations(client) -> None:
-    """Run migrations for the given tenant schema. Tables created = Master Table List (see docs/MASTER_TABLE_LIST.md)."""
+    """Migrate ONLY this tenant's schema to HEAD. Tables created = Master Table List (see docs/MASTER_TABLE_LIST.md).
+
+    CRITICAL — must scope to a single schema. ``django_tenants`` is first in
+    INSTALLED_APPS, so it SHADOWS Django's ``migrate`` command: a flag-less
+    ``call_command("migrate", ...)`` is actually ``MigrateSchemasCommand`` with no
+    ``--tenant``/``--schema``, which its ``SyncCommon.handle`` expands to "sync
+    both" — migrating ``public`` AND EVERY tenant schema in the database, inline,
+    on every provision. That is O(N tenants) of blocking DDL per school (minutes →
+    gunicorn/celery time-limit kill → partial schema → requeue), and the standard
+    executor has NO per-tenant isolation, so ONE broken sibling schema (a husk,
+    fake-applied drift) makes every school's ``tenant_schema`` step fail
+    deterministically — the "stuck at tenant_schema (53%), requeue loops forever"
+    symptom. ``migrate_schemas --tenant --schema=<this>`` routes to
+    ``executor.run_migrations(tenants=[schema])`` — this one schema only, never
+    public, bounded runtime, no sibling blast radius. It also matches the
+    pre-migrate ``heal_tenant_schema_drift --schema <this>`` scope in the caller.
+    """
     if not use_django_tenants():
         return
     try:
         from django_tenants.utils import tenant_context
         from django.core.management import call_command
 
+        schema_name = str(getattr(client, "schema_name", "") or "").strip()
         with tenant_context(client):
             lock_ms = _tenant_migrate_lock_timeout_ms()
             if lock_ms > 0:
                 _set_lock_timeout(lock_ms)
             migrate_ok = False
             try:
-                call_command("migrate", "--run-syncdb", verbosity=1)
+                # Single-schema migrate (see docstring): NOT the flag-less
+                # ``migrate`` that silently fans out over public + all tenants.
+                call_command(
+                    "migrate_schemas",
+                    schema_name=schema_name,
+                    tenant=True,
+                    run_syncdb=True,
+                    interactive=False,
+                    verbosity=1,
+                )
                 migrate_ok = True
             finally:
                 if lock_ms > 0:
