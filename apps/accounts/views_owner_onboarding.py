@@ -129,33 +129,13 @@ def _owner_mfa_enrolled(user) -> bool:
         return False
 
 
-def _owner_mfa_waive_allowed(request, user) -> bool:
-    """True when soft-launch policy lets the owner finish without enrolling yet."""
-    try:
-        from apps.accounts.mfa_defaults import resolve_mfa_enforcement
-        from apps.accounts.post_login_mfa import _resolve_enforcement_mode
-
-        mode, grace_days = _resolve_enforcement_mode(request, user)
-        decision = resolve_mfa_enforcement(
-            must_have_mfa=True,
-            has_device=False,
-            mode=mode,
-            grace_period_days=grace_days,
-            user=user,
-        )
-        return decision.action in ("nudge", "grace", "none")
-    except Exception:  # noqa: BLE001 — default allow waive so new owners are never trapped
-        return True
-
-
 def _owner_mfa_satisfied(request, user, school) -> bool:
-    """Enrolled, waived during onboarding, or soft-launch policy allows continue."""
+    """Enrolled, or covered by a grandfathered pre-mandatory waiver."""
+    del request
     if _owner_mfa_enrolled(user):
         return True
     state = onboarding_state(school) if school is not None else {}
-    if state.get("mfa_waived"):
-        return True
-    return _owner_mfa_waive_allowed(request, user)
+    return bool(state.get("mfa_waived"))
 
 
 def _post_onboarding_dashboard_href(request, school) -> str:
@@ -467,10 +447,10 @@ def owner_onboarding_school(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def owner_onboarding_mfa(request):
-    """MFA wizard step — enroll or continue later when soft-launch policy allows.
+    """Mandatory MFA enrollment for the first tenant owner.
 
     Renders MFA enrollment inside the owner-onboarding shell (step 3 of 4).
-    Middleware remains a backstop only. Already-enrolled / waived owners skip to done.
+    Middleware remains a backstop only. Already-enrolled owners skip to done.
     """
     from django.urls import reverse
 
@@ -496,16 +476,8 @@ def owner_onboarding_mfa(request):
     _set_onboarding(school, step="mfa")
     done = reverse("accounts:owner_onboarding_done")
     next_url = _safe_next_url(request, request.POST.get("next") or done, done)
-    waive_allowed = _owner_mfa_waive_allowed(request, request.user)
 
     if request.method == "POST":
-        if "waive_mfa" in request.POST and waive_allowed:
-            _set_onboarding(school, step="done", mfa_waived=True)
-            messages.info(
-                request,
-                _l("You can turn on two-factor authentication later from Security settings."),
-            )
-            return redirect("accounts:owner_onboarding_done")
         outcome, mfa_ctx = handle_mfa_setup_post(request, next_url=next_url)
         if outcome in ("redirect_next", "redirect_profile") or _owner_mfa_enrolled(
             request.user
@@ -525,9 +497,8 @@ def owner_onboarding_mfa(request):
                     "step": 3,
                     "total_steps": _TOTAL_STEPS,
                     "onboarding_mfa": True,
-                    "mfa_waive_allowed": waive_allowed,
                     "next_url": next_url,
-                    "remember_device_default": True,
+                    "remember_device_default": False,
                 }
             )
             return render(request, "accounts/owner_onboarding/mfa.html", mfa_ctx)
@@ -539,9 +510,8 @@ def owner_onboarding_mfa(request):
             "step": 3,
             "total_steps": _TOTAL_STEPS,
             "onboarding_mfa": True,
-            "mfa_waive_allowed": waive_allowed,
             "next_url": next_url,
-            "remember_device_default": True,
+            "remember_device_default": False,
         }
     )
     return render(request, "accounts/owner_onboarding/mfa.html", ctx)
@@ -554,7 +524,7 @@ def owner_onboarding_done(request):
     if school is None:
         return _dashboard_redirect()
 
-    # Soft gate: enrolled, waived, or optional/grace policy — never trap forever.
+    # Mandatory for new owners; a pre-existing stored waiver remains grandfathered.
     if not _owner_mfa_satisfied(request, request.user, school):
         return redirect("accounts:owner_onboarding_mfa")
 

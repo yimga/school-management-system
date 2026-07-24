@@ -97,14 +97,19 @@ def apply_device_trust_on_enroll(request, response) -> None:
         return
     if request.POST.get("remember_device") != "1":
         return
+    from apps.accounts.mfa_device_trust import normalize_device_trust_days
+
+    trust_days = normalize_device_trust_days(request.POST.get("trust_days"))
     request.session["mfa_verified"] = True
     request.session["mfa_verified_until"] = (
-        timezone.now() + timedelta(days=14)
+        timezone.now() + timedelta(days=trust_days)
     ).isoformat()
     try:
         from apps.accounts.mfa_device_trust import set_device_trust_cookie
 
-        set_device_trust_cookie(response, request.user, request)
+        set_device_trust_cookie(
+            response, request.user, request, trust_days=trust_days
+        )
     except (AttributeError, TypeError, ValueError, OSError):
         # Trust cookie is best-effort; enrollment still succeeded.
         pass
@@ -131,6 +136,10 @@ def mfa_has_device(user) -> bool:
 
 def build_mfa_setup_context(request, *, next_url: str = "") -> dict:
     """Read-only MFA wizard state for templates."""
+    from apps.accounts.mfa_device_trust import (
+        device_trust_allowed_days,
+        device_trust_default_days,
+    )
     from apps.accounts.views_passkey import _webauthn_available
     from apps.accounts.models import UserPasskey
 
@@ -160,6 +169,8 @@ def build_mfa_setup_context(request, *, next_url: str = "") -> dict:
         "next_url": next_url,
         "use_passkey": _webauthn_available(),
         "passkeys": passkeys,
+        "mfa_trust_days_options": device_trust_allowed_days(),
+        "mfa_trust_default_days": device_trust_default_days(),
     }
 
 

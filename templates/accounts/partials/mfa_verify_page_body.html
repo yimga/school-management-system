@@ -33,10 +33,16 @@
           {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
           <label class="visually-hidden" for="token">{% trans "Authentication code" %}</label>
           {% include "components/security_checkpoint_otp.html" with autofocus=True %}
-          <label class="rmc-security-checkpoint__trust">
+          <div class="rmc-security-checkpoint__trust">
             <input type="checkbox" id="remember_device" name="remember_device" value="1">
-            {% trans "Trust this device for 14 days" %}
-          </label>
+            <label for="remember_device">{% trans "Trust this device and skip MFA prompts on this browser for" %}</label>
+            <label class="visually-hidden" for="trust_days">{% trans "Trusted-device period" %}</label>
+            <select id="trust_days" name="trust_days" class="form-select form-select-sm">
+              {% for days in mfa_trust_days_options %}
+              <option value="{{ days }}"{% if days == mfa_trust_default_days %} selected{% endif %}>{% blocktrans count trust_days=days %}{{ trust_days }} day{% plural %}{{ trust_days }} days{% endblocktrans %}</option>
+              {% endfor %}
+            </select>
+          </div>
           <div class="rmc-security-checkpoint__actions">
             <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle me-1"></i>{% trans "Verify and continue" %}</button>
           </div>

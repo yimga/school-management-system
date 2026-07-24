@@ -187,7 +187,10 @@ def passkey_authentication_verify(request):
         response = JsonResponse({"ok": True})
         remember = data.get("remember_device") is True
         if remember:
-            until = timezone.now() + timedelta(days=14)
+            from apps.accounts.mfa_device_trust import normalize_device_trust_days
+
+            trust_days = normalize_device_trust_days(data.get("trust_days"))
+            until = timezone.now() + timedelta(days=trust_days)
             request.session["mfa_verified_until"] = until.isoformat()
             # Issue the durable device-trust cookie too — parity with the TOTP
             # path (mfa_setup_flow.apply_device_trust_on_enroll / views_mfa). A
@@ -196,7 +199,9 @@ def passkey_authentication_verify(request):
             try:
                 from apps.accounts.mfa_device_trust import set_device_trust_cookie
 
-                set_device_trust_cookie(response, request.user, request)
+                set_device_trust_cookie(
+                    response, request.user, request, trust_days=trust_days
+                )
             except (AttributeError, TypeError, ValueError, OSError):
                 pass
         return response
@@ -214,11 +219,18 @@ def passkey_verify_page(request):
     has_passkey = UserPasskey.objects.filter(user=request.user).exists()
     if not has_totp and not has_passkey:
         return redirect("accounts:mfa_setup")
+    from apps.accounts.mfa_device_trust import (
+        device_trust_allowed_days,
+        device_trust_default_days,
+    )
+
     return render(
         request,
         "accounts/mfa_verify.html",
         {
             "next_url": request.GET.get("next", ""),
             "use_passkey": _webauthn_available() and has_passkey,
+            "mfa_trust_days_options": device_trust_allowed_days(),
+            "mfa_trust_default_days": device_trust_default_days(),
         },
     )

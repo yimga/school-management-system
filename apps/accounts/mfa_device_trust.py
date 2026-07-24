@@ -19,27 +19,87 @@ Security properties:
 from __future__ import annotations
 
 import hashlib
-import os
+import time
 
 from django.conf import settings
 from django.core import signing
 
 DEVICE_TRUST_COOKIE = "mfa_device_trust"
 _SALT = "apps.accounts.mfa_device_trust.v1"
-_DEFAULT_DAYS = 30
+_DEFAULT_MAX_DAYS = 30
+_DEFAULT_TRUST_DAYS = 14
+_DEFAULT_ALLOWED_DAYS = (1, 7, 14, 30)
+_ABSOLUTE_MAX_DAYS = 90
 
 
-def device_trust_max_age_seconds() -> int:
-    """Trust window in seconds (``MFA_DEVICE_TRUST_DAYS`` env, default 30 days)."""
-    raw = (os.getenv("MFA_DEVICE_TRUST_DAYS", "") or "").strip()
-    days = _DEFAULT_DAYS
+def device_trust_max_days() -> int:
+    """Platform cap for a trusted-device waiver (default 30, hard cap 90 days)."""
+    raw = str(getattr(settings, "MFA_DEVICE_TRUST_DAYS", "") or "").strip()
+    days = _DEFAULT_MAX_DAYS
     if raw:
         try:
             value = int(raw)
             if value > 0:
-                days = value
+                days = min(value, _ABSOLUTE_MAX_DAYS)
         except ValueError:
             pass
+    return days
+
+
+def device_trust_allowed_days() -> tuple[int, ...]:
+    """Selectable trust periods, constrained by the platform maximum."""
+    raw = str(
+        getattr(settings, "MFA_DEVICE_TRUST_ALLOWED_DAYS", "") or ""
+    ).strip()
+    values: list[int] = []
+    candidates = raw.replace(",", " ").split() if raw else _DEFAULT_ALLOWED_DAYS
+    for candidate in candidates:
+        try:
+            value = int(candidate)
+        except (TypeError, ValueError):
+            continue
+        if 0 < value <= device_trust_max_days() and value not in values:
+            values.append(value)
+    if not values:
+        values.append(device_trust_max_days())
+    return tuple(sorted(values))
+
+
+def device_trust_default_days() -> int:
+    """Default selection, always one of :func:`device_trust_allowed_days`."""
+    allowed = device_trust_allowed_days()
+    raw = str(
+        getattr(settings, "MFA_DEVICE_TRUST_DEFAULT_DAYS", "") or ""
+    ).strip()
+    try:
+        requested = int(raw) if raw else _DEFAULT_TRUST_DAYS
+    except ValueError:
+        requested = _DEFAULT_TRUST_DAYS
+    if requested in allowed:
+        return requested
+    return min(allowed, key=lambda value: abs(value - requested))
+
+
+def normalize_device_trust_days(value) -> int:
+    """Return an allowed trust period; arbitrary client values never extend it."""
+    try:
+        requested = int(value)
+    except (TypeError, ValueError):
+        requested = device_trust_default_days()
+    allowed = device_trust_allowed_days()
+    return requested if requested in allowed else device_trust_default_days()
+
+
+def device_trust_max_age_seconds(days=None) -> int:
+    """Trust lifetime in seconds.
+
+    With no explicit period this returns the platform validation cap for
+    backward-compatible cookies. New cookies always pass a selected period.
+    """
+    if days is None:
+        days = device_trust_max_days()
+    else:
+        days = normalize_device_trust_days(days)
     return days * 24 * 60 * 60
 
 
@@ -75,9 +135,16 @@ def _fingerprint(user) -> str:
     return hashlib.sha256((base or "").encode("utf-8")).hexdigest()[:16]
 
 
-def issue_device_trust_token(user) -> str:
+def issue_device_trust_token(user, *, trust_days=None) -> str:
+    days = normalize_device_trust_days(trust_days)
+    expires_at = int(time.time()) + device_trust_max_age_seconds(days)
     return signing.dumps(
-        {"uid": str(getattr(user, "pk", "")), "fp": _fingerprint(user)},
+        {
+            "uid": str(getattr(user, "pk", "")),
+            "fp": _fingerprint(user),
+            "days": days,
+            "exp": expires_at,
+        },
         salt=_SALT,
     )
 
@@ -100,18 +167,32 @@ def device_trust_valid(request, user) -> bool:
         return False
     if data.get("fp") != _fingerprint(user):
         return False
+    # New tokens carry their selected period. The signed absolute expiry makes
+    # a 1/7/14-day choice real even though validation also accepts legacy tokens
+    # up to the platform-wide maximum.
+    if "exp" in data:
+        try:
+            expires_at = int(data["exp"])
+            days = int(data.get("days"))
+        except (TypeError, ValueError):
+            return False
+        if not 0 < days <= device_trust_max_days():
+            return False
+        if int(time.time()) > expires_at:
+            return False
     return True
 
 
-def set_device_trust_cookie(response, user, request) -> None:
+def set_device_trust_cookie(response, user, request, *, trust_days=None) -> None:
     """Attach the durable device-trust cookie to ``response`` (opt-in caller)."""
+    days = normalize_device_trust_days(trust_days)
     secure = bool(getattr(settings, "SESSION_COOKIE_SECURE", False)) or bool(
         getattr(request, "is_secure", lambda: False)()
     )
     response.set_cookie(
         DEVICE_TRUST_COOKIE,
-        issue_device_trust_token(user),
-        max_age=device_trust_max_age_seconds(),
+        issue_device_trust_token(user, trust_days=days),
+        max_age=device_trust_max_age_seconds(days),
         domain=_device_trust_cookie_domain(),
         httponly=True,
         secure=secure,

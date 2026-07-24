@@ -114,6 +114,27 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
         "security",
         "Extra roles requiring MFA on top of the platform baseline.",
     ),
+    SettingSpec(
+        "MFA_DEVICE_TRUST_ALLOWED_DAYS",
+        "str",
+        '"1,7,14,30"',
+        "security",
+        "Selectable post-verification trusted-browser periods in days.",
+    ),
+    SettingSpec(
+        "MFA_DEVICE_TRUST_DAYS",
+        "int",
+        "30",
+        "security",
+        "Maximum trusted-browser period in days (hard-capped at 90).",
+    ),
+    SettingSpec(
+        "MFA_DEVICE_TRUST_DEFAULT_DAYS",
+        "int",
+        "14",
+        "security",
+        "Default trusted-browser period offered after successful MFA.",
+    ),
     # Rate limiting
     SettingSpec(
         "RATE_LIMIT_ENABLED",

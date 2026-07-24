@@ -1,8 +1,7 @@
 """New-school owner: create password → set up MFA → login is ready, no re-wall.
 
-The waive path is covered by ``test_owner_onboarding_az_flow``. This locks the
-ENROLL path — the one the owner takes when they actually turn MFA on during
-onboarding — and the promise behind it: having just proved possession of their
+Enrollment is mandatory; device trust is the optional part. This locks the
+promise behind it: having just proved possession of their
 device, they are handed straight to their dashboard and their NEXT login from the
 same browser is not a fresh MFA wall.
 
@@ -198,7 +197,7 @@ class OwnerOnboardingEnrollReadyTests(TestCase):
         # No confirmed device yet → routed into the MFA step.
         self.assertEqual(resp.url, reverse("accounts:owner_onboarding_mfa"))
 
-    def _enroll_mfa(self, *, remember: bool):
+    def _enroll_mfa(self, *, remember: bool, trust_days=None):
         # Show the QR (creates the unconfirmed draft device).
         self.client.post(reverse("accounts:owner_onboarding_mfa"), {"enable_mfa": "1"})
         device = TOTPDevice.objects.get(user=self.user, name="default")
@@ -210,12 +209,14 @@ class OwnerOnboardingEnrollReadyTests(TestCase):
         }
         if remember:
             data["remember_device"] = "1"
+        if trust_days is not None:
+            data["trust_days"] = str(trust_days)
         return self.client.post(reverse("accounts:owner_onboarding_mfa"), data)
 
     def test_enroll_confirms_device_trusts_it_and_reaches_done(self):
         self._set_password()
         self._confirm_brand()
-        resp = self._enroll_mfa(remember=True)
+        resp = self._enroll_mfa(remember=True, trust_days=7)
 
         # Device is confirmed — real proof-of-possession, not a draft.
         device = TOTPDevice.objects.get(user=self.user, name="default")
@@ -230,8 +231,25 @@ class OwnerOnboardingEnrollReadyTests(TestCase):
         )
         # Fix A: and that cookie is scoped to reach the tenant subdomain.
         self.assertEqual(resp.cookies[DEVICE_TRUST_COOKIE]["domain"], ".runmycampus.com")
+        self.assertEqual(
+            int(resp.cookies[DEVICE_TRUST_COOKIE]["max-age"]),
+            7 * 24 * 60 * 60,
+        )
         self.assertTrue(self.client.session.get("mfa_verified"))
         self.assertTrue(self.client.session.get("mfa_verified_until"))
+
+    def test_first_enrollment_does_not_preselect_device_trust(self):
+        self._set_password()
+        self._confirm_brand()
+        resp = self.client.post(
+            reverse("accounts:owner_onboarding_mfa"), {"enable_mfa": "1"}
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'name="trust_days"')
+        self.assertNotContains(
+            resp,
+            'id="mfa-setup-remember-device" name="remember_device" value="1" checked',
+        )
 
     def test_enroll_without_remember_does_not_silently_trust(self):
         self._set_password()

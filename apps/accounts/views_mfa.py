@@ -24,13 +24,20 @@ from services.post_delete_navigation import safe_next_url as _safe_next_url
 from apps.accounts.e2e_mfa_bypass import e2e_mfa_bypass_active
 
 
-def _mark_mfa_verified_and_redirect(request, next_url: str):
+def _mark_mfa_verified_and_redirect(
+    request, next_url: str, *, success_message=None
+):
     request.session["mfa_verified"] = True
     remember = request.POST.get("remember_device") == "1"
     if remember:
-        until = timezone.now() + timedelta(days=14)
+        from apps.accounts.mfa_device_trust import normalize_device_trust_days
+
+        trust_days = normalize_device_trust_days(request.POST.get("trust_days"))
+        until = timezone.now() + timedelta(days=trust_days)
         request.session["mfa_verified_until"] = until.isoformat()
-    messages.success(request, _("MFA verification successful!"))
+    messages.success(
+        request, success_message or _("MFA verification successful!")
+    )
     request.session.pop("mfa_next", None)
     response = redirect(next_url) if next_url else redirect("accounts:redirect")
     if remember:
@@ -41,7 +48,9 @@ def _mark_mfa_verified_and_redirect(request, next_url: str):
         try:
             from apps.accounts.mfa_device_trust import set_device_trust_cookie
 
-            set_device_trust_cookie(response, request.user, request)
+            set_device_trust_cookie(
+                response, request.user, request, trust_days=trust_days
+            )
         except Exception:  # noqa: BLE001 — trust cookie is best-effort; MFA still succeeded
             pass
     return response
@@ -173,16 +182,11 @@ def mfa_verify(request):
                     otp_login(request, backup_device)
                 except (ValueError, TypeError, AttributeError, RuntimeError):
                     pass
-                request.session["mfa_verified"] = True
-                remember = request.POST.get("remember_device") == "1"
-                if remember:
-                    until = timezone.now() + timedelta(days=14)
-                    request.session["mfa_verified_until"] = until.isoformat()
-                messages.success(request, _("Backup code accepted. MFA verified."))
-                request.session.pop("mfa_next", None)
-                if next_url:
-                    return redirect(next_url)
-                return redirect("accounts:redirect")
+                return _mark_mfa_verified_and_redirect(
+                    request,
+                    next_url,
+                    success_message=_("Backup code accepted. MFA verified."),
+                )
 
         messages.error(request, _("Invalid MFA token. Please try again."))
 
@@ -190,12 +194,19 @@ def mfa_verify(request):
     from .models import UserPasskey
 
     has_passkey = UserPasskey.objects.filter(user=request.user).exists()
+    from apps.accounts.mfa_device_trust import (
+        device_trust_allowed_days,
+        device_trust_default_days,
+    )
+
     return render(
         request,
         _mfa_template(request, "accounts/mfa_verify.html"),
         {
             "next_url": next_url,
             "use_passkey": _webauthn_available() and has_passkey,
+            "mfa_trust_days_options": device_trust_allowed_days(),
+            "mfa_trust_default_days": device_trust_default_days(),
         },
     )
 

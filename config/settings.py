@@ -1402,6 +1402,16 @@ OPERATOR_MFA_REQUIRED_ON_MANAGER = (
     os.getenv("OPERATOR_MFA_REQUIRED_ON_MANAGER", "1").strip().lower()
     in {"1", "true", "yes"}
 )
+# After a successful MFA proof, users may explicitly trust this browser for one
+# of these bounded periods. First-time tenant-owner enrollment remains mandatory;
+# this controls only later re-prompts on the already-verified browser.
+MFA_DEVICE_TRUST_DAYS = int(os.getenv("MFA_DEVICE_TRUST_DAYS", "30"))
+MFA_DEVICE_TRUST_ALLOWED_DAYS = os.getenv(
+    "MFA_DEVICE_TRUST_ALLOWED_DAYS", "1,7,14,30"
+)
+MFA_DEVICE_TRUST_DEFAULT_DAYS = int(
+    os.getenv("MFA_DEVICE_TRUST_DEFAULT_DAYS", "14")
+)
 # Tenant users: minimum security score (0–100) required to use the platform (all roles).
 SECURITY_PLATFORM_MINIMUM_SCORE = int(os.getenv("SECURITY_PLATFORM_MINIMUM_SCORE", "40"))
 # Stricter roles (ADMIN, finance, etc.) also require score >= 80 via security_health.
