@@ -54,7 +54,7 @@
     {
       "path": "apps/finance/views_invoicing.py",
       "function": "invoice_detail",
-      "line": 363
+      "line": 382
     },
     {
       "path": "apps/lifecycle/views_bulk.py",
