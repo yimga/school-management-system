@@ -390,6 +390,14 @@ a.cp-queue-card-header:hover {
   gap: 0.45rem;
 }
 
+/* Inline POST form wrapper (e.g. a single action button in an actions row / table
+   cell) — sits inline instead of the default block form, no stray margin. */
+.cp-inline-form {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+}
+
 .cp-subtle-link,
 .cp-workstream-card {
   color: var(--cp-sky-150);

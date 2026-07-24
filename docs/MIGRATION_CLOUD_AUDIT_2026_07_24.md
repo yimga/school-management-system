@@ -88,7 +88,28 @@ Test remedies applied for behavior that was corrected: `test_shadow.py` (asserte
 
 **Verification (2026-07-24, under `config.settings_test`):** `manage.py check` → *no issues* (imports the whole app registry — every edit + the new API auth wiring + the event-type enum resolve, no circular imports); `makemigrations migration_cloud --check` → *No changes detected* (migration `0040` has zero drift); `test_hsm_vault` (SimpleTestCase, no DB) → the dry-run remedy passes, and the only 2 failures (`VaultLogHygieneTests`) reproduce identically against HEAD, i.e. **pre-existing** and unrelated to this work; pure-function checks (currency 14/14 intl vectors, diff-filter both row shapes). The full `manage.py test` suite is NOT runnable in this sandbox (the `:memory:` runner rebuilds ~845 migrations and hangs — a standing environment limitation, not a code gap); CI runs it on a real Postgres/keepdb.
 
-**Sequenced next-phase PRODUCT BUILDS (not bug fixes — deliberately NOT faked):** these are feature builds the audit surfaced; each is a real milestone, not a parked backlog item.
+### Build-phase status (2026-07-24, phase 2)
+
+Product builds SHIPPED this phase (verified: `manage.py check` clean, `makemigrations --check` no drift, template-reference/compile/url-name/import-reference/print/bare-except/pii gates all green, SLO registry valid):
+
+- **G-5 partner lifecycle event bus** — `services/lifecycle_events.py` emits `bundle.advanced/applied/failed/reconciled` at the SERVICE layer (pipeline/orchestrator/reconciliation) so UI-driven migrations fire the same webhooks the REST path does; the REST viewset's inline emit was removed (no double-emit). Catalog: `docs/MIGRATION_CLOUD_EVENT_CATALOG.md`.
+- **G-4 self-serve token + webhook provisioning** — `views_tenant_provisioning.py` + 4 templates + tenant routes: a tenant admin mints a scoped API token FORCE-bound to their own school (scope allowlist excludes `tokens:manage`) and registers webhooks, all IDOR-safe.
+- **D-5 connector marketplace-extensibility** — `connectors/plugin_loader.py` (settings + entry-point discovery, broken-plugin-isolated) wired into `registry.py`; the dead `oneroster_csv` profile now resolves to a real `OneRosterCsvConnector`.
+- **G-3 CutoverRunbook** — `models_cutover.py` + migration `0041` + `views_cutover.py` + operator template + route: create rehearsal→real→sign-off with an immutable reconciliation-scorecard SHA-256 anchor (sign-off legal wording stays LEGAL-EXTERNAL).
+- **A-4 upload-validation routing** — MC `request.FILES` sites routed through `apps.security.upload_validation` (coverage 34→24).
+
+> Note: 5 build agents were terminated mid-work by a session limit; the tree was verified consistent afterward (3 missing templates created, the cutover route added) — nothing shipped half-broken.
+
+STILL REMAINING (large feature builds, not started — sequenced, not faked):
+
+1. **G-6 migration SLO dashboard PANEL** — the SLO *definitions* shipped in `apps/observability/slo.py` (registry valid); the health-dashboard panel that renders apply-duration / reconcile-parity / queue-depth is not yet built.
+2. **G-1a full self-serve customer-apply pipeline** — wire the customer intake wizard to the bundle pipeline (apply/approve/cutover routes) so a district reaches a live cutover with zero operator hand-offs. This phase shipped only the honest relabel.
+3. **D-3 OneRoster v1.2 delta engine** — `academicSessions` → real terms domain + `status=tobedeleted` inbound + a real delta path.
+4. **C-4 quarantine source-row + remaining rollback domains** — thread the source row into `MigrationQuarantineRecord`; extend rollback handlers past the 8 domains now covered.
+
+---
+
+Original sequencing (superseded by the status above):
 
 1. **Full self-serve customer-apply pipeline (G-1 option a)** — wire the customer intake wizard (`MigrationIntakeRequest`) to the working bundle pipeline with customer `apply`/`approve`/`cutover` routes, so a district reaches a live cutover with zero operator hand-offs (this wave delivered the honest relabel; the full pipeline is the build).
 2. **Partner lifecycle event bus (G-5)** — emit `bundle.applied`/`reconciled`/`rolled_back`/`shadow.tripped` at the service layer so UI-driven migrations fire events; publish a partner event catalog. (Event *types* now exist via `0040`.)
