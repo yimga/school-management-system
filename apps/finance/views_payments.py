@@ -895,15 +895,43 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         logger.warning("Rate limit exceeded for IP %s", client_ip)
         return HttpResponseForbidden("Rate limit exceeded.")
 
-    signature_header = (
-        integration.config.get("signature_header", "X-Signature")
-        if integration.config
-        else "X-Signature"
+    # Signature verification. An Integration may opt into a provider-accurate
+    # verifier (Stripe / Paystack / Flutterwave / M-Pesa Daraja / aggregator) via
+    # config["signature_scheme"]; when the key is absent — every integration
+    # shipped to date — we keep the exact historical generic HMAC path below, so
+    # this is purely additive and changes no live behaviour until an operator
+    # opts a specific integration in. An explicit-but-unknown scheme fails closed.
+    from apps.finance.webhooks.signature_dispatch import (
+        scheme_from_config,
+        verify_provider_signature,
     )
-    signature = request.headers.get(signature_header) or request.META.get(
-        f"HTTP_{signature_header.upper().replace('-', '_')}"
-    )
-    signature_valid = validator.validate_signature(request_body, signature or "")
+
+    _sig_scheme = scheme_from_config(integration.config)
+    if _sig_scheme:
+        signature_valid, _sig_fail_reason = verify_provider_signature(
+            _sig_scheme,
+            headers=header_map,
+            raw_body=request_body,
+            secret=(integration.config or {}).get("webhook_secret", ""),
+            config=integration.config or {},
+        )
+        if not signature_valid:
+            logger.warning(
+                "Provider-accurate signature check failed for %s (scheme=%s): %s",
+                provider_slug,
+                _sig_scheme,
+                _sig_fail_reason,
+            )
+    else:
+        signature_header = (
+            integration.config.get("signature_header", "X-Signature")
+            if integration.config
+            else "X-Signature"
+        )
+        signature = request.headers.get(signature_header) or request.META.get(
+            f"HTTP_{signature_header.upper().replace('-', '_')}"
+        )
+        signature_valid = validator.validate_signature(request_body, signature or "")
     if not signature_valid:
         _create_webhook_log(
             reference_id=reference_id,
