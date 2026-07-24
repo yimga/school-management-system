@@ -54,6 +54,8 @@ on:
       - "scripts/scan_rls_bypass.py"
       - "scripts/scan_money_float.py"
       - "scripts/scan_locale_coverage.py"
+      - "scripts/verify_pseudo_locale.py"
+      - "scripts/pseudo_locale_transform.py"
       - "scripts/verify_service_worker_version.py"
       - "scripts/verify_django_admin_preview_parity.py"
       - "var/admin-approval-build-lock.json"
@@ -805,6 +807,13 @@ jobs:
         # back to English on a screen a parent uses every day.
         run: |
           python scripts/verify_critical_msgid_depth.py
+      - name: Pseudo-locale interpolation safety
+        # M21/G3: the en_XA pseudo-locale QA transform must never corrupt an
+        # interpolation/markup token — a %(name)s accented into %(námé)s would
+        # KeyError the moment Django formats it, 500-ing the very QA build it
+        # powers. Zero-tolerance across every source msgid; no baseline.
+        run: |
+          python scripts/verify_pseudo_locale.py
 
   world-engine-i18n-ci:
     name: "World Engine: i18n catalog freshness + compile"
