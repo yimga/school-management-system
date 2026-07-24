@@ -5,6 +5,7 @@ from django.test import SimpleTestCase, override_settings
 
 from apps.security.upload_validation import (
     DOCUMENT_MIMES,
+    RECEIPT_MIMES,
     SAFE_IMAGE_MIMES,
     UploadValidationError,
     scan_for_malware,
@@ -16,8 +17,12 @@ PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 24
 JPEG = b"\xff\xd8\xff\xe0" + b"\x00" * 28
 WEBP = b"RIFF\x00\x00\x00\x00WEBP" + b"\x00" * 20
 GIF = b"GIF89a" + b"\x00" * 26
+BMP = b"BM" + b"\x00" * 30
+TIFF_LE = b"II*\x00" + b"\x00" * 28
+TIFF_BE = b"MM\x00*" + b"\x00" * 28
 SVG = b"<svg xmlns='http://www.w3.org/2000/svg'><script>x</script></svg>"
 PDF = b"%PDF-1.7\n" + b"\x00" * 24
+PDF_LEADING = b"\r\n   \n%PDF-1.4\n" + b"\x00" * 20  # header after leading bytes
 ZIP = b"PK\x03\x04" + b"\x00" * 28
 HTML = b"<html><body><script>alert(1)</script></body></html>"
 
@@ -48,9 +53,39 @@ class SniffFileMimeTests(SimpleTestCase):
         self.assertEqual(sniff_file_mime(PDF), "application/pdf")
         self.assertEqual(sniff_file_mime(ZIP), "application/zip")
 
+    def test_bmp_tiff_and_lenient_pdf(self):
+        self.assertEqual(sniff_file_mime(BMP), "image/bmp")
+        self.assertEqual(sniff_file_mime(TIFF_LE), "image/tiff")
+        self.assertEqual(sniff_file_mime(TIFF_BE), "image/tiff")
+        # %PDF- after leading bytes must still resolve (spec-legal, Acrobat-lenient).
+        self.assertEqual(sniff_file_mime(PDF_LEADING), "application/pdf")
+
     def test_unknown_and_empty_return_blank(self):
         self.assertEqual(sniff_file_mime(HTML), "")
         self.assertEqual(sniff_file_mime(b""), "")
+
+
+class ReceiptAllowlistTests(SimpleTestCase):
+    def test_receipt_accepts_pdf_and_jpeg(self):
+        self.assertEqual(
+            validate_uploaded_file(
+                _u(PDF, "r.pdf"), allowed_mimes=RECEIPT_MIMES, max_bytes=1_000_000
+            ),
+            "application/pdf",
+        )
+        self.assertEqual(
+            validate_uploaded_file(
+                _u(JPEG, "r.jpg"), allowed_mimes=RECEIPT_MIMES, max_bytes=1_000_000
+            ),
+            "image/jpeg",
+        )
+
+    def test_receipt_rejects_svg_and_html(self):
+        for bad in (SVG, HTML):
+            with self.assertRaises(UploadValidationError):
+                validate_uploaded_file(
+                    _u(bad, "r.dat"), allowed_mimes=RECEIPT_MIMES, max_bytes=1_000_000
+                )
 
 
 class ValidateUploadedFileTests(SimpleTestCase):

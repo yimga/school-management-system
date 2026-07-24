@@ -33,10 +33,17 @@ logger = logging.getLogger(__name__)
 
 # Canonical sniffed-MIME allowlists. ``sniff_file_mime`` returns these strings.
 SAFE_IMAGE_MIMES = frozenset({"image/png", "image/jpeg", "image/webp"})
-RASTER_IMAGE_MIMES = frozenset({"image/png", "image/jpeg", "image/webp", "image/gif"})
+RASTER_IMAGE_MIMES = frozenset(
+    {"image/png", "image/jpeg", "image/webp", "image/gif", "image/bmp", "image/tiff"}
+)
 DOCUMENT_MIMES = frozenset({"application/pdf", "application/zip"})
+# A photo/scan/PDF of a receipt or supporting document.
+RECEIPT_MIMES = frozenset({"image/png", "image/jpeg", "application/pdf"})
 
-_HEAD_BYTES = 32
+# Read enough of the head to cover a PDF header that legally sits after leading
+# bytes (spec allows up to ~1 KB); every other magic signature is in the first
+# few bytes, so this is comfortably sufficient and still cheap.
+_HEAD_BYTES = 1024
 _AV_UNCONFIGURED_WARNED = False
 
 
@@ -54,9 +61,12 @@ def sniff_file_mime(head: bytes) -> str:
 
     Returns a canonical MIME string, or ``""`` when the format is unknown.
     Never trusts a declared content-type. Covers the raster images the shared
-    image sniffer knows plus PDF and the ZIP container family (xlsx/docx/…).
-    Text/CSV has no magic signature and is intentionally NOT sniffed here — a
-    caller that accepts CSV validates structure at parse time instead.
+    image sniffer knows (png/jpeg/webp/gif/svg) plus BMP, TIFF, PDF, and the ZIP
+    container family (xlsx/docx/…). The PDF header may legally sit after up to
+    ~1 KB of leading bytes, so it is searched, not required at offset 0 (avoids
+    over-rejecting valid-but-non-conformant PDFs). Text/CSV has no magic
+    signature and is intentionally NOT sniffed — a caller that accepts CSV
+    validates structure at parse time and marks the intake accordingly.
     """
     from apps.schools.school_brand_assets import sniff_image_mime
 
@@ -65,10 +75,14 @@ def sniff_file_mime(head: bytes) -> str:
         return image_mime
     if not head:
         return ""
-    if head[:5] == b"%PDF-":
-        return "application/pdf"
+    if head[:2] == b"BM":
+        return "image/bmp"
+    if head[:4] in (b"II*\x00", b"MM\x00*"):
+        return "image/tiff"
     if head[:4] in (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08"):
         return "application/zip"
+    if b"%PDF-" in head[:1024]:
+        return "application/pdf"
     return ""
 
 
