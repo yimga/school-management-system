@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.db import DatabaseError
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -60,6 +61,19 @@ class PostLoginMfaRoutingTests(TestCase):
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, 302)
         self.assertIn("/authentication/mfa/verify", response["Location"])
+
+    def test_device_holder_challenge_does_not_depend_on_tenant_policy_lookup(self):
+        request = self._request(host="mfa-school.runmycampus.com")
+        with patch(
+            "apps.accounts.post_login_mfa._user_must_have_mfa",
+            side_effect=DatabaseError("tenant config unavailable"),
+        ) as policy_lookup:
+            response = resolve_post_login_mfa_redirect(request, self.user)
+
+        self.assertIsNotNone(response)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/authentication/mfa/verify", response["Location"])
+        policy_lookup.assert_not_called()
 
     def test_unconfirmed_device_does_not_send_to_verify(self):
         TOTPDevice.objects.filter(user=self.user).delete()
@@ -141,6 +155,17 @@ class PostLoginMfaRoutingTests(TestCase):
             response.status_code, 302, msg=getattr(response, "content", b"")[:500]
         )
         self.assertIn("/authentication/mfa/verify", response.url)
+
+    def test_tenant_mfa_verify_window_renders_after_password_redirect(self):
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("accounts:mfa_verify"),
+            HTTP_HOST="mfa-school.runmycampus.com",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-rmc-security-checkpoint="mfa-verify"')
+        self.assertContains(response, "Verify it is you")
 
 
 class RequireMfaBackendNotBypassedTests(TestCase):

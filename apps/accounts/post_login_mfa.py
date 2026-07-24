@@ -182,7 +182,6 @@ def resolve_post_login_mfa_redirect(request, user, *, next_url: str = ""):
         pass
 
     has_device = _user_has_mfa_device(user)
-    must_have = _user_must_have_mfa(request, user)
 
     # Confirmed device → always challenge (even mid-onboarding). Skipping this
     # left enrolled owners on exempt onboarding URLs, then bouncing to login when
@@ -192,6 +191,11 @@ def resolve_post_login_mfa_redirect(request, user, *, next_url: str = ""):
             request.session["mfa_next"] = next_url
         request.session.modified = True
         return redirect(reverse("accounts:mfa_verify"))
+
+    # Tenant policy is only relevant when the user still needs enrollment.
+    # An enrolled user's challenge must not disappear because tenant config
+    # resolution raises a soft database/config failure that login_view catches.
+    must_have = _user_must_have_mfa(request, user)
 
     # Wizard owns enrollment when there is no confirmed device yet.
     if _owner_onboarding_incomplete(request, user):
