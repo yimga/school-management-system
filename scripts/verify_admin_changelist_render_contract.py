@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Django-client smoke: platform admin changelists from sweep routes render
-steering strip + scroll host (P3 fallback when Playwright server unavailable).
+Django-client smoke: platform admin changelists from sweep routes render the
+approved page-aware command band, native table, context rail, and tool strip
+(P3 fallback when Playwright server unavailable).
 
 ADMIN_RENDER_FULL=1 crawls every admin_changelist in control_plane_sweep_routes.json.
 Use --write to emit docs/generated/admin_changelist_render_audit.json.
@@ -103,20 +104,28 @@ def _is_redirect_escape(path: str, final_path: str, redirect_chain: list) -> boo
 
 def _check_shell(html: str) -> list[str]:
     issues: list[str] = []
-    if "data-rmc-admin-steering-strip" not in html:
-        issues.append("missing_steering_strip_markup")
+    if "data-rmc-admin-steering-strip" in html:
+        issues.append("legacy_steering_strip_on_changelist")
     if "data-rmc-operator-surface-strip" in html:
         issues.append("surface_strip_on_changelist")
     if "data-rmc-admin-changelist-live" not in html and "cp-changelist-live" not in html:
         issues.append("missing_changelist_live_marker")
     if 'data-rmc-admin-table-contract="native-table-scroll"' not in html:
         issues.append("missing_native_table_scroll_contract")
-    if "rmc-admin-changelist-pagehead" not in html:
-        issues.append("missing_changelist_pagehead")
+    if 'data-rmc-django-command-band="change-list"' not in html:
+        issues.append("missing_changelist_command_band")
     if "cp-main-content" not in html and "admin-manager-shell" not in html:
         issues.append("missing_shell_markers")
-    if "data-rmc-copilot-rail" not in html:
-        issues.append("missing_copilot_rail")
+    if 'data-rmc-django-changelist-rail="1"' not in html:
+        issues.append("missing_page_aware_changelist_rail")
+    if 'data-rmc-django-rail-page-aware="1"' not in html:
+        issues.append("missing_page_aware_rail_contract")
+    if 'data-rmc-django-tools="1"' not in html:
+        issues.append("missing_page_aware_tool_strip")
+    if 'data-rmc-tools-surface="change-list"' not in html:
+        issues.append("wrong_tool_strip_surface")
+    if "data-rmc-copilot-rail" in html:
+        issues.append("legacy_copilot_rail_on_changelist")
     if "data-rmc-page-help" not in html and 'data-rmc-page-help="1"' not in html:
         issues.append("missing_page_help_hook")
     if "TemplateSyntaxError" in html or "Server Error (500)" in html:

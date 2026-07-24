@@ -24,7 +24,7 @@ from datetime import timedelta
 from unittest import mock
 
 from django.core.cache import cache
-from django.test import SimpleTestCase, TestCase
+from django.test import Client, SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -360,7 +360,11 @@ class WebhookQuotaDispatchTests(TestCase):
     def setUp(self):
         cache.clear()
         self.user = _make_user(is_staff=False)
-        self.school = School.objects.create(name="Quota School", code="quota-s")
+        self.school = School.objects.create(
+            name="Quota School",
+            slug="quota-school",
+            subdomain="quota-school",
+        )
         self.sub = MigrationCloudWebhookSubscription.objects.create(
             tenant=self.school,
             url="https://example.com/hook",
@@ -426,10 +430,26 @@ class OperatorTokenUITests(TestCase):
     """Staff-only access + mint round-trip on the operator screens."""
 
     def setUp(self):
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
         cache.clear()
         self.staff = _make_user(is_staff=True)
+        # Manager-host control-plane isolation is stricter than Django's
+        # staff_member_required decorator: this must be a real operator
+        # principal, with MFA, not an arbitrary tenant staff account.
+        self.staff.role = "SUPERADMIN"
+        self.staff.save(update_fields=["role"])
         self.non_staff = _make_user(is_staff=False)
+        TOTPDevice.objects.create(
+            user=self.staff,
+            name="operator-token-tests",
+            confirmed=True,
+        )
+        self.client = Client(HTTP_HOST="manager.runmycampus.com")
         self.client.force_login(self.staff)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
 
     def test_token_list_requires_staff(self):
         self.client.logout()

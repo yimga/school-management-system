@@ -37,11 +37,11 @@
   <section class="rmc-django-command-band mt-3" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="operator-index-v15" aria-label="{% trans 'Operator admin command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% trans "Platform Backoffice" %}</span>
-      <strong>
+      <h1 class="rmc-django-command-band__title">
         {% trans "Catalog" %}
         {% blocktrans trimmed asvar admin_hero_tip %}Every registered model for raw record access. Guided work stays in Config center and Studio — open from More when needed.{% endblocktrans %}
         {% rmc_info_tag title=_("About this catalog") body=admin_hero_tip|striptags surface="django-admin" placement="bottom" %}
-      </strong>
+      </h1>
     </div>
     <div class="rmc-django-command-band__meta rmc-django-command-band__actions" aria-label="{% trans 'Catalog actions' %}">
       {% if admin_catalog %}<span>{% blocktrans with n=admin_catalog.model_count %}{{ n }} models{% endblocktrans %}</span>{% endif %}
@@ -60,7 +60,7 @@
       </details>
       <button type="button" class="rmc-django-band-action" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K</button>
       <button type="button" class="rmc-django-band-action" data-rmc-admin-keymap-open="1" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">?</button>
-      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-22-v15.7" title="{% trans 'Deploy proof — Admin OS v15.7 on operator /admin/' %}">v15.7 · Admin OS · operator+tenant</span>
+      <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-07-24-v15.8" title="{% trans 'Deploy proof — Admin OS v15.8 on operator /admin/' %}">v15.8 · Admin OS · operator+tenant</span>
     </div>
   </section>
 
@@ -155,6 +155,8 @@
       {% comment %}Live surface sections (Platform tags · Schools changelist · Change form) — restored v15.4.{% endcomment %}
       {% include "admin/partials/admin_v1_index_surface_previews.html" %}
     </div>
+    {% include "admin/includes/admin_index_context_rail.html" %}
+    {% include "admin/includes/admin_workspace_tools.html" with surface="admin-index" %}
   </div>
 </div>
 {% endblock %}

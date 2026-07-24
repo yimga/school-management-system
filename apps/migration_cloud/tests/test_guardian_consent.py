@@ -159,8 +159,16 @@ class GuardianConsentDBTests(TestCase):
     def setUpTestData(cls):  # type: ignore[override]
         from apps.schools.models import School
         from apps.migration_cloud.models_intake import MigrationIntakeRequest
-        cls.school_a = School.objects.create(name="School A", subdomain="gc-school-a")
-        cls.school_b = School.objects.create(name="School B", subdomain="gc-school-b")
+        cls.school_a = School.objects.create(
+            name="School A",
+            slug="gc-school-a",
+            subdomain="gc-school-a",
+        )
+        cls.school_b = School.objects.create(
+            name="School B",
+            slug="gc-school-b",
+            subdomain="gc-school-b",
+        )
         cls.user_a = User.objects.create_user(
             username="gc_user_a", email="gca@example.invalid",
             password="not-a-real-password",
@@ -192,6 +200,23 @@ class GuardianConsentDBTests(TestCase):
             state="maa-signed",
         )
 
+    def _tenant_client(self, user, school):
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="guardian-consent-tests",
+            defaults={"confirmed": True},
+        )
+        client = Client(
+            HTTP_HOST=f"{school.subdomain}.runmycampus.com"
+        )
+        client.force_login(user)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+        return client
+
     # ── Mint ────────────────────────────────────────────────────────
 
     def test_mint_returns_raw_token_persists_only_sha(self):
@@ -212,13 +237,9 @@ class GuardianConsentDBTests(TestCase):
         expected = hashlib.sha256(raw.encode("utf-8")).hexdigest()
         self.assertEqual(instance.token_sha256, expected)
         # raw is NOT persisted anywhere
-        from django.db import connection
-        cursor = connection.cursor()
-        cursor.execute(
-            "SELECT id FROM migration_cloud_guardianconsenttoken WHERE id = %s",
-            [str(instance.id)],
+        self.assertTrue(
+            GuardianConsentToken.objects.filter(pk=instance.pk).exists()
         )
-        self.assertIsNotNone(cursor.fetchone())
 
     def test_matches_uses_constant_time_compare(self):
         from apps.migration_cloud.models_guardian_consent import (
@@ -261,6 +282,7 @@ class GuardianConsentDBTests(TestCase):
         from apps.migration_cloud.models_guardian_consent import (
             GuardianConsentToken,
         )
+        from apps.migration_cloud.models_audit import MigrationCloudAuditEvent
         from apps.migration_cloud.models_intake import MigrationIntakeRequest
         raw, token = GuardianConsentToken.mint(
             intake=self.intake_a,
@@ -283,6 +305,13 @@ class GuardianConsentDBTests(TestCase):
         self.assertEqual(token.consent_decision, "consented")
         self.assertEqual(token.ip_address_consent, "10.0.0.1")
         self.assertEqual(token.user_agent_consent, "TestUA/1.0")
+        audit = MigrationCloudAuditEvent.objects.get(
+            event_type="migration.guardian_consent.consented"
+        )
+        self.assertEqual(
+            audit.payload_summary["consent_artifact_prefix"],
+            token.token_sha256[:8],
+        )
 
     def test_decline_does_not_bump_count(self):
         from apps.migration_cloud.models_guardian_consent import (
@@ -510,11 +539,10 @@ class GuardianConsentDBTests(TestCase):
             consent_text_version="v1",
             consent_text="text",
         )
-        # Re-walk landing + accept under capture.
+        # A successful lifecycle should not need to log at INFO at all. This is
+        # stronger than capturing one expected message and searching it.
         logger = logging.getLogger("apps.migration_cloud")
-        # We use assertLogs to capture, then assert the raw token is
-        # NOT present in any captured line.
-        with self.assertLogs(logger, level="INFO") as captured:
+        with self.assertNoLogs(logger, level="INFO"):
             url_landing = reverse(
                 "migration_guardian_consent:guardian-consent-landing",
                 kwargs={"raw_token": raw},
@@ -525,18 +553,12 @@ class GuardianConsentDBTests(TestCase):
                 kwargs={"raw_token": raw},
             )
             Client().post(url_accept, {"confirm": "on"})
-        all_lines = "\n".join(captured.output)
-        self.assertNotIn(
-            raw, all_lines,
-            "raw consent token appeared in log output — leak!",
-        )
 
     # ── Admin views ─────────────────────────────────────────────────
 
     def test_admin_campaign_csv_row_cap_enforced(self):
         """CSV with >2000 rows is rejected with 400 and clear message."""
-        client = Client()
-        client.force_login(self.user_a)
+        client = self._tenant_client(self.user_a, self.school_a)
         # 2001 valid rows trigger the cap.
         rows = ["student_id,guardian_name,guardian_email"]
         for i in range(2001):
@@ -554,8 +576,7 @@ class GuardianConsentDBTests(TestCase):
         self.assertIn(b"row cap", resp.content)
 
     def test_admin_campaign_bad_rows_surface_line_no_pii(self):
-        client = Client()
-        client.force_login(self.user_a)
+        client = self._tenant_client(self.user_a, self.school_a)
         rows = [
             "student_id,guardian_name,guardian_email",
             "STU-1,Good Guardian,good@example.invalid",  # valid line 1
@@ -585,8 +606,7 @@ class GuardianConsentDBTests(TestCase):
         from apps.migration_cloud.models_guardian_consent import (
             GuardianConsentToken,
         )
-        client = Client()
-        client.force_login(self.user_a)
+        client = self._tenant_client(self.user_a, self.school_a)
         _, token = GuardianConsentToken.mint(
             intake=self.intake_a,
             student_external_id="STU-RES",
@@ -613,8 +633,7 @@ class GuardianConsentDBTests(TestCase):
         from apps.migration_cloud.models_guardian_consent import (
             GuardianConsentToken,
         )
-        client = Client()
-        client.force_login(self.user_a)
+        client = self._tenant_client(self.user_a, self.school_a)
         _, token = GuardianConsentToken.mint(
             intake=self.intake_a,
             student_external_id="STU-CD",
@@ -649,8 +668,7 @@ class GuardianConsentDBTests(TestCase):
             consent_text_version="v1",
             consent_text="text",
         )
-        client = Client()
-        client.force_login(self.user_b)
+        client = self._tenant_client(self.user_b, self.school_b)
         # Cross-tenant: user_b tries to view user_a's intake.
         url = reverse(
             "migration_guardian_consent_admin:guardian-consent-campaign-status",

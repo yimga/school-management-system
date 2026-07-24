@@ -234,6 +234,14 @@ class User(AbstractUser):
         blank=True,
         help_text="Timestamp of last successful password change.",
     )
+    mfa_device_trust_version = models.PositiveIntegerField(
+        default=1,
+        help_text=(
+            "Monotonic security version embedded in trusted-browser MFA tokens. "
+            "Incrementing it revokes every outstanding trusted-browser waiver "
+            "without changing the user's password."
+        ),
+    )
     last_security_posture_review_at = models.DateTimeField(
         null=True,
         blank=True,

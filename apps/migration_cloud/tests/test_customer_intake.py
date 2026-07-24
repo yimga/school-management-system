@@ -196,17 +196,27 @@ class CustomerViewDBTests(TestCase):
     @classmethod
     def setUpTestData(cls):  # type: ignore[override]
         from apps.schools.models import School
-        cls.school_a = School.objects.create(name="School A", subdomain="school-a")
-        cls.school_b = School.objects.create(name="School B", subdomain="school-b")
+        cls.school_a = School.objects.create(
+            name="School A",
+            slug="customer-school-a",
+            subdomain="customer-school-a",
+        )
+        cls.school_b = School.objects.create(
+            name="School B",
+            slug="customer-school-b",
+            subdomain="customer-school-b",
+        )
         cls.user_a = User.objects.create_user(
             username="user_a",
             email="usera@example.invalid",
             password="not-a-real-password",
+            role=User.Role.ADMIN,
         )
         cls.user_b = User.objects.create_user(
             username="user_b",
             email="userb@example.invalid",
             password="not-a-real-password",
+            role=User.Role.ADMIN,
         )
         # Best-effort SchoolMembership wiring.
         try:
@@ -412,11 +422,16 @@ class StartViewPostTests(TestCase):
     @classmethod
     def setUpTestData(cls):  # type: ignore[override]
         from apps.schools.models import School
-        cls.school = School.objects.create(name="Start Test Academy", subdomain="start-test")
+        cls.school = School.objects.create(
+            name="Start Test Academy",
+            slug="start-test",
+            subdomain="start-test",
+        )
         cls.user = User.objects.create_user(
             username="start_user",
             email="start@example.invalid",
             password="x",
+            role=User.Role.ADMIN,
         )
         try:
             from apps.schools.models import SchoolMembership

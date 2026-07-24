@@ -35,7 +35,7 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260722-admin-os-v157" not in base_site:
+    if "?v=20260724-admin-os-v158" not in base_site:
         errors.append("Django canvas contracts must use the preview-parity-v13 cache bust for deployment visibility")
     if base_site.count(contract_link) != 1:
         errors.append("Django canvas contract must load exactly once")
@@ -631,8 +631,10 @@ def _audit_intelligent_index_surfaces() -> list[str]:
         errors.append("templates/admin/index_tenant.html must not use the empty Raw model CRUD-only hero")
     if "Tenant model catalog" in tenant_index or "Tenant Administration" in tenant_index:
         errors.append("templates/admin/index_tenant.html must use school configuration engine identity (not Tenant Administration)")
-    if "cp-steering" in tenant_index or "admin_index_context_rail.html" in tenant_index:
-        errors.append("templates/admin/index_tenant.html Discover must not include steering/rail fluff")
+    if "cp-steering" in tenant_index:
+        errors.append("templates/admin/index_tenant.html must not include steering fluff")
+    if "admin_index_context_rail.html" not in tenant_index:
+        errors.append("templates/admin/index_tenant.html missing page-aware context rail")
     if "cp-kpi-strip" in tenant_index:
         errors.append("templates/admin/index_tenant.html Discover must not include KPI strip fluff")
 
@@ -668,14 +670,16 @@ def _audit_intelligent_index_surfaces() -> list[str]:
         errors.append("templates/admin/index_superadmin.html must set discover archetype")
     if 'data-rmc-admin-index-canvas="operator"' not in operator_index:
         errors.append("templates/admin/index_superadmin.html missing operator index canvas wrapper")
-    if "cp-steering" in operator_index or "admin_index_context_rail.html" in operator_index:
-        errors.append("templates/admin/index_superadmin.html Discover must not include steering/rail fluff")
+    if "cp-steering" in operator_index:
+        errors.append("templates/admin/index_superadmin.html must not include steering fluff")
+    if "admin_index_context_rail.html" not in operator_index:
+        errors.append("templates/admin/index_superadmin.html missing page-aware context rail")
     if "admin_v1_index_surface_previews.html" not in operator_index:
         errors.append("templates/admin/index_superadmin.html must include live surface sections")
     if "rmc-admin-section-jumps" not in operator_index:
         errors.append("templates/admin/index_superadmin.html must expose horizontal section jumps")
-    if "admin_workspace_tools.html" in operator_index or "admin_workspace_tools.html" in tenant_index:
-        errors.append("Discover indexes must not include tools column (v15 1-col)")
+    if "admin_workspace_tools.html" not in operator_index or "admin_workspace_tools.html" not in tenant_index:
+        errors.append("Discover indexes must include the page-aware tools column")
     if "feature_control_panel" not in tenant_index:
         errors.append("templates/admin/index_tenant.html must restore Feature control CTA")
     if "rmc-admin-section-jumps" not in tenant_index:

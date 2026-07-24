@@ -42,8 +42,13 @@ from .models import MigrationArtifactBlob
 logger = logging.getLogger(__name__)
 
 # Defaults mirror the approved gap #2 design (7-day retention / delete-on-reconcile
-# ON / 10 MB inline cap). All four are env / settings overridable.
-_DEFAULT_MAX_INLINE_BYTES = 10 * 1024 * 1024  # magic-number-allow: 10 MB inline blob cap (bytes)
+# ON / inline cap). All four are env / settings overridable.
+# The cap was raised 10 MB -> 64 MB (2026-07-24 audit BLOCKER 1): a real district
+# roster CSV is 10-50 MB, and at 10 MB every such file (and every companion vendor
+# export / remote pull > 10 MB) was silently skipped, leaving apply to yield zero
+# rows with no error. 64 MB covers whole-school single-file exports; anything still
+# over cap is now QUARANTINED (visible), never silently dropped.
+_DEFAULT_MAX_INLINE_BYTES = 64 * 1024 * 1024  # magic-number-allow: 64 MB inline blob cap (bytes)
 _DEFAULT_RETENTION_DAYS = 7  # magic-number-allow: source-PII retention window (days)
 
 
@@ -103,9 +108,31 @@ def capture_artifact_blob(artifact: Any, payload: Any) -> bool:
             data = data.encode(getattr(artifact, "encoding", "") or "utf-8", errors="replace")
         data = bytes(data)
         if len(data) > cap:
+            # Over the inline cap: DO NOT silently skip. A silent skip leaves the
+            # artifact with no blob and — for archive members / companion exports /
+            # remote pulls — no fallback byte source, so apply yields zero rows with
+            # NO error: silent data loss at exactly district scale. Mark the artifact
+            # quarantined with a visible reason so the operator sees the file was too
+            # large to migrate rather than a false green.
+            # See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (BLOCKER 1).
+            true_size = getattr(artifact, "byte_size", None) or f">{cap}"
+            try:
+                artifact.quarantined = True
+                artifact.quarantine_reason = (
+                    f"Source file ({true_size} bytes) exceeds the {cap}-byte inline "
+                    "migration cap; not applied. Split the file or raise "
+                    "MIGRATION_CLOUD_ARTIFACT_BLOB_MAX_INLINE_BYTES."
+                )
+                artifact.save(update_fields=["quarantined", "quarantine_reason", "updated_at"])
+            except Exception:  # noqa: BLE001 — quarantine mark is best-effort, never blocks ingest
+                logger.warning(
+                    "migration_cloud.artifact_blob: over-cap quarantine mark failed",
+                    extra={"artifact_id": getattr(artifact, "pk", None)},
+                    exc_info=True,
+                )
             # No PII in the log — id + cap only.
             logger.info(
-                "migration_cloud.artifact_blob: artifact over inline cap; skipped",
+                "migration_cloud.artifact_blob: artifact over inline cap; quarantined",
                 extra={"artifact_id": getattr(artifact, "pk", None), "cap_bytes": cap},
             )
             return False

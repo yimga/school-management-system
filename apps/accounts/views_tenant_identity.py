@@ -134,6 +134,9 @@ def _revoke_user_sessions(user_id) -> int:
                 revoked += 1
         except Exception:  # noqa: BLE001 — a corrupt session must not block the sweep
             continue
+    from apps.accounts.mfa_device_trust import revoke_device_trust
+
+    revoke_device_trust(user_id)
     return revoked
 
 
@@ -445,17 +448,7 @@ def tenant_identity_revoke_sessions(request, user_id: int):
     user = get_object_or_404(User, pk=user_id)
     if not user_has_school_membership(user, school):
         return HttpResponseForbidden("User is not a member of this school.")
-    now = timezone.now()
-    revoked = 0
-    user_pk_str = str(user.pk)
-    for session in Session.objects.filter(expire_date__gte=now):
-        try:
-            data = session.get_decoded()
-            if str(data.get("_auth_user_id")) == user_pk_str:
-                session.delete()
-                revoked += 1
-        except Exception:
-            continue
+    revoked = _revoke_user_sessions(user.pk)
     try:
         from apps.accounts.security_audit import log_security_event
         from apps.accounts.models import SecurityAuditLog
@@ -799,6 +792,22 @@ def tenant_staff_invite_accept(request, token):
         messages.error(request, _("Invite expired or already used."))
         return redirect("accounts:login")
     school = invite.school
+    if not school.is_active:
+        messages.error(
+            request,
+            _("This school is not active. Contact RunMyCampus support."),
+        )
+        return redirect("accounts:login")
+    request_school = getattr(request, "school", None)
+    if (
+        request_school is None
+        or str(getattr(request_school, "pk", "")) != str(school.pk)
+    ):
+        from apps.accounts.tenant_staff_invites import (
+            tenant_staff_invite_accept_url,
+        )
+
+        return redirect(tenant_staff_invite_accept_url(invite))
     if request.method == "POST":
         username = (
             invite.email
@@ -851,6 +860,13 @@ def tenant_staff_invite_accept(request, token):
                 {"invite": invite, "school": school},
             )
         with transaction.atomic():
+            invite = get_object_or_404(
+                TenantStaffInvite.objects.select_for_update(),
+                pk=invite.pk,
+            )
+            if not invite.is_pending:
+                messages.error(request, _("Invite expired or already used."))
+                return redirect("accounts:login")
             user = (
                 UserModel.objects.select_for_update().filter(pk=candidate.pk).first()
                 if candidate.pk
@@ -922,6 +938,22 @@ def tenant_staff_invite_accept(request, token):
             )
             invite.accepted_at = timezone.now()
             invite.save(update_fields=["accepted_at"])
+        try:
+            from apps.accounts.tenant_staff_invites import (
+                emit_tenant_staff_invite_event,
+            )
+
+            emit_tenant_staff_invite_event(
+                invite,
+                "tenant_staff_invite_accepted",
+                actor=user,
+            )
+        except Exception:
+            logger.warning(
+                "tenant_staff_invite.accept_audit_failed invite_id=%s",
+                getattr(invite, "pk", None),
+                exc_info=True,
+            )
         if invite.is_school_owner:
             login(
                 request,

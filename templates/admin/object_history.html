@@ -10,12 +10,12 @@
   <section class="rmc-django-command-band" data-rmc-django-command-band="object-history" aria-label="{% trans 'History command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %}</span>
-      <strong>
+      <h1 class="rmc-django-command-band__title">
         {% blocktrans with name=object|truncatewords:"18" %}History: {{ name }}{% endblocktrans %}
         {% trans "Change history" as tip_hist_title %}
         {% blocktrans asvar tip_hist_body %}Chronological change log for this record. Return to the form to continue editing.{% endblocktrans %}
         {% rmc_info_tag title=tip_hist_title body=tip_hist_body surface="django-admin" placement="bottom" %}
-      </strong>
+      </h1>
     </div>
     <div class="rmc-django-command-band__meta" aria-label="{% trans 'History actions' %}">
       {% url opts|admin_urlname:'change' object.pk|admin_urlquote as change_url %}

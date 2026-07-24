@@ -35,13 +35,28 @@ def _operator(email: str = "ops@example.com"):
     return user
 
 
+def _force_login_past_mfa(client, user) -> None:
+    """Authenticate a strict operator fixture with its MFA proof satisfied."""
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+
+    TOTPDevice.objects.get_or_create(
+        user=user,
+        name="migration-cloud-tests",
+        defaults={"confirmed": True},
+    )
+    client.force_login(user)
+    session = client.session
+    session["mfa_verified"] = True
+    session.save()
+
+
 @override_settings(SECURE_SSL_REDIRECT=False, ALLOWED_HOSTS=["*"])
 class IntakeWizardGetTests(TestCase):
     def setUp(self) -> None:
         cache.clear()
         self.user = _operator()
         self.client = Client(HTTP_HOST=HOST)
-        self.client.force_login(self.user)
+        _force_login_past_mfa(self.client, self.user)
 
     def test_get_renders_wizard(self) -> None:
         url = reverse("migration_cloud_super:bundle_new")
@@ -64,7 +79,7 @@ class IntakeWizardUploadPostTests(TestCase):
         cache.clear()
         self.user = _operator()
         self.client = Client(HTTP_HOST=HOST)
-        self.client.force_login(self.user)
+        _force_login_past_mfa(self.client, self.user)
         self.url = reverse("migration_cloud_super:bundle_new")
 
     def _post(self, **overrides):
@@ -164,7 +179,7 @@ class IntakeWizardUrlAndPendingPostTests(TestCase):
         cache.clear()
         self.user = _operator()
         self.client = Client(HTTP_HOST=HOST)
-        self.client.force_login(self.user)
+        _force_login_past_mfa(self.client, self.user)
         self.url = reverse("migration_cloud_super:bundle_new")
 
     def test_url_intake_rejects_unsupported_scheme(self) -> None:
@@ -216,7 +231,7 @@ class ApplyDryRunGateTests(TestCase):
         cache.clear()
         self.user = _operator()
         self.client = Client(HTTP_HOST=HOST)
-        self.client.force_login(self.user)
+        _force_login_past_mfa(self.client, self.user)
         # Create a MAPPED bundle to exercise the apply gate.
         self.bundle = MigrationBundle.objects.create(
             label="apply gate test",
@@ -254,7 +269,7 @@ class IntakeWizardCustomSourceHintTests(TestCase):
         cache.clear()
         self.user = _operator()
         self.client = Client(HTTP_HOST=HOST)
-        self.client.force_login(self.user)
+        _force_login_past_mfa(self.client, self.user)
 
     def test_custom_source_hint_lands_cleanly(self) -> None:
         url = reverse("migration_cloud_super:bundle_new")

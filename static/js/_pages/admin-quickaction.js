@@ -300,6 +300,12 @@
      details" friction in admin changelists.
   */
   function initHoverInspector() {
+    // The approved Django admin owns one page-aware rail and one tools strip.
+    // A synthetic fixed row popout duplicates that context and can cover
+    // mobile tables, so it is intentionally unavailable on every Django
+    // operator and tenant admin surface.
+    if (document.querySelector('[data-rmc-shell-root="django-admin"]')) return;
+
     var chip = null;
     var hoverTimer = null;
     var lastRow = null;

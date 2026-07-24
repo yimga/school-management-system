@@ -73,9 +73,9 @@ class MigrationCloudApplyRoleGateTests(TestCase):
 
         self.assertEqual(json.loads(resp.content.decode()).get("error"), "forbidden")
 
-    @mock.patch("apps.migration_cloud.orchestrator.apply_bundle")
-    def test_staff_super_shell_allowed(self, apply_mock):
-        apply_mock.return_value = self._fake_result()
+    @mock.patch("apps.migration_cloud.celery_tasks.enqueue_apply")
+    def test_staff_super_shell_allowed(self, enqueue_mock):
+        enqueue_mock.return_value = SimpleNamespace(outbox_id="outbox-apply-gate")
         staff = User.objects.create_user(
             username="apply_staff", password="x", is_staff=True
         )
@@ -85,4 +85,15 @@ class MigrationCloudApplyRoleGateTests(TestCase):
             request, bundle_id=self.bundle.pk, shell="super"
         )
         self.assertEqual(resp.status_code, 200)
-        apply_mock.assert_called_once()
+        enqueue_mock.assert_called_once_with(self.bundle.pk, dry_run=True)
+        self.assertJSONEqual(
+            resp.content,
+            {
+                "ok": True,
+                "queued": True,
+                "durable_outbox": True,
+                "dry_run": True,
+                "outbox_id": "outbox-apply-gate",
+                "bundle_id": self.bundle.pk,
+            },
+        )

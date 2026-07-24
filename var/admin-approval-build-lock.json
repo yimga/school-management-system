@@ -1,16 +1,16 @@
 {
-  "build_id": "2026-07-22-v15.7",
-  "cache_bust": "20260722-admin-os-v157",
-  "sw_version": "sms-v4.06.13-tenant-chrome-rootfix-2026-07-22",
-  "seal": "2026-07-22-admin-os-v157",
+  "build_id": "2026-07-24-v15.8",
+  "cache_bust": "20260724-admin-os-v158",
+  "sw_version": "sms-v4.06.14-admin-os-runtime-parity-2026-07-24",
+  "seal": "2026-07-24-admin-os-v158",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
     "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-07-22-v15.7\"",
-    "v15.7 · Admin OS · operator+tenant",
+    "data-rmc-admin-approval-build=\"2026-07-24-v15.8\"",
+    "v15.8 · Admin OS · operator+tenant",
     "data-rmc-admin-archetype=\"discover\"",
     "data-rmc-admin-archetype=\"scan\"",
     "data-rmc-admin-archetype=\"edit\"",
@@ -26,5 +26,5 @@
     "operator",
     "tenant"
   ],
-  "rule": "Discover 1-col; Edit/Scan contentful 3-col; Decide/Audit full-bleed; never 1fr+3rem phantom tools; critical CSS always on."
+  "rule": "Discover/Edit/Scan use page-aware 3-col grids above 1024px and one column at or below 1024px; Decide/Audit remain task-specific; critical CSS always on."
 }

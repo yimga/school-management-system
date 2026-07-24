@@ -445,6 +445,22 @@ MODULE_ACCESS_DEFAULTS = {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
+    # These are the other real tenant-host namespaces for the same Migration
+    # Cloud workflow. Register the URL namespaces themselves because
+    # ModuleAccessMiddleware resolves by namespace and fails closed when a
+    # namespace is absent.
+    "migration_cloud_portal": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    "migration_intake_customer": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    "migration_guardian_consent_admin": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
     # Template Marketplace is the TENANT-side branding/report-card/dashboard template picker
     # (namespace "template_marketplace", a studio_os sibling). It was MISSING from this map, so
     # can_access_module() default-denied it for EVERYONE (unknown module -> deny) — a SUPERADMIN
@@ -799,7 +815,13 @@ def user_can_access_ops_clinic(user) -> bool:
     return api_user_has_any_role(user, OPS_CLINIC_ROLE_CODES)
 
 
-def can_access_module(user, module: str, action: str = "read") -> bool:
+def can_access_module(
+    user,
+    module: str,
+    action: str = "read",
+    *,
+    school=None,
+) -> bool:
     """
     Module-level access guard for role + feature-permission enforcement.
     Feature permissions override role defaults:
@@ -840,6 +862,30 @@ def can_access_module(user, module: str, action: str = "read") -> bool:
         )
         return False
 
+    membership_role = ""
+    if school is not None:
+        # Module authority on a tenant host comes from the active membership
+        # for that tenant, not User.role (which may describe another school).
+        # Requiring a membership here also prevents a global feature grant
+        # from crossing a tenant boundary.
+        try:
+            from apps.schools.models import SchoolMembership
+
+            membership_role = (
+                SchoolMembership.objects.filter(
+                    user=user,
+                    school=school,
+                    suspended_at__isnull=True,
+                )
+                .values_list("role", flat=True)
+                .first()
+                or ""
+            )
+        except (DatabaseError, ObjectDoesNotExist, TypeError, ValueError):
+            return False
+        if not membership_role:
+            return False
+
     if user.has_feature_permission(f"module.{module}.all"):
         return True
     if action == "write" and user.has_feature_permission(f"module.{module}.write"):
@@ -849,6 +895,12 @@ def can_access_module(user, module: str, action: str = "read") -> bool:
 
     defaults = MODULE_ACCESS_DEFAULTS[module]
     allowed = defaults.get(action, defaults.get("read", set()))
+    if school is not None:
+        if allowed == ALL_AUTHENTICATED:
+            return True
+        return _canonical_role_code(membership_role) in {
+            _canonical_role_code(role) for role in allowed
+        }
     return _user_has_any_role(user, allowed)
 
 

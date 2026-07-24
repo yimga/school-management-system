@@ -32,7 +32,7 @@
         <section class="rmc-django-command-band" data-rmc-django-command-band="change-form" aria-label="{% trans 'Admin form command surface' %}">
             <div class="rmc-django-command-band__copy">
                 <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %} · {{ opts.app_label }}</span>
-                <strong>
+                <h1 class="rmc-django-command-band__title">
                     {% if add %}
                         {% blocktrans with name=opts.verbose_name %}Add {{ name }}{% endblocktrans %}
                     {% else %}
@@ -41,7 +41,7 @@
                     {% trans "This form" as tip_form_title %}
                     {% blocktrans asvar tip_form_body %}Edit fields in the main pane. Permissions and long sections collapse into numbered panels. Save keeps continue / add another / delete in the menu. History opens the change log.{% endblocktrans %}
                     {% rmc_info_tag title=tip_form_title body=tip_form_body surface="django-admin" placement="bottom" %}
-                </strong>
+                </h1>
             </div>
             <div class="rmc-django-command-band__meta" aria-label="{% trans 'Form actions' %}">
                 {% if change and original %}

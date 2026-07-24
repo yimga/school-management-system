@@ -40,7 +40,7 @@ def _column_exists(table_name: str, column_name: str) -> bool:
         }
 
 
-def _ensure_school_fk_column(apps, model_attr: str) -> None:
+def _ensure_school_fk_column(apps, model_attr: str, related_name: str) -> None:
     """Add ``school_id`` when the column is absent, via the HISTORICAL model.
 
     The model is resolved from the migration-state registry (``apps.get_model``),
@@ -56,17 +56,31 @@ def _ensure_school_fk_column(apps, model_attr: str) -> None:
     table = model._meta.db_table
     if _column_exists(table, "school_id"):
         return
-    field = model._meta.get_field("school")
+    # SeparateDatabaseAndState runs ``database_operations`` against the state
+    # *before* its ``state_operations`` are applied.  Therefore the historical
+    # Room/TimeSlot model does not expose ``school`` yet on a clean replay.
+    # Freeze the field definition here and attach it to the historical model
+    # instead of importing the live model or asking for a not-yet-present field.
+    school_model = apps.get_model("schools", "School")
+    field = models.ForeignKey(
+        school_model,
+        blank=True,
+        null=True,
+        on_delete=django.db.models.deletion.CASCADE,
+        related_name=related_name,
+    )
+    field.set_attributes_from_name("school")
+    field.model = model
     with connection.schema_editor() as editor:
         editor.add_field(model, field)
 
 
 def ensure_room_school_fk(apps, schema_editor):
-    _ensure_school_fk_column(apps, "Room")
+    _ensure_school_fk_column(apps, "Room", "academic_rooms")
 
 
 def ensure_timeslot_school_fk(apps, schema_editor):
-    _ensure_school_fk_column(apps, "TimeSlot")
+    _ensure_school_fk_column(apps, "TimeSlot", "academic_time_slots")
 
 
 def noop(apps, schema_editor):

@@ -307,6 +307,9 @@ def super_operator_team_revoke_sessions(request, user_id: int):
     deleted, _deleted_count = Session.objects.filter(
         session_key__in=_session_keys_for_user(user)
     ).delete()
+    from apps.accounts.mfa_device_trust import revoke_device_trust
+
+    revoke_device_trust(user)
     audit_operator_action(
         request,
         action="UPDATE",
@@ -333,6 +336,9 @@ def super_operator_team_suspend(request, user_id: int):
     profile.status = PlatformOperatorProfile.Status.SUSPENDED
     profile.save(update_fields=["status", "updated_at"])
     Session.objects.filter(session_key__in=_session_keys_for_user(user)).delete()
+    from apps.accounts.mfa_device_trust import revoke_device_trust
+
+    revoke_device_trust(user)
     audit_operator_action(
         request,
         action="UPDATE",

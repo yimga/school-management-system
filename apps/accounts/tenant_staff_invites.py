@@ -6,6 +6,7 @@ from datetime import timedelta
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -39,40 +40,70 @@ def create_tenant_staff_invite(
     if role not in valid_roles:
         raise ValueError(f"Unsupported tenant role: {role!r}.")
 
-    now = timezone.now()
-    expires_at = now + timedelta(days=INVITE_LIFETIME_DAYS)
-    invite = (
-        TenantStaffInvite.objects.filter(
-            school=school,
-            email__iexact=email,
-            accepted_at__isnull=True,
-            expires_at__gte=now,
-            is_school_owner=bool(is_school_owner),
+    with transaction.atomic():
+        # Lock the tenant as the serialization point. Two concurrent retries
+        # for the same address cannot both observe "no invite" and create rows.
+        school.__class__.objects.select_for_update().only("pk").get(pk=school.pk)
+        now = timezone.now()
+        expires_at = now + timedelta(days=INVITE_LIFETIME_DAYS)
+        invite = (
+            TenantStaffInvite.objects.filter(
+                school=school,
+                email__iexact=email,
+                accepted_at__isnull=True,
+                expires_at__gte=now,
+                is_school_owner=bool(is_school_owner),
+            )
+            .order_by("-created_at")
+            .first()
         )
-        .order_by("-created_at")
-        .first()
-    )
-    if invite is not None:
-        invite.email = email
-        invite.role = role
-        invite.expires_at = expires_at
-        if invited_by is not None:
-            invite.invited_by = invited_by
-        invite.save(
-            update_fields=["email", "role", "expires_at", "invited_by"]
-        )
-        return invite, False
+        if invite is not None:
+            # Return the existing still-valid row unchanged. This keeps retries
+            # idempotent all the way through the email-delivery key.
+            return invite, False
 
-    return (
-        TenantStaffInvite.objects.create(
+        invite = TenantStaffInvite.objects.create(
             school=school,
             email=email,
             role=role,
             is_school_owner=bool(is_school_owner),
             invited_by=invited_by,
             expires_at=expires_at,
-        ),
-        True,
+        )
+    emit_tenant_staff_invite_event(
+        invite,
+        "tenant_staff_invite_created",
+        actor=invited_by,
+    )
+    return invite, True
+
+
+def emit_tenant_staff_invite_event(invite, event_type: str, *, actor=None):
+    """Append a token-free audit event for an invitation transition."""
+    from apps.platform_runtime.events import emit_platform_event
+
+    school_id = str(getattr(invite, "school_id", "") or "")
+    invite_id = str(getattr(invite, "pk", "") or "")
+    accepted_at = getattr(invite, "accepted_at", None)
+    generation = (
+        accepted_at.isoformat()
+        if accepted_at is not None
+        else getattr(invite, "expires_at", timezone.now()).isoformat()
+    )
+    return emit_platform_event(
+        event_type,
+        {
+            "invite_id": invite_id,
+            "school_id": school_id,
+            "actor_id": getattr(actor, "pk", None),
+            "role": str(getattr(invite, "role", "") or ""),
+            "is_school_owner": bool(
+                getattr(invite, "is_school_owner", False)
+            ),
+        },
+        tenant_id=school_id,
+        school_id=school_id,
+        idempotency_key=f"{event_type}:{invite_id}:{generation}",
     )
 
 
@@ -125,15 +156,39 @@ def send_tenant_staff_invite(invite, *, accept_url: str = "") -> bool:
         to=[invite.email],
         priority="transactional",
         school=invite.school,
-        allow_suppressed=True,
-        idempotency_key=f"staff_invite:{invite.token}",
+        idempotency_key=(
+            f"staff_invite:{invite.pk}:{int(invite.expires_at.timestamp())}"
+        ),
     )
-    return bool(result.get("ok") or result.get("queued"))
+    delivered = bool(result.get("ok") or result.get("queued"))
+    if not delivered:
+        # Compensate the failed delivery. The email layer intentionally
+        # deduplicates a failed idempotency key too, so leaving this invite
+        # live would make every later retry return the old failure forever.
+        # Expiring it lets the guarded retry create one new token/key while
+        # preserving this failed row and its token-free audit history.
+        failed_at = timezone.now()
+        TenantStaffInvite.objects.filter(
+            pk=invite.pk,
+            accepted_at__isnull=True,
+        ).update(expires_at=failed_at)
+        invite.expires_at = failed_at
+    emit_tenant_staff_invite_event(
+        invite,
+        (
+            "tenant_staff_invite_delivery_queued"
+            if delivered
+            else "tenant_staff_invite_delivery_failed"
+        ),
+        actor=getattr(invite, "invited_by", None),
+    )
+    return delivered
 
 
 __all__ = [
     "INVITE_LIFETIME_DAYS",
     "create_tenant_staff_invite",
+    "emit_tenant_staff_invite_event",
     "normalize_invite_email",
     "send_tenant_staff_invite",
     "tenant_staff_invite_accept_url",

@@ -29,11 +29,11 @@ _SALT = "apps.accounts.mfa_device_trust.v1"
 _DEFAULT_MAX_DAYS = 30
 _DEFAULT_TRUST_DAYS = 14
 _DEFAULT_ALLOWED_DAYS = (1, 7, 14, 30)
-_ABSOLUTE_MAX_DAYS = 90
+_ABSOLUTE_MAX_DAYS = 30
 
 
 def device_trust_max_days() -> int:
-    """Platform cap for a trusted-device waiver (default 30, hard cap 90 days)."""
+    """Platform cap for a trusted-device waiver (default and hard cap 30 days)."""
     raw = str(getattr(settings, "MFA_DEVICE_TRUST_DAYS", "") or "").strip()
     days = _DEFAULT_MAX_DAYS
     if raw:
@@ -58,7 +58,11 @@ def device_trust_allowed_days() -> tuple[int, ...]:
             value = int(candidate)
         except (TypeError, ValueError):
             continue
-        if 0 < value <= device_trust_max_days() and value not in values:
+        if (
+            value in _DEFAULT_ALLOWED_DAYS
+            and value <= device_trust_max_days()
+            and value not in values
+        ):
             values.append(value)
     if not values:
         values.append(device_trust_max_days())
@@ -142,6 +146,7 @@ def issue_device_trust_token(user, *, trust_days=None) -> str:
         {
             "uid": str(getattr(user, "pk", "")),
             "fp": _fingerprint(user),
+            "ver": int(getattr(user, "mfa_device_trust_version", 1) or 1),
             "days": days,
             "exp": expires_at,
         },
@@ -153,6 +158,8 @@ def device_trust_valid(request, user) -> bool:
     """True when this request carries a valid, unexpired device-trust cookie for
     ``user`` (signed, right user, matching password fingerprint)."""
     if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    if not getattr(user, "is_active", False):
         return False
     raw = request.COOKIES.get(DEVICE_TRUST_COOKIE)
     if not raw:
@@ -167,6 +174,15 @@ def device_trust_valid(request, user) -> bool:
         return False
     if data.get("fp") != _fingerprint(user):
         return False
+    try:
+        token_version = int(data.get("ver", 1))
+        current_version = int(
+            getattr(user, "mfa_device_trust_version", 1) or 1
+        )
+    except (TypeError, ValueError):
+        return False
+    if token_version != current_version:
+        return False
     # New tokens carry their selected period. The signed absolute expiry makes
     # a 1/7/14-day choice real even though validation also accepts legacy tokens
     # up to the platform-wide maximum.
@@ -176,11 +192,31 @@ def device_trust_valid(request, user) -> bool:
             days = int(data.get("days"))
         except (TypeError, ValueError):
             return False
-        if not 0 < days <= device_trust_max_days():
+        if days not in device_trust_allowed_days():
             return False
         if int(time.time()) > expires_at:
             return False
     return True
+
+
+def revoke_device_trust(user_or_id) -> bool:
+    """Invalidate every trusted-browser token for one user, atomically."""
+    user_id = getattr(user_or_id, "pk", user_or_id)
+    if not user_id:
+        return False
+    from django.contrib.auth import get_user_model
+    from django.db.models import F
+
+    User = get_user_model()
+    updated = User.objects.filter(pk=user_id).update(
+        mfa_device_trust_version=F("mfa_device_trust_version") + 1
+    )
+    if updated and hasattr(user_or_id, "mfa_device_trust_version"):
+        current = int(
+            getattr(user_or_id, "mfa_device_trust_version", 1) or 1
+        )
+        user_or_id.mfa_device_trust_version = current + 1
+    return bool(updated)
 
 
 def set_device_trust_cookie(response, user, request, *, trust_days=None) -> None:

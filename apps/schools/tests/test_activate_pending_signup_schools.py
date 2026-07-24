@@ -30,32 +30,27 @@ class ActivatePendingSignupSchoolsCommandTests(TestCase):
     def test_dry_run_lists_verified_inactive_without_provisioning(self):
         out = StringIO()
         with mock.patch(
-            "apps.schools.tasks.complete_provisioning_for_school"
-        ) as complete:
+            "apps.schools.tasks.provision_school_sync"
+        ) as provision:
             call_command(
                 "activate_pending_signup_schools",
                 "--all-verified-inactive",
                 "--dry-run",
                 stdout=out,
             )
-            complete.assert_not_called()
+            provision.assert_not_called()
         self.assertIn("stuck-school", out.getvalue())
         self.assertIn("DRY-RUN", out.getvalue())
 
     def test_all_verified_inactive_provisions_matching_schools(self):
         with mock.patch(
-            "apps.schools.tasks.complete_provisioning_for_school",
-            return_value={
-                "queued": False,
-                "sync_completed": True,
-                "is_active": True,
-            },
-        ) as complete:
+            "apps.schools.tasks.provision_school_sync"
+        ) as provision:
             call_command(
                 "activate_pending_signup_schools",
                 "--all-verified-inactive",
             )
-        complete.assert_called_once_with(
+        provision.assert_called_once_with(
             str(self.school.pk), contact_email="owner@stuck.test"
         )
 
@@ -73,13 +68,12 @@ class ActivatePendingSignupSchoolsCommandTests(TestCase):
             verified_at=timezone.now(),
         )
         with mock.patch(
-            "apps.schools.tasks.complete_provisioning_for_school",
-            return_value={"sync_completed": True, "is_active": True},
-        ) as complete:
+            "apps.schools.tasks.provision_school_sync"
+        ) as provision:
             call_command(
                 "activate_pending_signup_schools",
                 "--slug=stuck-school",
             )
-        complete.assert_called_once_with(
+        provision.assert_called_once_with(
             str(self.school.pk), contact_email="owner@stuck.test"
         )

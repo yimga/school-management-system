@@ -35,6 +35,12 @@ def revoke_offline_access_on_offboarding(sender, instance, **kwargs):
     if not user_id or not school_id:
         return
     try:
+        from apps.accounts.mfa_device_trust import revoke_device_trust
+
+        revoke_device_trust(user_id)
+    except (ImportError, DatabaseError) as exc:
+        logger.warning("revoke_device_trust_on_offboarding failed: %s", exc)
+    try:
         from django.utils import timezone
 
         from apps.accounts.models_offline_device import (
@@ -186,13 +192,66 @@ ROLE_TEMPLATES: dict[str, list[str]] = {
 @receiver(pre_save, sender=User)
 def _cache_previous_role(sender, instance, **kwargs):
     if instance.pk:
-        try:
-            previous = sender.objects.get(pk=instance.pk).role
-        except sender.DoesNotExist:
-            previous = None
+        previous = sender.objects.filter(pk=instance.pk).values(
+            "role", "is_active"
+        ).first()
     else:
         previous = None
-    instance._previous_role = previous
+    instance._previous_role = previous.get("role") if previous else None
+    instance._previous_is_active = (
+        previous.get("is_active") if previous else None
+    )
+
+
+@receiver(post_save, sender=User)
+def _revoke_device_trust_on_account_disable(sender, instance, created, **kwargs):
+    if created or getattr(instance, "_previous_is_active", None) is not True:
+        return
+    if instance.is_active:
+        return
+    try:
+        from apps.accounts.mfa_device_trust import revoke_device_trust
+
+        revoke_device_trust(instance)
+    except (ImportError, DatabaseError) as exc:
+        logger.warning("revoke_device_trust_on_account_disable failed: %s", exc)
+
+
+@receiver(pre_save, sender=SchoolMembership)
+def _cache_membership_security_state(sender, instance, **kwargs):
+    previous = None
+    if instance.pk:
+        previous = sender.objects.filter(pk=instance.pk).values(
+            "role", "is_school_owner", "suspended_at"
+        ).first()
+    instance._previous_security_state = previous
+
+
+@receiver(post_save, sender=SchoolMembership)
+def _revoke_device_trust_on_membership_authority_change(
+    sender, instance, created, **kwargs
+):
+    if created:
+        return
+    previous = getattr(instance, "_previous_security_state", None)
+    if not previous:
+        return
+    changed = (
+        previous.get("role") != instance.role
+        or bool(previous.get("is_school_owner")) != bool(instance.is_school_owner)
+        or previous.get("suspended_at") != instance.suspended_at
+    )
+    if not changed:
+        return
+    try:
+        from apps.accounts.mfa_device_trust import revoke_device_trust
+
+        revoke_device_trust(instance.user_id)
+    except (ImportError, DatabaseError) as exc:
+        logger.warning(
+            "revoke_device_trust_on_membership_authority_change failed: %s",
+            exc,
+        )
 
 
 @receiver(post_save, sender=User)

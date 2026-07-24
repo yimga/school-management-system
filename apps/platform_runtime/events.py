@@ -19,6 +19,46 @@ logger = logging.getLogger(__name__)
 
 # Event catalog: event_type -> { description, payload_schema_hint }
 EVENT_CATALOG = {
+    "tenant_staff_invite_created": {
+        "description": "A tenant-scoped staff or owner invitation was created",
+        "payload": [
+            "invite_id",
+            "school_id",
+            "actor_id",
+            "role",
+            "is_school_owner",
+        ],
+    },
+    "tenant_staff_invite_delivery_queued": {
+        "description": "Tenant invitation delivery was accepted or queued",
+        "payload": [
+            "invite_id",
+            "school_id",
+            "actor_id",
+            "role",
+            "is_school_owner",
+        ],
+    },
+    "tenant_staff_invite_delivery_failed": {
+        "description": "Tenant invitation delivery was not accepted or queued",
+        "payload": [
+            "invite_id",
+            "school_id",
+            "actor_id",
+            "role",
+            "is_school_owner",
+        ],
+    },
+    "tenant_staff_invite_accepted": {
+        "description": "A tenant-scoped staff or owner invitation was accepted",
+        "payload": [
+            "invite_id",
+            "school_id",
+            "actor_id",
+            "role",
+            "is_school_owner",
+        ],
+    },
     "student_created": {
         "description": "Student record created",
         "payload": ["student_id", "school_id"],

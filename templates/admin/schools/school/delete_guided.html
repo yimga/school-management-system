@@ -10,7 +10,7 @@
   <section class="rmc-django-command-band" data-rmc-django-command-band="guided" aria-label="{% trans 'Guided delete command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %}</span>
-      <strong>{% trans "Permanent delete requires offboarding workflow" %}</strong>
+      <h1 class="rmc-django-command-band__title">{% trans "Permanent delete requires offboarding workflow" %}</h1>
     </div>
   </section>
 

@@ -43,6 +43,12 @@ def reset_mfa_for_user(user) -> dict:
         counts["passkey"] = UserPasskey.objects.filter(user=user).delete()[0]
     except (ImportError, DatabaseError, AttributeError):
         pass
+    try:
+        from apps.accounts.mfa_device_trust import revoke_device_trust
+
+        revoke_device_trust(user)
+    except (ImportError, DatabaseError, AttributeError):
+        pass
     return counts
 
 

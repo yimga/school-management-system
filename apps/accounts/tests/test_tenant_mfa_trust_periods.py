@@ -15,6 +15,7 @@ from apps.accounts.mfa_device_trust import (
     DEVICE_TRUST_COOKIE,
     device_trust_allowed_days,
     device_trust_default_days,
+    device_trust_max_days,
     device_trust_valid,
     issue_device_trust_token,
     set_device_trust_cookie,
@@ -75,14 +76,24 @@ class DeviceTrustPeriodTests(TestCase):
     def test_arbitrary_client_period_cannot_extend_trust(self):
         from django.http import HttpResponse
 
-        response = HttpResponse()
-        set_device_trust_cookie(
-            response, self.user, self.factory.get("/"), trust_days=3650
-        )
-        self.assertEqual(
-            int(response.cookies[DEVICE_TRUST_COOKIE]["max-age"]),
-            14 * 24 * 60 * 60,
-        )
+        for value in (3650, 60, 2, 0, -1, "malformed"):
+            with self.subTest(value=value):
+                response = HttpResponse()
+                set_device_trust_cookie(
+                    response, self.user, self.factory.get("/"), trust_days=value
+                )
+                self.assertEqual(
+                    int(response.cookies[DEVICE_TRUST_COOKIE]["max-age"]),
+                    14 * 24 * 60 * 60,
+                )
+
+    @override_settings(
+        MFA_DEVICE_TRUST_DAYS=365,
+        MFA_DEVICE_TRUST_ALLOWED_DAYS="1,2,7,14,30,60,365",
+    )
+    def test_configuration_cannot_expand_the_four_approved_periods(self):
+        self.assertEqual(device_trust_max_days(), 30)
+        self.assertEqual(device_trust_allowed_days(), (1, 7, 14, 30))
 
     def test_every_selected_period_expires_at_its_own_boundary(self):
         now = int(time.time())

@@ -203,6 +203,16 @@ urlpatterns = [
         include(("apps.accounts.urls", "accounts"), namespace="accounts"),
     ),
     path(
+        "migration/consent/",
+        include(
+            (
+                "apps.migration_cloud.urls_guardian_consent",
+                "migration_guardian_consent",
+            ),
+            namespace="migration_guardian_consent",
+        ),
+    ),
+    path(
         "api/pending-provision/progress/",
         api_public_pending_provision_progress,
         name="api_public_pending_provision_progress",

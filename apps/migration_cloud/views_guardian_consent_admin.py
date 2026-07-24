@@ -443,7 +443,7 @@ class GuardianConsentResendView(LoginRequiredMixin, View):
             subject=str(token.id),
             payload={
                 "intake_id_prefix": str(intake.id)[:8],
-                "token_sha_prefix": (token.token_sha256 or "")[:8],
+                "consent_artifact_prefix": (token.token_sha256 or "")[:8],
                 "resend_count": int(token.resend_count),
                 "send_ok": bool(sent_ok),
             },

@@ -351,7 +351,18 @@ class OwnerOnboardingPublicHostRenderTests(TestCase):
         self.assertEqual(r.status_code, 200)
 
     def test_done_launchpad_renders_on_public_host(self):
-        # Public host redirects to the tenant workspace; launchpad renders there.
+        # Mandatory MFA is part of first login; after satisfying it, the public
+        # host redirects to the tenant workspace and the launchpad renders there.
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.create(
+            user=self.user,
+            name="public-host-contract",
+            confirmed=True,
+        )
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
         r = self.client.get(reverse("accounts:owner_onboarding_done"), follow=False)
         self.assertEqual(r.status_code, 302)
         self.assertIn(self.school.subdomain.encode(), r.url.encode())
@@ -359,6 +370,9 @@ class OwnerOnboardingPublicHostRenderTests(TestCase):
         tenant_client.force_login(
             self.user, backend="django.contrib.auth.backends.ModelBackend"
         )
+        tenant_session = tenant_client.session
+        tenant_session["mfa_verified"] = True
+        tenant_session.save()
         r2 = tenant_client.get(reverse("accounts:owner_onboarding_done"))
         self.assertEqual(r2.status_code, 200)
         self.assertIn(b"dashboard", r2.content.lower())

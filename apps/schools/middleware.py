@@ -69,6 +69,7 @@ PUBLIC_TENANT_AUTH_PREFIXES = (
 )
 # Apex marketing host must never render tenant login forms; hand off to discovery.
 APEX_TENANT_AUTH_DISCOVERY_PREFIXES = (
+    "/authentication/claim-invite",
     "/authentication/login",
     "/authentication/logout",
     "/authentication/password_reset",

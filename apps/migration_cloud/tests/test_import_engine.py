@@ -60,6 +60,13 @@ class ImportEngineTests(TestCase):
             entity_type="students",
             raw_count=1,
             valid_count=1,
+            staged_rows=[
+                {
+                    "admission_number": "IMP-001",
+                    "first_name": "Import",
+                    "last_name": "Student",
+                }
+            ],
             status=StagingBatchStatus.STAGED,
             data_quality_score=Decimal("95.00"),
         )

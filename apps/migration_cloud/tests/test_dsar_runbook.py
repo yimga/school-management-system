@@ -18,7 +18,7 @@ import tempfile
 from pathlib import Path
 from unittest import mock
 
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 from apps.migration_cloud.management.commands import (
     dsar_runbook_record as dsar_module,
@@ -109,8 +109,8 @@ class DSARRecordPureLogicTests(SimpleTestCase):
         self.assertIn("request_id_sha256_prefix", payload)
 
 
-class DSARRunbookViewTests(SimpleTestCase):
-    """View-level coverage. SimpleTestCase: no DB writes required."""
+class DSARRunbookViewTests(TestCase):
+    """View-level coverage through the production middleware stack."""
 
     def setUp(self):
         # Late-import to avoid initializing the URL config at module

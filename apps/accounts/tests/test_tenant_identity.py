@@ -169,6 +169,7 @@ class TenantIdentityHubViewTests(TestCase):
             },
         )
         request.user = AnonymousUser()
+        request.school = self.school
         request.session = {}
         request._messages = FallbackStorage(request)
         response = tenant_staff_invite_accept(request, token=invite.token)

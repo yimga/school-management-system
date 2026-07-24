@@ -14,12 +14,12 @@
   <section class="rmc-django-command-band" data-rmc-django-command-band="app-index" aria-label="{% if is_manager_host %}{% trans 'App catalog command surface' %}{% else %}{% trans 'School records for this app' %}{% endif %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %}</span>
-      <strong>
+      <h1 class="rmc-django-command-band__title">
         {{ title }}
         {% firstof app_list.0.name title as app_label_copy %}
         {% blocktrans trimmed asvar tip_app_body with app=app_label_copy %}Models in {{ app }}. Open a changelist for raw rows, or Add for a new record.{% endblocktrans %}
         {% rmc_info_tag title=_("This app") body=tip_app_body surface="django-admin" placement="bottom" %}
-      </strong>
+      </h1>
     </div>
     <div class="rmc-django-command-band__meta" aria-label="{% trans 'App actions' %}">
       <a class="rmc-django-band-action" href="{% url 'admin:index' %}">← {% if is_manager_host %}{% trans "Catalog" %}{% else %}{% trans "School catalog" %}{% endif %}</a>

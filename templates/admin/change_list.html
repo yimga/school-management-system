@@ -39,12 +39,12 @@
             <section class="rmc-django-command-band" data-rmc-django-command-band="change-list" aria-label="{% trans 'Admin list command surface' %}">
                 <div class="rmc-django-command-band__copy">
                     <span class="rmc-django-command-band__eyebrow">{% if is_manager_host %}{% trans "Platform Backoffice" %}{% else %}{% firstof SITE.site_name _("This school") %}{% endif %} · {{ opts.app_label }}</span>
-                    <strong class="truncate">
+                    <h1 class="rmc-django-command-band__title truncate">
                       {{ cl.opts.verbose_name_plural|capfirst }}
                       {% trans "This list" as tip_list_title %}
                       {% blocktrans asvar tip_list_body %}Native table of records. Use Add and Filters in this band. The rail shows active filters, selection, and page — not generic scope copy.{% endblocktrans %}
                       {% rmc_info_tag title=tip_list_title body=tip_list_body surface="django-admin" placement="bottom" %}
-                    </strong>
+                    </h1>
                 </div>
                 <div class="rmc-django-command-band__meta rmc-django-command-band__actions" aria-label="{% trans 'List actions' %}">
                     <span>{% blocktranslate count counter=cl.result_count %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktranslate %}</span>

@@ -13,6 +13,12 @@ from apps.accounts.models import User
 from apps.accounts.permissions import MODULE_ACCESS_DEFAULTS, can_access_module
 
 MODULE = "migration_cloud_connector"
+TENANT_MIGRATION_MODULES = (
+    "migration_cloud_connector",
+    "migration_cloud_portal",
+    "migration_intake_customer",
+    "migration_guardian_consent_admin",
+)
 
 
 class MigrationCloudModuleAccessTests(TestCase):
@@ -35,7 +41,8 @@ class MigrationCloudModuleAccessTests(TestCase):
         )
 
     def test_module_is_registered(self):
-        self.assertIn(MODULE, MODULE_ACCESS_DEFAULTS)
+        for module in TENANT_MIGRATION_MODULES:
+            self.assertIn(module, MODULE_ACCESS_DEFAULTS)
 
     def test_admin_can_read_and_write(self):
         self.assertTrue(can_access_module(self.admin, MODULE, action="read"))
@@ -50,6 +57,67 @@ class MigrationCloudModuleAccessTests(TestCase):
 
     def test_teacher_denied(self):
         self.assertFalse(can_access_module(self.teacher, MODULE, action="read"))
+
+    def test_tenant_scope_uses_active_membership_role(self):
+        from django.utils import timezone
+
+        from apps.schools.models import School, SchoolMembership
+
+        school_a = School.objects.create(
+            name="Migration A",
+            slug="migration-module-a",
+            subdomain="migration-module-a",
+        )
+        school_b = School.objects.create(
+            name="Migration B",
+            slug="migration-module-b",
+            subdomain="migration-module-b",
+        )
+        multi_tenant_user = User.objects.create_user(
+            username="multi_tenant_module_user",
+            password="testpass123",
+            role=User.Role.PARENT,
+        )
+        SchoolMembership.objects.create(
+            user=multi_tenant_user,
+            school=school_a,
+            role=User.Role.ADMIN,
+        )
+        membership_b = SchoolMembership.objects.create(
+            user=multi_tenant_user,
+            school=school_b,
+            role=User.Role.TEACHER,
+        )
+
+        for module in TENANT_MIGRATION_MODULES:
+            self.assertTrue(
+                can_access_module(
+                    multi_tenant_user,
+                    module,
+                    action="write",
+                    school=school_a,
+                )
+            )
+            self.assertFalse(
+                can_access_module(
+                    multi_tenant_user,
+                    module,
+                    action="write",
+                    school=school_b,
+                )
+            )
+
+        membership_b.role = User.Role.ADMIN
+        membership_b.suspended_at = timezone.now()
+        membership_b.save(update_fields=["role", "suspended_at"])
+        self.assertFalse(
+            can_access_module(
+                multi_tenant_user,
+                "migration_intake_customer",
+                action="read",
+                school=school_b,
+            )
+        )
 
     def test_superadmin_role_has_godmode_on_unregistered_module(self):
         # The top admin is never locked out — even a module not yet in the map...

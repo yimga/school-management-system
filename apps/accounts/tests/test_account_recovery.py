@@ -5,6 +5,11 @@ from django.core.management.base import CommandError
 from django.test import TestCase
 
 from apps.accounts.management.commands.reset_user_mfa import reset_mfa_for_user
+from apps.accounts.mfa_device_trust import (
+    DEVICE_TRUST_COOKIE,
+    device_trust_valid,
+    issue_device_trust_token,
+)
 from apps.accounts.models import User
 
 
@@ -35,6 +40,19 @@ class ResetUserMfaTests(TestCase):
     def test_reset_is_idempotent(self):
         # No devices -> zero removed, no error.
         self.assertEqual(sum(reset_mfa_for_user(self.user).values()), 0)
+
+    def test_reset_revokes_trusted_browser_waiver(self):
+        from django.test import RequestFactory
+
+        token = issue_device_trust_token(self.user, trust_days=30)
+        request = RequestFactory().get("/")
+        request.user = self.user
+        request.COOKIES[DEVICE_TRUST_COOKIE] = token
+        self.assertTrue(device_trust_valid(request, self.user))
+
+        reset_mfa_for_user(self.user)
+        self.user.refresh_from_db()
+        self.assertFalse(device_trust_valid(request, self.user))
 
     def test_command_runs_with_yes(self):
         from django_otp.plugins.otp_totp.models import TOTPDevice

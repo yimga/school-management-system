@@ -191,13 +191,17 @@ def main() -> int:
         errors.append("index_superadmin.html must use discover canvas (operator)")
     if 'data-rmc-admin-index-canvas="tenant"' not in index_t and 'data-rmc-admin-discover="1"' not in index_t:
         errors.append("index_tenant.html must use discover canvas (tenant)")
-    # v15 Discover: no tools/rail on index (1-col). Scan/Edit keep tools.
+    # Discover, Scan, and Edit all use the approved page-aware inner grid.
     if 'data-rmc-admin-archetype="discover"' not in index_op or 'data-rmc-admin-archetype="discover"' not in index_t:
         errors.append("operator + tenant indexes must set data-rmc-admin-archetype=discover")
     if "cp-steering" in index_op:
         errors.append("operator index must not render cp-steering fluff banner")
     if "admin_v1_index_surface_previews.html" not in index_op:
         errors.append("operator index must restore live surface sections (tags/changelist/changeform)")
+    if "admin_index_context_rail.html" not in index_op or "admin_index_context_rail.html" not in index_t:
+        errors.append("operator + tenant indexes must include their page-aware context rail")
+    if "admin_workspace_tools.html" not in index_op or "admin_workspace_tools.html" not in index_t:
+        errors.append("operator + tenant indexes must include page-aware workspace tools")
     if "admin_workspace_metrics_strip.html" in change_form or "admin_workspace_metrics_strip.html" in change_list:
         errors.append("change_form/change_list must not include metrics strip (v15 zero fluff)")
     if "rmc-django-view-toggle" in change_form or "admin_change_form_mode_panels.html" in change_form:
@@ -231,16 +235,14 @@ def main() -> int:
     if 'data-rmc-layout-owner="approval-v15-critical"' not in base_site:
         errors.append("critical inline style must declare data-rmc-layout-owner=approval-v15-critical")
     if '[data-rmc-admin-archetype="discover"]' not in base_site:
-        errors.append("critical inline CSS must include Discover 1-col rules (not legacy 3-col index)")
+        errors.append("critical inline CSS must include Discover canvas ownership")
     if '[data-rmc-admin-index-canvas="operator"][data-rmc-admin-discover="1"]' not in base_site:
         errors.append(
-            "critical inline CSS must beat #cp-main-content 3-col with Discover dual-attr 1-col "
+            "critical inline CSS must own the Discover operator canvas "
             "(operator Catalog right-gutter fix)"
         )
     if '[data-rmc-admin-index-canvas="operator"][data-rmc-admin-discover="1"]' not in css:
-        errors.append("v15 CSS must force Discover operator canvas to 1-col full-bleed")
-    if "minmax(0, 1fr) !important" not in css and "minmax(0,1fr)!important" not in _norm(css):
-        errors.append("v15 CSS must declare Discover 1-col minmax(0, 1fr)")
+        errors.append("v15 CSS must own the Discover operator canvas")
     # Discover must not share the Edit/Scan 3-col selector list
     if re.search(
         r"\[data-rmc-admin-index-canvas=\"operator\"\]\s*,\s*\n?\s*\[data-rmc-django-workspace=\"change-list\"\]",

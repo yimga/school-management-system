@@ -100,6 +100,9 @@ def _apply_one_operator_action(
         revoked = Session.objects.filter(
             session_key__in=_session_keys_for_user(user)
         ).delete()[0]
+        from apps.accounts.mfa_device_trust import revoke_device_trust
+
+        revoke_device_trust(user)
         return {"message": "Suspended.", "sessions_revoked": revoked}
 
     if action == "reactivate":
@@ -114,6 +117,9 @@ def _apply_one_operator_action(
         revoked = Session.objects.filter(
             session_key__in=_session_keys_for_user(user)
         ).delete()[0]
+        from apps.accounts.mfa_device_trust import revoke_device_trust
+
+        revoke_device_trust(user)
         return {"message": "Sessions revoked.", "sessions_revoked": revoked}
 
     if action == "offboard":

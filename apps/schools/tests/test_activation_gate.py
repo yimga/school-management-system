@@ -36,7 +36,12 @@ class _DictSession(dict, SessionBase):
 
 def _build_request(user, school, *, path="/backend/", host="gate-school.example.com"):
     rf = RequestFactory()
-    request = rf.get(path, HTTP_HOST=host)
+    request = rf.get(
+        path,
+        HTTP_HOST=host,
+        HTTP_ACCEPT="text/html",
+        HTTP_SEC_FETCH_DEST="document",
+    )
     request.user = user
     request.session = _DictSession()
     request.school = school

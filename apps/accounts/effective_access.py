@@ -52,11 +52,11 @@ def invoice_edit_access(user, invoice_id: int) -> bool:
     return can_edit_invoice(user, invoice_id)
 
 
-def module_access(user, module: str, action: str = "read") -> bool:
+def module_access(user, module: str, action: str = "read", *, school=None) -> bool:
     """May ``user`` reach this module at all? (nav/middleware gate)"""
     from apps.accounts.permissions import can_access_module
 
-    return can_access_module(user, module, action)
+    return can_access_module(user, module, action, school=school)
 
 
 def school_permission_access(user, school, action) -> bool:

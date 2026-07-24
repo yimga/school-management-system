@@ -1,0 +1,66 @@
+"""Tenant /admin/ index must ship Admin OS Discover — never the empty Raw CRUD shell."""
+
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.contrib.sessions.middleware import SessionMiddleware
+from django.test import RequestFactory, TestCase, override_settings
+
+from apps.accounts.models import User
+from apps.schools.models import School, SchoolMembership
+from config.admin import tenant_admin_site
+
+
+@override_settings(ALLOWED_HOSTS=["*"], ROOT_URLCONF="config.tenant_urls")
+class TenantAdminIndexContractTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.school = School.objects.create(
+            name="Catalog School",
+            slug="catalog-school",
+            subdomain="catalog-school",
+            is_active=True,
+        )
+        self.owner = User.objects.create_user(
+            username="catalog_owner",
+            password="testpass123",
+            role=User.Role.ADMIN,
+            is_staff=False,
+            is_superuser=False,
+        )
+        SchoolMembership.objects.create(
+            user=self.owner,
+            school=self.school,
+            role=User.Role.ADMIN,
+            is_school_owner=True,
+            is_primary=True,
+        )
+
+    def _request(self):
+        request = self.factory.get("/admin/")
+        request.user = self.owner
+        request.school = self.school
+        request.public_host_kind = "tenant"
+        middleware = SessionMiddleware(lambda r: None)
+        middleware.process_request(request)
+        request.session.save()
+        request._messages = FallbackStorage(request)
+        return request
+
+    def test_owner_without_is_staff_index_is_intelligent_catalog(self):
+        request = self._request()
+        self.assertTrue(tenant_admin_site.has_permission(request))
+        response = tenant_admin_site.index(request)
+        response.render()
+        html = response.content.decode("utf-8", errors="replace")
+
+        self.assertNotIn("Raw model CRUD", html)
+        self.assertIn("data-rmc-admin-archetype=\"discover\"", html)
+        self.assertIn("data-rmc-admin-discover=\"1\"", html)
+        self.assertIn("2026-07-24-v15.8", html)
+        self.assertIn("Model catalog", html)
+        self.assertIn("rmc-admin-discover-canvas", html)
+
+    def test_anonymous_has_no_permission(self):
+        request = self._request()
+        request.user = AnonymousUser()
+        self.assertFalse(tenant_admin_site.has_permission(request))

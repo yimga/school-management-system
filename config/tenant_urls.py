@@ -331,6 +331,44 @@ urlpatterns = [
             namespace="migration_cloud_connector",
         ),
     ),
+    path(
+        "portal/configure/migration/",
+        include(
+            ("apps.migration_cloud.urls", "migration_cloud_portal"),
+            namespace="migration_cloud_portal",
+        ),
+        {"shell": "portal"},
+    ),
+    path(
+        "migration/",
+        include(
+            (
+                "apps.migration_cloud.urls_customer",
+                "migration_intake_customer",
+            ),
+            namespace="migration_intake_customer",
+        ),
+    ),
+    path(
+        "migration/consent/",
+        include(
+            (
+                "apps.migration_cloud.urls_guardian_consent",
+                "migration_guardian_consent",
+            ),
+            namespace="migration_guardian_consent",
+        ),
+    ),
+    path(
+        "migration/",
+        include(
+            (
+                "apps.migration_cloud.urls_guardian_consent_admin",
+                "migration_guardian_consent_admin",
+            ),
+            namespace="migration_guardian_consent_admin",
+        ),
+    ),
     path("school/apps/", school_surface_redirect, {"surface": "apps"}, name="school_apps"),
     path("school/billing/", school_surface_redirect, {"surface": "billing"}, name="school_billing"),
     path("school/money/", school_surface_redirect, {"surface": "money"}, name="school_money"),

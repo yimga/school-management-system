@@ -41,7 +41,7 @@ from apps.migration_cloud.views_tenant_upload import (
 )
 from apps.schools.models import School, SchoolMembership
 
-_APPLY_BUNDLE = "apps.migration_cloud.orchestrator.apply_bundle"
+_ENQUEUE_APPLY = "apps.migration_cloud.celery_tasks.enqueue_apply"
 
 
 def _fake_apply_result():
@@ -57,7 +57,7 @@ def _fake_apply_result():
     )
 
 
-@override_settings(ALLOWED_HOSTS=["*"])
+@override_settings(ALLOWED_HOSTS=["*"], ROOT_URLCONF="config.tenant_urls")
 class TenantMigrationApplyAdminGateTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -121,30 +121,32 @@ class TenantMigrationApplyAdminGateTests(TestCase):
         FAILS against HEAD (no gate → apply_bundle is called, no PermissionDenied);
         PASSES after the fix."""
         self.assertFalse(user_is_tenant_admin(self.member, self.school))
-        with mock.patch(_APPLY_BUNDLE) as apply_mock:
+        with mock.patch(_ENQUEUE_APPLY) as enqueue_mock:
             request = self._post(self.member, {"confirm": "1"})
             with self.assertRaises(PermissionDenied):
                 TenantMigrationApplyView.as_view()(request, bundle_id=self.bundle.pk)
-            apply_mock.assert_not_called()  # the live write was never reached
+            enqueue_mock.assert_not_called()  # no durable write was queued
 
     def test_admin_apply_confirm_reaches_live_write(self):
         """A school admin's confirm=1 passes the gate and reaches the live apply."""
         self.assertTrue(user_is_tenant_admin(self.admin, self.school))
-        with mock.patch(_APPLY_BUNDLE, return_value=_fake_apply_result()) as apply_mock:
+        queued = SimpleNamespace(outbox_id="tenant-admin-apply")
+        with mock.patch(_ENQUEUE_APPLY, return_value=queued) as enqueue_mock:
             request = self._post(self.admin, {"confirm": "1"})
             TenantMigrationApplyView.as_view()(request, bundle_id=self.bundle.pk)
-        apply_mock.assert_called_once()
+        enqueue_mock.assert_called_once()
         # confirm=1 ⇒ the live (non-dry-run) write path.
-        self.assertEqual(apply_mock.call_args.kwargs.get("dry_run"), False)
+        self.assertEqual(enqueue_mock.call_args.kwargs.get("dry_run"), False)
 
     def test_owner_without_admin_role_reaches_live_write(self):
         """A self-service owner (membership flag, non-admin role) still proceeds —
         the fix adds privilege, it does not lock owners out."""
         self.assertTrue(user_is_tenant_admin(self.owner, self.school))
-        with mock.patch(_APPLY_BUNDLE, return_value=_fake_apply_result()) as apply_mock:
+        queued = SimpleNamespace(outbox_id="tenant-owner-apply")
+        with mock.patch(_ENQUEUE_APPLY, return_value=queued) as enqueue_mock:
             request = self._post(self.owner, {"confirm": "1"})
             TenantMigrationApplyView.as_view()(request, bundle_id=self.bundle.pk)
-        apply_mock.assert_called_once()
+        enqueue_mock.assert_called_once_with(self.bundle.pk, dry_run=False)
 
     def test_unauthenticated_is_bounced_to_login(self):
         """Anonymous callers hit LoginRequiredMixin (302 → login), not a 403."""

@@ -293,7 +293,12 @@ class ModuleAccessMiddleware:
                 return self.get_response(request)
 
         action = "read" if request.method in self.SAFE_METHODS else "write"
-        if module_access(user, module, action=action):
+        if module_access(
+            user,
+            module,
+            action=action,
+            school=getattr(request, "school", None),
+        ):
             return self.get_response(request)
 
         # For /api/ paths return JSON so API clients get machine-readable errors

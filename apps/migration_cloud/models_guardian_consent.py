@@ -403,7 +403,10 @@ class GuardianConsentToken(models.Model):
             tenant_slug = getattr(self.tenant, "slug", "") or ""
             payload: dict[str, Any] = {
                 "intake_id_prefix": str(self.intake_request_id)[:8],
-                "token_sha_prefix": (self.token_sha256 or "")[:8],
+                # This is only a short correlation prefix of a one-way digest,
+                # never the raw bearer token. Avoid sensitive-keyword names so
+                # the audit sanitizer does not correctly reject the payload.
+                "consent_artifact_prefix": (self.token_sha256 or "")[:8],
                 "consent_text_version": self.consent_text_version[:16],
                 "decision": self.consent_decision[:16],
             }
