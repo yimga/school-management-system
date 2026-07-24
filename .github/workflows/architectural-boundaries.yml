@@ -56,6 +56,8 @@ on:
       - "scripts/scan_locale_coverage.py"
       - "scripts/verify_pseudo_locale.py"
       - "scripts/pseudo_locale_transform.py"
+      - "scripts/scan_untranslated_template_text.py"
+      - "var/security-audit-baseline-untranslated-template-text.json"
       - "scripts/verify_service_worker_version.py"
       - "scripts/verify_django_admin_preview_parity.py"
       - "var/admin-approval-build-lock.json"
@@ -814,6 +816,13 @@ jobs:
         # powers. Zero-tolerance across every source msgid; no baseline.
         run: |
           python scripts/verify_pseudo_locale.py
+      - name: Untranslated template text (ratchet)
+        # M21/G4: hardcoded user-facing text in label-bearing elements
+        # (button / a / label / th / h1-6 / option / ...) must be wrapped in
+        # {% trans %}/{% blocktrans %}. Ratchet — a NEW hardcoded label fails;
+        # the baseline is the burndown backlog and can only shrink.
+        run: |
+          python scripts/scan_untranslated_template_text.py --compare
 
   world-engine-i18n-ci:
     name: "World Engine: i18n catalog freshness + compile"

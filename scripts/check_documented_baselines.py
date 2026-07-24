@@ -55,6 +55,7 @@ SCANNER_BASELINE_MAP: dict[str, str | None] = {
     "scan_config_resolver_fragmentation.py": "security-audit-baseline-config-resolver-fragmentation.json",
     "scan_granular_rbac_adoption.py": "security-audit-baseline-granular-rbac-adoption.json",
     "scan_upload_validation_coverage.py": "security-audit-baseline-upload-validation-coverage.json",
+    "scan_untranslated_template_text.py": "security-audit-baseline-untranslated-template-text.json",
     "scan_lander_phantom_fields.py": "security-audit-baseline-lander-phantom-fields.json",
     "scan_assert_in_production.py": "security-audit-baseline-assert-in-production.json",
     "scan_magic_numbers.py": "security-audit-baseline-magic-numbers.json",
