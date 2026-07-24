@@ -13,8 +13,10 @@ even for finance / super-admin roles — this module closes that gap.
 from __future__ import annotations
 
 from collections import namedtuple
+from datetime import timedelta
 
 from django.conf import settings
+from django.utils import timezone
 
 
 # Roles that ALWAYS require MFA when the user is authenticated. The list is
@@ -23,6 +25,9 @@ from django.conf import settings
 BASELINE_REQUIRED_ROLES: tuple[str, ...] = (
     "PLATFORM_ADMIN",
     "PLATFORM_OWNER",
+    # Canonical value used by accounts.User.Role. Keep the historical
+    # underscore spelling below for imported/legacy role registries.
+    "SUPERADMIN",
     "SUPER_ADMIN",
     "FINANCE_ADMIN",
     "FINANCE",
@@ -31,6 +36,39 @@ BASELINE_REQUIRED_ROLES: tuple[str, ...] = (
     "ADMIN",
     "AUDITOR",
 )
+
+
+def principal_requires_strict_mfa(user, school=None) -> bool:
+    """Return whether MFA enrollment may never be softened for this principal.
+
+    Trusted-browser windows are still honoured *after* a successful challenge.
+    This helper only prevents optional/grace tenant policy from letting a
+    platform superadmin or an active school owner enter a privileged workspace
+    before they have enrolled MFA.
+    """
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    role = str(getattr(user, "role", "") or "").strip().upper()
+    if getattr(user, "is_superuser", False) or role in {
+        "SUPERADMIN",
+        "SUPER_ADMIN",
+        "PLATFORM_ADMIN",
+        "PLATFORM_OWNER",
+    }:
+        return True
+    if school is None:
+        return False
+    try:
+        from apps.schools.models import SchoolMembership
+
+        return SchoolMembership.objects.filter(
+            school_id=getattr(school, "pk", None),
+            user_id=getattr(user, "pk", None),
+            is_school_owner=True,
+            suspended_at__isnull=True,
+        ).exists()
+    except Exception:  # noqa: BLE001 - fail closed for an ADMIN on a tenant host
+        return role == "ADMIN"
 
 
 def effective_required_roles(
@@ -160,10 +198,6 @@ def resolve_operator_mfa(school=None, *, request=None) -> "OperatorMfaPolicy":
 # ``resolve_mfa_enforcement`` below. Until that anchor lands, prefer "optional"
 # for a platform-wide default and reserve "grace" for new-tenant cohorts.
 
-from datetime import timedelta
-
-from django.utils import timezone
-
 #: Modes for ``RuntimeDefaults.mfa_enforcement_mode``. "strict" preserves the
 #: original hard-wall behavior and is the platform default.
 MFA_MODE_STRICT = "strict"
@@ -249,6 +283,7 @@ def resolve_mfa_enforcement(
 
 __all__ = [
     "BASELINE_REQUIRED_ROLES",
+    "principal_requires_strict_mfa",
     "effective_required_roles",
     "role_requires_mfa",
     "OperatorMfaPolicy",

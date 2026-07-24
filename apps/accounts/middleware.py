@@ -778,6 +778,7 @@ class RequireMFAMiddleware:
             # apps/accounts/mfa_defaults.py.
             from apps.accounts.mfa_defaults import (
                 effective_required_roles,
+                principal_requires_strict_mfa,
                 resolve_mfa_enforcement,
                 resolve_operator_mfa,
             )
@@ -820,7 +821,13 @@ class RequireMFAMiddleware:
             decision = resolve_mfa_enforcement(
                 must_have_mfa=must_have_mfa,
                 has_device=has_device,
-                mode=getattr(site, "mfa_enforcement_mode", None),
+                mode=(
+                    "strict"
+                    if principal_requires_strict_mfa(
+                        user, getattr(request, "school", None)
+                    )
+                    else getattr(site, "mfa_enforcement_mode", None)
+                ),
                 grace_period_days=getattr(site, "mfa_grace_period_days", None),
                 user=user,
             )

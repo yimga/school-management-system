@@ -35,6 +35,13 @@
                 {% endfor %}
               </select>
             </div>
+            {% if can_invite_owner %}
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="1" id="id_is_school_owner" name="is_school_owner">
+              <label class="form-check-label" for="id_is_school_owner">{% trans "Invite as school owner (tenant superadmin)" %}</label>
+              <div class="form-text">{% trans "Owners must set a password and enroll MFA before entering the workspace. This does not grant platform operator access." %}</div>
+            </div>
+            {% endif %}
             <div class="d-flex flex-wrap gap-2">
               <button type="submit" class="btn btn-primary">{% trans "Create invite link" %}</button>
               <a class="btn btn-outline-secondary" href="{{ roster_url }}">{% trans "Cancel" %}</a>

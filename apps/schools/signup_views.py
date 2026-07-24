@@ -15,7 +15,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login as auth_login
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError, IntegrityError
+from django.db import DatabaseError, IntegrityError, transaction
 from django.db.transaction import TransactionManagementError
 from django.core.mail import send_mail  # noqa: F401 — retained for legacy callsites
 # v3.57.x Wave 8 Agent C — route signup verification email through the
@@ -1664,15 +1664,24 @@ def verify_signup(request: HttpRequest):
             return _verify_signup_retryable_unavailable(request)
         raise
     try:
-        from apps.schools.funnel_events import (
-            record_marketing_funnel_event,
-            record_school_funnel_once,
-        )
+        # Both funnel helpers are intentionally best-effort and one of them
+        # catches DatabaseError internally. Give the optional writes their own
+        # savepoint so a swallowed SQL failure cannot poison the surrounding
+        # signup transaction and make the required owner/provisioning queries
+        # fail with TransactionManagementError (or a closed SQLite connection).
+        with transaction.atomic():
+            from apps.schools.funnel_events import (
+                record_marketing_funnel_event,
+                record_school_funnel_once,
+            )
 
-        record_school_funnel_once("signup_completed", school, request)
-        record_marketing_funnel_event("activation", request, school=school)
+            record_school_funnel_once("signup_completed", school, request)
+            record_marketing_funnel_event("activation", request, school=school)
     except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
-        reset_broken_database_state()
+        logger.warning(
+            "verify_signup_optional_funnel_event_failed",
+            exc_info=True,
+        )
 
     # v3.58.x Wave 9 Agent K — route provisioning through the canonical
     # ``dispatch_provision_school`` so it queues via Celery when the
@@ -1761,7 +1770,6 @@ def verify_signup(request: HttpRequest):
             complete_provisioning_for_school(
                 str(school.id), contact_email=verification.email
             )
-            reset_broken_database_state()
         except (
             ImportError,
             AttributeError,

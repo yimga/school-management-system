@@ -7,6 +7,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 
@@ -62,6 +63,12 @@ class TenantLifecycleFullTests(TestCase):
         request.public_host_kind = "manager"
         return request
 
+    def _signup_get(self, path: str):
+        request = self.factory.get(path)
+        SessionMiddleware(lambda req: None).process_request(request)
+        request.session.save()
+        return request
+
     @patch("apps.schools.signup_views.send_transactional")
     def test_signup_sends_verification_email(self, mock_send):
         mock_send.return_value = {"ok": True, "status": "queued"}
@@ -82,7 +89,7 @@ class TenantLifecycleFullTests(TestCase):
             SignupVerification.objects.filter(school=school, email="owner@example.com").exists()
         )
 
-    @patch("apps.schools.tasks.dispatch_provision_school")
+    @patch("apps.schools.tasks.kick_complete_provisioning_background")
     def test_verify_signup_dispatches_provisioning_for_inactive_school(
         self, mock_provision,
     ):
@@ -92,7 +99,7 @@ class TenantLifecycleFullTests(TestCase):
         here used to short-circuit _do_provision and silently skip the
         welcome email send (regression).  This test now verifies the correct
         contract: verify_signup leaves the school inactive and hands off to
-        ``dispatch_provision_school`` with the verified email.
+        the durable background provisioning handoff with the verified email.
         """
         school = School.objects.create(
             name="Verify School",
@@ -111,7 +118,7 @@ class TenantLifecycleFullTests(TestCase):
                 "verified_at": None,
             },
         )
-        request = self.factory.get(f"/verify-signup/?token={sv.token}")
+        request = self._signup_get(f"/verify-signup/?token={sv.token}")
         resp = verify_signup(request)
         self.assertEqual(resp.status_code, 302)
         school.refresh_from_db()
@@ -135,12 +142,12 @@ class TenantLifecycleFullTests(TestCase):
         """v4.00.98 regression coverage (no welcome-email mock): verify the
         full path lands a welcome email in ``mail.outbox``.
 
-        Why: the prior coverage mocked ``dispatch_provision_school``, which
+        Why: the prior coverage mocked the provisioning handoff, which
         masked a bug where verify_signup activated the school before
         provisioning ran, causing ``_do_provision`` to short-circuit and
         skip the welcome email entirely.  This test patches dispatch to call
-        ``provision_school_sync`` directly (matching the Celery-unavailable
-        fallback path), then asserts both that the school becomes active
+        ``provision_school_sync`` directly (matching the durable outbox worker),
+        then asserts both that the school becomes active
         AND the welcome email lands in mail.outbox.
         """
         from django.core import mail
@@ -169,9 +176,9 @@ class TenantLifecycleFullTests(TestCase):
             provision_school_sync(school_id, contact_email=contact_email, **kwargs)
             return {"queued": False, "fallback": True, "job_id": None, "message": "forced sync"}
 
-        request = self.factory.get(f"/verify-signup/?token={sv.token}")
+        request = self._signup_get(f"/verify-signup/?token={sv.token}")
         with patch(
-            "apps.schools.tasks.dispatch_provision_school",
+            "apps.schools.tasks.kick_complete_provisioning_background",
             side_effect=_force_sync,
         ):
             resp = verify_signup(request)
@@ -189,7 +196,7 @@ class TenantLifecycleFullTests(TestCase):
         )
 
     @patch(
-        "apps.schools.tasks.dispatch_provision_school",
+        "apps.schools.tasks.kick_complete_provisioning_background",
         side_effect=OSError("broker unreachable"),
     )
     def test_verify_signup_records_failed_event_when_dispatch_raises(
@@ -222,7 +229,7 @@ class TenantLifecycleFullTests(TestCase):
                 "verified_at": None,
             },
         )
-        request = self.factory.get(f"/verify-signup/?token={sv.token}")
+        request = self._signup_get(f"/verify-signup/?token={sv.token}")
         resp = verify_signup(request)
         # User is still logged in / redirected on success — email
         # verification already proved ownership. The audit row is the

@@ -61,14 +61,16 @@ class DeviceTrustPeriodTests(TestCase):
     def test_selected_period_controls_cookie_lifetime(self):
         from django.http import HttpResponse
 
-        response = HttpResponse()
-        set_device_trust_cookie(
-            response, self.user, self.factory.get("/"), trust_days=7
-        )
-        self.assertEqual(
-            int(response.cookies[DEVICE_TRUST_COOKIE]["max-age"]),
-            7 * 24 * 60 * 60,
-        )
+        for days in (1, 7, 14, 30):
+            with self.subTest(days=days):
+                response = HttpResponse()
+                set_device_trust_cookie(
+                    response, self.user, self.factory.get("/"), trust_days=days
+                )
+                self.assertEqual(
+                    int(response.cookies[DEVICE_TRUST_COOKIE]["max-age"]),
+                    days * 24 * 60 * 60,
+                )
 
     def test_arbitrary_client_period_cannot_extend_trust(self):
         from django.http import HttpResponse
@@ -82,16 +84,28 @@ class DeviceTrustPeriodTests(TestCase):
             14 * 24 * 60 * 60,
         )
 
-    def test_selected_period_expires_even_inside_platform_cap(self):
+    def test_every_selected_period_expires_at_its_own_boundary(self):
         now = int(time.time())
-        with patch("apps.accounts.mfa_device_trust.time.time", return_value=now):
-            token = issue_device_trust_token(self.user, trust_days=7)
-        self.assertTrue(device_trust_valid(self._request(token), self.user))
-        with patch(
-            "apps.accounts.mfa_device_trust.time.time",
-            return_value=now + (8 * 24 * 60 * 60),
-        ):
-            self.assertFalse(device_trust_valid(self._request(token), self.user))
+        for days in (1, 7, 14, 30):
+            with self.subTest(days=days):
+                with patch(
+                    "apps.accounts.mfa_device_trust.time.time", return_value=now
+                ):
+                    token = issue_device_trust_token(self.user, trust_days=days)
+                with patch(
+                    "apps.accounts.mfa_device_trust.time.time",
+                    return_value=now + (days * 24 * 60 * 60) - 1,
+                ):
+                    self.assertTrue(
+                        device_trust_valid(self._request(token), self.user)
+                    )
+                with patch(
+                    "apps.accounts.mfa_device_trust.time.time",
+                    return_value=now + (days * 24 * 60 * 60) + 1,
+                ):
+                    self.assertFalse(
+                        device_trust_valid(self._request(token), self.user)
+                    )
 
 
 @override_settings(
@@ -183,3 +197,95 @@ class TenantLoginTrustFlowTests(TestCase):
         self.assertContains(response, 'name="trust_days"')
         for days in (1, 7, 14, 30):
             self.assertContains(response, f'value="{days}"')
+
+
+@override_settings(
+    RATELIMIT_ENABLE=False,
+    LOGIN_POW_ENABLED=False,
+    LOGIN_MIN_FORM_SECONDS=0,
+    ALLOWED_HOSTS=["*", "manager.runmycampus.com"],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    SECURE_SSL_REDIRECT=False,
+    MFA_DEVICE_TRUST_DAYS=30,
+    MFA_DEVICE_TRUST_ALLOWED_DAYS="1,7,14,30",
+    MFA_DEVICE_TRUST_DEFAULT_DAYS=14,
+)
+class OperatorLoginTrustFlowTests(TestCase):
+    host = "manager.runmycampus.com"
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="operator-trust@example.com",
+            email="operator-trust@example.com",
+            password="MfaTrust123!",
+            role=User.Role.SUPERADMIN,
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.device = TOTPDevice.objects.create(
+            user=self.user, name="default", confirmed=True
+        )
+
+    def test_operator_verify_page_offers_all_bounded_periods(self):
+        self.client.force_login(self.user)
+        response = self.client.get(
+            reverse("accounts:mfa_verify"),
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="trust_days"')
+        for days in (1, 7, 14, 30):
+            self.assertContains(response, f'value="{days}"')
+
+    def test_operator_selected_trust_survives_normal_logout_and_relogin(self):
+        client = Client(HTTP_HOST=self.host)
+        first = client.post(
+            reverse("accounts:login"),
+            {
+                "username": self.user.username,
+                "password": "MfaTrust123!",
+            },
+        )
+        self.assertEqual(first.status_code, 302)
+        self.assertIn("/authentication/mfa/verify", first.url)
+
+        verified = client.post(
+            reverse("accounts:mfa_verify"),
+            {
+                "token": _current_totp(self.device),
+                "remember_device": "1",
+                "trust_days": "14",
+            },
+        )
+        self.assertEqual(verified.status_code, 302)
+        self.assertEqual(
+            int(verified.cookies[DEVICE_TRUST_COOKIE]["max-age"]),
+            14 * 24 * 60 * 60,
+        )
+
+        logged_out = client.get(reverse("accounts:logout"))
+        self.assertEqual(logged_out.status_code, 302)
+        self.assertIn(DEVICE_TRUST_COOKIE, client.cookies)
+        self.assertTrue(client.cookies[DEVICE_TRUST_COOKIE].value)
+
+        second = client.post(
+            reverse("accounts:login"),
+            {
+                "username": self.user.username,
+                "password": "MfaTrust123!",
+            },
+        )
+        self.assertEqual(second.status_code, 302)
+        self.assertNotIn("/authentication/mfa/verify", second.url)
+
+    def test_operator_can_explicitly_forget_trusted_browser_on_logout(self):
+        client = Client(HTTP_HOST=self.host)
+        client.force_login(self.user)
+        client.cookies[DEVICE_TRUST_COOKIE] = issue_device_trust_token(
+            self.user, trust_days=7
+        )
+        response = client.get(
+            reverse("accounts:logout") + "?forget_device=1"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(client.cookies[DEVICE_TRUST_COOKIE].value)

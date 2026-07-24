@@ -1,13 +1,14 @@
 """End-to-end: real provisioning pipeline + onboarding 'done' page.
 
-Runs the actual provisioning to completion (sync fallback, shared-DB), asserts
+Runs the actual worker provisioning function to completion (shared-DB), asserts
 every seed artifact, verifies re-provision idempotency, and renders the
 onboarding 'done' page that previously 500'd (undefined `pending_school_name`
 filter-arg in tenant_minimal_shell.html). The django-tenants Postgres schema
 build is skipped locally (USE_DJANGO_TENANTS False) — that part is staging-only.
 
-Validated via a direct django.setup() run (12/12) because the custom sqlite test
-runner is flaky on Windows; this TestCase form runs in CI.
+HTTP dispatch is intentionally durable-outbox-only: a web request must never
+fall back to a multi-minute tenant migration. This test therefore invokes the
+same synchronous function the outbox worker owns.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from unittest import mock
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
 from django.test import RequestFactory, TestCase
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.academics.models import (
     AcademicYear,
@@ -26,7 +28,7 @@ from apps.academics.models import (
     Term,
 )
 from apps.schools.models import School, SchoolMembership, SchoolProvisioningEvent
-from apps.schools.tasks import dispatch_provision_school
+from apps.schools.tasks import provision_school_sync
 
 User = get_user_model()
 
@@ -47,16 +49,18 @@ class SchoolProvisionOnboardingE2ETests(TestCase):
         SchoolMembership.objects.create(
             user=self.owner, school=self.school, is_primary=True
         )
+        TOTPDevice.objects.create(
+            user=self.owner,
+            name="default",
+            confirmed=True,
+        )
 
     def _provision(self):
-        """Run the real pipeline via the sync fallback (broker offline)."""
-        with mock.patch(
-            "apps.schools.tasks.provision_school_task.delay",
-            side_effect=RuntimeError("broker offline"),
-        ):
-            return dispatch_provision_school(
-                str(self.school.id), contact_email="e2e-owner@example.com"
-            )
+        """Run the real pipeline as the durable-outbox worker does."""
+        provision_school_sync(
+            str(self.school.id), contact_email="e2e-owner@example.com"
+        )
+        return {"sync_completed": True}
 
     def test_full_provision_seeds_everything_and_done_page_renders(self):
         result = self._provision()
@@ -64,7 +68,7 @@ class SchoolProvisionOnboardingE2ETests(TestCase):
 
         # Pipeline completed.
         self.assertTrue(self.school.is_active, "school should be active")
-        self.assertTrue(result.get("fallback"), "dispatch should fall back to sync")
+        self.assertTrue(result.get("sync_completed"))
 
         # Every seed artifact the seed_data step is responsible for.
         self.assertTrue(AcademicYear.objects.filter(school=self.school).exists())

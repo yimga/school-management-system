@@ -347,6 +347,12 @@
           <kbd>Alt</kbd>+<kbd>L</kbd>
         </a>
       </li>
+      <li>
+        <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}?forget_device=1">
+          <i class="bi bi-shield-x"></i>
+          <span>{% trans "Logout and forget this browser" %}</span>
+        </a>
+      </li>
     </ul>
   </div>
 </div>

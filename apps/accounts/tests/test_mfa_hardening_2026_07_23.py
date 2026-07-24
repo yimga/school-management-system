@@ -3,9 +3,8 @@
 Each test FIRES against the pre-fix code (fails there), so it proves the fix
 rather than merely passing:
 
-* M1 — logout revokes the durable device-trust cookie (it used to survive a
-  plain logout for up to 30 days, so the next person to sign in on a shared
-  browser skipped MFA).
+* M1 — a selected trusted-browser window survives normal logout, while the
+  explicit shared-device logout revokes it.
 * M2 — a wrong TOTP during enrollment re-renders WITH the QR/secret/device_id
   preserved instead of throwing them away and bouncing to step 1.
 * M3 — a StaticDevice (backup codes) alone does NOT count as an MFA device
@@ -125,22 +124,34 @@ class MfaEnrollInvalidTokenTests(TestCase):
         self.assertEqual(outcome, "render")
 
 
-class LogoutRevokesDeviceTrustTests(TestCase):
-    """M1: a plain logout clears the durable trust cookie."""
+class LogoutDeviceTrustChoiceTests(TestCase):
+    """M1: normal logout honours trust; shared-device logout revokes it."""
 
     def setUp(self):
         self.user = User.objects.create_user(
             username="m1", email="m1@example.com", password="pass12345678"
         )
 
-    def test_logout_deletes_the_trust_cookie(self):
+    def test_normal_logout_preserves_the_trust_cookie(self):
         self.client.force_login(self.user)
-        self.client.cookies[DEVICE_TRUST_COOKIE] = issue_device_trust_token(self.user)
+        token = issue_device_trust_token(self.user, trust_days=14)
+        self.client.cookies[DEVICE_TRUST_COOKIE] = token
         response = self.client.get(reverse("accounts:logout"))
+        self.assertNotIn(DEVICE_TRUST_COOKIE, response.cookies)
+        self.assertEqual(self.client.cookies[DEVICE_TRUST_COOKIE].value, token)
+
+    def test_forget_device_logout_deletes_the_trust_cookie(self):
+        self.client.force_login(self.user)
+        self.client.cookies[DEVICE_TRUST_COOKIE] = issue_device_trust_token(
+            self.user, trust_days=14
+        )
+        response = self.client.get(
+            reverse("accounts:logout") + "?forget_device=1"
+        )
         self.assertIn(
             DEVICE_TRUST_COOKIE,
             response.cookies,
-            "logout must emit a Set-Cookie that clears the device-trust cookie",
+            "forget-device logout must clear the device-trust cookie",
         )
         morsel = response.cookies[DEVICE_TRUST_COOKIE]
         # A deletion is an empty value with an immediate/past expiry (max-age 0).

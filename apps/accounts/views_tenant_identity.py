@@ -6,9 +6,10 @@ import logging
 from datetime import timedelta
 
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login, password_validation
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.http import HttpResponseForbidden
@@ -22,10 +23,8 @@ from apps.accounts.iam_pdp_guards import (
     tenant_identity_hub_pdp,
     tenant_regulator_grant_pdp,
 )
-from apps.accounts.models import TenantStaffInvite, User
 from apps.accounts.iam_localization import localized_government_body_label
-
-logger = logging.getLogger(__name__)
+from apps.accounts.models import TenantStaffInvite, User
 from apps.accounts.tenant_identity import (
     localized_role_for_user,
     mfa_enrolled_for_user,
@@ -40,6 +39,8 @@ from services.post_delete_navigation import (
     redirect_after_detail_mutation,
     redirect_after_save,
 )
+
+logger = logging.getLogger(__name__)
 
 
 _IDENTITY_HUB_MANAGE_ROLES = frozenset(
@@ -362,6 +363,7 @@ def tenant_identity_invite(request):
     school = request.school
     if not _can_manage_tenant_identity(request.user, school):
         return HttpResponseForbidden("Not permitted.")
+    can_invite_owner = _is_school_owner(request.user, school)
     role_choices = [
         (c[0], c[1])
         for c in User.Role.choices
@@ -370,54 +372,53 @@ def tenant_identity_invite(request):
     if request.method == "POST":
         email = (request.POST.get("email") or "").strip().lower()
         role = (request.POST.get("role") or "TEACHER").strip().upper()
+        is_school_owner = request.POST.get("is_school_owner") == "1"
+        if is_school_owner and not can_invite_owner:
+            return HttpResponseForbidden(
+                "Only a school owner can invite another school owner."
+            )
         if not email or "@" not in email:
             messages.error(request, _("Valid email required."))
             return redirect("accounts:tenant_identity_invite")
+        if is_school_owner:
+            role = User.Role.ADMIN
         valid_roles = {c[0] for c in role_choices}
         if role not in valid_roles:
             role = "TEACHER"
-        invite = TenantStaffInvite.objects.create(
-            school=school,
-            email=email,
-            role=role,
-            invited_by=request.user,
-            expires_at=timezone.now() + timedelta(days=7),
+        from apps.accounts.tenant_staff_invites import (
+            create_tenant_staff_invite,
+            send_tenant_staff_invite,
+            tenant_staff_invite_accept_url,
         )
-        accept_url = request.build_absolute_uri(
-            reverse("accounts:tenant_staff_invite_accept", kwargs={"token": invite.token})
-        )
+
+        try:
+            invite, _created = create_tenant_staff_invite(
+                school=school,
+                email=email,
+                role=role,
+                invited_by=request.user,
+                is_school_owner=is_school_owner,
+            )
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return redirect("accounts:tenant_identity_invite")
+        accept_url = tenant_staff_invite_accept_url(invite, request=request)
         # Audit C5 — actually email the invite link (previously only flashed).
-        school_name = getattr(school, "name", "") or "your school"
         emailed = False
         try:
-            from apps.schoolops.email_delivery import send_transactional
-
-            res = send_transactional(
-                subject=_("You're invited to join %(school)s on RunMyCampus")
-                % {"school": school_name},
-                body=_(
-                    "You have been invited to join %(school)s as %(role)s.\n\n"
-                    "Accept your invitation (valid 7 days):\n%(url)s\n"
-                ) % {"school": school_name, "role": role, "url": accept_url},
-                to=[email],
-                priority="transactional",
-                school=school,
-                allow_suppressed=True,
-                idempotency_key=f"staff_invite:{invite.token}",
-            )
-            emailed = bool(res.get("ok") or res.get("queued"))
+            emailed = send_tenant_staff_invite(invite, accept_url=accept_url)
         except Exception:  # noqa: BLE001 — invite still usable via the link
             logger.warning("accounts.staff_invite_email_failed")
         if emailed:
             messages.success(
                 request,
-                _("Staff invite emailed to %(email)s. Link: %(url)s")
+                _("Invite emailed to %(email)s. Link: %(url)s")
                 % {"email": email, "url": accept_url},
             )
         else:
             messages.success(
                 request,
-                _("Staff invite created. Share this link: %(url)s") % {"url": accept_url},
+                _("Invite created. Share this link: %(url)s") % {"url": accept_url},
             )
         roster_url = reverse("accounts:tenant_identity_roster")
         return redirect_after_save(request, roster_url, list_url=roster_url)
@@ -427,6 +428,7 @@ def tenant_identity_invite(request):
         {
             "school": school,
             "role_choices": role_choices,
+            "can_invite_owner": can_invite_owner,
             "roster_url": reverse("accounts:tenant_identity_roster"),
         },
     )
@@ -798,7 +800,11 @@ def tenant_staff_invite_accept(request, token):
         return redirect("accounts:login")
     school = invite.school
     if request.method == "POST":
-        username = (request.POST.get("username") or "").strip()
+        username = (
+            invite.email
+            if invite.is_school_owner
+            else (request.POST.get("username") or "").strip()
+        )
         password = request.POST.get("password") or ""
         password2 = request.POST.get("password2") or ""
         if not username or len(password) < 8:
@@ -816,12 +822,60 @@ def tenant_staff_invite_accept(request, token):
                 {"invite": invite, "school": school},
             )
         UserModel = get_user_model()
-        with transaction.atomic():
-            user, created = UserModel.objects.get_or_create(
-                username=username,
-                defaults={"email": invite.email, "is_active": True},
+        email_user = UserModel.objects.filter(email__iexact=invite.email).first()
+        username_user = UserModel.objects.filter(username__iexact=username).first()
+        if email_user and username_user and email_user.pk != username_user.pk:
+            messages.error(
+                request,
+                _(
+                    "This email and username belong to different accounts. "
+                    "Contact your school owner."
+                ),
             )
-            if not created and user.email.lower() != invite.email.lower():
+            return render(
+                request,
+                "accounts/tenant_staff_invite_accept.html",
+                {"invite": invite, "school": school},
+            )
+        candidate = email_user or username_user or UserModel(
+            username=username, email=invite.email
+        )
+        try:
+            password_validation.validate_password(password, user=candidate)
+        except ValidationError as exc:
+            for error in exc.messages:
+                messages.error(request, error)
+            return render(
+                request,
+                "accounts/tenant_staff_invite_accept.html",
+                {"invite": invite, "school": school},
+            )
+        with transaction.atomic():
+            user = (
+                UserModel.objects.select_for_update().filter(pk=candidate.pk).first()
+                if candidate.pk
+                else None
+            )
+            existing_platform_principal = bool(
+                user
+                and (
+                    getattr(user, "is_superuser", False)
+                    or str(getattr(user, "role", "") or "").upper()
+                    in {
+                        "SUPERADMIN",
+                        "SUPER_ADMIN",
+                        "PLATFORM_ADMIN",
+                        "PLATFORM_OWNER",
+                    }
+                )
+            )
+            if user is None:
+                user = UserModel(
+                    username=username,
+                    email=invite.email,
+                    is_active=True,
+                )
+            elif (user.email or "").lower() != invite.email.lower():
                 messages.error(
                     request,
                     _("Username exists with a different email. Contact your school admin."),
@@ -831,19 +885,61 @@ def tenant_staff_invite_accept(request, token):
                     "accounts/tenant_staff_invite_accept.html",
                     {"invite": invite, "school": school},
                 )
+            if invite.is_school_owner:
+                user.username = invite.email
             user.set_password(password)
             user.email = invite.email
             user.is_active = True
-            if hasattr(user, "role"):
+            # A platform operator may also own a school, but tenant enrollment
+            # must never demote or otherwise rewrite their global authority.
+            # Tenant authority lives on SchoolMembership below.
+            if hasattr(user, "role") and not existing_platform_principal:
                 user.role = invite.role
             user.save()
-            SchoolMembership.objects.update_or_create(
+            has_other_membership = SchoolMembership.objects.filter(user=user).exclude(
+                school=school
+            ).exists()
+            membership, _membership_created = SchoolMembership.objects.get_or_create(
                 user=user,
                 school=school,
-                defaults={"role": invite.role, "is_primary": True},
+                defaults={
+                    "role": invite.role,
+                    "is_primary": not has_other_membership,
+                    "is_school_owner": invite.is_school_owner,
+                },
+            )
+            membership.role = invite.role
+            if invite.is_school_owner:
+                membership.is_school_owner = True
+            membership.suspended_at = None
+            membership.save(
+                update_fields=[
+                    "role",
+                    "is_school_owner",
+                    "suspended_at",
+                    "updated_at",
+                ]
             )
             invite.accepted_at = timezone.now()
             invite.save(update_fields=["accepted_at"])
+        if invite.is_school_owner:
+            login(
+                request,
+                user,
+                backend="django.contrib.auth.backends.ModelBackend",
+            )
+            request.session["school_id"] = str(school.pk)
+            request.school = school
+            messages.success(
+                request,
+                _(
+                    "Password saved. Set up multi-factor authentication to "
+                    "finish activating your school-owner account."
+                ),
+            )
+            setup_url = reverse("accounts:mfa_setup")
+            backend_url = reverse("accounts:backend_dashboard")
+            return redirect(f"{setup_url}?legacy=1&next={backend_url}")
         messages.success(
             request,
             _("Account ready. Sign in to access %(school)s.")

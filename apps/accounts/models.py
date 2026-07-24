@@ -607,6 +607,13 @@ class TenantStaffInvite(models.Model):
     )
     email = models.EmailField()
     role = models.CharField(max_length=32, default="TEACHER")
+    is_school_owner = models.BooleanField(
+        default=False,
+        help_text=(
+            "Invite this person as a school-scoped owner (tenant superadmin). "
+            "This never grants platform SUPERADMIN/is_superuser authority."
+        ),
+    )
     invited_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

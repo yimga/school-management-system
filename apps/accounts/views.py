@@ -4591,17 +4591,18 @@ def logout_view(request):
         response = redirect("marketing_landing")
     else:
         response = redirect(reverse("accounts:login"))
-    # Revoke the durable MFA device-trust cookie on explicit logout. Otherwise the
-    # signed "remember this device" cookie (up to 30 days) outlives a normal
-    # logout, so the next person to sign in with this account on a shared browser
-    # skips the MFA challenge. A password change already rotates the fingerprint;
-    # this closes plain logout, the common case.
-    try:
-        from apps.accounts.mfa_device_trust import clear_device_trust_cookie
+    # "Trust this browser" must survive a normal logout/re-login for the exact
+    # period the user selected. Clearing it here contradicted the UI and caused
+    # the repeated-MFA report this feature exists to solve. Shared/public devices
+    # can explicitly add ``?forget_device=1``; password changes also invalidate
+    # every outstanding token via its password-bound fingerprint.
+    if (request.GET.get("forget_device") or "").strip() == "1":
+        try:
+            from apps.accounts.mfa_device_trust import clear_device_trust_cookie
 
-        clear_device_trust_cookie(response)
-    except (ImportError, AttributeError, TypeError, ValueError):
-        pass
+            clear_device_trust_cookie(response)
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
     return response
 
 

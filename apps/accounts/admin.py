@@ -164,8 +164,16 @@ class TemporaryRoleGrantAdmin(ModelAdmin):
 
 
 class TenantStaffInviteAdmin(ModelAdmin):
-    list_display = ("email", "school", "role", "expires_at", "accepted_at", "created_at")
-    list_filter = ("role", "school")
+    list_display = (
+        "email",
+        "school",
+        "role",
+        "is_school_owner",
+        "expires_at",
+        "accepted_at",
+        "created_at",
+    )
+    list_filter = ("is_school_owner", "role", "school")
     search_fields = ("email", "school__name", "school__slug")
     raw_id_fields = ("school", "invited_by")
     readonly_fields = ("token", "created_at")

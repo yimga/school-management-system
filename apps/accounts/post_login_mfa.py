@@ -104,6 +104,12 @@ def _user_must_have_mfa(request, user) -> bool:
 
 def _resolve_enforcement_mode(request, user):
     """Return (mode, grace_days) for resolve_mfa_enforcement."""
+    from apps.accounts.mfa_defaults import principal_requires_strict_mfa
+
+    if principal_requires_strict_mfa(
+        user, getattr(request, "school", None)
+    ):
+        return "strict", None
     mode = None
     grace_days = None
     try:
