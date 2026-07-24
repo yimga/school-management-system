@@ -1,5 +1,5 @@
 {
-  "finding_count": 32,
+  "finding_count": 31,
   "findings": [
     {
       "path": "apps/academics/views_syllabus.py",
@@ -55,11 +55,6 @@
       "path": "apps/finance/views_invoicing.py",
       "function": "invoice_detail",
       "line": 363
-    },
-    {
-      "path": "apps/finance/views_invoicing.py",
-      "function": "upload_payment_receipt",
-      "line": 577
     },
     {
       "path": "apps/lifecycle/views_bulk.py",

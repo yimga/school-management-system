@@ -679,6 +679,38 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         )
         return finance_detail_redirect(request, invoice.id)
 
+    # Validate by content, not the spoofable filename extension above: a file
+    # named receipt.png that is really an SVG/HTML would otherwise be stored and
+    # rendered back to the bursar/parent. Map the configured extensions to their
+    # sniffed MIMEs and require the magic bytes to match.
+    from apps.security.upload_validation import sniff_file_mime
+
+    _ext_to_mime = {
+        "pdf": "application/pdf",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "webp": "image/webp",
+        "gif": "image/gif",
+        "bmp": "image/bmp",
+        "tif": "image/tiff",
+        "tiff": "image/tiff",
+    }
+    allowed_mimes = {_ext_to_mime[e] for e in allowed_list if e in _ext_to_mime}
+    try:
+        receipt_file.seek(0)
+        _head = receipt_file.read(1024)
+        receipt_file.seek(0)
+    except (AttributeError, ValueError, OSError):
+        _head = b""
+    if allowed_mimes and sniff_file_mime(_head) not in allowed_mimes:
+        messages.error(
+            request,
+            "That file's contents don't look like a PDF or image. Please upload a "
+            "real photo, scan, or PDF of your receipt.",
+        )
+        return finance_detail_redirect(request, invoice.id)
+
     payment_method = request.POST.get("payment_method", "")
     if payment_method not in [code[0] for code in PaymentMethodCode.choices]:
         messages.error(request, "Invalid payment method.")
