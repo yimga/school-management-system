@@ -54,6 +54,10 @@ on:
       - "scripts/scan_rls_bypass.py"
       - "scripts/scan_money_float.py"
       - "scripts/scan_locale_coverage.py"
+      - "scripts/verify_pseudo_locale.py"
+      - "scripts/pseudo_locale_transform.py"
+      - "scripts/scan_untranslated_template_text.py"
+      - "var/security-audit-baseline-untranslated-template-text.json"
       - "scripts/verify_service_worker_version.py"
       - "scripts/verify_django_admin_preview_parity.py"
       - "var/admin-approval-build-lock.json"
@@ -299,6 +303,20 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_config_resolver_fragmentation.py --compare
+
+  upload-validation-coverage:
+    name: Upload-validation coverage ratchet
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        run: |
+          python scripts/scan_upload_validation_coverage.py --compare
 
   granular-rbac-adoption:
     name: Granular-RBAC adoption ratchet
@@ -791,6 +809,20 @@ jobs:
         # back to English on a screen a parent uses every day.
         run: |
           python scripts/verify_critical_msgid_depth.py
+      - name: Pseudo-locale interpolation safety
+        # M21/G3: the en_XA pseudo-locale QA transform must never corrupt an
+        # interpolation/markup token — a %(name)s accented into %(námé)s would
+        # KeyError the moment Django formats it, 500-ing the very QA build it
+        # powers. Zero-tolerance across every source msgid; no baseline.
+        run: |
+          python scripts/verify_pseudo_locale.py
+      - name: Untranslated template text (ratchet)
+        # M21/G4: hardcoded user-facing text in label-bearing elements
+        # (button / a / label / th / h1-6 / option / ...) must be wrapped in
+        # {% trans %}/{% blocktrans %}. Ratchet — a NEW hardcoded label fails;
+        # the baseline is the burndown backlog and can only shrink.
+        run: |
+          python scripts/scan_untranslated_template_text.py --compare
 
   world-engine-i18n-ci:
     name: "World Engine: i18n catalog freshness + compile"

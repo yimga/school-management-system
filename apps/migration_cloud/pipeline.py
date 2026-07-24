@@ -368,6 +368,20 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
         bundle.mark_status(BundleStatus.MAPPED, summary_patch={"ai_calls": summary["ai_calls"]})
         bundle.refresh_from_db()
         summary["stages_run"].append("map")
+        # Partner lifecycle event (G-5): emitted at the SERVICE layer so a
+        # connector/customer-UI advance fires the same webhook the REST advance
+        # action used to. advance_bundle is idempotent, so this fires once — only
+        # when the bundle actually reaches MAPPED.
+        try:
+            from .services.lifecycle_events import (
+                EVENT_BUNDLE_ADVANCED,
+                emit_bundle_lifecycle_event,
+            )
+            emit_bundle_lifecycle_event(
+                bundle, EVENT_BUNDLE_ADVANCED, {"status": str(BundleStatus.MAPPED)},
+            )
+        except Exception:  # noqa: BLE001 — event emission never blocks the pipeline
+            pass
 
     summary["status"] = bundle.status
     refresh_snapshot(bundle=bundle)

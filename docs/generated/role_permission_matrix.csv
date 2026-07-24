@@ -83,6 +83,9 @@ backend/ops/canteen/,ops_canteen,apps/accounts/urls.py,apps/schoolops/views_tena
 backend/ops/clinic/,ops_clinic,apps/accounts/urls.py,apps/schoolops/views_tenant_ops.py,func,login_required | user_passes_test(user_can_access_ops_clinic) | require_feature('clinic') | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0,0
 backend/ops/timetabling/,ops_timetabling,apps/accounts/urls.py,apps/schoolops/views_tenant_ops.py,func,login_required | user_passes_test(user_can_access_ops_extended_modules) | require_feature('timetabling') | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0,0
 backend/ops/substitutes/,ops_substitutes,apps/accounts/urls.py,apps/schoolops/views_tenant_ops.py,func,"login_required | require_school | require_feature('substitutes') | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
+backend/safeguarding/,safeguarding_inbox,apps/accounts/urls.py,apps/safeguarding/views.py,func,login_required | require_school | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0,0
+backend/safeguarding/raise/,safeguarding_raise,apps/accounts/urls.py,apps/safeguarding/views.py,func,"login_required | require_school | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
+backend/safeguarding/<str:concern_id>/,safeguarding_concern_detail,apps/accounts/urls.py,apps/safeguarding/views.py,func,"login_required | require_school | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
 backend/ops/substitutes/handover/,substitute_handover_create,apps/accounts/urls.py,apps/schoolops/views_substitute_handover.py,func,"login_required | user_passes_test(_substitute_handover_roles_ok) | require_school | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
 backend/finance/permission-to-pay/,permission_to_pay_open,apps/accounts/urls.py,apps/finance/views_permission_to_pay.py,func,"login_required | user_passes_test(_finance_roles_ok) | require_school | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
 backend/finance/permission-to-pay/approve/,permission_to_pay_approve,apps/accounts/urls.py,apps/finance/views_permission_to_pay.py,func,login_required | user_passes_test(_finance_roles_ok) | require_school | require_http_methods(['POST']),,,,1,0,0,0,0,,0,0,0
@@ -145,6 +148,7 @@ legacy-setup/<uidb64>/<token>/,LegacySetupView.as_view,apps/accounts/urls.py,app
 onboarding/account/<uidb64>/<token>/progress/,owner_onboarding_account_provision_progress,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,require_GET,,,,1,0,0,0,0,token-authenticated first-run owner onboarding; must be anonymous-reachable,0,0,0
 onboarding/account/<uidb64>/<token>/,OwnerOnboardingAccountView.as_view,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,class,,,PasswordResetConfirmView,,1,0,0,0,0,token-gated-onboarding-uidb64-token-in-url,0,0,0
 onboarding/school/,owner_onboarding_school,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,login_required,,,,1,0,0,0,0,,0,0,0
+onboarding/mfa/,owner_onboarding_mfa,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
 onboarding/done/,owner_onboarding_done,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
 onboarding/done/status/,owner_onboarding_provision_status,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
 onboarding/provision/progress/,owner_onboarding_provision_progress,apps/accounts/urls.py,apps/accounts/views_owner_onboarding.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
@@ -218,7 +222,7 @@ decision/revenue/,decision_revenue_dashboard,apps/analytics/urls.py,apps/analyti
 decision/engagement/,decision_engagement_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
 decision/risk/,decision_risk_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
 decision/founder/,decision_founder_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0,0
-,dashboard,apps/analytics/urls.py,apps/finance/views_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+,dashboard,apps/analytics/urls.py,apps/analytics/views.py,func,require_permission('analytics.manage'),,,,1,0,1,0,0,,0,0,0
 master-sheet/,master_sheet,apps/analytics/urls.py,apps/analytics/views.py,func,require_permission('analytics.manage'),,,,1,0,1,0,0,,0,0,0
 deadlines/,grading_deadlines,apps/analytics/urls.py,apps/analytics/views.py,func,require_permission('grades.manage'),,,,1,0,1,0,0,,0,0,0
 strategic/,strategic_report,apps/analytics/urls.py,apps/analytics/views.py,func,login_required,,,,1,0,0,0,0,,0,0,0
@@ -709,7 +713,7 @@ super/feedback/<int:pk>/action/,views.operator_feedback_action,apps/feedback/url
 super/feature/<int:pk>/roadmap/,views.add_to_roadmap,apps/feedback/urls.py,apps/feedback/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0,0
 help/,views.help_center,apps/feedback/urls.py,apps/feedback/views.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0,0
 release-notes/,views.release_notes_public,apps/feedback/urls.py,apps/feedback/views.py,func,,,,,1,0,0,0,0,intentionally public — filters is_public=True at QS level,0,0,0
-,dashboard,apps/finance/urls.py,apps/finance/views_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+,dashboard,apps/finance/urls.py,apps/analytics/views.py,func,require_permission('analytics.manage'),,,,1,0,1,0,0,,0,0,0
 payment-setup/,payment_readiness_setup,apps/finance/urls.py,apps/finance/views_payment_setup.py,func,require_permission('finance.manage') | require_step_up,,,,1,0,1,0,0,,0,0,0
 integration-credentials/,marketplace_integration_credentials,apps/finance/urls.py,apps/finance/views_marketplace_integration_credentials.py,func,"require_permission('finance.manage') | require_step_up | require_http_methods(['GET', 'POST'])",,,,1,0,1,0,0,,0,0,0
 payment-readiness/,payment_readiness_dashboard,apps/finance/urls.py,apps/finance/views_payment_readiness_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
@@ -882,6 +886,7 @@ connect/,views_connectors.MigrationCloudConnectorConnectView.as_view,apps/migrat
 upload/,views_tenant_upload.TenantMigrationUploadView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,_TenantAdminWriteRequiredMixin | View,,1,0,0,0,1,,0,0,0
 bundle/<int:bundle_id>/review/,views_tenant_upload.TenantMigrationReviewView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,_TenantAdminWriteRequiredMixin | View,,1,0,0,0,1,,0,0,0
 bundle/<int:bundle_id>/progress/,views_tenant_upload.TenantMigrationProgressView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
+bundle/<int:bundle_id>/retry/,views_tenant_upload.TenantMigrationRetryAdvanceView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,_TenantAdminWriteRequiredMixin | View,,1,0,0,0,1,,0,0,0
 bundle/<int:bundle_id>/apply/,views_tenant_upload.TenantMigrationApplyView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,_TenantAdminWriteRequiredMixin | View,,1,0,0,0,1,,0,0,0
 bundle/<int:bundle_id>/repair/,views_tenant_upload.TenantMigrationRepairView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_tenant_upload.py,class,,,_TenantAdminWriteRequiredMixin | View,,1,0,0,0,1,,0,0,0
 <uuid:connection_id>/discover/,views_connectors.MigrationCloudConnectorDiscoverView.as_view,apps/migration_cloud/urls_connectors.py,apps/migration_cloud/views_connectors.py,class,,,LoginRequiredMixin | View,,1,0,0,0,1,,0,0,0
@@ -908,7 +913,7 @@ api/runs/<int:run_id>/events/,api.run_events,apps/orchestration/urls.py,,,,,,,0,
 api/runs/<int:run_id>/cancel/,api.run_cancel,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 api/runs/<int:run_id>/retry/,api.run_retry,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
 api/slo/,api.slo_snapshot,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1,0
-,dashboard,apps/payroll/urls.py,apps/finance/views_dashboard.py,func,"require_permission('finance.view', 'finance.manage')",,,,1,0,1,0,0,,0,0,0
+,dashboard,apps/payroll/urls.py,apps/analytics/views.py,func,require_permission('analytics.manage'),,,,1,0,1,0,0,,0,0,0
 runs/create/,create_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage'),,,,1,0,1,0,0,,0,0,0
 runs/<int:run_id>/,run_detail,apps/payroll/urls.py,apps/payroll/views.py,func,"require_permission('payroll.view', 'payroll.manage')",,,,1,0,1,0,0,,0,0,0
 runs/<int:run_id>/generate/,generate_run,apps/payroll/urls.py,apps/payroll/views.py,func,require_permission('payroll.manage'),,,,1,0,1,0,0,,0,0,0

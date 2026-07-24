@@ -21,17 +21,19 @@ from __future__ import annotations
 import gzip
 import hashlib
 import io
+import logging
 import mimetypes
 import os
 import re
 import tarfile
 import zipfile
+import zlib
 from pathlib import Path
 from typing import Any, Iterator
 
 from apps.migration_cloud import defaults as mc_defaults
 from apps.migration_cloud.models import IntakeMethod
-from apps.migration_cloud.xlsx_explode import explode_workbook
+from apps.migration_cloud.xlsx_explode import explode_workbook, first_sheet_name
 
 from .base import (
     ArtifactPayload,
@@ -41,8 +43,25 @@ from .base import (
     register_adapter,
 )
 
+logger = logging.getLogger(__name__)
+
 _READ_CHUNK = 1024 * 1024  # 1 MiB
-_XLSX_SUFFIXES = (".xlsx", ".xlsm")
+_XLSX_SUFFIXES = (".xlsx", ".xlsm", ".xls")
+
+# Per-member read failures that quarantine the ONE member instead of failing the
+# whole bundle: encrypted / password-protected zip members raise stdlib
+# RuntimeError (NotImplementedError, its subclass, covers unsupported
+# compression), corrupt members raise BadZipFile / TarError / zlib.error, and
+# truncated streams raise EOFError / OSError. Cap violations raise IntakeError
+# (deliberately NOT in this set) so they still fail the bundle as policy.
+_MEMBER_SKIP_ERRORS = (
+    RuntimeError,
+    zipfile.BadZipFile,
+    tarfile.TarError,
+    zlib.error,
+    EOFError,
+    OSError,
+)
 
 
 class ArchiveIntakeAdapter(IntakeAdapter):
@@ -89,59 +108,89 @@ class ArchiveIntakeAdapter(IntakeAdapter):
 
             member_within = os.path.join(parent_path, member_name)
 
-            # A multi-tab workbook member is several tables in one file. Explode
-            # it into one TSV artifact per sheet so an archived workbook doesn't
-            # silently drop tabs 2+ (same fix as the FILE_UPLOAD adapter). We
-            # must read the member fully for openpyxl; single-sheet / unreadable
-            # workbooks fall through to the raw-member path below.
-            if member_name.lower().endswith(_XLSX_SUFFIXES):
-                with opener() as stream:
-                    data = stream.read()
-                sheets = explode_workbook(data)
-                if len(sheets) >= 2:
-                    for payload in _sheet_member_payloads(
-                        member_within, member_name, sheets, parent_path
-                    ):
-                        yield payload
-                        emitted += 1
+            try:
+                # A multi-tab workbook member is several tables in one file.
+                # Explode it into one TSV artifact per sheet so an archived
+                # workbook doesn't silently drop tabs 2+ (same fix as the
+                # FILE_UPLOAD adapter). We must read the member fully for the
+                # workbook readers; single-sheet / unreadable workbooks fall
+                # through to the raw-member path below.
+                if member_name.lower().endswith(_XLSX_SUFFIXES):
+                    with opener() as stream:
+                        data = stream.read()
+                    sheets = explode_workbook(data)
+                    if len(sheets) >= 2:
+                        for payload in _sheet_member_payloads(
+                            member_within, member_name, sheets, parent_path
+                        ):
+                            yield payload
+                            emitted += 1
+                        continue
+                    if len(sheets) == 1:
+                        # First sheet blank, data in exactly one LATER sheet: the
+                        # raw reader only reads sheet 0 (blank) -> zero rows, so
+                        # substitute the data sheet's TSV. If the single sheet IS
+                        # sheet 0, fall through to the raw-member path below.
+                        first = first_sheet_name(data)
+                        if first is not None and sheets[0][0] != first:
+                            for payload in _sheet_member_payloads(
+                                member_within, member_name, sheets, parent_path
+                            ):
+                                yield payload
+                                emitted += 1
+                            continue
+                    # Single-sheet (first) / unreadable: emit the raw member,
+                    # reusing the bytes we already read (no second archive pass).
+                    mime = mimetypes.guess_type(member_name)[0] or ""
+                    yield ArtifactPayload(
+                        path_within_bundle=member_within,
+                        filename=os.path.basename(member_name),
+                        byte_size=len(data),
+                        sha256=hashlib.sha256(data).hexdigest(),
+                        mime_type=mime,
+                        parent_archive_path=parent_path,
+                        content_opener=_bytes_opener(data),
+                    )
+                    emitted += 1
                     continue
-                # Single-sheet / unreadable: emit the raw member, reusing the
-                # bytes we already read (no second archive pass).
+
+                # Hash the member without loading it fully into memory.
+                digest = hashlib.sha256()
+                actual_size = 0
+                with opener() as stream:
+                    while True:
+                        chunk = stream.read(_READ_CHUNK)
+                        if not chunk:
+                            break
+                        digest.update(chunk)
+                        actual_size += len(chunk)
+
                 mime = mimetypes.guess_type(member_name)[0] or ""
                 yield ArtifactPayload(
                     path_within_bundle=member_within,
                     filename=os.path.basename(member_name),
-                    byte_size=len(data),
-                    sha256=hashlib.sha256(data).hexdigest(),
+                    byte_size=actual_size,
+                    sha256=digest.hexdigest(),
                     mime_type=mime,
                     parent_archive_path=parent_path,
-                    content_opener=_bytes_opener(data),
+                    content_opener=opener,
                 )
                 emitted += 1
+            except _MEMBER_SKIP_ERRORS as exc:
+                # One encrypted / password-protected (stdlib RuntimeError),
+                # corrupt (BadZipFile / TarError / zlib) or truncated member must
+                # not sink the whole bundle — a 500-file drop with one locked
+                # member still ingests the other 499. Skip-and-record here;
+                # bundle-level failure is reserved for archive-OPEN errors, which
+                # surface from _iter_archive_members before this point.
+                logger.warning(
+                    "archive_intake: skipping unreadable member %r in %s (%s: %s)",
+                    member_name,
+                    path.name,
+                    type(exc).__name__,
+                    exc,
+                )
                 continue
-
-            # Hash the member without loading it fully into memory.
-            digest = hashlib.sha256()
-            actual_size = 0
-            with opener() as stream:
-                while True:
-                    chunk = stream.read(_READ_CHUNK)
-                    if not chunk:
-                        break
-                    digest.update(chunk)
-                    actual_size += len(chunk)
-
-            mime = mimetypes.guess_type(member_name)[0] or ""
-            yield ArtifactPayload(
-                path_within_bundle=member_within,
-                filename=os.path.basename(member_name),
-                byte_size=actual_size,
-                sha256=digest.hexdigest(),
-                mime_type=mime,
-                parent_archive_path=parent_path,
-                content_opener=opener,
-            )
-            emitted += 1
 
 
 def _bytes_opener(data: bytes):

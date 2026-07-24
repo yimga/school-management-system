@@ -39,7 +39,8 @@ from apps.migration_cloud.models import (
 )
 from apps.migration_cloud.reliability import idempotent_post, safe_500
 
-from .permissions import MigrationCloudAPIPermission
+from .auth import migration_cloud_authentication_classes
+from .permissions import ScopedAPIPermission
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +142,8 @@ class WebhookSubscriptionViewSet(viewsets.ModelViewSet):
     """REST viewset for ``MigrationCloudWebhookSubscription``."""
 
     serializer_class = _WebhookMaskedSerializer
-    permission_classes = [IsAuthenticated, MigrationCloudAPIPermission]
+    authentication_classes = migration_cloud_authentication_classes()
+    permission_classes = [IsAuthenticated, ScopedAPIPermission]
     http_method_names = ["get", "post", "delete", "head", "options"]
     lookup_field = "pk"
 

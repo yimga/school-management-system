@@ -37,6 +37,9 @@ from rest_framework.response import Response
 from apps.migration_cloud.models import MigrationCloudAPIToken
 from apps.migration_cloud.reliability import idempotent_post, safe_500
 
+from .auth import migration_cloud_authentication_classes
+from .permissions import ScopedAPIPermission
+
 logger = logging.getLogger(__name__)
 
 
@@ -252,7 +255,13 @@ class ScopedTokenViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = _TokenMaskedSerializer
-    permission_classes = [IsAuthenticated]
+    # Token-first auth + scope gate. A caller authenticating with a scoped token
+    # must hold ``tokens:manage`` to mint/list/revoke (session/JWT admins are
+    # gated by the parent staff-or-tenant check). Previously ``[IsAuthenticated]``
+    # only — the docstring's scope contract was not enforced.
+    # See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (BLOCKER 5).
+    authentication_classes = migration_cloud_authentication_classes()
+    permission_classes = [IsAuthenticated, ScopedAPIPermission]
     http_method_names = ["get", "post", "delete", "head", "options"]
     lookup_field = "pk"
 

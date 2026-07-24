@@ -97,7 +97,7 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 985,
+  "finding_count": 991,
   "findings": [
     {
       "line": 126,
@@ -358,7 +358,7 @@
       "value": 4096
     },
     {
-      "line": 743,
+      "line": 713,
       "path": "apps/accounts/views_owner_onboarding.py",
       "snippet": "\"message\": (getattr(event, \"message\", \"\") or \"\")[:240],",
       "value": 240
@@ -1030,7 +1030,7 @@
       "value": 220
     },
     {
-      "line": 314,
+      "line": 328,
       "path": "apps/feedback/views.py",
       "snippet": "title=title[:180],",
       "value": 180
@@ -1114,33 +1114,39 @@
       "value": 140
     },
     {
-      "line": 156,
+      "line": 175,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "for inv in ordered_qs[:5000]:",
       "value": 5000
     },
     {
-      "line": 645,
+      "line": 669,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "max_bytes = max_mb * 1024 * 1024",
       "value": 1024
     },
     {
-      "line": 645,
+      "line": 669,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "max_bytes = max_mb * 1024 * 1024",
       "value": 1024
     },
     {
-      "line": 649,
+      "line": 673,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "f\"File is too large ({receipt_file.size / (1024 * 1024):.1f} MB). \"",
       "value": 1024
     },
     {
-      "line": 649,
+      "line": 673,
       "path": "apps/finance/views_invoicing.py",
       "snippet": "f\"File is too large ({receipt_file.size / (1024 * 1024):.1f} MB). \"",
+      "value": 1024
+    },
+    {
+      "line": 726,
+      "path": "apps/finance/views_invoicing.py",
+      "snippet": "_head = receipt_file.read(1024)",
       "value": 1024
     },
     {
@@ -1738,13 +1744,13 @@
       "value": 7200
     },
     {
-      "line": 44,
+      "line": 48,
       "path": "apps/migration_cloud/intake/archive_intake.py",
       "snippet": "_READ_CHUNK = 1024 * 1024  # 1 MiB",
       "value": 1024
     },
     {
-      "line": 44,
+      "line": 48,
       "path": "apps/migration_cloud/intake/archive_intake.py",
       "snippet": "_READ_CHUNK = 1024 * 1024  # 1 MiB",
       "value": 1024
@@ -1852,13 +1858,13 @@
       "value": 5000
     },
     {
-      "line": 535,
+      "line": 626,
       "path": "apps/migration_cloud/models_audit.py",
       "snippet": "5000,",
       "value": 5000
     },
     {
-      "line": 536,
+      "line": 627,
       "path": "apps/migration_cloud/models_audit.py",
       "snippet": ") or 5000)",
       "value": 5000
@@ -2020,25 +2026,25 @@
       "value": 4096
     },
     {
-      "line": 80,
+      "line": 86,
       "path": "apps/migration_cloud/shadow.py",
       "snippet": "max_window_hours: int = 168",
       "value": 168
     },
     {
-      "line": 92,
+      "line": 99,
       "path": "apps/migration_cloud/shadow.py",
       "snippet": "max_window_hours: int = 168,",
       "value": 168
     },
     {
-      "line": 307,
+      "line": 334,
       "path": "apps/migration_cloud/shadow.py",
       "snippet": "max_window_hours=int(payload.get(\"max_window_hours\", 168) or 168),",
       "value": 168
     },
     {
-      "line": 307,
+      "line": 334,
       "path": "apps/migration_cloud/shadow.py",
       "snippet": "max_window_hours=int(payload.get(\"max_window_hours\", 168) or 168),",
       "value": 168
@@ -3352,21 +3358,33 @@
       "value": 240
     },
     {
+      "line": 43,
+      "path": "apps/portal/views_onboarding.py",
+      "snippet": "upload, allowed_mimes=SAFE_IMAGE_MIMES, max_bytes=10 * 1024 * 1024",
+      "value": 1024
+    },
+    {
+      "line": 43,
+      "path": "apps/portal/views_onboarding.py",
+      "snippet": "upload, allowed_mimes=SAFE_IMAGE_MIMES, max_bytes=10 * 1024 * 1024",
+      "value": 1024
+    },
+    {
       "line": 40,
       "path": "apps/portal/views_photo_upload.py",
       "snippet": "return delta.total_seconds() > (TOKEN_EXPIRY_HOURS * 3600)",
       "value": 3600
     },
     {
-      "line": 225,
+      "line": 235,
       "path": "apps/portal/views_photo_upload.py",
-      "snippet": "if hasattr(file_obj, \"size\") and file_obj.size and file_obj.size > 10 * 1024 * 1024:",
+      "snippet": "file_obj, allowed_mimes=SAFE_IMAGE_MIMES, max_bytes=10 * 1024 * 1024",
       "value": 1024
     },
     {
-      "line": 225,
+      "line": 235,
       "path": "apps/portal/views_photo_upload.py",
-      "snippet": "if hasattr(file_obj, \"size\") and file_obj.size and file_obj.size > 10 * 1024 * 1024:",
+      "snippet": "file_obj, allowed_mimes=SAFE_IMAGE_MIMES, max_bytes=10 * 1024 * 1024",
       "value": 1024
     },
     {
@@ -4138,13 +4156,13 @@
       "value": 180000
     },
     {
-      "line": 345,
+      "line": 356,
       "path": "apps/schools/provisioning_progress.py",
       "snippet": "expected = int(getattr(run, \"expected_duration_seconds\", 180) or 180)",
       "value": 180
     },
     {
-      "line": 345,
+      "line": 356,
       "path": "apps/schools/provisioning_progress.py",
       "snippet": "expected = int(getattr(run, \"expected_duration_seconds\", 180) or 180)",
       "value": 180
@@ -4186,7 +4204,7 @@
       "value": 1500000
     },
     {
-      "line": 266,
+      "line": 269,
       "path": "apps/schools/school_brand_assets.py",
       "snippet": "return False, f\"logo exceeds {DAY1_LOGO_MAX_BYTES // 1024} KB cap\"",
       "value": 1024
@@ -4364,6 +4382,24 @@
       "path": "apps/security/ssrf.py",
       "snippet": "port = parsed.port or (443 if scheme == \"https\" else 80)",
       "value": 443
+    },
+    {
+      "line": 46,
+      "path": "apps/security/upload_validation.py",
+      "snippet": "_HEAD_BYTES = 1024",
+      "value": 1024
+    },
+    {
+      "line": 84,
+      "path": "apps/security/upload_validation.py",
+      "snippet": "if b\"%PDF-\" in head[:1024]:",
+      "value": 1024
+    },
+    {
+      "line": 188,
+      "path": "apps/security/upload_validation.py",
+      "snippet": "f\"The file is too large (limit {max_bytes // 1024} KB).\"",
+      "value": 1024
     },
     {
       "line": 210,
@@ -5074,7 +5110,7 @@
       "value": 4000
     },
     {
-      "line": 315,
+      "line": 333,
       "path": "apps/siteconfig/support_ticket_hooks.py",
       "snippet": "\"reply_body\": body_text[:8000],",
       "value": 8000
@@ -6010,7 +6046,7 @@
       "value": 16384
     }
   ],
-  "generated_at": "2026-07-23T16:06:02+00:00",
+  "generated_at": "2026-07-24T18:08:00+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

@@ -107,8 +107,11 @@ def _mock_http_response(body_dict, status=200):
 # ─── 1. Dry-run mode ─────────────────────────────────────────────────────
 
 
+@override_settings(DEBUG=True)
 class VaultDryRunTests(SimpleTestCase):
-    """Dry-run mode is the CI default; no live Vault available."""
+    """Dry-run mode. Post-2026-07-24 audit (E-5) it fails CLOSED unless
+    DEBUG is on, so a misconfigured prod Vault backend can never mint a
+    forgeable hardcoded-seed signature — hence @override_settings(DEBUG=True)."""
 
     def setUp(self):
         # Force dry-run on regardless of host env.
@@ -325,6 +328,7 @@ class VaultLiveModeTests(SimpleTestCase):
 
 @override_settings(
     MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND=SIGNING_BACKEND_VAULT,
+    DEBUG=True,  # dry-run now fails closed unless DEBUG (audit E-5)
 )
 class AuditRootSigningVaultDispatchTests(SimpleTestCase):
     """When the backend selector flips to hashicorp-vault, the service

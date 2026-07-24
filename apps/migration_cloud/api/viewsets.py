@@ -50,7 +50,8 @@ from apps.migration_cloud.views import (
 
 from .bulk_artifacts import bulk_artifacts_action_factory
 from .helpers import delegate_to_view, shell_for_request
-from .permissions import MigrationCloudAPIPermission
+from .auth import migration_cloud_authentication_classes
+from .permissions import ScopedAPIPermission
 from .serializers import (
     MigrationArtifactSerializer,
     MigrationBundleSerializer,
@@ -58,35 +59,6 @@ from .serializers import (
 from .sse import events_stream_action_factory
 
 logger = logging.getLogger(__name__)
-
-
-def _enqueue_lifecycle_webhooks(bundle, event_type: str, payload: dict) -> None:
-    """Best-effort: enqueue webhook deliveries for a bundle-lifecycle event.
-
-    Called inline after the wizard delegation returns. Wrapped in a
-    broad try/except so a webhook subsystem hiccup never breaks the
-    primary API response — failures are logged for ops.
-    """
-    try:
-        # Local imports — avoid app-load cycles during Django startup.
-        from apps.migration_cloud.api.webhook_dispatch import enqueue
-        from apps.migration_cloud.models import (
-            MigrationCloudWebhookSubscription,
-        )
-
-        if not bundle or not getattr(bundle, "school_id", None):
-            return
-        # tenant-isolation-allow: webhook-lifecycle-enqueue-scoped-via-bundle-school-id
-        subs = MigrationCloudWebhookSubscription.objects.filter(
-            tenant_id=bundle.school_id, active=True,
-        )
-        for sub in subs:
-            enqueue(sub, event_type, payload)
-    except Exception:
-        logger.exception(
-            "migration_cloud_webhook_lifecycle_enqueue_failed bundle_id=%s event=%s",
-            getattr(bundle, "pk", None), event_type,
-        )
 
 
 @extend_schema_view(
@@ -154,7 +126,8 @@ class BundleViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = MigrationBundleSerializer
-    permission_classes = [IsAuthenticated, MigrationCloudAPIPermission]
+    authentication_classes = migration_cloud_authentication_classes()
+    permission_classes = [IsAuthenticated, ScopedAPIPermission]
     http_method_names = ["get", "post", "head", "options"]
     lookup_field = "pk"
 
@@ -265,26 +238,15 @@ class BundleViewSet(viewsets.ModelViewSet):
         After the wizard returns successfully, lifecycle webhooks for
         ``bundle.advanced`` are enqueued best-effort.
         """
-        response = delegate_to_view(
+        # The bundle.advanced lifecycle webhook is emitted at the SERVICE layer
+        # (pipeline.advance_bundle) so UI-driven advances fire the same event an
+        # API advance does — see services/lifecycle_events.py (G-5).
+        return delegate_to_view(
             MigrationCloudAdvanceView,
             request,
             bundle_id=int(pk),
             shell=shell_for_request(request),
         )
-        try:
-            if 200 <= getattr(response, "status_code", 500) < 300:
-                bundle = MigrationBundle.objects.filter(pk=int(pk)).first()  # tenant-isolation-allow: webhook-enqueue-lookup-bundle-already-validated-by-delegated-view
-                _enqueue_lifecycle_webhooks(
-                    bundle,
-                    "bundle.advanced",
-                    {
-                        "bundle_id": int(pk),
-                        "status": getattr(bundle, "status", None),
-                    },
-                )
-        except Exception:
-            logger.exception("migration_cloud_advance_webhook_hook_failed bundle_id=%s", pk)
-        return response
 
     # ─── apply ─────────────────────────────────────────────────────────────
     @extend_schema(
@@ -337,33 +299,16 @@ class BundleViewSet(viewsets.ModelViewSet):
         Enqueues ``bundle.applied`` / ``bundle.failed`` lifecycle
         webhooks based on the delegated response status code.
         """
-        response = delegate_to_view(
+        # The bundle.applied / bundle.failed lifecycle webhooks are emitted at the
+        # SERVICE layer (orchestrator.apply_bundle, on the actual status transition)
+        # so UI-driven applies fire the same events — see
+        # services/lifecycle_events.py (G-5).
+        return delegate_to_view(
             MigrationCloudApplyView,
             request,
             bundle_id=int(pk),
             shell=shell_for_request(request),
         )
-        try:
-            sc = getattr(response, "status_code", 500)
-            bundle = MigrationBundle.objects.filter(pk=int(pk)).first()  # tenant-isolation-allow: webhook-enqueue-lookup-bundle-already-validated-by-delegated-view
-            if 200 <= sc < 300:
-                _enqueue_lifecycle_webhooks(
-                    bundle,
-                    "bundle.applied",
-                    {
-                        "bundle_id": int(pk),
-                        "status": getattr(bundle, "status", None),
-                    },
-                )
-            elif sc >= 500:
-                _enqueue_lifecycle_webhooks(
-                    bundle,
-                    "bundle.failed",
-                    {"bundle_id": int(pk), "status_code": sc},
-                )
-        except Exception:
-            logger.exception("migration_cloud_apply_webhook_hook_failed bundle_id=%s", pk)
-        return response
 
     # ─── reconcile ─────────────────────────────────────────────────────────
     @extend_schema(
@@ -472,7 +417,8 @@ class CanonicalTemplateViewSet(viewsets.ViewSet):
     pipeline — this MVP exposes the headers and the zip download only.
     """
 
-    permission_classes = [IsAuthenticated, MigrationCloudAPIPermission]
+    authentication_classes = migration_cloud_authentication_classes()
+    permission_classes = [IsAuthenticated, ScopedAPIPermission]
     lookup_field = "domain"
     lookup_value_regex = r"[a-z][a-z0-9_]*"
 

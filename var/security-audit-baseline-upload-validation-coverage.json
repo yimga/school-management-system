@@ -1,0 +1,125 @@
+{
+  "finding_count": 24,
+  "findings": [
+    {
+      "path": "apps/academics/views_syllabus.py",
+      "function": "syllabus_upload",
+      "line": 206
+    },
+    {
+      "path": "apps/accounts/views.py",
+      "function": "direct_compose",
+      "line": 1454
+    },
+    {
+      "path": "apps/accounts/views.py",
+      "function": "direct_thread",
+      "line": 1172
+    },
+    {
+      "path": "apps/accounts/views_migration.py",
+      "function": "migration_wizard",
+      "line": 235
+    },
+    {
+      "path": "apps/api/oneroster_csv_importer.py",
+      "function": "import_bundle",
+      "line": 389
+    },
+    {
+      "path": "apps/communication/views_groups.py",
+      "function": "group_detail",
+      "line": 332
+    },
+    {
+      "path": "apps/customersuccess/views_tenant.py",
+      "function": "_csv_upload_text",
+      "line": 47
+    },
+    {
+      "path": "apps/evals/views.py",
+      "function": "grade_import_apply_api",
+      "line": 3380
+    },
+    {
+      "path": "apps/evals/views.py",
+      "function": "grade_import_preview_api",
+      "line": 3284
+    },
+    {
+      "path": "apps/evals/views.py",
+      "function": "teacher_marks_entry",
+      "line": 1627
+    },
+    {
+      "path": "apps/finance/views_invoicing.py",
+      "function": "invoice_detail",
+      "line": 363
+    },
+    {
+      "path": "apps/lifecycle/views_bulk.py",
+      "function": "post",
+      "line": 30
+    },
+    {
+      "path": "apps/portal/views_contact_requests.py",
+      "function": "parent_contact_school",
+      "line": 51
+    },
+    {
+      "path": "apps/portal/views_kb_docs.py",
+      "function": "kb_article_reimport_odt",
+      "line": 168
+    },
+    {
+      "path": "apps/portal/views_kb_docs.py",
+      "function": "kb_office_upload",
+      "line": 60
+    },
+    {
+      "path": "apps/portal/views_lms.py",
+      "function": "student_assignment_submit",
+      "line": 129
+    },
+    {
+      "path": "apps/portal/views_support_quick.py",
+      "function": "support_quick_create",
+      "line": 71
+    },
+    {
+      "path": "apps/schools/super_views_beyond_reach.py",
+      "function": "super_legacy_sis_csv_preview",
+      "line": 97
+    },
+    {
+      "path": "apps/schools/super_views_beyond_reach.py",
+      "function": "super_migration_csv_diff",
+      "line": 32
+    },
+    {
+      "path": "apps/setup_studio/wizard_views.py",
+      "function": "_parse_post_payload",
+      "line": 418
+    },
+    {
+      "path": "apps/siteconfig/views_cockpit_admin.py",
+      "function": "post",
+      "line": 555
+    },
+    {
+      "path": "apps/siteconfig/views_feature_control.py",
+      "function": "feature_control_panel",
+      "line": 1349
+    },
+    {
+      "path": "apps/siteconfig/views_tenant_studio_hub.py",
+      "function": "post",
+      "line": 345
+    },
+    {
+      "path": "apps/siteconfig/views_waiver.py",
+      "function": "request_waiver",
+      "line": 12
+    }
+  ]
+}

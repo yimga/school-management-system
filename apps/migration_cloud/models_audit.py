@@ -348,6 +348,66 @@ class MigrationCloudAuditEventType(models.TextChoices):
         "migration.bundle.applied",
         "Migration bundle apply completed (live or dry-run)",
     )
+    # E-3 (audit 2026-07-24) — connector-workflow hash-chain mirror.
+    # ``apps.migration_cloud.services.connector_audit`` mirrors every
+    # school-scoped ``MigrationAuditEvent`` into this tamper-evident chain.
+    # That model's ``event_type`` is free-form + fine-grained
+    # (``discovery_started``/``import_completed``/``credential_read``/…); the
+    # mirror maps each to one of these coarse ``connector.*`` categories (the
+    # exact fine-grained value rides in ``payload_summary["connector_event"]``)
+    # so a new connector event string can never silently drop out of the
+    # chain. Before this, ``connector.*`` was never a registered choice, so
+    # ``record()`` raised ``ValueError`` and the mirror swallowed it — source
+    # credential access / discovery / import never entered the hash chain.
+    CONNECTOR_CONNECTION = (
+        "connector.connection",
+        "Connector source-connection lifecycle event",
+    )
+    CONNECTOR_CREDENTIAL_ACCESS = (
+        "connector.credential_access",
+        "Connector source credential accessed",
+    )
+    CONNECTOR_DISCOVERY = (
+        "connector.discovery",
+        "Connector schema discovery run",
+    )
+    CONNECTOR_MAPPING = (
+        "connector.mapping",
+        "Connector field mapping confirmed",
+    )
+    CONNECTOR_IMPORT = (
+        "connector.import",
+        "Connector import run",
+    )
+    CONNECTOR_ROLLBACK = (
+        "connector.rollback",
+        "Connector import rollback",
+    )
+    CONNECTOR_EVENT = (
+        "connector.event",
+        "Connector workflow event (uncategorized)",
+    )
+    # F-Q3 (audit 2026-07-24) — DSAR runbook + MAA v2.0 promotion events were
+    # masquerading in the forensic chain: their own types were unregistered,
+    # so the emitters fell back to ``AUDIT_RETENTION_PURGE_APPLIED`` /
+    # ``MAA_SIGN``. Registered here so each event carries its own type.
+    DSAR_RUNBOOK_RECORDED = (
+        "migration.dsar.runbook_recorded",
+        "DSAR fulfillment runbook recorded",
+    )
+    MAA_V2_PROMOTION_APPLIED = (
+        "maa.v2_promotion_applied",
+        "MAA v2.0 promotion applied by operator",
+    )
+    # Audit G-3 (2026-07-24) — CutoverRunbook sign-off. Emitted by
+    # ``CutoverRunbook.record_signoff`` via ``safe_bundle_audit`` when an
+    # operator signs off a district's real cutover. Payload carries the
+    # scorecard-hash prefix + runbook/bundle ids only — never the signer's
+    # raw name/title (PII stays off the hash-chain).
+    CUTOVER_SIGNED_OFF = (
+        "migration.cutover.signed_off",
+        "Cutover runbook signed off (rehearsal→real→sign-off)",
+    )
 
 
 GENESIS_SENTINEL = "genesis"
@@ -444,6 +504,37 @@ def _sanitize_payload(summary: Any) -> dict:
 
     _walk(summary, "")
     return summary
+
+
+_REDACTED_SENTINEL = "[redacted]"
+
+
+def _redact_payload(summary: Any) -> dict:
+    """Return a copy of ``summary`` with sensitive-keyword values redacted.
+
+    Unlike :func:`_sanitize_payload` (which REJECTS a sensitive key by
+    raising, used at write time), this NEVER raises. A row that somehow
+    persisted a sensitive key (a pre-E-4 write, a raw-SQL insert) must still
+    export without 500-ing the auditor's JSONL stream. The offending value is
+    replaced with :data:`_REDACTED_SENTINEL`; keys are preserved so the export
+    stays structurally faithful.
+    """
+    if summary is None:
+        return {}
+    if not isinstance(summary, dict):
+        return {"value": summary}
+
+    def _walk(node: Any) -> Any:
+        if isinstance(node, dict):
+            return {
+                k: (_REDACTED_SENTINEL if _key_looks_sensitive(k) else _walk(v))
+                for k, v in node.items()
+            }
+        if isinstance(node, list):
+            return [_walk(item) for item in node]
+        return node
+
+    return _walk(summary)
 
 
 def _canonical_json(obj: dict) -> bytes:
@@ -736,9 +827,14 @@ class MigrationCloudAuditEvent(AppendOnlyModelMixin, models.Model):
             tail.integrity_hash if tail is not None else GENESIS_SENTINEL
         )
 
-        # Ensure payload_summary is a dict.
-        if self.payload_summary is None:
-            self.payload_summary = {}
+        # E-4 — sanitize at the single write choke point so a direct
+        # ``.create()``/``.save()`` (not just ``record()``) can never persist a
+        # sensitive-keyword key. ``_sanitize_payload`` also coerces ``None`` →
+        # ``{}`` and non-dicts to ``{"value": …}``. ``record()`` still
+        # sanitizes for an early, clearer rejection; this is the authoritative
+        # gate. Runs BEFORE the hash so the chain covers the sanitized payload
+        # (idempotent for the already-clean ``record()`` path).
+        self.payload_summary = _sanitize_payload(self.payload_summary)
 
         self.integrity_hash = _compute_integrity_hash(
             pk=str(self.id),
@@ -806,7 +902,7 @@ class MigrationCloudAuditEvent(AppendOnlyModelMixin, models.Model):
             "event_type": self.event_type,
             "actor_id": self.actor_id,
             "event_subject_hash": self.event_subject_hash,
-            "payload_summary": _sanitize_payload(self.payload_summary or {}),
+            "payload_summary": _redact_payload(self.payload_summary or {}),
             "created_at_iso": self.created_at_iso,
             "integrity_hash": self.integrity_hash,
             "prev_event_hash": self.prev_event_hash,
@@ -822,6 +918,7 @@ __all__ = [
     "AuditEventRateLimitExceeded",
     "GENESIS_SENTINEL",
     "_sanitize_payload",
+    "_redact_payload",
     "_hash_tenant_slug",
     "_hash_email_or_id",
     "_compute_integrity_hash",

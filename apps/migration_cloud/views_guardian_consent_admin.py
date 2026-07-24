@@ -235,6 +235,22 @@ class GuardianConsentCampaignStartView(LoginRequiredMixin, View):
             )
             return HttpResponseBadRequest("csv_file could not be decoded as UTF-8")
 
+        # A-4: route the buffered CSV through the shared malware-scan hook
+        # BEFORE it is parsed. The magic-byte allowlist gate does not apply to
+        # schema-free CSV (it has no signature), but the AV hook does — and the
+        # bytes are already in memory here (≤2MB cap), so the scan is free. When
+        # no scanner is configured this is an honest "not scanned" pass-through.
+        from apps.security.upload_validation import scan_for_malware
+
+        av_ok, av_detail = scan_for_malware(raw_bytes)
+        if not av_ok:
+            logger.warning(
+                "migration_cloud.guardian_consent_admin: csv_av_reject "
+                "intake_id=%s detail=%s",
+                intake.id, av_detail,
+            )
+            return HttpResponseBadRequest("csv_file failed a security scan")
+
         # stdlib csv.reader — stream-parse via StringIO. NO pandas.
         reader = csv.reader(io.StringIO(text))
         # Pre-validate row cap (count + 1 for header tolerance).

@@ -75,3 +75,19 @@ class MigrationCloudTokenAuthentication(TokenAuthentication):
         if len(parts) != 2:
             return ""
         return parts[1]
+
+
+def migration_cloud_authentication_classes() -> list:
+    """Auth classes for every Migration Cloud API viewset.
+
+    Token-first: the scoped ``mc_`` token backend runs before the project
+    defaults (session + JWT). WITHOUT this on the viewset, ``mc_`` tokens never
+    authenticate (401) and the only working machine path is JWT — which carries
+    FULL user privilege with no scope and no tenant binding, the inverse of the
+    least-privilege contract the API advertises. Evaluated once at class-def time
+    so it is a plain list DRF can consume. Pairs with ``ScopedAPIPermission``.
+    See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (BLOCKER 5).
+    """
+    from rest_framework.settings import api_settings
+
+    return [MigrationCloudTokenAuthentication, *api_settings.DEFAULT_AUTHENTICATION_CLASSES]

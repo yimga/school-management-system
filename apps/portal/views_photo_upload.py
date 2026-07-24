@@ -219,11 +219,23 @@ def photo_upload_upload(request, token):
             status=400,
         )
 
-    if hasattr(file_obj, "content_type") and file_obj.content_type:
-        if not file_obj.content_type.startswith("image/"):
-            return JsonResponse({"error": "File must be an image"}, status=400)
-    if hasattr(file_obj, "size") and file_obj.size and file_obj.size > 10 * 1024 * 1024:
-        return JsonResponse({"error": "Image too large (max 10MB)"}, status=400)
+    # Validate by content, not the spoofable declared content_type / filename.
+    # The shared primitive enforces the size cap + a magic-byte sniff (a renamed
+    # SVG declared ``image/svg+xml`` would otherwise be stored as a profile photo
+    # and served — a stored-XSS vector) + the malware-scan hook. Raster
+    # PNG/JPEG/WebP only for this anonymous, token-only upload.
+    from apps.security.upload_validation import (
+        SAFE_IMAGE_MIMES,
+        UploadValidationError,
+        validate_uploaded_file,
+    )
+
+    try:
+        validate_uploaded_file(
+            file_obj, allowed_mimes=SAFE_IMAGE_MIMES, max_bytes=10 * 1024 * 1024
+        )
+    except UploadValidationError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
 
     token_obj.photo = file_obj
     token_obj.save(update_fields=["photo"])

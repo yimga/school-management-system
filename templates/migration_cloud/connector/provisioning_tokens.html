@@ -1,0 +1,53 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% comment %}
+Tenant-admin API-token list (views_tenant_provisioning.TenantTokenListView).
+Every href is a pre-resolved context var (mint_url / webhooks_url / home_url /
+each row's revoke_url) so this template carries NO cross-host reverse — the
+connector namespace is nested under super/portal too, so a hardcoded reverse
+would 500 on the other mounts. Plaintext is never rendered here; only the
+mc_...XXXX preview.
+{% endcomment %}
+{% block connector_body %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+<p class="text-muted mb-3">{% blocktrans %}Scoped API tokens let your own integrations and partners call Migration Cloud on behalf of your school. Every token is bound to your school only and carries just the permissions you choose.{% endblocktrans %}</p>
+
+<div data-rmc-scroll-policy="paginate" class="d-flex gap-2 mb-4 flex-wrap">
+  <a class="btn btn-primary" href="{{ mint_url }}">{% trans "Mint an API token" %}</a>
+  <a class="btn btn-outline-secondary" href="{{ webhooks_url }}">{% trans "Webhooks" %}</a>
+  <a class="btn btn-outline-secondary" href="{{ home_url }}">{% trans "Back to Migration Cloud" %}</a>
+</div>
+
+<section class="rmc-card" aria-labelledby="mc-tokens-heading">
+  <h2 id="mc-tokens-heading" class="h5 mb-3">{% trans "Your API tokens" %}</h2>
+  {% if rows %}
+  <ul class="list-group list-group-flush">
+    {% for t in rows %}
+    <li class="list-group-item">
+      <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+        <div class="min-w-0">
+          <div class="fw-semibold">{{ t.name }} <code class="small text-muted">{{ t.preview }}</code></div>
+          <div class="small text-muted">
+            {% for s in t.scopes %}<span class="rmc-badge">{{ s }}</span> {% endfor %}
+          </div>
+          <div class="small text-muted">
+            {% trans "Created" %} {{ t.created_at|date:"Y-m-d H:i" }}
+            {% if t.is_active %}· <span class="text-success">{% trans "Active" %}</span>{% else %}· <span class="text-danger">{% trans "Revoked" %}</span>{% endif %}
+          </div>
+        </div>
+        {% if t.is_active %}
+        <form method="post" action="{{ t.revoke_url }}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Revoke" %}</button>
+        </form>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted mb-0">{% trans "No API tokens yet. Mint one to let an integration call Migration Cloud for your school." %}</p>
+  {% endif %}
+</section>
+{% endblock %}

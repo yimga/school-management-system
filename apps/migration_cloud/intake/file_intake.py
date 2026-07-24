@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any, Iterable, Iterator
 
 from apps.migration_cloud.models import IntakeMethod
-from apps.migration_cloud.xlsx_explode import explode_workbook
+from apps.migration_cloud.xlsx_explode import explode_workbook, first_sheet_name
 
 from .base import (
     ArtifactPayload,
@@ -37,7 +37,7 @@ from .base import (
     sha256_of_stream,
 )
 
-_XLSX_SUFFIXES = (".xlsx", ".xlsm")
+_XLSX_SUFFIXES = (".xlsx", ".xlsm", ".xls")
 
 
 class FileIntakeAdapter(IntakeAdapter):
@@ -65,6 +65,17 @@ class FileIntakeAdapter(IntakeAdapter):
                 if len(sheets) >= 2:
                     yield from _sheet_payloads(path, sheets)
                     continue
+                if len(sheets) == 1:
+                    # A workbook whose first sheet is blank with data in exactly
+                    # ONE later sheet explodes to a single sheet != sheetnames[0].
+                    # The raw reader only reads sheet 0 (blank) -> zero rows, so
+                    # substitute the data sheet's TSV. When the single sheet IS
+                    # the first sheet, fall through to the raw-file path below
+                    # (which lands it unchanged).
+                    first = first_sheet_name(path)
+                    if first is not None and sheets[0][0] != first:
+                        yield from _sheet_payloads(path, sheets)
+                        continue
 
             mime = hint_mime or (mimetypes.guess_type(path.name)[0] or "")
             with path.open("rb") as stream:

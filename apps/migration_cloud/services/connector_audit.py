@@ -77,6 +77,34 @@ def record_connector_audit(
     return event
 
 
+# The school-scoped MigrationAuditEvent.event_type is free-form + fine-grained
+# (discovery_started / import_completed / credential_read / …). The tamper-
+# evident MigrationCloudAuditEvent chain only accepts a registered
+# MigrationCloudAuditEventType, so the mirror maps each fine-grained event to
+# its coarse connector.* category. The exact fine-grained value is preserved in
+# payload_summary["connector_event"], so no forensic detail is lost. A prefix
+# table (not f"connector.{event_type}") means an unregistered/new connector
+# event string can never again raise ValueError and get swallowed — the
+# fallback category keeps every mirror write inside the hash chain.
+_CONNECTOR_CATEGORY_BY_PREFIX = (
+    ("credential_", "connector.credential_access"),
+    ("discovery_", "connector.discovery"),
+    ("import_", "connector.import"),
+    ("mapping_", "connector.mapping"),
+    ("rollback_", "connector.rollback"),
+    ("connection_", "connector.connection"),
+)
+_CONNECTOR_CATEGORY_FALLBACK = "connector.event"
+
+
+def _platform_audit_event_type(event_type: str) -> str:
+    """Map a fine-grained connector event_type to its registered category."""
+    for prefix, category in _CONNECTOR_CATEGORY_BY_PREFIX:
+        if event_type.startswith(prefix):
+            return category
+    return _CONNECTOR_CATEGORY_FALLBACK
+
+
 def _mirror_platform_audit(*, school, actor, event_type: str, payload_summary: dict) -> None:
     try:
         from apps.migration_cloud.models_audit import MigrationCloudAuditEvent
@@ -84,7 +112,7 @@ def _mirror_platform_audit(*, school, actor, event_type: str, payload_summary: d
         tenant_slug = getattr(school, "slug", None) or str(getattr(school, "pk", ""))
         MigrationCloudAuditEvent.objects.record(
             tenant_slug,
-            f"connector.{event_type}",
+            _platform_audit_event_type(event_type),
             actor=getattr(actor, "email", None) or getattr(actor, "username", None),
             subject=str(getattr(school, "pk", "")),
             payload_summary=payload_summary,

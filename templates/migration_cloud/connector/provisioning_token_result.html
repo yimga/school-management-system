@@ -1,0 +1,32 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% comment %}
+Tenant-admin API-token CREATE RESULT (views_tenant_provisioning.TenantTokenMintView.post).
+Renders the plaintext token EXACTLY ONCE — the server stored only sha256(token).
+Every href is a pre-resolved context var (tokens_url) so no cross-host reverse.
+{% endcomment %}
+{% block connector_body %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+<section class="rmc-card" aria-labelledby="mc-token-result-heading">
+  <h2 id="mc-token-result-heading" class="h5 mb-3">{% trans "Token created" %}</h2>
+
+  <div class="alert alert-warning" role="alert">
+    {% blocktrans %}Copy this token now — it is shown only once and cannot be retrieved again. Store it somewhere safe (a secrets manager). If you lose it, revoke it and mint a new one.{% endblocktrans %}
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="mc-token-plaintext">{% trans "Your API token" %}</label>
+    <input type="text" class="form-control font-monospace" id="mc-token-plaintext" value="{{ plaintext }}" readonly onclick="this.select()">
+  </div>
+
+  <dl class="row small text-muted mb-3">
+    <dt class="col-sm-3">{% trans "Name" %}</dt><dd class="col-sm-9">{{ row.name }}</dd>
+    <dt class="col-sm-3">{% trans "Scopes" %}</dt>
+    <dd class="col-sm-9">{% for s in row.scopes %}<span class="rmc-badge">{{ s }}</span> {% endfor %}</dd>
+    <dt class="col-sm-3">{% trans "Bound to" %}</dt><dd class="col-sm-9">{{ school }}</dd>
+  </dl>
+
+  <a class="btn btn-primary" href="{{ tokens_url }}">{% trans "Done — back to tokens" %}</a>
+</section>
+{% endblock %}

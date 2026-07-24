@@ -1539,3 +1539,18 @@ from apps.migration_cloud.models_maa_state import (  # noqa: E402, F401
     MAAActiveVersionState,
     MAAAlreadyActiveError,
 )
+
+# Audit G-3 — CutoverRunbook: the rehearsal → real → sign-off record with a
+# reconciliation-scorecard integrity anchor. Lives in its own module to keep
+# this file focused on the bundle/artifact/run/api/webhook/audit lifecycle;
+# re-exported here so Django's app loader registers the model and migrations
+# resolve it. See ``apps/migration_cloud/models_cutover.py``.
+from apps.migration_cloud.models_cutover import (  # noqa: E402, F401
+    CutoverRunbook,
+    CutoverRunbookStatus,
+    CutoverRunbookError,
+    CutoverRunbookAlreadySignedError,
+    CutoverRunbookNotReadyError,
+    CutoverRunbookImmutableError,
+    compute_scorecard_sha256,
+)

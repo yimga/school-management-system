@@ -108,7 +108,7 @@ class SqlDumpIntakeAdapter(IntakeAdapter):
                     current_rows = []
                     continue
                 values = line.rstrip("\n").split("\t")
-                current_rows.append(values)
+                current_rows.append([_decode_pg_copy_field(v) for v in values])
 
     # --- MySQL mysqldump ---------------------------------------------------
 
@@ -166,6 +166,47 @@ def _coerce(handle: Any) -> Path:
     raise IntakeError(f"SqlDumpIntakeAdapter expects a path; got {type(handle).__name__}")
 
 
+# Postgres COPY (text format) backslash escapes. ``\N`` is handled separately as
+# the whole-field NULL sentinel; the rest are single-character unescapes.
+_PG_COPY_ESCAPES = {
+    "t": "\t",
+    "n": "\n",
+    "r": "\r",
+    "\\": "\\",
+    "b": "\b",
+    "f": "\f",
+    "v": "\v",
+}
+
+
+def _decode_pg_copy_field(field: str) -> str:
+    r"""Decode one Postgres COPY text-format field value.
+
+    A bare ``\N`` is the NULL sentinel and decodes to empty string; embedded
+    escapes ``\t \n \r \\`` (plus the rarer ``\b \f \v``) unescape to the literal
+    character. Without this a NULL lands as the literal string ``"\N"`` and an
+    embedded tab / newline stays a visible backslash-escape in the value.
+    """
+    if field == "\\N":
+        return ""
+    if "\\" not in field:
+        return field
+    out: list[str] = []
+    i = 0
+    n = len(field)
+    while i < n:
+        ch = field[i]
+        if ch == "\\" and i + 1 < n:
+            nxt = field[i + 1]
+            # Unknown escape: Postgres drops the backslash and keeps the char.
+            out.append(_PG_COPY_ESCAPES.get(nxt, nxt))
+            i += 2
+            continue
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
 def _materialize_csv_payload(
     *, table: str, columns: list[str], rows: list[list[str]]
 ) -> ArtifactPayload | None:
@@ -202,22 +243,50 @@ def _materialize_csv_payload(
 
 
 def _parse_mysql_value_tuples(values_blob: str) -> list[list[str]]:
-    """Parse ``(v1, v2, ...), (v1, v2, ...)`` into a list of value lists."""
+    r"""Parse ``(v1, v2, ...), (v1, v2, ...)`` into a list of value lists.
+
+    An *unquoted* ``NULL`` or ``\N`` token normalises to empty string (SQL
+    NULL), while a *quoted* ``'NULL'`` keeps the literal text — so a genuinely
+    null column doesn't land as the string ``"NULL"``.
+    """
     rows: list[list[str]] = []
     depth = 0
     in_string = False
     escape = False
+    was_quoted = False
     current: list[str] = []
     cur_val: list[str] = []
+
+    def _finish_value() -> None:
+        nonlocal cur_val, was_quoted
+        raw = "".join(cur_val).strip()
+        if not was_quoted and (raw.upper() == "NULL" or raw == "\\N"):
+            value = ""
+        else:
+            value = raw.strip("'")
+        current.append(value)
+        cur_val = []
+        was_quoted = False
+
     for ch in values_blob:
         if escape:
-            cur_val.append(ch)
+            # Inside a quoted string the escaped char is taken literally (prior
+            # behaviour). OUTSIDE a string the only escape mysqldump emits is the
+            # bare \N NULL sentinel — preserve the backslash so _finish_value can
+            # recognise it.
+            if in_string:
+                cur_val.append(ch)
+            else:
+                cur_val.append("\\")
+                cur_val.append(ch)
             escape = False
             continue
         if ch == "\\":
             escape = True
             continue
         if ch == "'":
+            if not in_string:
+                was_quoted = True
             in_string = not in_string
             continue
         if in_string:
@@ -227,19 +296,25 @@ def _parse_mysql_value_tuples(values_blob: str) -> list[list[str]]:
             depth += 1
             current = []
             cur_val = []
+            was_quoted = False
             continue
         if ch == "," and depth == 1:
-            current.append("".join(cur_val).strip().strip("'"))
-            cur_val = []
+            _finish_value()
             continue
         if ch == ")":
             depth -= 1
             if depth == 0:
-                current.append("".join(cur_val).strip().strip("'"))
+                _finish_value()
                 rows.append(current)
                 current = []
                 cur_val = []
+                was_quoted = False
             continue
+        # Any other char outside a quoted string is part of an UNQUOTED value
+        # (a number, NULL, TRUE/FALSE). Capture it — the prior parser dropped
+        # every unquoted token to "", silently losing numeric ids/ages. Leading
+        # inter-token whitespace is removed by _finish_value's strip().
+        cur_val.append(ch)
     return rows
 
 

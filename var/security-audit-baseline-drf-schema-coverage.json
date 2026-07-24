@@ -19,7 +19,7 @@
   ],
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-07-21T13:41:35+00:00",
+  "generated_at": "2026-07-23T21:06:29+00:00",
   "rule": "DRF view classes in apps/api/ must carry @extend_schema or @extend_schema_view",
   "scan_dir": "apps/api",
   "schema_decorators": [

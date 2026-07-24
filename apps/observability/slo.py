@@ -239,6 +239,52 @@ SLOS: tuple[SLODefinition, ...] = (
         owner="platform",
         sentry_transactions=("healthz.probe",),
     ),
+    # === 2026-07-24 G-6: migration-fleet SLOs — the migration path had only a
+    # bundle-apply SUCCESS-RATE objective (`migration.bundle_apply`). These add the
+    # latency + reconcile-parity + outbox-drain objectives that the query-based fleet
+    # panel measures directly from persisted bundle / progress-event / heavy-work-
+    # outbox data (apps/migration_cloud/views_health.py::_migration_fleet_panel), so
+    # operators can answer "is the migration fleet meeting its SLA". Per the
+    # prometheus_alert_rules honesty contract the sentry transactions named for the
+    # not-yet-traced flows stay INERT until a real emit site lands — the dashboard
+    # already reads the numbers straight from the DB, so no emit site is required. ===
+    SLODefinition(
+        key="migration.apply_latency",
+        label="Migration bundle apply p95 latency",
+        kind="latency_p95",
+        # Wall-clock of a bundle apply (APPLYING → APPLIED) landing tenant rows.
+        # District drops are large, so the apply-compute ceiling is generous — this
+        # is the compute window, NOT the end-to-end concierge SLA the SlaTier bands set.
+        target=95.0,
+        threshold_ms=1_800_000,  # magic-number-allow: slo-latency-threshold-ms (30 min apply ceiling)
+        window_days=30,
+        owner="migration_cloud",
+        sentry_transactions=("migration.bundle_apply",),
+    ),
+    SLODefinition(
+        key="migration.reconcile_parity",
+        label="Migration reconciliation parity attainment",
+        kind="availability",
+        # Fraction of reconciled bundles whose overall parity met the 99% floor that
+        # reconciliation.py enforces before RECONCILED. Availability-style: a bundle
+        # that reconciles below parity is a failed objective, not merely a slow one.
+        target=99.0,
+        window_days=30,
+        owner="migration_cloud",
+        sentry_transactions=("migration.reconcile",),
+    ),
+    SLODefinition(
+        key="migration.outbox_freshness",
+        label="Migration heavy-work outbox drain freshness",
+        kind="freshness",
+        # The HeavyWorkOutbox (mc_apply_bundle / mc_advance_bundle) must drain
+        # promptly; a PENDING row older than the freshness objective means the fleet
+        # is backing up and applies are queueing rather than running.
+        target=99.0,
+        window_days=7,
+        owner="migration_cloud",
+        sentry_transactions=("migration.outbox.drain",),
+    ),
 )
 
 

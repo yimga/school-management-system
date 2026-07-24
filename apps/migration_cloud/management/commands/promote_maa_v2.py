@@ -190,13 +190,9 @@ class Command(BaseCommand):
             from apps.migration_cloud.models_audit import (
                 MigrationCloudAuditEvent,
             )
-            # The event_type 'maa.v2_promotion_applied' is intentionally a
-            # NEW value not yet enumerated on
-            # MigrationCloudAuditEventType — the validator on
-            # AuditEventManager.record rejects unknown values, so the
-            # safe play here is to use the existing MAA_SIGN namespace
-            # but with a payload_summary discriminator. See
-            # _safe_emit_audit below for the fallback.
+            # F-Q3 — the event_type 'maa.v2_promotion_applied' is now a
+            # registered MigrationCloudAuditEventType member, so the meta-audit
+            # event carries its own type instead of masquerading as maa.sign.
             tenant_slug = "<platform>"
             event = self._safe_emit_audit(
                 MigrationCloudAuditEvent,
@@ -335,22 +331,20 @@ class Command(BaseCommand):
         approval_fingerprint: str,
         changes: list[str],
     ):
-        """Emit the meta-audit event. Falls back to MAA_SIGN namespace.
+        """Emit the meta-audit event under its own registered event type.
 
-        The new ``maa.v2_promotion_applied`` event type isn't enumerated
-        on :class:`MigrationCloudAuditEventType` (adding it would
-        require a migration we're not shipping in this wave). We
-        emit under the existing ``maa.sign`` event_type with a
-        discriminator key in ``payload_summary`` so the row is still
-        forensically recoverable via the audit dashboard.
+        F-Q3 — ``maa.v2_promotion_applied`` is now enumerated on
+        :class:`MigrationCloudAuditEventType`, so the promotion is
+        forensically audited under its own type instead of masquerading as
+        ``maa.sign`` with a ``payload_summary`` discriminator.
         """
         try:
             from apps.migration_cloud.models_audit import (
                 MigrationCloudAuditEventType,
             )
-            event_type = MigrationCloudAuditEventType.MAA_SIGN.value
+            event_type = MigrationCloudAuditEventType.MAA_V2_PROMOTION_APPLIED.value
         except Exception:  # noqa: BLE001
-            event_type = "maa.sign"
+            event_type = "maa.v2_promotion_applied"
         # Keys deliberately avoid _sanitize_payload's rejection list
         # (no 'token' / 'secret' / 'slug' / 'email' / 'hash' substrings).
         payload = {

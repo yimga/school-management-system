@@ -1,0 +1,121 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% comment %}
+Audit G-3 — CutoverRunbook operator console (views_cutover.CutoverRunbookView).
+Staff-only. Records the competitive acceptance test "a district's cutover runbook
+is executed and signed": create a runbook, attach rehearsal + real bundles, then
+sign off (capturing the signer verbatim + the SHA-256 anchor of the real bundle's
+reconciliation scorecard). All forms POST to the current path (no cross-host
+reverse). The sign-off legal wording is LEGAL-EXTERNAL; this surface records the
+signer + hash anchor only.
+{% endcomment %}
+{% block page_title %}{{ page_title|default:"Cutover runbooks" }}{% endblock %}
+
+{% block cp_shell_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-hidden="true"></div>
+<section class="cp-section">
+  <header class="mb-3">
+    <h1 class="h4 mb-1">{% trans "Cutover runbooks" %}</h1>
+    <p class="text-muted mb-0">
+      {% blocktrans %}A district's migration is "done" when its cutover runbook is executed and signed. Create a runbook, attach the rehearsal and real bundles, then sign off — anchoring the reconciliation scorecard hash.{% endblocktrans %}
+    </p>
+    <p class="small text-muted mb-0">
+      {% blocktrans %}Signed{% endblocktrans %}: {{ signed_count }} / {{ runbooks_count }}
+    </p>
+  </header>
+
+  <div class="cp-card mb-4">
+    <h2 class="h6 mb-3">{% trans "Create a runbook" %}</h2>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label" for="cutover-school">{% trans "District" %}</label>
+          <select class="form-select" id="cutover-school" name="school_id" required>
+            <option value="">{% trans "Select a district…" %}</option>
+            {% for s in schools %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label" for="cutover-label">{% trans "Label (optional)" %}</label>
+          <input type="text" class="form-control" id="cutover-label" name="label" placeholder="{% trans 'e.g. 2026 August cutover' %}">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">{% trans "Create" %}</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {% if runbooks %}
+  {% for rb in runbooks %}
+  <div class="cp-card mb-3">
+    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+      <div>
+        <div class="fw-semibold">#{{ rb.pk }} · {{ rb.school }}{% if rb.label %} — {{ rb.label }}{% endif %}</div>
+        <div class="small text-muted">
+          {% trans "Status" %}: <span class="rmc-badge">{{ rb.get_status_display }}</span>
+          · {% trans "Created" %} {{ rb.created_at|date:"Y-m-d H:i" }}
+        </div>
+        <div class="small text-muted">
+          {% trans "Rehearsal bundle" %}: {% if rb.rehearsal_bundle_id %}#{{ rb.rehearsal_bundle_id }}{% else %}—{% endif %}
+          · {% trans "Real bundle" %}: {% if rb.real_bundle_id %}#{{ rb.real_bundle_id }}{% else %}—{% endif %}
+        </div>
+        {% if rb.is_signed %}
+        <div class="small text-success">
+          {% trans "Signed off" %} {{ rb.signed_off_at|date:"Y-m-d H:i" }}
+          {% if rb.signer_name %}· {{ rb.signer_name }}{% if rb.signer_title %}, {{ rb.signer_title }}{% endif %}{% endif %}
+        </div>
+        <div class="small text-muted">
+          {% trans "Scorecard anchor" %}: <code>{{ rb.reconciliation_scorecard_sha256|slice:":16" }}…</code>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if not rb.is_signed %}
+    <div class="row g-3 mt-2">
+      <div class="col-md-6">
+        <form method="post" class="cp-inline-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="set_bundles">
+          <input type="hidden" name="runbook_id" value="{{ rb.pk }}">
+          <label class="form-label small">{% trans "Attach bundles (same district only)" %}</label>
+          <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text">{% trans "Rehearsal" %}</span>
+            <input type="text" class="form-control" name="rehearsal_bundle_id" placeholder="{% trans 'bundle id' %}">
+          </div>
+          <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text">{% trans "Real" %}</span>
+            <input type="text" class="form-control" name="real_bundle_id" placeholder="{% trans 'bundle id' %}">
+          </div>
+          <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Attach / advance" %}</button>
+        </form>
+      </div>
+      <div class="col-md-6">
+        <form method="post" class="cp-inline-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="sign">
+          <input type="hidden" name="runbook_id" value="{{ rb.pk }}">
+          <label class="form-label small">{% trans "Sign off (requires a real bundle)" %}</label>
+          <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text">{% trans "Signer" %}</span>
+            <input type="text" class="form-control" name="signer_name" placeholder="{% trans 'Full name' %}" required>
+          </div>
+          <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text">{% trans "Title" %}</span>
+            <input type="text" class="form-control" name="signer_title" placeholder="{% trans 'e.g. IT Director' %}">
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary">{% trans "Sign off" %}</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="cp-card"><p class="text-muted mb-0">{% trans "No cutover runbooks yet. Create one above." %}</p></div>
+  {% endif %}
+</section>
+{% endblock %}

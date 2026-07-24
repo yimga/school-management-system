@@ -52,6 +52,11 @@ from .models import (
     MigrationBundle,
 )
 from .progress import emit as _emit_progress, refresh_snapshot
+from .services.lifecycle_events import (
+    EVENT_BUNDLE_APPLIED,
+    EVENT_BUNDLE_FAILED,
+    emit_bundle_lifecycle_event,
+)
 from .transformers import TransformerContext, TransformerError, get_transformer
 
 logger = logging.getLogger(__name__)
@@ -199,7 +204,21 @@ def _apply_bundle_inner(
                     for future in as_completed(futures):
                         outcomes.append(future.result())
 
-    atomic_mode = bool(getattr(bundle, "apply_atomic", False)) and not dry_run
+    # Finance MUST be all-or-nothing. In non-atomic mode finance rows commit
+    # (autocommit) BEFORE the financial guardrail runs; a control-total mismatch
+    # then marks the bundle FAILED and calls _rollback_all_runs — but finance has
+    # no rollback handler, so the mismatched ledger stays committed while the
+    # operator believes nothing landed. Forcing atomic makes the guardrail's abort
+    # real: transaction.atomic() DB-rolls-back every finance write on
+    # FinancialMismatchError. Mirrors repair.repair_readiness's finance-requires-
+    # atomic gate. See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (BLOCKER 3).
+    finance_present = any(job.domain == "finance" for job in per_artifact_jobs)
+    atomic_mode = (bool(getattr(bundle, "apply_atomic", False)) or finance_present) and not dry_run
+    if atomic_mode:
+        # Worker threads open their own DB connections and would NOT join the
+        # outer transaction.atomic(), silently breaking all-or-nothing. Force
+        # single-threaded so the atomic block actually wraps every write.
+        worker_count = 1
     try:
         if atomic_mode:
             with transaction.atomic():
@@ -219,6 +238,11 @@ def _apply_bundle_inner(
         )
         if not atomic_mode:
             _rollback_all_runs(outcomes)
+        # Partner lifecycle event (G-5): fires on BOTH the API and UI paths.
+        emit_bundle_lifecycle_event(
+            bundle, EVENT_BUNDLE_FAILED,
+            {"reason": "financial_guardrail", "error": str(exc)},
+        )
         raise
 
     totals = _summarize_outcomes(outcomes)
@@ -242,6 +266,19 @@ def _apply_bundle_inner(
         bundle.mark_status(BundleStatus.MAPPED, summary_patch={"last_dry_run": totals})
     else:
         bundle.mark_status(new_status, summary_patch={"apply_totals": totals})
+        # Partner lifecycle event (G-5): emitted here at the SERVICE layer so a
+        # migration run from the connector/customer UI fires the same webhook an
+        # API-driven apply does (the REST viewset no longer emits — avoids double).
+        emit_bundle_lifecycle_event(
+            bundle,
+            EVENT_BUNDLE_APPLIED if new_status == BundleStatus.APPLIED else EVENT_BUNDLE_FAILED,
+            {
+                "created": totals.get("created", 0),
+                "updated": totals.get("updated", 0),
+                "quarantined": totals.get("quarantined", 0),
+                "status": str(new_status),
+            },
+        )
 
     _emit_progress(
         bundle_id=bundle.pk, kind="stage_finished", stage="APPLYING",
@@ -484,11 +521,24 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
     # transformers (grading_scale_to_canonical, name_split_locale,
     # attendance_code_rewrite) can resolve scale / dialect / name-order
     # without needing per-mapping options.
-    if "country" not in locale_hints:
-        school = getattr(artifact.bundle, "school", None)
-        country = getattr(school, "country_code", "") or ""
-        if country:
-            locale_hints["country"] = str(country).upper()
+    school = getattr(artifact.bundle, "school", None)
+    country = str(getattr(school, "country_code", "") or "").upper()
+    if country:
+        locale_hints.setdefault("country", country)
+        # Seed locale + date format from the tenant's country profile so the date
+        # transformer disambiguates DD/MM vs MM/DD. The profiler's own per-column
+        # date_format vote (evidence from the data) is already in locale_hints and
+        # WINS — we only FILL when it produced none, so an all-days-<=12 US export
+        # is not misread as EU. See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (B-5).
+        locale_hints.setdefault("locale", country)
+        if "date_format" not in locale_hints:
+            try:
+                from .country_profiles import resolved_country_profile
+                prof = resolved_country_profile(country)
+                if prof is not None and getattr(prof, "date_format", ""):
+                    locale_hints["date_format"] = prof.date_format
+            except Exception:  # noqa: BLE001 — hint seeding is best-effort
+                pass
 
     # Phase U5 content store (gap #2): if the source bytes were captured at
     # ingest, stream them from the encrypted blob — this is what lets archive

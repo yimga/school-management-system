@@ -365,6 +365,7 @@ class TenantMigrationUploadView(_TenantAdminWriteRequiredMixin, View):
         if school is None:
             raise Http404()
 
+        # upload-validation-allow: schema-agnostic SIS export (CSV/TSV/TXT/JSON/JSONL/XLS/XLSX/ZIP/PDF) has no single magic-byte type — re-sniffed + structure-validated by the profiler at parse time; streaming byte-size cap enforced below; a full-buffer AV read would defeat the GB-scale streaming-to-disk design
         files = [f for f in request.FILES.getlist("artifacts") if f and f.size > 0]
         errors: list[str] = []
         if not files:

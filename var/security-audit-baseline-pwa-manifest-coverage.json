@@ -2,7 +2,7 @@
   "exempt_marketing_shell": "templates/marketing/base_marketing.html",
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-06-02T16:59:23+00:00",
+  "generated_at": "2026-07-23T21:00:46+00:00",
   "rule": "each of 4 dashboard shells must emit <link rel=\"manifest\" href=\"...\">",
   "shells_required": [
     "portal",

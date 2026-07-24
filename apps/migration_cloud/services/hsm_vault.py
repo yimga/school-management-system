@@ -44,10 +44,14 @@ Logging hygiene — this module NEVER logs:
     it's the key handle, not the key material — but operators may still
     consider it sensitive, so we log only the prefix when in doubt).
 
-Dry-run mode (``MIGRATION_CLOUD_VAULT_DRY_RUN=1``, default in dev) returns
-a deterministic 128-character base64 placeholder so CI can exercise the
-wiring without a live Vault. Production deployments MUST set the env var
-to ``0`` and provision real Vault transit access.
+Dry-run mode returns a deterministic 128-character base64 placeholder so
+CI / local runs can exercise the wiring without a live Vault. It is OFF by
+default and is honored ONLY when ``MIGRATION_CLOUD_VAULT_DRY_RUN=1`` AND
+``settings.DEBUG`` — see :func:`_is_dry_run`. A misconfigured production
+Vault backend therefore fails CLOSED (raises ``VaultBackendError`` for the
+missing address / token) rather than minting the forgeable placeholder that
+:meth:`VaultTransitBackend.verify` would accept. Production deployments
+provision real Vault transit access.
 
 Public surface:
 
@@ -106,17 +110,36 @@ def _env(name: str, default: str = "") -> str:
 
 
 def _is_dry_run() -> bool:
-    """Honor ``MIGRATION_CLOUD_VAULT_DRY_RUN=1`` (default in dev).
+    """Return ``True`` only when dry-run is EXPLICITLY enabled AND DEBUG.
 
-    The local-env-key backend is the production default, so dry-run on
-    by default for the Vault backend means a CI lane that accidentally
-    flips ``MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND=hashicorp-vault``
-    without provisioning Vault won't hang trying to reach a phantom
-    address; it'll get deterministic placeholders and tests will pass.
-    Production opts in via ``MIGRATION_CLOUD_VAULT_DRY_RUN=0``.
+    E-5 hardening — dry-run now defaults **OFF**. The dry-run path mints a
+    deterministic HMAC-SHA512 over a HARDCODED public seed
+    (``_DRY_RUN_SEED``) that :meth:`VaultTransitBackend.verify` accepts —
+    i.e. a forgeable signature. If dry-run were the default, an operator
+    selecting ``MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND=hashicorp-vault`` but
+    forgetting ``MIGRATION_CLOUD_VAULT_DRY_RUN=0`` would silently mint
+    forgeable audit root-signatures that pass
+    ``verify_audit_chain --check-root-signature`` green — failing OPEN. The
+    three reserved cloud backends correctly raise ``NotImplementedError``
+    (fail closed); this implemented backend must not be weaker.
+
+    Dry-run is therefore opt-in for local / DEBUG testing only: it requires
+    BOTH ``MIGRATION_CLOUD_VAULT_DRY_RUN=1`` AND ``settings.DEBUG`` truthy.
+    A misconfigured production backend (env unset, or set with
+    ``DEBUG=False``) falls through to the live path, which raises
+    ``VaultBackendError`` when the address / token are absent — fail
+    closed, never a forgeable placeholder.
     """
-    raw = _env("MIGRATION_CLOUD_VAULT_DRY_RUN", "1").strip()
-    return raw == "1"
+    if _env("MIGRATION_CLOUD_VAULT_DRY_RUN", "0").strip() != "1":
+        return False
+    # Only honor the opt-in under DEBUG. Settings are read lazily here —
+    # this module loads in contexts where settings may not be resolved yet.
+    try:
+        from django.conf import settings
+
+        return bool(getattr(settings, "DEBUG", False))
+    except Exception:  # settings unconfigured (bare CLI / early import) → closed
+        return False
 
 
 def _pre_image_trace_prefix(pre_image: bytes) -> str:

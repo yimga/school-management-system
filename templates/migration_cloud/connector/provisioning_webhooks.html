@@ -1,0 +1,82 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% comment %}
+Tenant-admin webhook subscription create + list (views_tenant_provisioning.TenantWebhookView).
+Every href/action is a pre-resolved context var (webhooks_url / tokens_url / home_url /
+each row's deactivate_url) so this template carries NO cross-host reverse. The signing
+secret is rendered ONCE via ``result.plaintext``; only its sha256 preview persists.
+Subscriptions are bound to the caller's own school server-side.
+{% endcomment %}
+{% block connector_body %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+<p class="text-muted mb-3">{% blocktrans %}Register an HTTPS endpoint to receive Migration Cloud lifecycle events (bundle.applied, bundle.reconciled, and more) for your school. Deliveries are HMAC-signed with the secret shown once at creation.{% endblocktrans %}</p>
+
+<div data-rmc-scroll-policy="paginate" class="d-flex gap-2 mb-4 flex-wrap">
+  <a class="btn btn-outline-secondary" href="{{ tokens_url }}">{% trans "API tokens" %}</a>
+  <a class="btn btn-outline-secondary" href="{{ home_url }}">{% trans "Back to Migration Cloud" %}</a>
+</div>
+
+{% if result %}
+<section class="rmc-card mb-4" aria-labelledby="mc-webhook-secret-heading">
+  <h2 id="mc-webhook-secret-heading" class="h5 mb-3">{% trans "Subscription created" %}</h2>
+  <div class="alert alert-warning" role="alert">
+    {% blocktrans %}Copy this signing secret now — it is shown only once. Use it to verify the HMAC signature on each delivery.{% endblocktrans %}
+  </div>
+  <label class="form-label" for="mc-webhook-secret">{% trans "Signing secret" %}</label>
+  <input type="text" class="form-control font-monospace" id="mc-webhook-secret" value="{{ result.plaintext }}" readonly onclick="this.select()">
+</section>
+{% endif %}
+
+<section class="rmc-card mb-4" aria-labelledby="mc-webhook-create-heading">
+  <h2 id="mc-webhook-create-heading" class="h5 mb-3">{% trans "Register a webhook" %}</h2>
+  <form method="post" action="{{ webhooks_url }}">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="mc-webhook-url" class="form-label">{% trans "Endpoint URL" %}</label>
+      <input type="url" class="form-control" id="mc-webhook-url" name="url" required
+             placeholder="https://example.org/hooks/migration">
+      <div class="form-text">{% trans "Must be https://" %}</div>
+    </div>
+    <div class="mb-3">
+      <label for="mc-webhook-events" class="form-label">{% trans "Event types" %}</label>
+      <input type="text" class="form-control" id="mc-webhook-events" name="event_types"
+             placeholder="bundle.applied, bundle.reconciled">
+      <div class="form-text">{% trans "Comma-separated. Leave blank to receive all migration events." %}</div>
+    </div>
+    <button type="submit" class="btn btn-primary">{% trans "Register webhook" %}</button>
+  </form>
+</section>
+
+<section class="rmc-card" aria-labelledby="mc-webhook-list-heading">
+  <h2 id="mc-webhook-list-heading" class="h5 mb-3">{% trans "Your webhooks" %}</h2>
+  {% if rows %}
+  <ul class="list-group list-group-flush">
+    {% for w in rows %}
+    <li class="list-group-item">
+      <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+        <div class="min-w-0">
+          <div class="fw-semibold text-break">{{ w.url }}</div>
+          <div class="small text-muted">
+            {% for e in w.event_types %}<span class="rmc-badge">{{ e }}</span> {% empty %}<span class="rmc-badge">migration.*</span>{% endfor %}
+          </div>
+          <div class="small text-muted">
+            {% trans "Created" %} {{ w.created_at|date:"Y-m-d H:i" }}
+            {% if w.active %}· <span class="text-success">{% trans "Active" %}</span>{% else %}· <span class="text-danger">{% trans "Inactive" %}</span>{% endif %}
+          </div>
+        </div>
+        {% if w.active %}
+        <form method="post" action="{{ w.deactivate_url }}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Deactivate" %}</button>
+        </form>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted mb-0">{% trans "No webhooks yet. Register one to receive migration events for your school." %}</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -7,11 +7,12 @@ re-establishes the session flag) so a flushed session isn't re-prompted.
 """
 from __future__ import annotations
 
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from apps.accounts.middleware import RequireMFAMiddleware
 from apps.accounts.mfa_device_trust import (
     DEVICE_TRUST_COOKIE,
+    clear_device_trust_cookie,
     device_trust_valid,
     issue_device_trust_token,
     set_device_trust_cookie,
@@ -78,6 +79,88 @@ class DeviceTrustModuleTests(TestCase):
         self.assertTrue(cookie["httponly"])
         self.assertGreater(int(cookie["max-age"]), 0)
         self.assertEqual(cookie["samesite"], "Lax")
+
+    @override_settings(SESSION_COOKIE_DOMAIN=".runmycampus.com")
+    def test_set_cookie_matches_session_cookie_domain(self):
+        """Trust cookie must share the session domain or tenant-subdomain MFA re-prompts."""
+        from django.http import HttpResponse
+
+        response = HttpResponse()
+        request = self.factory.get("/")
+        set_device_trust_cookie(response, self.user, request)
+        cookie = response.cookies[DEVICE_TRUST_COOKIE]
+        self.assertEqual(cookie["domain"], ".runmycampus.com")
+
+    @override_settings(SESSION_COOKIE_DOMAIN=".runmycampus.com")
+    def test_clear_cookie_uses_same_domain(self):
+        from django.http import HttpResponse
+
+        response = HttpResponse()
+        set_device_trust_cookie(response, self.user, self.factory.get("/"))
+        clear_device_trust_cookie(response)
+        # Morsel after delete still exposes the domain used for Set-Cookie clear.
+        cleared = response.cookies[DEVICE_TRUST_COOKIE]
+        self.assertEqual(cleared["domain"], ".runmycampus.com")
+        # Django may encode max-age as 0 or empty depending on version; expires is past.
+        self.assertTrue(
+            cleared["max-age"] in ("0", 0, "") or int(cleared.get("max-age") or 0) == 0
+        )
+
+
+class ApplyDeviceTrustOnEnrollTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username="enroll-trust", email="e@example.com", password="pass12345678"
+        )
+
+    def _req(self, *, remember="1"):
+        request = self.factory.post(
+            "/authentication/onboarding/mfa/",
+            data={"verify_token": "123456", "remember_device": remember},
+        )
+        request.user = self.user
+        request.session = {}
+        return request
+
+    def test_enroll_confirm_with_remember_sets_session_and_cookie(self):
+        from django.http import HttpResponse
+
+        from apps.accounts.mfa_setup_flow import apply_device_trust_on_enroll
+
+        request = self._req(remember="1")
+        response = HttpResponse()
+        apply_device_trust_on_enroll(request, response)
+        self.assertTrue(request.session.get("mfa_verified"))
+        self.assertIn("mfa_verified_until", request.session)
+        self.assertIn(DEVICE_TRUST_COOKIE, response.cookies)
+
+    def test_enroll_without_remember_skips_trust(self):
+        from django.http import HttpResponse
+
+        from apps.accounts.mfa_setup_flow import apply_device_trust_on_enroll
+
+        request = self._req(remember="0")
+        response = HttpResponse()
+        apply_device_trust_on_enroll(request, response)
+        self.assertFalse(request.session.get("mfa_verified"))
+        self.assertNotIn(DEVICE_TRUST_COOKIE, response.cookies)
+
+    def test_non_verify_post_skips_trust(self):
+        from django.http import HttpResponse
+
+        from apps.accounts.mfa_setup_flow import apply_device_trust_on_enroll
+
+        request = self.factory.post(
+            "/authentication/onboarding/mfa/",
+            data={"regen_backup": "1", "remember_device": "1"},
+        )
+        request.user = self.user
+        request.session = {}
+        response = HttpResponse()
+        apply_device_trust_on_enroll(request, response)
+        self.assertFalse(request.session.get("mfa_verified"))
+        self.assertNotIn(DEVICE_TRUST_COOKIE, response.cookies)
 
 
 class DeviceTrustMiddlewareTests(TestCase):

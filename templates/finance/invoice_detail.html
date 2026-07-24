@@ -297,6 +297,36 @@
   </div>
   {% endif %}
 
+  {% if online_payment_enabled %}
+  <div class="card mb-3 border-primary-subtle">
+    <div class="card-body">
+      <h5 class="mb-2">{% trans "Pay online" %}</h5>
+      <p class="small text-muted mb-3">{% trans "Pay your outstanding balance instantly by mobile money — you'll get a prompt on your phone to confirm." %}</p>
+      <form id="online-payment-form" method="post" action="{{ online_payment_url }}" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="_ui" value="1">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-5">
+            <label for="online_method_code" class="form-label">{% trans "Payment method" %}</label>
+            <select id="online_method_code" name="method_code" class="form-select" required>
+              {% for code, label in online_payment_methods %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-5">
+            <label for="online_payer_phone" class="form-label">{% trans "Mobile money number" %}</label>
+            <input type="tel" id="online_payer_phone" name="payer_phone" class="form-control" placeholder="+237…" required>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">{% trans "Pay" %}</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
   {% if invoice.status != 'PAID' %}
   <div class="card mb-3">
     <div class="card-body">

@@ -157,6 +157,80 @@ def _json_error(message: str, *, status: int, code: str | None = None) -> JsonRe
     return JsonResponse(body, status=status)
 
 
+def _reject_forgeable_session_post(request: HttpRequest) -> JsonResponse | None:
+    """E-9 — block CSRF-forgeable *simple* requests on a session-cookie POST.
+
+    These companion endpoints stay ``csrf_exempt`` because their real
+    clients authenticate with the operator's session cookie yet cannot read
+    Django's CSRF token: the browser extension runs on a ``chrome-extension://``
+    origin and reaches the server via a host permission (so the ``csrftoken``
+    cookie value is never surfaced to it), and the desktop / container
+    siblings are non-browser callers. Without CSRF-token protection a
+    malicious web page could forge a state-changing POST that rides the
+    operator's ambient session cookie.
+
+    A classic CSRF forgery is a *simple* cross-origin request — an HTML
+    ``<form>`` (including an ``enctype="text/plain"`` form) — which cannot
+    set the request ``Content-Type`` to ``application/json``. A scripted
+    cross-origin request that DOES set ``application/json`` is *non-simple*
+    and is CORS-preflighted, which this server never approves for a foreign
+    origin, so it never reaches the view. The legitimate JSON clients always
+    send ``application/json`` (reaching the server same-origin or via an
+    extension host permission). Requiring ``application/json`` therefore
+    closes the session-cookie CSRF hole on the JSON-bodied companion
+    endpoints without a CSRF token.
+
+    Returns a 403 ``JsonResponse`` to reject, or ``None`` to allow.
+    """
+    if (request.content_type or "").strip().lower() != "application/json":
+        logger.warning(
+            "migration_cloud.companion_receiver: rejected non-JSON POST "
+            "path=%s content_type=%s user_id=%s",
+            request.path,
+            (request.content_type or "")[:64],
+            getattr(getattr(request, "user", None), "pk", None),
+        )
+        return _json_error(
+            "this endpoint requires Content-Type: application/json",
+            status=403,
+            code="csrf_content_type_required",
+        )
+    return None
+
+
+def _read_active_public_key_info(school) -> dict[str, str] | None:
+    """Return the tenant's ACTIVE companion pubkey payload WITHOUT minting.
+
+    E-8 — the pubkey endpoint is a GET and must be side-effect-free. The
+    service's ``get_active_public_key_info`` lazily MINTS a keypair row on
+    first call (``ensure_active_keypair``), so calling it from an
+    unauthenticated / cross-tenant GET turned a read into a write and let a
+    caller conjure keypair rows for arbitrary tenants. This helper reads the
+    currently-active row only and returns ``None`` when none exists — the
+    view then 404s instead of creating one. Minting stays on the deliberate
+    authenticated paths (staff rotate / decrypt hook).
+    """
+    from django.apps import apps as _apps
+
+    Model = _apps.get_model("migration_cloud", "MigrationCloudCompanionKeypair")
+    row = (
+        # tenant-isolation-allow: companion-pubkey-active-row-read-scoped-per-tenant-fk
+        Model.objects.filter(
+            tenant_id=getattr(school, "pk", school), is_active=True
+        ).first()
+    )
+    if row is None:
+        return None
+    return {
+        "public_key_b64": row.public_key_b64,
+        "key_version": row.key_version,
+        "fingerprint_b64": _companion_keypair.fingerprint_of_public_key_b64(
+            row.public_key_b64
+        ),
+        "encryption_scheme": "libsodium-secretbox-x25519-sealed",
+    }
+
+
 def _next_step_url(bundle_id: int, request: HttpRequest | None = None) -> str:
     """Host-aware next URL after companion upload/decrypt.
 
@@ -273,6 +347,12 @@ def maa_text_view(request: HttpRequest) -> JsonResponse:
 # ─── MAA sign (POST) ─────────────────────────────────────────────────────
 
 
+# E-9: csrf_exempt retained for the JSON extension / sibling clients (they
+# authenticate by session cookie but cannot read Django's CSRF token). The
+# session-cookie CSRF forgery vector is closed by _reject_forgeable_session_post
+# below, which requires a non-forgeable application/json content-type. This is
+# the highest-risk view — a forged POST would record a binding agreement under
+# the operator's cookie.
 @method_decorator(csrf_exempt, name="dispatch")
 class MAASignView(LoginRequiredMixin, View):
     """POST /companion/maa/sign/ — create a new authorization agreement."""
@@ -280,6 +360,9 @@ class MAASignView(LoginRequiredMixin, View):
     @method_decorator(idempotent_post)
     @method_decorator(safe_500)
     def post(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
+        forgery = _reject_forgeable_session_post(request)
+        if forgery is not None:
+            return forgery
         try:
             payload = _parse_metadata(request.body or b"{}")
         except ValueError as exc:
@@ -612,6 +695,7 @@ class CompanionUploadView(LoginRequiredMixin, View):
             )
 
         # Read ciphertext from multipart.
+        # upload-validation-allow: opaque libsodium sealed-box ciphertext (encrypted blob) — no plaintext magic signature and an AV scan over ciphertext is meaningless; the strict byte-size ceiling + declared/observed SHA-256 integrity check below are the applicable gates
         ciphertext_file = request.FILES.get("ciphertext")
         if ciphertext_file is None:
             return _json_error("ciphertext file part required", status=400, code="missing_ciphertext")
@@ -756,6 +840,8 @@ class CompanionUploadView(LoginRequiredMixin, View):
 # ─── Staff-driven decrypt hook ───────────────────────────────────────────
 
 
+# E-9: csrf_exempt retained for the JSON / machine client; the session-cookie
+# CSRF vector is closed by _reject_forgeable_session_post in post().
 @method_decorator(csrf_exempt, name="dispatch")
 class CompanionDecryptHookView(LoginRequiredMixin, View):
     """POST /companion/decrypt/<bundle_id>/ — staff-driven decrypt.
@@ -774,6 +860,9 @@ class CompanionDecryptHookView(LoginRequiredMixin, View):
 
     @method_decorator(safe_500)
     def post(self, request: HttpRequest, bundle_id: int, *args, **kwargs) -> JsonResponse:
+        forgery = _reject_forgeable_session_post(request)
+        if forgery is not None:
+            return forgery
         user = getattr(request, "user", None)
         if not (user and user.is_authenticated and getattr(user, "is_staff", False)):
             return _json_error("staff-only endpoint", status=403, code="not_staff")
@@ -975,6 +1064,12 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
     can open. Resolving via request.tenant (or the explicit-and-verified
     query param) prevents that confusion.
 
+    E-8 — this GET is READ-ONLY: it returns an existing active keypair or
+    404 ``no_active_keypair``; it NEVER mints a keypair as a side effect of
+    a fetch (that write now happens only on the deliberate staff rotate /
+    decrypt paths), so an anonymous GET can no longer conjure keypair rows
+    for arbitrary tenants.
+
     Response shape::
 
         {
@@ -1067,22 +1162,31 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
         client = getattr(school, "tenant_client", None)
         schema_name = getattr(client, "schema_name", None) if client else None
 
-    try:
-        if schema_name:
-            try:
-                from django_tenants.utils import schema_context  # type: ignore[import-not-found]
-            except ImportError:
-                info = _companion_keypair.get_active_public_key_info(school)
-            else:
-                with schema_context(schema_name):
-                    info = _companion_keypair.get_active_public_key_info(school)
+    if schema_name:
+        try:
+            from django_tenants.utils import schema_context  # type: ignore[import-not-found]
+        except ImportError:
+            info = _read_active_public_key_info(school)
         else:
-            info = _companion_keypair.get_active_public_key_info(school)
-    except _companion_keypair.PyNaClUnavailable:
+            with schema_context(schema_name):
+                info = _read_active_public_key_info(school)
+    else:
+        info = _read_active_public_key_info(school)
+
+    if info is None:
+        # E-8 — this GET is read-only: it never mints a keypair on fetch.
+        # When no active keypair exists yet, 404 so an operator provisions
+        # one via the deliberate staff rotate endpoint rather than a GET
+        # conjuring a DB row for an arbitrary tenant.
+        logger.info(
+            "migration_cloud.companion_receiver: server_pubkey no_active_keypair "
+            "tenant_pk=%s explicit_query=%s",
+            getattr(school, "pk", None), bool(explicit_slug),
+        )
         return _json_error(
-            "PyNaCl not installed on server; companion keypair unavailable",
-            status=501,
-            code="pynacl_missing",
+            "no active companion keypair for tenant",
+            status=404,
+            code="no_active_keypair",
         )
 
     tenant_slug = getattr(school, "slug", "") or ""
@@ -1102,6 +1206,8 @@ def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
 # ─── Server pubkey rotation (POST) ───────────────────────────────────────
 
 
+# E-9: csrf_exempt retained for the JSON / machine client; the session-cookie
+# CSRF vector is closed by _reject_forgeable_session_post in post().
 @method_decorator(csrf_exempt, name="dispatch")
 class CompanionKeypairRotateView(LoginRequiredMixin, View):
     """POST /companion/keypair/rotate/ — staff-only key rotation.
@@ -1118,6 +1224,9 @@ class CompanionKeypairRotateView(LoginRequiredMixin, View):
 
     @method_decorator(safe_500)
     def post(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
+        forgery = _reject_forgeable_session_post(request)
+        if forgery is not None:
+            return forgery
         user = getattr(request, "user", None)
         if not (user and user.is_authenticated and getattr(user, "is_staff", False)):
             return _json_error("staff-only endpoint", status=403, code="not_staff")

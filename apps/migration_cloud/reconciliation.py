@@ -43,6 +43,10 @@ class DomainParity:
     # when the domain has no confirmed model mapping (honest "not verified").
     target_visible_count: int | None = None
     fill_rate_by_field: dict[str, float] = field(default_factory=dict)
+    # C-5 honesty: ``fill_rate_by_field`` is computed from the SOURCE file's
+    # profiler null-rates, NOT from values that landed in the tenant. This label
+    # names that basis so the wizard never reads it as "landed completeness".
+    fill_rate_basis: str = "source_completeness"
     sample_rows: list[dict[str, Any]] = field(default_factory=list)
 
 
@@ -118,8 +122,14 @@ def reconcile_bundle(
     # Re-query the tenant to count rows ACTUALLY visible per domain. The
     # self-reported run stats above cannot detect a rolled-back / wrong-school /
     # filtered-on-save apply — this is the real "did it land and is it in the
-    # school" proof. Best-effort: verification failure never blocks reconcile.
-    visible_by_domain = _safe_verify_visible(bundle)
+    # school" proof. A verification FAILURE (``None``) is distinct from a
+    # legitimately-EMPTY result (``{}`` — no domain has a confident model
+    # mapping): a failure must BLOCK the APPLIED → RECONCILED transition so the
+    # bundle can never purge its encrypted source blobs on self-reported counts
+    # alone. See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (C-6).
+    visible_result = _safe_verify_visible(bundle)
+    verification_failed = visible_result is None
+    visible_by_domain = visible_result or {}
     visible_drift_notes: list[str] = []
 
     for domain, artifacts in sorted(by_domain.items()):
@@ -178,6 +188,17 @@ def reconcile_bundle(
     # A visible-count shortfall (creates that did not persist) is a hard signal —
     # keep the bundle APPLIED (not RECONCILED) so it is reviewed / repaired.
     notes.extend(visible_drift_notes)
+    # A verification FAILURE (the visible-count check raised) must also block
+    # RECONCILED: without proof the rows landed, advancing would purge the
+    # encrypted source blobs on self-reported numbers alone. This note both
+    # blocks the transition (the RECONCILED gate is ``if not notes``) and tells
+    # the operator verification did not run.
+    if verification_failed:
+        notes.append(
+            "Post-apply verification could not be completed (visible-count check "
+            "failed) — the bundle stays APPLIED and the encrypted source blobs are "
+            "retained until the landed rows are confirmed."
+        )
 
     report = ReconciliationReport(
         bundle_id=bundle.pk,
@@ -206,6 +227,19 @@ def reconcile_bundle(
 
     if not notes and bundle.status == BundleStatus.APPLIED:
         bundle.mark_status(BundleStatus.RECONCILED)
+        # Partner lifecycle event (G-5): nothing emitted bundle.reconciled before —
+        # partners had no signal the migration was verified + sealed. Best-effort.
+        try:
+            from .services.lifecycle_events import (
+                EVENT_BUNDLE_RECONCILED,
+                emit_bundle_lifecycle_event,
+            )
+            emit_bundle_lifecycle_event(
+                bundle, EVENT_BUNDLE_RECONCILED,
+                {"overall_parity_pct": getattr(report, "overall_parity_pct", None)},
+            )
+        except Exception:  # noqa: BLE001 — event emission never blocks reconcile
+            pass
         # Phase U5 content store (gap #2): the migration has landed +
         # reconciled, so the captured source PII is no longer needed. Drop the
         # encrypted blobs now (artifact METADATA is retained for the audit
@@ -276,12 +310,17 @@ def _domain_run_stats(bundle: MigrationBundle) -> dict[str, dict[str, int]]:
     return stats
 
 
-def _safe_verify_visible(bundle: MigrationBundle) -> dict[str, int]:
+def _safe_verify_visible(bundle: MigrationBundle) -> dict[str, int] | None:
     """Re-query the tenant for visible row-counts per domain; never raises.
 
     Delegates to :func:`apps.migration_cloud.verification.verify_landed_counts`
-    (the post-apply "did it land + is it in the school" proof). Wrapped so a
-    verification failure degrades to an empty map instead of breaking reconcile.
+    (the post-apply "did it land + is it in the school" proof).
+
+    Returns a ``{domain: count}`` map on success — possibly EMPTY when no domain
+    has a confident model mapping (the honest "not verified" case that may still
+    proceed). Returns ``None`` when verification itself FAILED (raised) — a
+    distinct signal the caller uses to BLOCK RECONCILED, so a bundle never
+    advances (and purges its source blobs) on self-reported counts alone.
     """
     try:
         from .verification import verify_landed_counts
@@ -289,14 +328,21 @@ def _safe_verify_visible(bundle: MigrationBundle) -> dict[str, int]:
         return verify_landed_counts(bundle)
     except Exception:  # noqa: BLE001
         logger.warning("reconcile: visible-count verification failed", exc_info=True)
-        return {}
+        return None
 
 
 def _fill_rate_for_domain(
     artifacts: list[MigrationArtifact],
     per_artifact_mappings: dict[str, list[dict[str, Any]]],
 ) -> dict[str, float]:
-    """Per canonical field, fraction of source rows with a non-empty value."""
+    """Per canonical field, fraction of SOURCE rows with a non-empty value.
+
+    C-5 honesty: this is derived from the profiler's source-side ``null_rate`` ×
+    ``row_count`` — it measures source-file completeness, NOT how many values
+    actually landed in the tenant. The caller labels it ``fill_rate_basis =
+    "source_completeness"`` so it is never read as landed completeness. The real
+    post-apply proof is ``verification.verify_landed_counts`` (visible counts).
+    """
     field_counts: dict[str, tuple[int, int]] = {}  # field -> (non_empty, total)
     for artifact in artifacts:
         cols_by_name = {
@@ -408,16 +454,26 @@ def _stratified_sample(
 
 
 def _idempotency_check(bundle: MigrationBundle, apply_totals: dict[str, Any]) -> dict[str, Any]:
-    """Sanity check: a re-applied bundle should produce zero net new creates."""
+    """Idempotency posture — advisory, NOT a performed check.
+
+    C-5 honesty: this report does NOT re-apply the bundle, so it cannot assert
+    that a re-run produced zero new creates. It surfaces the real applied totals
+    and is explicit that verifying idempotency requires an actual second
+    (dry-run) apply — dropping the previous "the contract guarantees this" claim.
+    """
     return {
         "key": bundle.idempotency_key,
         "applied_at": apply_totals.get("applied_at"),
+        "applied_created": int(apply_totals.get("created") or 0),
+        "applied_updated": int(apply_totals.get("updated") or 0),
+        "verified": False,
+        "basis": "advisory",
         "guidance": (
-            "Re-running the same idempotency_key against the same bundle "
-            "must produce zero new creates (only updates). The orchestrator's "
-            "upsert-by-external_id contract guarantees this for landers that "
-            "respect the contract; the dynamic-field fallback de-dupes by "
-            "(definition_slug, object_id)."
+            "Advisory only — this report does NOT re-apply the bundle. Re-running "
+            "the same idempotency_key is EXPECTED to produce zero new creates (only "
+            "updates) because landers upsert by external_id, but that is not verified "
+            "here. To actually verify, trigger a second dry-run apply and confirm "
+            "created == 0."
         ),
     }
 

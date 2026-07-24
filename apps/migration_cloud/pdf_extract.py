@@ -246,6 +246,7 @@ def tabularise(raw_text: str) -> str:
 
     kv_rows: list[tuple[str, str]] = []
     grade_rows: list[tuple[str, str, str]] = []
+    unmatched: list[str] = []
     for ln in lines:
         gm = _GRADE_LINE.match(ln)
         if gm:
@@ -256,6 +257,7 @@ def tabularise(raw_text: str) -> str:
             key = km.group(1).strip().lower().replace(" ", "_")
             kv_rows.append((key, km.group(2).strip()))
             continue
+        unmatched.append(ln)
 
     # Prefer the grade-table shape if present (most transcripts).
     if grade_rows:
@@ -263,6 +265,16 @@ def tabularise(raw_text: str) -> str:
         buf.write("course_code\tcourse_name\tscore\n")
         for code, name, score in grade_rows:
             buf.write(f"{code}\t{name}\t{score}\n")
+        # A transcript's identity block (Name / DOB, as field:value pairs) and
+        # any lines that matched no pattern are real data too — append them as
+        # extra rows instead of discarding them, so the student's identity block
+        # survives alongside the grade table. They ride as ragged trailing rows;
+        # the mapper quarantines unknown shapes into custom_fields rather than
+        # silently losing them.
+        for key, value in kv_rows:
+            buf.write(f"{key}\t{value}\n")
+        for ln in unmatched:
+            buf.write(f"{ln}\n")
         return buf.getvalue()
 
     if kv_rows:

@@ -43,7 +43,13 @@ State lives in ``MigrationBundle.reconciliation_summary['shadow']``::
         "auto_cutover_armed": true,
         "closed_at": null,
         "accepted": null,
+        "source_mode": "manual",
     }
+
+``source_mode`` is ``"live"`` when the operator wired a ``source_pull``
+feed (drift is measured against the old SIS) and ``"manual"`` when no feed
+is available (the baseline is the immediately-post-apply tenant counts and
+drift is FORWARD-only) — so the UI can label the window honestly.
 
 This is intentionally storage-only — no Celery beat, no background
 poller. The operator (or a tenant cron) calls ``refresh_shadow`` on a
@@ -83,6 +89,7 @@ class ShadowState:
     auto_cutover_armed: bool = False
     closed_at: str | None = None
     accepted: bool | None = None
+    source_mode: str = "manual"     # "live" when a source_pull feed is wired; else "manual"
 
 
 def start_shadow_window(
@@ -96,10 +103,14 @@ def start_shadow_window(
     """Open a shadow window on an APPLIED / RECONCILED bundle.
 
     ``source_pull()`` returns the old-system per-domain row counts at the
-    moment shadowing starts; this is the snapshot subsequent ticks
-    compare against. When ``source_pull`` is omitted, the snapshot is
-    seeded from the bundle's own ``mapping_summary.apply_totals`` so the
-    operator can still track drift as the *new* tenant evolves.
+    moment shadowing starts; this is the snapshot subsequent ticks compare
+    against, and the window is recorded with ``source_mode="live"``. When
+    ``source_pull`` is omitted the window runs in ``source_mode="manual"``:
+    the snapshot is seeded from the tenant's own immediately-post-apply row
+    counts (``_seed_snapshot_from_bundle`` → ``_count_tenant_rows``) so every
+    tracked domain reads ~0% drift at open and the operator tracks FORWARD
+    drift as the *new* tenant evolves — rather than the ~100% a zero-seeded
+    domain used to report, which structurally prevented auto-cutover.
     """
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     bundle = MigrationBundle.objects.get(pk=bundle_id)
@@ -108,13 +119,22 @@ def start_shadow_window(
             f"Bundle {bundle_id} in status {bundle.status}; must be APPLIED to shadow."
         )
 
-    snapshot = source_pull() if source_pull else _seed_snapshot_from_bundle(bundle)
+    if source_pull is not None:
+        snapshot = source_pull()
+        source_mode = "live"
+    else:
+        # D-1 — no live source feed: seed the baseline from the tenant's
+        # immediately-post-apply counts so every tracked domain reads ~0%
+        # drift at open instead of the ~100% a zero-seeded domain reported.
+        snapshot = _seed_snapshot_from_bundle(bundle)
+        source_mode = "manual"
     state = ShadowState(
         opened_at=timezone.now().isoformat(),
         target_parity_pct=float(target_parity_pct),
         max_window_hours=int(max_window_hours),
         source_snapshot=dict(snapshot or {}),
         auto_cutover_armed=bool(auto_cutover_armed),
+        source_mode=source_mode,
     )
     _save_state(bundle, state)
     return state
@@ -143,7 +163,12 @@ def refresh_shadow(
             f"Bundle {bundle_id} shadow window already closed at {state.closed_at}."
         )
 
-    source_counts = source_pull() if source_pull else dict(state.source_snapshot)
+    if source_pull is not None:
+        source_counts = source_pull()
+        # A live feed wired in after a manual open promotes the honest label.
+        state.source_mode = "live"
+    else:
+        source_counts = dict(state.source_snapshot)
     tenant_counts = (
         tenant_counter(bundle)
         if tenant_counter
@@ -225,21 +250,23 @@ def _compute_drift_pct(source: dict[str, int], tenant: dict[str, int]) -> float:
 
 
 def _seed_snapshot_from_bundle(bundle: MigrationBundle) -> dict[str, int]:
-    """Use the bundle's own per-domain landed counts as the source baseline.
+    """Seed the no-source baseline from the immediately-post-apply tenant counts.
 
-    Useful when no live-source feed is available — the operator can still
-    track *forward* drift (rows added in the new tenant beyond the
-    migrated baseline) without wiring a connection to the old SIS.
+    D-1 — when no live ``source_pull`` feed is wired we cannot ask the old
+    SIS for its row counts. The previous seeding put students at
+    ``apply_totals.created`` and every OTHER domain at 0, while
+    :func:`_count_tenant_rows` counts them all live — so guardians / staff /
+    attendance / grades / finance each read ~100% drift forever and
+    auto-cutover could never fire.
+
+    Instead snapshot the tenant's current per-domain counts at window-open —
+    the just-applied state — as the baseline. Every tracked domain then reads
+    ~0% drift at open and surfaces only FORWARD drift (rows the new tenant
+    gains beyond the migrated baseline), the honest signal in manual mode.
+    Only domains :func:`_count_tenant_rows` can count get a baseline, so drift
+    is computed over domains that actually have one.
     """
-    apply_totals = (bundle.mapping_summary or {}).get("apply_totals") or {}
-    return {
-        "students": int(apply_totals.get("created", 0)),
-        "guardians": 0,
-        "staff": 0,
-        "attendance": 0,
-        "grades": 0,
-        "finance": 0,
-    }
+    return _count_tenant_rows(bundle)
 
 
 def _count_tenant_rows(bundle: MigrationBundle) -> dict[str, int]:
@@ -310,6 +337,7 @@ def _load_state(bundle: MigrationBundle) -> ShadowState | None:
         auto_cutover_armed=bool(payload.get("auto_cutover_armed", False)),
         closed_at=payload.get("closed_at"),
         accepted=payload.get("accepted"),
+        source_mode=str(payload.get("source_mode") or "manual"),
     )
 
 
@@ -324,6 +352,7 @@ def _save_state(bundle: MigrationBundle, state: ShadowState) -> None:
         "auto_cutover_armed": state.auto_cutover_armed,
         "closed_at": state.closed_at,
         "accepted": state.accepted,
+        "source_mode": state.source_mode,
     }
     bundle.reconciliation_summary = summary
     bundle.save(update_fields=["reconciliation_summary", "updated_at"])

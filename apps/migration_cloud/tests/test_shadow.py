@@ -28,10 +28,18 @@ class ShadowLifecycleTests(TestCase):
         with self.assertRaises(ValueError):
             shadow.start_shadow_window(bundle_id=self.bundle.pk)
 
-    def test_start_seeds_from_apply_totals_when_no_source_pull(self) -> None:
+    def test_start_seeds_from_live_counts_when_no_source_pull(self) -> None:
+        # With no source_pull the baseline is the immediately-post-apply LIVE
+        # tenant count (forward-drift tracking), NOT the old misleading
+        # {students: apply_totals.created, guardians:0, staff:0, ...} snapshot that
+        # read ~100% drift on every 0-seeded domain and blocked auto-cutover.
+        # In this empty test DB the live counts are 0.
+        # See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (D-1).
         state = shadow.start_shadow_window(bundle_id=self.bundle.pk)
         self.assertEqual(state.target_parity_pct, 99.0)
-        self.assertEqual(state.source_snapshot["students"], 100)
+        self.assertEqual(state.source_mode, "manual")
+        # Baseline is live tenant counts (all-zero here), never the apply_totals=100 shortcut.
+        self.assertEqual(state.source_snapshot.get("students", 0), 0)
         self.assertEqual(state.ticks, [])
         self.assertFalse(state.auto_cutover_armed)
 

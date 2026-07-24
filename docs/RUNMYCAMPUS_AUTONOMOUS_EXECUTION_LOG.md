@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Reach Admin OS / MFA device-trust (batch 1787 - 2026-07-23)
+
+**A. Scope:** User report that Django `/admin/` pages still look unfixed; live Admin OS v15.7 already deployed — unblock authenticating into the catalog index and seal skip-link/index regression.
+
+**B. Shipped:** SESSION-aligned device-trust cookie domain + clear; `apply_device_trust_on_enroll`; done CTA uses `_owner_mfa_satisfied`; critical skip-link hide; tenant admin index contract test (no Raw CRUD; v15.7 + Discover).
+
+**C. Proof:** `run_sqlite_memory_tests … --keepdb` → **17/17 OK**; `verify_admin_os_empty_space` / preview parity / canvas contract **PASS**. Live SW on lycee already `sms-v4.06.13-…`.
+
+**D. Honest:** Celery broker still `unavailable` on lycee healthz (provisioning/schema EXTERNAL). Authenticated live screenshot of chip still needs a working owner session after this deploy.
+
+**E. Files:** `mfa_device_trust.py`, `mfa_setup_flow.py`, `views_owner_onboarding.py`, `templates/admin/base_site.html`, tests, SOT/log.
+
+**F. Next:** Commit+push; hard-refresh tenant `/admin/` and confirm chip **v15.7 · Admin OS**; set `CELERY_BROKER_URL` + worker/beat on Render.
+
 ## Slice — Owner provisioning A–Z MFA + schema kick (batch 1786 - 2026-07-22)
 
 **A. Scope:** Fix confirmation→password/brand incomplete, MFA asked before enroll / no waive, and owner provision kick not reliably queuing tenant_schema work.

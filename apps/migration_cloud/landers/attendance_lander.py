@@ -10,7 +10,10 @@ Canonical row shape::
         "remarks": "..."
     }
 
-Upsert key: (student, date) — re-running a bundle never duplicates attendance.
+Upsert key: (student, classroom, date) — mirrors the model's unique constraint,
+so per-period rows for different classes land distinctly and re-running a bundle
+never duplicates attendance. classroom is resolved from the row's section_code
+(school-scoped) or the student's current classroom.
 """
 
 from __future__ import annotations
@@ -26,6 +29,39 @@ from ._helpers import (
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+
+
+def _resolve_row_classroom(row, student, ctx, att_fields):
+    """Resolve the Classroom for an attendance row (part of the unique key).
+
+    Prefer an EXISTING classroom named by the row's ``section_code`` — scoped to
+    this school so a source code can't resolve another tenant's classroom — so
+    genuine per-section / per-period rows land distinctly. Fall back to the
+    student's current classroom. Never provisions a new classroom. Returns None
+    when neither is available (the upsert then keys on ``(student, date)`` only).
+    """
+    if "classroom" not in att_fields:
+        return None
+    section_code = (row.get("section_code") or row.get("classroom_code") or "").strip()
+    if section_code:
+        try:
+            from apps.academics.models import Classroom
+            cfields = model_field_names(Classroom)
+            qs = Classroom.objects.all()  # tenant-isolation-allow: scoped-below-by-school-when-present / schema-context-isolates
+            if "school" in cfields and ctx.school is not None:
+                qs = qs.filter(school=ctx.school)
+            cls = None
+            if "code" in cfields:
+                cls = qs.filter(code=section_code).first()
+            if cls is None and "name" in cfields:
+                cls = qs.filter(name=section_code).first()
+            if cls is not None:
+                return cls
+        except Exception:  # noqa: BLE001 — classroom resolution is best-effort
+            pass
+    if getattr(student, "classroom_id", None):
+        return student.classroom
+    return None
 
 
 class AttendanceLander(Lander):
@@ -85,6 +121,14 @@ class AttendanceLander(Lander):
             mapped_status = map_attendance_status(
                 status_raw, valid=status_choices, default=status_default
             )
+            # Resolve the classroom for this row. The model's unique key is
+            # (student, classroom, date), so the upsert MUST key on classroom too —
+            # keying only on (student, date) collapses genuinely-distinct per-period
+            # rows (last-wins) and raises MultipleObjectsReturned when >1 classroom
+            # already exists for a (student, date).
+            # See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (C-3).
+            row_classroom = _resolve_row_classroom(row, student, ctx, att_fields)
+
             defaults: dict[str, Any] = {"date": date_val}
             if status_field:
                 defaults["status"] = mapped_status
@@ -93,19 +137,25 @@ class AttendanceLander(Lander):
             remark = (row.get("notes") or row.get("remarks") or "").strip()
             if "remarks" in att_fields and remark:
                 defaults["remarks"] = remark[:255]
-            # Bind the row to the bundle's school (NOT NULL FK on single-schema
-            # deployments) and default the classroom to the student's current
-            # one — canonical attendance rows carry neither.
+            # Bind the row to the bundle's school (NOT NULL FK on single-schema).
             if "school" in att_fields and ctx.school is not None:
                 defaults["school"] = ctx.school
-            if "classroom" in att_fields and getattr(student, "classroom_id", None):
-                defaults["classroom"] = student.classroom
 
             defaults = filter_to_model_fields(defaults, Attendance)
 
+            # Upsert key mirrors the model's unique constraint (student, classroom,
+            # date). classroom is added only when resolved — a NULL classroom keeps
+            # the historic (student, date) behaviour rather than risking a NOT NULL
+            # create failure.
+            lookup: dict[str, Any] = {"student": student, "date": date_val}
+            legacy_key = f"{external_id}:{date_val.isoformat()}"
+            if "classroom" in att_fields and row_classroom is not None:
+                lookup["classroom"] = row_classroom
+                legacy_key = f"{legacy_key}:{row_classroom.pk}"
+
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             if ctx.dry_run:
-                exists = Attendance.objects.filter(student=student, date=date_val).exists()
+                exists = Attendance.objects.filter(**lookup).exists()
                 result.updated += 1 if exists else 0
                 result.created += 0 if exists else 1
                 continue
@@ -116,14 +166,14 @@ class AttendanceLander(Lander):
                 )
                 obj, created, preserved = upsert_with_conflict_detection(
                     ctx=ctx, domain="attendance", model=Attendance,
-                    lookup={"student": student, "date": date_val}, defaults=defaults,
-                    legacy_id=f"{external_id}:{date_val.isoformat()}",
+                    lookup=lookup, defaults=defaults,
+                    legacy_id=legacy_key,
                 )
                 if preserved:
                     # Operator resolved this attendance conflict as PRESERVE.
                     result.skipped += 1
                     record_id_mapping(
-                        ctx=ctx, legacy_id=f"{external_id}:{date_val.isoformat()}",
+                        ctx=ctx, legacy_id=legacy_key,
                         canonical_obj=obj, domain="attendance",
                     )
                     continue
@@ -136,7 +186,7 @@ class AttendanceLander(Lander):
                         {"pk": obj.pk, "old": {k: getattr(obj, k, None) for k in defaults}}
                     )
                 record_id_mapping(
-                    ctx=ctx, legacy_id=f"{external_id}:{date_val.isoformat()}",
+                    ctx=ctx, legacy_id=legacy_key,
                     canonical_obj=obj, domain="attendance",
                 )
             except Exception as exc:  # noqa: BLE001

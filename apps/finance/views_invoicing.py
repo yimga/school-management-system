@@ -53,6 +53,25 @@ from .views_common import (
     _notify_finance_staff_suspicious_receipt,
 )
 
+# Mobile-money methods offered on the invoice "Pay online" form (M26). Codes map
+# to registered gateways in apps.finance.gateways; an unconfigured gateway
+# fail-closes at initiation, so listing all is safe.
+ONLINE_PAYMENT_METHODS = (
+    ("mtn_momo", "MTN Mobile Money"),
+    ("orange_money", "Orange Money"),
+    ("mpesa_daraja", "M-Pesa"),
+)
+
+
+def _online_payment_enabled(invoice) -> bool:
+    """True when online collection is enabled AND the invoice has a balance."""
+    from django.conf import settings
+
+    return bool(
+        getattr(settings, "RMC_GATEWAY_COLLECTION_ENABLED", False)
+        and invoice.computed_balance > 0
+    )
+
 logger = logging.getLogger(__name__)
 
 SESSION_KEY_LAST_GENERATED_INVOICE_IDS = "finance_last_generated_invoice_ids"
@@ -568,6 +587,11 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
             "guardian_link_count": access_state["guardian_count"],
             "guardian_share": guardian_share,
             "payer_share_count": len(payer_shares),
+            "online_payment_enabled": _online_payment_enabled(invoice),
+            "online_payment_url": reverse(
+                "finance:initiate_online_payment", args=[invoice.id]
+            ),
+            "online_payment_methods": ONLINE_PAYMENT_METHODS,
         },
     )
 
@@ -676,6 +700,38 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
             request,
             f"File type '.{ext}' is not allowed. Use: {', '.join('.' + e for e in allowed_list)}. "
             "Please upload a PDF or image (e.g. photo of receipt).",
+        )
+        return finance_detail_redirect(request, invoice.id)
+
+    # Validate by content, not the spoofable filename extension above: a file
+    # named receipt.png that is really an SVG/HTML would otherwise be stored and
+    # rendered back to the bursar/parent. Map the configured extensions to their
+    # sniffed MIMEs and require the magic bytes to match.
+    from apps.security.upload_validation import sniff_file_mime
+
+    _ext_to_mime = {
+        "pdf": "application/pdf",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "webp": "image/webp",
+        "gif": "image/gif",
+        "bmp": "image/bmp",
+        "tif": "image/tiff",
+        "tiff": "image/tiff",
+    }
+    allowed_mimes = {_ext_to_mime[e] for e in allowed_list if e in _ext_to_mime}
+    try:
+        receipt_file.seek(0)
+        _head = receipt_file.read(1024)
+        receipt_file.seek(0)
+    except (AttributeError, ValueError, OSError):
+        _head = b""
+    if allowed_mimes and sniff_file_mime(_head) not in allowed_mimes:
+        messages.error(
+            request,
+            "That file's contents don't look like a PDF or image. Please upload a "
+            "real photo, scan, or PDF of your receipt.",
         )
         return finance_detail_redirect(request, invoice.id)
 

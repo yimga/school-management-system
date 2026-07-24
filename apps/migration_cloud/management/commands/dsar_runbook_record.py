@@ -133,30 +133,23 @@ def record_dsar_run(
     with last_run_file.open("w", encoding="utf-8") as fh:
         fh.write(row["recorded_at_utc_iso"] + "\n")
 
-    # Audit emission — NEVER carries the notes content. Falls back to
-    # the closest registered event_type when the dedicated one isn't
-    # yet in the TextChoices set.
+    # Audit emission — NEVER carries the notes content. The DSAR event now
+    # carries its own registered type (F-Q3) instead of masquerading as the
+    # retention-purge event in the forensic chain.
     try:
         from apps.migration_cloud.models_audit import (
             MigrationCloudAuditEvent,
             MigrationCloudAuditEventType,
         )
-        valid_choices = {c.value for c in MigrationCloudAuditEventType}
-        event_type = "migration.dsar.runbook_recorded"
         payload = {
             "dsar_marker": "migration.dsar.runbook_recorded",
             "request_id_sha256_prefix": request_id_prefix,
             "completed_at": completed_iso,
             "has_notes": has_notes,
         }
-        if event_type not in valid_choices:
-            payload["registered_choice_fallback"] = "dsar_event_type_unregistered"
-            # Closest existing registered choice: AUDIT_RETENTION_PURGE_APPLIED
-            # is the audit-housekeeping event most semantically adjacent.
-            event_type = MigrationCloudAuditEventType.AUDIT_RETENTION_PURGE_APPLIED.value
         MigrationCloudAuditEvent.objects.record(
             tenant_slug="",  # DSAR is platform-level, not per-tenant
-            event_type=event_type,
+            event_type=MigrationCloudAuditEventType.DSAR_RUNBOOK_RECORDED.value,
             actor=None,
             subject=request_id_prefix,
             payload_summary=payload,

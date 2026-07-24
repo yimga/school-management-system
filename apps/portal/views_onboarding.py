@@ -20,6 +20,34 @@ from .forms import TeacherOnboardingForm, StudentOnboardingForm
 FORM_DRAFT_KEY_STUDENT_ONBOARDING = "student_onboarding"
 
 
+def _validated_profile_photo(request: HttpRequest):
+    """Return the uploaded ``profile_photo`` if it is a real PNG/JPEG/WebP image,
+    else add a user message and return ``None``.
+
+    Owns the ``request.FILES`` intake so the wizard views never touch the raw
+    upload: the file is validated by content (magic-byte sniff), so a renamed
+    SVG / spoofed content_type cannot be stored as a served profile photo
+    (stored-XSS). Same contract as the anonymous photo-upload endpoint.
+    """
+    upload = request.FILES.get("profile_photo")
+    if not upload:
+        return None
+    from apps.security.upload_validation import (
+        SAFE_IMAGE_MIMES,
+        UploadValidationError,
+        validate_uploaded_file,
+    )
+
+    try:
+        validate_uploaded_file(
+            upload, allowed_mimes=SAFE_IMAGE_MIMES, max_bytes=10 * 1024 * 1024
+        )
+    except UploadValidationError:
+        messages.error(request, "Profile photo must be a PNG, JPEG, or WebP image.")
+        return None
+    return upload
+
+
 def teacher_onboarding_wizard(request: HttpRequest):
     """
     Multi-step wizard for teacher onboarding (self-service registration).
@@ -124,8 +152,9 @@ def teacher_onboarding_wizard(request: HttpRequest):
                     )
                     or TeacherProfile.DashboardView.OVERVIEW,
                 )
-                if request.FILES.get("profile_photo"):
-                    teacher.profile_photo = request.FILES["profile_photo"]
+                photo = _validated_profile_photo(request)
+                if photo:
+                    teacher.profile_photo = photo
                     teacher.save(update_fields=["profile_photo"])
                 messages.success(
                     request,
@@ -344,8 +373,9 @@ def student_onboarding_wizard(request: HttpRequest):
                     messages.error(request, "; ".join(cap_error.messages))
                     student = None
                 if student is not None:
-                    if request.FILES.get("profile_photo"):
-                        student.profile_photo = request.FILES["profile_photo"]
+                    photo = _validated_profile_photo(request)
+                    if photo:
+                        student.profile_photo = photo
                         student.save(update_fields=["profile_photo"])
                     parent_email = form.cleaned_data.get("parent_email", "").strip()
                     if parent_email:

@@ -97,7 +97,57 @@ def map_artifact(
         mapping = _map_one_column(col, canonical_fields, domain, artifact, threshold)
         mappings.append(mapping)
 
-    return mappings
+    return _dedupe_canonical_collisions(mappings)
+
+
+def _dedupe_canonical_collisions(mappings: list[ColumnMapping]) -> list[ColumnMapping]:
+    """Guard against two source columns resolving to one canonical field.
+
+    Both would stream into the tenant and the orchestrator's last-write-wins
+    silently drops one. Keep the highest-confidence mapping and DEMOTE the rest
+    to ``custom_fields.<source_slug>`` (so no column is lost) with a review note
+    on the mapping. See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (B-2).
+    """
+    by_field: dict[str, list[ColumnMapping]] = {}
+    for m in mappings:
+        if m.canonical_field.startswith("custom_fields."):
+            continue
+        by_field.setdefault(m.canonical_field, []).append(m)
+
+    losers: set[int] = set()
+    for group in by_field.values():
+        if len(group) < 2:
+            continue
+        winner = max(group, key=lambda m: m.confidence)
+        for m in group:
+            if m is not winner:
+                losers.add(id(m))
+
+    if not losers:
+        return mappings
+
+    result: list[ColumnMapping] = []
+    for m in mappings:
+        if id(m) not in losers:
+            result.append(m)
+            continue
+        result.append(
+            ColumnMapping(
+                source_column=m.source_column,
+                canonical_field=f"custom_fields.{_slug(m.source_column)}",
+                domain="custom_fields",
+                confidence=m.confidence,
+                method="custom_field",
+                transformer=None,
+                transformer_options={},
+                reasoning=(
+                    f"review: canonical field {m.canonical_field!r} was also "
+                    "claimed by a higher-confidence column; kept as a custom "
+                    "field to avoid last-write-wins data loss (B-2)"
+                ),
+            )
+        )
+    return result
 
 
 # --- Single-column resolution -------------------------------------------
@@ -163,7 +213,7 @@ def _map_one_column(
                 confidence=0.98,
                 method="alias",
                 transformer=_suggest_transformer(cf, inferred_type, samples),
-                transformer_options=_suggest_transformer_options(cf),
+                transformer_options=_suggest_transformer_options(cf, artifact, samples),
                 reasoning=f"header {matched!r} matches synonym list exactly",
             )
             _remember(mapping, artifact, samples)
@@ -189,7 +239,7 @@ def _map_one_column(
                 confidence=round(top["score"], 3),
                 method=top["method"],
                 transformer=_suggest_transformer(cf, inferred_type, samples),
-                transformer_options=_suggest_transformer_options(cf),
+                transformer_options=_suggest_transformer_options(cf, artifact, samples),
                 reasoning=top["reasoning"],
             )
             _remember(mapping, artifact, samples)
@@ -233,7 +283,7 @@ def _map_one_column(
                 confidence=float(recalled.get("confidence") or 0.85),
                 method="embedding_recall",
                 transformer=recalled.get("transformer") or _suggest_transformer(cf, inferred_type, samples),
-                transformer_options=_suggest_transformer_options(cf),
+                transformer_options=_suggest_transformer_options(cf, artifact, samples),
                 reasoning="matched a previously accepted mapping for this tenant via embedding recall",
             )
 
@@ -257,7 +307,7 @@ def _map_one_column(
                 confidence=float(proposal.confidence),
                 method="ai_bridge",
                 transformer=_suggest_transformer(cf, inferred_type, samples),
-                transformer_options=_suggest_transformer_options(cf),
+                transformer_options=_suggest_transformer_options(cf, artifact, samples),
                 reasoning=proposal.reasoning,
             )
             _remember(mapping, artifact, samples)
@@ -350,8 +400,22 @@ def _value_shape_bonus(canonical_type: str, inferred_type: str) -> float:
     return -0.05
 
 
+# Grade-value fields whose raw values are per-country scale points and must be
+# normalized via ``grading_scale_to_canonical`` (B-3). Excludes ``max_score``
+# (a denominator, not a grade) and ``grade_level`` (a form/year label).
+_GRADE_VALUE_FIELDS = frozenset(
+    {"score", "grade", "letter_grade", "grade_letter", "final_grade"}
+)
+_NAME_COMPONENT_FIELDS = ("first_name", "last_name", "middle_name")
+
+
+def _is_grade_field(cf: dict[str, Any]) -> bool:
+    return cf.get("canonical_field", "") in _GRADE_VALUE_FIELDS
+
+
 def _suggest_transformer(cf: dict[str, Any], inferred_type: str, samples: list[Any]) -> str | None:
     vt = cf.get("value_type", "string")
+    field = cf.get("canonical_field", "")
     if vt == "date":
         return "date_iso_normalize"
     if vt == "datetime":
@@ -360,22 +424,71 @@ def _suggest_transformer(cf: dict[str, Any], inferred_type: str, samples: list[A
         return "phone_e164"
     if vt == "currency":
         return "currency_to_decimal"
-    if cf["canonical_field"] in ("first_name", "last_name", "middle_name"):
-        # Detect "Lastname, Firstname" pattern from samples.
-        if any("," in str(s) for s in samples[:5]):
-            return "name_split_last_first"
-        return "name_split_first_last"
-    if vt == "enum":
-        return "enum_rewrite"
+    # Attendance status codes get the country-aware attendance rewriter, not
+    # the generic enum passthrough (B-3).
+    if cf.get("domain") == "attendance" and field == "status":
+        return "attendance_code_rewrite"
+    # Grade value fields → country-aware grading normalizer (B-3).
+    if _is_grade_field(cf):
+        return "grading_scale_to_canonical"
+    if field in _NAME_COMPONENT_FIELDS:
+        # Locale-aware splitter — dispatches last-first / spanish-double by
+        # destination country (and the comma heuristic) internally (B-3).
+        return "name_split_locale"
+    # enum_rewrite is a no-op without an explicit mapping, so we do NOT
+    # auto-suggest it — the column lands raw for the lander's own enum handling
+    # rather than pretending to normalize (B-7).
     if inferred_type == "string" and any("Ã" in str(s) or "Â" in str(s) for s in samples[:5]):
         return "encoding_fix"
     return None
 
 
-def _suggest_transformer_options(cf: dict[str, Any]) -> dict[str, Any]:
+def _country_profile_for_artifact(artifact: MigrationArtifact):
+    """Resolve the destination country's profile for country-aware options.
+
+    Mirrors the orchestrator's apply-time resolution (``school.country_code``)
+    so mappings are self-describing; falls back to ``None`` (the transformers
+    then use the apply-time ``hints['country']`` fallback). See
+    ``apps/migration_cloud/country_profiles.py``.
+    """
+    school = getattr(getattr(artifact, "bundle", None), "school", None)
+    code = str(getattr(school, "country_code", "") or "").strip().upper()
+    if not code:
+        return None
+    try:
+        from apps.migration_cloud.country_profiles import resolved_country_profile
+
+        return resolved_country_profile(code)
+    except Exception:  # noqa: BLE001 — country resolution is best-effort
+        return None
+
+
+def _suggest_transformer_options(
+    cf: dict[str, Any],
+    artifact: MigrationArtifact,
+    samples: list[Any] | None = None,
+) -> dict[str, Any]:
     options: dict[str, Any] = {}
-    if cf["canonical_field"] in ("first_name", "last_name", "middle_name"):
-        options["component"] = cf["canonical_field"].split("_", 1)[0]
+    field = cf.get("canonical_field", "")
+    profile = _country_profile_for_artifact(artifact)
+
+    if field in _NAME_COMPONENT_FIELDS:
+        options["component"] = field.split("_", 1)[0]
+        # Data signal (a comma → "Lastname, Firstname") wins over the cultural
+        # default; otherwise use the destination country's conventional order.
+        if any("," in str(s) for s in (samples or [])[:5]):
+            options["name_order"] = "last_first"
+        elif profile is not None:
+            options["name_order"] = profile.name_order
+    elif _is_grade_field(cf):
+        # Pass the destination country so the grading transformer can try ALL
+        # of that country's scales + apply the ceiling (B-3 / B-4).
+        if profile is not None:
+            options["country"] = profile.code
+    elif cf.get("domain") == "attendance" and field == "status":
+        if profile is not None:
+            options["dialect"] = profile.attendance_code_dialect
+
     return options
 
 

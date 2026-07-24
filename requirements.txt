@@ -127,6 +127,10 @@ python-json-logger>=2.0.7
 # Spreadsheets & export (odfpy 1.7.x does not exist on PyPI; pin to 1.4.1)
 openpyxl>=3.1.0
 odfpy==1.4.1
+# xlrd reads legacy .xls (OLE2) workbooks openpyxl cannot open — required for
+# Migration Cloud multi-sheet .xls explode (audit A-2, 2026-07-24). Without it
+# .xls degrades to reading sheet 0 only (silent tab-2+ loss).
+xlrd>=2.0.1
 
 # GeoIP (optional: set GEOIP_PATH to a MaxMind .mmdb file; disabled by default).
 # Only the official reader library is required. The bundled-DB package

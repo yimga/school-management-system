@@ -217,11 +217,14 @@ DAY1_LOGO_ALLOWED_MIME = frozenset({"image/png", "image/jpeg", "image/webp"})
 DAY1_LOGO_FORBIDDEN_MIME = frozenset({"image/svg+xml", "image/svg"})
 
 
-def _sniff_image_mime(image_bytes: bytes) -> str:
+def sniff_image_mime(image_bytes: bytes) -> str:
     """Return the most-specific image MIME we can confidently identify.
 
     Looks at the leading magic bytes; never trusts the caller's declared
-    content-type. Returns ``""`` when the format is unknown.
+    content-type. Returns ``""`` when the format is unknown. Public + reusable:
+    any upload intake that must not trust the declared content_type / filename
+    (e.g. the anonymous photo-upload endpoint) shares this one sniffer rather
+    than forking its own magic-byte table.
     """
     if not image_bytes:
         return ""
@@ -265,7 +268,7 @@ def LogoUploadValidator(image_bytes: bytes) -> tuple[bool, str]:  # noqa: N802
     if size > DAY1_LOGO_MAX_BYTES:
         return False, f"logo exceeds {DAY1_LOGO_MAX_BYTES // 1024} KB cap"
 
-    mime = _sniff_image_mime(image_bytes)
+    mime = sniff_image_mime(image_bytes)
     if mime in DAY1_LOGO_FORBIDDEN_MIME:
         return False, "SVG logos are not accepted for Day-1 brand seeding (XSS risk)"
     if mime not in DAY1_LOGO_ALLOWED_MIME:

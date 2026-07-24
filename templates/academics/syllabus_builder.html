@@ -12,10 +12,10 @@
   <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
-        <h1 class="h4 mb-1">Syllabus builder</h1>
+        <h1 class="h4 mb-1">{% trans "Syllabus builder" %}</h1>
         <div class="text-muted small">{{ subject_assignment.subject.name }} · {{ subject_assignment.classroom.name }} · {{ subject_assignment.term.label }}</div>
       </div>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">Back to syllabi</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">{% trans "Back to syllabi" %}</a>
     </div>
 
     <div class="card shadow-sm mb-3">
@@ -42,8 +42,8 @@
             </div>
           </div>
           <div class="mt-2">
-            <button type="submit" class="btn btn-primary">Save draft</button>
-            <a class="btn btn-outline-secondary" href="{% url 'academics:teacher_syllabus_hub' %}">Cancel</a>
+            <button type="submit" class="btn btn-primary">{% trans "Save draft" %}</button>
+            <a class="btn btn-outline-secondary" href="{% url 'academics:teacher_syllabus_hub' %}">{% trans "Cancel" %}</a>
           </div>
         </form>
       </div>

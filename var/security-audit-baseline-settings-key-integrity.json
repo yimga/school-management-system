@@ -1,6 +1,6 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-07-14T09:02:09+00:00",
+  "generated_at": "2026-07-23T21:01:08+00:00",
   "rule": "every literal settings.NAME read (and getattr(settings,'NAME') with no default) must resolve on the live django.conf.settings; guard with try/except AttributeError, a getattr default, or # settings-key-allow: <reason>"
 }

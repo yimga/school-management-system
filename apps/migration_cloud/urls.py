@@ -21,6 +21,7 @@ from . import (
     views_audit_admin,
     views_command_center,
     views_connectors,
+    views_cutover,
     views_dlq_admin,
     views_dsar_admin,
     views_health,
@@ -145,6 +146,8 @@ urlpatterns = [
     path("smoke/trigger/", views_smoke_trigger.SmokeRunTriggerView.as_view(), name="smoke_run_trigger"),  # rbac-allow: super-staff-migration-cloud-smoke-on-demand-trigger
     # v3.40.0 Agent 13 — DSAR runbook recorder + smoke run history archive view.
     path("dsar/runbook/", views_dsar_admin.DSARRunbookView.as_view(), name="migration_cloud_dsar_runbook"),  # rbac-allow: super-staff-dsar-runbook-view-record
+    # Audit G-3 — CutoverRunbook console (create rehearsal→real→sign-off). Staff-only.
+    path("cutover/", views_cutover.CutoverRunbookView.as_view(), name="cutover_runbook"),  # rbac-allow: super-staff-migration-cloud-cutover-runbook
     path("smoke/history/", views_smoke_history.SmokeRunHistoryView.as_view(), name="migration_cloud_smoke_history"),  # rbac-allow: super-staff-migration-cloud-smoke-history
     # Connector wizard (operator mount mirrors tenant grammar under /connectors/).
     path(

@@ -291,6 +291,7 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
         total_upload_bytes = 0
 
         if kind == "upload":
+            # upload-validation-allow: schema-agnostic SIS export (CSV/TSV/TXT/JSON/JSONL/XLS/XLSX/ZIP/PDF) has no single magic-byte type — re-sniffed + structure-validated by the profiler at parse time; streaming byte-size cap enforced below; a full-buffer AV read would defeat the GB-scale streaming-to-disk design
             files = [f for f in request.FILES.getlist("artifacts") if f and f.size > 0]
             empty_count = len(request.FILES.getlist("artifacts")) - len(files)
             if not files:
@@ -1231,12 +1232,28 @@ class MigrationCloudRollbackView(LoginRequiredMixin, View):
     @idempotent_post
     @safe_500
     def post(self, request, bundle_id: int, run_id: int, shell: str = "super"):
+        from django.http import Http404
+
         try:
             from apps.automation.models import MigrationRun
         except ImportError:
             return JsonResponse({"error": "automation app not available"}, status=500)
 
+        # Tenant isolation. Rollback is *destructive* (it deletes migrated tenant
+        # rows keyed on ``run.school``). Without scoping, a logged-in portal user
+        # of school A could delete school B's migrated students/grades simply by
+        # enumerating ``run_id`` — a cross-tenant destructive IDOR. Resolve the
+        # bundle tenant-checked (portal shell 404s a cross-tenant bundle_id), then
+        # require the run to belong to the same school as that bundle. Operator
+        # (``super``) shell is intentionally cross-tenant but still pins run↔bundle
+        # school consistency. See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (BLOCKER 4).
+        gate = _enforce_portal_entitlement(request, shell)
+        if gate is not None:
+            return gate
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         run = get_object_or_404(MigrationRun, pk=run_id)
+        if run.school_id != bundle.school_id:
+            raise Http404("run not found")
         rollback_run, result = run.trigger_rollback(user=request.user)
         return JsonResponse({
             "bundle_id": bundle_id,
@@ -1928,6 +1945,25 @@ class MigrationCloudAIVendorFromImageView(LoginRequiredMixin, View):
             return JsonResponse({
                 "error": f"unsupported file type; allowed: {self.ALLOWED_SUFFIXES}",
             }, status=415)
+
+        # A-4: route through the shared upload validator (magic-byte sniff +
+        # size cap + malware-scan hook). The declared name / content-type are
+        # ignored, so an executable renamed .png is caught by content here —
+        # a stricter gate than the suffix check above, which is kept as a
+        # cheap first pass. Cursor is restored to 0, so the read below works.
+        from apps.security.upload_validation import (
+            RASTER_IMAGE_MIMES,
+            UploadValidationError,
+            validate_uploaded_file,
+        )
+        try:
+            validate_uploaded_file(
+                upload,
+                allowed_mimes=RASTER_IMAGE_MIMES | {"application/pdf"},
+                max_bytes=self.MAX_UPLOAD_BYTES,
+            )
+        except UploadValidationError as exc:
+            return JsonResponse({"error": str(exc)}, status=415)
 
         # School context for AI policy — portal shell binds request.school,
         # super shell can hit this without one (vendor ID is school-agnostic).

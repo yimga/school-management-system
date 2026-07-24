@@ -129,6 +129,7 @@ def bulk_artifacts_action_factory():
     def bulk_artifacts(self, request, pk=None):
         """Attach 1..N artifacts to the bundle in one multipart request."""
         bundle = self.get_object()  # tenant-isolation-allow: bulk-artifacts-relies-on-viewset-get-object-which-already-scopes
+        # upload-validation-allow: bulk artifact intake accepts schema-agnostic SIS exports (any format) streamed for sha256 with no retained buffer — no single magic-byte type applies, and a full-buffer AV read would regress the streaming design; per-file + aggregate byte-size caps are enforced below
         files = list(request.FILES.getlist("files")) or list(request.FILES.values())
         if not files:
             return Response(

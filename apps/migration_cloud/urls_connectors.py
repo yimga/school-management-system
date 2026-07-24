@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from django.urls import path
 
-from . import views_connectors, views_tenant_upload
+from . import views_connectors, views_tenant_provisioning, views_tenant_upload
 
 app_name = "migration_cloud_connector"
 
@@ -57,6 +57,36 @@ urlpatterns = [
         "bundle/<int:bundle_id>/repair/",
         views_tenant_upload.TenantMigrationRepairView.as_view(),
         name="bundle-repair",
+    ),
+    # ── Self-serve provisioning (G-4) — tenant-admin gated. Lets a partner /
+    # district mint a Migration Cloud scoped API token FORCE-BOUND to their own
+    # school and register/deactivate outbound webhook subscriptions, without an
+    # operator hand-off. All URLs are pre-resolved in the views (no cross-host
+    # {% url %}). See views_tenant_provisioning.
+    path(
+        "tokens/",
+        views_tenant_provisioning.TenantTokenListView.as_view(),
+        name="provisioning-tokens",
+    ),
+    path(
+        "tokens/mint/",
+        views_tenant_provisioning.TenantTokenMintView.as_view(),
+        name="provisioning-token-mint",
+    ),
+    path(
+        "tokens/<int:token_id>/revoke/",
+        views_tenant_provisioning.TenantTokenRevokeView.as_view(),
+        name="provisioning-token-revoke",
+    ),
+    path(
+        "webhooks/",
+        views_tenant_provisioning.TenantWebhookView.as_view(),
+        name="provisioning-webhooks",
+    ),
+    path(
+        "webhooks/<int:sub_id>/deactivate/",
+        views_tenant_provisioning.TenantWebhookDeactivateView.as_view(),
+        name="provisioning-webhook-deactivate",
     ),
     path(
         "<uuid:connection_id>/discover/",

@@ -345,13 +345,20 @@ class MigrationIntakeStatusView(LoginRequiredMixin, View):
             in ("asgi-daphne",)
         )
 
+        # This is the ASSISTED (concierge) migration path: after the school signs
+        # the MAA, the RunMyCampus team performs extraction, validation, and
+        # promotion. The stage labels must reflect who the actor is — the school
+        # does NOT self-approve here (there is deliberately no approve control on
+        # this surface), so "Awaiting your approval" was misleading. Schools that
+        # want to self-serve use the connector file-upload flow instead.
+        # See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (G-1).
         stages = [
             ("intake-draft", "Intake submitted"),
             ("maa-pending-counsel", "MAA pending"),
             ("maa-signed", "MAA signed"),
-            ("extraction-in-progress", "Extracting"),
-            ("validation-in-progress", "Validating"),
-            ("promotion-pending-approval", "Awaiting your approval"),
+            ("extraction-in-progress", "Extracting (RunMyCampus team)"),
+            ("validation-in-progress", "Validating (RunMyCampus team)"),
+            ("promotion-pending-approval", "In review by RunMyCampus"),
             ("complete", "Live"),
         ]
 

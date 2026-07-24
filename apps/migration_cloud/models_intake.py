@@ -261,6 +261,46 @@ class MigrationIntakeRequest(models.Model):
 
     # ─── State machine ───────────────────────────────────────────────
 
+    def guardian_consent_satisfied(self) -> Tuple[bool, str]:
+        """Whether guardian consent permits promoting this intake into the tenant.
+
+        Consent gates the promotion of MINOR PII (COPPA / FERPA §99.30). The
+        record model existed but nothing consulted it before landing — a guardian
+        who declined, or whose consent was never collected, could not stop the
+        data. This gate is enforced by ``can_advance_to`` on the promotion
+        transitions. See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (BLOCKER 6).
+
+        Codebase policy (the *threshold*): (a) if a consent campaign was set up
+        (``guardian_consent_required_count > 0``) every required consent must be
+        collected; (b) NO linked token may be DECLINED. The exact legal
+        sufficiency rule per jurisdiction is counsel's — see
+        docs/MIGRATION_CLOUD_LEGAL_EXTERNAL.md (L6). Enforcement can be disabled
+        only via ``MIGRATION_CLOUD_ENFORCE_GUARDIAN_CONSENT=False`` (counsel-led).
+        """
+        from django.conf import settings
+
+        if not getattr(settings, "MIGRATION_CLOUD_ENFORCE_GUARDIAN_CONSENT", True):
+            return True, "consent enforcement disabled"
+
+        # A guardian who explicitly DECLINED blocks promotion of the whole intake
+        # (their child's PII must not land). Indexed reverse-FK query.
+        try:
+            from .models_guardian_consent import GuardianConsentDecision
+
+            declined = self.guardian_consent_tokens.filter(
+                consent_decision=GuardianConsentDecision.DECLINED.value,
+            ).exists()
+        except Exception:  # noqa: BLE001 — a query error must never OPEN the gate
+            declined = True
+        if declined:
+            return False, "a guardian declined consent; promotion blocked"
+
+        required = int(self.guardian_consent_required_count or 0)
+        collected = int(self.guardian_consent_collected_count or 0)
+        if required > 0 and collected < required:
+            return False, f"guardian consent incomplete ({collected}/{required} collected)"
+        return True, "ok"
+
     def can_advance_to(self, target_state: str) -> Tuple[bool, str]:
         """Return ``(ok, reason)`` for a hypothetical state transition.
 
@@ -276,6 +316,14 @@ class MigrationIntakeRequest(models.Model):
             return False, (
                 f"transition {self.state!r} -> {target_state!r} not permitted"
             )
+        # Guardian consent gates the promotion of minor PII into the tenant.
+        if target_state in (
+            MigrationIntakeState.PROMOTION_PENDING_APPROVAL.value,
+            MigrationIntakeState.PROMOTION_IN_PROGRESS.value,
+        ):
+            ok, reason = self.guardian_consent_satisfied()
+            if not ok:
+                return False, reason
         return True, "ok"
 
     def advance(

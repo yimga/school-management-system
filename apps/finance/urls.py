@@ -24,6 +24,7 @@ from .views import (
     bursar_entries_report,
     expense_vs_budget,
 )
+from .views_payments_online import initiate_online_payment
 from .views_reports import finance_reports, submit_report_request
 from .views_payment_setup import payment_readiness_setup
 from .views_marketplace_integration_credentials import marketplace_integration_credentials
@@ -98,6 +99,11 @@ urlpatterns = [
         "invoices/<int:invoice_id>/upload-receipt/",
         upload_payment_receipt,
         name="upload_payment_receipt",
+    ),
+    path(
+        "invoices/<int:invoice_id>/pay-online/",
+        initiate_online_payment,
+        name="initiate_online_payment",
     ),
     path(
         "invoices/<int:invoice_id>/resend-reminder/",
