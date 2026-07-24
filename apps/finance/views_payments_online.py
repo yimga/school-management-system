@@ -84,6 +84,26 @@ def initiate_online_payment(request, invoice_id):
         method_code,
         bool(result.success),
     )
+
+    # The invoice-page form posts ``_ui=1`` (no JS): surface a Django message and
+    # redirect back. API callers omit it and get JSON.
+    if request.POST.get("_ui"):
+        from django.contrib import messages
+
+        from .views_common import finance_detail_redirect
+
+        if result.success:
+            messages.success(
+                request,
+                result.message
+                or "Payment request sent — check your phone to confirm.",
+            )
+        else:
+            messages.error(
+                request, result.message or "Could not start the online payment."
+            )
+        return finance_detail_redirect(request, invoice.id)
+
     return JsonResponse(
         {
             "ok": bool(result.success),

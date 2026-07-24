@@ -53,6 +53,25 @@ from .views_common import (
     _notify_finance_staff_suspicious_receipt,
 )
 
+# Mobile-money methods offered on the invoice "Pay online" form (M26). Codes map
+# to registered gateways in apps.finance.gateways; an unconfigured gateway
+# fail-closes at initiation, so listing all is safe.
+ONLINE_PAYMENT_METHODS = (
+    ("mtn_momo", "MTN Mobile Money"),
+    ("orange_money", "Orange Money"),
+    ("mpesa_daraja", "M-Pesa"),
+)
+
+
+def _online_payment_enabled(invoice) -> bool:
+    """True when online collection is enabled AND the invoice has a balance."""
+    from django.conf import settings
+
+    return bool(
+        getattr(settings, "RMC_GATEWAY_COLLECTION_ENABLED", False)
+        and invoice.computed_balance > 0
+    )
+
 logger = logging.getLogger(__name__)
 
 SESSION_KEY_LAST_GENERATED_INVOICE_IDS = "finance_last_generated_invoice_ids"
@@ -568,6 +587,11 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
             "guardian_link_count": access_state["guardian_count"],
             "guardian_share": guardian_share,
             "payer_share_count": len(payer_shares),
+            "online_payment_enabled": _online_payment_enabled(invoice),
+            "online_payment_url": reverse(
+                "finance:initiate_online_payment", args=[invoice.id]
+            ),
+            "online_payment_methods": ONLINE_PAYMENT_METHODS,
         },
     )
 

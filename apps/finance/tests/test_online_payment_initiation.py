@@ -94,3 +94,34 @@ class OnlinePaymentInitiationTests(TestCase):
         self.assertFalse(body["ok"])
         # Nothing was recorded — settlement is webhook-only.
         self.assertEqual(self.invoice.payments.count(), 0)
+
+    @override_settings(RMC_GATEWAY_COLLECTION_ENABLED=True)
+    def test_ui_form_post_redirects_with_message(self):
+        # The invoice-page form posts _ui=1 -> message + redirect (not raw JSON).
+        response = self.client.post(
+            self._url(),
+            {"method_code": "MTN_MOMO", "payer_phone": "+237600000000", "_ui": "1"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.invoice.payments.count(), 0)
+
+
+class OnlinePaymentInvoicePageTests(OnlinePaymentInitiationTests):
+    """The invoice detail page shows the 'Pay online' form only when enabled."""
+
+    def _detail(self):
+        return self.client.get(
+            reverse("finance:invoice_detail", args=[self.invoice.id])
+        )
+
+    @override_settings(RMC_GATEWAY_COLLECTION_ENABLED=True)
+    def test_form_shown_when_enabled(self):
+        response = self._detail()
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="online-payment-form"')
+
+    @override_settings(RMC_GATEWAY_COLLECTION_ENABLED=False)
+    def test_form_hidden_when_disabled(self):
+        response = self._detail()
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'id="online-payment-form"')
