@@ -636,7 +636,7 @@ def super_dashboard_v2(request):
             ),
             chips=chips,
             primary_url=reverse("super:command_center"),
-            primary_label="Mission queues",
+            primary_label="Clear highest-risk queue",
             secondary_url=reverse("super:billing_dashboard"),
             secondary_label="Billing",
             status_key=status_key,
