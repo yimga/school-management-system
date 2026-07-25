@@ -84,6 +84,20 @@ class SuperCommandCenterTests(TestCase):
             password="pass1234",
         )
         self.client.force_login(self.superuser)
+        # /super/ operator routes sit behind the operator MFA gate. A required
+        # user with no confirmed device is bounced to enrollment (302 ->
+        # accounts:mfa_setup) BEFORE the per-session verify gate, so marking the
+        # session alone is not enough. Enroll a confirmed TOTP device (so the
+        # enforce/setup gate is satisfied) AND mark the session verified (so the
+        # re-verify gate passes) — mirroring a real enrolled+verified operator.
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.create(
+            user=self.superuser, name="operator-totp", confirmed=True
+        )
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
 
         school = School.objects.create(
             name="Mission Control School",
