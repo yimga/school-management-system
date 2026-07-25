@@ -213,3 +213,25 @@ class LoginViewGuidedRecoveryTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         msgs = [str(m) for m in get_messages(resp.wsgi_request)]
         self.assertTrue(any("Too many failed" in m for m in msgs), msgs)
+
+    @override_settings(LOGIN_POW_ENABLED=True)
+    @patch("apps.accounts.login_recovery.send_set_password_link", return_value=True)
+    @patch("apps.accounts.login_guard.attempt_count", return_value=2)
+    def test_challenge_blocked_never_activated_owner_still_gets_recovery(self, _cnt, mock_send):
+        """A never-activated owner stopped at the PoW challenge is still recovered.
+
+        prior_miss (attempt_count>=1) + PoW enabled + no solved pow_token ⇒
+        verify_pow fails ⇒ login_block_reason='challenge'. Recovery must still fire
+        (there is no password to challenge) and the "verification challenge" wall
+        must be suppressed for this account.
+        """
+        resp = self.client.post(
+            self.login_url,
+            {"username": "stranded@x.edu", "password": "whatever"},  # no pow_token/nonce
+            follow=False,
+        )
+        self.assertEqual(resp.status_code, 200)
+        mock_send.assert_called_once()  # recovery offered DESPITE the challenge wall
+        msgs = [str(m) for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any("set a password yet" in m for m in msgs), msgs)
+        self.assertFalse(any("verification challenge" in m for m in msgs), msgs)
