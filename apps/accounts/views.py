@@ -4450,7 +4450,36 @@ def login_view(request):
         # Reached only when sign-in did not succeed. Count a genuine credential
         # failure — locked / challenge-failed requests already flashed their own
         # message and must NOT be tallied as a password attempt.
-        if login_block_reason is None:
+        #
+        # Before treating it as a wrong password, check for the never-activated
+        # account trap: a self-serve owner (and staff seeded the same way) is
+        # created with an UNUSABLE password and must claim the account via a
+        # token set-password link. If that link never arrived they can type the
+        # "right" password forever and always land back here (HTTP 200). Detect
+        # that state, email a fresh WORKING set-password link, and guide them —
+        # instead of the dead-end — WITHOUT tallying a brute-force attempt (there
+        # is no password to guess). Best-effort: never breaks the login response.
+        recovery = None
+        if login_block_reason is None and username:
+            try:
+                from apps.accounts.login_recovery import offer_unactivated_recovery
+
+                recovery = offer_unactivated_recovery(request, username)
+            except Exception:  # noqa: BLE001 — recovery must never break login
+                recovery = None
+        if recovery and recovery.get("unactivated"):
+            masked = recovery.get("email_masked") or _("the email on file")
+            messages.info(
+                request,
+                _(
+                    "This account hasn't set a password yet. We've emailed a "
+                    "one-time link to set your password to %(email)s — check your "
+                    "inbox and spam. If it doesn't arrive, use “Forgot password” "
+                    "or contact your school administrator."
+                )
+                % {"email": masked},
+            )
+        elif login_block_reason is None:
             login_guard.record_failed_attempt(request, username)
             request.session["auth_failed_attempts"] = (
                 int(request.session.get("auth_failed_attempts", 0) or 0) + 1
