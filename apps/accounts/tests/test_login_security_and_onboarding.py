@@ -481,7 +481,7 @@ class SignupVerificationConsoleHelperTests(SimpleTestCase):
 
 class ProvisionSetupUrlTests(SimpleTestCase):
     @mock.patch(
-        "apps.schools.provision_email_urls.default_token_generator.make_token",
+        "apps.schools.provision_email_urls.activation_token_generator.make_token",
         return_value="tok",
     )
     @mock.patch(
@@ -502,7 +502,7 @@ class ProvisionSetupUrlTests(SimpleTestCase):
         self.assertIn("next=%2Fbackend%2Fprovisioning%2F", url)
 
     @mock.patch(
-        "apps.schools.provision_email_urls.default_token_generator.make_token",
+        "apps.schools.provision_email_urls.activation_token_generator.make_token",
         return_value="tok",
     )
     @mock.patch(

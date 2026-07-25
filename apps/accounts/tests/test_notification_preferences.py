@@ -56,7 +56,12 @@ class NotificationPreferencesTests(TestCase):
         self.assertTrue(pref.receive_weekly_summary)
 
     def test_post_clears_weekly_summary_when_unchecked(self):
-        UserPreference.objects.create(user=self.user, receive_weekly_summary=True)
+        # Establish "a pref with weekly-summary ON exists" idempotently — a pref may
+        # already exist for this user (lazy-created on prior access / seeded), so
+        # update_or_create keeps the setup robust without a UNIQUE(user) collision.
+        UserPreference.objects.update_or_create(
+            user=self.user, defaults={"receive_weekly_summary": True}
+        )
         self.client.force_login(self.user)
         self.client.post(
             reverse("accounts:notification_preferences"),
@@ -77,10 +82,12 @@ class NotificationPreferencesTests(TestCase):
 
     def test_post_does_not_touch_other_users_preferences(self):
         """Tenant + user isolation: my POST cannot mutate another user's prefs."""
-        UserPreference.objects.create(
+        UserPreference.objects.update_or_create(
             user=self.other,
-            notification_channels=["SMS"],
-            receive_weekly_summary=False,
+            defaults={
+                "notification_channels": ["SMS"],
+                "receive_weekly_summary": False,
+            },
         )
         self.client.force_login(self.user)
         self.client.post(
