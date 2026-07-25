@@ -4,7 +4,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission as FeaturePermission, User
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 _T_HOST = "clr-preview.runmycampus.com"
 
@@ -34,6 +34,9 @@ class ClearPreviewGetPolicyTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="clr_prev_no", password="x" * 8)
         path = reverse("siteconfig:clear_preview")
         resp = self.client.get(path)

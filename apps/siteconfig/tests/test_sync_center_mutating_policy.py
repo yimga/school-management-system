@@ -4,7 +4,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission as FeaturePermission, User
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.models import SyncConflict
 
 
@@ -44,6 +44,9 @@ class SyncCenterResolvePermissionTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="sync_noperm", password="x" * 8)
         path = reverse("siteconfig:sync_center_resolve", args=[self._conflict_id])
         resp = self.client.post(path, data={"resolution": "discard"})

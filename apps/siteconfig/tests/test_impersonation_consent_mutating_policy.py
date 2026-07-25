@@ -6,7 +6,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission as FeaturePermission, User
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 _T_HOST = "imp-consent.runmycampus.com"
 
@@ -36,6 +36,9 @@ class ImpersonationConsentPostPolicyTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="imp_no", password="x" * 8)
         path = reverse("siteconfig:grant_impersonation_consent")
         resp = self.client.post(path)
@@ -48,6 +51,9 @@ class ImpersonationConsentPostPolicyTests(TestCase):
             role=User.Role.ADMIN,
         )
         u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
         self.client.login(username="imp_yes", password="x" * 8)
         path = reverse("siteconfig:grant_impersonation_consent")
         resp = self.client.post(path)
@@ -62,6 +68,9 @@ class ImpersonationConsentPostPolicyTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="imp_rev_no", password="x" * 8)
         path = reverse("siteconfig:revoke_impersonation_consent")
         resp = self.client.post(path)
@@ -74,6 +83,9 @@ class ImpersonationConsentPostPolicyTests(TestCase):
             role=User.Role.ADMIN,
         )
         u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
         self.client.login(username="imp_rev_yes", password="x" * 8)
         path = reverse("siteconfig:revoke_impersonation_consent")
         resp = self.client.post(path)

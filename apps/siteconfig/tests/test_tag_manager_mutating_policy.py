@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from apps.accounts.models import Permission as FeaturePermission, User
 from apps.people.models import InformationTag
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 _T_HOST = "tag-pol.runmycampus.com"
 
@@ -35,6 +35,9 @@ class TagManagerPostPermissionTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="tag_noperm", password="x" * 8)
         path = reverse("siteconfig:tag_manager")
         resp = self.client.post(
@@ -101,6 +104,9 @@ class TagManagerEditPostPolicyTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="tag_edit_noperm", password="x" * 8)
         path = reverse("siteconfig:tag_manager_edit", args=[self.tag.pk])
         resp = self.client.post(
@@ -121,6 +127,9 @@ class TagManagerEditPostPolicyTests(TestCase):
             role=User.Role.ADMIN,
         )
         u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
         self.client.login(username="tag_edit_yes", password="x" * 8)
         path = reverse("siteconfig:tag_manager_edit", args=[self.tag.pk])
         resp = self.client.post(
