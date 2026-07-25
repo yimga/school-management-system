@@ -37,8 +37,18 @@ class TestChangeFormModes(unittest.TestCase):
 
     def test_workspace_has_form_and_audit_only(self):
         content = CHANGE_FORM.read_text(encoding="utf-8")
-        self.assertIn('data-rmc-django-view="form"', content)
-        self.assertIn('data-rmc-django-view="audit"', content)
+        # v15 Admin OS collapsed the Form/Audit *view toggle* into a single form
+        # canvas: change_form ships the "form" view-mode and reaches audit via the
+        # History affordance + in-workbench Save. The toggle chrome
+        # (data-rmc-django-view="…") and the mode-panels include are now forbidden
+        # (see scripts/audit_django_admin_canvas_contract.py). Preview stays absent.
+        self.assertIn('data-rmc-django-view-mode="form"', content)
+        self.assertIn('data-rmc-django-mode-panel="form"', content)
+        # Audit surface = History affordance in the command band (not a fake toggle).
+        self.assertIn("rmc-django-band-action", content)
+        # No Form/Audit toggle chrome, no mode-panels include, and no fake preview.
+        self.assertNotIn("data-rmc-django-view-toggle", content)
+        self.assertNotIn("admin_change_form_mode_panels.html", content)
         self.assertNotIn('data-rmc-django-view="preview"', content)
         self.assertNotIn("data-rmc-admin-preview-url", content)
 

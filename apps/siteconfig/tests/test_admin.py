@@ -53,9 +53,9 @@ class RegionConfigAdminTestCase(TestCase):
         """Set up test data."""
         self.client = Client()
         self.admin_user = User.objects.create_superuser(
-            username="admin", email="admin@test.com", password="password"
+            username="sc_region_admin", email="admin@test.com", password="password"
         )
-        self.client.login(username="admin", password="password")
+        self.client.login(username="sc_region_admin", password="password")
 
         # Create test region
         self.region = RegionConfig.objects.create(
@@ -216,9 +216,9 @@ class GradingScaleConfigAdminTestCase(TestCase):
         """Set up test data."""
         self.client = Client()
         self.admin_user = User.objects.create_superuser(
-            username="admin", email="admin@test.com", password="password"
+            username="sc_grading_admin", email="admin@test.com", password="password"
         )
-        self.client.login(username="admin", password="password")
+        self.client.login(username="sc_grading_admin", password="password")
 
         self.region = RegionConfig.objects.create(
             code="TST",
@@ -291,9 +291,9 @@ class HolidayCalendarAdminTestCase(TestCase):
         """Set up test data."""
         self.client = Client()
         self.admin_user = User.objects.create_superuser(
-            username="admin", email="admin@test.com", password="password"
+            username="sc_holiday_admin", email="admin@test.com", password="password"
         )
-        self.client.login(username="admin", password="password")
+        self.client.login(username="sc_holiday_admin", password="password")
 
         self.region = RegionConfig.objects.create(
             code="TST",
@@ -396,6 +396,9 @@ class ManagementCommandTestCase(TestCase):
 
     def setUp(self):
         """Set up test data."""
+        # Migration siteconfig/0103 seeds a platform RegionConfig(code="CMR");
+        # remove it so this test owns a clean CMR fixture (rolled back per test).
+        RegionConfig.objects.filter(code="CMR").delete()
         self.region = RegionConfig.objects.create(
             code="CMR",
             name="Cameroon",
@@ -440,10 +443,13 @@ class ManagementCommandTestCase(TestCase):
         from io import StringIO
 
         out = StringIO()
-        call_command("clone_region", "CMR", "USA", stdout=out)
+        # Clone to a test-only target code: the seeded region catalog already
+        # contains real country codes (e.g. "USA"), and clone_region correctly
+        # refuses to overwrite an existing region.
+        call_command("clone_region", "CMR", "TSTCLONE", stdout=out)
 
         # Check new region was created
-        new_region = RegionConfig.objects.get(code="USA")
+        new_region = RegionConfig.objects.get(code="TSTCLONE")
         self.assertEqual(new_region.timezone, self.region.timezone)
         self.assertEqual(new_region.gradingscaleconfig_set.count(), 5)
 

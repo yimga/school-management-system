@@ -99,12 +99,12 @@ class AdminAccessibilityTest(AccessibilityTestCase):
         """Set up test admin user."""
         super().setUp()
         self.admin_user = User.objects.create_superuser(
-            username="admin", email="admin@test.com", password="admin123"
+            username="sc_a11y_admin", email="admin@test.com", password="admin123"
         )
 
     def test_admin_dashboard_wcag(self):
         """Test admin dashboard HTML structure."""
-        self.client.login(username="admin", password="admin123")
+        self.client.login(username="sc_a11y_admin", password="admin123")
         response = self.client.get("/admin/")
 
         if response.status_code == 200:

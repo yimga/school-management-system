@@ -7,7 +7,7 @@ from pathlib import Path
 from django.test import RequestFactory, TestCase
 from django.template.loader import get_template
 
-from config.admin import admin_site
+from config.admin import platform_admin_site
 from apps.siteconfig.unfold_dashboard import (
     dashboard_callback,
     ADMIN_PLATFORM_PRIMARY,
@@ -19,7 +19,10 @@ class AdminLoginTemplateTests(TestCase):
     """Admin uses high-end login template and superadmin-only copy."""
 
     def test_admin_site_uses_high_end_login_template(self):
-        self.assertEqual(admin_site.login_template, "auth/admin_login.html")
+        # The admin site was split into tenant + platform sites; the high-end,
+        # superadmin-only branded login (auth/admin_login.html) belongs to the
+        # platform admin site. (The tenant site uses auth/tenant_admin_login.html.)
+        self.assertEqual(platform_admin_site.login_template, "auth/admin_login.html")
 
     def test_admin_login_template_exists_and_loads(self):
         t = get_template("auth/admin_login.html")
