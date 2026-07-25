@@ -73,6 +73,22 @@
     </div>
     <div class="rmc-auth-immersive__glass" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}">
       <div class="rmc-auth-immersive__glass-inner">
+      {% comment %}
+        Sign-in feedback rendered INSIDE the card. The base shell renders django
+        messages at the top of <main>, but the immersive page hides that copy
+        (auth-login-canvas.css), so failed-login errors + the never-activated
+        "set your password" guidance would otherwise be invisible here.
+      {% endcomment %}
+      {% if messages %}
+      <div class="rmc-auth-immersive__messages" role="region" aria-label="{% trans 'Sign-in messages' %}">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags|default:'info' }} mb-2"
+               role="{% if message.tags == 'error' or message.tags == 'warning' %}alert{% else %}status{% endif %}"
+               aria-live="{% if message.tags == 'error' or message.tags == 'warning' %}assertive{% else %}polite{% endif %}"
+               aria-atomic="true">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
       <form method="post" novalidate id="rmc-auth-login-form">
         {% csrf_token %}
         {% if request.GET.next %}

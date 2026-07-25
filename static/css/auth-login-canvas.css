@@ -85,6 +85,21 @@ body:has(.rmc-auth-immersive) .django-messages-shell {
   display: none !important;
 }
 
+/* Base <main> renders django messages at the very top of the page; on the
+   immersive login they belong INSIDE the auth card (see auth/login.html), so
+   hide the top-of-page copy to avoid a duplicate + layout shift. Supersedes the
+   stale .django-messages-shell rule above, whose class was renamed to the
+   data-shell-chrome attribute. */
+body.rmc-auth-immersive-page [data-shell-chrome="django-messages"],
+body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
+  display: none !important;
+}
+
+/* In-card sign-in feedback (errors + never-activated set-password guidance). */
+.rmc-auth-immersive__messages {
+  margin-bottom: 14px;
+}
+
 .rmc-auth-immersive {
   --rmc-auth-glass: color-mix(in srgb, var(--surface-elevated, #0e1426) 88%, transparent);
   --rmc-auth-hair: var(--hairline, rgba(255, 255, 255, .11));

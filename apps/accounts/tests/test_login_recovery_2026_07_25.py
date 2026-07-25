@@ -17,8 +17,9 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from django.contrib.messages import get_messages
+from django.core import mail
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts import login_recovery as lr
@@ -111,6 +112,17 @@ class OfferUnactivatedRecoveryTests(TestCase):
         self.assertEqual(save_kwargs["email_template_name"], "emails/password_reset.txt")
         self.assertEqual(save_kwargs["subject_template_name"], "registration/password_reset_subject.txt")
 
+    def test_offer_actually_produces_a_reset_email(self):
+        """PROOF (no patch): a real email with a working reset-confirm link is sent."""
+        req = RequestFactory().post("/authentication/login/")
+        result = lr.offer_unactivated_recovery(req, "stuck@x.edu")
+        self.assertTrue(result["unactivated"])
+        self.assertTrue(result["sent"])
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("stuck@x.edu", mail.outbox[0].to)
+        # The link is the reset-confirm URL that works for unusable-password owners.
+        self.assertIn("/authentication/reset/", mail.outbox[0].body)
+
 
 @override_settings(RATELIMIT_ENABLE=False)
 class LoginViewGuidedRecoveryTests(TestCase):
@@ -159,3 +171,45 @@ class LoginViewGuidedRecoveryTests(TestCase):
         self.assertEqual(self.client.session.get("auth_failed_attempts", 0), 1)  # still tallied
         msgs = [str(m) for m in get_messages(resp.wsgi_request)]
         self.assertTrue(any("Invalid username or password" in m for m in msgs), msgs)
+
+    @patch("apps.accounts.login_recovery.send_set_password_link", return_value=True)
+    def test_guided_message_renders_visibly_in_the_card(self, mock_send):
+        """The guidance must render INSIDE the auth card (the base copy is hidden)."""
+        resp = self.client.post(
+            self.login_url,
+            {"username": "stranded@x.edu", "password": "whatever"},
+            follow=False,
+        )
+        self.assertContains(resp, "rmc-auth-immersive__messages", status_code=200)
+        self.assertContains(resp, "set a password yet")
+
+    @patch("apps.accounts.login_recovery.send_set_password_link", return_value=True)
+    @patch("apps.accounts.login_guard.lockout_state", return_value=(True, 300))
+    def test_locked_never_activated_owner_still_gets_recovery(self, _lock, mock_send):
+        """A rate-limited stranded owner must still be recovered, not walled off."""
+        resp = self.client.post(
+            self.login_url,
+            {"username": "stranded@x.edu", "password": "whatever"},
+            follow=False,
+        )
+        self.assertEqual(resp.status_code, 200)
+        mock_send.assert_called_once()  # recovery offered DESPITE the lockout
+        msgs = [str(m) for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any("set a password yet" in m for m in msgs), msgs)
+        # The dead "too many attempts" wall is suppressed for never-activated accounts.
+        self.assertFalse(any("Too many failed" in m for m in msgs), msgs)
+
+    @patch("apps.accounts.login_guard.lockout_state", return_value=(True, 300))
+    def test_locked_activated_user_still_sees_lockout_wall(self, _lock):
+        """Refactor must NOT weaken the lockout wall for a normal (activated) user."""
+        User.objects.create_user(
+            username="realuser2", email="real2@x.edu", password="correcthorse-1234"
+        )
+        resp = self.client.post(
+            self.login_url,
+            {"username": "real2@x.edu", "password": "whatever"},
+            follow=False,
+        )
+        self.assertEqual(resp.status_code, 200)
+        msgs = [str(m) for m in get_messages(resp.wsgi_request)]
+        self.assertTrue(any("Too many failed" in m for m in msgs), msgs)

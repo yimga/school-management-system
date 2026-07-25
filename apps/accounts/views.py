@@ -4212,16 +4212,10 @@ def login_view(request):
 
         locked, retry_after = login_guard.lockout_state(request, username)
         if locked:
+            # Message deferred to the failure block: a never-activated owner has
+            # no password to rate-limit, so they must get set-password recovery
+            # rather than a dead "too many attempts" wall.
             login_block_reason = "locked"
-            retry_minutes = max(1, (retry_after + 59) // 60)
-            messages.error(
-                request,
-                _(
-                    "Too many failed sign-in attempts. Please try again in "
-                    "about %(minutes)d minute(s), or reset your password."
-                )
-                % {"minutes": retry_minutes},
-            )
         elif bot_defense.honeypot_tripped(request) or bot_defense.timing_tripped(request):
             # Invisible traps: behave exactly like a wrong password so an
             # automated submitter gets no signal it was caught. Counts toward
@@ -4250,11 +4244,8 @@ def login_view(request):
             else:
                 challenge_ok = True
             if not challenge_ok:
+                # Message deferred to the failure block (see locked branch).
                 login_block_reason = "challenge"
-                messages.error(
-                    request,
-                    _("Please complete the verification challenge to continue."),
-                )
             else:
                 user = authenticate(
                     request,
@@ -4447,20 +4438,20 @@ def login_view(request):
                 return redirect(next_url)
             return redirect(reverse("accounts:redirect"))
 
-        # Reached only when sign-in did not succeed. Count a genuine credential
-        # failure — locked / challenge-failed requests already flashed their own
-        # message and must NOT be tallied as a password attempt.
+        # Reached only when sign-in did not succeed (any reason: wrong password,
+        # locked, or a failed bot challenge).
         #
-        # Before treating it as a wrong password, check for the never-activated
-        # account trap: a self-serve owner (and staff seeded the same way) is
-        # created with an UNUSABLE password and must claim the account via a
-        # token set-password link. If that link never arrived they can type the
-        # "right" password forever and always land back here (HTTP 200). Detect
-        # that state, email a fresh WORKING set-password link, and guide them —
-        # instead of the dead-end — WITHOUT tallying a brute-force attempt (there
-        # is no password to guess). Best-effort: never breaks the login response.
+        # FIRST check for the never-activated account trap — this must win over
+        # the locked / challenge walls: a self-serve owner (and staff seeded the
+        # same way) is created with an UNUSABLE password and must claim the
+        # account via a token set-password link. If that link never arrived they
+        # can type the "right" password forever and always land back here (HTTP
+        # 200); if they then mash the button they also trip the lockout. Because
+        # there is NO password to brute-force, we email a fresh WORKING
+        # set-password link and guide them regardless of lockout/challenge, and
+        # never tally a brute-force attempt. Best-effort: never breaks login.
         recovery = None
-        if login_block_reason is None and username:
+        if username:
             try:
                 from apps.accounts.login_recovery import offer_unactivated_recovery
 
@@ -4479,7 +4470,23 @@ def login_view(request):
                 )
                 % {"email": masked},
             )
-        elif login_block_reason is None:
+        elif login_block_reason == "locked":
+            retry_minutes = max(1, (retry_after + 59) // 60)
+            messages.error(
+                request,
+                _(
+                    "Too many failed sign-in attempts. Please try again in "
+                    "about %(minutes)d minute(s), or reset your password."
+                )
+                % {"minutes": retry_minutes},
+            )
+        elif login_block_reason == "challenge":
+            messages.error(
+                request,
+                _("Please complete the verification challenge to continue."),
+            )
+        else:
+            # Genuine credential failure (or an invisible honeypot/timing trap).
             login_guard.record_failed_attempt(request, username)
             request.session["auth_failed_attempts"] = (
                 int(request.session.get("auth_failed_attempts", 0) or 0) + 1
