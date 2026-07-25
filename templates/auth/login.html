@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n static %}
 
-{% block title %}{% trans "School portal login" %}{% endblock %}
+{% block title %}{% if LOGIN_SCHOOL_NAME %}{{ LOGIN_SCHOOL_NAME }} · {% trans "Sign in" %}{% else %}{% trans "School portal login" %} · {% trans "Sign in" %}{% endif %}{% endblock %}
 
 {% block body_class %}rmc-auth-immersive-page{% endblock %}
 
@@ -123,6 +123,8 @@
                 RunMyCampus
               {% elif PUBLIC_BRAND_MODE %}
                 {{ PUBLIC_BRAND_NAME }}
+              {% elif LOGIN_SCHOOL_NAME %}
+                {{ LOGIN_SCHOOL_NAME }}
               {% else %}
                 {{ SITE.site_name|default:"School portal" }}
               {% endif %}

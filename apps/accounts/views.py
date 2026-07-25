@@ -4565,6 +4565,23 @@ def login_view(request):
             context["password_reset_public_url"] = None
     context["public_tenant_login_hub"] = False
     context["login_workspace_schools"] = []
+    # School-aware branding (T5b): the tenant's own name for the browser tab
+    # title + sign-in card. Resolve from the bound tenant, else the session's
+    # school_id. ALWAYS a plain string — the base host (no school) must never
+    # raise VariableDoesNotExist; an empty value falls back to the generic title.
+    _brand_school = getattr(request, "school", None)
+    if _brand_school is None:
+        _brand_sid = request.session.get("school_id")
+        if _brand_sid:
+            try:
+                from apps.schools.models import School as _BrandSchool
+
+                _brand_school = (
+                    _BrandSchool.objects.filter(id=_brand_sid).only("name").first()
+                )
+            except (DatabaseError, ValueError, TypeError):
+                _brand_school = None
+    context["LOGIN_SCHOOL_NAME"] = (getattr(_brand_school, "name", "") or "").strip()
     from apps.accounts.manager_login_next import use_operator_login_template
 
     operator_login_surface = use_operator_login_template(request)
