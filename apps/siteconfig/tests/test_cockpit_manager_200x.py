@@ -132,6 +132,9 @@ def _enabled_payload(section: str) -> dict[str, Any]:
             "region": "North America",
             "country_code": "US",
             "location_title": "Test School: New York · US · North America",
+            # `_live_world_map.html` reads `dot.location_title|default:dot.status_label`;
+            # provide the fallback key so the strict test-mode lookup does not raise.
+            "status_label": "Active",
             "delay_s": 0.0,
         }]
         base["regional_breakdown"] = enrich_regional_breakdown([
@@ -273,11 +276,28 @@ class CockpitManager200xPartialRenderTests(SimpleTestCase):
     def test_each_partial_renders_empty_when_disabled(self):
         for entry in _PARTIAL_MATRIX:
             with self.subTest(template=entry["template"]):
+                # Explicitly DISABLE the section under test. manager_200x_defaults()
+                # now ships most sections enabled=True (v3.58.10 surfaced them on the
+                # landing by default), so relying on the defaults to be "off" no
+                # longer exercises the disabled path — set enabled=False directly to
+                # assert the real contract: a disabled section short-circuits to empty.
+                cockpit = manager_200x_defaults()
+                cockpit[entry["section"]] = {"enabled": False}
                 context = {
-                    "cockpit": manager_200x_defaults(),
+                    "cockpit": cockpit,
                     "csrf_token": "test-token",
                 }
-                rendered = render_to_string(entry["template"], context=context, request=self._manager_request())
+                # Render the partial in isolation: put ``request`` in the context
+                # dict (so ``{{ request.public_host_kind }}`` still resolves) but do
+                # NOT pass ``request=`` — that would use a RequestContext and run the
+                # ``site_settings`` context processor, which queries the DB (via
+                # RuntimeDefaults.get_singleton) and trips SimpleTestCase's
+                # DatabaseOperationForbidden. The partial under test reads only the
+                # ``cockpit`` dict + ``request``, so a plain Context is faithful.
+                rendered = render_to_string(
+                    entry["template"],
+                    context={**context, "request": self._manager_request()},
+                )
                 stripped = rendered.strip()
                 self.assertEqual(
                     stripped, "",
@@ -290,7 +310,17 @@ class CockpitManager200xPartialRenderTests(SimpleTestCase):
                 cockpit = manager_200x_defaults()
                 cockpit[entry["section"]] = _enabled_payload(entry["section"])
                 context = {"cockpit": cockpit, "csrf_token": "test-token"}
-                rendered = render_to_string(entry["template"], context=context, request=self._manager_request())
+                # Render the partial in isolation: put ``request`` in the context
+                # dict (so ``{{ request.public_host_kind }}`` still resolves) but do
+                # NOT pass ``request=`` — that would use a RequestContext and run the
+                # ``site_settings`` context processor, which queries the DB (via
+                # RuntimeDefaults.get_singleton) and trips SimpleTestCase's
+                # DatabaseOperationForbidden. The partial under test reads only the
+                # ``cockpit`` dict + ``request``, so a plain Context is faithful.
+                rendered = render_to_string(
+                    entry["template"],
+                    context={**context, "request": self._manager_request()},
+                )
                 self.assertIn(
                     entry["marker"], rendered,
                     f"{entry['template']} did not emit marker {entry['marker']!r} when enabled",
@@ -326,7 +356,13 @@ class CockpitManager200xBleedPreventionTests(SimpleTestCase):
         for entry in _PARTIAL_MATRIX:
             with self.subTest(template=entry["template"]):
                 context = {"cockpit": cockpit_portal_only, "csrf_token": "test-token"}
-                rendered = render_to_string(entry["template"], context=context, request=self._portal_request())
+                # Render in isolation (see note in the render-marker test): request
+                # goes in the context dict, not the request= kwarg, so no context
+                # processor (and no DB query) runs under SimpleTestCase.
+                rendered = render_to_string(
+                    entry["template"],
+                    context={**context, "request": self._portal_request()},
+                )
                 stripped = rendered.strip()
                 self.assertEqual(
                     stripped, "",
