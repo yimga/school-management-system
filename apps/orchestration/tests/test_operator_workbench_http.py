@@ -21,6 +21,16 @@ class OperatorWorkbenchHttpTests(TestCase):
             is_superuser=True,
         )
         self.client.force_login(self.user)
+        # Operator /super/ routes on the manager host sit behind the operator MFA
+        # gate: a required user with no confirmed device is bounced to enrollment
+        # (302 -> accounts:mfa_setup). Enroll a confirmed TOTP device (satisfies
+        # the enforce/setup gate) and mark the session verified (passes re-verify).
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.create(user=self.user, name="operator-totp", confirmed=True)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
         self.host = "manager.runmycampus.com"
         cache.clear()
         self.env = patch.dict(

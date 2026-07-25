@@ -60,6 +60,16 @@ class OperatorSuperadminConsoleTests(TestCase):
             username="t3", email="t3@example.com", password="x"
         )
         self.client.force_login(operator)
+        # SUPERADMIN is an MFA-required operator role, so this user (unlike the
+        # role-less superusers in the sibling tests) hits the operator MFA gate.
+        # Enroll + verify so the control-plane GET renders (200); the POST mint
+        # gate below (403, actor is not is_superuser) is what this test guards.
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.create(user=operator, name="op-totp", confirmed=True)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
         self.assertEqual(self.client.get(self.url).status_code, 200)
         resp = self.client.post(
             self.url, {"action": "promote", "user_id": target.pk}
