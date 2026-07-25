@@ -27,6 +27,12 @@ class LanderResult:
     errors: list[str] = field(default_factory=list)
     created_ids: list[Any] = field(default_factory=list)
     updated_ids_with_old_values: list[dict[str, Any]] = field(default_factory=list)
+    # Audit C-4: optional structured per-row failures. Each entry is
+    # ``{"error": str, "row": <bounded source-row snapshot>}`` so the orchestrator
+    # can thread the offending SOURCE ROW into the quarantine record (not just an
+    # error string). Populated by ``_helpers.record_row_error``; landers that only
+    # append to ``errors`` keep the string-only quarantine payload (no regression).
+    error_rows: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass

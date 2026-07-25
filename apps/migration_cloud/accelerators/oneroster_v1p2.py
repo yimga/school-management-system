@@ -98,6 +98,9 @@ ONEROSTER_FILE_MAP: dict[str, tuple[str, dict[str, str]]] = {
             "title": "subject_name",
             "courseCode": "subject_code",
             "subjects": "department",
+            # D-3: carry the per-row status so the academics lander can HOLD a
+            # tobedeleted course for review instead of importing it as active.
+            "status": "record_status",
         },
     ),
     "classes.csv": (
@@ -107,6 +110,8 @@ ONEROSTER_FILE_MAP: dict[str, tuple[str, dict[str, str]]] = {
             "courseSourcedId": "subject_code",
             "schoolSourcedId": "academic_year",
             "termSourcedIds": "term",
+            # D-3: same for classes → the sections lander.
+            "status": "record_status",
         },
     ),
     "enrollments.csv": (
@@ -119,11 +124,27 @@ ONEROSTER_FILE_MAP: dict[str, tuple[str, dict[str, str]]] = {
             "endDate": "exit_date",
         },
     ),
-    # academicSessions.csv (terms/years) is intentionally NOT pre-classified to
-    # "academics": those rows are calendar sessions, NOT subjects, and mapping
-    # their titles into the Subject catalog created bogus subjects. It falls
-    # through to the universal pipeline (custom_fields) instead of polluting
-    # apps.academics.Subject.
+    # academicSessions.csv (terms/years). Audit D-3: previously NOT pre-classified
+    # — the rows are calendar sessions, NOT subjects, so mapping their titles into
+    # the Subject catalog created bogus subjects, and leaving them unmapped meant
+    # they fell through to custom_fields, so a OneRoster import produced ZERO real
+    # terms and grades (which upsert on student+TERM+subject) had nothing to bind
+    # to. They now land as first-class AcademicYear / Term via the dedicated
+    # ``academic_sessions`` lander (wave 0). ``dateLastModified`` + ``status`` are
+    # deliberately left UNmapped so they arrive as ``_unmapped.*`` — the diff
+    # engine reads ``_unmapped.dateLastModified`` for delta re-ingest.
+    "academicSessions.csv": (
+        "academic_sessions",
+        {
+            "sourcedId": "session_external_id",
+            "title": "session_title",
+            "type": "session_type",
+            "startDate": "session_start",
+            "endDate": "session_end",
+            "schoolYear": "school_year",
+            "parentSourcedId": "parent_session_external_id",
+        },
+    ),
 }
 
 
@@ -187,6 +208,25 @@ class OneRosterV1p2InboundAccelerator(Accelerator):
         contract.notes.append(
             f"Pre-classified {matched_files} OneRoster v1.2 file(s); "
             "universal mapper still runs for unmapped columns + custom fields."
+        )
+        # Audit D-3: `status=tobedeleted` handling, honestly scoped.
+        #   * STRUCTURAL rows (course → academics, class → sections) carry the
+        #     status through to the lander via `record_status`; a tobedeleted
+        #     course/class is HELD FOR REVIEW (not imported as active) and any
+        #     existing tenant row is left intact — those models have no
+        #     is_active/status column and grades/enrollments FK into them, so a
+        #     hard delete could orphan dependents. This is wired end-to-end.
+        #   * STUDENT / ENROLLMENT / academicSession rows do NOT currently map
+        #     `status`, so a tobedeleted student/enrollment/session is NOT yet
+        #     soft-deleted here — it falls through to the universal mapper
+        #     unchanged. The `status` vendor-enum below is reserved for that
+        #     follow-up (defined, not yet consumed at transform time).
+        #   * `dateLastModified` drives incremental re-ingest via the bundle's
+        #     `diff_mode="since"` path.
+        contract.notes.append(
+            "OneRoster status=tobedeleted: structural courses/classes HELD for "
+            "review (wired); students/enrollment/sessions status not yet mapped "
+            "(no soft-delete yet); dateLastModified drives diff-mode delta re-ingest."
         )
 
         logger.info(

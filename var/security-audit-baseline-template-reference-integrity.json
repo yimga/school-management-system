@@ -1,6 +1,6 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-07-24T20:27:49+00:00",
+  "generated_at": "2026-07-24T22:10:27+00:00",
   "rule": "every literal template path passed to render/render_to_string/TemplateResponse/get_template/select_template (or assigned to template_name[s]) must resolve via Django's loader; guard with try/except TemplateDoesNotExist or # template-ref-allow: <reason>"
 }

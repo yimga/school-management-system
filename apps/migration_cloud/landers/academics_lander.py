@@ -27,7 +27,14 @@ from __future__ import annotations
 
 from typing import Any, Iterator
 
-from ._helpers import coerce_decimal, get_or_create_named, model_field_names, record_id_mapping
+from ._helpers import (
+    coerce_decimal,
+    get_or_create_named,
+    model_field_names,
+    record_id_mapping,
+    record_row_error,
+    row_marks_deletion,
+)
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
 
@@ -49,6 +56,18 @@ class AcademicsLander(Lander):
         subject_fields = model_field_names(Subject)
 
         for row in canonical_rows:
+            # D-3: a source row marked tobedeleted must NOT land as an active
+            # Subject. Subject has no is_active/status column and grades FK into
+            # it, so we neither import it as active nor hard-delete an existing one
+            # (that could orphan grades) — it is held for review with its source row.
+            if row_marks_deletion(row):
+                record_row_error(
+                    result, row,
+                    "academics: source marked this course deleted — held for review, "
+                    "not imported as active; any existing subject is left intact for "
+                    "referential safety (remove manually if intended).",
+                )
+                continue
             name = (row.get("subject_name") or row.get("name") or "").strip()
             code = (row.get("subject_code") or row.get("code") or "").strip()
             # ``Subject`` is keyed by name (unique per school); fall back to the

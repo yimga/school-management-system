@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from collections import Counter
 from datetime import timedelta
 from pathlib import Path
@@ -52,6 +53,79 @@ from django.views import View
 from .metrics import _hash_tenant_id
 
 logger = logging.getLogger(__name__)
+
+# ─── Migration-fleet SLO panel (audit G-6) ──────────────────────────────
+#
+# The migration path had only a bundle-apply SUCCESS-RATE objective
+# (`migration.bundle_apply`). G-6 adds the latency + reconcile-parity +
+# outbox-drain panel that answers "is the migration fleet meeting its SLA".
+# Thresholds are read from the SLO registry (apps/observability/slo.py) so
+# the dashboard and the objective SOT can never drift; the panel measures
+# the numbers straight from persisted bundle / heavy-work-outbox data, so no
+# Sentry emit site is required for it to be honest.
+_APPLY_LATENCY_WINDOW_DAYS = 30
+_PARITY_WINDOW_DAYS = 30
+_SECONDS_PER_MINUTE = 60
+_MS_PER_SECOND = 1000.0
+# Fallbacks used only when the SLO registry can't be imported. They mirror the
+# registry values (30-min apply ceiling; 99% parity floor) so a degraded import
+# never silently loosens the objective.
+_DEFAULT_APPLY_THRESHOLD_MS = 1_800_000  # magic-number-allow: mirrors migration.apply_latency SLO threshold
+_DEFAULT_PARITY_TARGET_PCT = 99.0
+# Matches apps/platform_runtime/heavy_work_outbox.py::_STALE_PENDING_ALERT_SECONDS;
+# imported from there at call time so the two definitions stay in lock-step, with
+# this as the fallback if that module can't be imported in a given environment.
+_DEFAULT_OUTBOX_STALE_SECONDS = 600  # magic-number-allow: mirrors heavy-work stale-pending alert seconds
+
+
+def _human_duration(seconds: float | None) -> str:
+    """Render a duration in seconds as a compact human string (—, <1s, s, min, h)."""
+    if seconds is None:
+        return "—"
+    s = float(seconds)
+    if s < 1:
+        return "<1s"
+    if s < _SECONDS_PER_MINUTE:
+        return f"{round(s)}s"
+    if s < _SECONDS_PER_MINUTE * _SECONDS_PER_MINUTE:
+        return f"{round(s / _SECONDS_PER_MINUTE, 1)} min"
+    return f"{round(s / (_SECONDS_PER_MINUTE * _SECONDS_PER_MINUTE), 1)} h"
+
+
+def _human_ms(ms: float | None) -> str:
+    return _human_duration(None if ms is None else float(ms) / _MS_PER_SECOND)
+
+
+def _percentile(sorted_vals: list[float], pct: float) -> float | None:
+    """Nearest-rank percentile of an ascending-sorted list (pct in 0..100)."""
+    if not sorted_vals:
+        return None
+    if len(sorted_vals) == 1:
+        return sorted_vals[0]
+    rank = math.ceil((pct / 100.0) * len(sorted_vals))
+    idx = min(max(rank - 1, 0), len(sorted_vals) - 1)
+    return sorted_vals[idx]
+
+
+def _fleet_slo_thresholds() -> tuple[int, float]:
+    """(apply_threshold_ms, parity_target_pct) sourced from the SLO registry."""
+    threshold_ms = _DEFAULT_APPLY_THRESHOLD_MS
+    parity_target = _DEFAULT_PARITY_TARGET_PCT
+    try:
+        from apps.observability.slo import get_slo
+
+        apply_slo = get_slo("migration.apply_latency")
+        if apply_slo is not None and apply_slo.threshold_ms:
+            threshold_ms = int(apply_slo.threshold_ms)
+        parity_slo = get_slo("migration.reconcile_parity")
+        if parity_slo is not None:
+            parity_target = float(parity_slo.target)
+    except Exception as exc:  # noqa: BLE001 — registry import must never break the dashboard
+        logger.warning(
+            "migration_cloud.health: slo_registry_load_failed err=%s",
+            type(exc).__name__,
+        )
+    return threshold_ms, parity_target
 
 
 # The 8 zero-tolerance scanners surfaced on the health dashboard. Order
@@ -296,6 +370,183 @@ def _scanner_baselines() -> dict[str, Any]:
     return {"rows": rows}
 
 
+def _apply_latency_panel(threshold_ms: int) -> dict[str, Any]:
+    """Apply p50/p95 wall-clock from SUCCEEDED mc_apply_bundle outbox rows (30d).
+
+    The heavy-work outbox stamps ``claimed_at`` (worker picked the row up →
+    APPLYING) and ``finished_at`` (apply landed → APPLIED), so the delta is a
+    real, persisted apply-compute window — no Sentry trace required. Applies
+    that ran synchronously (no outbox row) are out of scope; the panel is the
+    async-fleet SLA and is labelled as such.
+    """
+    try:
+        from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "migration_cloud.health: apply_latency_load_failed err=%s",
+            type(exc).__name__,
+        )
+        return {"load_error": True, "sample_count": 0}
+
+    since = timezone.now() - timedelta(days=_APPLY_LATENCY_WINDOW_DAYS)
+    durations_ms: list[float] = []
+    try:
+        # tenant-isolation-allow: platform-wide-migration-apply-latency-aggregation
+        qs = HeavyWorkOutbox.objects.filter(
+            kind=HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE,
+            status=HeavyWorkOutbox.Status.SUCCEEDED,
+            claimed_at__isnull=False,
+            finished_at__isnull=False,
+            finished_at__gte=since,
+        )
+        # tenant-isolation-allow: platform-wide-migration-apply-latency-aggregation
+        for claimed, finished in qs.values_list("claimed_at", "finished_at"):
+            if claimed and finished and finished >= claimed:
+                durations_ms.append((finished - claimed).total_seconds() * _MS_PER_SECOND)
+    except Exception as exc:  # noqa: BLE001 — table/field may be absent in some envs
+        logger.warning(
+            "migration_cloud.health: apply_latency_query_failed err=%s",
+            type(exc).__name__,
+        )
+        return {"load_error": True, "sample_count": 0}
+    durations_ms.sort()
+    n = len(durations_ms)
+    p50 = _percentile(durations_ms, 50)
+    p95 = _percentile(durations_ms, 95)
+    within = sum(1 for d in durations_ms if d <= threshold_ms)
+    return {
+        "load_error": False,
+        "sample_count": n,
+        "p50_human": _human_ms(p50),
+        "p95_human": _human_ms(p95),
+        "threshold_human": _human_ms(threshold_ms),
+        "attainment_pct": round(100.0 * within / n, 2) if n else None,
+        "meets": bool(n) and p95 is not None and p95 <= threshold_ms,
+    }
+
+
+def _reconcile_parity_panel(target_pct: float) -> dict[str, Any]:
+    """Reconciliation parity distribution over reconciled/applied bundles (30d).
+
+    Reads ``reconciliation_summary['overall_parity_pct']`` in Python (not via a
+    JSON DB lookup) so it works identically on SQLite and Postgres. A bundle
+    that never recorded a parity number is simply not in the sample.
+    """
+    try:
+        from apps.migration_cloud.models import BundleStatus, MigrationBundle
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "migration_cloud.health: reconcile_parity_load_failed err=%s",
+            type(exc).__name__,
+        )
+        return {"load_error": True, "sample_count": 0}
+
+    since = timezone.now() - timedelta(days=_PARITY_WINDOW_DAYS)
+    parities: list[float] = []
+    try:
+        # tenant-isolation-allow: platform-wide-migration-reconcile-parity-aggregation
+        qs = MigrationBundle.objects.filter(
+            status__in=[BundleStatus.RECONCILED, BundleStatus.APPLIED],
+            updated_at__gte=since,
+        )
+        # tenant-isolation-allow: platform-wide-migration-reconcile-parity-aggregation
+        for summary in qs.values_list("reconciliation_summary", flat=True):
+            if isinstance(summary, dict):
+                val = summary.get("overall_parity_pct")
+                if isinstance(val, (int, float)) and not isinstance(val, bool):
+                    parities.append(float(val))
+    except Exception as exc:  # noqa: BLE001 — table/field may be absent in some envs
+        logger.warning(
+            "migration_cloud.health: reconcile_parity_query_failed err=%s",
+            type(exc).__name__,
+        )
+        return {"load_error": True, "sample_count": 0}
+    n = len(parities)
+    met = sum(1 for p in parities if p >= target_pct)
+    return {
+        "load_error": False,
+        "sample_count": n,
+        "target_pct": target_pct,
+        "met_count": met,
+        "below_count": n - met,
+        "attainment_pct": round(100.0 * met / n, 2) if n else None,
+        "mean_parity_pct": round(sum(parities) / n, 2) if n else None,
+        "min_parity_pct": round(min(parities), 2) if n else None,
+        "meets": bool(n) and (100.0 * met / n) >= target_pct,
+    }
+
+
+def _outbox_freshness_panel() -> dict[str, Any]:
+    """Heavy-work outbox drain freshness for the two Migration Cloud kinds.
+
+    A PENDING mc_apply / mc_advance row older than the stale threshold means
+    the fleet is backing up — applies are queueing rather than running. The
+    threshold is imported from the outbox module so it stays in lock-step with
+    the platform's own stale-pending alert.
+    """
+    try:
+        from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "migration_cloud.health: outbox_freshness_load_failed err=%s",
+            type(exc).__name__,
+        )
+        return {"load_error": True}
+
+    try:
+        from apps.platform_runtime.heavy_work_outbox import _STALE_PENDING_ALERT_SECONDS as stale_seconds
+    except Exception:  # noqa: BLE001
+        stale_seconds = _DEFAULT_OUTBOX_STALE_SECONDS
+
+    now = timezone.now()
+    mc_kinds = [HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE, HeavyWorkOutbox.Kind.MC_ADVANCE_BUNDLE]
+    try:
+        # tenant-isolation-allow: platform-wide-migration-outbox-freshness-aggregation
+        pending = HeavyWorkOutbox.objects.filter(
+            kind__in=mc_kinds, status=HeavyWorkOutbox.Status.PENDING,
+        )
+        # tenant-isolation-allow: platform-wide-migration-outbox-freshness-aggregation
+        processing = HeavyWorkOutbox.objects.filter(
+            kind__in=mc_kinds, status=HeavyWorkOutbox.Status.PROCESSING,
+        )
+        pending_count = pending.count()
+        processing_count = processing.count()
+        oldest = pending.order_by("created_at").values_list("created_at", flat=True).first()
+        oldest_age = (now - oldest).total_seconds() if oldest else None
+        stale_cutoff = now - timedelta(seconds=stale_seconds)
+        # tenant-isolation-allow: platform-wide-migration-outbox-freshness-aggregation
+        stale_count = pending.filter(created_at__lte=stale_cutoff).count()
+    except Exception as exc:  # noqa: BLE001 — table may be absent in some envs
+        logger.warning(
+            "migration_cloud.health: outbox_freshness_query_failed err=%s",
+            type(exc).__name__,
+        )
+        return {"load_error": True}
+    return {
+        "load_error": False,
+        "pending_count": pending_count,
+        "processing_count": processing_count,
+        "oldest_age_human": _human_duration(oldest_age),
+        "stale_count": stale_count,
+        "stale_threshold_human": _human_duration(stale_seconds),
+        "fresh": stale_count == 0,
+    }
+
+
+def _migration_fleet_panel() -> dict[str, Any]:
+    """G-6 migration-fleet SLO panel: apply latency + reconcile parity + outbox drain.
+
+    Reads thresholds from the SLO registry so editing an objective in
+    ``apps/observability/slo.py`` flows straight to this dashboard.
+    """
+    threshold_ms, parity_target = _fleet_slo_thresholds()
+    return {
+        "apply": _apply_latency_panel(threshold_ms),
+        "parity": _reconcile_parity_panel(parity_target),
+        "outbox": _outbox_freshness_panel(),
+    }
+
+
 @method_decorator(staff_member_required, name="dispatch")
 class MigrationCloudHealthView(View):
     """GET /super/migration/health/ — staff-only platform health dashboard.
@@ -313,14 +564,18 @@ class MigrationCloudHealthView(View):
         keypairs = _active_companion_keypairs()
         sunsets = _pending_legacy_hash_sunsets()
         scanners = _scanner_baselines()
+        fleet = _migration_fleet_panel()
 
         logger.info(
             "migration_cloud_health_view_rendered user_id=%s "
             "webhook_total=%s maa_total=%s upload_total=%s keypair_total=%s "
-            "sunset_count=%s scanner_rows=%s",
+            "sunset_count=%s scanner_rows=%s apply_samples=%s parity_samples=%s "
+            "outbox_pending=%s",
             request.user.pk,
             webhooks["total"], maa_signs["total"], uploads["total"],
             keypairs["total"], sunsets["count"], len(scanners["rows"]),
+            fleet["apply"].get("sample_count"), fleet["parity"].get("sample_count"),
+            fleet["outbox"].get("pending_count"),
         )
 
         ctx = {
@@ -332,5 +587,6 @@ class MigrationCloudHealthView(View):
             "keypairs": keypairs,
             "sunsets": sunsets,
             "scanners": scanners,
+            "fleet": fleet,
         }
         return render(request, self.template_name, ctx)

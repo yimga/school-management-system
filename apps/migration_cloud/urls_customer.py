@@ -39,6 +39,11 @@ urlpatterns = [
         name="migration-intake-sign-maa",
     ),
     path(
+        "<uuid:id>/upload/",
+        views_customer.MigrationIntakeUploadView.as_view(),
+        name="migration-intake-upload",
+    ),
+    path(
         "<uuid:id>/status/",
         views_customer.MigrationIntakeStatusView.as_view(),
         name="migration-intake-status",
@@ -52,5 +57,10 @@ urlpatterns = [
         "<uuid:id>/abandon/",
         views_customer.MigrationIntakeAbandonView.as_view(),
         name="migration-intake-abandon",
+    ),
+    path(
+        "<uuid:id>/approve-promotion/",
+        views_customer.MigrationIntakePromotionApproveView.as_view(),
+        name="migration-intake-approve-promotion",
     ),
 ]

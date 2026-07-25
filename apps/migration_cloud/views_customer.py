@@ -319,6 +319,69 @@ class MigrationIntakeMAASignView(LoginRequiredMixin, View):
         )
 
 
+@method_decorator(csrf_protect, name="dispatch")
+class MigrationIntakeUploadView(LoginRequiredMixin, View):
+    """Self-serve export upload → bundle → guarded pipeline kick (audit G-1a).
+
+    Offered once the MAA is signed and no data is attached yet. GET shows the
+    upload form; POST hands the file to
+    ``services.intake_pipeline.attach_and_start``, which validates it (A-4),
+    ingests it into a bundle, and kicks the off-HTTP advance + dry-run preview.
+    The heavy lifting + all validation live in the service — this view only
+    marshals the request.
+    """
+
+    template_name = "migration_cloud/customer/intake_upload.html"
+
+    def _ctx(self, intake, **extra):
+        from .services.intake_pipeline import max_upload_display_mb
+
+        ctx = {"intake": intake, "max_mb": max_upload_display_mb()}
+        ctx.update(extra)
+        return ctx
+
+    def get(self, request: HttpRequest, id: str, *args, **kwargs) -> HttpResponse:
+        from .services.intake_pipeline import self_serve_apply_enabled
+
+        intake = _intake_for_request(request, id)
+        if (
+            not self_serve_apply_enabled()
+            or intake.state != MigrationIntakeState.MAA_SIGNED.value
+            or intake.bundle_id
+        ):
+            # Kill-switch off, not ready, or already uploaded — send to status.
+            return redirect(
+                "migration_intake_customer:migration-intake-status", id=str(intake.id),
+            )
+        return render(request, self.template_name, self._ctx(intake))
+
+    def post(self, request: HttpRequest, id: str, *args, **kwargs) -> HttpResponse:
+        from .services.intake_pipeline import self_serve_apply_enabled
+
+        intake = _intake_for_request(request, id)
+        if not self_serve_apply_enabled():
+            # Operator has closed the self-serve surface — no new uploads.
+            return redirect(
+                "migration_intake_customer:migration-intake-status", id=str(intake.id),
+            )
+        # upload-validation-allow: intake_pipeline.attach_and_start validates via the A-4 primitives (sniff_file_mime + scan_for_malware + size) before the file is read
+        upload = request.FILES.get("export_file")
+        if upload is None:
+            return HttpResponseBadRequest("no file provided")
+
+        from .services.intake_pipeline import IntakePipelineError, attach_and_start
+
+        try:
+            attach_and_start(intake, upload, actor=request.user)
+        except IntakePipelineError as exc:
+            return render(
+                request, self.template_name, self._ctx(intake, error=str(exc)), status=400,
+            )
+        return redirect(
+            "migration_intake_customer:migration-intake-status", id=str(intake.id),
+        )
+
+
 class MigrationIntakeStatusView(LoginRequiredMixin, View):
     """Customer-facing 7-stage progress + audit timeline + next-action banner."""
 
@@ -326,6 +389,20 @@ class MigrationIntakeStatusView(LoginRequiredMixin, View):
 
     def get(self, request: HttpRequest, id: str, *args, **kwargs) -> HttpResponse:
         intake = _intake_for_request(request, id)
+
+        # Audit G-1a: reconcile the intake FSM to its bundle's real status on every
+        # status load, so a self-serve migration advances (extraction → validation →
+        # awaiting-approval → complete) as the guarded pipeline runs on the outbox —
+        # no operator hand-off. Best-effort: a reconcile failure never blocks the page.
+        try:
+            from .services.intake_pipeline import sync_intake_from_bundle
+
+            sync_intake_from_bundle(intake, actor=request.user)
+        except Exception as exc:  # noqa: BLE001 — status page must always render
+            logger.warning(
+                "migration_cloud.intake: bundle sync failed intake_id=%s err=%s",
+                intake.id, type(exc).__name__,
+            )
 
         # Pull the last 10 audit events that reference this intake. The
         # audit model stores ``event_subject_hash = sha256(str(intake.id))``
@@ -345,22 +422,62 @@ class MigrationIntakeStatusView(LoginRequiredMixin, View):
             in ("asgi-daphne",)
         )
 
-        # This is the ASSISTED (concierge) migration path: after the school signs
-        # the MAA, the RunMyCampus team performs extraction, validation, and
-        # promotion. The stage labels must reflect who the actor is — the school
-        # does NOT self-approve here (there is deliberately no approve control on
-        # this surface), so "Awaiting your approval" was misleading. Schools that
-        # want to self-serve use the connector file-upload flow instead.
-        # See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (G-1).
-        stages = [
-            ("intake-draft", "Intake submitted"),
-            ("maa-pending-counsel", "MAA pending"),
-            ("maa-signed", "MAA signed"),
-            ("extraction-in-progress", "Extracting (RunMyCampus team)"),
-            ("validation-in-progress", "Validating (RunMyCampus team)"),
-            ("promotion-pending-approval", "In review by RunMyCampus"),
-            ("complete", "Live"),
-        ]
+        # Stage labels reflect who the actor is. On the SELF-SERVE path (audit
+        # G-1a — a bundle is attached), the platform performs extraction /
+        # validation automatically and the SCHOOL approves promotion; on the
+        # concierge path (no bundle) the RunMyCampus team drives it and the school
+        # still approves the final promotion. See docs/MIGRATION_CLOUD_AUDIT_2026_07_24.md (G-1/G-1a).
+        if intake.bundle_id:
+            stages = [
+                ("intake-draft", "Intake submitted"),
+                ("maa-pending-counsel", "MAA pending"),
+                ("maa-signed", "MAA signed"),
+                ("extraction-in-progress", "Reading your export"),
+                ("validation-in-progress", "Validating"),
+                ("promotion-pending-approval", "Awaiting your approval"),
+                ("complete", "Live"),
+            ]
+        else:
+            stages = [
+                ("intake-draft", "Intake submitted"),
+                ("maa-pending-counsel", "MAA pending"),
+                ("maa-signed", "MAA signed"),
+                ("extraction-in-progress", "Extracting (RunMyCampus team)"),
+                ("validation-in-progress", "Validating (RunMyCampus team)"),
+                ("promotion-pending-approval", "Awaiting your approval"),
+                ("complete", "Live"),
+            ]
+
+        # Audit G-1a: surface the self-serve promotion-approval control when the
+        # intake is awaiting the school's approval. The button is shown only when
+        # the guardian-consent gate (BLOCKER 6) is satisfied; otherwise the block
+        # reason is shown so the school knows what to resolve first.
+        is_pending_approval = (
+            intake.state == MigrationIntakeState.PROMOTION_PENDING_APPROVAL.value
+        )
+        approve_ok, approve_reason = intake.can_advance_to(
+            MigrationIntakeState.PROMOTION_IN_PROGRESS.value,
+        )
+
+        # Audit G-1a: self-serve data-upload is offered once the MAA is signed and
+        # no bundle is attached yet; the dry-run preview totals back the review
+        # screen when the school is deciding whether to approve promotion. The
+        # operator kill-switch hides both affordances when the surface is closed.
+        from .services.intake_pipeline import self_serve_apply_enabled
+
+        self_serve_enabled = self_serve_apply_enabled()
+        can_upload_data = (
+            self_serve_enabled
+            and intake.state == MigrationIntakeState.MAA_SIGNED.value
+            and not intake.bundle_id
+        )
+        preview = None
+        try:
+            from .services.intake_pipeline import dry_run_preview
+
+            preview = dry_run_preview(intake)
+        except Exception:  # noqa: BLE001 — preview is decorative, never blocks
+            preview = None
 
         context = {
             "intake": intake,
@@ -373,6 +490,16 @@ class MigrationIntakeStatusView(LoginRequiredMixin, View):
                 MigrationIntakeState.INTAKE_DRAFT.value,
                 MigrationIntakeState.MAA_PENDING_COUNSEL.value,
             ),
+            "is_pending_approval": is_pending_approval,
+            "can_approve_promotion": (
+                self_serve_enabled and is_pending_approval and approve_ok
+            ),
+            "approve_block_reason": (
+                approve_reason if is_pending_approval and not approve_ok else None
+            ),
+            "can_upload_data": can_upload_data,
+            "self_serve_enabled": self_serve_enabled,
+            "dry_run_preview": preview,
         }
         return render(request, self.template_name, context)
 
@@ -458,6 +585,92 @@ class MigrationIntakeAbandonView(LoginRequiredMixin, View):
         except MigrationIntakeStateError as exc:
             return HttpResponseBadRequest(str(exc))
         _signal_state_change(intake, previous)
+        return redirect(
+            "migration_intake_customer:migration-intake-status", id=str(intake.id),
+        )
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class MigrationIntakePromotionApproveView(LoginRequiredMixin, View):
+    """Customer self-serve approval to promote validated data into production (audit G-1a).
+
+    Closes the gap where the status banner said "Awaiting your approval to promote"
+    but no approve control existed on this surface — the school had to approve out
+    of band (email / call). GET shows a confirm page carrying the guardian-consent
+    posture; POST advances ``promotion-pending-approval`` → ``promotion-in-progress``.
+
+    Safety: the transition goes through ``MigrationIntakeRequest.can_advance_to``,
+    which enforces the guardian-consent gate (audit BLOCKER 6) — so a school can
+    never approve promotion of minor PII whose consent was DECLINED or is
+    incomplete. This is a state APPROVAL (the school's decision, recorded +
+    audited), NOT a raw tenant write: the data promotion itself still runs through
+    the already-guarded apply pipeline, so a customer click cannot land unvalidated
+    rows directly.
+    """
+
+    template_name = "migration_cloud/customer/intake_approve_confirm.html"
+
+    def get(self, request: HttpRequest, id: str, *args, **kwargs) -> HttpResponse:
+        intake = _intake_for_request(request, id)
+        can_approve, reason = intake.can_advance_to(
+            MigrationIntakeState.PROMOTION_IN_PROGRESS.value,
+        )
+        is_pending = intake.state == MigrationIntakeState.PROMOTION_PENDING_APPROVAL.value
+        return render(
+            request,
+            self.template_name,
+            {
+                "intake": intake,
+                "is_pending_approval": is_pending,
+                "can_approve": can_approve,
+                "block_reason": None if can_approve else reason,
+                "consent_collected": intake.guardian_consent_collected_count,
+                "consent_required": intake.guardian_consent_required_count,
+            },
+        )
+
+    def post(self, request: HttpRequest, id: str, *args, **kwargs) -> HttpResponse:
+        from .services.intake_pipeline import self_serve_apply_enabled
+
+        intake = _intake_for_request(request, id)
+        if not self_serve_apply_enabled():
+            # Kill-switch off — do not advance the FSM or enqueue any apply.
+            return redirect(
+                "migration_intake_customer:migration-intake-status", id=str(intake.id),
+            )
+        if intake.state != MigrationIntakeState.PROMOTION_PENDING_APPROVAL.value:
+            return HttpResponseBadRequest("intake is not awaiting promotion approval")
+        if request.POST.get("confirm") != "on":
+            return HttpResponseBadRequest("confirmation checkbox required")
+        previous = intake.state
+        try:
+            intake.advance(
+                MigrationIntakeState.PROMOTION_IN_PROGRESS.value, actor=request.user,
+            )
+        except MigrationIntakeStateError as exc:
+            # Most likely the guardian-consent gate — surface it, never 500.
+            return HttpResponseBadRequest(str(exc))
+        _signal_state_change(intake, previous)
+
+        # Audit G-1a: on the self-serve path (a bundle is attached), the school's
+        # approval enqueues the REAL guarded apply + reconcile on the durable
+        # outbox. Concierge intakes (no bundle) no-op here — an operator drives
+        # those. Best-effort: a queue failure must not undo the recorded approval.
+        try:
+            from .services.intake_pipeline import begin_promotion
+
+            begin_promotion(intake, actor=request.user)
+        except Exception as exc:  # noqa: BLE001 — approval stands even if enqueue hiccups
+            logger.warning(
+                "migration_cloud.intake: promotion enqueue failed intake_id=%s err=%s",
+                intake.id, type(exc).__name__,
+            )
+
+        logger.info(
+            "migration_cloud.intake: promotion approved by customer intake_id=%s "
+            "tenant_pk=%s user_pk=%s",
+            intake.id, getattr(intake.tenant, "pk", None), request.user.pk,
+        )
         return redirect(
             "migration_intake_customer:migration-intake-status", id=str(intake.id),
         )

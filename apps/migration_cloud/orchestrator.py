@@ -378,7 +378,7 @@ def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:
 # Ordered waves; jobs within a wave run in parallel, waves run serially so
 # the next wave sees its parent rows already in the tenant schema.
 _DEPENDENCY_WAVES: tuple[frozenset[str], ...] = (
-    frozenset({"structure"}),                                       # wave 0: academic scaffold (SPLIT provisioning) — MUST precede students/enrollment/grades
+    frozenset({"structure", "academic_sessions"}),                  # wave 0: academic scaffold (SPLIT provisioning + OneRoster years/terms) — MUST precede students/enrollment/grades
     frozenset({"students", "staff", "sections", "academics"}),      # wave 1: independent roots (academics = Subject catalog, precedes grades)
     frozenset({"enrollment", "guardians", "schedule"}),             # wave 2: depend on wave 1
     frozenset({"attendance", "grades", "behavior", "finance", "transcripts",  # wave 3: depend on wave 2
@@ -990,6 +990,11 @@ def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> N
 def _classify_quarantine_issue(err: str) -> str:
     """Bucket a lander error string into a ``MigrationQuarantineRecord.issue_class``."""
     e = (err or "").lower()
+    # D-3: a source-deletion HOLD is not a failure — it is a tobedeleted structural
+    # row we deliberately did not import as active. Classify it distinctly so the
+    # operator review surface can separate "held: source deleted" from real errors.
+    if "held for review" in e or ("marked this" in e and "deleted" in e):
+        return "source_deletion"
     if "duplicate" in e or "unique" in e or "already exists" in e:
         return "duplicate"
     if "invalid" in e or "not found" in e or "unresolved" in e or "no such" in e:
@@ -1027,15 +1032,28 @@ def _quarantine_errors(
     except ImportError:
         return
 
+    # C-4: when a lander recorded the offending source row (via
+    # _helpers.record_row_error), thread it into the quarantine record so the
+    # operator sees WHAT failed, keyed by the exact error string. Landers that
+    # only append error strings keep the string-only payload — no regression.
+    row_by_error: dict[str, Any] = {}
+    for er in (getattr(result, "error_rows", None) or []):
+        if isinstance(er, dict) and "error" in er:
+            row_by_error[str(er.get("error"))] = er.get("row")
+
     domain_label = ((domain or "") or (artifact.path_within_bundle or ""))[:32]
     for idx, err in enumerate(result.errors[:200], start=1):  # cap runaway quarantine
+        payload = {"error": err, "artifact": artifact.path_within_bundle}
+        source_row = row_by_error.get(str(err))
+        if source_row is not None:
+            payload["source_row"] = source_row
         try:
             MigrationQuarantineRecord.objects.create(
                 school=bundle.school,
                 migration_run=run,
                 domain=domain_label,
                 row_index=idx,
-                payload={"error": err, "artifact": artifact.path_within_bundle},
+                payload=payload,
                 issue_class=_classify_quarantine_issue(err),
                 status=MigrationQuarantineRecord.Status.PENDING,
             )

@@ -335,6 +335,81 @@ def _jsonable(value: Any) -> Any:
     return str(value)[:200]
 
 
+# --- Quarantine source-row threading (audit C-4) ----------------------------
+
+_QUARANTINE_ROW_MAX_KEYS = 60
+
+
+def _row_snapshot(row: Any) -> dict[str, Any]:
+    """Bounded, JSON-safe copy of a source row for a quarantine record.
+
+    Values are truncated (via :func:`_jsonable`, 200 chars) and the key count is
+    capped so a pathological wide row can't bloat the quarantine payload. The row
+    stays inside the tenant's own quarantine table — the same trust boundary as
+    the data being landed — so no additional redaction is applied here.
+    """
+    if not isinstance(row, dict):
+        return {"_value": _jsonable(row)}
+    out: dict[str, Any] = {}
+    for i, (k, v) in enumerate(row.items()):
+        if i >= _QUARANTINE_ROW_MAX_KEYS:
+            out["_truncated"] = True
+            break
+        out[str(k)[:64]] = _jsonable(v)
+    return out
+
+
+# Source per-row status tokens that denote a DELETED / retired record (audit D-3).
+# OneRoster ships ``status=tobedeleted``; other SIS use withdrawn/inactive/archived.
+# Normalised (spaces / dashes / underscores stripped, lowercased) before matching.
+_TOMBSTONE_STATUSES = frozenset({
+    "tobedeleted", "deleted", "withdrawn", "inactive", "archived", "removed", "void",
+})
+# Canonical + common unmapped keys a per-row status can arrive under.
+_DELETE_MARKER_KEYS = ("record_status", "_source_status", "_status", "_unmapped.status", "status")
+
+
+def is_tombstone_status(value: Any) -> bool:
+    """True when a status token denotes a deleted / retired source record."""
+    token = str(value or "").strip().lower().replace(" ", "").replace("-", "").replace("_", "")
+    return token in _TOMBSTONE_STATUSES
+
+
+def row_marks_deletion(row: Any) -> bool:
+    """True when a canonical row carries a source 'deleted' status marker (audit D-3).
+
+    OneRoster (and other SIS) ship a per-row ``status``; a ``tobedeleted``
+    STRUCTURAL row (course / class) must NOT be imported as active. This checks the
+    canonical ``record_status`` and the common unmapped fallbacks, tolerating both
+    the raw ``tobedeleted`` and the value-mapped ``withdrawn``. Used ONLY by the
+    structural landers (academics / sections) — student / enrollment landers treat
+    ``withdrawn`` as a legitimate lifecycle value, not a deletion, so they never
+    call this.
+    """
+    if not isinstance(row, dict):
+        return False
+    return any(key in row and is_tombstone_status(row.get(key)) for key in _DELETE_MARKER_KEYS)
+
+
+def record_row_error(result, row: Any, message: str) -> None:
+    """Record a per-row lander failure that carries the SOURCE ROW (audit C-4).
+
+    Increments ``result.quarantined`` and appends ``message`` to ``result.errors``
+    (the unchanged back-compat contract every consumer already relies on) AND
+    appends ``{"error", "row"}`` to ``result.error_rows`` so
+    ``orchestrator._quarantine_errors`` can thread the offending row into
+    ``MigrationQuarantineRecord.payload['source_row']`` — the operator sees WHAT
+    failed, not just an error string. A lander adopts this by replacing its
+    ``result.quarantined += 1; result.errors.append(msg)`` pair with one call.
+    """
+    result.quarantined += 1
+    result.errors.append(message)
+    try:
+        result.error_rows.append({"error": message, "row": _row_snapshot(row)})
+    except Exception:  # noqa: BLE001 — quarantine bookkeeping never breaks a lander
+        pass
+
+
 def conflict_resolution_for(*, ctx, canonical_obj: Any) -> str:
     """Look up a resolved-conflict decision for this row, if any.
 

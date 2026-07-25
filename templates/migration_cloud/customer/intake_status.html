@@ -38,6 +38,16 @@
       {% if intake.state == 'maa-pending-counsel' %}
         <a href="{% url 'migration_intake_customer:migration-intake-sign-maa' id=intake.id %}" class="btn btn-sm btn-primary ms-2">{% trans "Sign agreement" %}</a>
       {% endif %}
+      {% if can_upload_data %}
+        <a href="{% url 'migration_intake_customer:migration-intake-upload' id=intake.id %}" class="btn btn-sm btn-primary ms-2">{% trans "Upload your export" %}</a>
+      {% endif %}
+      {% if is_pending_approval %}
+        {% if can_approve_promotion %}
+          <a href="{% url 'migration_intake_customer:migration-intake-approve-promotion' id=intake.id %}" class="btn btn-sm btn-primary ms-2">{% trans "Approve promotion" %}</a>
+        {% elif approve_block_reason %}
+          <span class="d-block small text-warning mt-1">{% blocktrans with reason=approve_block_reason %}Approval is blocked: {{ reason }}{% endblocktrans %}</span>
+        {% endif %}
+      {% endif %}
     </div>
   {% endif %}
 
@@ -47,6 +57,29 @@
       {% include "migration_cloud/customer/_progress_bar.html" %}
     </div>
   </section>
+
+  {% if dry_run_preview %}
+    <section class="card mb-4" data-rmc-migration-preview>
+      <div class="card-body">
+        <h2 class="h5 mb-1">{% trans "Validation preview" %}</h2>
+        <p class="text-secondary small mb-3">{% trans "A rehearsal run against your data — nothing has been written to your live tenant yet. Review, then approve to promote." %}</p>
+        <div class="row text-center g-3">
+          <div class="col">
+            <div class="h3 mb-0">{{ dry_run_preview.created|default:"0" }}</div>
+            <div class="small text-secondary">{% trans "records to create" %}</div>
+          </div>
+          <div class="col">
+            <div class="h3 mb-0">{{ dry_run_preview.updated|default:"0" }}</div>
+            <div class="small text-secondary">{% trans "records to update" %}</div>
+          </div>
+          <div class="col">
+            <div class="h3 mb-0">{{ dry_run_preview.quarantined|default:"0" }}</div>
+            <div class="small text-secondary">{% trans "rows held for review" %}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  {% endif %}
 
   <div class="row">
     <div class="col-md-7">

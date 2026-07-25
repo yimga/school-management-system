@@ -34,6 +34,8 @@ from ._helpers import (
     model_field_names,
     persist_dfv_extras,
     record_id_mapping,
+    record_row_error,
+    row_marks_deletion,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
@@ -58,6 +60,18 @@ class SectionsLander(Lander):
         cls_fields = model_field_names(Classroom)
 
         for row in canonical_rows:
+            # D-3: a source row marked tobedeleted must NOT land as an active
+            # Classroom. Classroom has no is_active/status column and enrollments /
+            # grades reference it, so we neither import it as active nor hard-delete
+            # an existing one — it is held for review with its source row.
+            if row_marks_deletion(row):
+                record_row_error(
+                    result, row,
+                    "sections: source marked this class deleted — held for review, "
+                    "not imported as active; any existing classroom is left intact "
+                    "for referential safety (remove manually if intended).",
+                )
+                continue
             code = (row.get("section_code") or row.get("code") or "").strip()
             name = (row.get("name") or code).strip()
             if not code and not name:

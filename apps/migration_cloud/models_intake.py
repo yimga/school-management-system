@@ -223,6 +223,21 @@ class MigrationIntakeRequest(models.Model):
         related_name="migration_intake_requests",
         help_text="The MAA signature that consented this intake. Null until signed.",
     )
+    # Audit G-1a: the MigrationBundle this intake drives on the self-serve path.
+    # Null until the school uploads its export (concierge intakes stay null and
+    # are driven by an operator). Both models live in the migration_cloud app on
+    # the SHARED side, so this is a same-app SHARED→SHARED FK — no tenancy cross.
+    bundle = models.ForeignKey(
+        "migration_cloud.MigrationBundle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="intake_requests",
+        help_text=(
+            "The MigrationBundle this intake drives (self-serve apply). Null until "
+            "the school uploads data; the bundle owns the real data lifecycle."
+        ),
+    )
     guardian_consent_collected_count = models.IntegerField(
         default=0,
         help_text="Guardians who have completed the consent flow.",

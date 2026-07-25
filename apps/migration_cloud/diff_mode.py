@@ -32,6 +32,11 @@ _TIMESTAMP_COLUMNS = (
     "updated_at", "modified_at", "last_change", "last_modified",
     "lastmodified", "lastupdated", "modified", "updated", "changed_at",
     "last_update", "modified_date", "updated_date",
+    # OneRoster v1.2 stamps every row with camelCase ``dateLastModified`` (audit
+    # D-3). It arrives unmapped (``_unmapped.dateLastModified``) since the ontology
+    # has no canonical updated_at, so recognising it here — and its snake variant
+    # — is what turns a OneRoster ``diff_mode="since"`` re-ingest into a real delta.
+    "datelastmodified", "date_last_modified",
 )
 
 

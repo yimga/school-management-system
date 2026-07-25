@@ -27,6 +27,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    record_row_error,
     resolve_student,
     student_lookup_field,
 )
@@ -91,9 +92,8 @@ class BehaviorLander(Lander):
             date_val = coerce_date(row.get("date"))
             description = (row.get("description") or "").strip()
             if not external_id or date_val is None or not description:
-                result.quarantined += 1
-                result.errors.append(
-                    f"behavior: missing student/date/description in {row!r}"
+                record_row_error(
+                    result, row, "behavior: missing student/date/description"
                 )
                 continue
             student = resolve_student(
@@ -103,9 +103,8 @@ class BehaviorLander(Lander):
                 external_id=external_id,
             )
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
-                    f"behavior: no student with {student_lookup}={external_id!r}"
+                record_row_error(
+                    result, row, f"behavior: no student with {student_lookup}={external_id!r}"
                 )
                 continue
 

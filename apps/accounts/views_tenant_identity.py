@@ -912,6 +912,7 @@ def tenant_staff_invite_accept(request, token):
             if hasattr(user, "role") and not existing_platform_principal:
                 user.role = invite.role
             user.save()
+            # tenant-isolation-allow: deliberate cross-school check — is this user a member of any OTHER school? — scoped to the one user being enrolled, to set is_primary correctly
             has_other_membership = SchoolMembership.objects.filter(user=user).exclude(
                 school=school
             ).exists()

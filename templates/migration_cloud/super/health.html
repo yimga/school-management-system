@@ -1,7 +1,7 @@
 {% extends "control_plane_base.html" %}
 {% load i18n glocal_tags rmc_explain_tags %}
 
-<!-- v3.38.0 Agent 4 — Migration Cloud operator health dashboard. Six panels in a 3-col grid for incident response: 1. Webhook deliveries (last 24h, by status) 2. MAA signs (last 7d, by version) 3. Companion uploads (last 24h, count + bytes per HASHED tenant) 4. Active Companion keypairs (per HASHED tenant) 5. Pending legacy hash sunsets (single count) 6. Zero-tolerance scanner baselines (8 rows) Hard contract: this template NEVER renders raw tenant slugs (only the 12-hex sha256 prefix the view computed), and NEVER renders signature bytes / MAA body / private key material. Auto-refreshes every 60s via meta refresh so an operator can keep it open. -->
+<!-- v3.38.0 Agent 4 — Migration Cloud operator health dashboard. + audit G-6 (2026-07-24): a fleet-SLO row leads the grid, answering "is the migration fleet meeting its SLA" straight from persisted bundle + heavy-work-outbox data (no Sentry emit required): A. Apply latency p50/p95 over 30d (mc_apply_bundle outbox claimed→finished) B. Reconcile parity attainment over 30d (bundle reconciliation_summary.overall_parity_pct vs the SLO target) C. Heavy-work outbox drain freshness (pending mc_apply/mc_advance rows + oldest age vs the stale-pending threshold). Thresholds are read from the SLO registry (apps/observability/slo.py) so the dashboard and objective SOT can't drift. Followed by the six incident-response panels: 1. Webhook deliveries (last 24h, by status) 2. MAA signs (last 7d, by version) 3. Companion uploads (last 24h, count + bytes per HASHED tenant) 4. Active Companion keypairs (per HASHED tenant) 5. Pending legacy hash sunsets (single count) 6. Zero-tolerance scanner baselines (8 rows) Hard contract: this template NEVER renders raw tenant slugs (only the 12-hex sha256 prefix the view computed), and NEVER renders signature bytes / MAA body / private key material. Auto-refreshes every 60s via meta refresh so an operator can keep it open. -->
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — operator health" }}{% endblock %}
 
@@ -28,6 +28,83 @@
   </header>
 
   <div class="rmc-grid rmc-grid--3col rmc-grid--migration-cloud-health">
+
+    <!-- ── Fleet SLO A (G-6) — Bundle apply latency (30d) ────────────── -->
+    <section class="rmc-card rmc-card--mc-health rmc-card--mc-fleet-slo" aria-labelledby="health-apply-latency-heading">
+      <h2 id="health-apply-latency-heading" class="rmc-h2">{% trans "Apply latency (30d)" %}</h2>
+      {% if fleet.apply.load_error %}
+        <p class="rmc-empty">{% trans "Heavy-work outbox not loadable in this environment." %}</p>
+      {% else %}
+        <p class="rmc-metric-ticker">
+          <span class="rmc-metric-ticker__value">{% if fleet.apply.sample_count %}{{ fleet.apply.p95_human }}{% else %}—{% endif %}</span>
+          <span class="rmc-metric-ticker__label">{% trans "p95 apply (async fleet)" %}</span>
+        </p>
+        <p class="rmc-meta">
+          <span>{% blocktrans with p50=fleet.apply.p50_human %}p50 {{ p50 }}{% endblocktrans %}</span>
+          <span>·</span>
+          <span>{% blocktrans with n=fleet.apply.sample_count %}{{ n }} applies{% endblocktrans %}</span>
+          <span>·</span>
+          <span>{% blocktrans with t=fleet.apply.threshold_human %}SLA ≤ {{ t }}{% endblocktrans %}</span>
+        </p>
+        {% if not fleet.apply.sample_count %}
+          <span class="rmc-badge rmc-badge--info">{% trans "no data" %}</span>
+        {% elif fleet.apply.meets %}
+          <span class="rmc-badge rmc-badge--success">{% blocktrans with pct=fleet.apply.attainment_pct %}meets SLA · {{ pct }}% within{% endblocktrans %}</span>
+        {% else %}
+          <span class="rmc-badge rmc-badge--warning">{% blocktrans with pct=fleet.apply.attainment_pct %}below SLA · {{ pct }}% within{% endblocktrans %}</span>
+        {% endif %}
+      {% endif %}
+    </section>
+
+    <!-- ── Fleet SLO B (G-6) — Reconciliation parity (30d) ───────────── -->
+    <section class="rmc-card rmc-card--mc-health rmc-card--mc-fleet-slo" aria-labelledby="health-parity-heading">
+      <h2 id="health-parity-heading" class="rmc-h2">{% trans "Reconcile parity (30d)" %}</h2>
+      {% if fleet.parity.load_error %}
+        <p class="rmc-empty">{% trans "Bundle model not loadable in this environment." %}</p>
+      {% else %}
+        <p class="rmc-metric-ticker">
+          <span class="rmc-metric-ticker__value">{% if fleet.parity.sample_count %}{{ fleet.parity.attainment_pct }}%{% else %}—{% endif %}</span>
+          <span class="rmc-metric-ticker__label">{% blocktrans with target=fleet.parity.target_pct %}bundles ≥ {{ target }}% parity{% endblocktrans %}</span>
+        </p>
+        <p class="rmc-meta">
+          <span>{% blocktrans with mean=fleet.parity.mean_parity_pct|default:"—" %}mean {{ mean }}%{% endblocktrans %}</span>
+          <span>·</span>
+          <span>{% blocktrans with min=fleet.parity.min_parity_pct|default:"—" %}min {{ min }}%{% endblocktrans %}</span>
+          <span>·</span>
+          <span>{% blocktrans with n=fleet.parity.sample_count %}{{ n }} reconciled{% endblocktrans %}</span>
+        </p>
+        {% if not fleet.parity.sample_count %}
+          <span class="rmc-badge rmc-badge--info">{% trans "no data" %}</span>
+        {% elif fleet.parity.meets %}
+          <span class="rmc-badge rmc-badge--success">{% trans "meets SLA" %}</span>
+        {% else %}
+          <span class="rmc-badge rmc-badge--warning">{% blocktrans with below=fleet.parity.below_count %}{{ below }} below floor{% endblocktrans %}</span>
+        {% endif %}
+      {% endif %}
+    </section>
+
+    <!-- ── Fleet SLO C (G-6) — Heavy-work outbox drain freshness ─────── -->
+    <section class="rmc-card rmc-card--mc-health rmc-card--mc-fleet-slo" aria-labelledby="health-outbox-heading">
+      <h2 id="health-outbox-heading" class="rmc-h2">{% trans "Outbox drain" %}</h2>
+      {% if fleet.outbox.load_error %}
+        <p class="rmc-empty">{% trans "Heavy-work outbox not loadable in this environment." %}</p>
+      {% else %}
+        <p class="rmc-metric-ticker">
+          <span class="rmc-metric-ticker__value">{{ fleet.outbox.pending_count }}</span>
+          <span class="rmc-metric-ticker__label">{% trans "apply/advance pending" %}</span>
+        </p>
+        <p class="rmc-meta">
+          <span>{% blocktrans with n=fleet.outbox.processing_count %}{{ n }} processing{% endblocktrans %}</span>
+          <span>·</span>
+          <span>{% blocktrans with age=fleet.outbox.oldest_age_human %}oldest {{ age }}{% endblocktrans %}</span>
+        </p>
+        {% if fleet.outbox.fresh %}
+          <span class="rmc-badge rmc-badge--success">{% blocktrans with t=fleet.outbox.stale_threshold_human %}fresh · none over {{ t }}{% endblocktrans %}</span>
+        {% else %}
+          <span class="rmc-badge rmc-badge--warning">{% blocktrans with n=fleet.outbox.stale_count t=fleet.outbox.stale_threshold_human %}{{ n }} backing up (> {{ t }}){% endblocktrans %}</span>
+        {% endif %}
+      {% endif %}
+    </section>
 
     <!-- ── Panel 1 — Last-24h webhook deliveries ─────────────────────── -->
     <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-webhooks-heading">

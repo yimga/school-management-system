@@ -1,0 +1,55 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% comment %}
+Audit G-1a — self-serve export upload (views_customer.MigrationIntakeUploadView).
+Shown once the MAA is signed and no data is attached yet. The upload is validated
+(A-4 magic-byte + size + malware) and ingested into a MigrationBundle by
+services.intake_pipeline.attach_and_start, which then kicks the off-HTTP advance +
+dry-run preview. This surface only marshals the multipart POST.
+{% endcomment %}
+
+{% block title %}{% trans "Upload your export" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<main class="container py-4 rmc-page rmc-page--migration-cloud-customer rmc-mc-customer-page" id="main" data-rmc-migration-cloud-surface>
+  <header class="mb-4">
+    <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="text-secondary text-decoration-none">{% trans "← Back to status" %}</a>
+    <h1 class="h2 mb-1 mt-2">{% trans "Upload your export" %}</h1>
+    <p class="text-secondary mb-0">
+      {% blocktrans with vendor=intake.get_vendor_slug_display %}Export your data from {{ vendor }} (a single CSV, or a .zip of the CSV bundle) and upload it here. We validate it, run a rehearsal, and show you exactly what will import before anything touches your live tenant.{% endblocktrans %}
+    </p>
+  </header>
+
+  {% if error %}
+    <div class="rmc-banner rmc-banner--error" role="alert">
+      <strong>{% trans "Upload rejected." %}</strong> <span class="d-block small mt-1">{{ error }}</span>
+    </div>
+  {% endif %}
+
+  <div data-rmc-scroll-policy="paginate" class="card">
+    <div class="card-body">
+      <form method="post" action="{% url 'migration_intake_customer:migration-intake-upload' id=intake.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="export_file" class="form-label">{% trans "Export file" %}</label>
+          <input type="file" id="export_file" name="export_file" class="form-control" accept=".csv,.zip,.tar,.gz,.tgz,.7z" required>
+          <div class="form-text">
+            {% blocktrans with mb=max_mb %}CSV or compressed archive, up to {{ mb }} MB. The file is scanned before it is read.{% endblocktrans %}
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+          <button type="submit" class="btn btn-primary">{% trans "Upload and validate" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

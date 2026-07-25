@@ -398,19 +398,32 @@ class CustomerViewDBTests(TestCase):
     # ---- PII guards ----
 
     def test_advance_log_no_pii(self):
+        import logging as _logging
+
         from apps.migration_cloud.models_intake import MigrationIntakeState
         intake = self._make_intake(self.school_a, self.user_a)
         intake.counsel_signoff_pdf_url = (
             "https://example.invalid/signoff.pdf?token=SECRET-NEVER-LOG"
         )
         intake.save(update_fields=["counsel_signoff_pdf_url", "updated_at"])
-        with self.assertLogs(
-            "apps.migration_cloud.models_intake", level="INFO",
-        ) as cap:
-            intake.advance(
-                MigrationIntakeState.MAA_PENDING_COUNSEL.value,
-                actor=self.user_a,
-            )
+        # `config.settings_test` calls `logging.disable(CRITICAL)` to quiet the
+        # structured logger; `assertLogs` cannot observe a record while a global
+        # disable is in effect (it does not reset `manager.disable`). Locally
+        # lift it so the PII-in-log assertion actually runs, then restore the
+        # prior level. Harmless no-op under `config.settings` (CI), where no
+        # global disable is set.
+        _prev_disable = _logging.root.manager.disable
+        _logging.disable(_logging.NOTSET)
+        try:
+            with self.assertLogs(
+                "apps.migration_cloud.models_intake", level="INFO",
+            ) as cap:
+                intake.advance(
+                    MigrationIntakeState.MAA_PENDING_COUNSEL.value,
+                    actor=self.user_a,
+                )
+        finally:
+            _logging.disable(_prev_disable)
         combined = "\n".join(cap.output)
         self.assertNotIn("SECRET-NEVER-LOG", combined)
         self.assertNotIn("signoff.pdf", combined)

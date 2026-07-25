@@ -168,6 +168,7 @@ def send_tenant_staff_invite(invite, *, accept_url: str = "") -> bool:
         # Expiring it lets the guarded retry create one new token/key while
         # preserving this failed row and its token-free audit history.
         failed_at = timezone.now()
+        # tenant-isolation-allow: scoped to one specific invite by primary key (pk=invite.pk) — a single-row update that cannot reach another tenant
         TenantStaffInvite.objects.filter(
             pk=invite.pk,
             accepted_at__isnull=True,

@@ -1,0 +1,74 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% comment %}
+Audit G-1a — customer self-serve promotion approval
+(views_customer.MigrationIntakePromotionApproveView). Shown when an intake is
+awaiting the school's approval to promote validated data into production. The
+approve button is gated on the guardian-consent posture (BLOCKER 6); when consent
+is incomplete or declined the school sees the block reason instead of a live
+button. Approval is a recorded, audited decision — the data promotion itself
+still runs through the guarded apply pipeline.
+{% endcomment %}
+
+{% block title %}{% trans "Approve promotion" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<main class="container py-4 rmc-page rmc-page--migration-cloud-customer rmc-mc-customer-page" id="main" data-rmc-migration-cloud-surface>
+  <header class="mb-4">
+    <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="text-secondary text-decoration-none">{% trans "← Back to status" %}</a>
+    <h1 class="h2 mb-1 mt-2">{% trans "Approve promotion into production?" %}</h1>
+    <p class="text-secondary mb-0">
+      {% trans "Approving promotes the validated migration data into your live RunMyCampus tenant. Review the details below before you confirm." %}
+    </p>
+  </header>
+
+  <div data-rmc-scroll-policy="paginate" class="card">
+    <div class="card-body">
+      {% if not is_pending_approval %}
+        <div class="rmc-banner rmc-banner--info" role="status">
+          {% blocktrans with state_label=intake.get_state_display %}This migration is not awaiting approval (currently: {{ state_label }}).{% endblocktrans %}
+        </div>
+        <div class="d-flex justify-content-end mt-3">
+          <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="btn btn-outline-secondary">{% trans "Back to status" %}</a>
+        </div>
+      {% else %}
+        <p class="mb-3">
+          <strong>{% trans "Vendor:" %}</strong> {{ intake.get_vendor_slug_display }}<br>
+          <strong>{% trans "Current state:" %}</strong> {{ intake.get_state_display }}<br>
+          <strong>{% trans "Guardian consent:" %}</strong> {{ consent_collected }} / {{ consent_required }} {% trans "collected" %}
+        </p>
+
+        {% if can_approve %}
+          <form method="post" action="{% url 'migration_intake_customer:migration-intake-approve-promotion' id=intake.id %}">
+            {% csrf_token %}
+            <div class="form-check mb-4">
+              <input type="checkbox" id="confirm_promote" name="confirm" class="form-check-input" required>
+              <label class="form-check-label" for="confirm_promote">
+                {% trans "I approve promoting the validated migration data into our live production tenant." %}
+              </label>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="btn btn-outline-secondary">{% trans "Not yet" %}</a>
+              <button type="submit" class="btn btn-primary">{% trans "Approve promotion" %}</button>
+            </div>
+          </form>
+        {% else %}
+          <div class="rmc-banner rmc-banner--warning" role="status">
+            <strong>{% trans "Approval is blocked." %}</strong>
+            {% if block_reason %}<span class="d-block small mt-1">{{ block_reason }}</span>{% endif %}
+            <p class="small mb-0 mt-2">{% trans "Guardian consent must be resolved before validated student data can be promoted." %}</p>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="btn btn-outline-secondary">{% trans "Back to status" %}</a>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</main>
+{% endblock %}

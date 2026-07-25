@@ -33,7 +33,7 @@ BASELINE_REQUIRED_ROLES: tuple[str, ...] = (
     "FINANCE",
     "BURSAR",
     "SCHOOL_ADMIN",
-    "ADMIN",
+    "ADMIN",  # role-string-allow: baseline MFA-required role registry mixes canonical + legacy/imported spellings, matched upper-cased at lookup
     "AUDITOR",
 )
 
@@ -68,6 +68,7 @@ def principal_requires_strict_mfa(user, school=None) -> bool:
             suspended_at__isnull=True,
         ).exists()
     except Exception:  # noqa: BLE001 - fail closed for an ADMIN on a tenant host
+        # role-string-allow: fail-closed ADMIN gate used only when the SchoolMembership lookup is unavailable
         return role == "ADMIN"
 
 
