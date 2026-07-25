@@ -250,16 +250,25 @@ class TenantPricingOptionsTests(TestCase):
         self.assertEqual(addon["monthly_total"], Decimal("10.00"))
 
     def test_missing_country_uses_global_fallback_profile(self):
-        CountryBillingProfile.objects.create(
+        CountryBillingProfile.objects.update_or_create(
             country_code="ZZ",
-            country_name="Global fallback market",
-            currency_code="USD",
-            default_billing_cycles=["monthly", "annual", "custom_contract"],
-            payment_methods=["card", "invoice"],
-            is_active=True,
+            defaults={
+                "country_name": "Global fallback market",
+                "currency_code": "USD",
+                "default_billing_cycles": ["monthly", "annual", "custom_contract"],
+                "payment_methods": ["card", "invoice"],
+                "is_active": True,
+            },
         )
+        # Simulate a TRULY country-less school: clear the explicit country_code AND the
+        # region that School.save() auto-derived from it at creation. resolve_school_
+        # country_code falls back to default_region otherwise, so without this the school
+        # still resolves to US and the ZZ global-fallback profile is never exercised.
         self.school.country_code = ""
-        self.school.save(update_fields=["country_code", "updated_at"])
+        self.school.default_region = None
+        self.school.save(
+            update_fields=["country_code", "default_region", "updated_at"]
+        )
         from apps.billing.tenant_pricing import tenant_pricing_options
 
         options = tenant_pricing_options(self.school)
