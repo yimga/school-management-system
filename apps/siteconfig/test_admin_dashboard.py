@@ -94,12 +94,16 @@ class AdminDashboardWidgetTestCase(TestCase):
     def test_currency_widget(self):
         """Test currency formatting"""
         from apps.siteconfig.admin_dashboard import AdminDashboardWidget
+        from apps.siteconfig.currency import platform_currency_symbol
 
         widget = AdminDashboardWidget("Revenue", "currency")
         widget.value = 50000
 
         formatted = widget.get_formatted_value()
-        self.assertIn("₦", formatted)
+        # Platform admin widgets render the platform's OWN reporting-currency
+        # symbol (platform_currency_symbol), never a hardcoded glyph.
+        self.assertIn(platform_currency_symbol(), formatted)
+        self.assertIn("50,000", formatted)
 
 
 class QuickStatsWidgetTestCase(TestCase):

@@ -196,29 +196,40 @@ def _enabled_payload(section: str) -> dict[str, Any]:
 
 
 class CockpitManager200xDefaultsTests(SimpleTestCase):
-    """Helpers return well-formed defaults with `enabled=False`."""
+    """Helpers return well-formed section payloads.
 
-    def test_aggregator_returns_all_ten_sections(self):
+    Since v3.58.10 the manager-landing sections default to ``enabled=True``
+    ("live on landing by default") rather than the original enabled=False —
+    the per-section ``enabled: True`` in ``cockpit_manager_200x.py`` carries
+    that versioned intent. These tests assert the current defaults.
+    """
+
+    def test_aggregator_returns_all_sections(self):
         payload = manager_200x_defaults()
         expected = {
             "ai_copilot_rail",
             "live_world_map",
             "forecast_lane",
             "operator_notebook",
+            "nav_sidebar",
+            "operator_tools",
             "tenant_heatmap",
             "revenue_waterfall",
             "audit_feed",
             "trust_nutrition",
             "slo_clocks",
             "operator_presence",
+            "activity_ticker",
+            "trust_pillars_alerts",
         }
         self.assertEqual(set(payload.keys()), expected)
 
-    def test_every_section_defaults_to_disabled(self):
+    def test_every_section_defaults_to_enabled(self):
+        # v3.58.10: manager-landing sections ship live by default.
         for section, payload in manager_200x_defaults().items():
             with self.subTest(section=section):
                 self.assertIn("enabled", payload, f"{section} missing 'enabled' key")
-                self.assertFalse(payload["enabled"], f"{section} enabled should default False")
+                self.assertTrue(payload["enabled"], f"{section} enabled should default True")
 
     def test_individual_helpers_return_dicts(self):
         helpers = [
@@ -238,7 +249,7 @@ class CockpitManager200xDefaultsTests(SimpleTestCase):
                 payload = helper()
                 self.assertIsInstance(payload, dict)
                 self.assertIn("enabled", payload)
-                self.assertFalse(payload["enabled"])
+                self.assertTrue(payload["enabled"])
 
 
 class CockpitManager200xPartialRenderTests(SimpleTestCase):
