@@ -383,6 +383,11 @@ class CockpitConfigureViewAccessTests(SimpleTestCase):
     def test_test_func_rejects_non_staff_authenticated(self) -> None:
         request = self.factory.get("/")
         request.user = self.non_staff
+        # user_may_configure_tenant_experience now also honours a granular
+        # settings.manage / settings.feature_control grant (DB-backed M2M). This
+        # is a SimpleTestCase with an unsaved user, so stub that check to False —
+        # the case under test is a non-staff user WITHOUT any such grant.
+        self.non_staff.has_feature_permission = lambda code: False
         view = self._bind_view(self._view(), request)
         self.assertFalse(view.test_func())
 

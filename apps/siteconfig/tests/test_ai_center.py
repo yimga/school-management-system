@@ -16,6 +16,7 @@ from apps.people.models import TeacherProfile
 from apps.siteconfig.ai_assistants import assistant_keys, get_assistant
 from apps.siteconfig.models import Plan
 from apps.schools.models import School, SchoolMembership
+from apps.test_utils.http_clients import login_manager_client
 
 _T_HOST = "aicenter.runmycampus.com"
 
@@ -247,8 +248,10 @@ class AICenterManagerControlPlaneTests(TestCase):
             is_superuser=False,
             role=User.Role.SUPERADMIN,
         )
-        c = Client(HTTP_HOST=_MGR_HOST)
-        c.login(username=u.username, password="x" * 8)
+        # role=SUPERADMIN arms strict operator MFA on the manager host;
+        # login_manager_client gives a confirmed device + verified manager
+        # session so the assistants page renders instead of bouncing to setup.
+        c = login_manager_client(u, password="x" * 8)
         path = reverse("siteconfig:ai_center", urlconf="config.manager_urls")
         resp = c.get(path)
         self.assertEqual(resp.status_code, 200)
