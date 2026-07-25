@@ -16,6 +16,10 @@ from apps.siteconfig.models_dashboard import (
     TenantLayoutAssignment,
 )
 from apps.schools.models import School, SchoolMembership
+from apps.schools.tests.manager_client import (
+    _manager_session_store,
+    bind_manager_session,
+)
 
 _MGR = "manager.runmycampus.com"
 
@@ -64,6 +68,32 @@ class OperatorSiteconfigCpQaTests(TestCase):
         path = reverse(name, urlconf="config.manager_urls", **kwargs)
         return self.client.get(path)
 
+    def _select_operator_school(self, school):
+        """Bind the operator's school on the MANAGER session store.
+
+        On the manager host ``request.school`` resolves from the manager-named
+        session cookie (``ManagerCookieIsolationMiddleware``), not the default
+        ``sessionid`` — writing ``self.client.session["school_id"]`` targets the
+        wrong store, so ``dashboard_configuration_hub`` sees no school and 302s.
+        Binding the school also flips role resolution to the ADMIN membership,
+        which arms RequireMFAMiddleware: give a confirmed device (setup gate) and
+        mark the session verified (re-verify gate). Kept local to this helper so
+        the no-school tests stay device-free (a device would arm the re-verify
+        gate for every request).
+        """
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.get_or_create(
+            user=self.user, name="cpqa-mfa", confirmed=True
+        )
+        bind_manager_session(self.client)
+        store = _manager_session_store(self.client)
+        store["school_id"] = str(school.id)
+        store["mfa_verified"] = True
+        store.modified = True
+        store.save()
+        bind_manager_session(self.client)
+
     def _assert_cp_page_quality(self, resp, *, expect_title_fragment: str):
         self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
         body = resp.content.decode("utf-8", errors="replace")
@@ -99,9 +129,7 @@ class OperatorSiteconfigCpQaTests(TestCase):
 
     def test_dashboard_configuration_responsive_table_wrapper(self):
         DashboardTemplate.objects.create(name="QA default layout", is_active=True)
-        session = self.client.session
-        session["school_id"] = str(self.school.id)
-        session.save()
+        self._select_operator_school(self.school)
         resp = self._get("siteconfig:dashboard_configuration_hub")
         self._assert_cp_page_quality(resp, expect_title_fragment="Dashboard configuration")
         self.assertIn("table-responsive", resp.content.decode())
@@ -130,9 +158,7 @@ class OperatorSiteconfigCpQaTests(TestCase):
                 "sections": {"admin__legacy_panel": False},
             },
         )
-        session = self.client.session
-        session["school_id"] = str(self.school.id)
-        session.save()
+        self._select_operator_school(self.school)
 
         before_count = TenantLayoutAssignment.objects.filter(school=self.school).count()
         resp = self._get("siteconfig:dashboard_configuration_hub")

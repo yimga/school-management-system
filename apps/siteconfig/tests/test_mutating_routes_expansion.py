@@ -45,7 +45,7 @@ _ALLOWED = [
 class UpdateThemeJsonPolicyTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        School.objects.create(
+        cls.school = School.objects.create(
             name="Mut Exp School",
             slug="mut-exp",
             subdomain="mut-exp",
@@ -56,10 +56,15 @@ class UpdateThemeJsonPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_T_HOST, raise_request_exception=False)
 
     def test_update_theme_forbidden_for_parent_role(self):
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="theme_parent",
             password="x" * 8,
             role=User.Role.PARENT,
+        )
+        # Tenant host confines a logged-in non-member (302) before the permission
+        # gate runs; membership lets the request reach the 403/200 policy check.
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.PARENT, is_primary=True
         )
         self.client.login(username="theme_parent", password="x" * 8)
         path = reverse("siteconfig:update_theme")
@@ -71,10 +76,13 @@ class UpdateThemeJsonPolicyTests(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_update_theme_ok_for_teacher(self):
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="theme_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
+        )
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
         )
         self.client.login(username="theme_teacher", password="x" * 8)
         path = reverse("siteconfig:update_theme")
@@ -92,7 +100,7 @@ class UpdateThemeJsonPolicyTests(TestCase):
 class FeatureControlEmbedPolicyTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        School.objects.create(
+        cls.school = School.objects.create(
             name="FeatCtl School",
             slug="featctl-exp",
             subdomain="featctl-exp",
@@ -113,6 +121,9 @@ class FeatureControlEmbedPolicyTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="fc_no", password="x" * 8)
         path = reverse("siteconfig:feature_control_panel") + "?embed=1"
         resp = self.client.get(path)
@@ -138,6 +149,9 @@ class FeatureControlEmbedPolicyTests(TestCase):
             role=User.Role.ADMIN,
         )
         u.feature_permissions.add(self.perm_fc)
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
         self.client.login(username="fc_export_ok", password="x" * 8)
         path = reverse("siteconfig:feature_control_export")
         resp = self.client.get(path)
@@ -150,7 +164,7 @@ class FeatureControlEmbedPolicyTests(TestCase):
 class PackageRollbackPolicyTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        School.objects.create(
+        cls.school = School.objects.create(
             name="Rollback School",
             slug="rbk-exp",
             subdomain="rbk-exp",
@@ -161,10 +175,13 @@ class PackageRollbackPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_RBK_HOST, raise_request_exception=False)
 
     def test_rollback_get_forbidden_for_teacher(self):
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="rbk_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
+        )
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
         )
         self.client.login(username="rbk_teacher", password="x" * 8)
         path = reverse("siteconfig:installed_packages_rollback")
@@ -262,7 +279,7 @@ class StudioPublishApiPolicyTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        School.objects.create(
+        cls.school = School.objects.create(
             name="Studio Pub School",
             slug="studio-pub-exp",
             subdomain="studio-pub-exp",
@@ -273,11 +290,14 @@ class StudioPublishApiPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_STU_POST_HOST, raise_request_exception=False)
 
     def test_studio_publish_post_forbidden_for_non_staff(self):
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="stu_pub_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
             is_staff=False,
+        )
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
         )
         self.client.login(username="stu_pub_teacher", password="x" * 8)
         path = reverse("studio_os:publish", urlconf="config.tenant_urls")
@@ -285,11 +305,14 @@ class StudioPublishApiPolicyTests(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_studio_publish_post_not_forbidden_for_staff(self):
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="stu_pub_staff",
             password="x" * 8,
             role=User.Role.ADMIN,
             is_staff=True,
+        )
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
         )
         self.client.login(username="stu_pub_staff", password="x" * 8)
         path = reverse("studio_os:publish", urlconf="config.tenant_urls")
@@ -333,6 +356,9 @@ class BulkLettersPostPolicyTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="bl_noperm", password="x" * 8)
         path = reverse("siteconfig:bulk_letters")
         resp = self.client.post(
@@ -348,6 +374,9 @@ class BulkLettersPostPolicyTests(TestCase):
             role=User.Role.ADMIN,
         )
         u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
         self.client.login(username="bl_yes", password="x" * 8)
         path = reverse("siteconfig:bulk_letters")
         resp = self.client.post(path, data={"letter_body": "", "classroom_id": ""})
@@ -388,6 +417,9 @@ class NorthstarAiDraftPostPolicyTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="ns_ai_draft_noperm", password="x" * 8)
         path = reverse("siteconfig:northstar_ai_draft", urlconf="config.tenant_urls")
         resp = self.client.post(
@@ -429,7 +461,7 @@ class RequestWaiverPostPolicyTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        School.objects.create(
+        cls.school = School.objects.create(
             name="Waiver School",
             slug="waiver-exp",
             subdomain="waiver-exp",
@@ -450,6 +482,9 @@ class RequestWaiverPostPolicyTests(TestCase):
             role=User.Role.TEACHER,
         )
         u.feature_permissions.clear()
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
+        )
         self.client.login(username="wv_noperm", password="x" * 8)
         path = reverse("siteconfig:request_waiver")
         resp = self.client.post(path, data={"reason": "Need waiver for testing policy."})
@@ -475,7 +510,7 @@ class StudioSaveDraftApiPolicyTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        School.objects.create(
+        cls.school = School.objects.create(
             name="Studio Draft School",
             slug="studio-draft-exp",
             subdomain="studio-draft-exp",
@@ -486,11 +521,14 @@ class StudioSaveDraftApiPolicyTests(TestCase):
         self.client = Client(HTTP_HOST=_STU_DRAFT_HOST, raise_request_exception=False)
 
     def test_studio_save_draft_post_forbidden_for_non_staff(self):
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="stu_draft_teacher",
             password="x" * 8,
             role=User.Role.TEACHER,
             is_staff=False,
+        )
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.TEACHER, is_primary=True
         )
         self.client.login(username="stu_draft_teacher", password="x" * 8)
         path = reverse("studio_os:save_draft", urlconf="config.tenant_urls")
@@ -498,11 +536,14 @@ class StudioSaveDraftApiPolicyTests(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_studio_save_draft_post_not_forbidden_for_staff(self):
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="stu_draft_staff",
             password="x" * 8,
             role=User.Role.ADMIN,
             is_staff=True,
+        )
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
         )
         self.client.login(username="stu_draft_staff", password="x" * 8)
         path = reverse("studio_os:save_draft", urlconf="config.tenant_urls")
@@ -553,6 +594,9 @@ class SchoolThemeSettingsPostPolicyTests(TestCase):
             role=User.Role.ADMIN,
         )
         u.feature_permissions.add(self.perm_settings)
+        SchoolMembership.objects.create(
+            user=u, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
         self.client.login(username="th_yes", password="x" * 8)
         path = reverse("siteconfig:school_theme_settings")
         resp = self.client.post(path, data={"theme_choice": "SNEAT"})
