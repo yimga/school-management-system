@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from django.test import Client, TestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission, User
@@ -13,6 +13,7 @@ from apps.people.models import StudentProfile
 from apps.reports.models import ReportCard, ReportCardAudit, ReportDocumentHash
 from apps.siteconfig.models import Plan
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 _T_HOST = "rout.runmycampus.com"
 
@@ -113,8 +114,9 @@ class ReportOutputHistoryEvidenceTests(TestCase):
         )
 
     def test_settings_manager_sees_real_output_history_markers(self) -> None:
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="report_output_adm", password="p" * 8)
+        c = login_tenant_admin_client(
+            self.user, password="p" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse(
             "siteconfig:report_output_history_evidence", urlconf="config.tenant_urls"
         )
@@ -132,8 +134,9 @@ class ReportOutputHistoryEvidenceTests(TestCase):
         self.assertIn("Audit events", body)
 
     def test_related_links_precede_advanced_admin_fallback(self) -> None:
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="report_output_adm", password="p" * 8)
+        c = login_tenant_admin_client(
+            self.user, password="p" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse(
             "siteconfig:report_output_history_evidence", urlconf="config.tenant_urls"
         )

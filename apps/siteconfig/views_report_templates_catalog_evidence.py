@@ -49,42 +49,52 @@ def report_templates_catalog_evidence(
                 "has_export_handler": has_handler,
             }
         )
-    sum(1 for r in template_rows if r["has_export_handler"])
+    ctx: dict = {
+        "school": school,
+        "report_template_family": report_template_family,
+        "template_rows": template_rows,
+        "template_total": qs.count(),
+        "template_with_handler": sum(
+            1 for r in template_rows if r["has_export_handler"]
+        ),
+    }
 
     u = request.user
     if getattr(u, "is_authenticated", False) and getattr(u, "is_superuser", False):
         try:
-            reverse(
+            ctx["admin_reporttemplate_changelist_url"] = reverse(
                 "admin:siteconfig_reporttemplate_changelist"
             )
         except NoReverseMatch:
             pass
 
     try:
-        reverse("siteconfig:scheduled_reports_delivery_hub")
+        ctx["scheduled_reports_hub_url"] = reverse(
+            "siteconfig:scheduled_reports_delivery_hub"
+        )
     except NoReverseMatch:
         pass
     try:
-        reverse(
+        ctx["tenant_report_schedules_evidence_url"] = reverse(
             "siteconfig:tenant_report_schedules_evidence"
         )
     except NoReverseMatch:
         pass
     try:
-        reverse(
+        ctx["term_publish_status_evidence_url"] = reverse(
             "siteconfig:term_publish_status_evidence"
         )
     except NoReverseMatch:
         pass
     try:
-        reverse("siteconfig:compliance_exports")
+        ctx["compliance_exports_url"] = reverse("siteconfig:compliance_exports")
     except NoReverseMatch:
         pass
 
     return render_siteconfig_stem(
         request,
         "report_templates_catalog_evidence",
-        None,
+        ctx,
         cp_title=_("Report templates catalog"),
         breadcrumbs=default_operator_breadcrumbs(
             operator_cp_breadcrumb(_("Report templates catalog"), active=True),

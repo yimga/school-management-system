@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 @permission_required("settings.manage", raise_exception=True)
 def term_publish_status_evidence(request: HttpRequest) -> HttpResponse:
     school = getattr(request, "school", None)
+    ctx: dict = {"school": school}
     if school is not None:
         try:
             from apps.reports.models import TermPublishStatus
@@ -34,9 +35,9 @@ def term_publish_status_evidence(request: HttpRequest) -> HttpResponse:
             base = TermPublishStatus.objects.filter(
                 academic_year__school_id=school.id
             )
-            base.count()
-            base.filter(is_published=True).count()
-            list(
+            ctx["tps_total"] = base.count()
+            ctx["tps_published"] = base.filter(is_published=True).count()
+            ctx["rows"] = list(
                 base.select_related(
                     "academic_year", "term", "classroom", "published_by"
                 )
@@ -51,25 +52,33 @@ def term_publish_status_evidence(request: HttpRequest) -> HttpResponse:
         except Exception as ex:  # noqa: BLE001 — read-only; surface empty on DB edge
             logger.debug("term_publish_status_evidence: %s", ex)
     try:
-        reverse("admin:reports_termpublishstatus_changelist")
+        ctx["admin_termpublish_changelist_url"] = reverse(
+            "admin:reports_termpublishstatus_changelist"
+        )
     except NoReverseMatch:
         pass
     try:
-        reverse("siteconfig:scheduled_reports_delivery_hub")
+        ctx["scheduled_reports_hub_url"] = reverse(
+            "siteconfig:scheduled_reports_delivery_hub"
+        )
     except NoReverseMatch:
         pass
     try:
-        reverse("siteconfig:academic_years_setup_evidence")
+        ctx["academic_years_setup_evidence_url"] = reverse(
+            "siteconfig:academic_years_setup_evidence"
+        )
     except NoReverseMatch:
         pass
     try:
-        reverse("siteconfig:tenant_report_schedules_evidence")
+        ctx["tenant_report_schedules_evidence_url"] = reverse(
+            "siteconfig:tenant_report_schedules_evidence"
+        )
     except NoReverseMatch:
         pass
     return render_siteconfig_stem(
         request,
         "term_publish_status_evidence",
-        None,
+        ctx,
         cp_title=_("Term publish status"),
         breadcrumbs=default_operator_breadcrumbs(
             operator_cp_breadcrumb(_("Term publish status"), active=True),

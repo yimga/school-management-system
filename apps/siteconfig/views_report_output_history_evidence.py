@@ -39,23 +39,41 @@ def report_output_history_evidence(request: HttpRequest) -> HttpResponse:
             .distinct()
         )
 
-    report_q.count()
-    report_q.exclude(pdf_file="").count()
+    ctx: dict = {"school": school}
+    ctx["report_total"] = report_q.count()
+    ctx["pdf_total"] = report_q.exclude(pdf_file="").count()
     report_ids = report_q.values_list("pk", flat=True)
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    ReportDocumentHash.objects.filter(report_card_id__in=report_ids).count()
-    ReportCardAudit.objects.filter(report_card_id__in=report_ids).count()
-    list(report_q.order_by("-generated_at")[:100])
+    ctx["hash_total"] = ReportDocumentHash.objects.filter(
+        report_card_id__in=report_ids
+    ).count()
+    ctx["audit_total"] = ReportCardAudit.objects.filter(
+        report_card_id__in=report_ids
+    ).count()
+    ctx["recent_reports"] = list(report_q.order_by("-generated_at")[:100])
+
+    ctx["scheduled_reports_hub_url"] = _safe_reverse(
+        "siteconfig:scheduled_reports_delivery_hub"
+    )
+    ctx["tenant_report_schedules_evidence_url"] = _safe_reverse(
+        "siteconfig:tenant_report_schedules_evidence"
+    )
+    ctx["report_templates_catalog_url"] = _safe_reverse(
+        "siteconfig:report_templates_catalog_evidence"
+    )
+    ctx["term_publish_status_evidence_url"] = _safe_reverse(
+        "siteconfig:term_publish_status_evidence"
+    )
 
     if getattr(request.user, "is_superuser", False):
-        _safe_reverse(
+        ctx["admin_reportcard_changelist_url"] = _safe_reverse(
             "admin:reports_reportcard_changelist"
         )
 
     return render_siteconfig_stem(
         request,
         "report_output_history_evidence",
-        None,
+        ctx,
         cp_title=_("Report output history"),
         breadcrumbs=default_operator_breadcrumbs(
             operator_cp_breadcrumb(_("Report output history"), active=True),

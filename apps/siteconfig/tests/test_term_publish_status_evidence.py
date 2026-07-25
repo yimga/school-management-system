@@ -6,6 +6,7 @@ from django.urls import reverse
 from apps.accounts.models import Permission, User
 from apps.siteconfig.models import Plan
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 _T_HOST = "tpub.runmycampus.com"
 
@@ -42,8 +43,9 @@ class TermPublishStatusEvidenceTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm_settings)
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="tpub_u", password="x" * 8)
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse(
             "siteconfig:term_publish_status_evidence", urlconf="config.tenant_urls"
         )
@@ -60,15 +62,16 @@ class TermPublishStatusEvidenceTests(TestCase):
         self.assertIn("Term publish status", body)
 
     def test_superuser_sees_scheduled_hub_before_admin_fallback(self) -> None:
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="tpub_su",
             password="x" * 8,
             role=User.Role.ADMIN,
             is_staff=True,
             is_superuser=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="tpub_su", password="x" * 8)
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse(
             "siteconfig:term_publish_status_evidence", urlconf="config.tenant_urls"
         )
@@ -88,12 +91,15 @@ class TermPublishStatusEvidenceTests(TestCase):
             is_superuser=False,
         )
         u.feature_permissions.add(self.perm_settings)
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="tpub_ns", password="x" * 8)
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse(
             "siteconfig:term_publish_status_evidence", urlconf="config.tenant_urls"
         )
-        body = c.get(path).content.decode("utf-8", errors="replace")
+        resp = c.get(path)
+        self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
+        body = resp.content.decode("utf-8", errors="replace")
         self.assertNotIn("Advanced: Admin term publish", body)
 
     def test_anonymous_redirects(self) -> None:

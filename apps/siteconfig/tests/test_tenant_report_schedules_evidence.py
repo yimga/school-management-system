@@ -12,6 +12,7 @@ from apps.accounts.models import Permission as FeaturePermission, User
 from apps.reports.models import TenantReportSchedule
 from apps.siteconfig.models import Plan
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 _T_HOST = "sched-ev.runmycampus.com"
 
@@ -65,8 +66,9 @@ class TenantReportSchedulesEvidenceRouteTests(TestCase):
         )
 
     def test_settings_manager_gets_200_with_markers(self) -> None:
-        client = Client(HTTP_HOST=_T_HOST)
-        client.login(username="sched_evidence_adm", password="w" * 8)
+        client = login_tenant_admin_client(
+            self.user, password="w" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse(
             "siteconfig:tenant_report_schedules_evidence", urlconf="config.tenant_urls"
         )

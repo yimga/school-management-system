@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from django.test import Client, TestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import NoReverseMatch, reverse
 
 from apps.accounts.models import Permission, User
 from apps.academics.models import Department
 from apps.siteconfig.models import Plan
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 _T_HOST = "deptev.runmycampus.com"
 
@@ -50,8 +51,9 @@ class DepartmentsSetupEvidenceTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm_settings)
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="d_ev", password="x" * 8)
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse("siteconfig:departments_setup_evidence", urlconf="config.tenant_urls")
         self.assertIn("/siteconfig/reports/departments-setup/", path)
         resp = c.get(path)
@@ -62,15 +64,16 @@ class DepartmentsSetupEvidenceTests(TestCase):
         self.assertIn("Mathematics", body)
 
     def test_superuser_sees_cp_links_before_admin(self) -> None:
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="d_su",
             password="x" * 8,
             role=User.Role.ADMIN,
             is_staff=True,
             is_superuser=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="d_su", password="x" * 8)
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse("siteconfig:departments_setup_evidence", urlconf="config.tenant_urls")
         body = c.get(path).content.decode("utf-8", errors="replace")
         p = body.find("Scheduled report delivery")
@@ -102,8 +105,11 @@ class DepartmentsSetupEvidenceTests(TestCase):
             is_superuser=False,
         )
         u.feature_permissions.add(self.perm_settings)
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="d_ns", password="x" * 8)
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse("siteconfig:departments_setup_evidence", urlconf="config.tenant_urls")
-        body = c.get(path).content.decode("utf-8", errors="replace")
+        resp = c.get(path)
+        self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
+        body = resp.content.decode("utf-8", errors="replace")
         self.assertNotIn("Advanced/Admin: department rows", body)

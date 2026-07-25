@@ -59,3 +59,45 @@ def login_tenant_client(
         session["mfa_verified"] = True
         session.save()
     return client
+
+
+def login_tenant_admin_client(
+    user,
+    *,
+    password: str,
+    host: str,
+    school,
+    role: str = "ADMIN",
+) -> Client:
+    """Fully-armed tenant-host client for a baseline-MFA admin reaching an operator
+    control-plane page rendered on the tenant shell.
+
+    Two guards gate such a request. ``OperatorTenantConfinementMiddleware``
+    (``apps/accounts/middleware.py``) redirects any user with control-plane access
+    but no ``SchoolMembership`` to ``manager/super/`` — a membership flips
+    ``user_has_control_plane_access`` to False so a normal tenant admin passes
+    (superusers keep the break-glass bypass, so they skip the membership).
+    ``RequireMFAMiddleware`` then walls the baseline-MFA ADMIN role without a
+    confirmed TOTP device (enforce) or a verified session (re-verify). Give the
+    user a confirmed device and mark the session verified.
+    """
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+
+    from apps.schools.models import SchoolMembership
+
+    if not getattr(user, "is_superuser", False):
+        SchoolMembership.objects.get_or_create(
+            user=user,
+            school=school,
+            defaults={"role": role, "is_primary": True},
+        )
+    TOTPDevice.objects.get_or_create(
+        user=user, name="test-tenant-mfa", confirmed=True
+    )
+    client = Client(HTTP_HOST=host, raise_request_exception=False)
+    if not client.login(username=user.username, password=password):
+        raise AssertionError(f"tenant login failed for {user.username!r}")
+    session = client.session
+    session["mfa_verified"] = True
+    session.save()
+    return client

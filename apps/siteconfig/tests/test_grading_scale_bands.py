@@ -4,7 +4,7 @@ import uuid
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.test import Client, TestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -17,6 +17,7 @@ from apps.evals.models import GradingScale, GradingScaleBand
 from apps.siteconfig.models import Plan
 from apps.siteconfig.models_platform_catalog import RegionConfig
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 _T_HOST = "gsb2ns.runmycampus.com"
 
@@ -133,8 +134,9 @@ class GradingScaleBandsSlice2Tests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         url = reverse("siteconfig:grading_scale_bands", urlconf="config.tenant_urls")
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200, msg=resp.content[:600])
@@ -151,8 +153,9 @@ class GradingScaleBandsSlice2Tests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         url = reverse("siteconfig:grading_scale_bands", urlconf="config.tenant_urls")
         body = c.get(url).content.decode("utf-8", errors="replace")
         idx_related = body.find("Configuration control center")
@@ -169,10 +172,13 @@ class GradingScaleBandsSlice2Tests(TestCase):
             is_staff=True,
             is_superuser=False,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         url = reverse("siteconfig:grading_scale_bands", urlconf="config.tenant_urls")
-        body = c.get(url).content.decode("utf-8", errors="replace")
+        resp = c.get(url)
+        self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
+        body = resp.content.decode("utf-8", errors="replace")
         self.assertNotIn("Advanced (Django admin)", body)
 
     def test_teacher_forbidden(self):
@@ -181,8 +187,12 @@ class GradingScaleBandsSlice2Tests(TestCase):
             password="x" * 8,
             role=User.Role.TEACHER,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(tu)
+        # Arm as a genuine tenant member (TEACHER) so the request clears the
+        # tenant-host membership guard and reaches the view, which must then
+        # forbid a teacher from grading-scale configuration.
+        c = login_tenant_admin_client(
+            tu, password="x" * 8, host=_T_HOST, school=self.school, role="TEACHER"
+        )
         url = reverse("siteconfig:grading_scale_bands", urlconf="config.tenant_urls")
         resp = c.get(url)
         self.assertEqual(resp.status_code, 403)

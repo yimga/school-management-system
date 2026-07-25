@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from django.test import Client, TestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission, User
 from apps.siteconfig.models import Plan, ReportTemplate
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 _T_HOST = "rtcat.runmycampus.com"
 
@@ -50,8 +51,9 @@ class ReportTemplatesCatalogEvidenceTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm_settings)
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="rt_cat_adm", password="p" * 8)
+        c = login_tenant_admin_client(
+            u, password="p" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse(
             "siteconfig:report_templates_catalog_evidence", urlconf="config.tenant_urls"
         )
@@ -68,15 +70,16 @@ class ReportTemplatesCatalogEvidenceTests(TestCase):
         self.assertIn("rtcat-smoke", body)
 
     def test_superuser_cp_before_admin(self) -> None:
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="rt_cat_su",
             password="p" * 8,
             role=User.Role.ADMIN,
             is_staff=True,
             is_superuser=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username="rt_cat_su", password="p" * 8)
+        c = login_tenant_admin_client(
+            u, password="p" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse(
             "siteconfig:report_templates_catalog_evidence", urlconf="config.tenant_urls"
         )

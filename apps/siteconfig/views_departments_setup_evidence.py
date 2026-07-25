@@ -27,37 +27,44 @@ logger = logging.getLogger(__name__)
 @permission_required("settings.manage", raise_exception=True)
 def departments_setup_evidence(request: HttpRequest) -> HttpResponse:
     school = getattr(request, "school", None)
+    ctx: dict = {"school": school}
     if school is not None:
         try:
             from apps.academics.models import Department
 
             base = Department.objects.filter(school_id=school.id)
-            base.count()
-            list(base.order_by("name", "id")[:200])
+            ctx["department_total"] = base.count()
+            ctx["rows"] = list(base.order_by("name", "id")[:200])
         except Exception as ex:  # noqa: BLE001
             logger.debug("departments_setup_evidence: %s", ex)
     # Academics are registered on tenant admin only; ROOT_URLCONF hosts platform admin.
     try:
-        reverse(
+        ctx["admin_department_changelist_url"] = reverse(
             "admin:academics_department_changelist",
             urlconf="config.tenant_urls",
         )
     except NoReverseMatch:
         pass
     try:
-        reverse("siteconfig:scheduled_reports_delivery_hub")
+        ctx["scheduled_reports_hub_url"] = reverse(
+            "siteconfig:scheduled_reports_delivery_hub"
+        )
     except NoReverseMatch:
         pass
     try:
-        reverse("siteconfig:academic_years_setup_evidence")
+        ctx["academic_years_setup_evidence_url"] = reverse(
+            "siteconfig:academic_years_setup_evidence"
+        )
     except NoReverseMatch:
         pass
     try:
-        reverse("siteconfig:term_publish_status_evidence")
+        ctx["term_publish_status_evidence_url"] = reverse(
+            "siteconfig:term_publish_status_evidence"
+        )
     except NoReverseMatch:
         pass
     try:
-        reverse(
+        ctx["tenant_report_schedules_evidence_url"] = reverse(
             "siteconfig:tenant_report_schedules_evidence"
         )
     except NoReverseMatch:
@@ -65,7 +72,7 @@ def departments_setup_evidence(request: HttpRequest) -> HttpResponse:
     return render_siteconfig_stem(
         request,
         "departments_setup_evidence",
-        None,
+        ctx,
         cp_title=_("Departments setup"),
         breadcrumbs=default_operator_breadcrumbs(
             operator_cp_breadcrumb(_("Departments setup"), active=True),
