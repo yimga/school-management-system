@@ -1,6 +1,5 @@
 """Tenant District & LMS interop hub."""
 
-import os
 from unittest.mock import patch
 
 from django.contrib.auth.models import AnonymousUser
@@ -11,7 +10,7 @@ from apps.accounts.models import User
 from apps.accounts.views_district_interop import district_lms_interop
 from apps.integrations_marketplace.models import ServiceIntegration
 from apps.interop.oneroster.constants import ONEROSTER_DISTRICT_API_SERVICE_NAME
-from apps.schools.models import School, TenantInteropAccessLog
+from apps.schools.models import School, SchoolMembership, TenantInteropAccessLog
 
 
 class DistrictInteropHubTests(TestCase):
@@ -26,9 +25,35 @@ class DistrictInteropHubTests(TestCase):
         self.admin = User.objects.create_user(username="interop_adm", password="x")
         self.admin.role = User.Role.ADMIN
         self.admin.save(update_fields=["role"])
+        # A real tenant admin holds a SchoolMembership. Without it the operator-
+        # confinement middleware treats a role=ADMIN user as a role-only operator
+        # (user_has_control_plane_access) and bounces tenant-host requests to the
+        # signed manager /super/ flow — so the Client tests below never reach the view.
+        SchoolMembership.objects.create(
+            user=self.admin, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
         self.teacher = User.objects.create_user(username="interop_t", password="x")
         self.teacher.role = User.Role.TEACHER
         self.teacher.save(update_fields=["role"])
+
+    def _mfa_verify(self, client, user):
+        """Satisfy the tenant-host MFA gate for an ADMIN client.
+
+        RequireMFAMiddleware covers ADMIN on the tenant host, so a force_login'd
+        admin POST is otherwise redirected to the MFA challenge (which loops under
+        follow=True). Mirror the confirmed-device + session-flag pattern the other
+        backend-host tests use.
+        """
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.update_or_create(
+            user=user,
+            name="district-interop-test",
+            defaults={"confirmed": True},
+        )
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
 
     def test_teacher_forbidden(self):
         req = self.factory.get("/authentication/backend/district-lms-interop/")
@@ -49,12 +74,12 @@ class DistrictInteropHubTests(TestCase):
         self.assertIn(b"Native Clever", resp.content)
         self.assertEqual(resp.content.count(b"data-rmc-password-toggle"), 3)
 
-    @override_settings(ALLOWED_HOSTS=["*"])
-    @patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False)
+    @override_settings(ALLOWED_HOSTS=["*"], MULTI_TENANT_BASE_DOMAIN="example.com")
     def test_save_native_vendor_persists_config(self):
         host = f"{self.school.subdomain}.example.com"
         c = Client(HTTP_HOST=host)
         c.force_login(self.admin)
+        self._mfa_verify(c, self.admin)
         url = reverse("accounts:district_interop_save_native_vendor")
         r = c.post(
             url,
@@ -76,12 +101,12 @@ class DistrictInteropHubTests(TestCase):
             "https://oneroster.classlink.example/v1p1",
         )
 
-    @override_settings(ALLOWED_HOSTS=["*"])
-    @patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False)
+    @override_settings(ALLOWED_HOSTS=["*"], MULTI_TENANT_BASE_DOMAIN="example.com")
     def test_native_probe_without_tokens_warns(self):
         host = f"{self.school.subdomain}.example.com"
         c = Client(HTTP_HOST=host)
         c.force_login(self.admin)
+        self._mfa_verify(c, self.admin)
         r = c.post(
             reverse("accounts:district_interop_native_probe"),
             follow=True,
@@ -90,8 +115,7 @@ class DistrictInteropHubTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn(b"No native Clever", r.content)
 
-    @override_settings(ALLOWED_HOSTS=["*"])
-    @patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "example.com"}, clear=False)
+    @override_settings(ALLOWED_HOSTS=["*"], MULTI_TENANT_BASE_DOMAIN="example.com")
     @patch("apps.interop.clever_classlink_client.clever_list_users", return_value={})
     @patch("apps.interop.clever_classlink_client.clever_list_schools", return_value={})
     @patch("apps.interop.clever_classlink_client.clever_list_sections", return_value={})
@@ -101,6 +125,7 @@ class DistrictInteropHubTests(TestCase):
         host = f"{self.school.subdomain}.example.com"
         c = Client(HTTP_HOST=host)
         c.force_login(self.admin)
+        self._mfa_verify(c, self.admin)
         c.post(
             reverse("accounts:district_interop_save_native_vendor"),
             {"native_clever_bearer": "x" * 24},

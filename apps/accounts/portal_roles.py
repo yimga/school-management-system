@@ -78,7 +78,14 @@ def get_effective_portal_role(request) -> str:
     if not request or not getattr(request.user, "is_authenticated", False):
         return ""
     user = request.user
-    session_role = (request.session.get(ACTIVE_PORTAL_ROLE_KEY) or "").strip().upper()
+    # Context processors run on every render — including error pages that may be
+    # produced before SessionMiddleware attaches request.session — so never assume
+    # it exists. (get_nav_portal_role guards the same way; without this its guard is
+    # defeated, since it calls this function first.)
+    session = getattr(request, "session", None)
+    session_role = (
+        (session.get(ACTIVE_PORTAL_ROLE_KEY) if session is not None else "") or ""
+    ).strip().upper()
     if session_role in ALLOWED_PORTAL_ROLES:
         if session_role == "TEACHER" and _has_teacher_hat_cached(request):
             return "TEACHER"
