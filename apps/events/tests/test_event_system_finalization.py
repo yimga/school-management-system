@@ -13,7 +13,7 @@ from apps.accounts.models import Permission
 from apps.automation.workflow_graph_models import Workflow
 from apps.events.models import DomainEvent
 from apps.events.views_console import event_domain_detail
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 User = get_user_model()
 
@@ -40,6 +40,11 @@ class EventSystemFinalizationStudioRailTests(TestCase):
             password="pw",
             is_staff=True,
             role=User.Role.IT_ADMIN,
+        )
+        # Staff must be a member of the tenant: the tenant host confines a logged-in
+        # non-member (redirect) before the console view runs.
+        SchoolMembership.objects.create(
+            user=self.staff, school=self.school, role=User.Role.IT_ADMIN, is_primary=True
         )
         manage_perm, _ = Permission.objects.get_or_create(
             code="settings.manage",

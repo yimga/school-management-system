@@ -21,7 +21,7 @@ from apps.platform_runtime.models import (
     EventWebhookSubscription,
     PlatformEventLog,
 )
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 User = get_user_model()
 
@@ -53,6 +53,11 @@ class EventDlqBulkRemediationTests(TestCase):
             password="pw",
             is_staff=True,
             role=User.Role.IT_ADMIN,
+        )
+        # Staff must be a member of school_a: the tenant host confines a logged-in
+        # non-member (redirect) before the DLQ console view runs its action.
+        SchoolMembership.objects.create(
+            user=self.staff, school=self.school_a, role=User.Role.IT_ADMIN, is_primary=True
         )
         manage_perm, _ = Permission.objects.get_or_create(
             code="settings.manage",

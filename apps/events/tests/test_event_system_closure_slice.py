@@ -29,7 +29,7 @@ from apps.platform_runtime.models import (
     PlatformEventLog,
 )
 from apps.platform_runtime.tasks import deliver_event_webhook_task
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 User = get_user_model()
 
@@ -79,6 +79,14 @@ class EventSystemClosureSliceTests(TestCase):
             password="pw",
             is_staff=False,
             role=User.Role.STUDENT,
+        )
+        # Both users must be members of school_a: the tenant host confines a
+        # logged-in non-member (redirect) before the view's staff check runs.
+        SchoolMembership.objects.create(
+            user=self.staff, school=self.school_a, role=User.Role.IT_ADMIN, is_primary=True
+        )
+        SchoolMembership.objects.create(
+            user=self.student, school=self.school_a, role=User.Role.STUDENT, is_primary=True
         )
 
     def tearDown(self):
