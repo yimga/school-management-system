@@ -12,6 +12,7 @@ from apps.people.models import TeacherProfile
 from apps.siteconfig.ai_assistants import assistant_keys
 from apps.siteconfig.models import Plan
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 _T_HOST = "aigov.runmycampus.com"
 
@@ -58,8 +59,12 @@ class AIGovernancePageTests(TestCase):
         )
         u.feature_permissions.add(self.perm_settings)
         TeacherProfile.objects.create(user=u, school=self.school, staff_id="AG1")
-        c = Client(HTTP_HOST=_T_HOST)
-        c.login(username=u.username, password="x" * 8)
+        # ai_governance is an operator control-plane page on the tenant host: it is
+        # gated by OperatorTenantConfinement (needs a SchoolMembership) + RequireMFA
+        # (ADMIN needs a confirmed device + verified session). Arm the client.
+        c = login_tenant_admin_client(
+            u, password="x" * 8, host=_T_HOST, school=self.school
+        )
         path = reverse("siteconfig:ai_governance", urlconf="config.tenant_urls")
         resp = c.get(path)
         self.assertEqual(resp.status_code, 200)
