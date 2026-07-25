@@ -68,20 +68,24 @@ class EmailTickerSourceModuleTests(unittest.TestCase):
         """The schoolops table lives only in tenant schemas — this source must be
         wired into the tenant resolver and NEVER the manager (public-schema) one,
         or it raises UndefinedTable on every operator page load."""
+        # The per-scope source wiring lives in the resolver-registry helpers;
+        # resolve_{manager,tenant}_ticker_cards now delegate to these dicts.
         from apps.siteconfig.cockpit_activity_ticker_realdata import (
-            resolve_manager_ticker_cards,
-            resolve_tenant_ticker_cards,
+            _manager_source_resolvers,
+            _tenant_source_resolvers,
         )
 
-        manager_body = inspect.getsource(resolve_manager_ticker_cards)
-        tenant_body = inspect.getsource(resolve_tenant_ticker_cards)
+        manager_body = inspect.getsource(_manager_source_resolvers)
+        tenant_body = inspect.getsource(_tenant_source_resolvers)
+        # The resolver registries reference the source callable by name (no call
+        # parens — they store the callable, invoked later by the resolver loop).
         self.assertNotIn(
-            "_source_email_delivery_events()", manager_body,
+            "_source_email_delivery_events", manager_body,
             msg="email-delivery source must NOT be in the manager resolver "
                 "(public schema has no schoolops_email_delivery_event table)",
         )
         self.assertIn(
-            "_source_email_delivery_events()", tenant_body,
+            "_source_email_delivery_events", tenant_body,
             msg="email-delivery source must be wired into the tenant resolver",
         )
 
