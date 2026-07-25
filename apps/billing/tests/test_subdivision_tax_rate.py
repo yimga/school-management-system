@@ -22,14 +22,16 @@ class SubdivisionTaxRateResolverTests(TestCase):
         # Default active resolver may have been changed by other tests; pin it.
         tax_engine.set_active_resolver("static")
         # US has no federal sales tax (country 0); California adds 7.25%.
-        CountryMultiplier.objects.create(
-            country_code="US", tax_rate=Decimal("0.0000"), is_active=True
+        # CountryMultiplier is migration-seeded for ~250 countries (incl. US), so
+        # pin the row's values idempotently rather than create() (UNIQUE(country_code)).
+        CountryMultiplier.objects.update_or_create(
+            country_code="US",
+            defaults={"tax_rate": Decimal("0.0000"), "is_active": True},
         )
-        SubdivisionTaxRate.objects.create(
+        SubdivisionTaxRate.objects.update_or_create(
             country_code="US",
             subdivision_code="CA",
-            tax_rate=Decimal("0.0725"),
-            is_active=True,
+            defaults={"tax_rate": Decimal("0.0725"), "is_active": True},
         )
 
     def test_country_rate_used_without_subdivision(self):

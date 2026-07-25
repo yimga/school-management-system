@@ -45,11 +45,14 @@ class PlanRegionalSkuOverrideResolverTests(TestCase):
 class ComputeLocalizedPriceOverrideTests(TestCase):
     def setUp(self):
         # US: multiplier 2x, 10% tax — so a non-override price would be 200 + tax.
-        CountryMultiplier.objects.create(
+        # CountryMultiplier is migration-seeded, so pin values idempotently.
+        CountryMultiplier.objects.update_or_create(
             country_code="US",
-            multiplier=Decimal("2"),
-            tax_rate=Decimal("0.1000"),
-            is_active=True,
+            defaults={
+                "multiplier": Decimal("2"),
+                "tax_rate": Decimal("0.1000"),
+                "is_active": True,
+            },
         )
 
     def test_override_bypasses_multiplier_but_keeps_tax(self):
@@ -76,11 +79,13 @@ class SubscriptionPriceUsesOverrideTests(TestCase):
     def setUp(self):
         from apps.schools.models import School
 
-        CountryMultiplier.objects.create(
+        CountryMultiplier.objects.update_or_create(
             country_code="NG",
-            multiplier=Decimal("0.5"),
-            tax_rate=Decimal("0.0000"),
-            is_active=True,
+            defaults={
+                "multiplier": Decimal("0.5"),
+                "tax_rate": Decimal("0.0000"),
+                "is_active": True,
+            },
         )
         self.plan = Plan.objects.create(
             name="Pro",
