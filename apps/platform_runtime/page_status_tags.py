@@ -325,8 +325,14 @@ def build_mission_role_tabs(
     active: str,
     base_url: str,
     host: str = "tenant",
+    counts: Mapping[str, int] | None = None,
 ) -> list[dict[str, Any]]:
-    """Interactive Mission role tabs — ``?mission_role=<key>`` URL state."""
+    """Interactive Mission role tabs — ``?mission_role=<key>`` URL state.
+
+    Optional ``counts`` maps a role key to a live per-role attention count
+    rendered as a badge. Values must be real, caller-computed counts (never a
+    placeholder); a role absent from the mapping shows no badge.
+    """
     from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
     active_key = resolve_mission_role_key(active)
@@ -350,6 +356,7 @@ def build_mission_role_tabs(
                 "active": key == active_key,
                 "hint": f"{'Fleet' if host == 'operator' else 'School'} priorities for {key}",
                 "href": href,
+                "count": (int(counts[key]) if counts and key in counts else None),
             }
         )
     return tabs

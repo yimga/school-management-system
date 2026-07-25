@@ -55,6 +55,40 @@ class PageStatusTagsTests(SimpleTestCase):
         tabs = build_mission_role_tabs(active="admin", base_url="/x/", host="tenant")
         self.assertTrue(all("mission_role=" in t["href"] for t in tabs))
 
+    def test_chip_value_makes_a_two_line_tile(self):
+        """A live value turns a chip into a label+value tile; absent value stays single-line.
+
+        Must-fire: drop the ``value`` field from chip() and this goes red.
+        """
+        from apps.platform_runtime.page_status_tags import chip
+
+        tile = chip(label="Platform", value="Warning", tone="warning")
+        self.assertEqual(tile["value"], "Warning")
+        plain = chip(label="PSP healthy", tone="success")
+        self.assertEqual(plain["value"], "")
+
+    def test_role_tabs_carry_live_per_role_counts(self):
+        """counts= flows through to a per-tab badge; roles absent from the map show none.
+
+        Must-fire: unwire the ``count`` field and this goes red.
+        """
+        from apps.platform_runtime.page_status_tags import build_mission_role_tabs
+
+        tabs = build_mission_role_tabs(
+            active="admin",
+            base_url="/x/",
+            host="operator",
+            counts={"principal": 2, "admin": 5, "registrar": 0},
+        )
+        by_key = {t["key"]: t for t in tabs}
+        self.assertEqual(by_key["principal"]["count"], 2)
+        self.assertEqual(by_key["admin"]["count"], 5)
+        self.assertEqual(by_key["registrar"]["count"], 0)
+        self.assertIsNone(by_key["bursar"]["count"])
+        # Backward-compatible: without counts, no role shows a badge.
+        plain = build_mission_role_tabs(active="admin", base_url="/x/", host="tenant")
+        self.assertTrue(all(t["count"] is None for t in plain))
+
 
 class SuperFrameDefaultsTests(SimpleTestCase):
     def test_resolve_super_operational_frame_has_no_operational_default(self):

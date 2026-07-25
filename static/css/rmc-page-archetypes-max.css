@@ -270,6 +270,23 @@ a.rmc-page-masthead__chip:hover {
   outline-offset: 2px;
 }
 
+/* Live per-role attention count badge on each Mission role tab. */
+.rmc-mission-role-tab__count {
+  flex: 0 0 auto;
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.rmc-page-masthead__role-tabs .cp-chip.is-active .rmc-mission-role-tab__count {
+  background: var(--rmc-arch-mission);
+  color: #241400;
+}
+
 .rmc-ops-frame__nav-pills {
   display: flex;
   flex-wrap: wrap;

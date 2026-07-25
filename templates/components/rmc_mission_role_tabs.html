@@ -8,7 +8,7 @@
      href="{{ tab.href }}"
      aria-selected="{% if tab.active %}true{% else %}false{% endif %}"
      title="{{ tab.hint }}"
-     data-rmc-mission-role="{{ tab.key }}">{{ tab.label }}</a>
+     data-rmc-mission-role="{{ tab.key }}">{{ tab.label }}{% if tab.count is not None %}<span class="rmc-mission-role-tab__count" title="{{ tab.count }} {% trans 'item(s) need attention' %}">{{ tab.count }}</span>{% endif %}</a>
   {% endfor %}
 </div>
 {% endif %}

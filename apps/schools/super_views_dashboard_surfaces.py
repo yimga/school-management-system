@@ -645,6 +645,12 @@ def super_dashboard_v2(request):
             active=role_key,
             base_url=reverse("super:dashboard"),
             host="operator",
+            counts={
+                "principal": int(critical_incident_count or 0),
+                "bursar": int(watch_n or 0),
+                "registrar": int(pending_approval_count or 0),
+                "admin": int(backlog_n or 0),
+            },
         )
     except Exception:  # noqa: BLE001
         masthead_ctx = {}
