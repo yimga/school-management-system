@@ -7,7 +7,11 @@ from apps.accounts.views import backend_dashboard
 from apps.schools.models import School, SchoolMembership
 
 
-@override_settings(ALLOWED_HOSTS=["*"])
+# backend_dashboard is served on the tenant host, whose urlconf (config.tenant_urls)
+# registers the admin site so admin_site.each_context()'s reverse("admin:app_list")
+# resolves. Calling the view directly via RequestFactory bypasses the host middleware
+# that would set that urlconf, so pin ROOT_URLCONF to the real serving urlconf.
+@override_settings(ALLOWED_HOSTS=["*"], ROOT_URLCONF="config.tenant_urls")
 class BackendDashboardWorkflowProgressTests(TestCase):
     def setUp(self):
         self.school = School.objects.create(
