@@ -283,8 +283,8 @@ a.rmc-page-masthead__chip:hover {
   font-variant-numeric: tabular-nums;
 }
 .rmc-page-masthead__role-tabs .cp-chip.is-active .rmc-mission-role-tab__count {
-  background: var(--rmc-arch-mission);
-  color: #241400;
+  background: color-mix(in srgb, var(--rmc-arch-mission) 32%, transparent);
+  color: var(--text-primary);
 }
 
 .rmc-ops-frame__nav-pills {
