@@ -6,7 +6,7 @@ from django.urls import NoReverseMatch, reverse
 from apps.accounts.models import Permission, User
 from apps.academics.models import AcademicYear
 from apps.siteconfig.models import Plan
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 _T_HOST = "ayears.runmycampus.com"
 
@@ -42,6 +42,30 @@ class AcademicYearsSetupEvidenceTests(TestCase):
             is_active=True,
         )
 
+    def _arm(self, user, client):
+        """Arm a client so a tenant admin actually reaches this tenant-host page.
+
+        Two guards gate the request. (1) OperatorTenantConfinementMiddleware
+        (``apps/accounts/middleware.py``) redirects any user with control-plane
+        access but no ``SchoolMembership`` to ``manager/super/``; a membership
+        flips ``user_has_control_plane_access`` to False so a normal tenant admin
+        passes (superusers use the break-glass bypass, so they skip the
+        membership). (2) ``RequireMFAMiddleware`` walls the baseline-MFA ADMIN role
+        without a confirmed TOTP device (enforce) or a verified session (re-verify).
+        """
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        if not user.is_superuser:
+            SchoolMembership.objects.get_or_create(
+                user=user,
+                school=self.school,
+                defaults={"role": User.Role.ADMIN, "is_primary": True},
+            )
+        TOTPDevice.objects.get_or_create(user=user, name="ay-mfa", confirmed=True)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def test_settings_manage_gets_200_with_markers(self) -> None:
         u = User.objects.create_user(
             username="ay_ev",
@@ -52,6 +76,7 @@ class AcademicYearsSetupEvidenceTests(TestCase):
         u.feature_permissions.add(self.perm_settings)
         c = Client(HTTP_HOST=_T_HOST)
         c.login(username="ay_ev", password="x" * 8)
+        self._arm(u, c)
         path = reverse("siteconfig:academic_years_setup_evidence", urlconf="config.tenant_urls")
         self.assertIn("/siteconfig/reports/academic-years-setup/", path)
         resp = c.get(path)
@@ -62,7 +87,7 @@ class AcademicYearsSetupEvidenceTests(TestCase):
         self.assertIn("2025/2026", body)
 
     def test_superuser_sees_scheduled_hub_before_admin(self) -> None:
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="ay_su",
             password="x" * 8,
             role=User.Role.ADMIN,
@@ -71,6 +96,7 @@ class AcademicYearsSetupEvidenceTests(TestCase):
         )
         c = Client(HTTP_HOST=_T_HOST)
         c.login(username="ay_su", password="x" * 8)
+        self._arm(u, c)
         path = reverse("siteconfig:academic_years_setup_evidence", urlconf="config.tenant_urls")
         body = c.get(path).content.decode("utf-8", errors="replace")
         p = body.find("Scheduled report delivery")
@@ -80,7 +106,7 @@ class AcademicYearsSetupEvidenceTests(TestCase):
         self.assertLess(p, a)
 
     def test_superuser_sees_departments_before_admin(self) -> None:
-        User.objects.create_user(
+        u = User.objects.create_user(
             username="ay_su2",
             password="x" * 8,
             role=User.Role.ADMIN,
@@ -89,6 +115,7 @@ class AcademicYearsSetupEvidenceTests(TestCase):
         )
         c = Client(HTTP_HOST=_T_HOST)
         c.login(username="ay_su2", password="x" * 8)
+        self._arm(u, c)
         path = reverse("siteconfig:academic_years_setup_evidence", urlconf="config.tenant_urls")
         body = c.get(path).content.decode("utf-8", errors="replace")
         d = body.find("Departments (setup)")
@@ -119,6 +146,9 @@ class AcademicYearsSetupEvidenceTests(TestCase):
         u.feature_permissions.add(self.perm_settings)
         c = Client(HTTP_HOST=_T_HOST)
         c.login(username="ay_ns", password="x" * 8)
+        self._arm(u, c)
         path = reverse("siteconfig:academic_years_setup_evidence", urlconf="config.tenant_urls")
-        body = c.get(path).content.decode("utf-8", errors="replace")
+        resp = c.get(path)
+        self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
+        body = resp.content.decode("utf-8", errors="replace")
         self.assertNotIn("Advanced/Admin: academic year rows", body)
