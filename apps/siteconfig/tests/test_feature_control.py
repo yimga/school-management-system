@@ -1,13 +1,66 @@
-"""Tests for Feature Control Panel."""
+"""Tests for Feature Control Panel.
+
+Host topology (established empirically — no single host satisfies every case):
+
+* The panel's canonical operator home is the **manager host**. The shared
+  ``OperatorSiteconfigManagerShellMiddleware`` force-redirects any control-plane user
+  (a superuser is always one) off ``siteconfig:feature_control_panel`` to the manager
+  host on every OTHER host, and only the manager-host *non-embed* GET renders the full
+  operator page (portal wrapper carrying the literal "Feature Control Panel" plus the
+  capability body). So every superuser-driven case runs on the manager host.
+* A tenant admin who holds only ``settings.feature_control`` (and therefore has NO
+  control-plane access) is blocked from the manager host by
+  ``ManagerHostControlPlaneRequiredMiddleware`` (403). Such a user reaches the panel
+  only on their own **tenant host**, where the view renders the embed body (the
+  full-page wrapper is a manager-host-only render, so its capability form — "Save
+  changes" — is what proves access there).
+* The no-permission (403) and anonymous (login redirect) cases resolve at the view's
+  ``@require_permission`` gate before any host redirect, so they keep exercising the
+  default base host unchanged.
+
+The persisted platform singleton read back by the persist/save cases is host-independent
+(``_resolve_feature_control_site`` always targets ``get_platform_site_settings_record``).
+"""
+
+import uuid
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
+from apps.test_utils.http_clients import (
+    login_manager_client,
+    login_tenant_admin_client,
+)
 
 User = get_user_model()
+
+MANAGER_HOST = "manager.runmycampus.com"
+TENANT_BASE = "runmycampus.com"
+TENANT_SUBDOMAIN = "fc-panel"
+TENANT_HOST = f"{TENANT_SUBDOMAIN}.{TENANT_BASE}"
+
+# The base-domain resolver reads ``MULTI_TENANT_BASE_DOMAIN`` so the host classifier
+# recognises the manager / tenant hosts; ROOT_URLCONF pins the right host urlconf.
+_MANAGER_OVERRIDES = dict(
+    ROOT_URLCONF="config.manager_urls",
+    MULTI_TENANT_BASE_DOMAIN=TENANT_BASE,
+    ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", TENANT_BASE, MANAGER_HOST],
+)
+_TENANT_OVERRIDES = dict(
+    ROOT_URLCONF="config.tenant_urls",
+    MULTI_TENANT_BASE_DOMAIN=TENANT_BASE,
+    ALLOWED_HOSTS=[
+        "testserver",
+        "127.0.0.1",
+        "localhost",
+        TENANT_BASE,
+        TENANT_HOST,
+        MANAGER_HOST,
+    ],
+)
 
 
 class FeatureControlPanelTest(TestCase):
@@ -25,11 +78,61 @@ class FeatureControlPanelTest(TestCase):
         )
         self.client = Client()
 
+    # -- helpers ------------------------------------------------------------
+    @staticmethod
+    def _manager_panel_url():
+        return reverse(
+            "siteconfig:feature_control_panel", urlconf="config.manager_urls"
+        )
+
+    def _login_manager_superuser(self):
+        """Manager-host operator client for the superuser (confirmed TOTP + MFA-verified)."""
+        return login_manager_client(self.superuser, password="testpass123")
+
+    def _grant_feature_control(self, user):
+        from apps.accounts.models import AccessRole, Permission
+
+        perm, _ = Permission.objects.get_or_create(
+            code="settings.feature_control",
+            defaults={"name": "Feature control", "description": ""},
+        )
+        role, _ = AccessRole.objects.get_or_create(
+            code="IT_ADMIN", defaults={"name": "IT Admin", "description": ""}
+        )
+        role.permissions.add(perm)
+        user.role = "IT_ADMIN"
+        user.roles.add(role)
+        user.save()
+
+    def _create_tenant_school(self):
+        from apps.schools.models import School
+        from apps.siteconfig.models import RegionConfig
+
+        region = RegionConfig.objects.create(
+            code=f"FCP{uuid.uuid4().hex[:6].upper()}",
+            name="Feature control panel region",
+            timezone="UTC",
+            date_format="YYYY-MM-DD",
+            grading_scale="0-20",
+            default_currency="USD",
+            academic_year_start_month=9,
+            term_count_per_year=3,
+        )
+        return School.objects.create(
+            name="Feature control panel school",
+            slug=TENANT_SUBDOMAIN,
+            subdomain=TENANT_SUBDOMAIN,
+            is_active=True,
+            default_region=region,
+            settings={},
+        )
+
+    # -- access control -----------------------------------------------------
+    @override_settings(**_MANAGER_OVERRIDES)
     def test_superuser_can_access(self):
-        """Superuser can access Feature Control Panel."""
-        self.client.login(username="super", password="testpass123")
-        url = reverse("siteconfig:feature_control_panel") + "?embed=1"
-        response = self.client.get(url)
+        """Superuser can access Feature Control Panel (manager-host operator page)."""
+        client = self._login_manager_superuser()
+        response = client.get(self._manager_panel_url(), HTTP_HOST=MANAGER_HOST)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Feature Control Panel", response.content)
         self.assertIn(b"Save changes", response.content)
@@ -41,27 +144,29 @@ class FeatureControlPanelTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
 
+    @override_settings(**_TENANT_OVERRIDES)
     def test_user_with_permission_can_access(self):
-        """User with settings.feature_control permission can access."""
-        from apps.accounts.models import AccessRole, Permission
-
-        perm, _ = Permission.objects.get_or_create(
-            code="settings.feature_control",
-            defaults={"name": "Feature control", "description": ""},
+        """User with settings.feature_control permission can access (tenant host)."""
+        self._grant_feature_control(self.staff_user)
+        school = self._create_tenant_school()
+        client = login_tenant_admin_client(
+            self.staff_user,
+            password="testpass123",
+            host=TENANT_HOST,
+            school=school,
+            role="ADMIN",
         )
-        role, _ = AccessRole.objects.get_or_create(
-            code="IT_ADMIN", defaults={"name": "IT Admin", "description": ""}
+        url = (
+            reverse("siteconfig:feature_control_panel", urlconf="config.tenant_urls")
+            + "?embed=1"
         )
-        role.permissions.add(perm)
-        self.staff_user.role = "IT_ADMIN"
-        self.staff_user.roles.add(role)
-        self.staff_user.save()
-
-        self.client.login(username="staff", password="testpass123")
-        url = reverse("siteconfig:feature_control_panel") + "?embed=1"
-        response = self.client.get(url)
+        response = client.get(url, HTTP_HOST=TENANT_HOST)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Feature Control Panel", response.content)
+        # A perm-only tenant admin reaches the panel on their tenant host, where the
+        # view renders the embed body. The full-page "Feature Control Panel" wrapper is
+        # a manager-host-only render; the capability form ("Save changes") proves the
+        # panel rendered for this user.
+        self.assertIn(b"Save changes", response.content)
 
     def test_anonymous_redirected_to_login(self):
         """Anonymous user redirected to login."""
@@ -70,23 +175,24 @@ class FeatureControlPanelTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("login", response["Location"].lower())
 
+    # -- rendered capabilities + persistence (superuser / manager host) -----
+    @override_settings(**_MANAGER_OVERRIDES)
     def test_offline_feature_flags_rendered(self):
         """New offline/PWA toggles are visible in Feature Control."""
-        self.client.login(username="super", password="testpass123")
-        response = self.client.get(
-            reverse("siteconfig:feature_control_panel") + "?embed=1"
-        )
+        client = self._login_manager_superuser()
+        response = client.get(self._manager_panel_url(), HTTP_HOST=MANAGER_HOST)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Portal PWA", response.content)
         self.assertIn(b"Offline Attendance Sync", response.content)
         self.assertIn(b"Offline Grade Sync", response.content)
         self.assertIn(b"Connection Status Bar", response.content)
 
+    @override_settings(**_MANAGER_OVERRIDES)
     def test_offline_feature_flags_persist(self):
         """Posting Feature Control saves new backend offline flags."""
-        self.client.login(username="super", password="testpass123")
-        panel_url = reverse("siteconfig:feature_control_panel") + "?embed=1"
-        page = self.client.get(panel_url)
+        client = self._login_manager_superuser()
+        panel_url = self._manager_panel_url()
+        page = client.get(panel_url, HTTP_HOST=MANAGER_HOST)
         self.assertEqual(page.status_code, 200)
 
         # Minimal post only sets selected switches to on.
@@ -101,7 +207,9 @@ class FeatureControlPanelTest(TestCase):
             "feature_backend_flags.show_offline_status_bar": "on",
             "feature_backend_flags.request_persistent_browser_storage": "on",
         }
-        response = self.client.post(panel_url, data=payload, follow=True)
+        response = client.post(
+            panel_url, data=payload, HTTP_HOST=MANAGER_HOST, follow=True
+        )
         self.assertEqual(response.status_code, 200)
 
         site = get_platform_site_settings_record(create=True)
@@ -114,12 +222,12 @@ class FeatureControlPanelTest(TestCase):
         self.assertTrue(flags.get("enable_offline_grade_sync"))
         self.assertTrue(flags.get("enable_offline_background_sync"))
 
+    @override_settings(**_MANAGER_OVERRIDES)
     def test_ministry_feature_flags_render_and_persist(self):
         """Ministry integrations should be togglable from Feature Control."""
-        self.client.login(username="super", password="testpass123")
-        response = self.client.get(
-            reverse("siteconfig:feature_control_panel") + "?embed=1"
-        )
+        client = self._login_manager_superuser()
+        panel_url = self._manager_panel_url()
+        response = client.get(panel_url, HTTP_HOST=MANAGER_HOST)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Ministry API (Cartescolaire)", response.content)
         self.assertIn(b"Ministry API (DGI)", response.content)
@@ -131,10 +239,8 @@ class FeatureControlPanelTest(TestCase):
             "feature_backend_flags.enable_ministry_api_dgi": "on",
             "feature_backend_flags.enable_ministry_live_sync": "on",
         }
-        response = self.client.post(
-            reverse("siteconfig:feature_control_panel") + "?embed=1",
-            data=payload,
-            follow=True,
+        response = client.post(
+            panel_url, data=payload, HTTP_HOST=MANAGER_HOST, follow=True
         )
         self.assertEqual(response.status_code, 200)
 
@@ -144,12 +250,12 @@ class FeatureControlPanelTest(TestCase):
         self.assertTrue(flags.get("enable_ministry_api_dgi"))
         self.assertTrue(flags.get("enable_ministry_live_sync"))
 
+    @override_settings(**_MANAGER_OVERRIDES)
     def test_backend_experience_flags_and_list_density(self):
         """Backend dashboard module/viz toggles and list density are configurable."""
-        self.client.login(username="super", password="testpass123")
-        response = self.client.get(
-            reverse("siteconfig:feature_control_panel") + "?embed=1"
-        )
+        client = self._login_manager_superuser()
+        panel_url = self._manager_panel_url()
+        response = client.get(panel_url, HTTP_HOST=MANAGER_HOST)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Backend Warm Palette", response.content)
         self.assertIn(b"Backend Module: Overview", response.content)
@@ -167,10 +273,8 @@ class FeatureControlPanelTest(TestCase):
             "feature_backend_flags.backend_module_planner": "on",
             "backend_layout_max_items_per_list": "7",
         }
-        response = self.client.post(
-            reverse("siteconfig:feature_control_panel") + "?embed=1",
-            data=payload,
-            follow=True,
+        response = client.post(
+            panel_url, data=payload, HTTP_HOST=MANAGER_HOST, follow=True
         )
         self.assertEqual(response.status_code, 200)
 
@@ -190,7 +294,9 @@ class FeatureControlPanelTest(TestCase):
         """Offline fallback route exists for service worker navigation fallback."""
         response = self.client.get(reverse("offline"))
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"You are currently offline", response.content)
+        # Template copy is "You're not connected right now." (was "You are currently
+        # offline"); assert an apostrophe-free substring of the current heading.
+        self.assertIn(b"not connected right now", response.content)
 
     def test_weather_city_api_returns_global_catalog_city(self):
         self.client.login(username="super", password="testpass123")
@@ -206,21 +312,23 @@ class FeatureControlPanelTest(TestCase):
         ]
         self.assertIn("tokyo", city_names)
 
+    @override_settings(**_MANAGER_OVERRIDES)
     def test_feature_control_save_accepts_global_city_ids(self):
-        self.client.login(username="super", password="testpass123")
         cities = GlobalGeoCatalog.search_cities(
             country_code="JPN", query="Tokyo", limit=5
         )
         self.assertTrue(cities)
         city = cities[0]
+        client = self._login_manager_superuser()
         payload = {
             "action": "save",
             "weather_country_code": "JPN",
             "weather_city_id": str(city["id"]),
         }
-        response = self.client.post(
-            reverse("siteconfig:feature_control_panel") + "?embed=1",
+        response = client.post(
+            self._manager_panel_url(),
             data=payload,
+            HTTP_HOST=MANAGER_HOST,
             follow=True,
         )
         self.assertEqual(response.status_code, 200)
