@@ -1532,8 +1532,13 @@ def _bulk_letters_page_context(request, classroom_list, form_data):
     user = getattr(request, "user", None)
     if user is not None and getattr(user, "is_superuser", False):
         try:
+            # ReportTemplate is registered on the tenant admin only; ROOT_URLCONF
+            # hosts the platform admin (no siteconfig models), so pin the tenant
+            # urlconf like the sibling evidence views — otherwise the Advanced/Admin
+            # escape link silently drops on the base/manager host.
             ctx["admin_report_template_changelist_url"] = reverse(
-                "admin:siteconfig_reporttemplate_changelist"
+                "admin:siteconfig_reporttemplate_changelist",
+                urlconf="config.tenant_urls",
             )
         except NoReverseMatch:
             ctx["admin_report_template_changelist_url"] = None

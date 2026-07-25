@@ -24,6 +24,11 @@ class CccBuilderContractTests(unittest.TestCase):
         rf = RequestFactory()
         request = rf.get("/siteconfig/console/")
         request.public_host_kind = "school"
+        # UrlConfSwitcherMiddleware sets request.urlconf on real tenant hosts; _rev
+        # resolves tenant links from it (and deliberately will NOT fall back to
+        # config.manager_urls for a non-manager scope). A bare RequestFactory request
+        # has no urlconf, so without this every tenant link resolves to None.
+        request.urlconf = "config.tenant_urls"
         links = build_ccc_staging_publish_links_for_request(request)
         self.assertTrue(any("Control Studio" in x["label"] for x in links))
         labels = {x["label"] for x in links}

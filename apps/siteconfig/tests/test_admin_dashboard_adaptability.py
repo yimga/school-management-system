@@ -196,8 +196,11 @@ class AdminDashboardResponsiveSnapshotTests(TestCase):
         self.assertIn("index_superadmin.html", content)
 
     def test_admin_weather_templates_use_internal_weather_api(self):
+        # admin/admin_dashboard.html is a deprecated 12-line redirect stub (it just
+        # {% extends "admin/index_superadmin.html" %}); the weather marquee that used
+        # to live there is now the standalone weather_marquee.html component, which is
+        # the template that must reference the internal api_admin_weather proxy.
         admin_paths = [
-            Path(settings.BASE_DIR) / "templates" / "admin" / "admin_dashboard.html",
             Path(settings.BASE_DIR)
             / "templates"
             / "components"
