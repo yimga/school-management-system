@@ -45,22 +45,31 @@ class RegionSettingsPreferredRegionTests(TestCase):
 
     def test_authenticated_with_preferred_region_uses_it(self):
         user = User.objects.create_user(username="t1", password="test")
-        UserPreference.objects.create(user=user, preferred_region="USA")
+        # A UserPreference is auto-created for every new user by the accounts
+        # post_save signal (_ensure_preferences_on_user_create), which also
+        # back-populates user.preferences with the default (blank region). Update
+        # the existing row and use the returned instance directly, so we read the
+        # fresh value rather than the stale reverse-cache on `user`.
+        pref, _ = UserPreference.objects.update_or_create(
+            user=user, defaults={"preferred_region": "USA"}
+        )
         request = MagicMock()
         request.user = MagicMock()
         request.user.is_authenticated = True
-        request.user.preferences = user.preferences
+        request.user.preferences = pref
         request.session = {"region_code": "CMR"}
         ctx = region_settings(request)
         self.assertEqual(ctx["region_code"], "USA")
 
     def test_authenticated_without_preferred_region_uses_session(self):
         user = User.objects.create_user(username="t2", password="test")
-        UserPreference.objects.create(user=user, preferred_region="")
+        pref, _ = UserPreference.objects.update_or_create(
+            user=user, defaults={"preferred_region": ""}
+        )
         request = MagicMock()
         request.user = MagicMock()
         request.user.is_authenticated = True
-        request.user.preferences = user.preferences
+        request.user.preferences = pref
         request.session = {"region_code": "USA"}
         ctx = region_settings(request)
         self.assertEqual(ctx["region_code"], "USA")
@@ -81,14 +90,18 @@ class LanguageContextPreferredLanguageTests(TestCase):
         )
 
     def test_authenticated_with_preferred_language_uses_it(self):
-        user = User.objects.create_user(username="lang1", password="test")
-        UserPreference.objects.create(user=user, preferred_language="fr")
+        # The canonical source for a user's language is User.preferred_language
+        # (written by set_language_persist / re-applied on login). The legacy
+        # read of UserPreference.preferred_language was retired as a split-brain
+        # dead branch, so language_context now reads it off the user directly.
         request = MagicMock()
         request.user = MagicMock()
         request.user.is_authenticated = True
-        request.user.preferences = user.preferences
+        request.user.preferred_language = "fr"
         request.GET = {}
         request.COOKIES = {}
         ctx = language_context(request)
         self.assertEqual(ctx["current_language"], "fr")
-        self.assertEqual(ctx["current_language_name"], "Français")
+        # SUPPORTED_LANGUAGES labels come from the G-02 unified switcher, which
+        # renders bilingual "<native> (<English>)" labels aligned with LANGUAGES.
+        self.assertEqual(ctx["current_language_name"], "Français (French)")

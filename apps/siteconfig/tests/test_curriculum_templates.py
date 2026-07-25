@@ -17,7 +17,7 @@ from apps.siteconfig.curriculum_templates_service import (
 )
 from apps.siteconfig.models import Plan
 from apps.siteconfig.models_platform_catalog import RegionConfig
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 _REQUIRED_KEYS = frozenset(
     {
@@ -62,6 +62,21 @@ class CurriculumTemplatesSlice3Tests(TestCase):
     def setUp(self):
         reload_curriculum_templates_cache()
 
+    def _client_for(self, user):
+        # The curriculum-templates page renders on the TENANT host, which is
+        # gated by TenantHostMembershipMiddleware: an authenticated user with no
+        # SchoolMembership for the resolved school is redirected (302) to the
+        # public login host BEFORE the view runs. Arm the membership so the
+        # request reaches the view (which then applies its own role gate).
+        SchoolMembership.objects.get_or_create(
+            user=user,
+            school=self.school,
+            defaults={"role": user.role, "is_primary": True},
+        )
+        c = Client(HTTP_HOST=_T_HOST)
+        c.force_login(user)
+        return c
+
     def test_required_template_keys_exist(self):
         keys = set(curriculum_template_keys())
         self.assertTrue(_REQUIRED_KEYS.issubset(keys), msg=keys)
@@ -100,8 +115,7 @@ class CurriculumTemplatesSlice3Tests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        c = self._client_for(u)
         url = reverse("siteconfig:curriculum_templates", urlconf="config.tenant_urls")
         resp = c.get(url)
         self.assertEqual(resp.status_code, 200, msg=resp.content[:800])
@@ -116,8 +130,7 @@ class CurriculumTemplatesSlice3Tests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        c = self._client_for(u)
         url = reverse("siteconfig:curriculum_templates", urlconf="config.tenant_urls")
         body = c.get(url).content.decode("utf-8", errors="replace")
         for label in (
@@ -136,8 +149,7 @@ class CurriculumTemplatesSlice3Tests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        c = self._client_for(u)
         url = reverse("siteconfig:curriculum_templates", urlconf="config.tenant_urls")
         body = c.get(url).content.decode("utf-8", errors="replace")
         self.assertIn("/siteconfig/grading-scales/bands/", body)
@@ -152,8 +164,7 @@ class CurriculumTemplatesSlice3Tests(TestCase):
             password="x" * 8,
             role=User.Role.TEACHER,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(tu)
+        c = self._client_for(tu)
         url = reverse("siteconfig:curriculum_templates", urlconf="config.tenant_urls")
         resp = c.get(url)
         self.assertEqual(resp.status_code, 403)
@@ -165,8 +176,7 @@ class CurriculumTemplatesSlice3Tests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        c = self._client_for(u)
         url = reverse("siteconfig:curriculum_templates", urlconf="config.tenant_urls")
         body = c.get(url).content.decode("utf-8", errors="replace")
         self.assertIn("Preview only.", body)
@@ -180,8 +190,7 @@ class CurriculumTemplatesSlice3Tests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        c = self._client_for(u)
         url = reverse("siteconfig:curriculum_templates", urlconf="config.tenant_urls")
         body = c.get(url).content.decode("utf-8", errors="replace")
         lower = body.lower()
@@ -200,8 +209,7 @@ class CurriculumTemplatesSlice3Tests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        c = self._client_for(u)
         url = reverse("siteconfig:curriculum_templates", urlconf="config.tenant_urls")
         body = c.get(url).content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-terminology-engine="1"', body)
@@ -220,8 +228,7 @@ class CurriculumTemplatesSlice3Tests(TestCase):
                 role=User.Role.ADMIN,
                 is_staff=True,
             )
-            c = Client(HTTP_HOST=_T_HOST)
-            c.force_login(u)
+            c = self._client_for(u)
             url = reverse("siteconfig:curriculum_templates", urlconf="config.tenant_urls")
             body = c.get(url).content.decode("utf-8", errors="replace")
             self.assertIn('data-rmc-terminology-highlight="francophone-pattern"', body)
