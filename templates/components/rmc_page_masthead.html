@@ -47,14 +47,14 @@ Exactly one H1. Live chips only — never wallpaper Operational/ready.
         {% if chip.sparkline_points %}
         <svg class="rmc-page-masthead__spark" viewBox="0 0 36 12" width="36" height="12" aria-hidden="true" focusable="false"><polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="{{ chip.sparkline_points }}"/></svg>
         {% endif %}
-        <span>{{ chip.label }}</span>
+        {% if chip.value %}<span class="rmc-page-masthead__chip-body"><span class="rmc-page-masthead__chip-label">{{ chip.label }}</span><span class="rmc-page-masthead__chip-value">{{ chip.value }}</span>{% if chip.caption %}<span class="rmc-page-masthead__chip-caption">{{ chip.caption }}</span>{% endif %}</span>{% else %}<span>{{ chip.label }}</span>{% endif %}
       </a>
       {% else %}
       <span class="rmc-page-masthead__chip rmc-page-masthead__chip--{{ chip.tone|default:'neutral' }} cp-chip" role="listitem" title="{{ chip.title|default:chip.label }}">
         {% if chip.sparkline_points %}
         <svg class="rmc-page-masthead__spark" viewBox="0 0 36 12" width="36" height="12" aria-hidden="true" focusable="false"><polyline fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="{{ chip.sparkline_points }}"/></svg>
         {% endif %}
-        <span>{{ chip.label }}</span>
+        {% if chip.value %}<span class="rmc-page-masthead__chip-body"><span class="rmc-page-masthead__chip-label">{{ chip.label }}</span><span class="rmc-page-masthead__chip-value">{{ chip.value }}</span>{% if chip.caption %}<span class="rmc-page-masthead__chip-caption">{{ chip.caption }}</span>{% endif %}</span>{% else %}<span>{{ chip.label }}</span>{% endif %}
       </span>
       {% endif %}
     {% endfor %}

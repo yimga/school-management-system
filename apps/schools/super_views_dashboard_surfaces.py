@@ -586,7 +586,6 @@ def super_dashboard_v2(request):
             build_masthead,
             build_mission_role_tabs,
             chip,
-            mission_role_chips,
             resolve_mission_role_from_request,
             resolve_operational_season,
             sparkline_from_count,
@@ -600,21 +599,31 @@ def super_dashboard_v2(request):
             else STATUS_ATTENTION
         )
         role_key = resolve_mission_role_from_request(request, default_role="admin")
-        role_chips = list(mission_role_chips(role_key, host="operator"))
         watch_n = len(billing_watchlist) if billing_watchlist is not None else 0
+        backlog_n = int((command_center or {}).get("support_backlog_48h_count", 0) or 0)
+        # Two-line stat tiles — every value is live-resolved (status word, season,
+        # or a real fleet count), never a hardcoded placeholder (live-tags-only).
         chips = [
             chip(
-                label=f"Platform {overall.upper()}",
+                label="Platform",
+                value=overall.title(),
                 tone="success" if status_key == STATUS_HEALTHY else "warning",
                 sparkline=sparkline_from_count(100 if status_key == STATUS_HEALTHY else 40),
             ),
-            *role_chips[:2],
+            chip(label="School day", value=str(season["label"]), tone="success"),
             chip(
-                label=f"{watch_n} billing watch",
+                label="Support backlog",
+                value=(f"{backlog_n} open" if backlog_n else "Clear"),
+                tone="warning" if backlog_n else "success",
+                sparkline=sparkline_from_count(backlog_n),
+            ),
+            chip(
+                label="Billing watch",
+                value=(f"{watch_n} flagged" if watch_n else "All current"),
                 tone="warning" if watch_n else "success",
                 sparkline=sparkline_from_count(watch_n),
             ),
-            chip(label="Updated just now", tone="fresh"),
+            chip(label="Updated", value="Just now", tone="fresh"),
         ]
         masthead_ctx = build_masthead(
             archetype="mission",

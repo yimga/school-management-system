@@ -109,17 +109,27 @@ def chip(
     *,
     label: str,
     tone: str = "neutral",
+    value: str = "",
+    caption: str = "",
     title: str = "",
     href: str = "",
     sparkline: Iterable[float | int] | None = None,
 ) -> dict[str, Any]:
     """Build one masthead chip dict (template-friendly).
 
+    ``label`` is the metric name; optional ``value`` turns the chip into a
+    two-line stat tile (label over value) in the shared masthead, with an
+    optional ``caption`` third line. Callers must pass a live-resolved ``value``
+    (a status word or a real count) — never a hardcoded placeholder, per the
+    live-tags-only contract at the top of this module.
+
     Optional ``sparkline`` is a short numeric series (last 7 points used) rendered
     as an inline SVG polyline in the shared masthead.
     """
     out: dict[str, Any] = {
         "label": label,
+        "value": str(value or ""),
+        "caption": str(caption or ""),
         "tone": tone if tone in {"success", "warning", "danger", "info", "neutral", "fresh"} else "neutral",
         "title": title or label,
         "href": href or "",
