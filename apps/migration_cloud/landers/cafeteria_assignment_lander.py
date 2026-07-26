@@ -54,6 +54,7 @@ from ._helpers import (
     model_field_names,
     record_id_mapping,
     resolve_student,
+    row_savepoint,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -206,9 +207,10 @@ class CafeteriaAssignmentLander(Lander):
                 if "school" in mpb_fields and ctx.school is not None:
                     lookup_kwargs["school"] = ctx.school
 
-                obj, created = MealPlanBalance.objects.update_or_create(
-                    defaults=defaults, **lookup_kwargs,
-                )
+                with row_savepoint():  # atomic-apply isolation
+                    obj, created = MealPlanBalance.objects.update_or_create(
+                        defaults=defaults, **lookup_kwargs,
+                    )
             except (TypeError, ValueError) as exc:
                 result.quarantined += 1
                 result.errors.append(
@@ -273,9 +275,10 @@ class CafeteriaAssignmentLander(Lander):
                 lookup_kwargs_dfv["school"] = ctx.school
 
             try:
-                obj, created = DynamicFieldValue.objects.update_or_create(
-                    defaults=defaults_dfv, **lookup_kwargs_dfv,
-                )
+                with row_savepoint():  # atomic-apply isolation
+                    obj, created = DynamicFieldValue.objects.update_or_create(
+                        defaults=defaults_dfv, **lookup_kwargs_dfv,
+                    )
             except (TypeError, ValueError) as exc:
                 result.quarantined += 1
                 result.errors.append(

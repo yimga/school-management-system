@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from typing import Any, Iterator
 
-from ._helpers import filter_to_model_fields
+from ._helpers import filter_to_model_fields, row_savepoint
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
 
@@ -98,15 +98,16 @@ class DynamicFieldLander(Lander):
                     )
                     continue
                 try:
-                    obj, created = DynamicFieldValue.objects.update_or_create(
-                        entity_type=_ENTITY_TYPE,
-                        entity_id=entity_id,
-                        field_key=str(key)[:_FIELD_KEY_CAP],
-                        defaults=filter_to_model_fields(
-                            {"value_json": {"v": value}, "school": ctx.school},
-                            DynamicFieldValue,
-                        ),
-                    )
+                    with row_savepoint():
+                        obj, created = DynamicFieldValue.objects.update_or_create(
+                            entity_type=_ENTITY_TYPE,
+                            entity_id=entity_id,
+                            field_key=str(key)[:_FIELD_KEY_CAP],
+                            defaults=filter_to_model_fields(
+                                {"value_json": {"v": value}, "school": ctx.school},
+                                DynamicFieldValue,
+                            ),
+                        )
                 except Exception as exc:  # noqa: BLE001 — per-row quarantine
                     result.quarantined += 1
                     result.errors.append(

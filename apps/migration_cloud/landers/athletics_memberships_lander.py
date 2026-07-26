@@ -40,6 +40,7 @@ from ._helpers import (
     model_field_names,
     record_id_mapping,
     resolve_student,
+    row_savepoint,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -146,9 +147,10 @@ class AthleticsMembershipsLander(Lander):
             lookup_kwargs: dict[str, Any] = {"team": team, "student": student}
             try:
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
-                obj, created = TeamMembership.objects.update_or_create(
-                    defaults=defaults, **lookup_kwargs,
-                )
+                with row_savepoint():  # atomic-apply isolation
+                    obj, created = TeamMembership.objects.update_or_create(
+                        defaults=defaults, **lookup_kwargs,
+                    )
             except (TypeError, ValueError) as exc:
                 result.quarantined += 1
                 result.errors.append(

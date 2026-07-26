@@ -26,7 +26,7 @@ from __future__ import annotations
 import datetime as _dt
 from typing import Any, Iterator
 
-from ._helpers import coerce_date, model_field_names, record_row_error
+from ._helpers import coerce_date, model_field_names, record_row_error, row_savepoint
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
 # Session ``type`` tokens (normalised: lowercased, spaces stripped) that denote a
@@ -106,7 +106,8 @@ class AcademicSessionsLander(Lander):
                 }
                 if "school" in year_fields and school is not None:
                     kwargs["school"] = school
-                obj = AcademicYear.objects.create(**kwargs)
+                with row_savepoint():  # atomic-apply isolation (see _helpers.row_savepoint)
+                    obj = AcademicYear.objects.create(**kwargs)
                 result.created_ids.append(obj.pk)
                 result.created += 1
             year_by_name[name] = obj
@@ -170,7 +171,8 @@ class AcademicSessionsLander(Lander):
             if "school" in term_fields and school is not None:
                 kwargs["school"] = school
             try:
-                term = Term.objects.create(**kwargs)
+                with row_savepoint():
+                    term = Term.objects.create(**kwargs)
             except Exception as exc:  # noqa: BLE001 — quarantine, don't abort the bundle
                 # A custom_label / position uniqueness collision (two sessions whose
                 # titles truncate alike) surfaces here; record the row for review.

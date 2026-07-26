@@ -97,11 +97,22 @@ class SwallowPoisonSiteCoverageTests(TestCase):
         # fire from inside an outer atomic() (the MC finance apply) via ensure_workflow_run.
         self.assertIn("with transaction.atomic():", src)
 
-    def test_finance_colanders_savepoint_their_inline_upsert(self):
-        # Students + enrollment land in earlier waves of the SAME atomic finance txn
-        # and do their own inline upsert (not via the shared helper).
+    def test_pure_inline_landers_savepoint_their_writes(self):
+        # Landers that do NOT go through the shared upsert helper own their per-row
+        # write directly with a quarantine-and-continue, so under a combined atomic
+        # finance bundle a bad row would poison the whole apply. Every one must wrap
+        # its write in row_savepoint(). (The ~17 shared-helper landers are covered by
+        # the helper itself.)
         for mod in (
             "apps.migration_cloud.landers.student_lander",
             "apps.migration_cloud.landers.enrollment_lander",
+            "apps.migration_cloud.landers.academic_sessions_lander",
+            "apps.migration_cloud.landers.dynamic_field_lander",
+            "apps.migration_cloud.landers.athletics_teams_lander",
+            "apps.migration_cloud.landers.athletics_fixtures_lander",
+            "apps.migration_cloud.landers.athletics_memberships_lander",
+            "apps.migration_cloud.landers.hostel_assignment_lander",
+            "apps.migration_cloud.landers.cafeteria_assignment_lander",
+            "apps.migration_cloud.landers.transport_assignment_lander",
         ):
             self.assertIn("row_savepoint", self._src(mod), mod)

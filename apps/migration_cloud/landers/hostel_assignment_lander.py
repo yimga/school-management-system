@@ -41,6 +41,7 @@ from ._helpers import (
     model_field_names,
     record_id_mapping,
     resolve_student,
+    row_savepoint,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -174,9 +175,10 @@ class HostelAssignmentLander(Lander):
                     result.created += 0 if exists else 1
                     continue
                 try:
-                    obj, created = HostelAssignment.objects.update_or_create(
-                        defaults=defaults, **lookup_kwargs,
-                    )
+                    with row_savepoint():  # atomic-apply isolation
+                        obj, created = HostelAssignment.objects.update_or_create(
+                            defaults=defaults, **lookup_kwargs,
+                        )
                 except (TypeError, ValueError) as exc:
                     result.quarantined += 1
                     result.errors.append(
@@ -255,9 +257,10 @@ class HostelAssignmentLander(Lander):
                 result.created += 0 if exists else 1
                 continue
             try:
-                obj, created = DynamicFieldValue.objects.update_or_create(
-                    defaults=defaults_dfv, **lookup_kwargs_dfv,
-                )
+                with row_savepoint():  # atomic-apply isolation
+                    obj, created = DynamicFieldValue.objects.update_or_create(
+                        defaults=defaults_dfv, **lookup_kwargs_dfv,
+                    )
             except (TypeError, ValueError) as exc:
                 result.quarantined += 1
                 result.errors.append(

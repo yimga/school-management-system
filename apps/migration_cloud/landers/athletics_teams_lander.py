@@ -49,6 +49,7 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    row_savepoint,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
@@ -187,9 +188,10 @@ class AthleticsTeamsLander(Lander):
             }
             try:
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
-                obj, created = Team.objects.update_or_create(
-                    defaults=defaults, **lookup_kwargs,
-                )
+                with row_savepoint():  # atomic-apply isolation
+                    obj, created = Team.objects.update_or_create(
+                        defaults=defaults, **lookup_kwargs,
+                    )
             except (TypeError, ValueError) as exc:
                 result.quarantined += 1
                 result.errors.append(
