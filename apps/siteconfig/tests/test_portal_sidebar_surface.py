@@ -11,6 +11,7 @@ from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.portal_sidebar_items import (
+    PORTAL_CONFIG_SECTIONS,
     _order_sections_ops_then_config,
     _portal_item_surface,
     build_portal_sidebar_items,
@@ -63,6 +64,13 @@ class PortalSidebarSplitIntegrationTests(TestCase):
             email="sidebar_split_super@example.com",
             password="test",
         )
+        # build_portal_sidebar_items is nav-hat/role-driven (role = nav_role or
+        # primary_role). create_superuser leaves the default role=PARENT, which
+        # builds the PARENT family view and suppresses the admin/config zone. This
+        # suite verifies the ADMIN sidebar's ops/config split, so stamp an ADMIN
+        # role so the admin sections assemble.
+        self.superuser.role = "ADMIN"
+        self.superuser.save(update_fields=["role"])
 
     def _items(self, path="/portal/"):
         request = self.factory.get(path)
@@ -77,7 +85,10 @@ class PortalSidebarSplitIntegrationTests(TestCase):
         by_id = self._by_id(self._items())
         for cid in ("bulk_letters", "reportcard_builder"):
             self.assertIn(cid, by_id, msg=f"{cid} should be present for superuser")
-            self.assertEqual(by_id[cid]["section"], "Admin Panel", msg=cid)
+            # The monolithic "Admin Panel" zone was refined into granular config
+            # sections; the template builders live under "Templates & Branding"
+            # (still the config surface).
+            self.assertEqual(by_id[cid]["section"], "Templates & Branding", msg=cid)
             self.assertEqual(by_id[cid]["surface"], "config", msg=cid)
 
     def test_operational_tools_unburied_to_ops_section(self):
@@ -87,10 +98,15 @@ class PortalSidebarSplitIntegrationTests(TestCase):
         self.assertEqual(by_id["workflow_center"]["section"], "Workflows & Approvals")
         self.assertEqual(by_id["workflow_center"]["surface"], "ops")
 
-    def test_all_admin_panel_items_are_config_surface(self):
-        admin_items = [it for it in self._items() if it.get("section") == "Admin Panel"]
-        self.assertTrue(admin_items, "expected Admin Panel items for superuser")
-        for it in admin_items:
+    def test_all_config_zone_items_carry_config_surface(self):
+        # The config zone was refined from one "Admin Panel" section into granular
+        # config sections (Templates & Branding, Access & Roles, …); every item in
+        # a config section must carry the config surface.
+        config_items = [
+            it for it in self._items() if it.get("section") in PORTAL_CONFIG_SECTIONS
+        ]
+        self.assertTrue(config_items, "expected config-zone items for superuser")
+        for it in config_items:
             self.assertEqual(it["surface"], "config", msg=it["id"])
 
     def test_config_zone_is_contiguous_and_last(self):
@@ -111,7 +127,9 @@ class PortalSidebarSplitIntegrationTests(TestCase):
         by_id = self._by_id(self._items())
         for cid in ("rbac", "tenant_identity", "groups"):
             if cid in by_id:  # gated items; assert only when present
-                self.assertEqual(by_id[cid]["section"], "Admin Panel", msg=cid)
+                # Access-config items live under the "Access & Roles" config
+                # section (refined out of the old monolithic "Admin Panel").
+                self.assertEqual(by_id[cid]["section"], "Access & Roles", msg=cid)
                 self.assertEqual(by_id[cid]["surface"], "config", msg=cid)
 
     def test_people_access_keeps_only_rosters(self):

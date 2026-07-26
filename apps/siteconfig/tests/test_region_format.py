@@ -32,7 +32,9 @@ class DateFormatToDjangoTests(TestCase):
         self.assertEqual(_date_format_to_django("YYYY-MM-DD"), "Y-m-d")
 
     def test_empty_returns_default(self):
-        self.assertEqual(_date_format_to_django(""), "d/m/Y")
+        # Default is ISO 8601 (Y-m-d) — the locale-neutral fallback when no pattern
+        # is supplied (see _date_format_to_django rationale), not a CM-specific d/m/Y.
+        self.assertEqual(_date_format_to_django(""), "Y-m-d")
 
 
 class FormatDateFilterTests(TestCase):
@@ -56,9 +58,10 @@ class FormatDateFilterTests(TestCase):
         self.assertEqual(format_date(ctx, d), "2025-03-15")
 
     def test_default_when_no_context_key(self):
+        # No date_format in context → locale-neutral ISO 8601 default (Y-m-d).
         ctx = {}
         d = date(2025, 3, 15)
-        self.assertEqual(format_date(ctx, d), "15/03/2025")
+        self.assertEqual(format_date(ctx, d), "2025-03-15")
 
     def test_datetime(self):
         ctx = {"date_format": "DD/MM/YYYY"}
@@ -66,7 +69,9 @@ class FormatDateFilterTests(TestCase):
         self.assertEqual(format_date(ctx, dt), "15/03/2025")
 
 
-@override_settings(DEFAULT_CURRENCY="XAF")
+# PLATFORM_DEFAULT_CURRENCY is the canonical platform-currency setting the filter
+# reads first (DEFAULT_CURRENCY is only a legacy fallback), so override both.
+@override_settings(PLATFORM_DEFAULT_CURRENCY="XAF", DEFAULT_CURRENCY="XAF")
 class FormatCurrencyFilterTests(TestCase):
     def test_none_returns_empty(self):
         self.assertEqual(format_currency(None), "")

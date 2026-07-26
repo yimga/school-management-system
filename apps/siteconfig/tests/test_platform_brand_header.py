@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
-from django.test import Client, TestCase, override_settings
+from django.test import TestCase, override_settings
+
+from apps.test_utils.http_clients import login_manager_client
 
 User = get_user_model()
 
@@ -37,6 +39,10 @@ class PlatformBrandHeaderTests(TestCase):
                 "size": 32,
                 "label": "RunMyCampus",
                 "surface_badge": "Manager",
+                # The partial reads SITE.site_name (normally injected by the
+                # site_settings context processor) in its label/monogram defaults;
+                # render_to_string without a request runs no processors, so supply it.
+                "SITE": {"site_name": "RunMyCampus"},
             },
         )
         self.assertIn('data-rmc-brand-mark="1"', html)
@@ -48,8 +54,10 @@ class PlatformBrandHeaderTests(TestCase):
         self.assertIn("CAMPUS", html)
 
     def test_manager_super_dashboard_renders_platform_brand_markers(self):
-        client = Client(HTTP_HOST=_MGR, raise_request_exception=False)
-        client.force_login(self.user)
+        # /super/ on the manager host is MFA-gated (SUPERADMIN is a baseline-MFA
+        # role) — arm a confirmed device + verified operator session, or the request
+        # bounces (302) to /authentication/mfa/…, never reaching the dashboard.
+        client = login_manager_client(self.user, password="x" * 12, host=_MGR)
         response = client.get("/super/")
         self.assertEqual(response.status_code, 200, msg=response.content[:400])
         body = response.content.decode("utf-8", errors="replace")

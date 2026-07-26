@@ -37,4 +37,10 @@ class SiteConfigRedirectSafetyTests(TestCase):
             {"next": "https://evil.example/phish"},
         )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("siteconfig:theme_experience_hub"))
+        # safe_next_url neutralizes an external next to a safe internal fallback
+        # ("/") — it never returns empty — so the redirect lands on the hub and can
+        # only carry a safe internal next; the external host must never survive.
+        self.assertTrue(
+            response.url.startswith(reverse("siteconfig:theme_experience_hub"))
+        )
+        self.assertNotIn("evil.example", response.url)
