@@ -255,6 +255,10 @@ SiteSettings.cockpit_payload.
         {% endif %}
         <div class="sidebar-section-title">{% trans "People & Access" %}</div>
         <a class="nav-link nav-pill" href="{% url 'accounts:backend_student_list' %}"><i class="bi bi-person-lines-fill me-2"></i>{% term "student" capitalize=True %} {% trans "Profiles" %}</a>
+        {% if request.user.is_superuser or request.user|has_feature_permission:"settings.manage" %}
+        <a class="nav-link nav-pill" href="{% url 'accounts:backend_subject_list' %}"><i class="bi bi-journal-text me-2"></i>{% trans "Subjects" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'accounts:backend_specialty_list' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "Specialties" %}</a>
+        {% endif %}
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
         <a class="nav-link nav-pill" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-gear-wide me-2"></i>{% trans "Config center" %}</a>
         {% endif %}

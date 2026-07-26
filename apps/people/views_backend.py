@@ -34,7 +34,7 @@ from .forms_backend import (
     ClassroomCreateForm,
     ApplicantCreateForm,
 )
-from apps.academics.models import AcademicYear, Classroom, Department
+from apps.academics.models import AcademicYear, Classroom, Department, Specialty, Subject
 from apps.siteconfig.models import FormDraft
 from apps.siteconfig.admissions_services import (
     get_admissions_config,
@@ -436,6 +436,137 @@ def backend_classroom_list(request):
             "academic_years": academic_years,
             "departments": departments,
             "selected_year": year_id or "",
+            "selected_department": dept_id or "",
+            "pagination_extra_query": _pagination_extra_query(request),
+            "page_size": per_page,
+            "page_size_options": [20, 50, 100],
+            "show_page_size": True,
+        },
+    )
+
+
+def _list_page_size(request):
+    """Bounded per-page size from ?page_size, guarded against a non-int param."""
+    try:
+        return min(100, max(10, int(request.GET.get("page_size", 25))))
+    except (TypeError, ValueError):
+        return 25
+
+
+@login_required
+@permission_required("academics.view_subject", raise_exception=True)
+def backend_subject_list(request):
+    """List the school's subjects / courses — search, CSV export, pagination.
+
+    A read-only browse surface so an admin can confirm imported courses actually
+    landed and are visible (Migration Cloud import→visible parity). Scoped to
+    ``request.school``; mirrors the students/teachers/classrooms backend lists.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return render(
+            request,
+            "people/backend_subject_list.html",
+            {"subjects": [], "page_obj": None, "title": "Subjects", "search": "",
+             "pagination_extra_query": ""},
+        )
+    qs = Subject.objects.filter(school=school).order_by("name")
+    search = normalize_list_search_query(request.GET.get("q"))
+    qs = apply_bounded_icontains(qs, search, "name")
+    if request.GET.get("format") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="subjects_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        )
+        w = csv.writer(response)
+        w.writerow(["name", "category", "credits"])
+        for s in qs[:10000]:  # magic-number-allow: csv-export-row-cap
+            w.writerow([
+                s.name or "",
+                s.get_category_display() if s.category else "",
+                s.credits if s.credits is not None else "",
+            ])
+        return response
+    per_page = _list_page_size(request)
+    paginator = Paginator(qs, per_page)
+    try:
+        page_obj = paginator.get_page(request.GET.get("page", 1))
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.get_page(1)
+    return render(
+        request,
+        "people/backend_subject_list.html",
+        {
+            "subjects": page_obj.object_list,
+            "page_obj": page_obj,
+            "title": "Subjects",
+            "search": search,
+            "pagination_extra_query": _pagination_extra_query(request),
+            "page_size": per_page,
+            "page_size_options": [20, 50, 100],
+            "show_page_size": True,
+        },
+    )
+
+
+@login_required
+@permission_required("academics.view_specialty", raise_exception=True)
+def backend_specialty_list(request):
+    """List the school's specialties / streams — search, department filter, CSV.
+
+    Read-only browse surface (Migration Cloud import→visible parity), scoped to
+    ``request.school``; mirrors the classroom backend list.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return render(
+            request,
+            "people/backend_specialty_list.html",
+            {"specialties": [], "page_obj": None, "title": "Specialties", "search": "",
+             "departments": [], "selected_department": "", "pagination_extra_query": ""},
+        )
+    qs = (
+        Specialty.objects.filter(school=school)
+        .select_related("department")
+        .order_by("name")
+    )
+    search = normalize_list_search_query(request.GET.get("q"))
+    qs = apply_bounded_icontains(qs, search, "name", "code")
+    dept_id = request.GET.get("department")
+    if dept_id and str(dept_id).isdigit():
+        qs = qs.filter(department_id=dept_id)
+    else:
+        dept_id = ""
+    if request.GET.get("format") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="specialties_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        )
+        w = csv.writer(response)
+        w.writerow(["name", "code", "department"])
+        for sp in qs[:10000]:  # magic-number-allow: csv-export-row-cap
+            w.writerow([
+                sp.name or "",
+                sp.code or "",
+                sp.department.name if sp.department_id else "",
+            ])
+        return response
+    per_page = _list_page_size(request)
+    paginator = Paginator(qs, per_page)
+    try:
+        page_obj = paginator.get_page(request.GET.get("page", 1))
+    except (PageNotAnInteger, EmptyPage):
+        page_obj = paginator.get_page(1)
+    departments = list(Department.objects.filter(school=school).order_by("name"))
+    return render(
+        request,
+        "people/backend_specialty_list.html",
+        {
+            "specialties": page_obj.object_list,
+            "page_obj": page_obj,
+            "title": "Specialties",
+            "search": search,
+            "departments": departments,
             "selected_department": dept_id or "",
             "pagination_extra_query": _pagination_extra_query(request),
             "page_size": per_page,

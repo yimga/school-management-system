@@ -228,6 +228,8 @@ try:
         backend_classroom_list,
         backend_classroom_create,
         backend_classroom_detail,
+        backend_subject_list,
+        backend_specialty_list,
         backend_guardian_list,
         backend_applicant_list,
         backend_applicant_create,
@@ -247,6 +249,7 @@ except ImportError:
     ) = backend_classroom_create = backend_classroom_detail = backend_guardian_list = (
         backend_applicant_list
     ) = None
+    backend_subject_list = backend_specialty_list = None
 
 app_name = "accounts"
 
@@ -1015,6 +1018,12 @@ urlpatterns = [
         backend_classroom_detail,
         name="backend_classroom_detail",
     )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path("backend/subjects/", backend_subject_list, name="backend_subject_list")
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path("backend/specialties/", backend_specialty_list, name="backend_specialty_list")
     if BACKEND_PEOPLE_AVAILABLE
     else None,
 ]
