@@ -83,12 +83,27 @@ def domains_with_verification() -> set[str]:
 
 
 def _school_scoped_count(model: Any, school: Any) -> int:
-    """Count rows of ``model`` visible for ``school`` (field-aware scoping)."""
+    """Count rows of ``model`` visible for ``school`` (field-aware scoping).
+
+    Models whose link to the school is not literally ``school`` / ``student``
+    (``HostelRoom.hostel -> Hostel.school``, a transcripts row's ``issuing_school``,
+    a ``student_profile`` FK) previously fell through to ``.all()``. In the shared-
+    schema (RLS) path ``.all()`` counts EVERY school's rows, so a wrong-school write
+    could never drop the visible count below the source count — drift could not fire
+    and the bundle would seal + purge its encrypted source on a false "all visible".
+    Recognise the indirect school paths so the visible-count check actually scopes.
+    """
     field_names = {f.name for f in model._meta.get_fields()}
     if "school" in field_names:
         qs = model.objects.filter(school=school)  # tenant-isolation-allow: scoped by the model's own school FK
+    elif "issuing_school" in field_names:
+        qs = model.objects.filter(issuing_school=school)  # tenant-isolation-allow: scoped by the model's issuing_school FK
     elif "student" in field_names:
         qs = model.objects.filter(student__school=school)  # tenant-isolation-allow: scoped via student__school=school
+    elif "student_profile" in field_names:
+        qs = model.objects.filter(student_profile__school=school)  # tenant-isolation-allow: scoped via student_profile__school=school
+    elif "hostel" in field_names:
+        qs = model.objects.filter(hostel__school=school)  # tenant-isolation-allow: scoped via hostel__school=school (HostelRoom -> Hostel.school)
     else:
         qs = model.objects.all()  # tenant-isolation-allow: no school field; schema_context isolates the tenant
     return qs.count()

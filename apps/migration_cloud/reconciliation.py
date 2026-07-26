@@ -139,6 +139,18 @@ def reconcile_bundle(
     verification_failed = visible_result is None
     visible_by_domain = visible_result or {}
     visible_drift_notes: list[str] = []
+    # Domains we CAN re-query (mapped in verification._DOMAIN_MODELS). Lets us tell a
+    # domain whose visible-count is legitimately absent because it is unverifiable
+    # (alumni / payroll / compliance — DFV-only, honest "not verified") apart from one
+    # whose per-domain count ERRORED — verify_landed_counts swallows per-domain
+    # failures, so an errored domain is silently absent. The latter reported creates
+    # but we have NO proof they landed, so it must block the seal + purge.
+    try:
+        from .verification import domains_with_verification
+
+        _verifiable_domains = domains_with_verification()
+    except Exception:  # noqa: BLE001 — never let the spec lookup break reconcile
+        _verifiable_domains = set()
 
     for domain, artifacts in sorted(by_domain.items()):
         source_count = sum(a.row_count or 0 for a in artifacts)
@@ -157,6 +169,21 @@ def reconcile_bundle(
             visible_drift_notes.append(
                 f"{domain}: landers reported {target_created} created but only "
                 f"{visible} row(s) are visible in the school — verify the apply persisted."
+            )
+        elif (
+            visible is None
+            and target_created > 0
+            and not verification_failed
+            and domain in _verifiable_domains
+        ):
+            # This domain IS re-queryable and reported creates, but its visible-count
+            # is missing — the per-domain re-query errored (and was swallowed). Without
+            # proof the rows landed, keep the bundle APPLIED so it can never purge on
+            # self-reported counts. (A whole-verification failure is handled below.)
+            visible_drift_notes.append(
+                f"{domain}: landers reported {target_created} created but the "
+                "visible-count re-query could not be completed — cannot confirm the "
+                "rows landed; not sealing."
             )
 
         fill_rate = _fill_rate_for_domain(artifacts, per_artifact_mappings)
