@@ -244,6 +244,35 @@ def _apply_bundle_inner(
             {"reason": "financial_guardrail", "error": str(exc)},
         )
         raise
+    except Exception as exc:  # noqa: BLE001 — ANY apply failure must mark FAILED, never wedge at APPLYING
+        # The bundle was set to APPLYING at the top of this function. Letting an
+        # unexpected error (a lander crash, a DB error, an OOM) propagate from here
+        # would leave it APPLYING forever: re-apply requires MAPPED and repair refused
+        # APPLYING as "still running", so the import became unrecoverable without DB
+        # surgery. Mark it FAILED — which repair_readiness treats as repairable — as a
+        # best-effort, then re-raise the original error so the caller / outbox still
+        # sees the failure. (A worker SIGKILL never reaches this handler; repair.py
+        # reclaims that stale-APPLYING case by timeout.)
+        logger.exception("orchestrator: apply failed for bundle %s — marking FAILED", bundle_id)
+        try:
+            bundle.mark_status(
+                BundleStatus.FAILED,
+                summary_patch={"error": f"{type(exc).__name__}: {exc}"},
+            )
+        except Exception:  # noqa: BLE001 — marking FAILED must not mask the original error
+            logger.exception("orchestrator: could not mark bundle %s FAILED", bundle_id)
+        try:
+            _emit_progress(bundle_id=bundle_id, kind="error", stage="APPLYING",
+                           message=f"Apply failed — {type(exc).__name__}")
+            if not atomic_mode:
+                _rollback_all_runs(outcomes)
+            emit_bundle_lifecycle_event(
+                bundle, EVENT_BUNDLE_FAILED,
+                {"reason": "apply_exception", "error": str(exc)},
+            )
+        except Exception:  # noqa: BLE001 — best-effort cleanup, never mask the original error
+            logger.exception("orchestrator: post-failure cleanup errored for bundle %s", bundle_id)
+        raise
 
     totals = _summarize_outcomes(outcomes)
     bundle.mapping_summary = {

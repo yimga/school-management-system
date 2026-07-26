@@ -127,6 +127,48 @@ def _not_repairable_reason(status: str) -> str:
     return "This upload hasn't been imported yet — preview and import it first."
 
 
+# A bundle wedges in APPLYING when the worker dies mid-apply (SIGKILL / OOM /
+# deploy restart) before the orchestrator's catch-all can mark it FAILED, or when
+# an error escaped the apply's pre-wave setup. Without a reclaim path
+# repair_readiness refused APPLYING forever ("still running") and re-apply requires
+# MAPPED, so the import was unrecoverable without DB surgery. Reclaim it only when
+# NO apply is actually in flight AND it has been APPLYING past this threshold.
+_APPLYING_STALE_SECONDS = 30 * 60  # generous — longer than a real large apply's quiet gaps
+
+
+def _apply_in_flight(bundle: MigrationBundle) -> bool:
+    """True if a durable apply job for this bundle is queued or running.
+
+    The HeavyWorkOutbox apply row is the authoritative in-flight signal — it exists
+    PENDING -> PROCESSING for the whole life of the background apply. Best-effort: if
+    the outbox cannot be read we assume NOT in flight, so a genuinely wedged bundle
+    stays reclaimable rather than being pinned "still running" forever.
+    """
+    try:
+        from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+        return HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: bundle_id is the globally-unique shared MigrationBundle pk; the bundle is already tenant-scoped by the calling view
+            bundle_id=bundle.pk,
+            kind=HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE,
+            status__in=(HeavyWorkOutbox.Status.PENDING, HeavyWorkOutbox.Status.PROCESSING),
+        ).exists()
+    except Exception:  # noqa: BLE001 — absence of the signal must not crash repair
+        logger.debug("repair: could not read apply outbox for bundle %s", bundle.pk)
+        return False
+
+
+def _applying_is_stale(bundle: MigrationBundle) -> bool:
+    """A bundle stuck at APPLYING with no in-flight apply job, past the threshold."""
+    if bundle.status != BundleStatus.APPLYING:
+        return False
+    if _apply_in_flight(bundle):
+        return False
+    updated = getattr(bundle, "updated_at", None)
+    if updated is None:
+        return True
+    return (timezone.now() - updated).total_seconds() > _APPLYING_STALE_SECONDS
+
+
 def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:
     """Decide — conservatively — whether re-applying this bundle is safe."""
     status = bundle.status
@@ -157,6 +199,16 @@ def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:
         reason = (
             "Some records were held for review or didn't fully land. Retrying "
             "re-attempts just those, without duplicating what already imported."
+        )
+    elif status == BundleStatus.APPLYING and _applying_is_stale(bundle):
+        # Reclaim a wedged apply — the worker was interrupted and no apply is in
+        # flight. Same safety envelope as FAILED: the finance-atomic gate below
+        # still applies, and apply_bundle upserts so landed rows are never dupes.
+        reason = (
+            "The last import stopped unexpectedly while applying — the worker was "
+            "interrupted before it could finish. Retrying is safe: records that "
+            "already imported are updated in place, never duplicated, and the rest "
+            "get another attempt."
         )
     else:
         return RepairReadiness(
