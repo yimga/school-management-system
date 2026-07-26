@@ -56,13 +56,18 @@ class OnboardingCoachApiTests(TestCase):
         resp = api_onboarding_coach(req)
         self.assertEqual(resp.status_code, 403)
 
-    def test_no_school_bad_request(self):
+    def test_no_school_forbidden(self):
+        # The view resolves the school from the request and returns a UNIFIED 403
+        # for both "no school context" and "cannot access tenant lifecycle" — a
+        # single security-conscious forbidden response that doesn't leak whether a
+        # school context exists (see api_onboarding_coach: `school is None or not
+        # can_access_tenant_lifecycle(...)` → 403).
         rf = RequestFactory()
         req = rf.get("/siteconfig/api/onboarding-coach/")
         req.user = self.staff
         req.school = None
         resp = api_onboarding_coach(req)
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 403)
 
     @override_settings(AI_GATEWAY_ENABLED=True)
     @patch("services.ai_gateway.invoke")
