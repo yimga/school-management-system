@@ -32,16 +32,6 @@ def _ctx_currency(ctx: dict[str, Any]) -> str:
     return (getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD") or "USD").upper()
 
 
-_TEMPLATE_RENDERERS: dict[str, str] = {
-    "low_meal_balance": "schoolops/email/locale/{locale}/low_meal_balance",
-    "exam_readiness": "schoolops/email/locale/{locale}/exam_readiness",
-    "fee_reminder": "schoolops/email/locale/{locale}/fee_reminder",
-    "payment_received": "schoolops/email/locale/{locale}/payment_received",
-    "transport_delay": "schoolops/email/locale/{locale}/transport_delay",
-    "wellbeing_checkin": "schoolops/email/locale/{locale}/wellbeing_checkin",
-}
-
-
 def _hash_tenant(school_id: int) -> str:
     return hashlib.sha256(str(school_id).encode()).hexdigest()[:12]
 
@@ -70,60 +60,93 @@ def _resolve_recipient_email(*, school, recipient_user_id: str) -> Optional[str]
     return email
 
 
+def _inline_notification(template_key: str, ctx: dict[str, Any]) -> tuple[str, str]:
+    """English inline (subject, body) used when no localized template ships for
+    this ``template_key`` — the deterministic fallback for
+    :func:`render_notification_intent`."""
+    if template_key == "low_meal_balance":
+        student = ctx.get("student_name") or "your student"
+        return (
+            "Meal plan balance notice",
+            f"Hello — this is a notice regarding meal plan balance for {student}.",
+        )
+    if template_key == "exam_readiness":
+        return (
+            "Exam readiness update",
+            "Hello — your student's exam readiness information is available in the portal.",
+        )
+    if template_key == "fee_reminder":
+        return (
+            "Fee payment reminder",
+            "Hello — this is a reminder about an outstanding school fee balance. "
+            "Sign in to the parent portal for details and payment options.",
+        )
+    if template_key == "payment_received":
+        student = ctx.get("student_name") or "your student"
+        amount = ctx.get("amount") or ""
+        currency = ctx.get("currency") or _ctx_currency(ctx)
+        reference = ctx.get("reference") or ""
+        return (
+            "Payment received",
+            f"Hello — we recorded a payment for {student}. "
+            f"Amount: {amount} {currency}. Reference: {reference}. "
+            "Sign in to the parent portal for your receipt.",
+        )
+    if template_key == "transport_delay":
+        route = ctx.get("route_name") or "your student's route"
+        return (
+            "Transport update",
+            f"Hello — there is a transport schedule update for {route}. "
+            "Open the portal for the latest arrival or pickup information.",
+        )
+    if template_key == "wellbeing_checkin":
+        return (
+            "Wellbeing check-in",
+            "Hello — your school has shared a wellbeing check-in update. "
+            "Please review the message in the parent portal when you can.",
+        )
+    return (
+        f"School notification ({template_key})",
+        f"Hello — you have a new school notification ({template_key}).",
+    )
+
+
 def render_notification_intent(
     *,
     template_key: str,
     locale: str = "en",
     context: Optional[dict[str, Any]] = None,
 ) -> tuple[str, str, Optional[str]]:
-    """Return (subject, text_body, html_body)."""
+    """Return (subject, text_body, html_body).
+
+    Prefers the shared locale-aware email templates
+    (``schoolops/email/locale/<code>/<template_key>.{txt,html}``) so a non-English
+    recipient gets the translated body that already ships on disk — the SAME
+    renderer the primary low-meal-balance path uses (``schoolops.tasks``). Before
+    this, every ``notify.*`` intent rendered a hardcoded English one-liner and the
+    ``locale`` argument was dead, so a French/Arabic parent got English even though
+    the translated copy existed. ``render_localized_email`` owns the locale →
+    ``en`` → legacy cascade and raises ``TemplateDoesNotExist`` only when NO
+    template exists for this key at all — that is the signal to fall back to the
+    English inline body. Dropping in a new ``locale/<code>/<key>`` template
+    localizes this path with no code change (GAP-5 contract). The subject stays
+    inline English: the templates carry no subject line, which also matches the
+    primary path's English subject alongside a localized body.
+    """
     ctx = context or {}
-    if template_key == "low_meal_balance":
-        student = ctx.get("student_name") or "your student"
-        subject = "Meal plan balance notice"
-        body = f"Hello — this is a notice regarding meal plan balance for {student}."
-        return subject, body, None
-    if template_key == "exam_readiness":
-        subject = "Exam readiness update"
-        body = "Hello — your student's exam readiness information is available in the portal."
-        return subject, body, None
-    if template_key == "fee_reminder":
-        subject = "Fee payment reminder"
-        body = (
-            "Hello — this is a reminder about an outstanding school fee balance. "
-            "Sign in to the parent portal for details and payment options."
+    subject, inline_body = _inline_notification(template_key, ctx)
+
+    from django.template import TemplateDoesNotExist
+
+    from apps.communication.email_locale import render_localized_email
+
+    try:
+        rendered = render_localized_email(
+            "schoolops/email", template_key, locale, ctx
         )
-        return subject, body, None
-    if template_key == "payment_received":
-        student = ctx.get("student_name") or "your student"
-        amount = ctx.get("amount") or ""
-        currency = ctx.get("currency") or _ctx_currency(ctx)
-        reference = ctx.get("reference") or ""
-        subject = "Payment received"
-        body = (
-            f"Hello — we recorded a payment for {student}. "
-            f"Amount: {amount} {currency}. Reference: {reference}. "
-            "Sign in to the parent portal for your receipt."
-        )
-        return subject, body, None
-    if template_key == "transport_delay":
-        route = ctx.get("route_name") or "your student's route"
-        subject = "Transport update"
-        body = (
-            f"Hello — there is a transport schedule update for {route}. "
-            "Open the portal for the latest arrival or pickup information."
-        )
-        return subject, body, None
-    if template_key == "wellbeing_checkin":
-        subject = "Wellbeing check-in"
-        body = (
-            "Hello — your school has shared a wellbeing check-in update. "
-            "Please review the message in the parent portal when you can."
-        )
-        return subject, body, None
-    subject = f"School notification ({template_key})"
-    body = f"Hello — you have a new school notification ({template_key})."
-    return subject, body, None
+    except TemplateDoesNotExist:
+        return subject, inline_body, None
+    return subject, rendered.text, rendered.html
 
 
 def dispatch_notification_intent(
