@@ -771,6 +771,26 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
 
         # Marketing apex is not a tenant sign-in surface — route to campus discovery.
         if kind == "base" and _apex_auth_path_redirects_to_discovery(path):
+            # Exception: a session-death re-auth on an OPERATOR surface lands here as
+            # /authentication/login/?next=<manager-only path> (redirect_to_login adds
+            # the next). Ejecting it to /discover/ — which ignores `next` — strands the
+            # operator on runmycampus.com. Forward the login to the host that actually
+            # serves that surface (the manager host) with `next` intact, so they re-auth
+            # and return to the page they were on. Toxic/tenant/non-operator `next`
+            # (and no-`next` cold visits) still fall through to discovery.
+            login_next = (request.GET.get("next") or "").strip()
+            normalized_login_path = (path or "").strip().lower().rstrip("/")
+            if (
+                normalized_login_path.endswith("/authentication/login")
+                and login_next.startswith("/")
+                and not login_next.startswith("//")
+                and _is_manager_only_path(login_next)
+            ):
+                forwarded = _redirect_to_manager_host(
+                    request, path=request.get_full_path()
+                )
+                if forwarded is not None:
+                    return forwarded
             return redirect("global_login_discovery")
 
         # Root/base domain is marketing-first: move operator/auth/admin paths to manager host.

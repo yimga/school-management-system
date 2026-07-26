@@ -98,13 +98,23 @@
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
     {% comment %} v4.02.45: ~70 blocking CSS files → one deferred min bundle (see scripts/portal_css_bundle_manifest.json). {% endcomment %}
     {% include "partials/rmc_deferred_stylesheet.html" with stylesheet="css/portal-shell-enhanced.min.css" %}
-    {% comment %} Layout-critical long-page grammar (settings/config hub grid, list-resets,
-       section grammar) is loaded BLOCKING and AFTER the deferred bundle so it wins the
-       cascade even when the minified bundle is stale. The other three shells (base,
-       admin, control_plane) already load it blocking; the tenant shell omitted it, so
-       the Configure/settings hub rendered unstyled (raw bullets, cramped, left-packed)
-       whenever the bundle lagged the source. Parity fix. {% endcomment %}
+    {% comment %} LAYOUT SPINE — loaded BLOCKING (not left to the deferred bundle) and
+       AFTER it so the canonical files win the cascade even when the minified
+       portal-shell-enhanced.min.css is STALE in a deployed build or the service-worker
+       cache. The other three dashboard shells (base / admin / control_plane) already load
+       this spine blocking; the tenant shell deferred ALL of it, so any tenant page whose
+       layout depends on these grids / list-resets / shell grammar rendered unstyled (raw
+       bullets, cramped, left-packed) whenever the bundle lagged — that was the Configure
+       settings-hub breakage. Layout-critical CSS must never be render-blocking-deferred;
+       these already download via the bundle too, so this only fixes WHEN they apply.
+       Parity fix. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
+    <link rel="stylesheet" href="{% static 'css/form-system.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/phase2-portal-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-copilot-help-mode.css' %}">
     {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
     {% include "partials/rmc_platform_chrome_styles.html" %}

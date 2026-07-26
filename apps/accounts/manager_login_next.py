@@ -59,6 +59,42 @@ def manager_login_next_is_operator_intent(raw: str) -> bool:
     return any(prefix in chain for prefix in _MANAGER_OPERATOR_NEXT_PREFIXES)
 
 
+def login_next_is_safe_same_host_return(request) -> bool:
+    """True when a login GET/POST carries a safe, same-host ``next`` to a protected surface.
+
+    This is the signature of a SESSION-DEATH re-auth: Django's ``redirect_to_login``
+    always appends such a ``next`` when a login-required view kicks an expired session
+    to the login page, whereas a cold visitor typing the URL has none. On the manager
+    host every protected surface is operator-only, so a non-toxic same-host return path
+    means the visitor was on the operator console — they must be shown the operator
+    login (with ``next`` preserved) and NOT ejected to runmycampus.com/discover/.
+
+    Rejected: empty, toxic tenant-flow targets (MFA/onboarding/activation/``/t/``),
+    and any off-site / scheme-bearing / protocol-relative ``next`` (open-redirect safe).
+    """
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    raw = (request.GET.get("next") or "").strip()
+    if not raw and getattr(request, "method", "") == "POST":
+        raw = (request.POST.get("next") or "").strip()
+    if not raw:
+        return False
+    if is_toxic_login_next_for_manager(raw):
+        return False
+    # Same-host relative path only — never an off-site or protocol-relative target.
+    if not raw.startswith("/") or raw.startswith("//"):
+        return False
+    try:
+        host = (request.get_host() or "").split(":")[0]
+    except (AttributeError, TypeError, ValueError):
+        host = ""
+    if not url_has_allowed_host_and_scheme(
+        raw, allowed_hosts={host} if host else None
+    ):
+        return False
+    return True
+
+
 def sanitize_manager_login_next(raw: str) -> str:
     """Drop toxic manager-host ``next`` values; pass through safe relative paths."""
     cleaned = (raw or "").strip()
@@ -116,6 +152,13 @@ def should_show_manager_login_surface(request) -> bool:
         post_next = (request.POST.get("next") or "").strip()
         if post_next and manager_login_next_is_operator_intent(post_next):
             return True
+    # Session-death re-auth: any safe, non-toxic same-host return path means the
+    # visitor was on an operator surface (the manager host serves nothing else) —
+    # render the operator login with `next` preserved instead of ejecting them to
+    # campus discovery on runmycampus.com. Cold visitors (no `next`) still fall
+    # through to discovery below.
+    if login_next_is_safe_same_host_return(request):
+        return True
     return False
 
 

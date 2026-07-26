@@ -7,10 +7,20 @@
       {% url 'super:dashboard' as bm_dashboard_url %}
       {% url 'super:command_center' as cp_command_center_url %}
       {% url 'admin:index' as admin_home_url %}
+      {% comment %} The operator/manager surface must ALWAYS show the RunMyCampus brand mark,
+         never the monogram fallback. The mark otherwise renders only when PUBLIC_BRAND_MODE is
+         true (context_processors.py:951) — which is FALSE whenever a school is bound to the
+         operator request (Tenant-360 / portal bridge) or the host is momentarily misclassified,
+         leaving the header with a bare monogram. Resolve the platform logo explicitly here so it
+         is independent of that flag: the operator-configured PUBLIC_BRAND_LOGO_URL when set, else
+         the canonical static mark. {% endcomment %}
+      {% static 'images/brand/runmycampus-logo-mark.svg' as rmc_operator_logo_default %}
+      {% firstof PUBLIC_BRAND_LOGO_URL rmc_operator_logo_default as rmc_operator_logo %}
+      {% firstof PUBLIC_BRAND_LOGO_DARK_URL PUBLIC_BRAND_LOGO_URL rmc_operator_logo_default as rmc_operator_logo_dark %}
       <div class="rmc-platform-header__brand">
         {% if MANAGER_PLATFORM_ADMIN_SHELL %}
         <a href="{{ admin_home_url }}" class="cp-brand rmc-brand-mark-link" aria-label="{% trans 'RunMyCampus platform backoffice' %}">
-          {% include "components/rmc_brand_mark.html" with size=32 variant="mark" label="RunMyCampus" %}
+          {% include "components/rmc_brand_mark.html" with size=32 variant="mark" label="RunMyCampus" logo_url=rmc_operator_logo logo_dark_url=rmc_operator_logo_dark %}
           <span class="cp-brand__lockup">
             <span class="cp-brand__wordmark">RUN<strong>MYCAMPUS</strong></span>
             <span class="rmc-brand-mark__badge cp-brand__pill">{% trans "BACKOFFICE" %}</span>
@@ -18,7 +28,7 @@
           </span>
         </a>
         {% else %}
-        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" lockup_layout="inline" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=cockpit_shell.brand_pill|default:_("Manager") %}
+        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" lockup_layout="inline" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" logo_url=rmc_operator_logo logo_dark_url=rmc_operator_logo_dark surface_badge=cockpit_shell.brand_pill|default:_("Manager") %}
         {% comment %} Brand tagline under the wordmark/pill. CONFIGURABLE via the per-surface
            cockpit_shell.tagline (brand_experience cascade) with legacy cockpit.brand.tagline
            fallback. Renders only when non-empty so existing surfaces aren't visually changed. {% endcomment %}

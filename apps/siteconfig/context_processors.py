@@ -872,10 +872,14 @@ def site_settings(request):
             tenant_brand = resolve_brand_profile(school=school, site=site)
         except OPTIONAL_CONTEXT_ERRORS:
             tenant_brand = {}
-        if tenant_brand.get("logo_url"):
-            ctx["SITE_LOGO_URL"] = tenant_brand.get("logo_url")
-        if tenant_brand.get("logo_dark_url"):
-            ctx["SITE_LOGO_DARK_URL"] = tenant_brand.get("logo_dark_url")
+        # A tenant that has NOT uploaded (or AI-built) a logo must NOT inherit the
+        # platform (RunMyCampus) logo. `logo_url` above defaulted to the platform
+        # `images/logo.png` for the public/platform surface; on a tenant surface we
+        # blank it so the header falls back to the school's initials / monogram
+        # placeholder (tp_header_brand.html, rmc_brand_mark.html) until the school
+        # provides its own. A real uploaded/AI-built logo still wins.
+        ctx["SITE_LOGO_URL"] = tenant_brand.get("logo_url") or ""
+        ctx["SITE_LOGO_DARK_URL"] = tenant_brand.get("logo_dark_url") or ""
         if tenant_brand.get("favicon_url"):
             ctx["SITE_FAVICON_URL"] = tenant_brand.get("favicon_url")
         try:
