@@ -22,12 +22,17 @@ logger = logging.getLogger(__name__)
 def shell_for_request(request: HttpRequest) -> str:
     """Return the wizard ``shell`` kwarg matching this request.
 
-    Staff users land in the operator shell ("super"); non-staff land in
-    the tenant shell ("portal"), which the underlying view uses to enforce
-    a tenant-match on bundle lookup.
+    Only a GENUINE platform operator (control-plane access on the manager/local
+    host) lands in the cross-tenant operator shell ("super"); everyone else —
+    including an ``is_staff=True`` tenant admin on their own subdomain — lands in
+    the tenant shell ("portal"), which forces the underlying view to match the
+    bundle to the caller's own school. Keying "super" on bare ``is_staff`` let a
+    tenant admin drive a cross-tenant apply/advance/reconcile; use the same
+    predicate the API permission class enforces so all three agree.
     """
-    user = getattr(request, "user", None)
-    if user is not None and getattr(user, "is_staff", False):
+    from .permissions import _is_operator_shell_request
+
+    if _is_operator_shell_request(request):
         return "super"
     return "portal"
 

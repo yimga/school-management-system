@@ -91,6 +91,14 @@ def reconcile_bundle(
         )
 
     cohort = cohort or {}
+    # A cohort restricts this pass to a SUBSET (a drill-down / inspection), so its
+    # parity + drift notes only cover that subset. Closing the bundle out
+    # (APPLIED→RECONCILED) or purging the encrypted source blobs on a partial
+    # verification would destroy the proof AND the source for every domain this
+    # pass never re-queried. A scoped reconcile is therefore strictly READ-ONLY:
+    # it reports, but never transitions status, purges blobs, or auto-rolls-back.
+    # Only a full-bundle (un-scoped) reconcile may seal + purge.
+    scoped_readonly = bool(cohort)
 
     apply_totals = (bundle.mapping_summary or {}).get("apply_totals") or {}
     per_artifact_domain = (
@@ -199,6 +207,12 @@ def reconcile_bundle(
             "failed) — the bundle stays APPLIED and the encrypted source blobs are "
             "retained until the landed rows are confirmed."
         )
+    if scoped_readonly:
+        notes.append(
+            "Scoped drill-down reconcile — read-only. The bundle was NOT closed "
+            "out and the encrypted source blobs were retained; only a full-bundle "
+            "reconcile may seal it."
+        )
 
     report = ReconciliationReport(
         bundle_id=bundle.pk,
@@ -215,7 +229,12 @@ def reconcile_bundle(
     # Auto-rollback gate (Tier 2 #13). Operators opt in by setting
     # `parity_drift_rollback_pct > 0` on the bundle.
     drift_threshold = float(getattr(bundle, "parity_drift_rollback_pct", 0.0) or 0.0)
-    if drift_threshold > 0 and overall < drift_threshold and bundle.status == BundleStatus.APPLIED:
+    if (
+        not scoped_readonly
+        and drift_threshold > 0
+        and overall < drift_threshold
+        and bundle.status == BundleStatus.APPLIED
+    ):
         _auto_rollback_bundle(bundle=bundle, observed_pct=overall, threshold=drift_threshold)
         notes.append(
             f"Auto-rollback triggered: overall parity {overall:.2f}% < threshold {drift_threshold:.2f}%."
@@ -225,7 +244,7 @@ def reconcile_bundle(
         bundle.save(update_fields=["reconciliation_summary", "updated_at"])
         return report
 
-    if not notes and bundle.status == BundleStatus.APPLIED:
+    if not scoped_readonly and not notes and bundle.status == BundleStatus.APPLIED:
         bundle.mark_status(BundleStatus.RECONCILED)
         # Partner lifecycle event (G-5): nothing emitted bundle.reconciled before —
         # partners had no signal the migration was verified + sealed. Best-effort.

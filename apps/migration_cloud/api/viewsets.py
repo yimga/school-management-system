@@ -140,12 +140,19 @@ class BundleViewSet(viewsets.ModelViewSet):
         through the authenticated user's school binding, not via raw
         cross-tenant queries.
         """
-        qs = MigrationBundle.objects.all()  # tenant-isolation-allow: api-layer-staff-superset-narrowed-below
+        qs = MigrationBundle.objects.all()  # tenant-isolation-allow: api-layer-operator-superset-narrowed-below
         user = getattr(self.request, "user", None)
         if user is None or not user.is_authenticated:
             return qs.none()  # tenant-isolation-allow: api-layer-anonymous-rejected-defense-in-depth
-        if user.is_staff:
-            return qs  # tenant-isolation-allow: api-layer-staff-operator-shell-cross-tenant-by-design
+        # Cross-tenant read is for a GENUINE platform operator only (control-plane
+        # access on the manager/local host) — NOT any is_staff user. The platform
+        # mints is_staff=True tenant admins who are ordinary members on their own
+        # subdomain; keying cross-tenant access on bare is_staff let them read
+        # every tenant's bundles. Use the SAME predicate the permission class uses.
+        from .permissions import _is_operator_shell_request
+
+        if _is_operator_shell_request(self.request):
+            return qs  # tenant-isolation-allow: api-layer-genuine-operator-only-cross-tenant
         school = (
             getattr(self.request, "school", None)
             or getattr(self.request, "tenant", None)
