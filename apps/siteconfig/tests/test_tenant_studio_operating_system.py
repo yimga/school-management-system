@@ -72,7 +72,11 @@ class TenantStudioOperatingSystemViewTests(TestCase):
     def test_school_studio_hub_renders_launch_markers(self):
         from apps.siteconfig.views_tenant_studio_hub import school_studio_hub
 
-        resp = school_studio_hub(self._staff_request())
+        # A fresh tenant (no palette locked) is intercepted by the Day-1 Magic gate
+        # and 302-redirected into the 3-act onboarding; the hub's launch markers are
+        # the post-Day-1 surface. Use the view's documented one-shot opt-out
+        # (?skip_day1=1) so the hub renders in place.
+        resp = school_studio_hub(self._staff_request("/school/studio/?skip_day1=1"))
         self.assertEqual(resp.status_code, 200)
         html = resp.content.decode()
         self.assertIn('data-rmc-tenant-studio-launch-path="1"', html)

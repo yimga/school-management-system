@@ -62,7 +62,12 @@ class TenantExperienceScorePolicyTests(SimpleTestCase):
             "experience_score_country_bonus": 15,
         }
         score = compute_weighted_experience_score(50, 90, policy, country_configured=True)
-        self.assertEqual(score, 100)
+        # The country bonus is added to the SCHOOL sub-score and capped at 100
+        # (90 + 15 = 105 -> 100), NOT to the final weighted score. With the default
+        # 50/50 profile/school weights that yields round((50*50 + 100*50)/100) = 75.
+        # Without the cap it would be round((50*50 + 105*50)/100) = 78, so asserting
+        # 75 proves the school-sub-score cap fired.
+        self.assertEqual(score, 75)
 
     def test_score_bands(self):
         policy = tenant_experience_policy_defaults()

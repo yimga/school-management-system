@@ -260,7 +260,7 @@ class Day1LogoUploadViewTests(TestCase):
         )
         self._attach(request, school=school, user=user)
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ):
             return TenantStudioDay1Act1LogoUploadView.as_view()(request)
@@ -316,7 +316,7 @@ class Day1LogoUploadViewTests(TestCase):
         )
         self._attach(request, school=FakeSchool(), user=FakeUser())
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ):
             resp = TenantStudioDay1Act1LogoUploadView.as_view()(request)
@@ -329,7 +329,7 @@ class Day1LogoUploadViewTests(TestCase):
         request = self.factory.get("/siteconfig/studio/day1/act1/logo-upload/")
         self._attach(request, school=FakeSchool(), user=FakeUser())
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ):
             resp = TenantStudioDay1Act1LogoUploadView.as_view()(request)
@@ -344,7 +344,7 @@ class Day1LogoUploadViewTests(TestCase):
         )
         self._attach(request, school=school, user=FakeUser(is_staff=False, role="STUDENT"))
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=False,
         ):
             resp = TenantStudioDay1Act1LogoUploadView.as_view()(request)
@@ -361,7 +361,7 @@ class Day1LogoUploadViewTests(TestCase):
         request.user = FakeUser()
         request._messages = mock.MagicMock()
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ):
             resp = TenantStudioDay1Act1LogoUploadView.as_view()(request)
@@ -383,7 +383,7 @@ class Day1LogoUploadViewTests(TestCase):
         )
         self._attach(request, school=school, user=FakeUser())
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ):
             resp = TenantStudioDay1Act1LogoUploadView.as_view()(request)

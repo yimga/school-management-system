@@ -298,7 +298,7 @@ class Day1Act1ViewTests(_ViewTestsBase):
             user=FakeUser(is_staff=True),
         )
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ), mock.patch(
             "apps.siteconfig.views_tenant_studio_hub.render"
@@ -319,7 +319,7 @@ class Day1Act1ViewTests(_ViewTestsBase):
             user=FakeUser(is_staff=False, role="STUDENT"),
         )
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=False,
         ):
             resp = TenantStudioDay1Act1View.as_view()(request)
@@ -336,7 +336,7 @@ class Day1Act2ViewTests(_ViewTestsBase):
             user=FakeUser(is_staff=True),
         )
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ), mock.patch(
             "apps.siteconfig.views_tenant_studio_hub.render"
@@ -369,7 +369,7 @@ class Day1Act3LockViewTests(_ViewTestsWithDbBase):
             user=FakeUser(is_staff=True),
         )
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ), mock.patch(
             "apps.siteconfig.tenant_studio_day1._mirror_to_site_settings"
@@ -398,7 +398,7 @@ class Day1Act3LockViewTests(_ViewTestsWithDbBase):
             user=FakeUser(is_staff=True),
         )
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ):
             resp = TenantStudioDay1Act3LockView.as_view()(request)
@@ -418,7 +418,7 @@ class Day1ResetViewTests(_ViewTestsWithDbBase):
             user=FakeUser(is_staff=False, role="STUDENT"),
         )
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ):
             resp = TenantStudioDay1ResetView.as_view()(request)
@@ -436,7 +436,7 @@ class Day1ResetViewTests(_ViewTestsWithDbBase):
             user=FakeUser(is_staff=True),
         )
         with mock.patch(
-            "apps.siteconfig.views_tenant_studio_hub.tenant_operator_hub_eligible",
+            "apps.lifecycle.tenant_school_resolve.can_access_tenant_lifecycle",
             return_value=True,
         ), mock.patch(
             "apps.siteconfig.views_tenant_studio_hub._siteconfig_reverse",
