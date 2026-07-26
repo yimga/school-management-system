@@ -6,6 +6,7 @@ import logging
 from uuid import UUID
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -13,6 +14,8 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 from django.views.generic import TemplateView
+
+from apps.accounts.decorators import user_is_tenant_admin
 
 from .models_connectors import (
     ConnectionMethod,
@@ -57,6 +60,30 @@ def _request_school(request: HttpRequest):
     # tenant-isolation-allow: connector-wizard-resolve-school-via-membership
     membership = membership_mgr.select_related("school").first()
     return getattr(membership, "school", None) if membership else None
+
+
+class _ConnectorTenantAdminRequiredMixin(LoginRequiredMixin):
+    """Gate a connector-wizard surface on the tenant-admin tier of the request's school.
+
+    The wizard is TENANT-HOST-ONLY (config/tenant_urls.py) and drives imports that
+    overwrite the school's live data, so ``LoginRequiredMixin`` alone — which SAML/SCIM
+    satisfies for EVERY provisioned member — let any teacher / parent / student POST a
+    connect / discover / import / revoke. Require the tenant-admin tier of the request's
+    OWN school (owner / role=ADMIN / settings.manage + audited superuser break-glass) via
+    the canonical :func:`apps.accounts.decorators.user_is_tenant_admin`, mirroring the
+    file-upload flow's ``_TenantAdminWriteRequiredMixin``. Blocks GET too — a plain member
+    has no business in the migration connector at all. (Defined locally rather than
+    imported from ``views_tenant_upload`` because that module imports ``_request_school``
+    from HERE; a module-level import back would be circular.)
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        user = getattr(request, "user", None)
+        if getattr(user, "is_authenticated", False) and not user_is_tenant_admin(
+            user, _request_school(request)
+        ):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
 
 def _resolve_connector_upload_url(request: HttpRequest) -> str:
@@ -166,7 +193,7 @@ def _friendly_import_error(code: str) -> str:
     }.get(code, "The import could not be started. Review the connection and try again.")
 
 
-class MigrationCloudConnectorHomeView(LoginRequiredMixin, TemplateView):
+class MigrationCloudConnectorHomeView(_ConnectorTenantAdminRequiredMixin, TemplateView):
     template_name = "migration_cloud/connector/home.html"
 
     def get_context_data(self, **kwargs):
@@ -193,7 +220,7 @@ class MigrationCloudConnectorHomeView(LoginRequiredMixin, TemplateView):
 
 
 @method_decorator(csrf_protect, name="dispatch")
-class MigrationCloudConnectorConnectView(LoginRequiredMixin, View):
+class MigrationCloudConnectorConnectView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/connect.html"
 
     def get(self, request: HttpRequest) -> HttpResponse:
@@ -264,7 +291,7 @@ class MigrationCloudConnectorConnectView(LoginRequiredMixin, View):
         )
 
 
-class MigrationCloudConnectorDiscoverView(LoginRequiredMixin, View):
+class MigrationCloudConnectorDiscoverView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/discover.html"
 
     def get(self, request: HttpRequest, connection_id: UUID) -> HttpResponse:
@@ -309,7 +336,7 @@ class MigrationCloudConnectorDiscoverView(LoginRequiredMixin, View):
         )
 
 
-class MigrationCloudConnectorMappingView(LoginRequiredMixin, View):
+class MigrationCloudConnectorMappingView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/mapping.html"
 
     def get(self, request: HttpRequest, connection_id: UUID, run_id: UUID) -> HttpResponse:
@@ -354,7 +381,7 @@ class MigrationCloudConnectorMappingView(LoginRequiredMixin, View):
         )
 
 
-class MigrationCloudConnectorValidateView(LoginRequiredMixin, View):
+class MigrationCloudConnectorValidateView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/validate.html"
 
     def get(self, request: HttpRequest, connection_id: UUID, run_id: UUID) -> HttpResponse:
@@ -406,7 +433,7 @@ class MigrationCloudConnectorValidateView(LoginRequiredMixin, View):
         )
 
 
-class MigrationCloudConnectorQuarantineView(LoginRequiredMixin, TemplateView):
+class MigrationCloudConnectorQuarantineView(_ConnectorTenantAdminRequiredMixin, TemplateView):
     template_name = "migration_cloud/connector/quarantine.html"
 
     def get_context_data(self, **kwargs):
@@ -428,7 +455,7 @@ class MigrationCloudConnectorQuarantineView(LoginRequiredMixin, TemplateView):
         return ctx
 
 
-class MigrationCloudConnectorImportView(LoginRequiredMixin, View):
+class MigrationCloudConnectorImportView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/import.html"
 
     def get(self, request: HttpRequest, connection_id: UUID, batch_id: UUID) -> HttpResponse:
@@ -498,7 +525,7 @@ class MigrationCloudConnectorImportView(LoginRequiredMixin, View):
         )
 
 
-class MigrationCloudConnectorReviewView(LoginRequiredMixin, TemplateView):
+class MigrationCloudConnectorReviewView(_ConnectorTenantAdminRequiredMixin, TemplateView):
     template_name = "migration_cloud/connector/review.html"
 
     def get_context_data(self, **kwargs):
@@ -522,7 +549,7 @@ class MigrationCloudConnectorReviewView(LoginRequiredMixin, TemplateView):
 
 
 @method_decorator(csrf_protect, name="dispatch")
-class MigrationCloudConnectorRevokeView(LoginRequiredMixin, View):
+class MigrationCloudConnectorRevokeView(_ConnectorTenantAdminRequiredMixin, View):
     def post(self, request: HttpRequest, connection_id: UUID) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         revoke_source_connection(connection)
@@ -536,7 +563,13 @@ class MigrationCloudConnectorOperatorView(LoginRequiredMixin, TemplateView):
     template_name = "migration_cloud/connector/operator.html"
 
     def dispatch(self, request, *args, **kwargs):
-        if not getattr(request.user, "is_staff", False):
+        # is_staff is NOT an operator signal — the platform mints is_staff=True
+        # tenant admins, so keying this cross-tenant operator dashboard on is_staff
+        # let any tenant admin read every school's connections + imports. Gate on
+        # genuine control-plane access (the predicate the API layer already uses).
+        from apps.schools.control_plane import user_has_control_plane_access
+
+        if not user_has_control_plane_access(getattr(request, "user", None)):
             raise Http404()
         return super().dispatch(request, *args, **kwargs)
 
