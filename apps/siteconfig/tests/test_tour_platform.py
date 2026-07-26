@@ -33,7 +33,19 @@ def _tenant_api_url(name: str, query: str = "") -> str:
     return reverse(name, urlconf="config.tenant_urls") + query
 
 
-def _tenant_login(client: Client, user, password: str = "Test1234!") -> None:
+def _tenant_login(client: Client, user, school, password: str = "Test1234!") -> None:
+    # On a tenant host, TenantHostMembershipMiddleware 302s any authenticated
+    # non-superuser without a SchoolMembership for the resolved school to the
+    # public login (the tour API then returns login HTML, not JSON) — arm the
+    # membership alongside the confirmed device + verified session so the request
+    # actually reaches the API.
+    from apps.schools.models import SchoolMembership
+
+    SchoolMembership.objects.get_or_create(
+        user=user,
+        school=school,
+        defaults={"role": user.role, "is_primary": True},
+    )
     TOTPDevice.objects.update_or_create(
         user=user, name="test-mfa", defaults={"confirmed": True}
     )
@@ -101,13 +113,13 @@ class TourStepsApiTests(TestCase):
         self.client = Client(HTTP_HOST=_TOUR_TEST_HOST)
 
     def test_admin_backend_context_resolves(self):
-        _tenant_login(self.client, self.admin)
+        _tenant_login(self.client, self.admin, self.school)
         url = _tenant_api_url("siteconfig:tour_steps_api", "?context=backend_dashboard")
         data = self.client.get(url).json()
         self.assertEqual(data["context"], "backend_dashboard_admin")
 
     def test_principal_gets_leadership_steps(self):
-        _tenant_login(self.client, self.principal)
+        _tenant_login(self.client, self.principal, self.school)
         url = _tenant_api_url("siteconfig:tour_steps_api", "?context=backend_dashboard")
         data = self.client.get(url).json()
         self.assertEqual(data["context"], "backend_dashboard_leadership")
@@ -115,7 +127,7 @@ class TourStepsApiTests(TestCase):
         self.assertIn("backend-kpi-strip", codes)
 
     def test_teacher_portal_steps(self):
-        _tenant_login(self.client, self.admin)
+        _tenant_login(self.client, self.admin, self.school)
         url = _tenant_api_url("siteconfig:tour_steps_api", "?context=teacher_portal")
         data = self.client.get(url).json()
         self.assertGreaterEqual(len(data["steps"]), 3)
@@ -130,7 +142,7 @@ class TourStepsApiTests(TestCase):
             selector="[data-tour='dashboard-main']",
             sort_order=1,
         )
-        _tenant_login(self.client, self.admin)
+        _tenant_login(self.client, self.admin, self.school)
         url = _tenant_api_url("siteconfig:tour_steps_api", "?context=backend_dashboard_admin")
         data = self.client.get(url).json()
         self.assertEqual(len(data["steps"]), 1)
@@ -157,7 +169,7 @@ class TourStepsPublicApiTests(TestCase):
 @override_settings(ALLOWED_HOSTS=_TENANT_TEST_HOSTS)
 class TourInfoTagTests(TestCase):
     def setUp(self):
-        School.objects.create(
+        self.school = School.objects.create(
             name="Info School",
             slug="info-school",
             subdomain="info-school",
@@ -169,7 +181,7 @@ class TourInfoTagTests(TestCase):
             role="ADMIN",
         )
         self.client = Client(HTTP_HOST=_INFO_TEST_HOST)
-        _tenant_login(self.client, self.user)
+        _tenant_login(self.client, self.user, self.school)
 
     def test_static_registry_lookup(self):
         help_data = get_ui_field_help("invoice", "status")
@@ -186,7 +198,7 @@ class TourInfoTagTests(TestCase):
 @override_settings(ALLOWED_HOSTS=_TENANT_TEST_HOSTS)
 class TourAnalyticsApiTests(TestCase):
     def setUp(self):
-        School.objects.create(
+        self.school = School.objects.create(
             name="Tour Analytics School",
             slug="tour-analytics",
             subdomain="tour-analytics",
@@ -198,7 +210,7 @@ class TourAnalyticsApiTests(TestCase):
             role="TEACHER",
         )
         self.client = Client(HTTP_HOST=_ANALYTICS_TEST_HOST)
-        _tenant_login(self.client, self.user)
+        _tenant_login(self.client, self.user, self.school)
 
     def test_tour_start_event_recorded(self):
         url = _tenant_api_url("siteconfig:tour_analytics_api")
