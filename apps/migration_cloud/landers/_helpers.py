@@ -21,8 +21,30 @@ from __future__ import annotations
 import datetime as _dt
 import hashlib
 import re
+from contextlib import contextmanager
 from decimal import Decimal, InvalidOperation
 from typing import Any
+
+from django.db import transaction
+
+
+@contextmanager
+def row_savepoint():
+    """Isolate one row's DB write in a SAVEPOINT so a per-row failure under the
+    forced-atomic finance apply rolls back only that write — not the whole bundle.
+
+    Finance forces the orchestrator to wrap the ENTIRE apply in one
+    ``transaction.atomic()`` (money must be all-or-nothing vs the control totals).
+    Inside that block a raw ``IntegrityError`` — or a DB error SWALLOWED by a
+    best-effort audit write (id-mapping / conflict / asset / DFV) — marks the whole
+    connection ``needs_rollback``, so the lander's per-row ``try/except`` cannot
+    continue: the next query raises ``TransactionManagementError`` and every GOOD
+    row rolls back with the one bad one. Wrapping each write in a savepoint makes
+    the per-row quarantine actually work. In autocommit (non-atomic) mode this is a
+    harmless single-statement transaction, so it is safe to apply unconditionally.
+    """
+    with transaction.atomic():
+        yield
 
 
 _EXTERNAL_ID_CANDIDATES = ("external_id", "sis_external_id", "source_id", "admission_number")
@@ -195,17 +217,20 @@ def record_id_mapping(
         # lander touching the same canonical row (students upsert followed by
         # an enrollment update) matched this row and rewrote its domain,
         # erasing the earlier domain's audit entry.
-        MigrationIdMapping.objects.update_or_create(
-            legacy_namespace=namespace,
-            legacy_id=str(legacy_id)[:128],
-            canonical_model=canonical_model[:128],
-            school_id=bundle.school_id,
-            domain=domain[:32],
-            defaults={
-                "bundle": bundle,
-                "canonical_pk": str(getattr(canonical_obj, "pk", ""))[:64],
-            },
-        )
+        # Savepoint so a failed audit write's swallow (below) doesn't poison the
+        # forced-atomic finance apply's outer transaction.
+        with row_savepoint():
+            MigrationIdMapping.objects.update_or_create(
+                legacy_namespace=namespace,
+                legacy_id=str(legacy_id)[:128],
+                canonical_model=canonical_model[:128],
+                school_id=bundle.school_id,
+                domain=domain[:32],
+                defaults={
+                    "bundle": bundle,
+                    "canonical_pk": str(getattr(canonical_obj, "pk", ""))[:64],
+                },
+            )
     except Exception:  # noqa: BLE001 — never block lander on audit-table write
         import logging
         logging.getLogger(__name__).debug("record_id_mapping skipped", exc_info=True)
@@ -247,13 +272,14 @@ def detect_and_register_assets(
             if not uri:
                 continue
             try:
-                register_asset(
-                    bundle=bundle,
-                    entity_kind=entity_kind,
-                    legacy_id=str(legacy_id),
-                    asset_kind=asset_kind,
-                    source_uri=uri,
-                )
+                with row_savepoint():  # isolate the asset write from the atomic apply
+                    register_asset(
+                        bundle=bundle,
+                        entity_kind=entity_kind,
+                        legacy_id=str(legacy_id),
+                        asset_kind=asset_kind,
+                        source_uri=uri,
+                    )
             except Exception:  # noqa: BLE001
                 import logging
                 logging.getLogger(__name__).debug(
@@ -311,17 +337,18 @@ def detect_conflict(
         if bundle is None:
             return False
         canonical_model_path = f"{model.__module__}.{model.__name__}"
-        MigrationConflict.objects.create(
-            bundle=bundle,
-            domain=domain[:32],
-            canonical_model=canonical_model_path[:128],
-            canonical_pk=str(getattr(canonical_obj, "pk", ""))[:64],
-            legacy_id=str(legacy_id)[:128],
-            existing_values=existing,
-            incoming_values=incoming_clean,
-            changed_fields=changed,
-            resolution=ConflictResolution.PENDING,
-        )
+        with row_savepoint():  # isolate the audit write from the atomic apply
+            MigrationConflict.objects.create(
+                bundle=bundle,
+                domain=domain[:32],
+                canonical_model=canonical_model_path[:128],
+                canonical_pk=str(getattr(canonical_obj, "pk", ""))[:64],
+                legacy_id=str(legacy_id)[:128],
+                existing_values=existing,
+                incoming_values=incoming_clean,
+                changed_fields=changed,
+                resolution=ConflictResolution.PENDING,
+            )
         return True
     except Exception:  # noqa: BLE001
         import logging
@@ -475,7 +502,10 @@ def upsert_with_conflict_detection(
         )
         if conflict_resolution_for(ctx=ctx, canonical_obj=existing) == "PRESERVE":
             return existing, False, True
-    obj, created = model.objects.update_or_create(**lookup, defaults=defaults)
+    # Per-row savepoint: a constraint/FK failure here rolls back only this upsert so
+    # the caller's per-row quarantine survives the forced-atomic finance apply.
+    with row_savepoint():
+        obj, created = model.objects.update_or_create(**lookup, defaults=defaults)
     return obj, created, False
 
 
@@ -524,7 +554,9 @@ def get_or_create_named(*, model, school, name, create_kwargs=None, result=None)
         kwargs["school"] = school
     if create_kwargs is not None:
         kwargs.update(create_kwargs())
-    obj = model.objects.create(**kwargs)
+    # Per-row savepoint so a parent-provision failure doesn't poison the atomic apply.
+    with row_savepoint():
+        obj = model.objects.create(**kwargs)
     if result is not None:
         result.created_ids.append(obj.pk)
     return obj, True
@@ -596,21 +628,22 @@ def persist_dfv_extras(
         return
     for field_key, value in clean.items():
         try:
-            DynamicFieldDefinition.objects.get_or_create(
-                entity_type=entity_type,
-                field_key=field_key,
-                school=getattr(ctx, "school", None),
-                defaults={"label": field_key.replace("_", " ").title(), "data_type": "json"},
-            )
-            DynamicFieldValue.objects.update_or_create(
-                entity_type=entity_type,
-                entity_id=str(entity_id)[:64],
-                field_key=field_key,
-                defaults=filter_to_model_fields(
-                    {"value_json": {"v": value}, "school": getattr(ctx, "school", None)},
-                    DynamicFieldValue,
-                ),
-            )
+            with row_savepoint():  # isolate each DFV write from the atomic apply
+                DynamicFieldDefinition.objects.get_or_create(
+                    entity_type=entity_type,
+                    field_key=field_key,
+                    school=getattr(ctx, "school", None),
+                    defaults={"label": field_key.replace("_", " ").title(), "data_type": "json"},
+                )
+                DynamicFieldValue.objects.update_or_create(
+                    entity_type=entity_type,
+                    entity_id=str(entity_id)[:64],
+                    field_key=field_key,
+                    defaults=filter_to_model_fields(
+                        {"value_json": {"v": value}, "school": getattr(ctx, "school", None)},
+                        DynamicFieldValue,
+                    ),
+                )
         except Exception as exc:  # noqa: BLE001 — extras are best-effort, recorded
             if result is not None:
                 result.errors.append(f"{entity_type} extras write failed for {field_key}: {type(exc).__name__}")

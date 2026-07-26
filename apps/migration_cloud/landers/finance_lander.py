@@ -35,6 +35,7 @@ from ._helpers import (
     model_field_names,
     record_id_mapping,
     resolve_student,
+    row_savepoint,
     student_lookup_field,
     upsert_with_conflict_detection,
 )
@@ -150,7 +151,10 @@ class FinanceLander(Lander):
                         )
                         continue
                 else:
-                    obj = Invoice.objects.create(**defaults)
+                    # Savepoint so a bad invoice insert rolls back only this row
+                    # under the forced-atomic finance apply (not the whole bundle).
+                    with row_savepoint():
+                        obj = Invoice.objects.create(**defaults)
                     created = True
                 if created:
                     result.created += 1
