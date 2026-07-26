@@ -1,8 +1,9 @@
 from datetime import date
 from unittest.mock import patch
 
+from django.contrib.staticfiles import finders
 from django.http import HttpResponse
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -10,16 +11,43 @@ from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.models import ReportCardStyle, ReportCardStyleAssignment
+from apps.test_utils.http_clients import (
+    MANAGER_HOST,
+    MANAGER_TEST_DEFAULTS,
+    login_manager_client,
+)
 
 
+def _read_static(relpath: str) -> str:
+    """Return the on-disk contents of a static asset. The live-preview + embed
+    ready-signal logic was externalized from inline <script> into CSP-safe page-JS
+    modules under static/js/_pages/, so their behaviour is asserted there."""
+    path = finders.find(relpath)
+    assert path, f"static file not found: {relpath}"
+    with open(path, encoding="utf-8") as handle:
+        return handle.read()
+
+
+@override_settings(
+    **MANAGER_TEST_DEFAULTS,
+    ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", MANAGER_HOST, "*"],
+)
 class ReportCardBuilderViewTests(TestCase):
+    # reportcard_builder is a _MANAGER_CANONICAL_VIEW_NAMES operator surface:
+    # OperatorSiteconfigManagerShellMiddleware bounces a control-plane user (a
+    # superuser qualifies) off the tenant host to the manager host. Drive the
+    # superuser operator through the manager-host control-plane shell so the view
+    # renders in place instead of 302-redirecting. (The embed/preview endpoints are
+    # NOT in that set, so they resolve on either host and stay reachable here.)
     def setUp(self):
         self.user = User.objects.create_superuser(
             username="builder_admin",
             email="builder@example.com",
             password="testpass123",
         )
-        self.client.force_login(self.user)
+        self.client = login_manager_client(
+            self.user, password="testpass123", host=MANAGER_HOST
+        )
         self.url = reverse("siteconfig:reportcard_builder")
 
         self.year = AcademicYear.objects.create(
@@ -107,15 +135,29 @@ class ReportCardBuilderViewTests(TestCase):
     def test_live_preview_script_tracks_html_and_pdf_urls_separately(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "latestPreviewUrl")
-        self.assertContains(response, "latestPdfUrl")
-        self.assertContains(response, "latestPreviewToken")
-        self.assertContains(response, "preview_token=")
-        self.assertContains(response, 'window.addEventListener("message"')
-        self.assertContains(response, "reportcard-preview-ready")
+        # The live-preview logic was externalized from an inline <script> into a
+        # CSP-safe page-JS module; the HTML wires it via a page-data JSON block +
+        # the external script, and the embed/pdf URL templates travel in that data.
+        self.assertContains(
+            response, "page-data-siteconfig__partials__mock_reportcard_preview-1"
+        )
+        self.assertContains(
+            response, "js/_pages/siteconfig__partials__mock_reportcard_preview-1.js"
+        )
         self.assertContains(response, "/siteconfig/reports/embed-preview/")
-        self.assertContains(response, "frame.src = latestPreviewUrl")
-        self.assertContains(response, "fallbackOpenTab.href = latestPdfUrl")
+        # The behaviour (separate html/pdf URL tracking + the ready-signal
+        # handshake) now lives in the page-JS module — assert it there.
+        js = _read_static(
+            "js/_pages/siteconfig__partials__mock_reportcard_preview-1.js"
+        )
+        self.assertIn("latestPreviewUrl", js)
+        self.assertIn("latestPdfUrl", js)
+        self.assertIn("latestPreviewToken", js)
+        self.assertIn("preview_token=", js)
+        self.assertIn('window.addEventListener("message"', js)
+        self.assertIn("reportcard-preview-ready", js)
+        self.assertIn("frame.src = latestPreviewUrl", js)
+        self.assertIn("fallbackOpenTab.href = latestPdfUrl", js)
 
     def test_builder_can_create_style_from_workflow_form(self):
         response = self.client.post(
@@ -262,8 +304,15 @@ class ReportCardBuilderViewTests(TestCase):
             {"preview_token": "abc123"},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "reportcard-preview-ready")
+        # The ready-signal was externalized to a CSP-safe page-JS module; the embed
+        # HTML carries the token in a page-data JSON block and references the module
+        # that postMessages "reportcard-preview-ready" with it.
+        self.assertContains(response, "page-data-reports___report_styles-1")
         self.assertContains(response, "abc123")
+        self.assertContains(response, "js/_pages/reports___report_styles-1.js")
+        js = _read_static("js/_pages/reports___report_styles-1.js")
+        self.assertIn("reportcard-preview-ready", js)
+        self.assertIn("var_preview_token_escapejs", js)
 
     def test_live_preview_pdf_endpoint_allows_same_origin_iframe(self):
         with patch("apps.siteconfig.views.render_pdf") as mocked_render_pdf:

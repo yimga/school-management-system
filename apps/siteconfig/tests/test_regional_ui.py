@@ -17,6 +17,7 @@ from apps.siteconfig.regional_ui import (
     is_rtl_locale,
 )
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 
 _T_HOST = "r14.runmycampus.com"
@@ -106,8 +107,11 @@ class RegionalUiShellMarkerTests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        c = Client(HTTP_HOST=_T_HOST)
-        c.force_login(u)
+        # On the tenant host, TenantHostMembershipMiddleware 302s any authenticated
+        # non-superuser without a SchoolMembership for the resolved school to the
+        # public login (empty body), and RequireMFAMiddleware walls the baseline-MFA
+        # ADMIN role — arm both (membership + confirmed device + verified session).
+        c = login_tenant_admin_client(u, password="x" * 8, host=_T_HOST, school=self.school)
         url = reverse("siteconfig:curriculum_templates", urlconf="config.tenant_urls")
         body = c.get(url).content.decode("utf-8", errors="replace")
         self.assertIn('dir="ltr"', body)
