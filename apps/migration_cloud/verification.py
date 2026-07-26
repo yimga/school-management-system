@@ -54,6 +54,26 @@ _DOMAIN_MODELS: dict[str, tuple[str, str]] = {
     "transport_assignments": ("apps.schoolops.models", "TransportAssignment"),
     "hostel_assignments": ("apps.schoolops.models", "HostelAssignment"),
     "cafeteria_assignments": ("apps.schoolops.models", "MealPlanBalance"),
+    # P1-Verify-2 (2026-07-25) — these landers write REAL, school-scoped
+    # first-class rows but had no visible-count proof, so a wrong-school /
+    # rolled-back / filtered-save regression on them was invisible to
+    # reconciliation. Each model below carries a DIRECT ``school`` FK, so the
+    # count matches the domain's self-reported creates (drift-correct):
+    #   * academics  → Subject: a SIS "courses" upload; the tenant's Subjects.
+    #   * structure  → SubjectAssignment: the SPLIT scaffold's created unit
+    #     (one per row), which co-lands the school's Specialties/Classrooms —
+    #     so a landed structure bundle is proven, incl. specialties.
+    #   * communications → Message; athletics_memberships → TeamMembership;
+    #     athletics_fixtures → Fixture.
+    "academics": ("apps.academics.models", "Subject"),
+    "structure": ("apps.academics.models", "SubjectAssignment"),
+    "communications": ("apps.communication.models", "Message"),
+    "athletics_memberships": ("apps.athletics.models", "TeamMembership"),
+    "athletics_fixtures": ("apps.athletics.models", "Fixture"),
+    # Deliberately NOT mapped: ``alumni`` lands into StudentProfile (shared with
+    # ``students``) so a domain-keyed count would double-count the roster; and
+    # ``payroll`` / ``compliance`` persist only DynamicFieldValue blobs (no
+    # first-class model) — both stay the honest "not verified" case.
 }
 
 

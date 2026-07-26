@@ -30,6 +30,25 @@ class VerifyLandedCountsTests(SimpleTestCase):
         for expected in ("students", "staff", "guardians", "finance"):
             self.assertIn(expected, d)
 
+    def test_spec_covers_academic_catalog_and_first_class_domains(self):
+        # P1-Verify-2: subjects (academics) + the SPLIT scaffold (structure) +
+        # communications/athletics land real school-scoped rows and MUST be
+        # provable-visible, else an import of them can't be verified in the school.
+        d = domains_with_verification()
+        for expected in (
+            "academics",
+            "structure",
+            "communications",
+            "athletics_memberships",
+            "athletics_fixtures",
+        ):
+            self.assertIn(expected, d)
+
+    def test_alumni_deliberately_unmapped_to_avoid_double_count(self):
+        # alumni shares StudentProfile with students; a domain-keyed count would
+        # double-count the roster, so it stays intentionally unverified.
+        self.assertNotIn("alumni", domains_with_verification())
+
 
 class BuildVerificationTests(SimpleTestCase):
     def _bundle(self, per_domain, notes=None):
