@@ -331,23 +331,29 @@ class RegionLanguageMappingTestCase(TestCase):
 
     def setUp(self):
         """Create test regions."""
+        # RegionConfig codes (e.g. CMR) are seeded by data migration siteconfig/0103,
+        # so create() collides on the UNIQUE code — upsert the exact metadata instead.
         self.regions = {
-            "CMR": RegionConfig.objects.create(
+            "CMR": RegionConfig.objects.update_or_create(
                 code="CMR",
-                name="Cameroon",
-                timezone="Africa/Douala",
-                default_currency="XAF",
-                academic_year_start_month=9,
-                term_count_per_year=3,
-            ),
-            "KEN": RegionConfig.objects.create(
+                defaults={
+                    "name": "Cameroon",
+                    "timezone": "Africa/Douala",
+                    "default_currency": "XAF",
+                    "academic_year_start_month": 9,
+                    "term_count_per_year": 3,
+                },
+            )[0],
+            "KEN": RegionConfig.objects.update_or_create(
                 code="KEN",
-                name="Kenya",
-                timezone="Africa/Nairobi",
-                default_currency="KES",
-                academic_year_start_month=1,
-                term_count_per_year=3,
-            ),
+                defaults={
+                    "name": "Kenya",
+                    "timezone": "Africa/Nairobi",
+                    "default_currency": "KES",
+                    "academic_year_start_month": 1,
+                    "term_count_per_year": 3,
+                },
+            )[0],
         }
 
     def test_region_language_mapping(self):

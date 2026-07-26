@@ -16,8 +16,10 @@ User = get_user_model()
 class UserIdentityBootstrapTests(TestCase):
     def test_ensure_portal_preferences_creates_rows(self):
         user = User.objects.create_user(username="id_pref", password="x")
-        self.assertFalse(UserPreference.objects.filter(user=user).exists())
-        self.assertFalse(DashboardUserPreference.objects.filter(user=user).exists())
+        # A post_save signal (_ensure_preferences_on_user_create) already back-fills
+        # the siteconfig UserPreference at user creation, so it exists before the
+        # call — ensure_user_portal_preferences is the idempotent guarantee that
+        # BOTH portal preference rows exist (get_or_create on each).
         ensure_user_portal_preferences(user)
         self.assertTrue(UserPreference.objects.filter(user=user).exists())
         self.assertTrue(DashboardUserPreference.objects.filter(user=user).exists())
