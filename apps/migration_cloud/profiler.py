@@ -109,11 +109,44 @@ def profile_bundle(bundle: MigrationBundle) -> int:
 
     # Transition bundle if every non-quarantined artifact now has a profile.
     unprofiled = bundle.artifacts.filter(quarantined=False, profile={}).exists()
-    if not unprofiled:
+    if unprofiled:
+        return profiled
+
+    # Honesty gate: a bundle that HAS artifacts but retains ZERO workable ones
+    # after profiling (every file quarantined or unreadable — archive shells hold
+    # no rows) can never land a single row. Advancing it to PROFILED lets it sail
+    # through classify → map → apply and stamp a *green* APPLIED with all-zero
+    # totals, so the operator believes the migration succeeded when nothing was
+    # imported. Fail honestly instead — the review surface then shows FAILED with
+    # the per-file quarantine reasons. apply_bundle refuses any non-MAPPED bundle
+    # so this cannot be applied; repair_readiness treats FAILED as repairable once
+    # the operator corrects the source files.
+    total_artifacts = bundle.artifacts.count()
+    has_workable = (
+        bundle.artifacts.filter(quarantined=False)
+        .exclude(detected_format=ArtifactFormat.ARCHIVE)
+        .exists()
+    )
+    if total_artifacts and not has_workable:
+        quarantined_count = bundle.artifacts.filter(quarantined=True).count()
         bundle.mark_status(
-            BundleStatus.PROFILED,
-            summary_patch={"artifacts_profiled": profiled},
+            BundleStatus.FAILED,
+            summary_patch={
+                "artifacts_profiled": profiled,
+                "profiler_all_quarantined": True,
+                "quarantined_artifacts": quarantined_count,
+                "error": (
+                    "No workable artifacts after profiling — every file was "
+                    "quarantined or unreadable; nothing to apply."
+                ),
+            },
         )
+        return profiled
+
+    bundle.mark_status(
+        BundleStatus.PROFILED,
+        summary_patch={"artifacts_profiled": profiled},
+    )
     return profiled
 
 

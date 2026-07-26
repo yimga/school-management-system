@@ -737,6 +737,63 @@ def workflow_step(run: Any, name: str, *, payload: Optional[dict] = None):
         logger.exception("workflow_step_done_record_failed run_id=%s", run.pk)
 
 
+@contextmanager
+def ensure_workflow_run(
+    workflow_key: str,
+    *,
+    steps: Iterable[str] = (),
+    expected_duration_seconds: int = _DEFAULT_EXPECTED_DURATION,
+    school_id: str = "",
+    tenant_schema: str = "",
+    payload: Optional[dict] = None,
+):
+    """Guarantee a WorkflowRun exists for a block so stall watchdogs can SEE it.
+
+    ``@track_workflow`` only tracks work that runs through the decorated Celery
+    task. Operations that reach their service function by another route — the
+    durable HeavyWorkOutbox drain, a repair-triggered apply, a connector bridge —
+    execute with NO active run, so ``pulse_workflow_step`` is a no-op and every
+    stuck/abandoned watchdog is blind to the work. Wrapping the service function in
+    this manager closes that gap for ALL callers at once.
+
+    Idempotent under nesting: if the innermost active run is ALREADY this
+    ``workflow_key`` (the decorated-task path), it yields that run and creates
+    nothing — no double tracking. Otherwise it creates + pushes a run, finalizes it
+    succeeded / failed on exit, and pops it. Best-effort: a tracking failure never
+    blocks the wrapped work; ``finalize`` runs with ``auto_apply=False`` /
+    ``email_on_failure=False`` so merely OBSERVING the work introduces no new inline
+    remediation or alert side effects (the out-of-band autopilot sweeps still act).
+    """
+    current = active_workflow_run()
+    if current is not None and getattr(current, "workflow_key", "") == workflow_key:
+        yield current
+        return
+
+    run = begin_run(
+        workflow_key=workflow_key,
+        steps=steps,
+        expected_duration_seconds=expected_duration_seconds,
+        school_id=school_id,
+        tenant_schema=tenant_schema,
+        payload=payload,
+    )
+    if run is None:
+        # begin_run degraded (model import / DB failure) — run untracked, never block.
+        yield None
+        return
+
+    push_workflow_run(run)
+    try:
+        yield run
+    except Exception as exc:
+        finalize_run(run, status="failed", error=exc, email_on_failure=False, auto_apply=False)
+        raise
+    else:
+        finalize_run(run, status="succeeded")
+    finally:
+        pop_workflow_run(run)
+
+
 def track_workflow(
     workflow_key: str,
     *,

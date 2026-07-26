@@ -98,10 +98,23 @@ def apply_bundle(
     from apps.observability.tracing import (
         finish_transaction, set_transaction_status, start_named_transaction,
     )
+    from apps.platform_runtime.workflow_tracker import ensure_workflow_run
 
     _txn = start_named_transaction("migration.bundle_apply", bundle_id=bundle_id)
     try:
-        return _apply_bundle_inner(bundle_id=bundle_id, dry_run=dry_run, workers=workers)
+        # Track the apply as a WorkflowRun so a wedged apply is VISIBLE to the stuck
+        # / abandoned watchdogs. The outbox drain (production path) and repair call
+        # this function directly — bypassing the @track_workflow-decorated Celery
+        # task — so without this wrap no run exists and every watchdog is blind. The
+        # orchestrator already pulses "prepare"/"apply_waves"/"finalize" against
+        # active_workflow_run(); this gives those pulses a run to land on.
+        with ensure_workflow_run(
+            "migration_bundle_apply",
+            steps=("prepare", "apply_waves", "finalize"),
+            expected_duration_seconds=1800,  # magic-number-allow: workflow-expected-duration-seconds (matches celery_tasks.apply_bundle_task)
+            payload={"bundle_id": bundle_id, "dry_run": bool(dry_run)},
+        ):
+            return _apply_bundle_inner(bundle_id=bundle_id, dry_run=dry_run, workers=workers)
     except Exception:
         set_transaction_status(_txn, "internal_error")
         raise
@@ -137,8 +150,15 @@ def _apply_bundle_inner(
         )
     bundle.refresh_from_db()
 
-    bundle.mark_status(BundleStatus.APPLYING)
-    bundle.refresh_from_db()
+    # A dry run is a PREVIEW: it must never mutate the durable lifecycle status.
+    # Flipping the real bundle to APPLYING for a dry run made repair.py / the
+    # tenant progress card see a live import in flight, and a dry-run worker crash
+    # left the bundle wedged at APPLYING (or marked FAILED by the catch-all below)
+    # — corrupting a bundle the operator only wanted to preview. Keep it at MAPPED;
+    # the dry-run results land in size_summary["last_dry_run"] at the end.
+    if not dry_run:
+        bundle.mark_status(BundleStatus.APPLYING)
+        bundle.refresh_from_db()
     _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="APPLYING",
                    message=f"Apply started (dry_run={dry_run}, atomic={bundle.apply_atomic})")
 
@@ -147,6 +167,37 @@ def _apply_bundle_inner(
     )
 
     per_artifact_jobs = _build_jobs(bundle)
+
+    # Honesty gate (defense in depth with profiler.profile_bundle): a real apply
+    # of a bundle that HAS artifacts but zero WORKABLE jobs (every file quarantined
+    # or an archive shell) would otherwise stamp a *green* APPLIED with all-zero
+    # totals — the operator believes rows landed when none did. Mark FAILED
+    # (repairable) so "APPLIED" always means real rows were considered. A genuinely
+    # empty bundle (no artifacts at all) keeps its prior no-op behaviour.
+    if not dry_run and not per_artifact_jobs and bundle.artifacts.exists():
+        logger.warning(
+            "orchestrator: bundle %s reached apply with no workable artifacts "
+            "(all quarantined) — marking FAILED instead of a 0-row APPLIED",
+            bundle_id,
+        )
+        bundle.mark_status(
+            BundleStatus.FAILED,
+            summary_patch={
+                "no_workable_artifacts": True,
+                "error": "No workable artifacts to apply — every file was quarantined.",
+            },
+        )
+        _emit_progress(bundle_id=bundle_id, kind="warning", stage="APPLYING",
+                       message="Apply aborted — no workable artifacts (all quarantined).")
+        try:
+            emit_bundle_lifecycle_event(
+                bundle, EVENT_BUNDLE_FAILED,
+                {"reason": "no_workable_artifacts"},
+            )
+        except Exception:  # noqa: BLE001 — event emission never blocks
+            pass
+        return _empty_result(bundle, dry_run, BundleStatus.FAILED)
+
     try:
         from apps.platform_runtime.workflow_tracker import active_workflow_run, pulse_workflow_step
 
@@ -254,22 +305,28 @@ def _apply_bundle_inner(
         # sees the failure. (A worker SIGKILL never reaches this handler; repair.py
         # reclaims that stale-APPLYING case by timeout.)
         logger.exception("orchestrator: apply failed for bundle %s — marking FAILED", bundle_id)
-        try:
-            bundle.mark_status(
-                BundleStatus.FAILED,
-                summary_patch={"error": f"{type(exc).__name__}: {exc}"},
-            )
-        except Exception:  # noqa: BLE001 — marking FAILED must not mask the original error
-            logger.exception("orchestrator: could not mark bundle %s FAILED", bundle_id)
+        # A dry-run crash must NOT corrupt the durable status. The bundle was left
+        # at MAPPED (the APPLYING flip above is gated on ``not dry_run``), so a
+        # preview that blows up simply re-raises to the caller and the operator can
+        # retry the preview — the real bundle is untouched.
+        if not dry_run:
+            try:
+                bundle.mark_status(
+                    BundleStatus.FAILED,
+                    summary_patch={"error": f"{type(exc).__name__}: {exc}"},
+                )
+            except Exception:  # noqa: BLE001 — marking FAILED must not mask the original error
+                logger.exception("orchestrator: could not mark bundle %s FAILED", bundle_id)
         try:
             _emit_progress(bundle_id=bundle_id, kind="error", stage="APPLYING",
                            message=f"Apply failed — {type(exc).__name__}")
             if not atomic_mode:
                 _rollback_all_runs(outcomes)
-            emit_bundle_lifecycle_event(
-                bundle, EVENT_BUNDLE_FAILED,
-                {"reason": "apply_exception", "error": str(exc)},
-            )
+            if not dry_run:
+                emit_bundle_lifecycle_event(
+                    bundle, EVENT_BUNDLE_FAILED,
+                    {"reason": "apply_exception", "error": str(exc)},
+                )
         except Exception:  # noqa: BLE001 — best-effort cleanup, never mask the original error
             logger.exception("orchestrator: post-failure cleanup errored for bundle %s", bundle_id)
         raise

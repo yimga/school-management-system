@@ -122,6 +122,28 @@ def build_connector_handle(bundle: MigrationBundle):
 
 
 def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str, Any]:
+    """Move a bundle forward (INGESTING → … → MAPPED), tracked as a WorkflowRun.
+
+    The thin wrapper exists so a wedged advance is VISIBLE to the stuck / abandoned
+    watchdogs. The durable HeavyWorkOutbox drain (production path) calls this
+    directly — bypassing the ``@track_workflow``-decorated Celery task — so without
+    the wrap no WorkflowRun exists and every watchdog is blind. The inner body
+    already pulses "profile"/"classify"/"map" against ``active_workflow_run()``;
+    this gives those pulses a run to land on. ``ensure_workflow_run`` is a no-op
+    when the decorated task already opened a run of the same key (no double track).
+    """
+    from apps.platform_runtime.workflow_tracker import ensure_workflow_run
+
+    with ensure_workflow_run(
+        "migration_bundle_advance",
+        steps=("profile", "classify", "map"),
+        expected_duration_seconds=900,  # magic-number-allow: workflow-expected-duration-seconds (matches celery_tasks.advance_bundle_task)
+        payload={"bundle_id": bundle_id},
+    ):
+        return _advance_bundle_inner(bundle_id=bundle_id, use_accelerator=use_accelerator)
+
+
+def _advance_bundle_inner(*, bundle_id: int, use_accelerator: bool = True) -> dict[str, Any]:
     """Move a bundle as far forward as possible: INGESTING → PROFILED → CLASSIFIED → MAPPED.
 
     Stops at the first hard failure; the bundle's status reflects how far
