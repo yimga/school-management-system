@@ -57559,3 +57559,1119 @@ msgstr ""
 
 msgid "Skip links"
 msgstr ""
+
+msgid "%(school)s · configuration"
+msgstr ""
+
+msgid "(no email on file)"
+msgstr ""
+
+msgid "+ {{ name }}"
+msgstr ""
+
+msgid "1 · Related objects"
+msgstr ""
+
+msgid "1 · Selected objects"
+msgstr ""
+
+msgid ""
+"<strong>{{ v }}</strong> valid · <strong>{{ i }}</strong> invalid out of {{ "
+"total }} parsed rows."
+msgstr ""
+
+msgid ""
+"A district's migration is \"done\" when its cutover runbook is executed and "
+"signed. Create a runbook, attach the rehearsal and real bundles, then sign "
+"off — anchoring the reconciliation scorecard hash."
+msgstr ""
+
+msgid "A label so you can identify this token later."
+msgstr ""
+
+msgid ""
+"A rehearsal run against your data — nothing has been written to your live "
+"tenant yet. Review, then approve to promote."
+msgstr ""
+
+msgid "Admin Home"
+msgstr ""
+
+msgid "Admin deep links"
+msgstr ""
+
+msgid "Advance to"
+msgstr ""
+
+msgid "All records imported. Verify the counts below match your school."
+msgstr ""
+
+msgid ""
+"Anyone who opens a link below can set that owner's password. Deliver it over"
+" a channel you trust (a verified phone number or a confirmed alternate "
+"address), never paste it into a shared ticket or log, and don't store it. "
+"Each link is the same one the welcome email carries and stops working once "
+"the owner sets a password."
+msgstr ""
+
+msgid "App actions"
+msgstr ""
+
+msgid "Applied successfully."
+msgstr ""
+
+msgid "Apply did not complete."
+msgstr ""
+
+msgid "Apply latency (30d)"
+msgstr ""
+
+msgid "Approval is blocked."
+msgstr ""
+
+msgid "Approval is blocked: {{ reason }}"
+msgstr ""
+
+msgid "Approve promotion"
+msgstr ""
+
+msgid "Approve promotion into production?"
+msgstr ""
+
+msgid ""
+"Approving promotes the validated migration data into your live RunMyCampus "
+"tenant. Review the details below before you confirm."
+msgstr ""
+
+msgid ""
+"Are you sure you want to delete the selected {{ objects_name }}? All of the "
+"following objects and their related items will be deleted:"
+msgstr ""
+
+msgid ""
+"Are you sure you want to delete the {{ object_name }} \"{{ escaped_object "
+"}}\"? All of the following related items will be deleted:"
+msgstr ""
+
+msgid "Area"
+msgstr ""
+
+msgid "Attach / advance"
+msgstr ""
+
+msgid "Attach bundles (same district only)"
+msgstr ""
+
+msgid ""
+"Automated operational insights for your school. Use the tabs to focus by "
+"decision surface. Pick a surface tab or open the governed builder — insights"
+" sharpen as attendance, marks, and billing activity accumulate."
+msgstr ""
+
+msgid "Avoid duplicates:"
+msgstr ""
+
+msgid "Back to status"
+msgstr ""
+
+msgid "Back to student profiles"
+msgstr ""
+
+msgid "Back to syllabi"
+msgstr ""
+
+msgid "Back to tenant 360"
+msgstr ""
+
+msgid "Be helpful:"
+msgstr ""
+
+msgid "Be specific:"
+msgstr ""
+
+msgid "Billing KPIs"
+msgstr ""
+
+msgid "Bound to"
+msgstr ""
+
+msgid "Bulk delete"
+msgstr ""
+
+msgid "Bundle model not loadable in this environment."
+msgstr ""
+
+msgid ""
+"CSV or compressed archive, up to {{ mb }} MB. The file is scanned before it "
+"is read."
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid ""
+"Chronological change log for this record. Return to the form to continue "
+"editing."
+msgstr ""
+
+msgid "Clear, detailed questions get better answers"
+msgstr ""
+
+msgid "Comma-separated. Leave blank to receive all migration events."
+msgstr ""
+
+msgid "Concern"
+msgstr ""
+
+msgid "Concern updated to %(stage)s."
+msgstr ""
+
+msgid "Conditionally promoted"
+msgstr ""
+
+msgid "Configuration &amp; records"
+msgstr ""
+
+msgid "Configuration areas"
+msgstr ""
+
+msgid "Configure hub"
+msgstr ""
+
+msgid ""
+"Confirms deletion of every selected row and permitted related objects. "
+"Cancel returns to the list unchanged."
+msgstr ""
+
+msgid "Continue — set up two-factor authentication"
+msgstr ""
+
+msgid "Copy owner setup link"
+msgstr ""
+
+msgid ""
+"Copy this signing secret now — it is shown only once. Use it to verify the "
+"HMAC signature on each delivery."
+msgstr ""
+
+msgid ""
+"Copy this token now — it is shown only once and cannot be retrieved again. "
+"Store it somewhere safe (a secrets manager). If you lose it, revoke it and "
+"mint a new one."
+msgstr ""
+
+msgid ""
+"Courses and subjects at your school — including everything imported via "
+"Migration Cloud."
+msgstr ""
+
+msgid "Create a runbook"
+msgstr ""
+
+msgid "Create token"
+msgstr ""
+
+msgid "Credits"
+msgstr ""
+
+msgid "Cutover runbooks"
+msgstr ""
+
+msgid "DSL safeguarding inbox"
+msgstr ""
+
+msgid "DSL triage"
+msgstr ""
+
+msgid "Date/time"
+msgstr ""
+
+msgid "Delete confirmation"
+msgstr ""
+
+msgid "Delete selected {{ objects_name }}?"
+msgstr ""
+
+msgid "Delete {{ name }}?"
+msgstr ""
+
+msgid ""
+"Deleting the selected {{ objects_name }} would require deleting the "
+"following protected related objects:"
+msgstr ""
+
+msgid ""
+"Deleting the selected {{ objects_name }} would result in deleting related "
+"objects, but your account doesn't have permission to delete the following "
+"types of objects:"
+msgstr ""
+
+msgid ""
+"Deleting the {{ object_name }} '{{ escaped_object }}' would require deleting"
+" the following protected related objects:"
+msgstr ""
+
+msgid ""
+"Deleting the {{ object_name }} '{{ escaped_object }}' would result in "
+"deleting related objects, but your account doesn't have permission to delete"
+" the following types of objects:"
+msgstr ""
+
+msgid "Deploy proof — Admin OS v15.8 on operator /admin/"
+msgstr ""
+
+msgid "Deploy proof — Admin OS v15.8 on tenant /admin/"
+msgstr ""
+
+msgid "Describe what you observed (min. 10 characters)."
+msgstr ""
+
+msgid ""
+"Detection is still running — wait a moment, or retry if this stays empty."
+msgstr ""
+
+msgid "Detection needs another try"
+msgstr ""
+
+msgid "Diagnostic only"
+msgstr ""
+
+msgid "District"
+msgstr ""
+
+msgid "Easy to read and understand"
+msgstr ""
+
+msgid ""
+"Edit fields in the main pane. Permissions and long sections collapse into "
+"numbered panels. Save keeps continue / add another / delete in the menu. "
+"History opens the change log."
+msgstr ""
+
+msgid ""
+"Edit the complete theme pack here or use the school theme hub for guided "
+"color changes."
+msgstr ""
+
+msgid ""
+"Every registered model for raw record access. Guided work stays in Config "
+"center and Studio — open from More when needed."
+msgstr ""
+
+msgid "Export file"
+msgstr ""
+
+msgid ""
+"Export your data from {{ vendor }} (a single CSV, or a .zip of the CSV "
+"bundle) and upload it here. We validate it, run a rehearsal, and show you "
+"exactly what will import before anything touches your live tenant."
+msgstr ""
+
+msgid "External referral ref"
+msgstr ""
+
+msgid "Featured questions may earn bonus points"
+msgstr ""
+
+msgid "Fleet status filters"
+msgstr ""
+
+msgid "Form actions"
+msgstr ""
+
+msgid "Form first — expand help only if needed."
+msgstr ""
+
+msgid "Format nicely:"
+msgstr ""
+
+msgid "Full name"
+msgstr ""
+
+msgid ""
+"Generated from your brand seed {{ seed_hex }}. Pick the tone that feels most"
+" like your school."
+msgstr ""
+
+msgid "Graduated"
+msgstr ""
+
+msgid "Grant only what the integration needs."
+msgstr ""
+
+msgid ""
+"Guardian consent must be resolved before validated student data can be "
+"promoted."
+msgstr ""
+
+msgid "Guardian consent:"
+msgstr ""
+
+msgid ""
+"Guided domains via Config center. Model catalog below is for direct school-"
+"scoped records."
+msgstr ""
+
+msgid "Guided school settings"
+msgstr ""
+
+msgid "Guidelines for quality questions"
+msgstr ""
+
+msgid "Heavy-work outbox not loadable in this environment."
+msgstr ""
+
+msgid ""
+"Held records didn't pass validation and were not imported. Check the reason "
+"on each file below, correct the data, then use Repair to re-attempt just "
+"those — already-imported records are never duplicated."
+msgstr ""
+
+msgid "History actions"
+msgstr ""
+
+msgid "History command surface"
+msgstr ""
+
+msgid "History: {{ name }}"
+msgstr ""
+
+msgid ""
+"I approve promoting the validated migration data into our live production "
+"tenant."
+msgstr ""
+
+msgid ""
+"If the same records stay held after a repair, they were rejected for a data "
+"reason (see the note on each file above) — fix the data and re-import, "
+"rather than repairing again."
+msgstr ""
+
+msgid ""
+"If you lose connectivity mid-upload, files are staged on this device and "
+"uploaded automatically when you reconnect (offline Migration Cloud queue)."
+msgstr ""
+
+msgid "Impact level"
+msgstr ""
+
+msgid "Import progress"
+msgstr ""
+
+msgid "Important:"
+msgstr ""
+
+msgid "Importing your data…"
+msgstr ""
+
+msgid "Installation reference:"
+msgstr ""
+
+msgid "Invite as school owner (tenant superadmin)"
+msgstr ""
+
+msgid "Invite created. Share this link: %(url)s"
+msgstr ""
+
+msgid "Invite emailed to %(email)s. Link: %(url)s"
+msgstr ""
+
+msgid "It probably wasn't added via this admin site."
+msgstr ""
+
+msgid ""
+"Items captured while offline are applied when you process the queue. "
+"Conflicts need an explicit choice — nothing is overwritten silently."
+msgstr ""
+
+msgid ""
+"Launch blockers are cleared. Go live to open your Admin Home and notify your"
+" team."
+msgstr ""
+
+msgid ""
+"Launch blockers cleared — Admin Home is your new home. Invite staff and "
+"families when you're ready."
+msgstr ""
+
+msgid "List actions"
+msgstr ""
+
+msgid ""
+"Live platform-wide snapshot. Eight pillars on one screen. Drill into each "
+"for full detail. Auto-refreshes every 60 seconds. For tenant upload-but-"
+"empty forensics run: manage.py inspect_migration_tenant --slug=TENANT_SLUG."
+msgstr ""
+
+msgid "Log out and forget this browser"
+msgstr ""
+
+msgid "Logout and forget this browser"
+msgstr ""
+
+msgid ""
+"Mint a scoped API token for your school. The token is bound to your school "
+"only and carries just the permissions you choose. You will see the token "
+"value once, right after you create it."
+msgstr ""
+
+msgid "Mint an API token"
+msgstr ""
+
+msgid "Mobile money number"
+msgstr ""
+
+msgid ""
+"Models in {{ app }}. Open a changelist for raw rows, or Add for a new "
+"record."
+msgstr ""
+
+msgid "Most recent import"
+msgstr ""
+
+msgid "Must be https://"
+msgstr ""
+
+msgid ""
+"Native table of records. Use Add and Filters in the head; the rail shows "
+"list counts and filters only."
+msgstr ""
+
+msgid ""
+"Native table of records. Use Add and Filters in this band. The rail shows "
+"active filters, selection, and page — not generic scope copy."
+msgstr ""
+
+msgid ""
+"No API tokens yet. Mint one to let an integration call Migration Cloud for "
+"your school."
+msgstr ""
+
+msgid ""
+"No active owner with a resolvable account for this school — there is no "
+"claim link to reveal. Add or unsuspend an owner first."
+msgstr ""
+
+msgid "No configuration sections available."
+msgstr ""
+
+msgid "No cutover runbooks yet. Create one above."
+msgstr ""
+
+msgid "No files detected yet."
+msgstr ""
+
+msgid "No open DSL inbox items."
+msgstr ""
+
+msgid "No open concerns on the ledger."
+msgstr ""
+
+msgid ""
+"No webhooks yet. Register one to receive migration events for your school."
+msgstr ""
+
+msgid "Not in your school yet"
+msgstr ""
+
+msgid "One-time claim link"
+msgstr ""
+
+msgid "Only a DSL can advance this concern."
+msgstr ""
+
+msgid "Only the Designated Safeguarding Lead can open this inbox."
+msgstr ""
+
+msgid "Open Migration Cloud upload"
+msgstr ""
+
+msgid "Open any step — no rigid sequence."
+msgstr ""
+
+msgid "Open concerns"
+msgstr ""
+
+msgid "Open school configuration"
+msgstr ""
+
+msgid ""
+"Open with the work, not a wall of text. Preview impact, clear blockers, then"
+" take the next safe action."
+msgstr ""
+
+msgid ""
+"Operator hosts manage the platform fleet. School hosts are school-scoped "
+"configuration engines — never cross schools."
+msgstr ""
+
+msgid "Outbox drain"
+msgstr ""
+
+msgid "Owner setup link"
+msgstr ""
+
+msgid ""
+"Owners must set a password and enroll MFA before entering the workspace. "
+"This does not grant platform operator access."
+msgstr ""
+
+msgid ""
+"Password saved. Set up multi-factor authentication to finish activating your"
+" school-owner account."
+msgstr ""
+
+msgid ""
+"Pay your outstanding balance instantly by mobile money — you'll get a prompt"
+" on your phone to confirm."
+msgstr ""
+
+msgid "Pinned and recent models"
+msgstr ""
+
+msgid ""
+"Prefer Config center and Feature control for guided changes. Use this page "
+"when you need direct school records."
+msgstr ""
+
+msgid "Prefer Migration Cloud"
+msgstr ""
+
+msgid ""
+"Prefer the links below for guided school workflows. This page remains "
+"available for direct records when needed."
+msgstr ""
+
+msgid "Previewing your import…"
+msgstr ""
+
+msgid "Protect your account"
+msgstr ""
+
+msgid "Queued — waiting for the importer…"
+msgstr ""
+
+msgid "Raise safeguarding concern"
+msgstr ""
+
+msgid "Read-only cross-tenant proof-before-publish approval trail"
+msgstr ""
+
+msgid "Real"
+msgstr ""
+
+msgid "Real bundle"
+msgstr ""
+
+msgid "Reconcile parity (30d)"
+msgstr ""
+
+msgid "Register a webhook"
+msgstr ""
+
+msgid ""
+"Register an HTTPS endpoint to receive Migration Cloud lifecycle events "
+"(bundle.applied, bundle.reconciled, and more) for your school. Deliveries "
+"are HMAC-signed with the secret shown once at creation."
+msgstr ""
+
+msgid "Register webhook"
+msgstr ""
+
+msgid "Rehearsal"
+msgstr ""
+
+msgid "Rehearsal bundle"
+msgstr ""
+
+msgid "Related school workflows"
+msgstr ""
+
+msgid "Report a concern"
+msgstr ""
+
+msgid "Request a parent to sign a form electronically."
+msgstr ""
+
+msgid ""
+"Required for school admins — takes about a minute with any authenticator "
+"app. You will continue to your dashboard after setup."
+msgstr ""
+
+msgid "Retained (repeating the year)"
+msgstr ""
+
+msgid "Retry detection"
+msgstr ""
+
+msgid ""
+"Review timeline, points for approved questions, and where to track "
+"contributions."
+msgstr ""
+
+msgid "Role-shaped priorities"
+msgstr ""
+
+msgid "Rollback coverage"
+msgstr ""
+
+msgid "Rollback did not complete."
+msgstr ""
+
+msgid "Rolled back successfully."
+msgstr ""
+
+msgid "SLA ≤ {{ t }}"
+msgstr ""
+
+msgid "Safe to apply"
+msgstr ""
+
+msgid "Safeguarding concern"
+msgstr ""
+
+msgid "Safeguarding concern submitted (%(id)s)."
+msgstr ""
+
+msgid "Safeguarding inbox"
+msgstr ""
+
+msgid "School actions"
+msgstr ""
+
+msgid "School app"
+msgstr ""
+
+msgid "School boundary"
+msgstr ""
+
+msgid "School catalog"
+msgstr ""
+
+msgid "School configuration catalog"
+msgstr ""
+
+msgid "School configuration command surface"
+msgstr ""
+
+msgid "School configuration hint"
+msgstr ""
+
+msgid "School configuration scope"
+msgstr ""
+
+msgid "School configuration sign-in"
+msgstr ""
+
+msgid "School index"
+msgstr ""
+
+msgid "School records for this app"
+msgstr ""
+
+msgid ""
+"Scoped API tokens let your own integrations and partners call Migration "
+"Cloud on behalf of your school. Every token is bound to your school only and"
+" carries just the permissions you choose."
+msgstr ""
+
+msgid "Scorecard anchor"
+msgstr ""
+
+msgid ""
+"Search and open any registered model. Counts are live from the registry."
+msgstr ""
+
+msgid "Search before submitting"
+msgstr ""
+
+msgid "Search school settings, people, academics"
+msgstr ""
+
+msgid "Search school settings, people, academics…"
+msgstr ""
+
+msgid "See your contributions on your"
+msgstr ""
+
+msgid "Select a district…"
+msgstr ""
+
+msgid "Set password and continue to MFA"
+msgstr ""
+
+msgid "Settings and records."
+msgstr ""
+
+msgid ""
+"Setup needs attention — please retry, or contact support if it keeps "
+"failing."
+msgstr ""
+
+msgid ""
+"Show the owner claim link to deliver out of band when email is not landing"
+msgstr ""
+
+msgid "Sign off"
+msgstr ""
+
+msgid "Sign off (requires a real bundle)"
+msgstr ""
+
+msgid "Sign-in messages"
+msgstr ""
+
+msgid "Signed off"
+msgstr ""
+
+msgid "Signer"
+msgstr ""
+
+msgid "Signing secret"
+msgstr ""
+
+msgid ""
+"Smart field grid with a compact Save control (more options in the menu). "
+"Context lives in the rail; tools stay page-aware in the thin column."
+msgstr ""
+
+msgid "Sovereignty pledge"
+msgstr ""
+
+msgid "Specialties"
+msgstr ""
+
+msgid "Specialty pagination"
+msgstr ""
+
+msgid "Still queued — the importer will pick this up shortly."
+msgstr ""
+
+msgid ""
+"Streams and specialties at your school — including everything imported via "
+"Migration Cloud."
+msgstr ""
+
+msgid "Studio experience region approvals (platform admin)"
+msgstr ""
+
+msgid "Subject name…"
+msgstr ""
+
+msgid "Subject pagination"
+msgstr ""
+
+msgid "Submit a Question - FAQ"
+msgstr ""
+
+msgid ""
+"Submit confidential safeguarding information to the Designated Safeguarding "
+"Lead. Contact details in the narrative are redacted automatically."
+msgstr ""
+
+msgid "Submit to DSL"
+msgstr ""
+
+msgid "Syllabus builder"
+msgstr ""
+
+msgid ""
+"The color palette editor requires JavaScript. Use the color inputs in the "
+"form above to change theme colors."
+msgstr ""
+
+msgid "Think about what would help other users"
+msgstr ""
+
+msgid ""
+"This account hasn't set a password yet. We've emailed a one-time link to set"
+" your password to %(email)s — check your inbox and spam. If it doesn't "
+"arrive, use “Forgot password” or contact your school administrator."
+msgstr ""
+
+msgid ""
+"This cannot be undone from this screen. Related objects listed below will "
+"also be removed when permitted."
+msgstr ""
+
+msgid ""
+"This email and username belong to different accounts. Contact your school "
+"owner."
+msgstr ""
+
+msgid "This form"
+msgstr ""
+
+msgid "This is a credential."
+msgstr ""
+
+msgid "This is taking longer than usual — you can retry setup."
+msgstr ""
+
+msgid ""
+"This legacy wizard is kept for older runs. For new school imports, use "
+"Migration Cloud — upload, detect, then Import into my school."
+msgstr ""
+
+msgid ""
+"This migration is not awaiting approval (currently: {{ state_label }})."
+msgstr ""
+
+msgid "This object doesn't have a change history yet."
+msgstr ""
+
+msgid ""
+"This runs in the background and the page updates on its own — no need to "
+"refresh. Records that already imported are updated in place, never "
+"duplicated."
+msgstr ""
+
+msgid "This school"
+msgstr ""
+
+msgid "This school is not active. Contact RunMyCampus support."
+msgstr ""
+
+msgid ""
+"This type does not appear in Payroll / Compliance lists yet — it is kept "
+"safely as custom field data."
+msgstr ""
+
+msgid ""
+"Tips before creating a classroom — naming, year link, and later roster "
+"steps."
+msgstr ""
+
+msgid "Token created"
+msgstr ""
+
+msgid "Token name"
+msgstr ""
+
+msgid "Transferred out"
+msgstr ""
+
+msgid "Trust this device and skip MFA prompts on this browser for"
+msgstr ""
+
+msgid "Trusted-device period"
+msgstr ""
+
+msgid ""
+"Turn on two-factor authentication before you open your campus. This step is "
+"required and takes about a minute."
+msgstr ""
+
+msgid "Unacknowledged concerns"
+msgstr ""
+
+msgid "Update concern"
+msgstr ""
+
+msgid "Upload a CSV, Excel, JSON, PDF, or ZIP export to continue."
+msgstr ""
+
+msgid "Upload and validate"
+msgstr ""
+
+msgid "Upload different files"
+msgstr ""
+
+msgid ""
+"Upload does not import. After detection you must confirm “Import into my "
+"school” before any records appear in Students, Staff, or other lists."
+msgstr ""
+
+msgid "Upload files"
+msgstr ""
+
+msgid "Upload rejected."
+msgstr ""
+
+msgid "Upload your export"
+msgstr ""
+
+msgid ""
+"Uploading and detection only prepare the files. Use Preview first, then "
+"Import to write records into your school."
+msgstr ""
+
+msgid "Use clear language:"
+msgstr ""
+
+msgid "Use paragraphs and lists"
+msgstr ""
+
+msgid "Use the link to create your account."
+msgstr ""
+
+msgid ""
+"Use the link to set your password. You must then enroll MFA before you can "
+"enter the school workspace."
+msgstr ""
+
+msgid "Validation preview"
+msgstr ""
+
+msgid "View site"
+msgstr ""
+
+msgid ""
+"We could not finish reading this upload. Retry detection, or upload a "
+"CSV/Excel export."
+msgstr ""
+
+msgid "What happens next?"
+msgstr ""
+
+msgid "Why these numbers?"
+msgstr ""
+
+msgid ""
+"Widget catalog is editable here; guided layout and packs live in the "
+"dashboard hubs."
+msgstr ""
+
+msgid "Workflow counts"
+msgstr ""
+
+msgid "Workspace status"
+msgstr ""
+
+msgid "Writing records into your school…"
+msgstr ""
+
+msgid "Yes, I’m sure"
+msgstr ""
+
+msgid "You do not have access to this concern."
+msgstr ""
+
+msgid "You'll earn <strong>5 points</strong> for every approved question"
+msgstr ""
+
+msgid "You're invited to administer %(school)s on RunMyCampus"
+msgstr ""
+
+msgid "You're invited to join %(school)s on RunMyCampus"
+msgstr ""
+
+msgid "Your API token"
+msgstr ""
+
+msgid "Your API tokens"
+msgstr ""
+
+msgid "Your submission will be reviewed by our team"
+msgstr ""
+
+msgid "Your verified invite email is also your username."
+msgstr ""
+
+msgid "Your webhooks"
+msgstr ""
+
+msgid "apply/advance pending"
+msgstr ""
+
+msgid "below SLA · {{ pct }}% within"
+msgstr ""
+
+msgid "bundle id"
+msgstr ""
+
+msgid "bundles ≥ {{ target }}% parity"
+msgstr ""
+
+msgid "collected"
+msgstr ""
+
+msgid "e.g. 2026 August cutover"
+msgstr ""
+
+msgid "e.g. IT Director"
+msgstr ""
+
+msgid "e.g. Nightly roster sync"
+msgstr ""
+
+msgid "fresh · none over {{ t }}"
+msgstr ""
+
+msgid "item(s) need attention"
+msgstr ""
+
+msgid "mean {{ mean }}%"
+msgstr ""
+
+msgid "meets SLA"
+msgstr ""
+
+msgid "meets SLA · {{ pct }}% within"
+msgstr ""
+
+msgid "min {{ min }}%"
+msgstr ""
+
+msgid "oldest {{ age }}"
+msgstr ""
+
+msgid "p50 {{ p50 }}"
+msgstr ""
+
+msgid "p95 apply (async fleet)"
+msgstr ""
+
+msgid "records to create"
+msgstr ""
+
+msgid "records to update"
+msgstr ""
+
+msgid "rows held for review"
+msgstr ""
+
+msgid "school owner"
+msgstr ""
+
+msgid "stored as custom records"
+msgstr ""
+
+msgid "the email on file"
+msgstr ""
+
+msgid "urgent"
+msgstr ""
+
+msgid "your school"
+msgstr ""
+
+msgid "{{ below }} below floor"
+msgstr ""
+
+msgid "{{ n }} applies"
+msgstr ""
+
+msgid "{{ n }} backing up (> {{ t }})"
+msgstr ""
+
+msgid "{{ n }} processing"
+msgstr ""
+
+msgid "{{ n }} reconciled"
+msgstr ""
+
+msgid "{{ n }} · {{ title }}"
+msgstr ""
+
+msgid "{{ trust_days }} day{% plural %}{{ trust_days }} days"
+msgstr ""
+
+msgid "← DSL inbox"
+msgstr ""
+
+msgid "← Form"
+msgstr ""
+
+msgid "← Raise a concern"
+msgstr ""
