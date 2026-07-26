@@ -301,34 +301,44 @@ def pulse_workflow_step(run: Any, name: str, *, payload: Optional[dict] = None) 
     if run is None or getattr(run, "pk", None) is None:
         return
     try:
+        from django.db import transaction
+
         from apps.platform_runtime.models import WorkflowRun, WorkflowStep
 
-        running = WorkflowStep.objects.filter(run=run, status="running").order_by("-ordinal").first()
-        if running is not None and running.name != name:
-            WorkflowStep.objects.filter(pk=running.pk).update(
-                status="done",
-                ended_at=timezone.now(),
+        # A pulse is a best-effort progress ping that may fire from INSIDE another
+        # operation's transaction.atomic() (e.g. the forced-atomic Migration Cloud
+        # finance apply). Without a savepoint, a failed WorkflowStep/WorkflowRun write
+        # here would mark the whole transaction needs_rollback — and the except below
+        # swallows it, so the caller's next query would blow up with a
+        # TransactionManagementError it never caused. The savepoint keeps the swallow
+        # clean; in autocommit it is a harmless single transaction.
+        with transaction.atomic():
+            running = WorkflowStep.objects.filter(run=run, status="running").order_by("-ordinal").first()
+            if running is not None and running.name != name:
+                WorkflowStep.objects.filter(pk=running.pk).update(
+                    status="done",
+                    ended_at=timezone.now(),
+                )
+            step = WorkflowStep.objects.filter(run=run, name=name).first()
+            if step is None:
+                next_ordinal = WorkflowStep.objects.filter(run=run).count() + 1
+                step = WorkflowStep.objects.create(
+                    run=run,
+                    ordinal=next_ordinal,
+                    name=name[:80],
+                    label=name.replace("_", " ").title()[:160],  # magic-number-allow: string-truncation-cap
+                )
+            WorkflowStep.objects.filter(pk=step.pk).update(
+                status="running",
+                started_at=timezone.now(),
+                payload_summary=_scrub(payload or {}),
             )
-        step = WorkflowStep.objects.filter(run=run, name=name).first()
-        if step is None:
-            next_ordinal = WorkflowStep.objects.filter(run=run).count() + 1
-            step = WorkflowStep.objects.create(
-                run=run,
-                ordinal=next_ordinal,
-                name=name[:80],
-                label=name.replace("_", " ").title()[:160],  # magic-number-allow: string-truncation-cap
+            # tenant-isolation-allow: workflow-pulse-single-row-pk-update-on-held-run
+            WorkflowRun.objects.filter(pk=run.pk).update(
+                current_step_ordinal=step.ordinal,
+                current_step_name=step.name,
+                last_heartbeat_at=timezone.now(),
             )
-        WorkflowStep.objects.filter(pk=step.pk).update(
-            status="running",
-            started_at=timezone.now(),
-            payload_summary=_scrub(payload or {}),
-        )
-        # tenant-isolation-allow: workflow-pulse-single-row-pk-update-on-held-run
-        WorkflowRun.objects.filter(pk=run.pk).update(
-            current_step_ordinal=step.ordinal,
-            current_step_name=step.name,
-            last_heartbeat_at=timezone.now(),
-        )
     except Exception:
         logger.exception("workflow_pulse_step_failed run_id=%s name=%s", getattr(run, "pk", "-"), name)
 

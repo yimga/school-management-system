@@ -1134,15 +1134,20 @@ def _quarantine_errors(
         if source_row is not None:
             payload["source_row"] = source_row
         try:
-            MigrationQuarantineRecord.objects.create(
-                school=bundle.school,
-                migration_run=run,
-                domain=domain_label,
-                row_index=idx,
-                payload=payload,
-                issue_class=_classify_quarantine_issue(err),
-                status=MigrationQuarantineRecord.Status.PENDING,
-            )
+            # Savepoint: this runs INSIDE the forced-atomic finance apply, and the
+            # swallow below would otherwise leave a failed create's needs_rollback set
+            # on the whole transaction — poisoning every subsequent write. The
+            # savepoint keeps the swallow clean (same rule as landers._helpers).
+            with transaction.atomic():
+                MigrationQuarantineRecord.objects.create(
+                    school=bundle.school,
+                    migration_run=run,
+                    domain=domain_label,
+                    row_index=idx,
+                    payload=payload,
+                    issue_class=_classify_quarantine_issue(err),
+                    status=MigrationQuarantineRecord.Status.PENDING,
+                )
         except Exception:  # noqa: BLE001 — quarantine writes never block apply
             logger.warning(
                 "migration_cloud.apply: quarantine write skipped for domain=%s row=%s",

@@ -17,6 +17,7 @@ from ._helpers import (
     map_enrollment_status,
     persist_dfv_extras,
     record_id_mapping,
+    row_savepoint,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
@@ -153,14 +154,19 @@ class StudentLander(Lander):
                         setattr(existing_obj, k, v)
                     if lookup_field in model_fields:
                         setattr(existing_obj, lookup_field, external_id)
-                    existing_obj.save()
+                    # Per-row savepoint: students land in an EARLIER wave of the same
+                    # forced-atomic finance transaction, so a bad student row must roll
+                    # back only itself — not poison the whole apply (see _helpers.row_savepoint).
+                    with row_savepoint():
+                        existing_obj.save()
                     obj, created = existing_obj, False
                 else:
-                    obj, created = StudentProfile.objects.update_or_create(
-                        **school_scope,
-                        **{lookup_field: external_id},
-                        defaults=defaults,
-                    )
+                    with row_savepoint():
+                        obj, created = StudentProfile.objects.update_or_create(
+                            **school_scope,
+                            **{lookup_field: external_id},
+                            defaults=defaults,
+                        )
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)

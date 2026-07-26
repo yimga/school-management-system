@@ -28,6 +28,7 @@ from ._helpers import (
     model_field_names,
     persist_dfv_extras,
     resolve_student,
+    row_savepoint,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -145,7 +146,10 @@ class EnrollmentLander(Lander):
                 if updates:
                     for k, v in updates.items():
                         setattr(student, k, v)
-                    student.save(update_fields=list(updates.keys()))
+                    # Per-row savepoint: enrollment lands in the same forced-atomic
+                    # finance transaction, so a bad row must roll back only itself.
+                    with row_savepoint():
+                        student.save(update_fields=list(updates.keys()))
                 persist_dfv_extras(
                     ctx=ctx, entity_type="student", entity_id=student.pk,
                     extras=extras, result=result,

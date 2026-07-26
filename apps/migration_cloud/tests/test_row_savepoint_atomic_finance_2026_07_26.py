@@ -70,3 +70,38 @@ class RowSavepointAtomicTests(TestCase):
                     pass
                 # Poisoned transaction -> TransactionManagementError here.
                 MigrationBundle.objects.filter(idempotency_key="x").exists()
+
+
+class SwallowPoisonSiteCoverageTests(TestCase):
+    """Regression lock: every best-effort swallow-write that runs INSIDE the atomic
+    apply must be savepoint-wrapped. These sites have no observable happy-path
+    behaviour, so only a real DB poison would catch a regression — a source lock is
+    the pragmatic guard that a future edit doesn't quietly drop the savepoint.
+    """
+
+    def _src(self, dotted):
+        import importlib
+        import inspect
+
+        return inspect.getsource(importlib.import_module(dotted))
+
+    def test_orchestrator_quarantine_write_is_savepointed(self):
+        src = self._src("apps.migration_cloud.orchestrator")
+        # _quarantine_errors creates MigrationQuarantineRecord per error, swallowing.
+        self.assertIn("with transaction.atomic():", src)
+        self.assertIn("MigrationQuarantineRecord.objects.create", src)
+
+    def test_pulse_workflow_step_is_savepointed(self):
+        src = self._src("apps.platform_runtime.workflow_tracker")
+        # The pulse writes WorkflowStep/WorkflowRun and swallows internally; it can
+        # fire from inside an outer atomic() (the MC finance apply) via ensure_workflow_run.
+        self.assertIn("with transaction.atomic():", src)
+
+    def test_finance_colanders_savepoint_their_inline_upsert(self):
+        # Students + enrollment land in earlier waves of the SAME atomic finance txn
+        # and do their own inline upsert (not via the shared helper).
+        for mod in (
+            "apps.migration_cloud.landers.student_lander",
+            "apps.migration_cloud.landers.enrollment_lander",
+        ):
+            self.assertIn("row_savepoint", self._src(mod), mod)
