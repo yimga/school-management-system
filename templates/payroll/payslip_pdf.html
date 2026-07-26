@@ -60,7 +60,7 @@
 
   {% if payslip.lines.all %}
   <table class="lines">
-    <thead><tr><th>{% trans "Description" %}</th><th>{% trans "Type" %}</th><th class="amt">{% trans "Amount" %} ({{ cur }})</th></tr></thead>
+    <thead><tr><th scope="col">{% trans "Description" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col" class="amt">{% trans "Amount" %} ({{ cur }})</th></tr></thead>
     <tbody>
       {% for line in payslip.lines.all %}
       <tr><td>{{ line.description }}</td><td>{{ line.get_line_type_display }}</td><td class="amt">{{ line.amount }}</td></tr>
