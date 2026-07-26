@@ -31,8 +31,43 @@ _SCALE_TYPE_TO_PRESET_KEY: dict[str, str] = {
 }
 
 
+def _weights_are_customized(weights: Any) -> bool:
+    """True when the AssessmentWeights differ from the model's field defaults.
+
+    A school that set its own weights via the granular UI must not have them
+    silently overridden by a scale's PRESET formula. Existence/pk is NOT a usable
+    signal — ``AssessmentWeights.get_for`` auto-creates a year-level default row —
+    so compare the actual weight values against the declared field defaults.
+    """
+    if weights is None:
+        return False
+    try:
+        from apps.evals.models import AssessmentWeights
+
+        for field in (
+            "seq1_weight",
+            "seq2_weight",
+            "exam_weight",
+            "mock_weight",
+            "practical_weight",
+        ):
+            default = AssessmentWeights._meta.get_field(field).default
+            if getattr(weights, field, default) != default:
+                return True
+    except Exception:  # noqa: BLE001 — defensive; treat unreadable weights as uncustomized
+        return False
+    return False
+
+
 def _resolve_formula_text(weights: Any, school: Any | None) -> str:
-    """Resolve tenant formula text from the school's default GradingScale only."""
+    """Resolve tenant formula text from the school's default GradingScale only.
+
+    Precedence: an EXPLICIT ``formula_text`` on the scale always wins; otherwise a
+    scale-type PRESET is used ONLY when the school has NOT customized its
+    AssessmentWeights. Customized weights are honored (return "" so the caller
+    falls to ``weighted_average_total``) rather than being silently overridden by
+    the preset's hardcoded weighting.
+    """
     if school is None or not getattr(school, "pk", None):
         return ""
     try:
@@ -49,6 +84,10 @@ def _resolve_formula_text(weights: Any, school: Any | None) -> str:
         text = str(cfg.get("formula_text") or "").strip()
         if text:
             return text
+        # Only fall back to the scale's PRESET formula when the school has NOT
+        # configured its own weights — otherwise honor the granular weights.
+        if _weights_are_customized(weights):
+            return ""
         preset_key = _SCALE_TYPE_TO_PRESET_KEY.get(str(scale.scale_type or ""), "")
         if preset_key:
             return PRESET_GRADING_FORMULAS.get(preset_key, "") or ""
