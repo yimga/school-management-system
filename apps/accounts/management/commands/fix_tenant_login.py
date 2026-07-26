@@ -88,8 +88,34 @@ class Command(BaseCommand):
             action="store_true",
             help="Set is_active=True on the --email target WITHOUT changing the password.",
         )
+        parser.add_argument(
+            "--attach-owner",
+            action="store_true",
+            help=(
+                "Attach the EXISTING --email account as a school OWNER of --school "
+                "(idempotent, email-independent). Use for an already-claimed account "
+                "that invite_school_owner rejects (username != email)."
+            ),
+        )
 
     # -- helpers ---------------------------------------------------------------
+
+    def _resolve_school(self, ident: str):
+        """Resolve a school by slug OR primary key (uuid/int), like resend_owner_setup_email."""
+        from django.core.exceptions import ValidationError
+
+        from apps.schools.models import School
+
+        ident = (ident or "").strip()
+        # tenant-isolation-allow: operator school lookup by exact slug or pk
+        school = School.objects.filter(slug=ident).first()
+        if school is None:
+            try:
+                # tenant-isolation-allow: operator school lookup by exact pk fallback
+                school = School.objects.filter(pk=ident).first()
+            except (ValidationError, ValueError, TypeError):
+                school = None
+        return school
 
     def _resolve_candidates(self, identifier: str):
         """Resolve accounts exactly the way ``EmailOrUsernameModelBackend`` does."""
@@ -192,10 +218,15 @@ class Command(BaseCommand):
         school = (opts.get("school") or "").strip()
         set_password = opts.get("set_password")  # None = not given; "" = auto-generate
         want_activate = bool(opts.get("activate"))
+        want_attach = bool(opts.get("attach_owner"))
         want_mutation = set_password is not None or want_activate
 
         if not email and not school:
             raise CommandError("Pass --email <email-or-username> or --school <slug>.")
+        if want_attach:
+            if not (email and school):
+                raise CommandError("--attach-owner needs BOTH --email and --school.")
+            return self._handle_attach_owner(email, school)
         if want_mutation and not email:
             raise CommandError(
                 "--set-password / --activate need a single --email target "
@@ -205,12 +236,98 @@ class Command(BaseCommand):
             return self._handle_roster(school)
         return self._handle_email(email, set_password, want_activate)
 
-    def _handle_roster(self, slug: str):
-        from apps.schools.models import School, SchoolMembership
+    def _handle_attach_owner(self, email: str, school_ident: str):
+        """Attach an EXISTING account as an OWNER of the school (idempotent).
 
-        s = School.objects.filter(slug=slug).first()  # tenant-isolation-allow: operator school lookup by slug
+        For an already-claimed account (e.g. username 'yimgah', email
+        'yimgah@yahoo.com') that ``invite_school_owner`` refuses because
+        username != email. Creates/promotes the SchoolMembership only; never
+        touches the password and needs no working mail relay.
+        """
+        from django.db import transaction
+
+        from apps.accounts.models import User
+        from apps.schools.models import SchoolMembership
+
+        school = self._resolve_school(school_ident)
+        if school is None:
+            raise CommandError(f"No school matched slug/id '{school_ident}'.")
+        if not school.is_active:
+            raise CommandError(
+                f"{school.slug} is not active — repair provisioning before attaching an owner."
+            )
+        candidates = self._resolve_candidates(email)
+        if not candidates:
+            raise CommandError(
+                f"No account matches '{email}'. Create the account first, then attach."
+            )
+        if len(candidates) > 1:
+            raise CommandError(
+                f"'{email}' matches {len(candidates)} accounts — pass the exact USERNAME."
+            )
+        user = candidates[0]
+
+        with transaction.atomic():
+            has_primary = SchoolMembership.objects.filter(  # tenant-isolation-allow: user-scoped primary-membership check
+                user=user, is_primary=True
+            ).exists()
+            ms, created = SchoolMembership.objects.get_or_create(
+                user=user,
+                school=school,
+                defaults={
+                    "role": User.Role.ADMIN,
+                    "is_school_owner": True,
+                    # Only claim primary when the user has none — never silently
+                    # move their default landing school out from under them.
+                    "is_primary": not has_primary,
+                },
+            )
+            if not created:
+                changed = []
+                if not ms.is_school_owner:
+                    ms.is_school_owner = True
+                    changed.append("is_school_owner")
+                if (ms.role or "").upper() != User.Role.ADMIN:
+                    ms.role = User.Role.ADMIN
+                    changed.append("role")
+                if changed:
+                    ms.save(update_fields=changed)
+
+        if created:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Attached {user.get_username()} <{user.email or '—'}> as OWNER of "
+                    f"{school.slug}"
+                    + ("  [primary]" if ms.is_primary else "")
+                    + "."
+                )
+            )
+        elif ms.is_school_owner:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"{user.get_username()} is already an OWNER of {school.slug} — no change."
+                )
+            )
+        else:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Promoted {user.get_username()} to OWNER of {school.slug}."
+                )
+            )
+        ready = user.is_active and user.has_usable_password() and not _passkey_only(user)
+        self.stdout.write(
+            "Next: the owner signs in at the school's /authentication/login/ with their "
+            "existing password"
+            + ("" if ready else " (set one with --set-password if needed)")
+            + ", then enrolls MFA on first sign-in. No setup email required."
+        )
+
+    def _handle_roster(self, slug: str):
+        from apps.schools.models import SchoolMembership
+
+        s = self._resolve_school(slug)
         if not s:
-            raise CommandError(f"No school with slug '{slug}'.")
+            raise CommandError(f"No school with slug/id '{slug}'.")
         self.stdout.write(self.style.MIGRATE_HEADING(f"School: {s.name}  (slug={s.slug}, active={s.is_active})"))
         memberships = list(
             SchoolMembership.objects.filter(school=s)  # tenant-isolation-allow: operator roster for one school

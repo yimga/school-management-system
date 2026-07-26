@@ -186,3 +186,110 @@ class FixTenantLoginRosterTests(TestCase):
     def test_unknown_school_slug_errors(self):
         with self.assertRaises(CommandError):
             call_command("fix_tenant_login", "--school", "does-not-exist", stdout=StringIO())
+
+
+class FixTenantLoginAttachOwnerTests(TestCase):
+    """--attach-owner: attach an EXISTING claimed account as owner (email-independent).
+
+    This is the path invite_school_owner refuses for an account whose username
+    != email (e.g. username 'yimgah', email 'yimgah@yahoo.com').
+    """
+
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Gilead Tech", slug="gilead-tech",
+            subdomain="gilead-tech", is_active=True,
+        )
+        # An already-claimed account: username is the local-part, NOT the email.
+        self.user = User.objects.create_user(
+            username="yimgah", email="yimgah@yahoo.com", password="already-set-1234"
+        )
+
+    def _is_owner(self):
+        return SchoolMembership.objects.filter(
+            user=self.user, school=self.school, is_school_owner=True
+        ).exists()
+
+    def test_attach_creates_owner_membership(self):
+        self.assertFalse(self._is_owner())
+        out = StringIO()
+        call_command(
+            "fix_tenant_login", "--email", "yimgah@yahoo.com",
+            "--school", "gilead-tech", "--attach-owner", stdout=out,
+        )
+        self.assertTrue(self._is_owner())
+        self.assertIn("Attached", out.getvalue())
+
+    def test_attach_resolves_school_by_id(self):
+        # The operator has the school UUID, not just the slug.
+        call_command(
+            "fix_tenant_login", "--email", "yimgah@yahoo.com",
+            "--school", str(self.school.pk), "--attach-owner", stdout=StringIO(),
+        )
+        self.assertTrue(self._is_owner())
+
+    def test_attach_is_idempotent(self):
+        SchoolMembership.objects.create(
+            user=self.user, school=self.school, is_school_owner=True, is_primary=True
+        )
+        out = StringIO()
+        call_command(
+            "fix_tenant_login", "--email", "yimgah@yahoo.com",
+            "--school", "gilead-tech", "--attach-owner", stdout=out,
+        )
+        self.assertIn("already an OWNER", out.getvalue())
+        self.assertEqual(
+            SchoolMembership.objects.filter(user=self.user, school=self.school).count(), 1
+        )
+
+    def test_attach_promotes_existing_non_owner_member(self):
+        SchoolMembership.objects.create(
+            user=self.user, school=self.school, is_school_owner=False
+        )
+        call_command(
+            "fix_tenant_login", "--email", "yimgah@yahoo.com",
+            "--school", "gilead-tech", "--attach-owner", stdout=StringIO(),
+        )
+        self.assertTrue(self._is_owner())
+
+    def test_attach_does_not_steal_primary_from_another_school(self):
+        # yimgah already owns another school as primary — attaching gilead-tech
+        # must NOT demote that primary.
+        other = School.objects.create(
+            name="Lycee", slug="lycee", subdomain="lycee", is_active=True
+        )
+        SchoolMembership.objects.create(
+            user=self.user, school=other, is_school_owner=True, is_primary=True
+        )
+        call_command(
+            "fix_tenant_login", "--email", "yimgah@yahoo.com",
+            "--school", "gilead-tech", "--attach-owner", stdout=StringIO(),
+        )
+        self.assertTrue(
+            SchoolMembership.objects.get(user=self.user, school=other).is_primary
+        )
+        self.assertFalse(
+            SchoolMembership.objects.get(user=self.user, school=self.school).is_primary
+        )
+
+    def test_attach_requires_both_email_and_school(self):
+        with self.assertRaises(CommandError):
+            call_command(
+                "fix_tenant_login", "--school", "gilead-tech", "--attach-owner",
+                stdout=StringIO(),
+            )
+
+    def test_attach_errors_on_unknown_account(self):
+        with self.assertRaises(CommandError):
+            call_command(
+                "fix_tenant_login", "--email", "nobody@x.edu",
+                "--school", "gilead-tech", "--attach-owner", stdout=StringIO(),
+            )
+
+    def test_attach_errors_on_inactive_school(self):
+        School.objects.filter(pk=self.school.pk).update(is_active=False)
+        with self.assertRaises(CommandError):
+            call_command(
+                "fix_tenant_login", "--email", "yimgah@yahoo.com",
+                "--school", "gilead-tech", "--attach-owner", stdout=StringIO(),
+            )
