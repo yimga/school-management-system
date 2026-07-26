@@ -110,6 +110,79 @@ any locale can't break the inline script's string literals.
 </script>
 {% endif %}
 
+{% if importing and progress_url %}
+{% comment %}
+Live import / repair progress. A live apply (Import into my school) or a Repair
+runs on the durable background outbox, not the HTTP thread — before this the page
+reverted to a bare "ready to import" look with no feedback, so a working repair
+appeared to do nothing. This card polls the same tenant-scoped progress endpoint
+while the apply is in flight and reloads the page the moment it settles, revealing
+the result. If the queued work sits too long unclaimed (no worker draining), it
+says so honestly instead of spinning forever. Copy travels via data-* attributes
+(HTML-attribute-escaped) so an apostrophe in any locale can't break the script.
+{% endcomment %}
+<section class="rmc-card mb-4" id="mc-import-progress"
+         aria-live="polite"
+         data-progress-url="{{ progress_url }}"
+         data-msg-queued="{% trans 'Queued — waiting for the importer…' %}"
+         data-msg-running="{% trans 'Writing records into your school…' %}"
+         data-msg-slow="{% trans 'Still queued — the importer will pick this up shortly.' %}"
+         data-msg-timeout="{% trans 'Still working. Refresh this page in a moment to see your results.' %}">
+  <h2 class="h5">
+    {% if import_flight.dry_run %}{% trans "Previewing your import…" %}{% else %}{% trans "Importing your data…" %}{% endif %}
+  </h2>
+  <p class="text-muted small mb-2">{% trans "This runs in the background and the page updates on its own — no need to refresh. Records that already imported are updated in place, never duplicated." %}</p>
+  <div class="progress" role="progressbar" aria-label="{% trans 'Import progress' %}" aria-valuemin="0" aria-valuemax="100">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" id="mc-import-bar" style="width: 30%"></div>
+  </div>
+  <p class="small text-muted mt-2 mb-0" id="mc-import-note">{% if import_flight.stuck %}{% trans "Still queued — the importer will pick this up shortly." %}{% else %}{% trans "Working…" %}{% endif %}</p>
+</section>
+<script>
+(function () {
+  var el = document.getElementById('mc-import-progress');
+  if (!el || !window.fetch) { return; }
+  var url = el.getAttribute('data-progress-url');
+  if (!url) { return; }
+  var bar = document.getElementById('mc-import-bar');
+  var note = document.getElementById('mc-import-note');
+  var tries = 0;
+  function schedule() { window.setTimeout(tick, 2500); }
+  function stop() { if (bar) { bar.classList.remove('progress-bar-striped', 'progress-bar-animated'); } }
+  function tick() {
+    tries += 1;
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) { schedule(); return; }
+        if (!data.importing) {
+          // Apply settled (applied / failed / reverted): reload to reveal the
+          // outcome (created / updated / held) and the repair affordance.
+          stop();
+          window.location.reload();
+          return;
+        }
+        var running = data.import_phase === 'running';
+        if (bar) { bar.style.width = running ? '70%' : '30%'; }
+        if (note) {
+          note.textContent = data.import_stuck
+            ? el.getAttribute('data-msg-slow')
+            : (running ? el.getAttribute('data-msg-running') : el.getAttribute('data-msg-queued'));
+        }
+        if (tries > 160) {
+          stop();
+          if (note) { note.textContent = el.getAttribute('data-msg-timeout'); }
+          window.setTimeout(function () { window.location.reload(); }, 800);
+          return;
+        }
+        schedule();
+      })
+      .catch(function () { schedule(); });
+  }
+  window.setTimeout(tick, 1800);
+})();
+</script>
+{% endif %}
+
 {% if detection_failed or advance_error %}
 <section class="rmc-card mb-4" aria-labelledby="mc-detect-fail-heading">
   <h2 id="mc-detect-fail-heading" class="h5">{% trans "Detection needs another try" %}</h2>
@@ -196,6 +269,29 @@ any locale can't break the inline script's string literals.
     </ul>
     {% endif %}
   </div>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if last_import and not apply_result and not importing %}
+{% comment %}
+Settled outcome of the most recent LIVE import/repair, shown on a plain GET so a
+tenant who ran a repair (which reloads on its own once the background apply
+finishes) sees created / updated / held — not a vanished button. When rows are
+still held, it points to the per-file reasons in the table below + Repair, so a
+persistent data failure routes to correction rather than an endless retry.
+{% endcomment %}
+<section class="rmc-card mb-4" aria-labelledby="mc-last-import-heading">
+  <h2 id="mc-last-import-heading" class="h5">{% trans "Most recent import" %}</h2>
+  <p class="mb-1">
+    <span class="rmc-badge">{% trans "Created" %}: {{ last_import.created }}</span>
+    <span class="rmc-badge">{% trans "Updated" %}: {{ last_import.updated }}</span>
+    <span class="rmc-badge">{% trans "Held for review" %}: {{ last_import.held }}</span>
+  </p>
+  {% if last_import.held %}
+  <p class="text-muted small mb-0">{% trans "Held records didn't pass validation and were not imported. Check the reason on each file below, correct the data, then use Repair to re-attempt just those — already-imported records are never duplicated." %}</p>
+  {% else %}
+  <p class="text-muted small mb-0">{% trans "All records imported. Verify the counts below match your school." %}</p>
   {% endif %}
 </section>
 {% endif %}
@@ -288,6 +384,7 @@ any locale can't break the inline script's string literals.
   {% endif %}
 </section>
 
+{% if not importing %}
 <section class="rmc-card" aria-labelledby="mc-import-heading">
   <h2 id="mc-import-heading" class="h5">{% trans "Import into my school" %}</h2>
   <div class="rmc-alert-banner rmc-alert-banner--warning mb-3" role="status">
@@ -307,8 +404,9 @@ any locale can't break the inline script's string literals.
     <a class="btn btn-link" href="{{ home_url }}">{% trans "Back to Migration Cloud" %}</a>
   </form>
 </section>
+{% endif %}
 
-{% if repair %}
+{% if repair and not importing %}
 {% comment %}
 Auto-repair affordance. Shows a one-click "Repair this import" when the bundle
 is safely re-appliable (a failed apply, or held / not-fully-landed rows), or a plain
@@ -322,6 +420,7 @@ repair.repair_readiness — the button is only a trigger.
   <p class="text-muted small">{{ repair.reason }}</p>
   {% if repair.issue_count %}
   <p class="small mb-2"><span class="rmc-badge">{% blocktrans count count=repair.issue_count %}{{ count }} record needs another attempt{% plural %}{{ count }} records need another attempt{% endblocktrans %}</span></p>
+  <p class="text-muted small mb-2">{% trans "If the same records stay held after a repair, they were rejected for a data reason (see the note on each file above) — fix the data and re-import, rather than repairing again." %}</p>
   {% endif %}
   <form method="post" action="{{ repair_url }}" class="d-flex gap-2 flex-wrap">
     {% csrf_token %}

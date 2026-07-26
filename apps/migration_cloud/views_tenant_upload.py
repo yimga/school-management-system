@@ -35,6 +35,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views import View
 
 from . import defaults as mc_defaults
@@ -244,6 +245,76 @@ def _sync_tenant_domain_overrides(bundle) -> None:
     bundle.save(update_fields=update_fields)
 
 
+# Seconds a still-PENDING apply-outbox row may sit before the review page tells
+# the tenant honestly that the background importer hasn't picked it up yet
+# (worker idle / broker backlog) — instead of a spinner that never resolves.
+_IMPORT_QUEUE_STUCK_SECONDS = 90  # magic-number-allow: import-queue-stuck-threshold-seconds
+
+
+def _import_flight(bundle) -> dict:
+    """Whether a live import / repair is queued or running for this bundle.
+
+    The durable apply row on the HeavyWorkOutbox is the authoritative signal: it
+    exists (PENDING → PROCESSING) for the whole life of the background apply the
+    tenant just kicked, so the review page can show a real "importing…" state and
+    poll until it settles — instead of reverting to a bare "ready to import" look
+    that makes a working repair appear to do nothing. ``APPLYING`` on the bundle
+    itself (or a PROCESSING row) refines the label to "running". A PENDING row
+    older than :data:`_IMPORT_QUEUE_STUCK_SECONDS` means no worker has drained it
+    yet, which is surfaced honestly rather than spun on forever.
+
+    Read-only + best-effort: an outbox lookup failure degrades to "not in flight"
+    (the pre-existing behaviour) rather than breaking the review page.
+    """
+    running = getattr(bundle, "status", "") == BundleStatus.APPLYING
+    row = None
+    try:
+        from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+        row = (
+            HeavyWorkOutbox.objects.filter(
+                bundle_id=bundle.pk,
+                kind=HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE,
+                status__in=(
+                    HeavyWorkOutbox.Status.PENDING,
+                    HeavyWorkOutbox.Status.PROCESSING,
+                ),
+            )
+            .order_by("-created_at")
+            .first()
+        )
+    except Exception:  # noqa: BLE001 — never break the review page on an outbox read
+        logger.debug(
+            "tenant import-flight: outbox read failed for %s",
+            getattr(bundle, "pk", "?"),
+            exc_info=True,
+        )
+        row = None
+
+    if not running and row is None:
+        return {"in_flight": False, "phase": "", "stuck": False, "dry_run": False}
+
+    processing = row is not None and row.status == HeavyWorkOutbox.Status.PROCESSING
+    pending = row is not None and row.status == HeavyWorkOutbox.Status.PENDING
+    dry_run = (
+        bool((getattr(row, "payload", None) or {}).get("dry_run")) if row is not None else False
+    )
+    stuck = False
+    if pending and not running:
+        try:
+            stuck = (
+                timezone.now() - row.created_at
+            ).total_seconds() > _IMPORT_QUEUE_STUCK_SECONDS
+        except Exception:  # noqa: BLE001 — a clock/None hiccup must not stick the page
+            stuck = False
+    return {
+        "in_flight": True,
+        "phase": "running" if (running or processing) else "queued",
+        "stuck": stuck,
+        "dry_run": dry_run,
+    }
+
+
 def _progress_payload(bundle) -> dict:
     """Live auto-detection progress for the review-page poller.
 
@@ -263,6 +334,7 @@ def _progress_payload(bundle) -> dict:
         snapshot = getattr(bundle, "progress_snapshot", None) or {}
 
     detecting = _is_detecting(bundle)
+    flight = _import_flight(bundle)
     detected = []
     for art in bundle.artifacts.all():
         candidates = art.inferred_domain if isinstance(art.inferred_domain, list) else []
@@ -274,7 +346,16 @@ def _progress_payload(bundle) -> dict:
         "status": bundle.status,
         "status_label": bundle.get_status_display(),
         "detecting": detecting,
-        "done": not detecting and bundle.status not in _FAILED_STATUSES,
+        # An in-flight import/repair must keep the poller watching (not "done") so
+        # the review page reloads to reveal the result once the apply settles.
+        "importing": flight["in_flight"],
+        "import_phase": flight["phase"],
+        "import_stuck": flight["stuck"],
+        "done": (
+            not detecting
+            and not flight["in_flight"]
+            and bundle.status not in _FAILED_STATUSES
+        ),
         "failed": bundle.status in _FAILED_STATUSES,
         "advance_error": (bundle.size_summary or {}).get("error") or "",
         "snapshot": snapshot,
@@ -485,6 +566,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                     "dfv_only": detected in ("payroll", "compliance"),
                 }
             )
+        flight = _import_flight(bundle)
         return {
             "page_title": "Review & import",
             "bundle": bundle,
@@ -492,6 +574,12 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "domain_choices": canonical_domain_choices(),
             "apply_result": apply_result,
             "verification": _build_verification(bundle),
+            # Live import/repair state: the review page shows a polling progress
+            # card and hides the write affordances while an apply is in flight,
+            # then reveals the outcome (last_import) once it settles.
+            "importing": flight["in_flight"],
+            "import_flight": flight,
+            "last_import": _last_import_summary(bundle),
             "repair": _build_repair(bundle),
             "repair_url": _connector_reverse(request, "bundle-repair", bundle_id=bundle.pk),
             "retry_url": _connector_reverse(request, "bundle-retry", bundle_id=bundle.pk),
@@ -563,6 +651,31 @@ def _build_verification(bundle):
 # actionable safety hold (vs. a benign "not applied yet / already clean" state,
 # for which the repair panel simply stays hidden on the normal review flow).
 _ACTIONABLE_REPAIR_BLOCKERS = frozenset({"financial_guardrail_failed", "finance_requires_atomic"})
+
+
+def _last_import_summary(bundle):
+    """Totals from the most recent LIVE apply, for the review GET.
+
+    So a tenant who ran an import / repair sees the outcome (created / updated /
+    held) after the page reloads on its own — closing the "the button vanished
+    and nothing shows" gap that made a working repair look inert. Reads the
+    ``apply_totals`` the orchestrator persists; skips a dry-run's totals (a
+    preview writes nothing) and returns ``None`` when nothing has been applied.
+    """
+    totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+    if not totals or totals.get("dry_run"):
+        return None
+    created = int(totals.get("created") or 0)
+    updated = int(totals.get("updated") or 0)
+    held = int(totals.get("quarantined") or 0)
+    if created == 0 and updated == 0 and held == 0:
+        return None
+    return {
+        "created": created,
+        "updated": updated,
+        "held": held,
+        "applied_at": totals.get("applied_at") or "",
+    }
 
 
 def _build_repair(bundle):
