@@ -50,7 +50,7 @@
   </div>
   <article class="cp-card rmc-reveal">
     <h2>Change Set</h2>
-    <pre>{{ change_request.impact_snapshot }}</pre>
+    <pre>{{ change_request.impact_snapshot|pprint }}</pre>
   </article>
 </section>
 {% endblock %}

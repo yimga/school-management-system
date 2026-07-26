@@ -17,7 +17,7 @@
     <p class="text-muted mb-0">{% trans "Rollback restores the stored settings snapshot and deactivates package markers. It does not delete school operational data." %}</p>
   </header>
   {% if result %}
-  <div data-rmc-scroll-policy="paginate" class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}">{{ result }}</div>
+  <div data-rmc-scroll-policy="paginate" class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}"><pre class="mb-0">{{ result|pprint }}</pre></div>
   {% endif %}
   <div class="card border-0 shadow-sm"><div class="card-body">
     <dl class="row small">

@@ -49,7 +49,7 @@
                 <tr>
                   <td><code class="small">{{ row.key }}</code></td>
                   <td>{{ row.kind }}</td>
-                  <td class="small text-break">{{ row.extra }}</td>
+                  <td class="small text-break">{{ row.extra|pprint }}</td>
                 </tr>
                 {% endfor %}
               </tbody>

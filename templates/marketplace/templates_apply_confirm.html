@@ -19,7 +19,30 @@
 
   <section class="rmc-template-apply__impact">
     <h2>{% trans "Impact" %}</h2>
-    <pre class="rmc-template-apply__payload">{{ impact }}</pre>
+    <dl>
+      <dt>{% trans "Template" %}</dt>
+      <dd>{{ impact.pack_key }}{% if impact.pack_type %} · {{ impact.pack_type }}{% endif %}</dd>
+      <dt>{% trans "Impact level" %}</dt>
+      <dd>{{ impact.impact_categories|join:", " }}</dd>
+      <dt>{% trans "Safe to apply" %}</dt>
+      <dd>{% if impact.can_apply %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+      <dt>{% trans "Rollback coverage" %}</dt>
+      <dd>{{ impact.rollback_coverage|default:"—" }}</dd>
+      {% if impact.affected_roles %}<dt>{% trans "Affected roles" %}</dt><dd>{{ impact.affected_roles|join:", " }}</dd>{% endif %}
+      {% if impact.external_dependencies %}<dt>{% trans "External dependencies" %}</dt><dd>{{ impact.external_dependencies|join:", " }}</dd>{% endif %}
+    </dl>
+    {% if impact.conflicts %}
+    <div>
+      <h3>{% trans "Conflicts" %}</h3>
+      <ul>{% for c in impact.conflicts %}<li>{{ c.message|default:c.code }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    {% if impact.warnings %}
+    <div>
+      <h3>{% trans "Warnings" %}</h3>
+      <ul>{% for w in impact.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
   </section>
 
   {% if not result %}
@@ -32,8 +55,20 @@
   {% else %}
     <section class="rmc-template-apply__result">
       <h2>{% trans "Apply result" %}</h2>
-      <p>{% trans "Status:" %} {{ result.status }}</p>
-      <pre class="rmc-template-apply__payload">{{ result }}</pre>
+      <p>{% if result.ok %}{% trans "Applied successfully." %}{% else %}{% trans "Apply did not complete." %}{% endif %}</p>
+      {% if result.installation_id %}<p>{% trans "Installation reference:" %} {{ result.installation_id }}</p>{% endif %}
+      {% if result.errors %}
+      <div>
+        <h3>{% trans "Errors" %}</h3>
+        <ul>{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+      {% if result.warnings %}
+      <div>
+        <h3>{% trans "Warnings" %}</h3>
+        <ul>{% for w in result.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
       <a class="rmc-template-apply__action" href="{% url 'template_marketplace:browse' %}">{% trans "Back to catalog" %}</a>
     </section>
   {% endif %}

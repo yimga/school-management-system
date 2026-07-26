@@ -27,8 +27,13 @@
     </form>
   {% else %}
     <section class="rmc-template-rollback__result">
-      <p>{% trans "Status:" %} {{ result.ok|yesno:"ok,error" }}</p>
-      <pre class="rmc-template-rollback__payload">{{ result }}</pre>
+      <p>{% if result.ok %}{% trans "Rolled back successfully." %}{% else %}{% trans "Rollback did not complete." %}{% endif %}</p>
+      {% if result.errors %}
+      <div>
+        <h3>{% trans "Errors" %}</h3>
+        <ul>{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
       <a class="rmc-template-rollback__action" href="{% url 'template_marketplace:browse' %}">{% trans "Back to catalog" %}</a>
     </section>
   {% endif %}
