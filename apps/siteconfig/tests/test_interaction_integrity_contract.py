@@ -77,12 +77,17 @@ class InteractionIntegrityContractTests(SimpleTestCase):
         text = (ROOT / "templates/partials/portal_sidebar.html").read_text(encoding="utf-8")
         self.assertIn("feedback:help_center", text)
 
-    def test_manager_admin_footer_wired(self):
+    def test_manager_admin_workbench_delegates_footer_to_control_plane(self):
+        # v15/parity contract: the /admin/ model workbench delegates the civic
+        # footer to the control-plane surfaces (see the rationale comment in
+        # templates/admin/base.html). The civic partial still carries its surface
+        # marker; the workbench adopts the manager control-plane header, not the
+        # viewport-pinned civic footer.
         admin_base = (ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
         civic = (ROOT / "templates/partials/rmc_operator_footer_civic.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn("rmc_operator_footer_civic.html", admin_base)
+        self.assertNotIn("rmc_operator_footer_civic.html", admin_base)
         self.assertIn('data-rmc-footer-surface="operator-civic"', civic)
         self.assertIn("is_manager_host", admin_base)
 

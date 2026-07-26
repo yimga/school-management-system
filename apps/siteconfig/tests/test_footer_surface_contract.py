@@ -16,13 +16,18 @@ class FooterSurfaceContractTests(SimpleTestCase):
         self.assertNotIn("corporate_footer_bundle.html", text)
         self.assertNotIn("mkt-footer-command", text)
 
-    def test_manager_admin_uses_civic_operator_footer(self):
+    def test_manager_admin_workbench_delegates_footer_to_control_plane(self):
+        # v15/parity contract (2026-07-20 "Repair operator and tenant Django admin
+        # parity"): the /admin/ MODEL WORKBENCH deliberately does NOT carry the
+        # viewport-pinned civic footer (nor the footer-surfaces CSS) — those belong
+        # to the control-plane surfaces (control_plane_skeleton / portal_base /
+        # base), not the Django model workbench. See the rationale comment in
+        # templates/admin/base.html. The workbench still adopts the control-plane
+        # unified header on the manager host and never the marketing corporate bundle.
         admin_base = Path("templates/admin/base.html").read_text(encoding="utf-8")
-        admin_site = Path("templates/admin/base_site.html").read_text(encoding="utf-8")
-        self.assertIn("rmc_operator_footer_civic.html", admin_base)
+        self.assertNotIn("rmc_operator_footer_civic.html", admin_base)
         self.assertIn("control_plane_unified_header.html", admin_base)
         self.assertIn("is_manager_host", admin_base)
-        self.assertIn("rmc-footer-surfaces.css", admin_site)
         self.assertNotIn("corporate_footer_bundle.html", admin_base)
 
     def test_portal_never_includes_marketing_footer(self):
