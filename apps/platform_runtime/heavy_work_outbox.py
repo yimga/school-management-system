@@ -20,6 +20,13 @@ logger = logging.getLogger(__name__)
 _STALE_PROCESSING_SECONDS = 900  # magic-number-allow: heavy-work-stale-processing-reclaim-seconds (fast-kind default)
 _MC_APPLY_RECLAIM_SECONDS = 2400  # magic-number-allow: mc-apply-reclaim-window-seconds (> 1800s apply duration + margin)
 _DEFAULT_DRAIN_LIMIT = 3  # magic-number-allow: heavy-work-outbox-drain-batch-size
+# Dead-letter cap for the reclaim loop. A row that raises a normal exception is
+# already terminal-FAILED on the first drain; the ONLY unbounded path is a payload
+# that reliably KILLS the worker mid-run (OOM / SIGKILL) before it can record a
+# failure — that row stays PROCESSING, gets reclaimed to PENDING, re-dispatched,
+# and kills the next worker, forever. Once it has burned this many claim attempts
+# and is STILL stuck, reclaim dead-letters it (→ FAILED) instead of re-dispatching.
+_MAX_RECLAIM_ATTEMPTS = 8  # magic-number-allow: heavy-work-outbox-dead-letter-attempt-cap
 
 
 def enqueue_heavy_work(
@@ -189,6 +196,37 @@ def drain_heavy_work_outbox(*, limit: int = _DEFAULT_DRAIN_LIMIT) -> dict[str, A
     return {"processed": processed, "failed": failed, "claimed": len(qs)}
 
 
+def _reclaim_or_dead_letter(base_qs, now) -> tuple[int, int]:
+    """Dead-letter rows at/over the attempt cap; reclaim the rest to PENDING.
+
+    ``base_qs`` selects the stale-PROCESSING rows for one reclaim window. Rows that
+    have already burned ``_MAX_RECLAIM_ATTEMPTS`` claims and are STILL stuck are a
+    poison pill (they kill the worker before it can self-mark FAILED) — they go to
+    FAILED so the loop stops re-dispatching them. Returns ``(reclaimed, dead)``.
+    The dead-letter UPDATE runs first, flipping those rows out of PROCESSING, so the
+    reclaim UPDATE (filtered ``status=PROCESSING``) never re-touches them.
+    """
+    from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+    dead = int(
+        base_qs.filter(attempt_count__gte=_MAX_RECLAIM_ATTEMPTS).update(
+            status=HeavyWorkOutbox.Status.FAILED,
+            finished_at=now,
+            last_error=(
+                f"dead-lettered after {_MAX_RECLAIM_ATTEMPTS} reclaim attempts — the "
+                "worker kept dying mid-run before it could record a failure "
+                "(poison payload / OOM / repeated SIGKILL)."
+            )[:2000],
+        )
+    )
+    reclaimed = int(
+        base_qs.filter(attempt_count__lt=_MAX_RECLAIM_ATTEMPTS).update(
+            status=HeavyWorkOutbox.Status.PENDING, claimed_at=None
+        )
+    )
+    return reclaimed, dead
+
+
 def _reclaim_stale_processing() -> int:
     from datetime import timedelta
 
@@ -200,24 +238,34 @@ def _reclaim_stale_processing() -> int:
     # Give it a window safely past its own duration; every other kind keeps 900s.
     per_kind = {HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE: _MC_APPLY_RECLAIM_SECONDS}
     reclaimed = 0
+    dead = 0
     for kind, seconds in per_kind.items():
         cutoff = now - timedelta(seconds=seconds)
-        reclaimed += int(
-            HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: platform-heavy-work-outbox-stale-reclaim-per-kind
-                status=HeavyWorkOutbox.Status.PROCESSING,
-                kind=kind,
-                claimed_at__lt=cutoff,
-            ).update(status=HeavyWorkOutbox.Status.PENDING, claimed_at=None)
+        base = HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: platform-heavy-work-outbox-stale-reclaim-per-kind
+            status=HeavyWorkOutbox.Status.PROCESSING,
+            kind=kind,
+            claimed_at__lt=cutoff,
         )
+        r, d = _reclaim_or_dead_letter(base, now)
+        reclaimed += r
+        dead += d
     default_cutoff = now - timedelta(seconds=_STALE_PROCESSING_SECONDS)
-    reclaimed += int(
+    base = (
         HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: platform-heavy-work-outbox-stale-reclaim-default
             status=HeavyWorkOutbox.Status.PROCESSING,
             claimed_at__lt=default_cutoff,
-        )
-        .exclude(kind__in=list(per_kind))
-        .update(status=HeavyWorkOutbox.Status.PENDING, claimed_at=None)
+        ).exclude(kind__in=list(per_kind))
     )
+    r, d = _reclaim_or_dead_letter(base, now)
+    reclaimed += r
+    dead += d
+    if dead:
+        logger.error(
+            "heavy_work_outbox: dead-lettered %s poison row(s) that exceeded the "
+            "%s-attempt reclaim cap (worker kept dying mid-run).",
+            dead,
+            _MAX_RECLAIM_ATTEMPTS,
+        )
     return reclaimed
 
 

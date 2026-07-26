@@ -49,3 +49,45 @@ class ReclaimWindowTests(TestCase):
         _reclaim_stale_processing()
         row.refresh_from_db()
         self.assertEqual(row.status, HeavyWorkOutbox.Status.PENDING)
+
+
+class DeadLetterCapTests(TestCase):
+    """A row that keeps KILLING the worker mid-run (OOM/SIGKILL) stays PROCESSING,
+    gets reclaimed to PENDING, and re-dispatched forever — an unbounded poison loop.
+    Once it has burned the attempt cap and is STILL stuck, reclaim dead-letters it
+    (→ FAILED) instead of re-dispatching. A normal exception is already terminal on
+    the first drain; this only closes the worker-death path.
+    """
+
+    def _processing(self, kind, claimed_secs_ago, attempts):
+        row = HeavyWorkOutbox.objects.create(
+            kind=kind,
+            status=HeavyWorkOutbox.Status.PROCESSING,
+            attempt_count=attempts,
+        )
+        HeavyWorkOutbox.objects.filter(pk=row.pk).update(
+            claimed_at=timezone.now() - timedelta(seconds=claimed_secs_ago)
+        )
+        return row
+
+    def test_poison_row_dead_lettered_at_cap(self):
+        # Stale + attempts at the cap -> FAILED, NOT reset to PENDING.
+        row = self._processing(HeavyWorkOutbox.Kind.PROVISION_SCHOOL, 1200, 8)
+        _reclaim_stale_processing()
+        row.refresh_from_db()
+        self.assertEqual(row.status, HeavyWorkOutbox.Status.FAILED)
+        self.assertIn("dead-lettered", row.last_error)
+
+    def test_under_cap_still_reclaims(self):
+        # Below the cap -> normal recovery to PENDING.
+        row = self._processing(HeavyWorkOutbox.Kind.PROVISION_SCHOOL, 1200, 3)
+        _reclaim_stale_processing()
+        row.refresh_from_db()
+        self.assertEqual(row.status, HeavyWorkOutbox.Status.PENDING)
+
+    def test_mc_apply_poison_dead_lettered_past_window_at_cap(self):
+        # The cap applies to the long-window MC apply kind too.
+        row = self._processing(HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE, 3000, 8)
+        _reclaim_stale_processing()
+        row.refresh_from_db()
+        self.assertEqual(row.status, HeavyWorkOutbox.Status.FAILED)
