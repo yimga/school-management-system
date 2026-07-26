@@ -54,6 +54,23 @@ def scheme_from_config(config: dict[str, Any] | None) -> str:
     return scheme
 
 
+def is_recognized_scheme(scheme: str | None) -> bool:
+    """True if ``scheme`` is safe to store in ``config["signature_scheme"]``.
+
+    Accepts the empty/absent value and the explicit ``generic_hmac`` sentinel
+    (both mean "keep the historical generic HMAC path") plus every
+    provider-accurate scheme. An unrecognised name is REJECTED so a typo (e.g.
+    ``"strpe"``) is caught when an operator CONFIGURES the integration — not
+    later, as a silent stream of fail-closed 403s once the PSP goes live. This is
+    the write-time twin of the request-time fail-closed in
+    :func:`verify_provider_signature`.
+    """
+    normalized = str(scheme or "").strip().lower()
+    if not normalized or normalized == GENERIC_SCHEME:
+        return True
+    return normalized in PROVIDER_ACCURATE_SCHEMES
+
+
 def verify_provider_signature(
     scheme: str,
     *,
@@ -115,6 +132,7 @@ def verify_provider_signature(
 __all__ = [
     "GENERIC_SCHEME",
     "PROVIDER_ACCURATE_SCHEMES",
+    "is_recognized_scheme",
     "scheme_from_config",
     "verify_provider_signature",
 ]
