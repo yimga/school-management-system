@@ -428,12 +428,15 @@ def _call_ollama(prompt: str, metadata: dict[str, Any] | None = None) -> str | N
 
 
 def _rules_fallback(user_query: str) -> str:
-    query = (user_query or "").strip()
-    if not query:
+    # NEVER echo ``user_query`` back. This fallback is used platform-wide, and its
+    # "query" is frequently an INTERNAL aggregate context payload (e.g. a stringified
+    # health dict), not human chat — parroting it as "Request received: {…}" leaked a
+    # raw Python dict straight into the tenant nudge card. Acknowledge without echoing.
+    if not (user_query or "").strip():
         return "I can help with school operations, finance, academics, and compliance."
     return (
-        "I can help with that request, but live AI providers are currently unavailable. "
-        f"Request received: {query[:180]}"
+        "Live AI assistance is temporarily unavailable right now. I can still help with "
+        "school operations, finance, academics, and compliance — please try again shortly."
     )
 
 

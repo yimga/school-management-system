@@ -12,6 +12,24 @@ from apps.platform_runtime.ai_providers import get_ai_runtime_config, run_ai_pro
 from apps.platform_runtime.customer_health import calculate_school_health
 from apps.platform_runtime.onboarding import get_school_onboarding_progress
 
+_LIVE_AI_PROVIDERS = frozenset({"litellm", "ollama"})
+
+
+def _ai_narrative_or(deterministic: str, text: str, meta: dict[str, Any] | None) -> str:
+    """Use the model's narrative ONLY when a live LLM actually answered.
+
+    ``run_ai_prompt`` degrades to a deterministic rules string (``provider="rules"``)
+    or a refusal (``provider`` in ``none``/``policy``/``error``/``disabled``) whenever
+    no live provider is reachable. Those strings are generic — and the rules fallback
+    historically echoed the raw prompt context — so for these structured cards we prefer
+    our own deterministic sentence unless the provider was genuinely live.
+    """
+    provider = str((meta or {}).get("provider") or "").strip().lower()
+    narrative = (text or "").strip()
+    if provider in _LIVE_AI_PROVIDERS and narrative:
+        return narrative
+    return deterministic
+
 
 def structure_ai_recommendation(
     *,
@@ -37,12 +55,12 @@ def structure_ai_recommendation(
 def generate_school_health_insight(school, user) -> dict[str, Any]:
     """Deterministic + optional LLM narrative from real health metrics."""
     h = calculate_school_health(school)
+    expl = (
+        f"Onboarding {h.get('onboarding_percent', 0)}%; "
+        f"students {h.get('student_count', 0)}; status {h.get('status', 'unknown')}."
+    )
     cfg = get_ai_runtime_config(school=school)
     if not cfg.get("enabled"):
-        expl = (
-            f"Onboarding {h.get('onboarding_percent', 0)}%; "
-            f"students {h.get('student_count', 0)}; status {h.get('status', 'unknown')}."
-        )
         return structure_ai_recommendation(
             recommendation_key="school_health.rules",
             title="School health snapshot",
@@ -67,7 +85,7 @@ def generate_school_health_insight(school, user) -> dict[str, Any]:
     return structure_ai_recommendation(
         recommendation_key="school_health.ai",
         title="School health insight",
-        explanation=text or "",
+        explanation=_ai_narrative_or(expl, text, meta),
         confidence=0.5,
         proposed_action="Review before sharing with staff.",
         requires_approval=True,
@@ -78,11 +96,12 @@ def generate_school_health_insight(school, user) -> dict[str, Any]:
 def generate_onboarding_next_action_insight(school, user) -> dict[str, Any]:
     prog = get_school_onboarding_progress(school) if school else {}
     pct = int(prog.get("percent") or 0)
+    expl = f"Progress about {pct}%. Complete remaining CCC steps in order."
     if not get_ai_runtime_config().get("enabled"):
         return structure_ai_recommendation(
             recommendation_key="onboarding.rules",
             title="Onboarding progress",
-            explanation=f"Progress about {pct}%. Complete remaining CCC steps in order.",
+            explanation=expl,
             confidence=0.8,
             proposed_action="Open School activation (CCC) and finish the next incomplete step.",
             requires_approval=True,
@@ -102,7 +121,7 @@ def generate_onboarding_next_action_insight(school, user) -> dict[str, Any]:
     return structure_ai_recommendation(
         recommendation_key="onboarding.ai",
         title="Next onboarding action",
-        explanation=text or "",
+        explanation=_ai_narrative_or(expl, text, meta),
         confidence=0.5,
         proposed_action="Confirm in CCC before acting.",
         requires_approval=True,
@@ -112,11 +131,12 @@ def generate_onboarding_next_action_insight(school, user) -> dict[str, Any]:
 
 def generate_workflow_suggestion(school, user, signal_key: str) -> dict[str, Any]:
     sk = (signal_key or "generic").strip()[:80]
+    expl = "Review scheduled reports and letter templates; ensure staff roles are assigned."
     if not get_ai_runtime_config(school=school).get("enabled"):
         return structure_ai_recommendation(
             recommendation_key=f"workflow.{sk}.rules",
             title="Workflow hygiene",
-            explanation="Review scheduled reports and letter templates; ensure staff roles are assigned.",
+            explanation=expl,
             confidence=0.6,
             proposed_action="Open Studio automation or scheduled reports hub.",
             requires_approval=True,
@@ -132,7 +152,7 @@ def generate_workflow_suggestion(school, user, signal_key: str) -> dict[str, Any
     return structure_ai_recommendation(
         recommendation_key=f"workflow.{sk}.ai",
         title="Workflow suggestion",
-        explanation=text or "",
+        explanation=_ai_narrative_or(expl, text, meta),
         confidence=0.45,
         proposed_action="Validate in Studio before enabling automation.",
         requires_approval=True,
@@ -192,7 +212,7 @@ def generate_anomaly_risk_nudge(school, user) -> dict[str, Any] | None:
     return structure_ai_recommendation(
         recommendation_key="anomaly_risk.ai",
         title="Operational risk nudge",
-        explanation=text or expl,
+        explanation=_ai_narrative_or(expl, text, meta),
         confidence=0.48,
         proposed_action="Validate against live data before acting.",
         requires_approval=True,
