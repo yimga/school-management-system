@@ -70,6 +70,14 @@ def _invoke(prompt: str, *, school, user, user_query: str) -> tuple[str, dict[st
         return "", {"provider": "none"}
     if isinstance(meta, dict) and meta.get("outcome") == "permission_refusal":
         return "", meta
+    # A gateway rules/unavailable fallback (meta["fallback"]) is a generic
+    # "AI temporarily unavailable" chat placeholder, NOT a usable draft. Treat it
+    # as a miss so the caller's deterministic _ack_template / _grant_template —
+    # which names the donor / program — is used instead. The module contract is
+    # "always returns usable text", and the personalized template beats the
+    # generic placeholder the gateway returns for chat surfaces.
+    if isinstance(meta, dict) and meta.get("fallback"):
+        return "", meta
     text = (text or "").strip() if isinstance(text, str) else ""
     return text, (meta or {})
 

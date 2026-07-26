@@ -84,7 +84,14 @@ class SchoolContextProfileModelTests(TestCase):
         rf = RequestFactory()
         request = rf.get("/")
         request.user = user
-        session = {}
+        # set_active_profile_session sets request.session.modified = True, which a
+        # plain dict has no slot for — use a real engine-backed SessionStore so the
+        # test exercises the production session contract (item-set + .modified).
+        from importlib import import_module
+
+        from django.conf import settings
+
+        session = import_module(settings.SESSION_ENGINE).SessionStore()
         request.session = session
 
         set_active_profile_session(request, profile.pk)
