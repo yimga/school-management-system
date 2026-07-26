@@ -31,6 +31,7 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    resolve_student,
     staff_lookup_field,
     student_lookup_field,
 )
@@ -73,18 +74,30 @@ class CommunicationsLander(Lander):
                 )
                 continue
 
+            # School-scope the external-id resolution. On single-schema / RLS /
+            # sqlite dev lanes an unscoped lookup can resolve a same-external-id
+            # person from ANOTHER school; Message.save() then derives Message.school
+            # from that recipient's primary school, so the row lands under the WRONG
+            # tenant — invisible to the correct one AND a cross-tenant leak. Route
+            # through the shared school-scoped resolver (mirrors commit 655e99447 for
+            # the assignment landers; resolve_student is model-generic — it scopes any
+            # profile model that carries a `school` field, then matches external id).
             recipient = None
             if recipient_kind == "staff":
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
-                tp = TeacherProfile.objects.filter(
-                    **{staff_lookup: recipient_ext}
-                ).first()
+                tp = resolve_student(
+                    ctx=ctx,
+                    student_model=TeacherProfile,
+                    lookup_field=staff_lookup,
+                    external_id=recipient_ext,
+                )
                 recipient = getattr(tp, "user", None) if tp else None
             else:
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
-                sp = StudentProfile.objects.filter(
-                    **{student_lookup: recipient_ext}
-                ).first()
+                sp = resolve_student(
+                    ctx=ctx,
+                    student_model=StudentProfile,
+                    lookup_field=student_lookup,
+                    external_id=recipient_ext,
+                )
                 recipient = getattr(sp, "user", None) if sp else None
             if recipient is None:
                 result.quarantined += 1
@@ -97,8 +110,12 @@ class CommunicationsLander(Lander):
             sender = None
             sender_ext = (row.get("sender_external_id") or "").strip()
             if sender_ext:
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-lander-orchestrator
-                tp = TeacherProfile.objects.filter(**{staff_lookup: sender_ext}).first()
+                tp = resolve_student(
+                    ctx=ctx,
+                    student_model=TeacherProfile,
+                    lookup_field=staff_lookup,
+                    external_id=sender_ext,
+                )
                 sender = getattr(tp, "user", None) if tp else None
 
             coerce_date(row.get("sent_at"))
