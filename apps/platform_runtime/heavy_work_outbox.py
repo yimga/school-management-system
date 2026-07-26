@@ -11,8 +11,14 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
-# Reclaim rows left PROCESSING after a worker/deploy kill mid-migrate.
-_STALE_PROCESSING_SECONDS = 900  # magic-number-allow: heavy-work-stale-processing-reclaim-seconds
+# Reclaim rows left PROCESSING after a worker/deploy kill mid-migrate. A kind's
+# reclaim window MUST exceed its own max run time — reclaiming re-dispatches the
+# row, so a window shorter than the job's duration turns a STILL-RUNNING job into a
+# DUPLICATE. The 900s default suits the fast kinds (provisioning); MC apply runs up
+# to 1800s (migration_cloud.celery_tasks expected_duration_seconds), so it gets a
+# longer window (see _reclaim_stale_processing).
+_STALE_PROCESSING_SECONDS = 900  # magic-number-allow: heavy-work-stale-processing-reclaim-seconds (fast-kind default)
+_MC_APPLY_RECLAIM_SECONDS = 2400  # magic-number-allow: mc-apply-reclaim-window-seconds (> 1800s apply duration + margin)
 _DEFAULT_DRAIN_LIMIT = 3  # magic-number-allow: heavy-work-outbox-drain-batch-size
 
 
@@ -188,13 +194,31 @@ def _reclaim_stale_processing() -> int:
 
     from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
 
-    cutoff = timezone.now() - timedelta(seconds=_STALE_PROCESSING_SECONDS)
-    return int(
-        HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: platform-heavy-work-outbox-stale-reclaim
+    now = timezone.now()
+    # Per-kind reclaim windows: MC apply legitimately runs up to 1800s, so the 900s
+    # default would reset + re-dispatch a still-running apply into a DUPLICATE apply.
+    # Give it a window safely past its own duration; every other kind keeps 900s.
+    per_kind = {HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE: _MC_APPLY_RECLAIM_SECONDS}
+    reclaimed = 0
+    for kind, seconds in per_kind.items():
+        cutoff = now - timedelta(seconds=seconds)
+        reclaimed += int(
+            HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: platform-heavy-work-outbox-stale-reclaim-per-kind
+                status=HeavyWorkOutbox.Status.PROCESSING,
+                kind=kind,
+                claimed_at__lt=cutoff,
+            ).update(status=HeavyWorkOutbox.Status.PENDING, claimed_at=None)
+        )
+    default_cutoff = now - timedelta(seconds=_STALE_PROCESSING_SECONDS)
+    reclaimed += int(
+        HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: platform-heavy-work-outbox-stale-reclaim-default
             status=HeavyWorkOutbox.Status.PROCESSING,
-            claimed_at__lt=cutoff,
-        ).update(status=HeavyWorkOutbox.Status.PENDING, claimed_at=None)
+            claimed_at__lt=default_cutoff,
+        )
+        .exclude(kind__in=list(per_kind))
+        .update(status=HeavyWorkOutbox.Status.PENDING, claimed_at=None)
     )
+    return reclaimed
 
 
 # A provision row PENDING longer than this means the queue is NOT draining (broker
