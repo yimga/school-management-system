@@ -272,6 +272,11 @@ def _import_flight(bundle) -> dict:
         from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
 
         row = (
+            # tenant-isolation-allow: HeavyWorkOutbox is a public-schema orchestration
+            # table; bundle_id is the globally-unique shared MigrationBundle pk and the
+            # bundle is tenant-resolved via _tenant_bundle_or_404(school=), so this
+            # filter transitively pins to one school. (MC_APPLY_BUNDLE outbox rows do
+            # not carry school_id, so a school_id= filter would match nothing.)
             HeavyWorkOutbox.objects.filter(
                 bundle_id=bundle.pk,
                 kind=HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE,
