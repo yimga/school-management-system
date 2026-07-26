@@ -2282,6 +2282,31 @@ pre {
   overflow-x: auto;
 }
 
+/* ----- DARK-MODE READABILITY SEAL for <code>/<pre> -----
+   `code`/`pre` above paint their background with --surface-bg-subtle, but that
+   token stays LIGHT on the tenant / admin / default planes (rgba(255,255,255,0.8)
+   for tenant — surface-themes.css:52; #f8fafc for :root) and is NOT flipped in the
+   dark block, while --admin-content-text (=--text-primary) flips near-white in dark
+   mode. Result: any inline <code> data value — config values, feature-flag keys,
+   module paths like <code>rosetta_stone</code> — renders WHITE-ON-WHITE (an
+   unreadable solid box) on every dark surface except the control plane (which sets a
+   dark --surface-bg-subtle). Repoint code/pre to --surface-elevated, which DOES flip
+   dark, so they stay legible platform-wide. Scoped to the effective-dark signals
+   (v3 contract) at higher specificity than the base rule, so it wins regardless of
+   sheet load order and never touches light mode. */
+html[data-theme="dark"] code:not(pre code),
+html[data-resolved-theme="dark"] code:not(pre code),
+html[data-bs-theme="dark"] code:not(pre code),
+body.portal-backend-dark code:not(pre code),
+html[data-theme="dark"] pre,
+html[data-resolved-theme="dark"] pre,
+html[data-bs-theme="dark"] pre,
+body.portal-backend-dark pre {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border-color: var(--hairline, var(--admin-content-border));
+}
+
 /* ----- DETAILS / SUMMARY (collapsibles) ----- */
 details {
   border: 1px solid var(--admin-content-border);

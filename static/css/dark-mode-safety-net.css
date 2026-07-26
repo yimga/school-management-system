@@ -592,3 +592,26 @@ html[data-resolved-theme="dark"] body:not(.marketing-surface) .alert{
   border-color: var(--hairline);
   color: var(--text-primary);
 }
+
+/* ====================================================================== */
+/* 11. Inline <code>/<pre> — the #1 platform-wide dark-mode invisibility.   */
+/*     The base code/pre rule (design-tokens.css) paints --surface-bg-subtle */
+/*     which stays LIGHT on tenant/admin/default planes while the text flips */
+/*     near-white → white-on-white boxes over every inline data value (config */
+/*     values, feature-flag keys, module paths). design-tokens.css carries the */
+/*     source fix; this is the belt-and-suspenders backstop the safety net was */
+/*     missing (it targeted .card/.table/.alert but never code/pre).           */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) code:not(pre code),
+html[data-theme="dark"] body:not(.marketing-surface) code:not(pre code),
+html[data-resolved-theme="dark"] body:not(.marketing-surface) code:not(pre code),
+body.portal-backend-dark code:not(pre code),
+html[data-bs-theme="dark"] body:not(.marketing-surface) pre,
+html[data-theme="dark"] body:not(.marketing-surface) pre,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) pre,
+body.portal-backend-dark pre{
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
