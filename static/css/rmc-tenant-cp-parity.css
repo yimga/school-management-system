@@ -324,23 +324,32 @@ html[data-rmc-tp-v3-shell="1"] body:not(.control-plane-shell) .portal-main-col .
   color: var(--text-secondary);
 }
 
-/* ── AI copilot rail — horizontal collapse to inline-end (/super/ parity) ── */
+/* ── AI copilot rail — horizontal collapse to inline-end (/super/ parity) ──
+   The rail's content (icons/tabs/text) is styled with the dark-chrome tokens
+   (--cp-chrome-*), i.e. LIGHT-on-dark, in rmc-cp-200x.css — which is loaded
+   ONLY on the operator/manager shell. On the tenant we previously painted the
+   rail with the LIGHT surface tokens (--surface-elevated = white), so the rail's
+   light-colored icons/text sat on a light panel = the washed-out, low-contrast
+   box. Adopt the operator's exact dark-chrome glass here so the tenant copilot
+   reads as the same cohesive dark rail as /super/. */
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount .rmc-app-shell__copilot {
-  border-left: 1px solid var(--hairline);
-  box-shadow: var(--elev-2, -8px 0 24px rgba(15, 23, 42, 0.08)); /* off-token-allow: copilot-rail-edge-depth */
+  background: linear-gradient(180deg, rgba(15, 21, 48, 0.92) 0%, rgba(7, 9, 26, 0.95) 100%); /* off-token-allow: dark-chrome-copilot-glass */
+  color: var(--cp-chrome-text);
+  border-left: 1px solid var(--cp-chrome-hairline);
+  box-shadow: var(--elev-2, -8px 0 24px rgba(15, 23, 42, 0.35)); /* off-token-allow: copilot-rail-edge-depth */
 }
 
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .rmc-tenant-portal-copilot-mount .lx-copilot__expanded {
-  border-left: 1px solid var(--hairline);
-  background: var(--surface-elevated);
-  color: var(--text-primary);
+  border-left: 1px solid var(--cp-chrome-hairline);
+  background: transparent;  /* the .rmc-app-shell__copilot glass above shows through */
+  color: var(--cp-chrome-text);
 }
 
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .lx-copilot__close {
-  color: var(--text-secondary);
-  border: 1px solid var(--hairline);
+  color: var(--cp-chrome-text-muted);
+  border: 1px solid var(--cp-chrome-hairline);
   border-radius: var(--radius-md, 8px);
-  background: var(--surface-canvas);
+  background: rgba(255, 255, 255, 0.04); /* off-token-allow: dark-chrome-copilot-glass */
   cursor: pointer;
   font-family: inherit;
   width: 28px;
@@ -351,7 +360,7 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .lx-copilo
 
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .lx-copilot__close:hover,
 html[data-rmc-tp-v3-shell="1"] body[data-rmc-tenant-copilot-rail="1"] .lx-copilot__close:focus-visible {
-  color: var(--text-primary);
-  border-color: var(--text-link, var(--brand-primary));
+  color: var(--cp-chrome-text);
+  border-color: var(--cp-chrome-hairline-strong);
   outline: none;
 }
