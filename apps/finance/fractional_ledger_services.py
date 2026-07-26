@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import transaction
 from django.db.models import Sum
@@ -64,6 +64,40 @@ def _ledger_paid_total(invoice: Invoice) -> Decimal:
     return Decimal(agg["s"] or "0")
 
 
+def _invoice_subtotal(invoice: Invoice) -> Decimal | None:
+    """Pre-tax subtotal = sum of invoice line amounts (mirrors recalculate_invoice).
+
+    Returns ``None`` when the invoice has no lines to sum, so the caller can tell
+    "no derivable tax" apart from a genuine zero subtotal.
+    """
+    from apps.finance.models import InvoiceLine
+
+    agg = InvoiceLine.objects.filter(invoice_id=invoice.pk).aggregate(s=Sum("amount"))
+    return None if agg["s"] is None else Decimal(agg["s"])
+
+
+def _tax_component_for(
+    amount: Decimal, invoice_total: Decimal, subtotal: Decimal | None
+) -> Decimal:
+    """Portion of ``amount`` attributable to tax, by proportional allocation.
+
+    ``recalculate_invoice`` builds ``total_amount = subtotal + VAT``, so the tax
+    fraction of the tax-inclusive total is ``(total - subtotal) / total`` and each
+    partial collection carries that same fraction (the standard cash-basis method).
+
+    Pure and DB-free (all inputs passed in) so the allocation math is unit-tested
+    without a database. Returns ``0`` — never negative, never > ``amount`` — when
+    the total is non-positive or the subtotal is unknown / not below the total (no
+    derivable tax → attribute nothing).
+    """
+    if invoice_total <= Decimal("0") or subtotal is None:
+        return Decimal("0")
+    if subtotal < Decimal("0") or subtotal >= invoice_total:
+        return Decimal("0")
+    tax_fraction = (invoice_total - subtotal) / invoice_total
+    return (amount * tax_fraction).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
 @transaction.atomic
 def post_partial_payment(
     *,
@@ -87,15 +121,22 @@ def post_partial_payment(
 
     invoice_total = _invoice_total(invoice)
     prior = _ledger_paid_total(invoice)
+    quantized_amount = amount.quantize(Decimal("0.01"))
     running = (prior + amount).quantize(Decimal("0.01"))
     balance_after = max(Decimal("0"), (invoice_total - running).quantize(Decimal("0.01")))
     clearance = running >= _clearance_threshold(school, invoice_total)
+    # Snapshot the tax portion of THIS collection at post time (cash-basis VAT).
+    # Additive/informational only — does not touch amount / running / balance.
+    tax_component = _tax_component_for(
+        quantized_amount, invoice_total, _invoice_subtotal(invoice)
+    )
 
     row = FractionalPaymentLedger.objects.create(
         school=school,
         invoice=invoice,
         student=student,
-        amount=amount.quantize(Decimal("0.01")),
+        amount=quantized_amount,
+        tax_component=tax_component,
         currency_code=_resolve_currency_code(invoice),
         running_paid_total=running,
         invoice_balance_after=balance_after,
@@ -149,3 +190,34 @@ def student_enrollment_blocked_for_unpaid(student, academic_year, *, school=None
             continue
         return True
     return False
+
+
+def vat_collected_for_invoice(invoice: Invoice, *, school=None) -> Decimal:
+    """VAT actually collected on this invoice via fractional (cash/MoMo) partials.
+
+    Sum of the per-row ``tax_component`` snapshots — the amount of tax a cash-basis
+    tenant has genuinely received (as opposed to invoiced), which is what it must
+    remit. Tenant-scoped: constrained to ``school`` (resolved from the invoice when
+    not passed) so one tenant's collections never leak into another's return.
+    """
+    resolved_school = school if school is not None else getattr(invoice, "school", None)
+    agg = FractionalPaymentLedger.objects.filter(
+        school=resolved_school, invoice=invoice
+    ).aggregate(s=Sum("tax_component"))
+    return Decimal(agg["s"] or "0")
+
+
+def vat_collected_for_school(school, *, since=None, until=None) -> Decimal:
+    """Total fractional-collected VAT for a school over an optional post-date window.
+
+    Feeds a cash-basis VAT remittance report: ``sum(tax_component)`` across every
+    partial post the school received, optionally bounded by ``posted_at`` in
+    ``[since, until]``. Tenant-scoped by ``school``.
+    """
+    qs = FractionalPaymentLedger.objects.filter(school=school)
+    if since is not None:
+        qs = qs.filter(posted_at__gte=since)
+    if until is not None:
+        qs = qs.filter(posted_at__lte=until)
+    agg = qs.aggregate(s=Sum("tax_component"))
+    return Decimal(agg["s"] or "0")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal
 
 from django.db import models
 from django.utils import timezone
@@ -36,6 +37,17 @@ class FractionalPaymentLedger(models.Model):
         related_name="fractional_ledger_rows",
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    tax_component = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text=(
+            "Portion of `amount` attributable to tax, snapshotted at post time by "
+            "proportional allocation (amount x invoice-tax-fraction). Enables "
+            "cash-basis VAT-collected remittance reporting from irregular partial "
+            "posts. Purely informational: never affects amount / running / balance."
+        ),
+    )
     currency_code = models.CharField(max_length=3, default="USD")
     running_paid_total = models.DecimalField(
         max_digits=12,
