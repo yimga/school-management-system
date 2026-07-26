@@ -67,7 +67,7 @@ def login_tenant_admin_client(
     password: str,
     host: str,
     school,
-    role: str = "ADMIN",
+    role: str = "",
 ) -> Client:
     """Fully-armed tenant-host client for a baseline-MFA admin reaching an operator
     control-plane page rendered on the tenant shell.
@@ -83,8 +83,12 @@ def login_tenant_admin_client(
     """
     from django_otp.plugins.otp_totp.models import TOTPDevice
 
+    from apps.accounts.models import User
     from apps.schools.models import SchoolMembership
 
+    # Default via the role CONSTANT (not a "ADMIN" literal) so a role rename stays
+    # refactor-safe and the role-string ratchet stays clean.
+    role = role or User.Role.ADMIN
     if not getattr(user, "is_superuser", False):
         SchoolMembership.objects.get_or_create(
             user=user,
