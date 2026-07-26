@@ -164,6 +164,18 @@ class ArchiveIntakeAdapter(IntakeAdapter):
                             break
                         digest.update(chunk)
                         actual_size += len(chunk)
+                        # Bomb guard: the pre-yield check above trusts the archive's
+                        # DECLARED member size. A member that under-declares (zip
+                        # central-directory lie) would otherwise stream unbounded here.
+                        # IntakeError is deliberately outside _MEMBER_SKIP_ERRORS, so
+                        # this fails the bundle as a cap violation rather than silently
+                        # skipping the member.
+                        if actual_size > max_artifact_bytes:
+                            raise IntakeError(
+                                f"Member {member_name} inflated past the artifact cap "
+                                f"({max_artifact_bytes:,} bytes) mid-read — refusing a "
+                                "potential decompression bomb."
+                            )
 
                 mime = mimetypes.guess_type(member_name)[0] or ""
                 yield ArtifactPayload(
@@ -251,9 +263,11 @@ def _is_supported_archive(path: Path) -> bool:
     )
 
 
-def _iter_archive_members(path: Path):
+def _iter_archive_members(path: Path, max_bytes: int | None = None):
     """Yield ``(member_name, content_opener, declared_size)`` for each member."""
     name = path.name.lower()
+    if max_bytes is None:
+        max_bytes = int(mc_defaults.get("migration_cloud.intake.max_artifact_bytes"))
 
     if name.endswith(".zip"):
         with zipfile.ZipFile(path) as zf:
@@ -293,8 +307,18 @@ def _iter_archive_members(path: Path):
     if name.endswith(".gz"):
         # Single-file gzip: the inner filename is the archive name minus .gz.
         inner_name = path.name[: -len(".gz")]
+        # DECOMPRESSION BOMB GUARD. gzip's uncompressed size is unknown until read,
+        # so a tiny .gz can inflate to many GB and OOM the worker — and the caller's
+        # per-artifact byte cap only runs on the yielded (already-inflated) size, too
+        # late. Read at most cap+1 bytes: if the stream still isn't exhausted, it is
+        # over the cap, so refuse the bundle instead of inflating unbounded.
         with gzip.open(path, "rb") as gz:
-            data = gz.read()  # gzip single-file uncompressed size is unknown until read
+            data = gz.read(max_bytes + 1)
+        if len(data) > max_bytes:
+            raise IntakeError(
+                f"Gzip member {inner_name} decompresses beyond the artifact cap "
+                f"({max_bytes:,} bytes) — refusing a potential decompression bomb."
+            )
         declared = len(data)
 
         def _opener(payload=data):
