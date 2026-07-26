@@ -178,6 +178,27 @@ fi
 # Always run seed_render_users: ensures super-admin admin/admin. Tenant demo users (teacher1, Parent1, principal1) are created only when ADMIN_PASSWORD is set.
 run "${PYTHON_BIN}" manage.py seed_render_users
 
+# Opt-in tenant test-account seeding (idempotent). When SEED_TENANT_TEST_ACCOUNTS_SLUG
+# is set (e.g. "gilead-tech"), attach the owner + create teacher1/parent1 (password
+# Test1234) WITH SchoolMembership on that tenant — the linkage seed_render_users'
+# create_teacher_parent_accounts does NOT establish. Owner is attached by email
+# (created with an unusable password if absent, set via the setup email link).
+# Non-fatal: a bad slug/owner value logs and is skipped, never blocking the deploy.
+if [[ -n "${SEED_TENANT_TEST_ACCOUNTS_SLUG:-}" ]]; then
+  SEED_TT_ARGS=(seed_tenant_test_accounts --slug "${SEED_TENANT_TEST_ACCOUNTS_SLUG}" --create-owner-if-missing)
+  if [[ -n "${SEED_TENANT_TEST_OWNER_EMAIL:-}" ]]; then
+    SEED_TT_ARGS+=(--owner-email "${SEED_TENANT_TEST_OWNER_EMAIL}")
+    if [[ "${SEED_TENANT_TEST_SEND_OWNER_EMAIL:-1}" == "1" ]]; then
+      SEED_TT_ARGS+=(--send-owner-email)
+    fi
+  fi
+  if [[ -n "${SEED_TENANT_TEST_PASSWORD:-}" ]]; then
+    SEED_TT_ARGS+=(--password "${SEED_TENANT_TEST_PASSWORD}")
+  fi
+  run "${PYTHON_BIN}" manage.py "${SEED_TT_ARGS[@]}" \
+    || echo "[predeploy] seed_tenant_test_accounts skipped/failed (non-fatal); check SEED_TENANT_TEST_* env"
+fi
+
 # AI/ML registry bootstrap. Idempotent: registers the legacy heuristic baseline
 # as the PRODUCTION AtRiskModelArtifact if none is registered yet. Without this,
 # fresh DBs fall through to the env-var-pointed artifact (or the heuristic

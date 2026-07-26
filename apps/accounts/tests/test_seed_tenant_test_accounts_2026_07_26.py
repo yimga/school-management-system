@@ -84,6 +84,22 @@ class SeedTenantTestAccountsTests(TestCase):
                 "--owner-email", "nobody@nowhere.edu", stdout=StringIO(),
             )
 
+    def test_create_owner_if_missing_creates_unusable_password_owner(self):
+        # A brand-new owner email (no account yet) is created as owner with an UNUSABLE
+        # password — no known credential is written; the owner sets one via the email link.
+        call_command(
+            "seed_tenant_test_accounts", "--slug", "gilead-tech",
+            "--owner-email", "brandnew@school.edu", "--create-owner-if-missing",
+            stdout=StringIO(),
+        )
+        created = User.objects.get(email__iexact="brandnew@school.edu")
+        self.assertFalse(created.has_usable_password())
+        self.assertTrue(
+            SchoolMembership.objects.filter(
+                user=created, school=self.school, is_school_owner=True
+            ).exists()
+        )
+
     def test_inactive_school_errors(self):
         School.objects.filter(pk=self.school.pk).update(is_active=False)
         with self.assertRaises(CommandError):

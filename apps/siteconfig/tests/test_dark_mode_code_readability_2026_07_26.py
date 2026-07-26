@@ -52,3 +52,18 @@ class DarkModeCodeReadabilityTests(SimpleTestCase):
         self.assertIn("code:not(pre code)", css)
         self.assertRegex(css, r'body\.portal-backend-dark[^{]*(code|pre)')
         self.assertIn("--surface-elevated", css)
+
+    def test_safety_net_backstops_bespoke_surface_bg_subtle_classes(self):
+        """§12: the platform-wide audit found the same white-on-white class in the
+        account/security surface (MFA backup codes), the file-upload button, status
+        pills, the LTI pill/callout, and the filter row. The safety net must backstop
+        the security-critical ones in dark mode, and keep the QR wrapper light."""
+        css = _read(_SAFETY_NET)
+        # Security-critical: MFA backup recovery codes panel is repainted in dark mode.
+        self.assertIn(".rmc-account-backup-codes", css)
+        # File-upload button pseudo-element is covered.
+        self.assertIn("::file-selector-button", css)
+        # QR wrapper is explicitly carved out to stay light (must scan).
+        self.assertRegex(
+            css, r'\.rmc-account-mfa-qr-wrap[^{]*\{[^}]*#ffffff',
+        )

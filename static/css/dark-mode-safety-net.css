@@ -615,3 +615,91 @@ body.portal-backend-dark pre{
   border-color: var(--hairline);
   color: var(--text-primary);
 }
+
+/* ====================================================================== */
+/* 12. Bespoke value-bearing surfaces that paint --surface-bg-subtle       */
+/*     (or --color-base-50/100) as a PRIMARY background — the same class as */
+/*     §11's code/pre bug. That token stays LIGHT on the tenant/admin/      */
+/*     default/onboarding planes in dark mode (it is only flipped on the    */
+/*     control-plane surface), so under the flipping --text-primary /       */
+/*     --admin-content-text these render near-white-on-light. Bootstrap     */
+/*     primitives with this bug (.alert-light/.input-group-text/.card-*)    */
+/*     are already caught above; these are the app's own classes the        */
+/*     platform-wide audit surfaced (highest concern: the account/security  */
+/*     surface, which paints MFA backup recovery codes + security panels).  */
+/*     Backstop only — the owning sheets remain the source of truth.        */
+/* ====================================================================== */
+
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-account-backup-codes,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-account-backup-codes,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .rmc-account-backup-codes,
+body.portal-backend-dark .rmc-account-backup-codes,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-profile-security-hub__panel,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-profile-security-hub__panel,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .rmc-profile-security-hub__panel,
+body.portal-backend-dark .rmc-profile-security-hub__panel,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-card__foot,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-card__foot,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-card__foot,
+body.portal-backend-dark .rmc-account-mfa-card__foot,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-secret,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-secret,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-secret,
+body.portal-backend-dark .rmc-account-mfa-secret,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .page-family-filter-row,
+html[data-theme="dark"] body:not(.marketing-surface) .page-family-filter-row,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .page-family-filter-row,
+body.portal-backend-dark .page-family-filter-row,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .apple-class-status-pill,
+html[data-theme="dark"] body:not(.marketing-surface) .apple-class-status-pill,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .apple-class-status-pill,
+body.portal-backend-dark .apple-class-status-pill,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .world-class-status-pill,
+html[data-theme="dark"] body:not(.marketing-surface) .world-class-status-pill,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .world-class-status-pill,
+body.portal-backend-dark .world-class-status-pill,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .backend-intent-pill,
+html[data-theme="dark"] body:not(.marketing-surface) .backend-intent-pill,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .backend-intent-pill,
+body.portal-backend-dark .backend-intent-pill,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .admin-telemetry-chip,
+html[data-theme="dark"] body:not(.marketing-surface) .admin-telemetry-chip,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .admin-telemetry-chip,
+body.portal-backend-dark .admin-telemetry-chip,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-pill-ok,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-pill-ok,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .rmc-pill-ok,
+body.portal-backend-dark .rmc-pill-ok,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-callout-warn,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-callout-warn,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .rmc-callout-warn,
+body.portal-backend-dark .rmc-callout-warn,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .world-class-summary-strip,
+html[data-theme="dark"] body:not(.marketing-surface) .world-class-summary-strip,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .world-class-summary-strip,
+body.portal-backend-dark .world-class-summary-strip,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .apple-class-summary-strip,
+html[data-theme="dark"] body:not(.marketing-surface) .apple-class-summary-strip,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .apple-class-summary-strip,
+body.portal-backend-dark .apple-class-summary-strip,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-os-status-strip,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-os-status-strip,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .rmc-os-status-strip,
+body.portal-backend-dark .rmc-os-status-strip,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .form-control[type="file"]::file-selector-button,
+html[data-theme="dark"] body:not(.marketing-surface) .form-control[type="file"]::file-selector-button,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .form-control[type="file"]::file-selector-button,
+body.portal-backend-dark .form-control[type="file"]::file-selector-button{
+  background-color: var(--surface-elevated, var(--surface-canvas));
+  border-color: var(--hairline);
+  color: var(--text-primary);
+}
+
+/* Carve-out: the MFA QR code wrapper must stay LIGHT in dark mode so the dark
+   QR modules keep enough contrast to scan. Pin it white regardless of theme. */
+html[data-bs-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-qr-wrap,
+html[data-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-qr-wrap,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-qr-wrap,
+body.portal-backend-dark .rmc-account-mfa-qr-wrap{
+  background-color: #ffffff;  /* off-token-allow: qr-must-be-light-to-scan */
+}

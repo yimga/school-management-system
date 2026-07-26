@@ -48,6 +48,15 @@ class Command(BaseCommand):
             action="store_true",
             help="Also email the owner their setup/sign-in link (needs Brevo configured).",
         )
+        parser.add_argument(
+            "--create-owner-if-missing",
+            action="store_true",
+            help=(
+                "If no account matches --owner-email, CREATE it (unusable password — the owner "
+                "sets their own via the setup email link) instead of failing. Makes the command "
+                "safe to run unattended on deploy where the owner may not exist yet."
+            ),
+        )
 
     # -- helpers ---------------------------------------------------------------
 
@@ -69,7 +78,7 @@ class Command(BaseCommand):
                 return s
         raise CommandError(f"No school matched slug={slug!r} / id={school_id!r}.")
 
-    def _attach_owner(self, school, email: str):
+    def _attach_owner(self, school, email: str, *, create_if_missing: bool = False):
         from apps.schools.models import SchoolMembership
 
         ident = (email or "").strip()
@@ -79,9 +88,27 @@ class Command(BaseCommand):
             User.objects.filter(Q(username__iexact=ident) | Q(email__iexact=ident)).distinct()
         )
         if not candidates:
-            raise CommandError(
-                f"No account matches owner --owner-email {ident!r}. Create it first (it must exist)."
+            if not create_if_missing:
+                raise CommandError(
+                    f"No account matches owner --owner-email {ident!r}. Create it first (it must "
+                    "exist), or pass --create-owner-if-missing to create it here."
+                )
+            # Create the owner with an UNUSABLE password: no known credential is ever
+            # written, and the owner sets their own via the setup email link. Username is
+            # the email (Django's username validator permits @ . + - _), so a later run
+            # resolves the same account by email.
+            user = User.objects.create_user(username=ident, email=ident if "@" in ident else "")
+            user.set_unusable_password()
+            user.is_active = True
+            if hasattr(user, "role"):
+                user.role = User.Role.ADMIN
+            user.save()
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Owner account created for {ident!r} (unusable password — set via setup email)."
+                )
             )
+            candidates = [user]
         if len(candidates) > 1:
             exact = [u for u in candidates if (u.username or "").lower() == ident.lower()]
             if len(exact) != 1:
@@ -220,7 +247,9 @@ class Command(BaseCommand):
         owner_email = (opts.get("owner_email") or "").strip()
         owner_user = None
         if owner_email:
-            owner_user = self._attach_owner(school, owner_email)
+            owner_user = self._attach_owner(
+                school, owner_email, create_if_missing=opts.get("create_owner_if_missing", False)
+            )
 
         self._seed_members_maybe_tenant_context(school, opts)
 
