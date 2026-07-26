@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission
@@ -21,13 +21,35 @@ from apps.siteconfig.forms import THEME_PUBLISH_GUARDED_FIELDS, ThemeColorsForm
 from apps.siteconfig import models as _siteconfig_models
 from apps.siteconfig.tests.payload_helpers import persist_runtime_site_settings_payload
 from apps.brand_experience.admin import ThemePackAdmin
+from apps.test_utils.http_clients import (
+    MANAGER_HOST,
+    MANAGER_TEST_DEFAULTS,
+    login_manager_client,
+)
 
 
 User = get_user_model()
 _TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
 
 
+@override_settings(
+    **MANAGER_TEST_DEFAULTS,
+    ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", MANAGER_HOST, "*"],
+)
 class ThemeStudioAccessTests(TestCase):
+    """Theme Studio (Color & harmony) is an OPERATOR-plane surface.
+
+    ``theme_colors_page`` calls ``assert_theme_colors_request_plane`` which raises
+    ``PermissionDenied`` on the TENANT plane without a ``request.school``. These tests
+    assert PLATFORM-record outcomes (``get_platform_site_settings_record`` /
+    ``PlatformGlobalBranding`` pk=1), so they belong on the manager (control-plane)
+    host where ``is_control_plane_request`` is True → ``PLANE_OPERATOR`` and the
+    publish flow writes the platform singleton. The manager user is a control-plane
+    superuser (a non-control-plane user is walled off the manager host by
+    ``ManagerHostControlPlaneRequiredMiddleware``); ``theme-user`` stays a plain,
+    permissionless user for the permission-denial test.
+    """
+
     def setUp(self):
         self.url = reverse("siteconfig:theme_colors")
         # Full theme form HTML (GET without ?standalone=1 redirects to Studio Experience)
@@ -37,17 +59,21 @@ class ThemeStudioAccessTests(TestCase):
             email="theme-user@example.com",
             password="password",
         )
-        self.manager = User.objects.create_user(
+        self.manager = User.objects.create_superuser(
             username="theme-manager",
             email="theme-manager@example.com",
             password="password",
-            role=User.Role.IT_ADMIN,
         )
         manage_perm, _ = Permission.objects.get_or_create(
             code="settings.manage",
             defaults={"name": "Manage settings"},
         )
         self.manager.feature_permissions.add(manage_perm)
+        # Armed control-plane operator client (confirmed TOTP + MFA-verified manager
+        # session) so the theme-manager requests land on PLANE_OPERATOR.
+        self.manager_client = login_manager_client(
+            self.manager, password="password", host=MANAGER_HOST
+        )
 
     def _theme_form_payload(self, **overrides):
         site = get_platform_site_settings_record(create=True)
@@ -88,8 +114,7 @@ class ThemeStudioAccessTests(TestCase):
             )
 
     def test_theme_studio_allows_user_with_settings_manage_permission(self):
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url, follow=True)
+        response = self.manager_client.get(self.url, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertFalse(
             any(
@@ -108,8 +133,7 @@ class ThemeStudioAccessTests(TestCase):
             is_active=True,
             applies_to_admin=False,
         )
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url_standalone)
+        response = self.manager_client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Portal Pack")
 
@@ -139,25 +163,22 @@ class ThemeStudioAccessTests(TestCase):
             is_active=True,
             applies_to_admin=False,
         )
-        self.client.login(username="theme-manager", password="password")
         payload = self._theme_form_payload(
             admin_theme_pack=str(non_admin_pack.id),
             preview_confirmed="1",
         )
-        response = self.client.post(self.url, payload, follow=True)
+        response = self.manager_client.post(self.url, payload, follow=True)
         self.assertEqual(response.status_code, 200)
         pgb = PlatformGlobalBranding.objects.get(pk=1)
         self.assertNotEqual(pgb.admin_theme_pack_id, non_admin_pack.id)
 
     def test_theme_studio_renders_admin_use_site_primary_guard(self):
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url_standalone)
+        response = self.manager_client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "admin-use-site-primary-guard")
 
     def test_theme_studio_renders_active_state_strip(self):
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url_standalone)
+        response = self.manager_client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "theme-draft-status-badge")
         self.assertContains(response, "theme-contrast-status-badge")
@@ -173,19 +194,17 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "cps-active-preset-note")
 
     def test_theme_studio_color_palette_starts_collapsed_for_compact_layout(self):
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url_standalone)
+        response = self.manager_client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="cps-body" style="display: none;"')
 
     def test_theme_studio_blocks_publish_without_preview_for_governed_changes(self):
-        self.client.login(username="theme-manager", password="password")
         site = get_platform_site_settings_record(create=True)
         payload = self._theme_form_payload(
             primary_color="#111111",
             accent_color="#047857",
         )
-        response = self.client.post(self.url, payload, follow=True)
+        response = self.manager_client.post(self.url, payload, follow=True)
         self.assertEqual(response.status_code, 200)
         site.refresh_from_db()
         self.assertNotEqual(site.primary_color, "#111111")
@@ -193,20 +212,23 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "theme-last-change-audit")
 
     def test_theme_studio_allows_publish_when_preview_confirmed(self):
-        self.client.login(username="theme-manager", password="password")
         payload = self._theme_form_payload(
             primary_color="#1e3a8a",
             accent_color="#047857",
             preview_confirmed="1",
         )
-        response = self.client.post(self.url, payload, follow=True)
+        response = self.manager_client.post(self.url, payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
+        # Operator-plane publish writes the PLATFORM record (not a per-school blob).
         site = get_platform_site_settings_record(create=True)
         self.assertEqual(site.primary_color, "#1e3a8a")
-        self.assertContains(response, "theme-last-change-audit")
 
-        self.assertContains(response, "theme-last-change-audit")
+        # A successful operator publish lands the actor in Studio Experience
+        # (`_theme_post_success_redirect`); the theme page itself continues to
+        # surface the change-audit strip.
+        audit_response = self.manager_client.get(self.url_standalone)
+        self.assertContains(audit_response, "theme-last-change-audit")
 
     def test_theme_studio_blocks_report_style_default_change_without_preview_confirmation(
         self,
@@ -235,7 +257,6 @@ class ThemeStudioAccessTests(TestCase):
             save=True,
         )
 
-        self.client.login(username="theme-manager", password="password")
         payload = self._theme_form_payload(
             default_term_report_style=str(style_b.id),
             primary_color="#0d173b",
@@ -246,7 +267,7 @@ class ThemeStudioAccessTests(TestCase):
             warning_color="#fbbf24",
             danger_color="#ef4444",
         )
-        response = self.client.post(self.url, payload, follow=True)
+        response = self.manager_client.post(self.url, payload, follow=True)
         self.assertEqual(response.status_code, 200)
 
         site.refresh_from_db()
@@ -261,8 +282,7 @@ class ThemeStudioAccessTests(TestCase):
         self.assertIn("default_annual_report_style", THEME_PUBLISH_GUARDED_FIELDS)
 
     def test_theme_studio_catalog_uses_compact_scroll_region(self):
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url_standalone)
+        response = self.manager_client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "theme-pack-catalog-scroll")
         self.assertContains(response, "theme-pack-catalog-hint")
@@ -270,23 +290,20 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "admin-color-preview.css")
 
     def test_theme_studio_catalog_shows_active_site_and_admin_labels(self):
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url_standalone)
+        response = self.manager_client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "theme-pack-active-site-label")
         self.assertContains(response, "theme-pack-active-admin-label")
 
     def test_theme_preview_includes_light_dark_surface_toggle(self):
-        self.client.login(username="theme-manager", password="password")
-        resp = self.client.get(self.url_standalone)
+        resp = self.manager_client.get(self.url_standalone)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'data-preview-surface="light"')
         self.assertContains(resp, 'data-preview-surface="dark"')
         self.assertContains(resp, 'data-preview-theme="light"')
 
     def test_theme_studio_renders_enhanced_device_preview_layout(self):
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(self.url_standalone)
+        response = self.manager_client.get(self.url_standalone)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "preview-metrics-grid")
         self.assertContains(response, "preview-chart-bars")
@@ -302,17 +319,14 @@ class ThemeStudioAccessTests(TestCase):
             is_active=True,
             applies_to_admin=False,
         )
-        self.client.login(username="theme-manager", password="password")
-
         with patch("apps.siteconfig.views.call_command") as mocked_call_command:
-            response = self.client.get(self.url_standalone)
+            response = self.manager_client.get(self.url_standalone)
 
         self.assertEqual(response.status_code, 200)
         mocked_call_command.assert_called_once_with("seed_admin_dashboard_palettes")
 
     def test_legacy_theme_experience_route_redirects_to_hub(self):
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(
+        response = self.manager_client.get(
             reverse("siteconfig:theme_experience_redirect"),
             {
                 "next": "/admin/siteconfig/sitesettings/1/change/#section-theme-experience"
@@ -326,8 +340,7 @@ class ThemeStudioAccessTests(TestCase):
         )
 
     def test_legacy_theme_experience_route_studio_escape_hatch(self):
-        self.client.login(username="theme-manager", password="password")
-        response = self.client.get(
+        response = self.manager_client.get(
             reverse("siteconfig:theme_experience_redirect"),
             {"studio": "1"},
         )
@@ -477,12 +490,20 @@ class ThemePackSelectorTemplateTests(TestCase):
         pgb.save()
         site.refresh_from_db()
 
+        # The selector template references `platform_palette.*` as filter arguments
+        # (`|default:platform_palette.primary`); filter args do NOT honor
+        # `string_if_invalid`, so a missing key raises VariableDoesNotExist. In a
+        # real request the `platform_palette_processor` context processor injects it —
+        # supply the same dict here so `render_to_string` mirrors production.
+        from apps.siteconfig.platform_palette import platform_palette_processor
+
         html = render_to_string(
             "admin/components/admin_dashboard_palette_selector.html",
             {
                 "admin_theme_packs": [pack],
                 "admin_theme_packs_by_group": [("Test Group", [pack])],
                 "site_settings": site,
+                **platform_palette_processor(None),
             },
         )
 
