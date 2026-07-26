@@ -31,3 +31,17 @@ class MigrationCloudConfig(AppConfig):
             logging.getLogger(__name__).exception(
                 "migration_cloud.apps: tasks_smoke_archival wire failed"
             )
+        # Register the weekly audit-chain verifier so the
+        # ``accounts-verify-audit-chain`` beat entry resolves to a real task
+        # (this app has no autodiscovered tasks.py; importing the module here
+        # registers its @shared_task at app-ready). The task is a READ-ONLY
+        # verifier — it wraps ``verify_audit_chain --all-tenants`` and only
+        # logs/alerts on a detected break — so scheduling it has no destructive
+        # or outbound side effects beyond a tamper alert.
+        try:
+            from . import tasks_audit  # noqa: F401 — import registers the @shared_task
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "migration_cloud.apps: tasks_audit import failed"
+            )

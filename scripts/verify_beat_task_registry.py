@@ -94,8 +94,6 @@ KNOWN_DEAD_ENTRIES: dict[str, str] = {
         "Due mailboxes never fetched. Waking it starts outbound mailbox polling.",
     "integrations-renew-push-subscriptions":
         "Push subscriptions never renewed -> they lapse. Waking it starts outbound calls.",
-    "accounts-verify-audit-chain":
-        "Weekly audit-chain verification never runs -> tamper would go undetected.",
     "siteconfig-sweep-pending-custom-domains":
         "Pending custom domains are never swept -> a tenant's custom domain never activates.",
     "migration-cloud-token-rotation-watchdog":
