@@ -24,8 +24,15 @@ class LocalExperienceResolverTests(SimpleTestCase):
         self.assertIn("academic_system", result)
 
     def test_unknown_country(self):
+        # Universal coverage (global-first): resolve_country_pack always returns a
+        # complete pack via its generic-fallback tier, so an unrecognized ISO code
+        # still resolves to a baseline/derived experience (academic_system falls back
+        # to "international"). The only genuinely unconfigured input is an empty code.
         result = resolve_local_experience_for_country("ZZ")
-        self.assertFalse(result["configured"])
+        self.assertTrue(result["configured"])
+        self.assertTrue(result.get("academic_system"))
+        empty = resolve_local_experience_for_country("")
+        self.assertFalse(empty["configured"])
 
     def test_baseline_coverage_meets_200(self):
         stats = count_configured_countries()

@@ -26,15 +26,20 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         self.assertIn("block cp_shell_after", text)
         self.assertNotIn("cp-corporate-footer", text)
 
-    def test_manager_admin_shell_includes_operator_footer(self):
+    def test_manager_admin_shell_uses_control_plane_chrome(self):
+        # v15.8 admin OS (data-rmc-admin-approval-build 2026-07-24-v15.8): the /admin/
+        # shell adopts the control-plane unified header + operator drawers
+        # (manager_cp_offcanvas + activity ticker) on the manager host, and delegates
+        # the viewport-pinned civic footer + operator steering strips to the control
+        # plane — those are removed from the model workbench (see the rationale comment
+        # in templates/admin/base.html).
         text = Path("templates/admin/base.html").read_text(encoding="utf-8")
         self.assertIn("is_manager_host", text)
-        self.assertIn("block admin_operator_steering", text)
-        self.assertIn("admin_operator_steering_strip.html", text)
-        self.assertIn("rmc_operator_surface_strip.html", text)
-        self.assertNotIn("operator_path_banner.html", text)
-        self.assertIn("rmc_operator_footer_civic.html", text)
         self.assertIn("control_plane_unified_header.html", text)
+        self.assertIn("manager_cp_offcanvas.html", text)
+        self.assertNotIn("operator_path_banner.html", text)
+        self.assertNotIn("rmc_operator_footer_civic.html", text)
+        self.assertNotIn("admin_operator_steering_strip.html", text)
 
     def test_manager_admin_scroll_contract_in_css_and_templates(self):
         css = Path("static/css/admin-cp-parity.css").read_text(encoding="utf-8")
@@ -61,9 +66,14 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         change_form = Path("templates/admin/change_form.html").read_text(encoding="utf-8")
         self.assertIn("block.super", change_list)
         self.assertIn("block.super", change_form)
-        self.assertIn("admin_changelist_header.html", change_list)
-        self.assertIn("admin_change_form_header.html", change_form)
-        self.assertIn("20260713-real-admin-canvas", base_site)
+        # v15 admin OS: the list/form header include was replaced by the inline
+        # rmc-django-command-band (single band per the v15 Scan/Form archetype).
+        self.assertIn("rmc-django-command-band", change_list)
+        self.assertIn("rmc-django-command-band", change_form)
+        # Versioned admin-canvas cache-bust marker (bumped per admin-OS wave, e.g.
+        # 20260724-admin-os-v158); assert the stable admin-OS version prefix so a
+        # routine version bump doesn't trip this contract.
+        self.assertIn("admin-os-v", base_site)
         self.assertIn('data-rmc-admin-surface="smart-form"', change_form)
         self.assertIn('data-rmc-admin-surface="smart-changelist"', change_list)
         self.assertIn("real-admin-canvas: terminal production contract", canvas_css)

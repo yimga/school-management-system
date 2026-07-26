@@ -15,25 +15,34 @@ from apps.siteconfig.migration_services import (
 
 class MigrationServicesTests(TestCase):
     def setUp(self):
-        EducationLevelRegistry.objects.create(
+        # These registries are also seeded by data migrations (e.g. GradeScaleRegistry
+        # code="0-100"), so update_or_create to avoid a UNIQUE collision while still
+        # guaranteeing the exact alias metadata these tests rely on.
+        EducationLevelRegistry.objects.update_or_create(
             code="SECONDARY",
-            global_name="Secondary",
-            metadata={"aliases": ["sec"]},
-            is_active=True,
+            defaults={
+                "global_name": "Secondary",
+                "metadata": {"aliases": ["sec"]},
+                "is_active": True,
+            },
         )
-        GradeScaleRegistry.objects.create(
+        GradeScaleRegistry.objects.update_or_create(
             code="0-100",
-            name="0-100",
-            family="numeric",
-            metadata={"aliases": ["percentage"]},
-            is_active=True,
+            defaults={
+                "name": "0-100",
+                "family": "numeric",
+                "metadata": {"aliases": ["percentage"]},
+                "is_active": True,
+            },
         )
-        FeeCategoryRegistry.objects.create(
+        FeeCategoryRegistry.objects.update_or_create(
             code="TUITION",
-            name="Tuition",
-            category="core",
-            metadata={"aliases": ["school_fees"]},
-            is_active=True,
+            defaults={
+                "name": "Tuition",
+                "category": "core",
+                "metadata": {"aliases": ["school_fees"]},
+                "is_active": True,
+            },
         )
         self.profile = MigrationProfile.objects.create(
             slug="students-profile",
