@@ -13,11 +13,14 @@ from typing import Any
 from django.core.cache import cache
 from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.db.models import Q
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.models import AccessRole, User
+from apps.accounts.tenant_user_provisioning import is_provisionable_role
 from apps.api.rate_limit import throttle_ip_request
+from apps.communication.secret_config import decrypt_config
 from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.integration_registry import resolve_service_integration
 from apps.integrations_marketplace.models import ServiceIntegration
@@ -197,8 +200,13 @@ def _authorize_scim_request(request: HttpRequest):
             None,
             _scim_error("SCIM integration not configured for school", status=503),
         )
+    # config["bearer_token"] is a "_token" secret, so ServiceIntegration.save()
+    # Fernet-wraps it at rest — decrypt before comparing, or every IdP that sets
+    # the token in config (not client_secret) is rejected 403 forever. Plaintext
+    # (legacy) values pass through decrypt_config unchanged.
+    cfg = decrypt_config(integration.config or {})
     expected = (
-        str((integration.config or {}).get("bearer_token") or "").strip()
+        str(cfg.get("bearer_token") or "").strip()
         or str(integration.client_secret or "").strip()
     )
     provided = _extract_bearer(request)
@@ -397,6 +405,89 @@ def _parse_filter_username(filter_expr: str) -> str:
     return ""
 
 
+# ---------------------------------------------------------------------------
+# Group -> role mapping + tenant-safe deprovisioning
+# ---------------------------------------------------------------------------
+
+# Deprovision modes an integration may declare in config["scim_deprovision_mode"].
+SCIM_DEPROVISION_SUSPEND = "suspend_membership"
+SCIM_DEPROVISION_DEACTIVATE = "deactivate_user"
+SCIM_DEPROVISION_HARD_DELETE = "hard_delete_membership"
+_SCIM_DEPROVISION_MODES = {
+    SCIM_DEPROVISION_SUSPEND,
+    SCIM_DEPROVISION_DEACTIVATE,
+    SCIM_DEPROVISION_HARD_DELETE,
+}
+
+
+def _resolve_deprovision_mode(cfg: dict[str, Any]) -> str:
+    """Resolve the SCIM DELETE behavior for this integration.
+
+    Default is the tenant-safe ``suspend_membership`` — the older behavior of
+    flipping the *shared* ``User.is_active`` disabled the account across EVERY
+    school the user belonged to (a cross-tenant side effect). The legacy
+    ``scim_hard_delete_membership`` boolean is still honored for backward
+    compatibility when no explicit mode is set.
+    """
+    raw = str(cfg.get("scim_deprovision_mode") or "").strip().lower()
+    if raw in _SCIM_DEPROVISION_MODES:
+        return raw
+    if cfg.get("scim_hard_delete_membership"):
+        return SCIM_DEPROVISION_HARD_DELETE
+    return SCIM_DEPROVISION_SUSPEND
+
+
+def _suspend_membership_and_maybe_user(membership, user) -> None:
+    """Tenant-safe deprovision: suspend only THIS school's membership.
+
+    Sets ``SchoolMembership.suspended_at`` for the authorized school only, so a
+    user who belongs to several schools keeps access to the others. The shared
+    ``User.is_active`` is disabled solely when this was the user's last still-
+    active membership, so a fully deprovisioned user cannot sign in anywhere
+    (preserving the single-tenant "user is locked out" outcome).
+    """
+    if membership.suspended_at is None:
+        membership.suspended_at = timezone.now()
+        membership.save(update_fields=["suspended_at"])
+    has_other_active = (
+        SchoolMembership.objects.filter(  # tenant-isolation-allow: deliberate cross-school last-active-membership check so a per-school deprovision never disables the shared account while other schools still use it
+            user=user, suspended_at__isnull=True
+        )
+        .exclude(pk=membership.pk)
+        .exists()
+    )
+    if not has_other_active and user.is_active:
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+
+
+def _resolve_group_role(integration, role) -> str | None:
+    """Map a SCIM group (AccessRole) -> a tenant RMC role via config.
+
+    Reads ``config["group_role_map"]`` — ``{"<idp group displayName or code>":
+    "<RMC_ROLE>"}`` — matching on the group's displayName (``role.name``) then
+    its ``role.code`` (case-insensitive). The mapped role must be a real,
+    tenant-provisionable role (the ``is_provisionable_role`` deny set blocks a
+    group from escalating a member to SUPERADMIN/STUDENT/etc.).
+    """
+    cfg = (integration.config or {}) if integration else {}
+    raw_map = cfg.get("group_role_map") or {}
+    if not isinstance(raw_map, dict):
+        return None
+    normalized = {
+        str(k).strip().lower(): str(v).strip().upper()
+        for k, v in raw_map.items()
+        if str(k).strip()
+    }
+    for candidate in (getattr(role, "name", ""), getattr(role, "code", "")):
+        key = str(candidate or "").strip().lower()
+        if key and key in normalized:
+            mapped = normalized[key]
+            if is_provisionable_role(mapped):
+                return mapped
+    return None
+
+
 @require_http_methods(["GET"])
 def scim_service_provider_config(request: HttpRequest):
     rl = _scim_rate_limited(request, "service_provider_config")
@@ -586,25 +677,25 @@ def scim_user_detail(request: HttpRequest, user_id: str):
 
     if request.method == "DELETE":
         cfg = (integration.config or {}) if integration else {}
-        if cfg.get("scim_hard_delete_membership"):
+        mode = _resolve_deprovision_mode(cfg)
+        if mode == SCIM_DEPROVISION_HARD_DELETE:
             membership.delete()
-            _log_scim_mutation(
-                request,
-                school=school,
-                resource="user",
-                action="delete_hard",
-                resource_id=str(user.pk),
-            )
-        else:
+            action = "delete_hard"
+        elif mode == SCIM_DEPROVISION_DEACTIVATE:
+            # Legacy behavior: disables the SHARED account across all schools.
             user.is_active = False
             user.save(update_fields=["is_active"])
-            _log_scim_mutation(
-                request,
-                school=school,
-                resource="user",
-                action="delete",
-                resource_id=str(user.pk),
-            )
+            action = "delete"
+        else:  # SCIM_DEPROVISION_SUSPEND — tenant-safe default
+            _suspend_membership_and_maybe_user(membership, user)
+            action = "suspend"
+        _log_scim_mutation(
+            request,
+            school=school,
+            resource="user",
+            action=action,
+            resource_id=str(user.pk),
+        )
         return HttpResponse(status=204)
 
     body, error_response = _resolve_scim_mutation_body(
@@ -773,7 +864,7 @@ def scim_group_detail(request: HttpRequest, group_id: str):
     rl = _scim_rate_limited(request, "group_detail")
     if rl:
         return rl
-    school, _, err = _authorize_scim_request(request)
+    school, integration, err = _authorize_scim_request(request)
     if err:
         return err
     _log_scim_request(request, resource="groups")
@@ -829,6 +920,13 @@ def scim_group_detail(request: HttpRequest, group_id: str):
                 continue
             if operation == "add":
                 membership.user.roles.add(role)
+                # If this IdP group maps to a tenant role, apply it to the
+                # member's SchoolMembership (the role the tenant actually reads),
+                # guarded by the provisionable-role deny set.
+                mapped_role = _resolve_group_role(integration, role)
+                if mapped_role and membership.role != mapped_role:
+                    membership.role = mapped_role
+                    membership.save(update_fields=["role"])
             elif operation == "remove":
                 membership.user.roles.remove(role)
 
