@@ -15,7 +15,7 @@
       {% comment %} Aesthetic-v2 page-header grammar. Styled by patterns.css. {% endcomment %}
       <div class="eyebrow">{% trans "School calendar" %}</div>
       <h1 class="page-h1 h4 mb-0" id="calendar-heading">{% trans "Calendar" %}</h1>
-      <p class="page-sub mb-0">{% trans "School events and upcoming deadlines in one place." %}</p>
+      <p class="page-sub mb-0">{% trans "Events, holidays and upcoming deadlines in one place." %}</p>
     </div>
     <nav aria-label="{% trans 'Portal navigation' %}">
       {% if is_parent %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% trans "Back to dashboard" %}</a>{% endif %}
@@ -29,7 +29,7 @@
       <ul class="list-group list-group-flush" role="list" aria-labelledby="calendar-heading">
         {% for item in events %}
         <li class="list-group-item d-flex align-items-start gap-2 px-0" role="listitem">
-          <span class="badge {% if item.kind == 'event' %}bg-primary{% else %}bg-secondary{% endif %} mt-1" aria-hidden="true">
+          <span class="badge {% if item.kind == 'event' %}bg-primary{% elif item.kind == 'holiday' %}{% if item.holiday_type == 'exam_period' %}bg-warning text-dark{% else %}bg-success{% endif %}{% else %}bg-secondary{% endif %} mt-1" aria-hidden="true">
             {{ item.when|format_date }}
           </span>
           <div class="flex-grow-1">

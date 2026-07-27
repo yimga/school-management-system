@@ -968,13 +968,98 @@ def _finance_summary(students):
 
 # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
 def _merged_upcoming_events(year, *, school=None):
-    """Phase 8: Merge grading deadlines and public school calendar events, sorted by date."""
+    """Merge grading deadlines, public school events, AND published holidays, by date.
+
+    Holidays (term breaks, public/religious holidays, exam periods) are what every
+    competitor publishes to families and what admins configure via HolidayCalendar —
+    but they were previously invisible to parents/teachers (admin-only). Surfacing
+    them here puts the admin-published academic calendar in the one place families
+    and staff already look.
+    """
     deadlines = _upcoming_deadlines(year)
     school_events = _upcoming_school_events(limit=15, school=school)
-    merged = deadlines + school_events
-    merged.sort(key=lambda x: x["when"])
+    holidays = _upcoming_holidays(year, school=school, limit=15)
+    merged = deadlines + school_events + holidays
+    # Guard the sort against a naive/aware ``when`` mismatch across sources: coerce
+    # to a comparable epoch so one bad source can never 500 the whole calendar.
+    merged.sort(key=_event_sort_key)
     # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
     return merged[:25]
+
+
+def _event_sort_key(item):
+    """Sortable key for a merged calendar item, tolerant of date/naive/aware ``when``."""
+    from datetime import date as _date
+    from datetime import datetime as _datetime
+
+    when = item.get("when")
+    if isinstance(when, _datetime):
+        try:
+            return when.timestamp()
+        except (OverflowError, OSError, ValueError):
+            return 0.0
+    if isinstance(when, _date):
+        return _datetime(when.year, when.month, when.day).timestamp()
+    return 0.0
+
+
+def _upcoming_holidays(year, *, school=None, limit=15):
+    """Published HolidayCalendar entries for the school's country + academic year.
+
+    Scoped by the tenant's ``academic_year`` (and the school's ISO ``country_code``
+    when known — RegionConfig is a country-level registry). Only entries whose span
+    has not fully passed are returned. Best-effort: any resolver/DB error yields an
+    empty list so the calendar never breaks.
+    """
+    if not year:
+        return []
+    from datetime import datetime as _datetime
+    from datetime import time as _time
+
+    from django.conf import settings as _settings
+    from django.utils import timezone
+
+    try:
+        from apps.academics.models_tenant_runtime import HolidayCalendar
+    except Exception:  # noqa: BLE001
+        return []
+
+    today = timezone.now().date()
+    try:
+        qs = HolidayCalendar.objects.filter(  # tenant-isolation-allow: tenant academic_year (+ school country_code) scoped
+            academic_year=year,
+            date_end__gte=today,
+        )
+        country = str(getattr(school, "country_code", "") or "").strip().upper()
+        if country:
+            qs = qs.filter(region__code__iexact=country)
+        rows = list(qs.select_related("region").order_by("date_start")[:limit])
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+        return []
+
+    type_labels = dict(HolidayCalendar.HOLIDAY_TYPE_CHOICES)
+    out = []
+    for h in rows:
+        naive = _datetime.combine(h.date_start, _time.min)
+        when = (
+            timezone.make_aware(naive)
+            if getattr(_settings, "USE_TZ", False) and timezone.is_naive(naive)
+            else naive
+        )
+        label = type_labels.get(h.holiday_type, h.holiday_type)
+        span = "" if h.date_start == h.date_end else f" – {h.date_end:%b %d}"
+        working = " · school open" if h.is_working_day else " · no classes"
+        out.append(
+            {
+                "title": h.name,
+                "when": when,
+                "detail": f"{label}{span}{working}",
+                "kind": "holiday",
+                "holiday_type": h.holiday_type,
+                "is_working_day": bool(h.is_working_day),
+            }
+        )
+    return out
 
 
 def _upcoming_deadlines(year):
