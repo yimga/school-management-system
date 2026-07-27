@@ -60,6 +60,23 @@ class TenantAdminIndexContractTests(TestCase):
         self.assertIn("Model catalog", html)
         self.assertIn("rmc-admin-discover-canvas", html)
 
+    def test_admin_index_ships_tenant_tools_rail(self):
+        """The tenant /admin/ (Unfold) shell must carry the SAME RBAC-aware Tools
+        edge-tray as the portal Admin Home — the "both surfaces consistent"
+        requirement. Renders the whole shell so a broken include would fail here,
+        not just a source-string canary."""
+        request = self._request()
+        response = tenant_admin_site.index(request)
+        response.render()
+        html = response.content.decode("utf-8", errors="replace")
+        self.assertIn('id="page-data-rmc-tenant-tools"', html)
+        self.assertIn("rmc-operator-tools-tray.js", html)
+        self.assertIn("rmc-operator-tools-tray.css", html)
+        # Assist-dock registry island must ride along so the tray JS resolves chips.
+        self.assertIn("page-data-rmc-assist-dock-registry", html)
+        # Operator (manager) tools island must NOT appear on the tenant host.
+        self.assertNotIn('id="page-data-rmc-operator-tools"', html)
+
     def test_anonymous_has_no_permission(self):
         request = self._request()
         request.user = AnonymousUser()
