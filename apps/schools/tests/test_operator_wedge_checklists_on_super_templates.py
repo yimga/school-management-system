@@ -5,6 +5,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.test_utils.http_clients import login_manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -20,7 +21,12 @@ class OperatorWedgeChecklistTemplateTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.user)
+        # Manager host reads MANAGER_SESSION_COOKIE_NAME and operators carry
+        # baseline strict MFA; a bare force_login 302s to mfa/setup. Arm the
+        # manager client (confirmed device + manager session + mfa_verified).
+        self.client = login_manager_client(
+            self.user, password="testpass123", host=self.host
+        )
         cache.clear()
 
     def _get(self, url_name, **query):

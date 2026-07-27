@@ -106,11 +106,24 @@ class OperatorHelpCenterHttpTests(TestCase):
 
         self.client = Client()
 
+    def _login(self):
+        # Operators on the manager host need a confirmed MFA device AND a
+        # manager-session-bound, MFA-verified login (the manager host reads
+        # MANAGER_SESSION_COOKIE_NAME, a separate cookie); a bare force_login
+        # writes only the default cookie with no MFA, so RequireMFAMiddleware
+        # 302s the request to /authentication/mfa/setup/. The shared helper arms
+        # all three — the real state of a logged-in operator.
+        from apps.test_utils.http_clients import login_manager_client
+
+        self.client = login_manager_client(
+            self.superuser, password="AuditTest_1234", host=self.host
+        )
+
 
 
     def test_help_center_renders_200(self):
 
-        self.client.force_login(self.superuser)
+        self._login()
 
         response = self.client.get("/help-center/", HTTP_HOST=self.host)
 
@@ -127,7 +140,7 @@ class OperatorHelpCenterHttpTests(TestCase):
 
     def test_manager_help_redirects_to_help_center(self):
 
-        self.client.force_login(self.superuser)
+        self._login()
 
         response = self.client.get("/help/", HTTP_HOST=self.host)
 
@@ -139,7 +152,7 @@ class OperatorHelpCenterHttpTests(TestCase):
 
     def test_kb_home_uses_control_plane_chrome(self):
 
-        self.client.force_login(self.superuser)
+        self._login()
 
         response = self.client.get("/kb/", HTTP_HOST=self.host)
 
@@ -155,7 +168,7 @@ class OperatorHelpCenterHttpTests(TestCase):
 
     def test_kb_article_renders_200(self):
 
-        self.client.force_login(self.superuser)
+        self._login()
 
         response = self.client.get(
 
@@ -171,27 +184,27 @@ class OperatorHelpCenterHttpTests(TestCase):
 
     def test_feedback_loop_renders_200(self):
 
-        self.client.force_login(self.superuser)
+        self._login()
 
         response = self.client.get("/feedback-loop/", HTTP_HOST=self.host)
 
         self.assertEqual(response.status_code, 200)
 
     def test_feature_center_renders_200(self):
-        self.client.force_login(self.superuser)
+        self._login()
         response = self.client.get("/feature-center/", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
         body = response.content.decode("utf-8", errors="replace")
         self.assertIn("Request a capability", body)
 
     def test_contact_us_renders_200(self):
-        self.client.force_login(self.superuser)
+        self._login()
         response = self.client.get("/contact-us/", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Contact us", response.content)
 
     def test_product_roadmap_renders_200(self):
-        self.client.force_login(self.superuser)
+        self._login()
         response = self.client.get("/product-roadmap/", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Product roadmap", response.content)

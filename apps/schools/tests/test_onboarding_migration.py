@@ -212,7 +212,12 @@ class SignupAndVerifyMigrationRoutingTests(TestCase):
         )
         self.assertEqual(resp.status_code, 302)
         self.assertNotEqual(resp.url, reverse("onboard_migration_handoff"))
-        self.assertIn("/school/studio/provisioning/", resp.url)
+        # No migration intent → verify_signup sends the new (passwordless) owner
+        # into the guided onboarding wizard via build_owner_onboarding_path
+        # (set password → school → done), which then leads to the dashboard /
+        # provisioning. The 2026-06-08 dead-end fix routes through the wizard
+        # instead of jumping straight to /school/studio/provisioning/.
+        self.assertIn("/authentication/onboarding/", resp.url)
 
 
 class OnboardMigrationHandoffTests(TestCase):
@@ -309,5 +314,7 @@ class MCIntakePrefillTests(TestCase):
             reverse("migration_cloud_super:bundle_new") + "?vendor=powerschool",
         )
         self.assertEqual(resp.status_code, 200)
-        # Pre-fill banner surfaces the provenance
-        self.assertContains(resp, "Pre-filled from your onboarding choice")
+        # Pre-fill banner surfaces the provenance (intake_new.html). The copy was
+        # shortened from "Pre-filled from your onboarding choice" to "Pre-filled
+        # from onboarding."; assert the stable stem so a reword doesn't re-break it.
+        self.assertContains(resp, "Pre-filled from onboarding")

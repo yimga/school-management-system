@@ -1785,6 +1785,13 @@ urlpatterns = [
         )
         for prefix, country, lang, url_name in MARKETING_LEGACY_REGIONAL_SHORTCUTS
     ],
+    # onboard/migrate/ is a TWO-segment path, so it MUST precede the
+    # "<lang>/<country>/" regional catch-all below — otherwise /onboard/migrate/
+    # resolves to regional_marketing_landing (the migration handoff page becomes
+    # unreachable), the same ordering hazard the signup slug helpers above are
+    # placed around. (onboard/migrate/start/ is three segments, so the two-segment
+    # catch-all never matches it — it can stay below.)
+    path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
     path(
         "<str:language_code>/<str:country_code>/",
         regional_marketing_landing,
@@ -1794,7 +1801,6 @@ urlpatterns = [
         "setup-studio/", onboarding_wizard, name="setup_studio"
     ),  # Public 3-step onboarding (delegates to onboarding_wizard); post-signup setup lives in siteconfig Setup Studio
     path("onboard/", onboarding_wizard, name="onboard_wizard"),
-    path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
     path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),
     path("signup/", signup_school, name="signup_school"),
     path("verify-signup/", verify_signup, name="verify_signup"),

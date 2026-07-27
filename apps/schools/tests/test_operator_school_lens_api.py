@@ -11,6 +11,7 @@ from django.test import RequestFactory, TestCase, override_settings
 
 from apps.platform_runtime.operator_identity import ensure_platform_operator_profile
 from apps.schools.models import School
+from apps.schools.provisioning_progress import EXTENDED_PROVISION_STEP_COUNT
 from apps.schools.super_views_school_api import (
     api_school_lens_snapshot,
     api_school_requeue_provision,
@@ -69,7 +70,13 @@ class OperatorSchoolLensApiTests(TestCase):
         self.assertGreaterEqual(len(payload["health_chips"]), 2)
         prov = payload.get("provisioning") or {}
         self.assertIn("extended_steps", prov)
-        self.assertEqual(len(prov["extended_steps"]), 14)
+        # The lens passes through every EXTENDED_PROVISION_STEP_SPECS entry 1:1
+        # (SOT: apps.schools.provisioning_progress.EXTENDED_PROVISION_STEP_COUNT).
+        # The sequence grew to 15 (welcome_email step); assert against the SOT so a
+        # legitimate step change stays honest while a DROPPED step still fails.
+        self.assertEqual(
+            len(prov["extended_steps"]), EXTENDED_PROVISION_STEP_COUNT
+        )
         self.assertIn("can_requeue", prov)
 
     @patch("apps.schools.tasks.kick_complete_provisioning_background")

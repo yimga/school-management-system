@@ -127,7 +127,19 @@ class Phase10ErrorPagesVerificationTests(TestCase):
     @override_settings(ROOT_URLCONF="config.manager_urls")
     def test_manager_403_uses_control_plane_template(self):
         request = self.factory.get("/admin/")
-        request.user = User(is_staff=True, is_superuser=False)
+        # A SAVED user: the is_admin_forbidden branch renders the control-plane
+        # skeleton, whose context processors run related-filter queries on
+        # request.user — an UNSAVED User(...) (pk=None yet is_authenticated=True)
+        # raises "Model instances passed to related filters must be saved" and the
+        # page silently falls back to static HTML. In production an authenticated
+        # user is always saved; the anon 404/500 cases skip those queries.
+        request.user = User.objects.create_user(
+            username="admin_forbidden_403",
+            email="admin_forbidden_403@example.com",
+            password="x",
+            is_staff=True,
+            is_superuser=False,
+        )
         request.public_host_kind = "manager"
         response = permission_denied(request, None)
         self.assertEqual(response.status_code, 403)
