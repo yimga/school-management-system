@@ -1,0 +1,220 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Single sign-on" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="task-form" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+
+  <h1 class="h4 mb-1">{% trans "Single sign-on (SSO)" %}</h1>
+  <p class="text-secondary small mb-3" style="max-width:56rem">{% trans "Let staff, teachers, and parents sign in with your identity provider — Google, Microsoft, Okta, or any OpenID Connect / SAML IdP. Once a connection is active it appears as a button on this school's login page." %}</p>
+
+  {% for w in warnings %}
+  <div class="alert alert-warning py-2 small" role="alert">{{ w }}</div>
+  {% endfor %}
+
+  <div class="row g-3">
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% if edit %}{% trans "Edit connection" %}{% else %}{% trans "Add a connection" %}{% endif %}</h2>
+          <form method="post" class="vstack gap-3" action="{% if edit %}{% url 'accounts:sso_connection_edit' edit.pk %}{% else %}{% url 'accounts:sso_connections' %}{% endif %}" id="rmc-sso-form">
+            {% csrf_token %}
+
+            <div>
+              <label class="form-label" for="id_provider">{% trans "Identity provider" %}</label>
+              <select class="form-select" id="id_provider" name="provider">
+                {% for value, label in provider_choices %}
+                <option value="{{ value }}"{% if form.provider == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div>
+              <label class="form-label" for="id_display_name">{% trans "Button label" %} <span class="text-secondary">({% trans "optional" %})</span></label>
+              <input type="text" class="form-control" id="id_display_name" name="display_name" maxlength="120" value="{{ form.display_name|default:'' }}" placeholder="{% trans 'e.g. Sign in with Google' %}">
+            </div>
+
+            {# ---- OIDC fields ---- #}
+            <div id="rmc-sso-oidc-fields" class="vstack gap-3">
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <label class="form-label" for="id_client_id">{% trans "Client ID" %}</label>
+                  <input type="text" class="form-control" id="id_client_id" name="client_id" maxlength="255" value="{{ form.client_id|default:'' }}" autocomplete="off">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label" for="id_client_secret">{% trans "Client secret" %}</label>
+                  <input type="password" class="form-control" id="id_client_secret" name="client_secret" maxlength="255" autocomplete="new-password" placeholder="{% if edit %}{% trans '•••••• (unchanged)' %}{% endif %}">
+                  {% if edit %}<div class="form-text">{% trans "Leave blank to keep the current secret." %}</div>{% endif %}
+                </div>
+              </div>
+              <div id="rmc-sso-ms-tenant" class="d-none">
+                <label class="form-label" for="id_ms_tenant">{% trans "Microsoft tenant" %}</label>
+                <input type="text" class="form-control" id="id_ms_tenant" name="ms_tenant" maxlength="120" value="{{ form.ms_tenant|default:'' }}" placeholder="organizations">
+                <div class="form-text">{% trans "Your Entra tenant ID or domain. Use “organizations” for any work/school account, “common” for personal too." %}</div>
+              </div>
+              <div id="rmc-sso-discovery">
+                <label class="form-label" for="id_discovery_url">{% trans "Discovery URL or issuer" %} <span class="text-secondary">({% trans "optional for Google/Microsoft" %})</span></label>
+                <div class="input-group">
+                  <input type="url" class="form-control" id="id_discovery_url" name="discovery_url" maxlength="400" value="{{ form.discovery_url|default:'' }}" placeholder="https://accounts.google.com/.well-known/openid-configuration">
+                  <button class="btn btn-outline-secondary" type="button" id="rmc-sso-test-btn">{% trans "Test" %}</button>
+                </div>
+                <input type="hidden" name="issuer" value="{{ form.issuer|default:'' }}">
+                <div class="form-text" id="rmc-sso-test-result" aria-live="polite"></div>
+              </div>
+              <div>
+                <label class="form-label" for="id_scope">{% trans "Scopes" %}</label>
+                <input type="text" class="form-control" id="id_scope" name="scope" maxlength="255" value="{{ form.scope|default:'openid email profile' }}">
+              </div>
+              <div>
+                <label class="form-label" for="id_role_map">{% trans "Group → role map" %} <span class="text-secondary">({% trans "optional, JSON" %})</span></label>
+                <textarea class="form-control" id="id_role_map" name="role_map" rows="3" placeholder='{&quot;Teachers&quot;: &quot;TEACHER&quot;, &quot;Parents&quot;: &quot;PARENT&quot;}'>{{ form.role_map|default:'' }}</textarea>
+                <div class="form-text">{% trans "Map an IdP group/role claim to a RunMyCampus role. Unmapped users get the default role below." %}</div>
+              </div>
+            </div>
+
+            {# ---- SAML fields ---- #}
+            <div id="rmc-sso-saml-fields" class="vstack gap-3 d-none">
+              <div>
+                <label class="form-label" for="id_saml_sso_url">{% trans "IdP SSO URL" %}</label>
+                <input type="url" class="form-control" id="id_saml_sso_url" name="saml_sso_url" maxlength="400" value="{{ form.saml_sso_url|default:'' }}">
+              </div>
+              <div>
+                <label class="form-label" for="id_saml_entity_id">{% trans "IdP entity ID" %} <span class="text-secondary">({% trans "optional" %})</span></label>
+                <input type="text" class="form-control" id="id_saml_entity_id" name="saml_entity_id" maxlength="255" value="{{ form.saml_entity_id|default:'' }}">
+              </div>
+              <div>
+                <label class="form-label" for="id_saml_cert">{% trans "IdP signing certificate (PEM)" %}</label>
+                <textarea class="form-control" id="id_saml_cert" name="saml_cert" rows="4" placeholder="-----BEGIN CERTIFICATE-----">{{ form.saml_cert|default:'' }}</textarea>
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label" for="id_default_role">{% trans "Default role for new users" %}</label>
+              <select class="form-select" id="id_default_role" name="default_role">
+                {% for value, label in role_choices %}
+                <option value="{{ value }}"{% if form.default_role == value %} selected{% elif not form.default_role and value == 'PARENT' %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="id_is_active" name="is_active"{% if form.is_active %} checked{% endif %}>
+              <label class="form-check-label" for="id_is_active">{% trans "Show this connection on the login page" %}</label>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">{% if edit %}{% trans "Save changes" %}{% else %}{% trans "Add connection" %}{% endif %}</button>
+              {% if edit %}<a class="btn btn-outline-secondary" href="{% url 'accounts:sso_connections' %}">{% trans "Cancel" %}</a>{% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "Your connections" %}</h2>
+          {% if connections %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th scope="col">{% trans "Connection" %}</th>
+                  <th scope="col">{% trans "Status" %}</th>
+                  <th scope="col"><span class="visually-hidden">{% trans "Actions" %}</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in connections %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ c.label }}</div>
+                    <div class="small text-secondary text-uppercase">{{ c.idp_type }}{% if c.default_role %} · {{ c.default_role }}{% endif %}</div>
+                  </td>
+                  <td>
+                    {% if c.login_visible %}<span class="badge text-bg-success">{% trans "On login page" %}</span>
+                    {% elif not c.configured %}<span class="badge text-bg-warning">{% trans "Draft" %}</span>
+                    {% else %}<span class="badge text-bg-secondary">{% trans "Disabled" %}</span>{% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1 align-items-center">
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:sso_connection_edit' c.obj.pk %}">{% trans "Edit" %}</a>
+                      <form method="post" action="{% url 'accounts:sso_connection_toggle' c.obj.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">{% if c.obj.is_active %}{% trans "Disable" %}{% else %}{% trans "Enable" %}{% endif %}</button>
+                      </form>
+                      <form method="post" action="{% url 'accounts:sso_connection_delete' c.obj.pk %}" onsubmit="return confirm('{% trans "Remove this SSO connection?" %}');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Remove" %}</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-secondary mb-0">{% trans "No SSO connections yet. Add one to enable single sign-on on your login page." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var provider = document.getElementById("id_provider");
+  var oidc = document.getElementById("rmc-sso-oidc-fields");
+  var saml = document.getElementById("rmc-sso-saml-fields");
+  var msTenant = document.getElementById("rmc-sso-ms-tenant");
+  var discovery = document.getElementById("id_discovery_url");
+  if (!provider) { return; }
+
+  function sync() {
+    var v = provider.value;
+    var isSaml = v === "saml";
+    oidc.classList.toggle("d-none", isSaml);
+    saml.classList.toggle("d-none", !isSaml);
+    msTenant.classList.toggle("d-none", v !== "microsoft");
+    if (discovery) {
+      if (v === "google") { discovery.placeholder = "https://accounts.google.com/.well-known/openid-configuration"; }
+      else if (v === "okta") { discovery.placeholder = "https://your-org.okta.com/.well-known/openid-configuration"; }
+      else { discovery.placeholder = "https://idp.example.com/.well-known/openid-configuration"; }
+    }
+  }
+  provider.addEventListener("change", sync);
+  sync();
+
+  var testBtn = document.getElementById("rmc-sso-test-btn");
+  var result = document.getElementById("rmc-sso-test-result");
+  if (testBtn) {
+    testBtn.addEventListener("click", function () {
+      var form = document.getElementById("rmc-sso-form");
+      var token = form.querySelector("[name=csrfmiddlewaretoken]");
+      var body = new URLSearchParams();
+      body.set("provider", provider.value);
+      body.set("discovery_url", discovery ? discovery.value : "");
+      body.set("ms_tenant", (document.getElementById("id_ms_tenant") || {}).value || "");
+      result.textContent = "…";
+      fetch("{{ probe_url }}", {
+        method: "POST",
+        headers: { "X-CSRFToken": token ? token.value : "", "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d.ok) {
+          if (discovery && d.discovery_url) { discovery.value = d.discovery_url; }
+          result.textContent = "✓ " + (d.endpoints && d.endpoints.issuer ? d.endpoints.issuer : "Discovery OK");
+        } else {
+          result.textContent = "✗ " + (d.error || "Discovery failed");
+        }
+      }).catch(function () { result.textContent = "✗ Network error"; });
+    });
+  }
+})();
+</script>
+{% endblock %}

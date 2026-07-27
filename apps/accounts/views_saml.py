@@ -356,6 +356,21 @@ def saml_acs(request, integration_id: int):
         defaults={"role": role, "is_primary": True},
     )
 
+    # Record which IdP minted this account for this tenant (audit trail +
+    # operator binding-reassign surface). Never breaks the login path.
+    from apps.accounts.models_sso import UserTenantBinding
+    from apps.accounts.sso_binding import bind_user_to_tenant
+
+    _saml_cfg = integration.config or {}
+    bind_user_to_tenant(
+        user=user,
+        school=school,
+        source=UserTenantBinding.Source.SAML,
+        provider=str(_saml_cfg.get("provider") or integration.service_name or "")[:64],
+        subject=name_id,
+        issuer=str(claims.get("issuer") or _saml_cfg.get("entity_id") or "")[:255],
+    )
+
     session_key = f"saml:{integration_id}:{relay_state}"
     if session_key in request.session:
         del request.session[session_key]

@@ -403,6 +403,20 @@ def oidc_callback(request, integration_id: int):
         defaults={"role": role, "is_primary": True},
     )
 
+    # Record which IdP minted this account for this tenant (audit trail +
+    # operator binding-reassign surface). Never breaks the login path.
+    from apps.accounts.models_sso import UserTenantBinding
+    from apps.accounts.sso_binding import bind_user_to_tenant
+
+    bind_user_to_tenant(
+        user=user,
+        school=school,
+        source=UserTenantBinding.Source.OIDC,
+        provider=str(cfg.get("provider") or integration.service_name or "")[:64],
+        subject=sub,
+        issuer=str(claims.get("iss") or cfg.get("issuer") or cfg.get("issuer_url") or "")[:255],
+    )
+
     try:
         del request.session[pending_key]
         request.session.modified = True

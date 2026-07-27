@@ -1,11 +1,13 @@
 import base64
 import json
+from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.accounts.models_sso import UserTenantBinding
 from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.models import ServiceIntegration
 
@@ -25,7 +27,11 @@ class OidcViewsTests(TestCase):
             endpoint_url="https://idp.example.com/authorize",
             client_id="oidc-client",
             client_secret="oidc-secret",
-            config={"default_role": "TEACHER", "post_login_redirect": "/portal/"},
+            config={
+                "default_role": "TEACHER",
+                "post_login_redirect": "/portal/",
+                "token_endpoint": "https://idp.example.com/token",
+            },
             is_active=True,
         )
 
@@ -55,20 +61,29 @@ class OidcViewsTests(TestCase):
         self.assertIn("client_id=oidc-client", response["Location"])
         self.assertIn("response_type=code", response["Location"])
 
-    def test_oidc_callback_provisions_user_and_membership(self):
+    def _start_and_state(self, *, next_url=""):
+        suffix = f"&next={next_url}" if next_url else ""
         start = self.client.get(
             reverse("accounts:oidc_start", args=[self.integration.pk])
-            + f"?school_slug={self.school.slug}&next=/portal/"
+            + f"?school_slug={self.school.slug}{suffix}"
         )
-        self.assertEqual(start.status_code, 302)
         state = parse_qs(urlparse(start["Location"]).query)["state"][0]
-        pending_key = f"oidc:{self.integration.pk}:{state}"
-        nonce = self.client.session[pending_key]["nonce"]
+        nonce = self.client.session[f"oidc:{self.integration.pk}:{state}"]["nonce"]
+        return start, state, nonce
 
-        callback = self.client.get(
-            reverse("accounts:oidc_callback", args=[self.integration.pk])
-            + f"?state={state}&id_token={self._id_token(nonce=nonce)}"
-        )
+    def test_oidc_callback_provisions_user_and_membership(self):
+        # SECURITY: the callback only trusts an id_token obtained via the
+        # server-to-server code exchange (2026-06-17 auth-bypass seal) — never a
+        # front-channel ?id_token=. Send a code and mock the exchange.
+        _, state, nonce = self._start_and_state(next_url="/portal/")
+        with patch(
+            "apps.accounts.views_oidc._exchange_code_for_tokens",
+            return_value={"id_token": self._id_token(nonce=nonce)},
+        ):
+            callback = self.client.get(
+                reverse("accounts:oidc_callback", args=[self.integration.pk])
+                + f"?state={state}&code=auth-code-abc"
+            )
         self.assertEqual(callback.status_code, 302)
         self.assertIn("/portal/", callback["Location"])
 
@@ -77,31 +92,34 @@ class OidcViewsTests(TestCase):
         self.assertTrue(
             SchoolMembership.objects.filter(school=self.school, user=user).exists()
         )
+        # F5b: the SSO login records a UserTenantBinding audit row.
+        binding = UserTenantBinding.objects.get(user=user, school=self.school)
+        self.assertEqual(binding.source, UserTenantBinding.Source.OIDC)
+        self.assertEqual(binding.subject, "oidc-subject-1")
 
     def test_oidc_callback_rejects_bad_nonce(self):
-        start = self.client.get(
-            reverse("accounts:oidc_start", args=[self.integration.pk])
-            + f"?school_slug={self.school.slug}"
-        )
-        state = parse_qs(urlparse(start["Location"]).query)["state"][0]
-        callback = self.client.get(
-            reverse("accounts:oidc_callback", args=[self.integration.pk])
-            + f"?state={state}&id_token={self._id_token(nonce='bad')}"
-        )
+        _, state, _ = self._start_and_state()
+        with patch(
+            "apps.accounts.views_oidc._exchange_code_for_tokens",
+            return_value={"id_token": self._id_token(nonce="bad")},
+        ):
+            callback = self.client.get(
+                reverse("accounts:oidc_callback", args=[self.integration.pk])
+                + f"?state={state}&code=auth-code-abc"
+            )
         self.assertEqual(callback.status_code, 403)
 
     def test_oidc_callback_stores_id_token_hint_for_logout(self):
-        start = self.client.get(
-            reverse("accounts:oidc_start", args=[self.integration.pk])
-            + f"?school_slug={self.school.slug}"
-        )
-        state = parse_qs(urlparse(start["Location"]).query)["state"][0]
-        nonce = self.client.session[f"oidc:{self.integration.pk}:{state}"]["nonce"]
+        _, state, nonce = self._start_and_state()
         tok = self._id_token(nonce=nonce)
-        self.client.get(
-            reverse("accounts:oidc_callback", args=[self.integration.pk])
-            + f"?state={state}&id_token={tok}"
-        )
+        with patch(
+            "apps.accounts.views_oidc._exchange_code_for_tokens",
+            return_value={"id_token": tok},
+        ):
+            self.client.get(
+                reverse("accounts:oidc_callback", args=[self.integration.pk])
+                + f"?state={state}&code=auth-code-abc"
+            )
         self.assertEqual(
             self.client.session.get(f"oidc_id_token_hint:{self.integration.pk}"), tok
         )

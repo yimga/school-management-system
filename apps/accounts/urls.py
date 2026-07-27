@@ -145,6 +145,13 @@ from .views_web_push import (
 )
 from .views_oidc import oidc_start, oidc_callback, oidc_logout
 from .views_saml import saml_start, saml_acs, saml_metadata
+from .views_sso_admin import (
+    sso_connections,
+    sso_connection_edit,
+    sso_connection_toggle,
+    sso_connection_delete,
+    sso_discovery_probe,
+)
 from .views_impersonation import impersonate_entry, end_impersonation
 from .views_district_interop import (
     district_interop_csv_classes,
@@ -954,6 +961,13 @@ urlpatterns = [
     path("saml/start/<str:integration_ref>/", saml_start, name="saml_start"),  # rbac-allow: pre-auth SAML kickoff (user not logged in yet)
     path("saml/acs/<int:integration_id>/", saml_acs, name="saml_acs"),  # rbac-allow: pre-auth SAML assertion-consumer (signature-verified by view)
     path("saml/metadata/<int:integration_id>/", saml_metadata, name="saml_metadata"),  # rbac-allow: SAML metadata XML must be publicly fetchable
+    # Self-serve tenant-admin SSO connection wizard (F5b) — gated in-view by
+    # _can_manage_tenant_identity(request.user, request.school).
+    path("sso/connections/", sso_connections, name="sso_connections"),  # tenant-surface-staff-allow: request.school-scoped, gated by _can_manage_tenant_identity
+    path("sso/connections/discovery-probe/", sso_discovery_probe, name="sso_discovery_probe"),  # tenant-surface-staff-allow: request.school-scoped SSO admin probe
+    path("sso/connections/<int:pk>/edit/", sso_connection_edit, name="sso_connection_edit"),  # tenant-surface-staff-allow: request.school-scoped SSO admin
+    path("sso/connections/<int:pk>/toggle/", sso_connection_toggle, name="sso_connection_toggle"),  # tenant-surface-staff-allow: request.school-scoped SSO admin
+    path("sso/connections/<int:pk>/delete/", sso_connection_delete, name="sso_connection_delete"),  # tenant-surface-staff-allow: request.school-scoped SSO admin
     # Backend UI for People Management
     path("backend/students/", backend_student_list, name="backend_student_list")
     if BACKEND_PEOPLE_AVAILABLE
