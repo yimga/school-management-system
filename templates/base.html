@@ -40,6 +40,8 @@
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
     {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
     <script src="{% static 'js/rmc-reveal.js' %}"></script>
+    {% comment %} CSP-safe delegated handlers (async-CSS media flip + print/reload/confirm/img-fallback) so strict script-src needs no inline on*= attributes. {% endcomment %}
+    <script src="{% static 'js/rmc-csp-handlers.js' %}" defer></script>
     {% comment %} v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. {% endcomment %}
     <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
     {% if not RMC_AUTH_LANDING_LITE %}
@@ -128,7 +130,7 @@
     {% include "partials/auth_landing_minimal_styles.html" %}
     {% else %}
     {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}" media="print" data-rmc-async-style>
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {% comment %} v2.53 (2026-05-15): platform-wide cool-apple polish. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
@@ -164,7 +166,7 @@
        Per-surface opt-out via `data-rmc-density="open"` on any container. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
     {% comment %} v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic layer (adoption wave). {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}" media="print" data-rmc-async-style>
     <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
     {% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive for long dashboards. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
@@ -205,7 +207,7 @@
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     {% comment %} v3.53.0 (2026-05-21): signature motion + command bar styles. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}" media="print" data-rmc-async-style>
     {% comment %} v3.57.x Wave 8 (2026-05-22): signup-form slug-availability pill styles. {% endcomment %}
     {% if request.resolver_match.url_name == 'signup_school' %}
     <link rel="stylesheet" href="{% static 'css/rmc-signup-form.css' %}">

@@ -22,6 +22,8 @@
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
     {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
     <script src="{% static 'js/rmc-reveal.js' %}"></script>
+    {% comment %} CSP-safe delegated handlers (async-CSS media flip + print/reload/confirm/img-fallback) so strict script-src needs no inline on*= attributes. {% endcomment %}
+    <script src="{% static 'js/rmc-csp-handlers.js' %}" defer></script>
     {% comment %} v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. {% endcomment %}
     <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. {% endcomment %}
@@ -62,12 +64,12 @@
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
     {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}" media="print" data-rmc-async-style>
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {% comment %} v2.53 (2026-05-15): platform-wide cool-apple polish (Apple elev/material/focus/typography). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}" media="print" data-rmc-async-style>
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
@@ -111,7 +113,7 @@
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
     {% include "partials/rmc_platform_chrome_styles.html" %}
-    <link rel="stylesheet" href="{% static 'css/rmc-account-security-chip.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-account-security-chip.css' %}" media="print" data-rmc-async-style>
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
     {% comment %} Phase G (2026-05-12): platform-wide long-page grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
@@ -120,10 +122,10 @@
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
-    <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}" media="print" data-rmc-async-style>
     {% comment %} v3.53.0 (2026-05-21): signature motion + command bar styles. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}" media="print" data-rmc-async-style>
     {% comment %} v3.55.0 (2026-05-21): Platform-wide app-shell — grid layout + own-scroll canvas + static header/sidebar.
        Loaded LAST among layout sheets so the shell grid wins specificity over legacy chrome rules. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-app-shell.css' %}">
@@ -148,11 +150,11 @@
     {% comment %} Critical path: operator 3-col grid + copilot col-3 pin must not wait on deferred chrome loader. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-isomorphic-grid.css' %}">
     {% comment %} v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic layer (adoption wave). {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}" media="print" data-rmc-async-style>
     <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
     {% comment %} v3.58.x Wave 10 (2026-05-22): trust pillars alerts feed — closes v8 200x preview gap.
        Loaded AFTER rmc-cp-200x.css so .lx-trust-pillars composes with shared .lx-card chrome. {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-trust-pillars.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-trust-pillars.css' %}" media="print" data-rmc-async-style>
     {% comment %} rmc-data-viz.css loads via rmc_conditional_feature_boot when sparklines present. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
     {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
@@ -175,7 +177,7 @@
        edge-fit overrides centered nav + reading-width caps. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}" media="print" data-rmc-async-style>
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
     {% comment %} Styles the in-content next-action strip (.rmc-nas-*); without it
