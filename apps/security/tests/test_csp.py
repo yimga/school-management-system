@@ -25,7 +25,7 @@ class CspMiddlewareTests(SimpleTestCase):
 
     @override_settings(CSP_ENFORCE=True)
     def test_html_response_gets_csp_enforce_header_by_default(self):
-        """CSP_ENFORCE defaults True since v2.57 (inline-style backlog at 0)."""
+        """CSP_ENFORCE defaults True; strict script-src + unsafe-inline style-src."""
         mw = ContentSecurityPolicyMiddleware(_get_response)
         resp = mw(self.factory.get("/"))
         self.assertIn("Content-Security-Policy", resp)
@@ -99,10 +99,28 @@ class CspMiddlewareTests(SimpleTestCase):
         policy = _build_policy(nonce="abc123")
         self.assertIn("script-src 'self' 'nonce-abc123'", policy)
 
-    def test_nonce_appears_in_style_src_when_provided(self):
-        """Inline <style nonce> must be authorized — was dead under script-only nonce."""
+    def test_script_src_is_strict_no_unsafe(self):
+        """script-src is the XSS-critical directive: 'self' + nonce, never
+        'unsafe-inline'/'unsafe-eval'."""
         policy = _build_policy(nonce="abc123")
-        self.assertIn("style-src 'self' 'nonce-abc123'", policy)
+        # Isolate the script-src directive and assert no unsafe tokens in it.
+        script_src = next(
+            p for p in policy.split("; ") if p.startswith("script-src ")
+        )
+        self.assertNotIn("'unsafe-inline'", script_src)
+        self.assertNotIn("'unsafe-eval'", script_src)
+
+    def test_style_src_uses_unsafe_inline_and_no_nonce(self):
+        """Path A: style-src carries 'unsafe-inline' (inline style ATTRIBUTES cannot
+        be nonced), and the nonce must NOT be added to style-src — a directive with
+        BOTH a nonce and 'unsafe-inline' makes browsers IGNORE 'unsafe-inline' (CSP3),
+        which would re-break every inline style attribute."""
+        policy = _build_policy(nonce="abc123")
+        style_src = next(
+            p for p in policy.split("; ") if p.startswith("style-src ")
+        )
+        self.assertIn("'unsafe-inline'", style_src)
+        self.assertNotIn("nonce-", style_src)
 
     @override_settings(CSP_ENFORCE=True)
     def test_middleware_sets_request_nonce_and_header_token(self):

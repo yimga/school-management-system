@@ -1,13 +1,27 @@
 """Content-Security-Policy middleware.
 
-**Enforce mode by default since v2.57.** The inline-style backlog reached
-zero (enforced by ``scan_inline_style_off_token`` zero-tolerance gate
-post-v2.27), so ``style-src`` no longer needs ``'unsafe-inline'`` and
-``CSP_ENFORCE`` defaults to ``True``.
+**Posture — strict script-src, pragmatic style-src (the XSS-meaningful split).**
+``script-src`` is ``'self'`` + a per-request ``'nonce-<n>'`` with NO
+``'unsafe-inline'`` and NO ``'unsafe-eval'`` — this is the directive that
+actually stops XSS, so it is kept tight. ``style-src`` carries ``'unsafe-inline'``
+because the platform ships ~2,300 inline ``style="…"`` attributes across 400+
+templates and a nonce cannot authorize a style ATTRIBUTE (only ``<style>`` /
+``<script>`` ELEMENTS), so eliminating them is a multi-wave sweep with little
+security payoff — ``apps/security/csp_readiness.py`` documents why style-CSP buys
+far less defense than script-CSP. A correction of the record: an earlier docstring
+claimed the inline-style backlog was "at zero"; it was not (``scan_inline_style_off_token``
+only measures OFF-TOKEN inline styles, never their existence), which is why
+``style-src`` retains ``'unsafe-inline'`` here.
 
-Policy is intentionally conservative — `'self'`-only for scripts, styles,
-and connect. Operators can roll back to Report-Only by setting
-``CSP_ENFORCE=0`` in env if a regression surfaces.
+⚠️ Because ``style-src`` uses ``'unsafe-inline'``, the per-request nonce is added
+to ``script-src`` ONLY. Per the CSP3 spec, a directive that carries BOTH a nonce
+and ``'unsafe-inline'`` makes browsers IGNORE ``'unsafe-inline'`` — which would
+re-break every inline style attribute. Do not add the nonce to ``style-src``.
+
+Enforcing strict ``script-src`` still requires retiring the inline event handlers
+(``onclick=`` …) that a nonce cannot cover; until that burndown lands, prod pins
+``CSP_ENFORCE=0`` (Report-Only) in ``render.yaml``. Operators roll back to
+Report-Only by setting ``CSP_ENFORCE=0``.
 
 Settings (declared in ``config/settings_registry.py``):
 
@@ -32,8 +46,8 @@ from django.conf import settings
 
 _DEFAULT_DIRECTIVES: dict[str, tuple[str, ...]] = {
     "default-src": ("'self'",),
-    "script-src": ("'self'",),
-    "style-src": ("'self'",),  # 'unsafe-inline' removed v2.57 — inline-style backlog at 0
+    "script-src": ("'self'",),  # + per-request nonce; NO 'unsafe-inline'/'unsafe-eval' (the XSS-critical directive)
+    "style-src": ("'self'", "'unsafe-inline'"),  # inline style ATTRIBUTES can't be nonced; ~2,300 across 400+ templates — style-CSP buys little (see csp_readiness.py)
     "img-src": ("'self'", "data:", "https:"),
     "font-src": ("'self'", "data:", "https:"),
     "connect-src": ("'self'",),
@@ -47,17 +61,21 @@ _DEFAULT_DIRECTIVES: dict[str, tuple[str, ...]] = {
 def _build_policy(nonce: str = "") -> str:
     """Compose the CSP header value from settings overrides.
 
-    When ``nonce`` is supplied it is added to ``script-src`` AND ``style-src``
-    as ``'nonce-<n>'`` so inline ``<script nonce>`` / ``<style nonce>`` blocks
-    are allowed WITHOUT weakening the policy with ``'unsafe-inline'``. ``'self'``
-    is preserved, so same-origin external assets keep working — the nonce is
-    strictly additive.
+    When ``nonce`` is supplied it is added to ``script-src`` ONLY, as
+    ``'nonce-<n>'``, so inline ``<script nonce>`` blocks are allowed WITHOUT
+    weakening ``script-src`` with ``'unsafe-inline'``. ``'self'`` is preserved,
+    so same-origin external assets keep working — the nonce is strictly additive.
+
+    The nonce is deliberately NOT added to ``style-src``: that directive carries
+    ``'unsafe-inline'`` (inline style ATTRIBUTES cannot be nonced), and per the
+    CSP3 spec a directive with BOTH a nonce and ``'unsafe-inline'`` makes browsers
+    ignore ``'unsafe-inline'`` — which would block every inline ``style="…"``
+    attribute. ``<style nonce>`` blocks still render: ``'unsafe-inline'`` allows
+    all inline style, so the (now-redundant) nonce attribute on them is harmless.
     """
     directives = {k: list(v) for k, v in _DEFAULT_DIRECTIVES.items()}
     if nonce:
-        token = f"'nonce-{nonce}'"
-        directives["script-src"].append(token)
-        directives["style-src"].append(token)
+        directives["script-src"].append(f"'nonce-{nonce}'")
 
     # Cloudflare Turnstile (login bot-challenge) loads an external script AND
     # renders inside an iframe — allow its origin in script-src + frame-src,

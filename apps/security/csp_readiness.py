@@ -102,21 +102,18 @@ def _middleware_wired() -> bool:
 def _policy_directives() -> dict[str, Sequence[str]]:
     """Return the effective policy dict the middleware would emit today.
 
-    Mirrors the assembly logic in ``apps/security/csp_middleware.py``:
-    the default skeleton + ``CSP_EXTRA_*`` settings merged into the
-    appropriate ``*-src`` directives.
+    Derives the base skeleton from ``csp_middleware._DEFAULT_DIRECTIVES`` — the
+    single source of truth — so this preflight can NEVER drift from the policy the
+    middleware actually ships (it previously hardcoded a parallel copy that modelled
+    ``style-src`` WITH ``'unsafe-inline'`` while the middleware emitted strict
+    ``'self'``, so the verifier reported on a policy that never shipped). Then merges
+    the ``CSP_EXTRA_*`` settings, mirroring the middleware's assembly. The per-request
+    nonce is intentionally omitted here (it is request-scoped, not a static property).
     """
+    from apps.security.csp_middleware import _DEFAULT_DIRECTIVES
+
     base: dict[str, list[str]] = {
-        "default-src": ["'self'"],
-        "script-src": ["'self'"],
-        "style-src": ["'self'", "'unsafe-inline'"],
-        "img-src": ["'self'", "data:", "https:"],
-        "font-src": ["'self'", "data:", "https:"],
-        "connect-src": ["'self'"],
-        "frame-ancestors": ["'self'"],
-        "base-uri": ["'self'"],
-        "form-action": ["'self'"],
-        "object-src": ["'none'"],
+        k: list(v) for k, v in _DEFAULT_DIRECTIVES.items()
     }
     extras_map = {
         "script-src": "CSP_EXTRA_SCRIPT_SRC",
@@ -129,7 +126,7 @@ def _policy_directives() -> dict[str, Sequence[str]]:
         extra = getattr(settings, setting_name, ()) or ()
         for token in extra:
             token_str = str(token).strip()
-            if token_str and token_str not in base[directive]:
+            if token_str and token_str not in base.setdefault(directive, []):
                 base[directive].append(token_str)
     return base
 
