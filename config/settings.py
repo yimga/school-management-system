@@ -2718,6 +2718,15 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 3600.0,  # Hourly is plenty given the 24h window.
         "options": {"expires": 3300},
     },
+    # Push published, upcoming SchoolEvents to each tenant's connected Google /
+    # Outlook calendar. Idempotent (external id + content hash in event.metadata),
+    # so a re-run PATCHes changed events and skips unchanged ones. Hourly keeps
+    # the mirror fresh; the sweep only touches future published events.
+    "calendar-sync-events": {
+        "task": "integrations_marketplace.sync_calendar_events",
+        "schedule": 3600.0,  # Hourly.
+        "options": {"expires": 3300},
+    },
     # v2.100: renew calendar/mail push subscriptions before they expire.
     # Google Calendar channels last ~30d, Graph subscriptions ~3d — without
     # this, push delivery silently stops and tenants get no notifications.
