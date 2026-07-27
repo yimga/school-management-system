@@ -169,3 +169,30 @@ def classlink_roster_ping(bearer_token: str, district_path: str = "") -> dict[st
         return {"error": "http_error", "status": e.code}
     except Exception as e:
         return {"error": str(e)[:120]}
+
+
+def classlink_list_users(
+    bearer_token: str, district_path: str = "", *, limit: int = 100
+) -> dict[str, Any]:
+    """GET .../users?limit=N — OneRoster users on the district's ClassLink host.
+
+    Returns the decoded OneRoster payload (``{"users": [...]}``) or an error dict.
+    ``district_path`` is the district's OneRoster base URL (stored per-school as
+    ``native_classlink_base_url``); requires a certified ClassLink district token.
+    """
+    base = (district_path or CLASSLINK_API).rstrip("/")
+    if not bearer_token or len(bearer_token) < 8:
+        return {"error": "missing_token"}
+    safe_limit = max(1, min(int(limit or 100), 10000))  # magic-number-allow: OneRoster per-page cap
+    req = urllib.request.Request(
+        f"{base}/users?limit={safe_limit}",
+        headers={"Authorization": f"Bearer {bearer_token}"},
+        method="GET",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        return {"error": "http_error", "status": e.code}
+    except Exception as e:
+        return {"error": "request_failed", "detail": str(e)[:200]}
