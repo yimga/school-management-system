@@ -12,7 +12,7 @@ Django's cascade collector does not know any of that. Asked to delete a School i
 walks EVERY reverse relation, tenant ones included, and issues a query against a
 table that does not exist in ``public``::
 
-    >>> School.objects.filter(slug="buea-gilead-tech").delete()
+    >>> School.objects.filter(slug="example-school").delete()
     ProgrammingError: relation "portal_portalfeatureitem" does not exist
 
 Nothing is deleted — the collector fails while still gathering. Worse, inside an

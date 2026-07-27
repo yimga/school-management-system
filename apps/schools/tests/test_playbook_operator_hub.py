@@ -13,6 +13,7 @@ from apps.automation.models import (
     MigrationPlaybook,
     MigrationRun,
 )
+from apps.test_utils.http_clients import login_manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -24,8 +25,13 @@ class PlaybookOperatorHubTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.user)
         self.host = "manager.runmycampus.com"
+        # Manager host reads MANAGER_SESSION_COOKIE_NAME and operators carry
+        # baseline strict MFA; a bare force_login 302s to mfa/setup. Arm the
+        # manager client (confirmed device + manager session + mfa_verified).
+        self.client = login_manager_client(
+            self.user, password="testpass123", host=self.host
+        )
         cache.clear()
         AutomationExecutionLog.objects.filter(
             task_name="automation.playbook.execute",
@@ -249,7 +255,15 @@ class PlaybookOperatorHubTests(TestCase):
         url = reverse("super:playbook_operator_hub")
         response = self.client.get(url, HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        run_change = reverse("admin:automation_migrationrun_change", args=[run_pk])
+        # admin/ is host-split to platform_admin_site on the manager urlconf; the
+        # hub view (rendered under the manager request) reverses it there, so the
+        # test must reverse against the same urlconf (the default resolver has no
+        # 'admin' namespace).
+        run_change = reverse(
+            "admin:automation_migrationrun_change",
+            args=[run_pk],
+            urlconf="config.manager_urls",
+        )
         self.assertContains(response, run_change, html=False)
         self.assertContains(response, "link_demo_pb", html=False)
 
@@ -275,7 +289,11 @@ class PlaybookOperatorHubTests(TestCase):
         url = reverse("super:playbook_operator_hub")
         response = self.client.get(url, HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        bad = reverse("admin:automation_migrationrun_change", args=[stale_id])
+        bad = reverse(
+            "admin:automation_migrationrun_change",
+            args=[stale_id],
+            urlconf="config.manager_urls",
+        )
         self.assertNotContains(response, bad, html=False)
         self.assertContains(response, "record removed or unavailable", html=False)
 

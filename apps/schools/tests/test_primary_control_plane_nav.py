@@ -12,12 +12,15 @@ from apps.schools.control_plane_nav import (
 class PrimaryControlPlaneNavTests(SimpleTestCase):
     """build_primary_control_plane_nav resolves 8 pills on manager urlconf."""
 
-    def test_eight_pills_stable_order(self):
+    def test_primary_pills_stable_order(self):
         request = RequestFactory().get("/super/dashboard/")
         request.urlconf = "config.manager_urls"
         primary = build_primary_control_plane_nav(request)
         ids = [x["id"] for x in primary]
-        self.assertEqual(len(primary), 8, msg=ids)
+        # Contract: the primary control-plane nav is exactly these pills in this
+        # order (the list equality pins both count AND order). The nav grew from 8
+        # to 10 with primary_funding (advancement) + primary_remote_support; update
+        # this list deliberately whenever the nav set changes.
         self.assertEqual(
             ids,
             [
@@ -26,8 +29,10 @@ class PrimaryControlPlaneNavTests(SimpleTestCase):
                 "primary_operations",
                 "primary_marketplace",
                 "primary_analytics",
+                "primary_funding",
                 "primary_migration",
                 "primary_support",
+                "primary_remote_support",
                 "primary_control",
             ],
         )

@@ -91,6 +91,11 @@
       "reason": "Schoolops schema repair DDL/backfill using quoted identifiers during controlled startup repair.",
       "last_reviewed": "2026-07-18"
     },
+    "apps/schools/deletion.py": {
+      "expected_count": 1,
+      "reason": "Tenant deletion probes schema existence via a fully parameterized SELECT 1 FROM information_schema.schemata WHERE schema_name = %s (bound param, no string interpolation) before tearing down a tenant workspace.",
+      "last_reviewed": "2026-07-26"
+    },
     "apps/schools/management/commands/e2e_lifecycle.py": {
       "expected_count": 1,
       "reason": "Staff/dev e2e lifecycle command uses a single catalog/probe execute for tenant workspace verification; not a production request path.",
@@ -100,6 +105,11 @@
       "expected_count": 2,
       "reason": "Onboarding provisioning probes/repairs schema readiness with bounded catalog SQL; no user-supplied identifiers.",
       "last_reviewed": "2026-07-18"
+    },
+    "apps/schools/provision_watchdog.py": {
+      "expected_count": 1,
+      "reason": "Provisioning watchdog counts applied migrations in a tenant schema (SELECT count(*) FROM \"<schema>\".django_migrations); the schema is the Client row's own schema_name validated against _SCHEMA_NAME_RE, so no user input reaches the query.",
+      "last_reviewed": "2026-07-26"
     },
     "apps/schools/repositories/health_repository.py": {
       "expected_count": 3,
@@ -127,9 +137,9 @@
       "last_reviewed": "2026-07-18"
     },
     "apps/schools/tenant_workspace.py": {
-      "expected_count": 1,
-      "reason": "Workspace existence probe: SELECT 1 FROM information_schema/sqlite_master for schema table presence; no user input.",
-      "last_reviewed": "2026-07-18"
+      "expected_count": 3,
+      "reason": "Tenant workspace introspection: SELECT 1 FROM information_schema/sqlite_master for table presence, plus reading applied migrations from \"<schema>\".django_migrations (schema name quoted as an identifier, not user input) for readiness/repair.",
+      "last_reviewed": "2026-07-26"
     },
     "apps/siteconfig/repositories/database_recovery_repository.py": {
       "expected_count": 1,
