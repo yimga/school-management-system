@@ -158,6 +158,24 @@ body[data-rmc-tenant-copilot-rail="1"][data-rmc-workspace-tools="tenant"] {
   body[data-rmc-workspace-tools="tenant"]:not([data-rmc-tenant-copilot-rail="1"]) #main-content {
     padding-right: calc(var(--rmc-operator-tools-tab-w, 44px) + 8px);
   }
+
+  /* Backend (Admin Home /backend/) hardening — 2026-07-27.
+     The fold above renders the tenant Tools tab background:transparent, relying
+     on the copilot rail's dark column showing through. That is safe on the
+     teacher/family portal (always the dark rail). The backend console shell,
+     however, can carry a LIGHT console theme (backend-light-theme.css) or serve
+     a stale rail sheet, in which case the underlying column is not visibly dark
+     and the transparent "Tools" tab renders INVISIBLE — the "Tools sidebar is
+     missing on the tenant-admin dashboard" report. The fold comments already
+     handle the rail-DISABLED case with a solid treatment; this covers the
+     rail-present-but-not-dark case. Give the folded tab a self-contained
+     dark-chrome fallback so the Tools entry is always visible on the backend
+     surface. Scoped to body.backend-shell (set by backend_base_tenant.html) so
+     the teacher surface's seamless transparency is untouched. */
+  body.backend-shell[data-rmc-tenant-copilot-rail="1"][data-rmc-workspace-tools="tenant"]
+    .rmc-operator-tools__edge-tab {
+    background: var(--cp-chrome-surface, rgba(17, 22, 36, 0.94)); /* off-token-allow: tenant-copilot-rail-merge-dark-chrome */
+  }
 }
 
 .rmc-operator-tools__edge-tab[aria-expanded="true"] {
