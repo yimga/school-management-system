@@ -96,8 +96,13 @@
     </div>
     <div class="card-body">
       {% if children %}
+        {% comment %} Offline: capture as a structured field_capture workflow so a
+           reconnect replay lands a real AttendanceJustification (student + date +
+           reason), not an opaque note. The document is online-only (files are not
+           queued offline). {% endcomment %}
         <form method="post" enctype="multipart/form-data" id="parent-attendance-justification-form" dir="auto"
-              data-rmc-offline-form="notes_report" data-offline-action-type="notes_report"
+              data-rmc-offline-form="field_capture" data-rmc-offline-workflow="absence_justification"
+              data-offline-action-type="notes_report"
               data-draft-key="attendance_justification_{{ request.user.id }}" data-draft-max-age-hours="48" data-draft-pending-label="{% trans 'Unsaved justification' %}">
           {% csrf_token %}
           {{ form.as_p }}

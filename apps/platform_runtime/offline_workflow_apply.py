@@ -19,6 +19,11 @@ WORKFLOW_SUBSTITUTE_HANDOVER = "substitute_handover"
 WORKFLOW_LOST_BELONGINGS_MINT = "lost_belongings_mint"
 WORKFLOW_LOST_BELONGINGS_RECOVER = "lost_belongings_recover"
 WORKFLOW_BEHAVIOR_INCIDENT = "behavior_incident"
+WORKFLOW_ABSENCE_JUSTIFICATION = "absence_justification"
+
+#: Defensive cap on an offline-captured absence reason (the enqueue endpoint
+#: already bounds the whole body; this bounds the single field).
+_MAX_JUSTIFICATION_REASON_CHARS = 20000  # magic-number-allow: offline reason field cap
 
 # Finance + payroll workflows delegate to domain handlers (batch 1511).
 
@@ -72,6 +77,8 @@ def try_apply_field_capture_workflow(
         return _apply_lost_belongings_recover_capture(school_id, user_id, fields, payload)
     if workflow == WORKFLOW_BEHAVIOR_INCIDENT:
         return _apply_behavior_incident_capture(school_id, user_id, fields, payload)
+    if workflow == WORKFLOW_ABSENCE_JUSTIFICATION:
+        return _apply_absence_justification_capture(school_id, user_id, fields, payload)
     from apps.finance.offline_workflow_handlers import apply_finance_workflow
 
     finance_result = apply_finance_workflow(
@@ -240,6 +247,84 @@ def _apply_behavior_incident_capture(
         "ok": True,
         "incident_id": incident.pk,
         "workflow": WORKFLOW_BEHAVIOR_INCIDENT,
+    }
+
+
+def _apply_absence_justification_capture(
+    school_id: int,
+    user_id: int,
+    fields: dict[str, Any],
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Persist an offline parent absence justification into
+    ``portal.AttendanceJustification`` — the same model the online ModelForm
+    writes, so an offline capture converges with the online path instead of
+    landing as an opaque note.
+
+    RBAC: the row is created only when the caller actually guards the named
+    student — a parent must never justify another family's child. Idempotent on
+    (guardian, student, attendance_date) so a reconnect replay lands on the first
+    row. An attached document is online-only (files are not queued offline); the
+    parent can add it when back online.
+    """
+    from datetime import date as date_cls
+
+    from apps.people.models import StudentGuardian, StudentProfile
+    from apps.portal.models import AttendanceJustification
+
+    if not user_id:
+        return {"ok": False, "error": "authentication required for absence_justification"}
+
+    student_raw = (
+        fields.get("student")
+        or fields.get("student_id")
+        or payload.get("student_id")
+    )
+    reason = str(fields.get("reason") or "").strip()
+    date_raw = str(fields.get("attendance_date") or "").strip()
+    if student_raw in (None, "") or not reason or not date_raw:
+        return {
+            "ok": False,
+            "error": "student, attendance_date and reason are required",
+        }
+    try:
+        student_id = int(student_raw)
+    except (TypeError, ValueError):
+        return {"ok": False, "error": "invalid student"}
+    try:
+        attendance_date = date_cls.fromisoformat(date_raw)
+    except ValueError:
+        return {"ok": False, "error": "invalid attendance_date (expected YYYY-MM-DD)"}
+
+    # Tenant + guardianship gate — the parent may only justify their OWN child.
+    student = StudentProfile.objects.filter(pk=student_id, school_id=school_id).first()
+    if student is None:
+        return {"ok": False, "error": "student not found for school"}
+    guards_child = StudentGuardian.objects.filter(
+        guardian_user_id=user_id, student_id=student_id
+    ).exists()
+    if not guards_child:
+        return {"ok": False, "error": "not a guardian of this student"}
+
+    justification, created = AttendanceJustification.objects.get_or_create(
+        guardian_id=user_id,
+        student_id=student_id,
+        attendance_date=attendance_date,
+        defaults={"reason": reason[:_MAX_JUSTIFICATION_REASON_CHARS]},
+    )
+    logger.info(
+        "offline_workflow.absence_justification id=%s school_id=%s created=%s",
+        justification.pk,
+        school_id,
+        created,
+        extra={"scope": "offline_workflow.absence_justification"},
+    )
+    return {
+        "ok": True,
+        "workflow": WORKFLOW_ABSENCE_JUSTIFICATION,
+        "attendance_justification_id": justification.pk,
+        "created": created,
+        "idempotent": not created,
     }
 
 
@@ -456,6 +541,8 @@ def _apply_lost_belongings_recover_capture(
 
 
 __all__ = [
+    "WORKFLOW_ABSENCE_JUSTIFICATION",
+    "WORKFLOW_BEHAVIOR_INCIDENT",
     "WORKFLOW_LOST_BELONGINGS_MINT",
     "WORKFLOW_LOST_BELONGINGS_RECOVER",
     "WORKFLOW_SUBSTITUTE_HANDOVER",
