@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 
 from apps.accounts.models import User
 from apps.schools.dashboard_rbac import (
@@ -101,6 +101,12 @@ class DashboardTopologyBoundaryViolationTests(TestCase):
         self.assertIn(b"Configuration area restricted", response.content)
 
 
+# The parity matrix probes the MANAGER-host operator spine: super:*, configuration:*,
+# and the admin:* changelists. On the manager host those admin routes are served by
+# platform_admin_site (config.manager_urls) — config.urls host-DISPATCHES /admin/, so
+# admin:* names don't reverse there and the probe falsely reads "unreachable". Resolve
+# the matrix against the urlconf it is actually served under (the manager host).
+@override_settings(ROOT_URLCONF="config.manager_urls")
 class DashboardTopologyMechanicalCrawlTests(SimpleTestCase):
     """Test 2: operator surface spine + paired routes resolve (no dead nav)."""
 
@@ -120,7 +126,10 @@ class DashboardTopologyViewportMarkerTests(SimpleTestCase):
         )
         self.assertIn("data-rmc-shell-viewport-safe", text)
         self.assertIn("accounts:logout", text)
-        self.assertIn("rmc-theme-btn", text)
+        # v4.01.43: the theme control moved from an inline `rmc-theme-btn` element
+        # into the shared header_theme_chip component (rendered in the dropdown) +
+        # rmc-theme-toggle.js. Assert the theme control is present via its component.
+        self.assertIn("header_theme_chip.html", text)
 
     def test_control_plane_shell_uses_scrollable_main(self):
         skeleton = (ROOT / "templates" / "control_plane_skeleton.html").read_text(
@@ -136,8 +145,13 @@ class DashboardTopologyViewportMarkerTests(SimpleTestCase):
 
     def test_portal_shell_loads_topology_assets(self):
         portal = (ROOT / "templates" / "portal_base.html").read_text(encoding="utf-8")
-        self.assertIn("dashboard-topology-shell.css", portal)
+        # v4.02.45 consolidated ~70 standalone portal CSS files into a deferred
+        # bundle + the canonical spine; the retired dashboard-topology-shell.css
+        # rules moved into design-tokens.css (data-rmc-shell-main) and
+        # rmc-class-grammar.css (.rmc-dashboard-widget-boundary), both loaded
+        # blocking here. Assert the widget-boundary JS + the grammar that styles it.
         self.assertIn("rmc-dashboard-widget-boundary.js", portal)
+        self.assertIn("rmc-class-grammar.css", portal)
 
 
 class DashboardTopologyContextProcessorTests(TestCase):

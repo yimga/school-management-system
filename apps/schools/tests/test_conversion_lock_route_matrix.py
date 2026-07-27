@@ -41,7 +41,12 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
     """Tenant HTTP integration: locked surface redirects to activation."""
 
     def setUp(self):
-        self.client = Client(enforce_csrf_checks=False)
+        # HTTP_ACCEPT="text/html" marks every request a top-level document
+        # navigation (is_document_navigation), which is what the conversion-lock
+        # gate keys on — a bare test-client GET sends no Accept header, so the
+        # gate correctly treats it as an XHR/subresource and never redirects
+        # (the "empty-void" storm fix). A real browser page load always sends it.
+        self.client = Client(enforce_csrf_checks=False, HTTP_ACCEPT="text/html")
         uid = uuid.uuid4().hex[:10]
         self.host = f"matrix-{uid}.example.com"
         self.school = School.objects.create(
@@ -67,6 +72,12 @@ class ConversionLockRouteMatrixHttpTests(TestCase):
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
         self.client.login(username=username, password="Test1234!ab")
+        # These admins are is_superuser=True, so principal_requires_strict_mfa()
+        # hard-walls them to /authentication/mfa/setup/ ahead of the conversion
+        # lock (security gate outranks the onboarding gate). Enroll + verify MFA
+        # so the request reaches the conversion-lock gate the tests exercise —
+        # exactly the state of a real admin who has completed MFA enrollment.
+        self._mark_mfa_verified(user)
         return user
 
     def _mark_mfa_verified(self, user):

@@ -7,6 +7,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.test_utils.http_clients import login_manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost"])
@@ -14,13 +15,6 @@ class ControlPlaneShellRuntimeRenderTests(TestCase):
     """Manager host + platform operator; real super URLs and templates only."""
 
     def setUp(self):
-        self.user = User.objects.create_user(
-            username="cp_shell_render_op",
-            password="testpass123",
-            is_staff=True,
-            is_superuser=True,
-        )
-        self.client.force_login(self.user)
         self.host = "manager.runmycampus.com"
         self.env = patch.dict(
             os.environ,
@@ -31,6 +25,19 @@ class ControlPlaneShellRuntimeRenderTests(TestCase):
             clear=False,
         )
         self.env.start()
+        self.user = User.objects.create_user(
+            username="cp_shell_render_op",
+            password="testpass123",
+            is_staff=True,
+            is_superuser=True,
+        )
+        # A bare force_login writes only the default session cookie and no MFA
+        # state; the manager host reads MANAGER_SESSION_COOKIE_NAME and an
+        # is_superuser operator carries strict baseline MFA, so RequireMFAMiddleware
+        # bounces such a request to /authentication/mfa/setup/ (302). The shared
+        # helper enrolls a confirmed TOTP device, binds the manager session store,
+        # and marks it MFA-verified — the real state of a logged-in operator.
+        self.client = login_manager_client(self.user, password="testpass123")
 
     def tearDown(self):
         self.env.stop()

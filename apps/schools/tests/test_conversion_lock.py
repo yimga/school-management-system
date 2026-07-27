@@ -32,7 +32,11 @@ UserModel = get_user_model()
 )
 class ConversionLockStrictRoleWideTests(TestCase):
     def setUp(self):
-        self.client = Client(enforce_csrf_checks=False)
+        # HTTP_ACCEPT="text/html" marks each request a top-level document
+        # navigation (is_document_navigation) — the conversion-lock gate only
+        # redirects real page loads, never bare XHR/subresource fetches (the
+        # "empty-void" storm fix). A real browser navigation always sends it.
+        self.client = Client(enforce_csrf_checks=False, HTTP_ACCEPT="text/html")
         self.school = School.objects.create(
             name="Lock School",
             slug="lock-school",
