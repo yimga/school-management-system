@@ -1,7 +1,7 @@
 """Unit tests for fleet report markdown and tenant operational health."""
 from __future__ import annotations
 
-from django.test import SimpleTestCase, TestCase
+from django.test import TestCase
 
 from apps.schools.fleet_report_markdown import build_fleet_status_markdown
 from apps.schools.models import School
@@ -11,7 +11,9 @@ from apps.schools.tenant_operational_health import (
 )
 
 
-class FleetReportMarkdownTests(SimpleTestCase):
+class FleetReportMarkdownTests(TestCase):
+    # build_fleet_status_markdown() reads School rows from the DB, so this needs a
+    # DB-backed TestCase (a SimpleTestCase raises DatabaseOperationForbidden).
     def test_markdown_contains_header_and_table(self):
         md = build_fleet_status_markdown()
         self.assertIn("# RunMyCampus Fleet Status Report", md)
@@ -97,7 +99,6 @@ class TenantOperationalHealthTests(TestCase):
             is_active=True,
             is_approved=True,
         )
-        from types import SimpleNamespace
         from django.contrib.auth import get_user_model
         from django.test import RequestFactory
 
@@ -110,12 +111,19 @@ class TenantOperationalHealthTests(TestCase):
         request = RequestFactory().get("/portal/api/operational-health.json?surface=student")
         request.user = user
         request.school = school
-        site = SimpleNamespace(enable_student_portal=False)
         from unittest.mock import patch
 
+        # resolve_tenant_operational_health reads the toggle via the canonical
+        # single-key resolver get_effective_config(key="enable_student_portal"),
+        # not the legacy raw-namespace get_effective_site_settings — patch what the
+        # production code actually calls, else the flag stays default-True and the
+        # student_portal degraded signal never fires.
+        def _fake_config(*args, key=None, default=None, **kwargs):
+            return False if key == "enable_student_portal" else default
+
         with patch(
-            "apps.siteconfig.config_service.get_effective_site_settings",
-            return_value=site,
+            "apps.platform_runtime.config_resolver.get_effective_config",
+            side_effect=_fake_config,
         ):
             payload = resolve_tenant_operational_health(
                 school, request=request, surface="student"
