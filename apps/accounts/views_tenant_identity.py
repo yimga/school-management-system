@@ -552,6 +552,34 @@ def tenant_join_code_deactivate(request, code_id):
 
 @login_required
 @require_school
+@require_http_methods(["GET"])
+def tenant_join_code_poster(request, code_id):
+    """Printable QR poster/slips for a join code (parents scan to reach the join
+    page with the code prefilled)."""
+    school = request.school
+    if not _can_manage_tenant_identity(request.user, school):
+        return HttpResponseForbidden("Not permitted.")
+    from apps.accounts.models import SchoolJoinCode
+    from apps.accounts.qr_slips import join_code_join_url, qr_png_data_uri
+
+    join_code = SchoolJoinCode.objects.filter(pk=code_id, school=school).first()
+    if join_code is None:
+        return HttpResponseForbidden("Not found.")
+    join_url = join_code_join_url(join_code, request=request)
+    return render(
+        request,
+        "accounts/join_code_poster.html",
+        {
+            "school": school,
+            "join_code": join_code,
+            "join_url": join_url,
+            "qr_data_uri": qr_png_data_uri(join_url),
+        },
+    )
+
+
+@login_required
+@require_school
 @require_POST
 def tenant_identity_revoke_sessions(request, user_id: int):
     """Revoke all active sessions for a school staff member (admin action)."""

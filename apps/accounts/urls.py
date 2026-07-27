@@ -187,6 +187,7 @@ from apps.accounts.views_tenant_identity import (
     tenant_identity_suspend,
     tenant_identity_transfer_ownership,
     tenant_join_code_deactivate,
+    tenant_join_code_poster,
     tenant_join_codes,
     tenant_staff_invite_accept,
 )
@@ -468,6 +469,11 @@ urlpatterns = [
         "backend/identity/join-codes/<uuid:code_id>/deactivate/",
         tenant_join_code_deactivate,
         name="tenant_join_code_deactivate",
+    ),
+    path(
+        "backend/identity/join-codes/<uuid:code_id>/poster/",
+        tenant_join_code_poster,
+        name="tenant_join_code_poster",
     ),
     # Public self-service: prospective parents/teachers/staff redeem a shared code.
     path("join/", join_school, name="join_school"),

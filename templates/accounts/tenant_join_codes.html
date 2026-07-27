@@ -85,12 +85,15 @@
                     {% else %}<span class="badge text-bg-secondary">{% trans "Used up" %}</span>{% endif %}
                   </td>
                   <td class="text-end">
-                    {% if c.is_active %}
-                    <form method="post" action="{% url 'accounts:tenant_join_code_deactivate' c.id %}" onsubmit="return confirm('{% trans "Deactivate this code?" %}');">
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Deactivate" %}</button>
-                    </form>
-                    {% endif %}
+                    <div class="d-inline-flex gap-1 align-items-center">
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:tenant_join_code_poster' c.id %}" title="{% trans 'Print QR poster' %}"><i class="bi bi-printer" aria-hidden="true"></i><span class="visually-hidden">{% trans "Print QR poster" %}</span></a>
+                      {% if c.is_active %}
+                      <form method="post" action="{% url 'accounts:tenant_join_code_deactivate' c.id %}" onsubmit="return confirm('{% trans "Deactivate this code?" %}');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Deactivate" %}</button>
+                      </form>
+                      {% endif %}
+                    </div>
                   </td>
                 </tr>
                 {% endfor %}
