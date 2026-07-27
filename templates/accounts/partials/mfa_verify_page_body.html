@@ -33,13 +33,17 @@
           {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
           <label class="visually-hidden" for="token">{% trans "Authentication code" %}</label>
           {% include "components/security_checkpoint_otp.html" with autofocus=True %}
+          {% comment %} The trust PERIOD is the switch: picking a period arms trust
+             (skip MFA on this browser for that long); "Don't trust" is the safe
+             default and asks every login. One control — no separate checkbox to
+             forget (that decoupling was the "I set the days but MFA still asks me"
+             trap). {% endcomment %}
           <div class="rmc-security-checkpoint__trust">
-            <input type="checkbox" id="remember_device" name="remember_device" value="1">
-            <label for="remember_device">{% trans "Trust this device and skip MFA prompts on this browser for" %}</label>
-            <label class="visually-hidden" for="trust_days">{% trans "Trusted-device period" %}</label>
+            <label for="trust_days">{% trans "Skip MFA prompts on this browser for" %}</label>
             <select id="trust_days" name="trust_days" class="form-select form-select-sm">
+              <option value="0" selected>{% trans "Don't trust this browser (ask every time)" %}</option>
               {% for days in mfa_trust_days_options %}
-              <option value="{{ days }}"{% if days == mfa_trust_default_days %} selected{% endif %}>{% blocktrans count trust_days=days %}{{ trust_days }} day{% plural %}{{ trust_days }} days{% endblocktrans %}</option>
+              <option value="{{ days }}">{% blocktrans count trust_days=days %}{{ trust_days }} day{% plural %}{{ trust_days }} days{% endblocktrans %}</option>
               {% endfor %}
             </select>
           </div>

@@ -28,10 +28,19 @@ def _mark_mfa_verified_and_redirect(
     request, next_url: str, *, success_message=None
 ):
     request.session["mfa_verified"] = True
-    remember = request.POST.get("remember_device") == "1"
-    if remember:
-        from apps.accounts.mfa_device_trust import normalize_device_trust_days
+    from apps.accounts.mfa_device_trust import (
+        device_trust_opt_in,
+        normalize_device_trust_days,
+    )
 
+    # Opt-in is driven by the trust-PERIOD dropdown (picking a real period arms
+    # trust); the legacy remember_device checkbox is still honored. This closes the
+    # decoupling trap that produced the "I set the days but MFA still asks me" report.
+    remember = device_trust_opt_in(
+        remember_flag=request.POST.get("remember_device"),
+        trust_days_value=request.POST.get("trust_days"),
+    )
+    if remember:
         trust_days = normalize_device_trust_days(request.POST.get("trust_days"))
         until = timezone.now() + timedelta(days=trust_days)
         request.session["mfa_verified_until"] = until.isoformat()

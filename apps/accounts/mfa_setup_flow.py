@@ -95,9 +95,18 @@ def apply_device_trust_on_enroll(request, response) -> None:
 
     if "verify_token" not in request.POST:
         return
-    if request.POST.get("remember_device") != "1":
+    from apps.accounts.mfa_device_trust import (
+        device_trust_opt_in,
+        normalize_device_trust_days,
+    )
+
+    # Trust-period dropdown drives opt-in (picking a period arms trust); the legacy
+    # checkbox is still honored. "Don't trust" (0) correctly mints no trust.
+    if not device_trust_opt_in(
+        remember_flag=request.POST.get("remember_device"),
+        trust_days_value=request.POST.get("trust_days"),
+    ):
         return
-    from apps.accounts.mfa_device_trust import normalize_device_trust_days
 
     trust_days = normalize_device_trust_days(request.POST.get("trust_days"))
     request.session["mfa_verified"] = True

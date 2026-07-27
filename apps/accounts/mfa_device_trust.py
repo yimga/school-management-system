@@ -94,6 +94,29 @@ def normalize_device_trust_days(value) -> int:
     return requested if requested in allowed else device_trust_default_days()
 
 
+def device_trust_opt_in(*, remember_flag=None, trust_days_value=None) -> bool:
+    """True when the user asked to trust this browser (skip MFA on next login).
+
+    The trust-PERIOD control is now the primary, self-sufficient switch: picking a
+    real allowed period (1/7/14/30 days) arms trust on its own. This removes the old
+    decoupling trap where the period dropdown was a SEPARATE control from a
+    "remember this device" checkbox — a user who changed the day count but never
+    ticked the box was silently NOT trusted, then re-prompted for MFA on the next
+    login ("I set the days but it still asks me"). A "Don't trust" selection submits
+    ``0`` / empty, which is not an allowed period, so it correctly does not opt in.
+
+    The legacy ``remember_flag`` (checkbox / JSON boolean) is still honored for any
+    caller that continues to post it, so no existing integration breaks.
+    """
+    if remember_flag in (True, "1", "true", "on", "yes"):
+        return True
+    try:
+        picked = int(trust_days_value)
+    except (TypeError, ValueError):
+        return False
+    return picked in device_trust_allowed_days()
+
+
 def device_trust_max_age_seconds(days=None) -> int:
     """Trust lifetime in seconds.
 

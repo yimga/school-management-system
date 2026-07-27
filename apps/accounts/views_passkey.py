@@ -185,10 +185,18 @@ def passkey_authentication_verify(request):
         from django.utils import timezone
 
         response = JsonResponse({"ok": True})
-        remember = data.get("remember_device") is True
-        if remember:
-            from apps.accounts.mfa_device_trust import normalize_device_trust_days
+        from apps.accounts.mfa_device_trust import (
+            device_trust_opt_in,
+            normalize_device_trust_days,
+        )
 
+        # Trust-period selection arms trust on its own (parity with the TOTP path);
+        # the JSON remember_device boolean is still honored for back-compat.
+        remember = device_trust_opt_in(
+            remember_flag=data.get("remember_device"),
+            trust_days_value=data.get("trust_days"),
+        )
+        if remember:
             trust_days = normalize_device_trust_days(data.get("trust_days"))
             until = timezone.now() + timedelta(days=trust_days)
             request.session["mfa_verified_until"] = until.isoformat()
