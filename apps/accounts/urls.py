@@ -186,8 +186,11 @@ from apps.accounts.views_tenant_identity import (
     tenant_identity_roster,
     tenant_identity_suspend,
     tenant_identity_transfer_ownership,
+    tenant_join_code_deactivate,
+    tenant_join_codes,
     tenant_staff_invite_accept,
 )
+from apps.accounts.views_join import join_school
 from apps.schoolops.views_tenant_ops import (
     ops_canteen,
     ops_clinic,
@@ -452,6 +455,18 @@ urlpatterns = [
         tenant_identity_invite,
         name="tenant_identity_invite",
     ),
+    path(
+        "backend/identity/join-codes/",
+        tenant_join_codes,
+        name="tenant_join_codes",
+    ),
+    path(
+        "backend/identity/join-codes/<uuid:code_id>/deactivate/",
+        tenant_join_code_deactivate,
+        name="tenant_join_code_deactivate",
+    ),
+    # Public self-service: prospective parents/teachers/staff redeem a shared code.
+    path("join/", join_school, name="join_school"),
     path(
         "backend/identity/regulator-grant/",
         tenant_identity_regulator_grant,

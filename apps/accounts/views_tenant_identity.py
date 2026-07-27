@@ -479,6 +479,79 @@ def tenant_identity_invite(request):
 
 @login_required
 @require_school
+@require_http_methods(["GET", "POST"])
+def tenant_join_codes(request):
+    """Admin: list + generate self-service join codes for this school."""
+    school = request.school
+    if not _can_manage_tenant_identity(request.user, school):
+        return HttpResponseForbidden("Not permitted.")
+    from apps.accounts.join_codes import JoinCodeError, generate_join_code
+    from apps.accounts.models import SchoolJoinCode
+    from apps.accounts.tenant_user_provisioning import provisionable_role_choices
+
+    if request.method == "POST":
+        raw_max = (request.POST.get("max_uses") or "").strip()
+        try:
+            max_uses = int(raw_max) if raw_max else None
+        except (TypeError, ValueError):
+            max_uses = None
+        expires_at = None
+        raw_days = (request.POST.get("expires_days") or "").strip()
+        if raw_days:
+            try:
+                days = int(raw_days)
+                if days > 0:
+                    expires_at = timezone.now() + timezone.timedelta(days=days)
+            except (TypeError, ValueError):
+                expires_at = None
+        try:
+            join_code = generate_join_code(
+                school=school,
+                role=(request.POST.get("role") or "").strip().upper(),
+                created_by=request.user,
+                label=request.POST.get("label") or "",
+                domain_allowlist=request.POST.get("domain_allowlist") or "",
+                max_uses=max_uses,
+                expires_at=expires_at,
+            )
+        except JoinCodeError as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(
+                request, _("Join code %(code)s created.") % {"code": join_code.code}
+            )
+        return redirect("accounts:tenant_join_codes")
+
+    codes = list(SchoolJoinCode.objects.filter(school=school).order_by("-created_at")[:100])
+    return render(
+        request,
+        "accounts/tenant_join_codes.html",
+        {
+            "school": school,
+            "codes": codes,
+            "provision_role_choices": provisionable_role_choices(),
+            "roster_url": reverse("accounts:tenant_identity_roster"),
+        },
+    )
+
+
+@login_required
+@require_school
+@require_POST
+def tenant_join_code_deactivate(request, code_id):
+    """Admin: deactivate a join code (no more redemptions)."""
+    school = request.school
+    if not _can_manage_tenant_identity(request.user, school):
+        return HttpResponseForbidden("Not permitted.")
+    from apps.accounts.models import SchoolJoinCode
+
+    SchoolJoinCode.objects.filter(pk=code_id, school=school).update(is_active=False)
+    messages.success(request, _("Join code deactivated."))
+    return redirect("accounts:tenant_join_codes")
+
+
+@login_required
+@require_school
 @require_POST
 def tenant_identity_revoke_sessions(request, user_id: int):
     """Revoke all active sessions for a school staff member (admin action)."""

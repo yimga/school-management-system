@@ -1,0 +1,108 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Join codes" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="task-form" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb mb-0 small">
+      <li class="breadcrumb-item"><a href="{{ roster_url }}">{% trans "Staff identity" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Join codes" %}</li>
+    </ol>
+  </nav>
+
+  <h1 class="h4 mb-1">{% trans "Self-service join codes" %}</h1>
+  <p class="text-secondary small mb-3" style="max-width:52rem">{% trans "Share a code so people can join this school themselves — they enter it on your join page, register, and are added with the role you choose. Restrict by email domain, cap the number of uses, or set an expiry." %}</p>
+
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "Create a join code" %}</h2>
+          <form method="post" class="vstack gap-3">
+            {% csrf_token %}
+            <div>
+              <label class="form-label" for="id_jc_role">{% trans "Role for joiners" %}</label>
+              <select class="form-select" id="id_jc_role" name="role">
+                {% for value, label in provision_role_choices %}
+                <option value="{{ value }}"{% if value == 'PARENT' %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="id_jc_label">{% trans "Label" %} <span class="text-secondary">({% trans "optional" %})</span></label>
+              <input type="text" class="form-control" id="id_jc_label" name="label" maxlength="120" placeholder="{% trans 'e.g. Grade 7 parents' %}">
+            </div>
+            <div>
+              <label class="form-label" for="id_jc_domain">{% trans "Restrict to email domains" %} <span class="text-secondary">({% trans "optional" %})</span></label>
+              <input type="text" class="form-control" id="id_jc_domain" name="domain_allowlist" maxlength="255" placeholder="school.edu, staff.school.edu">
+              <div class="form-text">{% trans "Comma-separated. Leave blank to allow any email." %}</div>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label" for="id_jc_max">{% trans "Max uses" %}</label>
+                <input type="number" min="1" class="form-control" id="id_jc_max" name="max_uses" placeholder="{% trans 'unlimited' %}">
+              </div>
+              <div class="col-6">
+                <label class="form-label" for="id_jc_days">{% trans "Expires in (days)" %}</label>
+                <input type="number" min="1" class="form-control" id="id_jc_days" name="expires_days" placeholder="{% trans 'never' %}">
+              </div>
+            </div>
+            <div><button type="submit" class="btn btn-primary">{% trans "Create code" %}</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "Active & recent codes" %}</h2>
+          {% if codes %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th scope="col">{% trans "Code" %}</th>
+                  <th scope="col">{% trans "Role" %}</th>
+                  <th scope="col">{% trans "Uses" %}</th>
+                  <th scope="col">{% trans "Status" %}</th>
+                  <th scope="col"><span class="visually-hidden">{% trans "Actions" %}</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in codes %}
+                <tr>
+                  <td><code>{{ c.code }}</code>{% if c.label %}<div class="small text-secondary">{{ c.label }}</div>{% endif %}</td>
+                  <td>{{ c.get_role_display|default:c.role }}</td>
+                  <td>{{ c.uses_count }}{% if c.max_uses %} / {{ c.max_uses }}{% endif %}</td>
+                  <td>
+                    {% if c.is_usable %}<span class="badge text-bg-success">{% trans "Active" %}</span>
+                    {% elif not c.is_active %}<span class="badge text-bg-secondary">{% trans "Deactivated" %}</span>
+                    {% elif c.is_expired %}<span class="badge text-bg-warning">{% trans "Expired" %}</span>
+                    {% else %}<span class="badge text-bg-secondary">{% trans "Used up" %}</span>{% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if c.is_active %}
+                    <form method="post" action="{% url 'accounts:tenant_join_code_deactivate' c.id %}" onsubmit="return confirm('{% trans "Deactivate this code?" %}');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Deactivate" %}</button>
+                    </form>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-secondary mb-0">{% trans "No join codes yet. Create one to let people self-join." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

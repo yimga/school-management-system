@@ -678,6 +678,86 @@ class TenantStaffInvite(models.Model):
         return f"{self.email} @ {self.school_id}"
 
 
+class SchoolJoinCode(models.Model):
+    """A shareable code that lets people self-join a school with a preset role
+    (the Google Classroom pattern). Optionally restricted to an email-domain
+    allowlist, capped by ``max_uses``, and/or time-boxed by ``expires_at``."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="join_codes"
+    )
+    code = models.CharField(max_length=16, unique=True, db_index=True)
+    role = models.CharField(  # role-string-allow: default joiner role for a join code
+        max_length=32, default="PARENT"
+    )
+    label = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        help_text="Admin note, e.g. 'Grade 7 parents' or 'New teachers 2026'.",
+    )
+    domain_allowlist = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text=(
+            "Comma-separated email domains (e.g. 'school.edu, staff.school.edu'). "
+            "Empty = any email may redeem."
+        ),
+    )
+    max_uses = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Maximum redemptions. Blank = unlimited."
+    )
+    uses_count = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField(
+        null=True, blank=True, help_text="Blank = never expires."
+    )
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="join_codes_created",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "is_active"], name="accounts_jc_school_act_idx"),
+        ]
+        verbose_name = "School join code"
+        verbose_name_plural = "School join codes"
+
+    def __str__(self) -> str:
+        return f"{self.code} -> {self.school_id} ({self.role})"
+
+    @property
+    def is_expired(self) -> bool:
+        return bool(self.expires_at and self.expires_at < timezone.now())
+
+    @property
+    def is_exhausted(self) -> bool:
+        return bool(self.max_uses is not None and self.uses_count >= self.max_uses)
+
+    @property
+    def is_usable(self) -> bool:
+        return self.is_active and not self.is_expired and not self.is_exhausted
+
+    def domain_allowed(self, email: str) -> bool:
+        allow = [
+            d.strip().lower().lstrip("@")
+            for d in (self.domain_allowlist or "").split(",")
+            if d.strip()
+        ]
+        if not allow:
+            return True
+        domain = (email or "").rsplit("@", 1)[-1].lower()
+        return domain in allow
+
+
 class FederationSsoHealth(models.Model):
     """
     Per ServiceIntegration (SAML/OIDC IdP): last successful login vs failures.

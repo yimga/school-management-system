@@ -1,0 +1,59 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Join" %} {{ school.name|default:"the school" }} — {{ block.super }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+<section class="auth-shell" aria-labelledby="join-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0;padding-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-people"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Join your school" %}</div>
+        <h1 id="join-title">{% if school %}{{ school.name }}{% else %}{% trans "Join with a code" %}{% endif %}</h1>
+      </div>
+    </div>
+    <div class="rmc-security-checkpoint__body" style="padding-top:0">
+      <p class="rmc-security-checkpoint__sub">{% trans "Enter the join code your school shared, then create your account." %}</p>
+      <form method="post" action="" class="vstack gap-3">
+        {% csrf_token %}
+        <div>
+          <label class="form-label" for="id_code">{% trans "Join code" %}</label>
+          <input type="text" class="form-control" id="id_code" name="code" required autocomplete="off"
+                 value="{{ prefill_code }}" style="text-transform:uppercase" maxlength="16">
+        </div>
+        <div class="row g-2">
+          <div class="col-sm-6">
+            <label class="form-label" for="id_first">{% trans "First name" %}</label>
+            <input type="text" class="form-control" id="id_first" name="first_name" value="{{ form_first }}" autocomplete="given-name">
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="id_last">{% trans "Last name" %}</label>
+            <input type="text" class="form-control" id="id_last" name="last_name" value="{{ form_last }}" autocomplete="family-name">
+          </div>
+        </div>
+        <div>
+          <label class="form-label" for="id_email">{% trans "Email" %}</label>
+          <input type="email" class="form-control" id="id_email" name="email" required value="{{ form_email }}" autocomplete="email">
+        </div>
+        <div>
+          <label class="form-label" for="id_password">{% trans "Choose a password" %}</label>
+          <input type="password" class="form-control" id="id_password" name="password" required minlength="8" autocomplete="new-password">
+          <div class="form-text">{% trans "At least 8 characters." %}</div>
+        </div>
+        <div class="rmc-security-checkpoint__actions">
+          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-box-arrow-in-right me-1"></i>{% trans "Create account & join" %}</button>
+          <a class="btn btn-outline-secondary w-100" href="{% url 'accounts:login' %}">{% trans "I already have an account" %}</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

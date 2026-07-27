@@ -44,6 +44,12 @@ def provisionable_role_choices():
     return [(c[0], c[1]) for c in User.Role.choices if c[0] not in _NON_PROVISIONABLE]
 
 
+def is_provisionable_role(role) -> bool:
+    """True when ``role`` is a real, tenant-provisionable role (not the deny set)."""
+    role = (role or "").strip().upper()
+    return role in {c[0] for c in User.Role.choices} and role not in _NON_PROVISIONABLE
+
+
 def provision_tenant_user_with_temp_password(
     *,
     school,

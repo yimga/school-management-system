@@ -95,8 +95,9 @@
       </div>
     </div>
   </div>
-  <div class="mt-3">
+  <div class="mt-3 d-flex flex-wrap gap-2">
     <a class="btn btn-outline-secondary btn-sm" href="{{ roster_url }}">{% trans "Back to staff identity" %}</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:tenant_join_codes' %}"><i class="bi bi-key me-1" aria-hidden="true"></i>{% trans "Self-service join codes" %}</a>
   </div>
 </div>
 {% endblock %}
