@@ -127,6 +127,35 @@ describe("offline forms report the real enqueue outcome", () => {
     expect(warnsNotSaved()).toBe(false);
   });
 
+  it("enqueues an offline homework submit from the real assignment_id/content form", () => {
+    // Regression: the live template emits assignment_id + student_id + content,
+    // but the producer used to read homework_id + submission_text and hard-guard,
+    // so a real offline homework submit silently no-oped (no enqueue, misleading
+    // "required" toast). It must now enqueue with the canonical LMS payload.
+    const spy = enqueueReturning({ ok: true });
+    document.body.innerHTML = `
+      <form data-rmc-offline-form="homework_submission">
+        <input name="assignment_id" value="7">
+        <input name="student_id" value="42">
+        <textarea name="content">My essay</textarea>
+      </form>`;
+    boot();
+    document
+      .querySelector("form")!
+      .dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+
+    // Count-agnostic: this file's repeated boot() accumulates DOMContentLoaded
+    // listeners, so the shared form may be wired more than once. What matters is
+    // that the real-shape form enqueues at all (it did NOT before the fix).
+    expect(spy).toHaveBeenCalled();
+    const arg = spy.mock.calls[0][0] as any;
+    expect(arg.action_type).toBe("homework_submission");
+    expect(arg.payload.assignment_id).toBe("7");
+    expect(arg.payload.student_id).toBe(42);
+    expect(arg.payload.content).toBe("My essay");
+    expect(claimsSuccess()).toBe(true);
+  });
+
   it("treats a legacy undefined return as NOT saved, never as success", () => {
     // A stale cached build of offline-queue-client.js returns undefined. The safe
     // direction for "did the write land?" is to assume it did not.

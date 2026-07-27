@@ -326,24 +326,32 @@
     form.addEventListener('submit', function (ev) {
       if (navigator.onLine || !enabled()) return;
       ev.preventDefault();
-      var hwEl = form.querySelector('[name="homework_id"]');
+      // The live submission template emits assignment_id + student_id + content
+      // (the canonical LMS shape); older markup used homework_id + submission_text.
+      // Read BOTH so the offline rail matches whatever the page renders — the
+      // previous producer only read homework_id/submission_text, so on the real
+      // page (assignment_id/content) the guard always failed and an offline
+      // homework submit silently no-oped. The server applier and SODP validator
+      // both accept assignment_id (preferred) or homework_id, and require student_id.
+      var assignmentEl = form.querySelector('[name="assignment_id"]');
+      var legacyEl = form.querySelector('[name="homework_id"]');
       var sidEl = form.querySelector('[name="student_id"]');
-      var bodyEl = form.querySelector('[name="submission_text"], [name="body"], textarea');
-      var homeworkId = hwEl ? String(hwEl.value || '').trim() : '';
+      var bodyEl = form.querySelector('[name="content"], [name="submission_text"], [name="body"], textarea');
+      var assignmentId = assignmentEl ? String(assignmentEl.value || '').trim() : '';
+      var legacyId = legacyEl ? String(legacyEl.value || '').trim() : '';
       var studentId = sidEl && sidEl.value ? parseInt(sidEl.value, 10) : null;
       var body = bodyEl ? String(bodyEl.value || '').trim() : '';
-      if (!homeworkId || !studentId || !body) {
-        toast('Homework id, student, and submission text are required offline.', 'warning');
+      if ((!assignmentId && !legacyId) || !studentId || !body) {
+        toast('Assignment, student, and your answer are required to save offline.', 'warning');
         return;
       }
-      var idem = 'hw-' + homeworkId + '-' + studentId + '-' + Date.now();
+      var payload = { student_id: studentId, content: body, submission_text: body };
+      if (assignmentId) { payload.assignment_id = assignmentId; }
+      if (legacyId) { payload.homework_id = legacyId; }
+      var idem = 'hw-' + (assignmentId || legacyId) + '-' + studentId + '-' + Date.now();
       reportQueued(window.rmcOfflineEnqueue({
         action_type: 'homework_submission',
-        payload: {
-          homework_id: homeworkId,
-          student_id: studentId,
-          submission_text: body,
-        },
+        payload: payload,
         idempotency_key: idem.slice(0, 128),
       }), 'Homework queued for sync when you reconnect.');
     });
