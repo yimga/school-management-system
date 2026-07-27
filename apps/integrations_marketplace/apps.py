@@ -33,6 +33,18 @@ class IntegrationsMarketplaceConfig(AppConfig):
                 "integrations_marketplace: failed to wire auto-subscribe"
             )
 
+        # Inverse of auto-subscribe: wire the `connector_disconnected` receiver
+        # so disconnecting a connector STOPS its upstream push channel (else
+        # Google keeps hitting a dead webhook and the renewer rotates a ghost
+        # subscription) and scrubs the row's stored OAuth secrets.
+        try:
+            from apps.integrations_marketplace import subscription_teardown  # noqa: F401
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "integrations_marketplace: failed to wire subscription teardown"
+            )
+
         # v2.79 — bind Celery `task_prerun` / `task_postrun` signal handlers so
         # async sends pick up the per-task tenant context (the middleware does
         # this for sync request flow; tasks need a parallel hook).
