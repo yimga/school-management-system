@@ -758,6 +758,44 @@ class SchoolJoinCode(models.Model):
         return domain in allow
 
 
+class LoginMagicLink(models.Model):
+    """A single-use, short-lived passwordless sign-in link emailed on request.
+    Consumed once (``used_at``) and expired after a short TTL (``expires_at``)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="magic_links"
+    )
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    requested_ip = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["token"], name="accounts_ml_token_idx"),
+            models.Index(fields=["user", "created_at"], name="accounts_ml_user_ts_idx"),
+        ]
+        verbose_name = "Login magic link"
+        verbose_name_plural = "Login magic links"
+
+    def __str__(self) -> str:
+        return f"magic-link {self.user_id} ({'used' if self.used_at else 'active'})"
+
+    @property
+    def is_valid(self) -> bool:
+        return self.used_at is None and self.expires_at >= timezone.now()
+
+
 class FederationSsoHealth(models.Model):
     """
     Per ServiceIntegration (SAML/OIDC IdP): last successful login vs failures.

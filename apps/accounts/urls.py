@@ -191,6 +191,7 @@ from apps.accounts.views_tenant_identity import (
     tenant_staff_invite_accept,
 )
 from apps.accounts.views_join import join_school
+from apps.accounts.views_magic_link import magic_link_login, magic_link_request
 from apps.schoolops.views_tenant_ops import (
     ops_canteen,
     ops_clinic,
@@ -260,6 +261,9 @@ app_name = "accounts"
 urlpatterns = [
     path("", auth_root_redirect, name="root"),  # rbac-allow: pre-auth dispatcher
     path("login/", login_view, name="login"),  # rbac-allow: login page must be anonymous-reachable
+    # Passwordless sign-in (magic link). Both must be anonymous-reachable.
+    path("magic-link/", magic_link_request, name="magic_link_request"),  # rbac-allow: passwordless request page
+    path("magic-link/<uuid:token>/", magic_link_login, name="magic_link_login"),  # rbac-allow: passwordless consume link
     path("step-up/", step_up_challenge, name="step_up"),  # rbac-allow: @login_required inside; re-auth challenge
     path("logout/", logout_view, name="logout"),
     path("impersonate/", impersonate_entry, name="impersonate_entry"),
