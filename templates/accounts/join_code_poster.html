@@ -3,37 +3,22 @@
 
 {% block title %}{% trans "Join poster" %} — {{ block.super }}{% endblock %}
 
-{% block extrastyle %}
-{{ block.super }}
-<style nonce="{{ csp_nonce }}">
-  .rmc-join-poster{max-width:620px;margin:1.5rem auto;text-align:center;border:1px solid var(--hairline);border-radius:16px;padding:2rem}
-  .rmc-join-poster__qr{width:280px;height:280px;max-width:80vw;margin:1rem auto;display:block}
-  .rmc-join-poster__code{font-size:2.2rem;letter-spacing:.25em;font-weight:700;margin:.5rem 0}
-  .rmc-join-poster__url{word-break:break-all}
-  @media print{
-    .rmc-noprint{display:none!important}
-    .rmc-join-poster{border:none;margin:0}
-    body{background:#fff}
-  }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2">
-  <div class="rmc-noprint d-flex flex-wrap gap-2 mb-2">
+  <div class="d-print-none d-flex flex-wrap gap-2 mb-2">
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:tenant_join_codes' %}">{% trans "Back to join codes" %}</a>
     <button type="button" class="btn btn-primary btn-sm" onclick="window.print()"><i class="bi bi-printer me-1" aria-hidden="true"></i>{% trans "Print" %}</button>
   </div>
 
-  <div class="rmc-join-poster">
+  <div class="border rounded-4 p-4 text-center mx-auto" style="max-width:620px">
     <div class="text-secondary text-uppercase small">{% trans "Join" %}</div>
     <h1 class="h3 mb-1">{{ school.name|default:_("our school") }}</h1>
     <p class="mb-0">{% trans "Scan the code, or go to the link below and enter the code." %}</p>
-    <img class="rmc-join-poster__qr" src="{{ qr_data_uri }}" alt="{% trans 'QR code to join' %}">
-    <div class="rmc-join-poster__code">{{ join_code.code }}</div>
+    <img class="d-block mx-auto my-3" src="{{ qr_data_uri }}" alt="{% trans 'QR code to join' %}" style="width:280px;max-width:80vw;height:auto">
+    <div class="fw-bold my-2" style="letter-spacing:.25em"><span class="fs-1">{{ join_code.code }}</span></div>
     {% if join_code.label %}<div class="text-secondary mb-2">{{ join_code.label }}</div>{% endif %}
-    <div class="rmc-join-poster__url small text-secondary">{{ join_url }}</div>
+    <div class="small text-secondary" style="word-break:break-all">{{ join_url }}</div>
     <p class="text-secondary small mt-3 mb-0">{% trans "You'll create your account and be added to the school automatically." %}</p>
   </div>
 </div>
