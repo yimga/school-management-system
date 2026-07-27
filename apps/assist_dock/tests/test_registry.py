@@ -204,23 +204,48 @@ class ReplaceSlotTests(SimpleTestCase):
         self.assertIsNone(replace_slot("does-not-exist", order=1))
 
 
+def _reseed_registry_from_all_modules() -> None:
+    """Restore the registry to its full ``AppConfig.ready()`` state.
+
+    ``reset_registry_for_tests()`` clears the *entire* module-global registry.
+    The canonical seed is spread across FOUR slot modules — reloading only a
+    subset leaves the registry permanently missing the others' slots for every
+    downstream test in the run (this is exactly how ``test_registry`` used to
+    strip ``tenant-kb / tenant-support / tenant-command`` — and the operator
+    tools slots — out from under ``test_tenant_tools_tray``). Reload all of
+    them, in the same order ``AssistDockConfig.ready`` imports them.
+    """
+    import importlib
+
+    from apps.assist_dock import default_slots as ds
+    from apps.assist_dock import operator_tools_slots as ots
+    from apps.assist_dock import power_chips as pc
+    from apps.assist_dock import tenant_tools_slots as tts
+
+    for module in (ds, pc, ots, tts):
+        importlib.reload(module)
+
+
 class ResetTests(SimpleTestCase):
     def test_reset_clears_then_reseed(self):
         before = len(all_slots())
         self.assertGreaterEqual(before, 6)
+        # Guarantee the global registry is restored to full canonical state no
+        # matter how this test exits — a bare clear() here would otherwise
+        # pollute every later test that reads the shared registry.
+        self.addCleanup(_reseed_registry_from_all_modules)
         reset_registry_for_tests()
         self.assertEqual(len(all_slots()), 0)
-        # Re-import the seed modules so the registry returns to full state
-        # for any downstream test in the class — both default_slots AND
-        # power_chips contribute to the canonical seeded count.
-        import importlib
-
-        from apps.assist_dock import default_slots as ds
-        from apps.assist_dock import power_chips as pc
-
-        importlib.reload(ds)
-        importlib.reload(pc)
+        # Re-seed from ALL slot-contributing modules (default_slots, power_chips,
+        # operator_tools_slots, tenant_tools_slots) so the registry returns to
+        # full state — not just the default + power-chip subset.
+        _reseed_registry_from_all_modules()
         after = len(all_slots())
-        # 6 default + 6 power chips = 12; allow >= so future seed modules don't
-        # break this assertion.
+        # 6 default + 6 power chips = 12; operator + tenant tools push it higher.
+        # Allow >= so future seed modules don't break this assertion.
         self.assertGreaterEqual(after, 12)
+        ids = {slot.id for slot in all_slots()}
+        # The exact slots the old subset-reseed used to drop — assert they are
+        # back so a future regression of the reseed path fails here, loudly.
+        for slot_id in ("tenant-kb", "tenant-support", "tenant-command"):
+            self.assertIn(slot_id, ids)
