@@ -303,12 +303,17 @@ def backend_teacher_create(request):
                     username = form.cleaned_data.get("username") or email
                     password = form.cleaned_data["password"]
 
+                    # The admin sets a TEMPORARY password here (the form says so):
+                    # force the teacher through set-password + profile setup on first
+                    # login via OnboardingEnforcementMiddleware.
                     user = User.objects.create_user(
                         username=username,
                         email=email,
                         password=password,
                         role=User.Role.TEACHER,
                         is_active=True,
+                        requires_password_change=True,
+                        profile_setup_completed=False,
                     )
 
                     # Create teacher profile

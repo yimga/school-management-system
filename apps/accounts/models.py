@@ -234,6 +234,19 @@ class User(AbstractUser):
         blank=True,
         help_text="Timestamp of last successful password change.",
     )
+    # First-login onboarding gate. Admin-provisioned temp-password accounts are
+    # created with this False so OnboardingEnforcementMiddleware routes the user
+    # through the set-password + profile-setup wizard before anything else.
+    # Defaults True so EVERY existing account is treated as already set up and is
+    # never retro-gated (a False default would lock out the whole platform on deploy).
+    profile_setup_completed = models.BooleanField(
+        default=True,
+        help_text=(
+            "False forces the user through the first-login profile-setup wizard. "
+            "Set False only by admin temp-password provisioning; existing accounts "
+            "default True so they are never retro-gated."
+        ),
+    )
     mfa_device_trust_version = models.PositiveIntegerField(
         default=1,
         help_text=(
@@ -324,6 +337,15 @@ class User(AbstractUser):
             "password reset."
         ),
     )
+
+    def needs_onboarding(self) -> bool:
+        """True when the user must finish forced first-login onboarding — a
+        temp-password change and/or profile setup — before using the platform.
+        Read by OnboardingEnforcementMiddleware. Inert (False) for every account
+        that is not mid-provisioning, so the common path pays nothing."""
+        return bool(getattr(self, "requires_password_change", False)) or not bool(
+            getattr(self, "profile_setup_completed", True)
+        )
 
     def has_feature_permission(self, code: str, *, school=None) -> bool:
         if self.is_superuser:

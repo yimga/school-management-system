@@ -129,3 +129,61 @@ def mark_tour_complete(request):
         return JsonResponse({"ok": True, "context": context})
     except (AttributeError, TypeError, ValueError, DatabaseError):
         return JsonResponse({"ok": False}, status=500)
+
+
+@login_required
+def onboarding_profile(request):
+    """First-login profile setup — the second forced gate (after set-password) for
+    an admin-provisioned temp-password account. Collects name + optional photo, then
+    marks ``profile_setup_completed=True`` so OnboardingEnforcementMiddleware releases
+    the user. A user who still owes a password change is sent to that step first; a
+    fully set-up user is bounced to their dashboard so the page can't be re-entered."""
+    from django import forms as dj_forms
+    from django.contrib import messages
+    from django.shortcuts import render
+    from django.utils.translation import gettext as _
+
+    from .models import User
+
+    if getattr(request.user, "requires_password_change", False):
+        return redirect("accounts:password_change")
+    if getattr(request.user, "profile_setup_completed", True):
+        return redirect("accounts:backend_dashboard")
+
+    class OnboardingProfileForm(dj_forms.ModelForm):
+        class Meta:
+            model = User
+            fields = ["first_name", "last_name", "profile_photo"]
+            widgets = {
+                "first_name": dj_forms.TextInput(
+                    attrs={"class": "form-control", "autofocus": "autofocus"}
+                ),
+                "last_name": dj_forms.TextInput(attrs={"class": "form-control"}),
+                "profile_photo": dj_forms.ClearableFileInput(
+                    attrs={"class": "form-control", "accept": "image/*"}
+                ),
+            }
+
+        def clean_first_name(self):
+            value = (self.cleaned_data.get("first_name") or "").strip()
+            if not value:
+                raise dj_forms.ValidationError(_("Please enter your first name."))
+            return value
+
+        def clean_last_name(self):
+            value = (self.cleaned_data.get("last_name") or "").strip()
+            if not value:
+                raise dj_forms.ValidationError(_("Please enter your last name."))
+            return value
+
+    if request.method == "POST":
+        form = OnboardingProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.profile_setup_completed = True
+            user.save()
+            messages.success(request, _("Your profile is set up. Welcome aboard!"))
+            return redirect("accounts:backend_dashboard")
+    else:
+        form = OnboardingProfileForm(instance=request.user)
+    return render(request, "accounts/onboarding_profile.html", {"form": form})

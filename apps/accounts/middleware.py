@@ -945,3 +945,79 @@ class ImpossibleTravelMiddleware:
                     "ImpossibleTravelMiddleware: check_impossible_travel failed: %s", e
                 )
         return response
+
+
+class OnboardingEnforcementMiddleware:
+    """Force admin-provisioned temp-password accounts through the set-password +
+    profile-setup wizard before they can reach anything else.
+
+    Airtight across sessions (not just at login): every authenticated page
+    navigation is checked, so a flag flipped mid-session (or a user who bookmarked
+    a deep link) is still routed to the wizard. Inert for every account whose
+    ``needs_onboarding()`` is False — the overwhelming majority — so the hot path
+    costs a single attribute read. Superusers/operators are left to their own
+    Emergency-Lockdown flow and never trapped here. XHR/JSON requests pass through
+    (the UI is gated anyway); only real HTML navigations are redirected.
+    """
+
+    _ALLOWED_VIEW_NAMES = frozenset(
+        {
+            "accounts:password_change",
+            "accounts:password_change_done",
+            "accounts:onboarding_profile",
+            "accounts:logout",
+            "logout",
+            "set_language",
+        }
+    )
+    _ALLOWED_PATH_PREFIXES = ("/static/", "/media/", "/health", "/i18n/", "/__debug__/")
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        redirect_response = self._maybe_redirect(request)
+        if redirect_response is not None:
+            return redirect_response
+        return self.get_response(request)
+
+    def _maybe_redirect(self, request):
+        user = getattr(request, "user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
+            return None
+        # Operators/superusers use the Emergency-Lockdown login path — never trap them.
+        if getattr(user, "is_superuser", False):
+            return None
+        try:
+            if not user.needs_onboarding():
+                return None
+        except (AttributeError, DatabaseError):
+            return None  # never break a request over this gate
+
+        path = request.path_info or "/"
+        if any(path.startswith(p) for p in self._ALLOWED_PATH_PREFIXES):
+            return None
+        # Gate real page navigations only; leave API/XHR alone.
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return None
+        if request.method == "GET" and "text/html" not in request.headers.get(
+            "accept", ""
+        ):
+            return None
+
+        try:
+            view_name = resolve(path).view_name
+        except Resolver404:
+            view_name = ""
+        if view_name in self._ALLOWED_VIEW_NAMES:
+            return None
+
+        if getattr(user, "requires_password_change", False):
+            target = reverse("accounts:password_change")
+        elif not getattr(user, "profile_setup_completed", True):
+            target = reverse("accounts:onboarding_profile")
+        else:
+            return None
+        if request.path == target:
+            return None
+        return redirect(target)

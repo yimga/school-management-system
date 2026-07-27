@@ -359,6 +359,41 @@ def tenant_identity_regulator_grant(request):
     )
 
 
+def _handle_provision_now(request, school):
+    """Create a tenant account NOW with an admin-set temporary password (the
+    alternative to an email invite). The account is flagged so the user must set a
+    new password + complete their profile on first sign-in."""
+    from apps.accounts.tenant_user_provisioning import (
+        ProvisioningError,
+        provision_tenant_user_with_temp_password,
+    )
+
+    try:
+        user, _created = provision_tenant_user_with_temp_password(
+            school=school,
+            email=(request.POST.get("email") or "").strip().lower(),
+            role=(request.POST.get("role") or "").strip().upper(),
+            temp_password=request.POST.get("temp_password") or "",
+            invited_by=request.user,
+            first_name=(request.POST.get("first_name") or "").strip(),
+            last_name=(request.POST.get("last_name") or "").strip(),
+        )
+    except ProvisioningError as exc:
+        messages.error(request, str(exc))
+        return redirect("accounts:tenant_identity_invite")
+    messages.success(
+        request,
+        _(
+            "Account for %(email)s is ready. Share the temporary password securely — "
+            "%(name)s will be asked to set a new password and complete their profile "
+            "on first sign-in."
+        )
+        % {"email": user.email, "name": user.get_full_name() or user.email},
+    )
+    roster_url = reverse("accounts:tenant_identity_roster")
+    return redirect_after_save(request, roster_url, list_url=roster_url)
+
+
 @login_required
 @require_school
 @require_http_methods(["GET", "POST"])
@@ -367,6 +402,8 @@ def tenant_identity_invite(request):
     if not _can_manage_tenant_identity(request.user, school):
         return HttpResponseForbidden("Not permitted.")
     can_invite_owner = _is_school_owner(request.user, school)
+    if request.method == "POST" and request.POST.get("mode") == "provision":
+        return _handle_provision_now(request, school)
     role_choices = [
         (c[0], c[1])
         for c in User.Role.choices
@@ -425,12 +462,15 @@ def tenant_identity_invite(request):
             )
         roster_url = reverse("accounts:tenant_identity_roster")
         return redirect_after_save(request, roster_url, list_url=roster_url)
+    from apps.accounts.tenant_user_provisioning import provisionable_role_choices
+
     return render(
         request,
         "accounts/tenant_identity_invite.html",
         {
             "school": school,
             "role_choices": role_choices,
+            "provision_role_choices": provisionable_role_choices(),
             "can_invite_owner": can_invite_owner,
             "roster_url": reverse("accounts:tenant_identity_roster"),
         },

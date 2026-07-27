@@ -74,6 +74,7 @@ from .views_dashboard import backend_dashboard, backend_dashboard_status_fragmen
 from .views_onboarding import (
     dismiss_first_login_checklist,
     mark_tour_complete,
+    onboarding_profile,
     owner_confirm_role,
 )
 from .views_owner_console import (
@@ -291,6 +292,10 @@ urlpatterns = [
         ),
         name="password_change_done",
     ),
+    # First-login profile setup — second forced gate (after set-password) for
+    # admin-provisioned temp-password accounts. OnboardingEnforcementMiddleware
+    # routes here until profile_setup_completed=True.
+    path("onboarding/profile/", onboarding_profile, name="onboarding_profile"),
     path("notifications/", user_notifications, name="user_notifications"),
     path(
         "notifications/mark-all-read/",

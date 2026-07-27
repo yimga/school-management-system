@@ -432,6 +432,7 @@ MIDDLEWARE = [
     "apps.schools.middleware_dashboard_topology.DashboardTopologyRBACMiddleware",
     "apps.accounts.middleware.ModuleAccessMiddleware",
     "apps.accounts.middleware.RequireMFAMiddleware",
+    "apps.accounts.middleware.OnboardingEnforcementMiddleware",  # temp-password accounts: force set-password + profile setup before use
     "apps.schools.middleware_operator_mfa.OperatorMfaRequiredMiddleware",
     "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",  # Restrict /super/ to SUPERADMIN
     "apps.schools.middleware.SuperAdminRateLimitMiddleware",  # 12.7: rate limit /super/ (120/min per user)
@@ -4227,6 +4228,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.schools.middleware_dashboard_topology.DashboardTopologyRBACMiddleware",
         "apps.accounts.middleware.ModuleAccessMiddleware",
         "apps.accounts.middleware.RequireMFAMiddleware",
+        "apps.accounts.middleware.OnboardingEnforcementMiddleware",  # temp-password accounts: force set-password + profile setup before use
         # Parity restore. OPERATOR_MFA_REQUIRED_ON_MANAGER defaults "1", so this
         # enforces on arrival: operators without MFA are redirected to enrollment
         # on /super/ and /admin/ (redirect, not lockout — they can enroll).

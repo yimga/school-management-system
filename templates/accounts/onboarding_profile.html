@@ -1,0 +1,52 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Set up your profile" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+<section class="auth-shell" aria-labelledby="onb-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0;padding-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-person-badge"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">{% trans "Welcome" %}</div>
+        <h1 id="onb-title">{% trans "Set up your profile" %}</h1>
+      </div>
+    </div>
+    <div class="rmc-security-checkpoint__body" style="padding-top:0">
+      <p class="rmc-security-checkpoint__sub">{% trans "One quick step before you start — tell us who you are. You can update this any time from your profile." %}</p>
+      <form method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="rmc-banner rmc-banner--error mb-3">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="mb-3">
+          <label for="{{ form.first_name.id_for_label }}" class="form-label">{% trans "First name" %}</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.last_name.id_for_label }}" class="form-label">{% trans "Last name" %}</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-4">
+          <label for="{{ form.profile_photo.id_for_label }}" class="form-label">{% trans "Profile photo" %} <span class="text-secondary">({% trans "optional" %})</span></label>
+          {{ form.profile_photo }}
+          {% if form.profile_photo.errors %}<div class="invalid-feedback d-block">{{ form.profile_photo.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="rmc-security-checkpoint__actions">
+          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle me-1"></i>{% trans "Save and continue" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
