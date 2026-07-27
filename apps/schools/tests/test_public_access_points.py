@@ -74,7 +74,10 @@ class PublicAccessPointsTests(TestCase):
     def test_manager_host_routes_to_dedicated_login_surface(self):
         response = self.client.get("/", HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "/authentication/login/")
+        # ?cp=1 selects the dedicated control-plane login surface (operator-branded)
+        # — exactly the "dedicated login surface" this test asserts. The manager
+        # root appends it so the operator lands on the CP login, not the tenant one.
+        self.assertEqual(response["Location"], "/authentication/login/?cp=1")
 
     def test_manager_host_auth_root_redirects_to_login(self):
         response = self.client.get(
@@ -110,10 +113,16 @@ class PublicAccessPointsTests(TestCase):
         self.assertContains(response, "Find your school")
 
     def test_render_probe_auth_login_on_base_host_returns_200(self):
+        # The base/marketing host sends an anonymous /authentication/login/ to the
+        # school-discovery page (no tenant context on the base host — you find your
+        # campus, then sign in on its subdomain). A Render deploy probe therefore
+        # lands on a healthy 200 page after one redirect; follow it and assert the
+        # URL is reachable/healthy (not a 404/500 or tenant-misroute).
         response = self.client.get(
             "/authentication/login/",
             HTTP_HOST="school-management-system-2kzk.onrender.com",
             HTTP_USER_AGENT="Render/1.0",
+            follow=True,
         )
         self.assertEqual(response.status_code, 200)
 
