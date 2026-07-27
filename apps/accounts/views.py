@@ -843,14 +843,15 @@ def _direct_conversations(user, limit=50):
 
 @login_required
 def user_messages(request):
-    """Messages hub: Direct and Groups. Parents use Contact School only (redirected). Students see Direct only. Staff/teachers see both."""
+    """Messages hub: Direct and Groups. Parents and students see the Direct tab
+    only (1-on-1 with their children's teachers / with staff); staff and teachers
+    see both Direct and group threads. Parents keep Contact School as a separate
+    triage channel — this hub is their two-way inbox."""
     role = getattr(request.user, "role", None)
-    if role == User.Role.PARENT:
-        return redirect(reverse("portal:parent_contact_school"))
     from apps.portal.services import threads_for_user
 
-    # Students: show only Direct tab (conversations with staff); staff/teachers see both
-    direct_only = role == User.Role.STUDENT
+    # Parents & students: Direct tab only (no department/class group threads).
+    direct_only = role in (User.Role.STUDENT, User.Role.PARENT)
     if direct_only:
         _active_tab = "direct"
         threads = []
@@ -904,8 +905,6 @@ def message_search(request):
     posts in threads the caller is a member of. Both are membership/school
     scoped, so search never reaches another tenant's or another thread's content.
     """
-    if getattr(request.user, "role", None) == User.Role.PARENT:
-        return redirect(reverse("portal:parent_contact_school"))
     q = (request.GET.get("q") or "").strip()
     direct_results = []
     group_results = []
@@ -1082,6 +1081,68 @@ def _direct_message_user_queryset(request):
     )
 
 
+def _parent_compose_recipient_queryset(request):
+    """Recipients a PARENT may start a direct message with: the teachers of their
+    own children plus school staff/office. This is a curated convenience picker —
+    it never exposes the whole school's students or other parents — and it is
+    school-scoped and fail-closed. The POST handler re-validates the chosen
+    recipient against ``_can_message_user`` (the single source of truth for the
+    messaging policy, shared with the API), so this set is a picker, not the
+    authority.
+    """
+    user = request.user
+    school = getattr(request, "school", None)
+    if school is None:
+        # Resolve the parent's own school so the picker isn't empty on hosts that
+        # don't bind request.school; never fall back to platform-wide.
+        try:
+            from apps.schools.models import SchoolMembership
+
+            # tenant-isolation-allow: resolves-callers-own-membership-then-scopes-below
+            membership = (
+                SchoolMembership.objects.filter(user_id=user.pk)
+                .select_related("school")
+                .first()
+            )
+            school = getattr(membership, "school", None)
+        except Exception:  # noqa: BLE001 — never break compose on a lookup hiccup
+            school = None
+    if school is None:
+        return User.objects.none()
+
+    from apps.communication.api_views import _school_user_queryset
+
+    # Children -> their classrooms -> teachers assigned to those classrooms.
+    teacher_user_ids = set()
+    try:
+        from apps.portal.services import guardian_students
+        from apps.evals.models import TeacherAssignment
+
+        children = guardian_students(user)
+        classroom_ids = {getattr(s, "classroom_id", None) for s in children}
+        classroom_ids.discard(None)
+        if classroom_ids:
+            # tenant-isolation-allow: classroom-ids-derived-from-callers-own-guardian-links
+            teacher_user_ids = set(
+                TeacherAssignment.objects.filter(
+                    is_active=True,
+                    subject_assignment__classroom_id__in=classroom_ids,
+                ).values_list("teacher__user_id", flat=True)
+            )
+    except Exception:  # noqa: BLE001 — never break compose on a scoping hiccup
+        teacher_user_ids = set()
+
+    # Teachers of the parent's children OR any school staff/office (front desk,
+    # bursar, admin) — the same set ``_can_message_user`` allows a parent to reach.
+    return (
+        _school_user_queryset(school)
+        .filter(is_active=True)
+        .filter(Q(pk__in=teacher_user_ids) | Q(is_staff=True))
+        .exclude(pk=user.pk)
+        .distinct()
+    )
+
+
 #: Cap on attachments accepted per single message send — a defensive bound on one
 #: multipart POST (each file is independently size/type validated below).
 _MESSAGE_ATTACHMENT_MAX_FILES = 5
@@ -1187,10 +1248,12 @@ def direct_thread(request, user_id):
     i_am_student = getattr(request.user, "role", None) == User.Role.STUDENT
     other_is_staff = _is_staff_or_teacher(other)
 
-    # Parents do not use direct messaging; they use Contact School only.
-    if i_am_parent:
-        return redirect(reverse("portal:parent_contact_school"))
-    if i_am_student and not other_is_staff:
+    # Parents and students may only open threads with staff/teacher (view + reply).
+    # A parent messaging their child's teacher or the school office is exactly the
+    # recipient policy in ``_can_message_user`` (a staff/teacher recipient is always
+    # allowed); anything else (e.g. another parent) is refused here too. Parents keep
+    # a separate Contact-School triage channel; this is their two-way DM surface.
+    if (i_am_parent or i_am_student) and not other_is_staff:
         return HttpResponseForbidden("You can only message staff or teachers.")
     if (
         not i_am_parent
@@ -1452,14 +1515,21 @@ def direct_thread_typing(request, user_id):
 
 @login_required
 def direct_compose(request):
-    """Start a new direct message; staff/teacher only; parents use Contact School (RBAC)."""
-    if getattr(request.user, "role", None) == User.Role.PARENT:
-        return redirect(reverse("portal:parent_contact_school"))
-    if not _can_access_direct_messages(request.user):
+    """Start a new direct message. Staff/teachers compose to anyone in-school;
+    parents compose to their children's teachers + school office (a curated,
+    RBAC-scoped picker); students reply only (no compose)."""
+    role = getattr(request.user, "role", None)
+    i_am_parent = role == User.Role.PARENT
+    if not i_am_parent and not _can_access_direct_messages(request.user):
         return HttpResponseForbidden(
             "You don't have permission to compose direct messages."
         )
     from apps.communication.models import Message
+
+    def _compose_recipient_queryset():
+        if i_am_parent:
+            return _parent_compose_recipient_queryset(request)
+        return _direct_message_user_queryset(request)
 
     if request.method == "POST":
         recipient_id = request.POST.get("recipient")
@@ -1471,15 +1541,25 @@ def direct_compose(request):
                 request, _("Select a recipient and enter a message or attach a file.")
             )
             return redirect("accounts:direct_compose")
-        # Validate the recipient against the SAME school-scoped set the picker was
-        # built from, so a tampered POST can't message across tenants.
+        # Validate the recipient against the SAME scoped set the picker was built
+        # from, so a tampered POST can't message across tenants or outside the
+        # caller's allowed set.
         recipient = (
-            _direct_message_user_queryset(request).filter(pk=recipient_id).first()
+            _compose_recipient_queryset().filter(pk=recipient_id).first()
         )
         if not recipient:
             messages.error(request, _("Selected recipient is not available."))
             return redirect("accounts:direct_compose")
         from apps.communication.models import DirectConversation, MessageBlock
+        from apps.communication.api_views import _can_message_user
+
+        # Single source of truth for the messaging policy, shared with the API —
+        # keeps web + API RBAC identical across every surface.
+        if not _can_message_user(
+            request.user, recipient, getattr(request, "school", None)
+        ):
+            messages.error(request, _("You can't message this recipient."))
+            return redirect("accounts:direct_compose")
 
         if MessageBlock.is_blocked_between(request.user.pk, recipient.pk):
             messages.error(
@@ -1488,9 +1568,23 @@ def direct_compose(request):
             )
             return redirect("accounts:direct_compose")
 
-        if getattr(
-            recipient, "role", None
-        ) == User.Role.PARENT and _is_staff_or_teacher(request.user):
+        # A staff member previously closed the loop → the parent cannot re-open it
+        # from here (respects the close-the-loop tool); Contact School still works.
+        if i_am_parent and DirectConversation.is_closed(request.user, recipient):
+            messages.error(
+                request,
+                _(
+                    "This conversation was closed by the school. Use Contact "
+                    "School to reach them again."
+                ),
+            )
+            return redirect("accounts:direct_compose")
+
+        # Open/attach the staff<->parent conversation envelope (either direction).
+        if (i_am_parent and _is_staff_or_teacher(recipient)) or (
+            getattr(recipient, "role", None) == User.Role.PARENT
+            and _is_staff_or_teacher(request.user)
+        ):
             DirectConversation.get_or_create_for(request.user, recipient)
         from apps.communication.comms_locale import locale_target_for_user
 
@@ -1514,11 +1608,11 @@ def direct_compose(request):
         _notify_new_direct_message(request.user, recipient, msg)
         return redirect("accounts:direct_thread", user_id=recipient.pk)
 
-    # GET: list SAME-SCHOOL active users (exclude self) for recipient dropdown;
-    # limit for large schools. School-scoped via _direct_message_user_queryset so
-    # the picker never exposes another tenant's users.
+    # GET: list the caller's allowed recipients (exclude self) for the dropdown;
+    # limit for large schools. School-scoped so the picker never exposes another
+    # tenant's users; parents get the curated children's-teachers + office set.
     recipients = (
-        _direct_message_user_queryset(request)
+        _compose_recipient_queryset()
         .order_by("first_name", "last_name")
         .values("id", "first_name", "last_name", "username")[:500]
     )

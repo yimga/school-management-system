@@ -473,6 +473,16 @@ def build_portal_sidebar_items(request, site):
     elif role == User.Role.PARENT:
         items.append(
             {
+                "id": "messages",
+                "label": "Messages",
+                "url": _safe_reverse("accounts:user_messages"),
+                "icon": "bi-chat-dots",
+                "section": "Communication",
+                "badge": messages_unread_count,
+            }
+        )
+        items.append(
+            {
                 "id": "contact_school",
                 "label": "Contact School",
                 "url": _safe_reverse("portal:parent_contact_school"),
