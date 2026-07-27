@@ -114,4 +114,28 @@ def decrypt_config(config: Any) -> Any:
     return out
 
 
-__all__ = ["encrypt_config", "decrypt_config", "SECRET_KEYS", "ENC_PREFIX"]
+def config_has_plaintext_secret(config: Any) -> bool:
+    """True if any secret-named key still holds a non-empty PLAINTEXT value.
+
+    Used by ``ServiceIntegration.save()`` to fail-closed rather than silently
+    persist a credential that encryption failed to wrap (Audit C1 — a DB / backup
+    leak of plaintext OAuth / access tokens is the exact risk this module guards).
+    A value carrying ``ENC_PREFIX`` is already encrypted and does not count.
+    """
+    if not isinstance(config, dict):
+        return False
+    for key, value in config.items():
+        if not _is_secret_key(key):
+            continue
+        if isinstance(value, str) and value and not value.startswith(ENC_PREFIX):
+            return True
+    return False
+
+
+__all__ = [
+    "encrypt_config",
+    "decrypt_config",
+    "config_has_plaintext_secret",
+    "SECRET_KEYS",
+    "ENC_PREFIX",
+]

@@ -1291,12 +1291,26 @@ class ServiceIntegration(models.Model):
         # channel resolvers decrypt on read (apps.communication.secret_config),
         # so plaintext credentials never persist to the DB / backups.
         try:
-            from apps.communication.secret_config import encrypt_config
-
-            if isinstance(self.config, dict):
-                self.config = encrypt_config(self.config)
-        except Exception:  # noqa: BLE001 — never block the save on crypto trouble
-            pass
+            from apps.communication.secret_config import (
+                config_has_plaintext_secret,
+                encrypt_config,
+            )
+        except Exception:  # noqa: BLE001 — crypto module import trouble must not block save
+            super().save(*args, **kwargs)
+            return
+        if isinstance(self.config, dict):
+            self.config = encrypt_config(self.config)
+            # SECURITY: encryption is SECRET_KEY-derived and effectively always
+            # available, so a secret-named value surviving as PLAINTEXT means a
+            # genuine crypto failure. Persisting it would leak OAuth/access tokens in
+            # any DB read / backup / replica — the exact C1 risk. Fail LOUD instead of
+            # the old silent plaintext write. (Legacy plaintext rows re-save cleanly:
+            # encrypt_config wraps their un-prefixed secrets, so nothing remains.)
+            if config_has_plaintext_secret(self.config):
+                raise RuntimeError(
+                    "ServiceIntegration: refusing to persist plaintext credential(s) — "
+                    "config encryption failed; check the Fernet/SECRET_KEY configuration."
+                )
         super().save(*args, **kwargs)
 
 

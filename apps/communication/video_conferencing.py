@@ -361,24 +361,22 @@ class VideoConferenceService:
     def _create_google_meet(
         self, host, title, start_time, duration_minutes, **kwargs
     ) -> Dict:
+        """Create a Google Meet meeting.
+
+        A real Meet room can only be minted via the Google Calendar API (OAuth) with
+        the tenant's connector token — that live path is not wired yet. Rather than
+        hand users a FABRICATED ``meet.google.com/<random>`` link that does not
+        resolve (the old behaviour — a broken surface we must never ship), fall back
+        to a REAL, immediately-usable Jitsi room and tag the true provider so records
+        and UI reflect reality. Wiring the live Calendar API is tracked separately.
         """
-        Create Google Meet meeting
-
-        Uses Google Calendar API to create meeting
-        """
-        # Implementation would use Google Calendar API
-        # For now, return mock data
-
-        import uuid
-
-        meeting_id = f"meet-{uuid.uuid4().hex[:10]}"
-
-        return {
-            "meeting_id": meeting_id,
-            "join_url": f"https://meet.google.com/{meeting_id}",
-            "host_url": f"https://meet.google.com/{meeting_id}",
-            "password": "",
-        }
+        result = self._create_jitsi_meeting(
+            host, title, start_time, duration_minutes, **kwargs
+        )
+        result["provider"] = "jitsi"
+        result["requested_provider"] = "google_meet"
+        result["provider_fallback_reason"] = "google_meet_live_api_not_configured"
+        return result
 
     def _create_jitsi_meeting(
         self, host, title, start_time, duration_minutes, **kwargs
