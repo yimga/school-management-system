@@ -269,9 +269,15 @@ class VideoConferenceService:
     """
 
     def __init__(
-        self, provider: VideoConferenceProvider = VideoConferenceProvider.JITSI
+        self,
+        provider: VideoConferenceProvider = VideoConferenceProvider.JITSI,
+        school=None,
     ):
         self.provider = provider
+        # Tenant context. When set, Zoom/Teams meetings are created with the
+        # school's connected OAuth token (the marketplace connection) instead of
+        # falling back to legacy platform creds / a serverless room.
+        self.school = school
 
     def create_meeting(
         self, host: User, title: str, start_time, duration_minutes: int, **kwargs
@@ -297,6 +303,10 @@ class VideoConferenceService:
             return self._create_google_meet(
                 host, title, start_time, duration_minutes, **kwargs
             )
+        elif self.provider == VideoConferenceProvider.TEAMS:
+            return self._create_teams_meeting(
+                host, title, start_time, duration_minutes, **kwargs
+            )
         elif self.provider == VideoConferenceProvider.JITSI:
             return self._create_jitsi_meeting(
                 host, title, start_time, duration_minutes, **kwargs
@@ -316,7 +326,12 @@ class VideoConferenceService:
         try:
             from apps.communication.integrations import ZoomIntegration
 
-            zoom = ZoomIntegration()
+            # Pass the tenant so ZoomIntegration resolves the school's connected
+            # OAuth token (the marketplace connection) — without a school it
+            # falls back to legacy platform JWT creds and, absent those, a
+            # fabricated id. This is the seam that actually CONSUMES the token
+            # a tenant stored when they connected Zoom.
+            zoom = ZoomIntegration(school=self.school)
             response = zoom.create_meeting(
                 host_email=getattr(host, "email", "") or "",
                 topic=title,
@@ -403,6 +418,94 @@ class VideoConferenceService:
             "host_url": f"https://{jitsi_domain}/{room_name}",
             "password": password,
         }
+
+    def _create_teams_meeting(
+        self, host, title, start_time, duration_minutes, **kwargs
+    ) -> Dict:
+        """Create a Microsoft Teams online meeting via the Graph API.
+
+        Uses the tenant's ``microsoft_teams`` connector token (scope
+        ``OnlineMeetings.ReadWrite``). If the tenant has not connected Teams (no
+        token) or the Graph call fails, fall back to a REAL, usable Jitsi room
+        tagged with the true provider — never raise (the dispatch used to raise
+        ``ValueError`` for TEAMS) and never fabricate a dead teams.microsoft.com
+        link. Wiring is symmetric with the Google Meet -> Jitsi honesty fallback.
+        """
+        token = ""
+        if self.school is not None:
+            try:
+                from apps.integrations_marketplace.token_access import (
+                    get_valid_access_token,
+                )
+
+                token = get_valid_access_token(self.school, "microsoft_teams")
+            except _VIDEO_ZOOM_CREATE_ERRORS:
+                logger.debug("Teams token resolve failed", exc_info=True)
+                token = ""
+
+        if token:
+            result = self._graph_create_online_meeting(
+                token, title, start_time, duration_minutes
+            )
+            if result is not None:
+                return result
+
+        fallback = self._create_jitsi_meeting(
+            host, title, start_time, duration_minutes, **kwargs
+        )
+        fallback["provider"] = "jitsi"
+        fallback["requested_provider"] = "teams"
+        fallback["provider_fallback_reason"] = (
+            "microsoft_teams_not_connected" if not token else "teams_api_error"
+        )
+        return fallback
+
+    def _graph_create_online_meeting(
+        self, token, title, start_time, duration_minutes
+    ):
+        """POST Graph ``/me/onlineMeetings``; return the meeting dict or ``None``."""
+        try:
+            import requests
+
+            payload: Dict = {"subject": str(title or "Meeting")}
+            if hasattr(start_time, "isoformat"):
+                payload["startDateTime"] = start_time.isoformat()
+                try:
+                    end_dt = start_time + timedelta(
+                        minutes=int(duration_minutes or 30)
+                    )
+                    payload["endDateTime"] = end_dt.isoformat()
+                except (TypeError, ValueError):
+                    pass
+            resp = requests.post(
+                "https://graph.microsoft.com/v1.0/me/onlineMeetings",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=10,
+            )
+            if resp.status_code in (200, 201):
+                data = resp.json()
+                join_url = data.get("joinWebUrl") or data.get("joinUrl") or ""
+                if join_url:
+                    return {
+                        "meeting_id": str(data.get("id") or ""),
+                        "join_url": str(join_url),
+                        "host_url": str(join_url),
+                        "password": "",
+                        "provider": "teams",
+                    }
+            logger.warning(
+                "Teams onlineMeetings create failed: %s %s",
+                resp.status_code,
+                str(getattr(resp, "text", ""))[:300],
+            )
+            return None
+        except _VIDEO_ZOOM_CREATE_ERRORS:
+            logger.warning("Teams onlineMeetings transport error", exc_info=True)
+            return None
 
     def schedule_session(
         self,
