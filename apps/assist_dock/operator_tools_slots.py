@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .registry import (
     ALL_SURFACES,
+    FAMILY_PORTAL_ROLES,
     SOURCE_EXTERNAL,
     SOURCE_REGISTRY,
     SURFACE_ADMIN,
@@ -146,6 +147,9 @@ register_slot(
         label=_("Live cursors"),
         icon="bi-cursor",
         surfaces=ALL_SURFACES,
+        # Co-editing presence is a staff/educator collaboration tool ("teammates");
+        # family surfaces (parent/student) have no teammates to co-view with.
+        hidden_for_roles=FAMILY_PORTAL_ROLES,
         source=SOURCE_REGISTRY,
         pinned_default=False,
         order=59,

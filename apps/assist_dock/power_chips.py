@@ -15,6 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .registry import (
     ALL_SURFACES,
+    FAMILY_PORTAL_ROLES,
     SOURCE_EXTERNAL,
     SOURCE_REGISTRY,
     AssistDockSlot,
@@ -138,6 +139,9 @@ register_slot(
         label=_("Who's here"),
         icon="bi-people",
         surfaces=ALL_SURFACES,
+        # Operator/staff co-presence ("other operators on this page"). Not a
+        # family-surface concept — hidden from parents/students/employers.
+        hidden_for_roles=FAMILY_PORTAL_ROLES,
         source=SOURCE_EXTERNAL,
         href="/assist-dock/presence/",
         pinned_default=False,

@@ -27,6 +27,15 @@ SURFACE_ANY = "*"
 
 ALL_SURFACES = frozenset({SURFACE_PORTAL, SURFACE_MANAGER, SURFACE_ADMIN})
 
+# Non-staff portal roles (family / apprentice surfaces). Admin/staff-tier chips
+# declare ``hidden_for_roles=FAMILY_PORTAL_ROLES`` so parents / students /
+# employers never see need-to-know operator tooling in the copilot / Tools rail,
+# while EVERY staff/educator role still does. A denylist (rather than an
+# allowlist) is used deliberately: there are 20+ staff role codes
+# (User.Role.*) and enumerating them per slot would silently drop new ones,
+# leaking admin chips or hiding them from a legitimate staff role by omission.
+FAMILY_PORTAL_ROLES = frozenset({"PARENT", "STUDENT", "EMPLOYER"})
+
 # Slot source kinds:
 #  - "dom-adopt"   JS adopts an existing source node by CSS selector
 #                  (back-compat for the 6 v1 chips; the widget still lives
@@ -56,6 +65,10 @@ class AssistDockSlot:
     icon: str                                  # Bootstrap Icon class, e.g. "bi-stars"
     surfaces: frozenset[str] = field(default_factory=lambda: frozenset({SURFACE_ANY}))
     roles: frozenset[str] = field(default_factory=lambda: frozenset({"*"}))
+    # RBAC denylist: hide this chip from these roles even when ``roles`` would
+    # match (e.g. an admin-tier tool with roles={"*"} but hidden_for_roles=
+    # FAMILY_PORTAL_ROLES). Applied by get_slots_for AFTER the roles allowlist.
+    hidden_for_roles: frozenset[str] = field(default_factory=frozenset)
     source: str = SOURCE_REGISTRY
     adopt_selector: str = ""                    # for source="dom-adopt"
     panel_url_name: str = ""                    # for source="registry" w/ URL panel
@@ -148,6 +161,11 @@ def get_slots_for(
             continue
         if not _role_matches(slot, role):
             continue
+        # RBAC need-to-know denylist. A wildcard caller ("*", e.g. a generic
+        # "list everything" query) is exempt; a concrete role is hidden when it
+        # is on the slot's denylist even though the roles allowlist matched.
+        if role != "*" and slot.hidden_for_roles and role in slot.hidden_for_roles:
+            continue
         if slot.requires_feature and not include_hidden:
             # Feature flag resolution lives in the context processor so the
             # registry stays pure — including for tests.
@@ -189,6 +207,7 @@ def slot_as_jsonable(slot: AssistDockSlot) -> dict:
         "icon": slot.icon,
         "surfaces": sorted(slot.surfaces),
         "roles": sorted(slot.roles),
+        "hidden_for_roles": sorted(slot.hidden_for_roles),
         "source": slot.source,
         "adopt_selector": slot.adopt_selector,
         "panel_url_name": slot.panel_url_name,
@@ -214,6 +233,7 @@ __all__ = [
     "SURFACE_ADMIN",
     "SURFACE_ANY",
     "ALL_SURFACES",
+    "FAMILY_PORTAL_ROLES",
     "SOURCE_DOM_ADOPT",
     "SOURCE_REGISTRY",
     "SOURCE_EXTERNAL",

@@ -77,22 +77,43 @@ def _resolve_surface(request) -> str:
 
 
 def _resolve_role(request) -> str:
-    """Return the user's primary role string for slot filtering.
+    """Return the effective portal role for slot filtering.
 
     Anonymous returns ``"anonymous"``; superuser returns ``"SUPERADMIN"``.
+
+    Profile-aware: an explicit portal "hat" (the ``active_portal_role`` session
+    key set when a dual-role user switches to act as PARENT/TEACHER, or a
+    staff/admin previewing a family surface) wins over the account's primary
+    role, so the dock reflects the surface the user is *currently acting on* —
+    an admin previewing AS a parent sees the parent-filtered rail, not their
+    admin-tier chips. This mirrors ``ACTIVE_PORTAL_ROLE_KEY`` in
+    ``apps.accounts.portal_roles`` but stays DB-free (no TeacherProfile /
+    StudentGuardian hat lookup) so the context processor never runs a query or
+    raises. A genuine family user has no hat and falls through to their primary
+    role below.
+
     Otherwise prefer ``user.active_role`` / ``user.primary_role`` / ``user.role``
     in that order — the same precedence used by ``_resolve_user_role`` in
-    the RLS-JWT middleware (v4.00.7).
+    the RLS-JWT middleware (v4.00.7) — normalized to upper-case so it matches
+    the registry's role/deny sets (which use the ``User.Role.*`` codes).
     """
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_authenticated", False):
         return "anonymous"
     if getattr(user, "is_superuser", False):
         return "SUPERADMIN"
+    session = getattr(request, "session", None)
+    if session is not None:
+        try:
+            hat = (session.get("active_portal_role") or "").strip().upper()
+        except (AttributeError, TypeError):
+            hat = ""
+        if hat:
+            return hat
     for attr in ("active_role", "primary_role", "role"):
         value = getattr(user, attr, None)
         if value:
-            return str(value)
+            return str(value).strip().upper()
     if getattr(user, "is_staff", False):
         return "STAFF"
     return "USER"

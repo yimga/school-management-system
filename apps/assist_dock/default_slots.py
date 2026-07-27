@@ -14,6 +14,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .registry import (
     ALL_SURFACES,
+    FAMILY_PORTAL_ROLES,
     SOURCE_DOM_ADOPT,
     SOURCE_EXTERNAL,
     SURFACE_MANAGER,
@@ -143,6 +144,10 @@ register_slot(
         label=_("Context"),
         icon="bi-info-circle",
         surfaces=ALL_SURFACES,
+        # Adopts the control-plane/admin context drawer (.cp-context-drawer-toggle),
+        # an operator/staff surface. Hide from family roles so the chip never
+        # advertises a drawer that isn't theirs to open.
+        hidden_for_roles=FAMILY_PORTAL_ROLES,
         source=SOURCE_DOM_ADOPT,
         adopt_selector=".cp-context-drawer-toggle",
         pinned_default=False,

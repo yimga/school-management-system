@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.utils.translation import gettext_lazy as _
 
 from .registry import (
+    FAMILY_PORTAL_ROLES,
     SOURCE_REGISTRY,
     SURFACE_PORTAL,
     AssistDockSlot,
@@ -43,6 +44,10 @@ register_slot(
         label=_("Command"),
         icon="bi-search",
         surfaces=frozenset({SURFACE_PORTAL}),
+        # Cross-entity search (students / teachers / invoices) is staff/educator
+        # tooling — parents/students have their own scoped views, not a global
+        # command palette. Header ⌘K search is separately gated for them.
+        hidden_for_roles=FAMILY_PORTAL_ROLES,
         source=SOURCE_REGISTRY,
         pinned_default=False,
         order=44,
