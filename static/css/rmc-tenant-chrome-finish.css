@@ -153,6 +153,54 @@ html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] > [data-rmc-she
   border-radius: 0;
 }
 
+/* ── 3b. Tenant footer — operator /super/ SIZE PARITY (2026-07-27) ──────
+   The tenant civic footer (data-rmc-footer-surface="tenant-standard") shipped
+   the full padded 4-tier stack: 12/10px container padding, 13-14px type — a
+   materially taller band than /super/, whose rmc-cp-operator-footer.css compacts
+   to ~55-60px (primary 6px 20px, secondary 4px 20px 6px, 10.5px type). The user
+   asked for the tenant footer to be the SAME SIZE as /super/ with everything
+   still fitting. Mirror the operator's compact rhythm on the tenant surface —
+   same content, no tier removal — so both footers read at one height. The
+   >=992px 3-zone unfold (rmc-civic-footer.css:265) still lays the tiers out on
+   one line on top of this; here we only shrink padding + type. Higher
+   specificity (attr + class) + later load order beats the base sheet. */
+[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer {
+  padding: 6px clamp(14px, 2vw, 20px) 6px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer .rmc-civic-footer__brand {
+  font-size: 12px;
+  line-height: 1.2;
+}
+[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer .rmc-civic-footer__motto {
+  font-size: 11px;
+}
+[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer .rmc-civic-footer__est {
+  font-size: 10.5px;
+}
+[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer .rmc-civic-footer__midrow {
+  gap: 2px 10px;
+}
+[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer
+  :is(.rmc-civic-footer__pill, .rmc-civic-footer__appbadge, .rmc-civic-footer__lang) {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  line-height: 1.2;
+}
+[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer
+  :is(.rmc-civic-footer__contact, .rmc-civic-footer__stat, .rmc-civic-footer__social-label, .rmc-civic-footer__legal) {
+  font-size: 10.5px;
+}
+[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer .rmc-civic-footer__legal {
+  padding-top: 2px;
+  gap: 2px 8px;
+}
+[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer .rmc-civic-footer__social-icon {
+  width: 18px;
+  height: 18px;
+}
+
 /* ── 4. Table density beats Bootstrap .table-sm ───────────────── */
 table.table.table-sm.rmc-data-table[data-density="compact"] > :not(caption) > * > *,
 table.table.table-sm.table-family[data-density="compact"] > :not(caption) > * > *,
