@@ -1189,6 +1189,32 @@ def cockpit_context(request) -> dict[str, Any]:
         request,
     )
 
+    # RBAC + surface-consistency: the LIVE SCHOOL ACTIVITY feed (enrollment /
+    # payment / operational events) is an ADMIN-TIER header surface. Parents,
+    # teachers, students and general staff must not see it in the header ticker,
+    # the landing-strip marquee, OR the drawer — they have their own child/class-
+    # scoped views. Gate on the canonical chrome role cluster (SOT in
+    # rmc_os_shell.resolve_rmc_os_shell) so ALL three render surfaces suppress
+    # together off ONE decision, and a school-admin previewing AS a parent
+    # (effective portal role) loses it too. We flip only ``enabled`` (not the
+    # cards) so the incident-banner derivation — a genuine broadcast alert every
+    # profile should see — keeps working. Failure-open is avoided: any resolver
+    # error hides the admin feed rather than leaking it.
+    _live_activity_admin_clusters = frozenset(
+        {"school_admin", "operator", "founder_operator"}
+    )
+    try:
+        from apps.platform_runtime.rmc_os_shell import resolve_rmc_os_shell
+
+        _role_cluster = (resolve_rmc_os_shell(request) or {}).get("role_cluster", "")
+    except Exception:  # noqa: BLE001 — chrome gate is best-effort; default to hiding
+        _role_cluster = ""
+    if _role_cluster not in _live_activity_admin_clusters:
+        _tat = dict(tenant_cockpit.get("tenant_activity_ticker") or {})
+        if _tat:
+            _tat["enabled"] = False
+            tenant_cockpit["tenant_activity_ticker"] = _tat
+
     if _request_wants_cockpit_realdata(request):
         try:
             from .cockpit_calendar_weather_runtime import resolve_calendar_weather_runtime
