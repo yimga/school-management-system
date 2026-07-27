@@ -554,7 +554,13 @@
      rmc-page-help-fab per v8 200x preview parity — admin uses Unfold's
      native chrome, AI lives at /super/ control plane, not a /admin/
      bottom-right floating button. {% endcomment %}
+  {% comment %} 2026-07-27: help lives IN the Tools rail now that /admin/ wires it (page
+     group → "help" chip). Only fall back to the floating contextual drawer when NEITHER
+     tools tray is present, so /admin/ no longer double-renders page help. Mirrors
+     portal_base.html:837. {% endcomment %}
+  {% if not cockpit.tenant_tools.enabled|default:False and not cockpit.operator_tools.enabled|default:False %}
   {% include "partials/help_contextual_drawer.html" %}
+  {% endif %}
   {% include 'components/toast_notifications.html' %}
   {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
   {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}

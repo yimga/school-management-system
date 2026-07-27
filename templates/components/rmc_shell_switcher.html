@@ -1,7 +1,16 @@
-{% load i18n %}
+{% load i18n accounts_extras %}
 {% comment %} Phase F+G (2026-05-12): Console / Configure tenant shell switcher.
    Same operating-vs-configuring split as platform's /super vs /admin. Drop into
-   any tenant page header to give operators a one-tap mode toggle. {% endcomment %}
+   any tenant page header to give operators a one-tap mode toggle.
+
+   RBAC need-to-know (2026-07-27): Console (everyday running) and especially
+   Configure (settings / branding / blueprint pack) are OPERATOR surfaces —
+   parents, students and non-operator staff have no business toggling into them
+   and would only hit a permission wall. Self-gate on the same operator-hub
+   eligibility signal the operator console strip uses (portal_base.html:514) so
+   the control is hidden for anyone who cannot reach those surfaces, wherever
+   this component is dropped in. Fails closed. {% endcomment %}
+{% if request.user|tenant_operator_hub_visible %}
 {% with current_url=request.path %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-shell-switcher" role="group" aria-label="{% trans 'Workspace mode' %}">
@@ -21,3 +30,4 @@
   </a>
 </div>
 {% endwith %}
+{% endif %}
