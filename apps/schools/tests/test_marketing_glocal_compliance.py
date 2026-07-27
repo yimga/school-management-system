@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
+import unittest
 from pathlib import Path
 
 from django.test import SimpleTestCase
@@ -32,6 +34,13 @@ class MarketingGlocalComplianceTests(SimpleTestCase):
             {"sovereign_kernel", "clinical_ledger", "rugged_engine", "fluid_classroom"}.issubset(sections)
         )
 
+    @unittest.skipUnless(
+        shutil.which("ffmpeg"),
+        "ffmpeg required: the gate derives real, regionally-distinct marketing loop "
+        "videos from the hero via compress_marketing_loops_from_hero; without ffmpeg "
+        "only 275B placeholders exist (identical per region), so this build/asset "
+        "pipeline check cannot pass in an ffmpeg-less environment.",
+    )
     def test_glocal_visual_engine_gate(self):
         proc = subprocess.run(
             [sys.executable, str(REPO / "scripts" / "verify_marketing_glocal_visual_engine.py")],
