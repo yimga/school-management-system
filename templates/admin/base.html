@@ -120,7 +120,10 @@
                 {% if is_manager_host %}{% block admin_manager_sticky_actions %}{% endblock %}{% endif %}
 
                 {% block footer %}
-                {% if not is_manager_host %}
+                {% if is_manager_host %}
+                {% include "partials/admin_workbench_footer.html" %}
+                {% include 'components/back_to_top.html' %}
+                {% else %}
                 {% include 'components/back_to_top.html' %}
                 {% endif %}
                 {% endblock %}

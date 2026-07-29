@@ -1,8 +1,8 @@
 {% extends "portal_base.html" %}
 {% comment %} table-column-budget-allow: master-sheet-twelve-column-gradebook-lens {% endcomment %}
-{% load region_format %}
+{% load i18n region_format %}
 
-{% block title %}Master Grading Sheet{% endblock %}
+{% block title %}{% trans "Master Grading Sheet" %}{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -13,17 +13,17 @@
 <div data-rmc-scroll-policy="paginate">
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
-    <h1 class="mb-0">Master Grading Sheet</h1>
-    <div class="text-muted">All marks by term, class, subject, and teacher.</div>
+    <h1 class="mb-0">{% trans "Master Grading Sheet" %}</h1>
+    <div class="text-muted">{% trans "All marks by term, class, subject, and teacher." %}</div>
   </div>
-  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'analytics:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Analytics</a>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'analytics:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Analytics" %}</a>
 </div>
 
 <form method="get" class="card mb-3" data-rmc-autosubmit="1">
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-2">
-        <label class="form-label small">Academic year</label>
+        <label class="form-label small">{% trans "Academic year" %}</label>
         <select class="form-select" name="year">
           {% for y in years %}
             <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
@@ -31,45 +31,45 @@
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Term</label>
+        <label class="form-label small">{% trans "Term" %}</label>
         <select class="form-select" name="term">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for t in terms %}
             <option value="{{ t.id }}" {% if term and t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Classroom</label>
+        <label class="form-label small">{% trans "Classroom" %}</label>
         <select class="form-select" name="classroom">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for c in classrooms %}
             <option value="{{ c.id }}" {% if selected_classroom and c.id == selected_classroom.id %}selected{% endif %}>{{ c.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Specialty</label>
+        <label class="form-label small">{% trans "Specialty" %}</label>
         <select class="form-select" name="specialty">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for s in specialties %}
             <option value="{{ s.id }}" {% if selected_specialty and s.id == selected_specialty.id %}selected{% endif %}>{{ s.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Subject</label>
+        <label class="form-label small">{% trans "Subject" %}</label>
         <select class="form-select" name="subject">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for s in subjects %}
             <option value="{{ s.id }}" {% if selected_subject and s.id == selected_subject.id %}selected{% endif %}>{{ s.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Teacher</label>
+        <label class="form-label small">{% trans "Teacher" %}</label>
         <select class="form-select" name="teacher">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for t in teachers %}
             <option value="{{ t.id }}" {% if selected_teacher and t.id == selected_teacher.id %}selected{% endif %}>
               {{ t.user.get_full_name|default:t.user.username }}
@@ -78,10 +78,10 @@
         </select>
       </div>
       <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100" data-rmc-autosubmit-hide-when-js>Apply Filters</button>
+        <button type="submit" class="btn btn-primary w-100" data-rmc-autosubmit-hide-when-js>{% trans "Apply Filters" %}</button>
       </div>
       <div class="col-md-2">
-        <a class="btn btn-outline-secondary w-100" href="?{{ export_query }}">Export CSV</a>
+        <a class="btn btn-outline-secondary w-100" href="?{{ export_query }}">{% trans "Export CSV" %}</a>
       </div>
     </div>
   </div>
@@ -91,21 +91,21 @@
   <div class="card-body">
     <div class="table-responsive">
       <!-- large-collection-allow: print-report-fixed-layout -->
-<table class="gradebook-table table-family rmc-data-table" aria-label="Master sheet: students, class, subject, teacher, term, and score components" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+<table class="gradebook-table table-family rmc-data-table" aria-label="{% trans 'Master sheet: students, class, subject, teacher, term, and score components' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
-            <th scope="col">Student</th>
-            <th scope="col">Class</th>
-            <th scope="col">Specialty</th>
-            <th scope="col">Subject</th>
-            <th scope="col">Teacher</th>
-            <th scope="col">Term</th>
-            <th scope="col" class="num">Seq1</th>
-            <th scope="col" class="num">Seq2</th>
-            <th scope="col" class="num">Exam</th>
-            <th scope="col" class="num">Mock</th>
-            <th scope="col" class="num">Pract</th>
-            <th scope="col" class="num">Total</th>
+            <th scope="col">{% trans "Student" %}</th>
+            <th scope="col">{% trans "Class" %}</th>
+            <th scope="col">{% trans "Specialty" %}</th>
+            <th scope="col">{% trans "Subject" %}</th>
+            <th scope="col">{% trans "Teacher" %}</th>
+            <th scope="col">{% trans "Term" %}</th>
+            <th scope="col" class="num">{% trans "Seq1" %}</th>
+            <th scope="col" class="num">{% trans "Seq2" %}</th>
+            <th scope="col" class="num">{% trans "Exam" %}</th>
+            <th scope="col" class="num">{% trans "Mock" %}</th>
+            <th scope="col" class="num">{% trans "Pract" %}</th>
+            <th scope="col" class="num">{% trans "Total" %}</th>
           </tr>
         </thead>
         <tbody>

@@ -1,7 +1,7 @@
 {% extends 'backend_base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Bulk Grade Import - Upload & Validate{% endblock %}
+{% block title %}{% trans "Bulk Grade Import - Upload & Validate" %}{% endblock %}
 
 {% block extra_css %}
 {% include "partials/rmc_dropzone_self_host.html" %}
@@ -15,7 +15,7 @@
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">
-                <i class="bi bi-cloud-upload"></i> Bulk Grade Import
+                <i class="bi bi-cloud-upload"></i> {% trans "Bulk Grade Import" %}
             </h1>
         </div>
     </div>
@@ -23,20 +23,20 @@
     <!-- Step Indicator (numbers come from CSS counter; text labels here only) -->
     <div class="step-indicator">
         <div class="step active" id="step1">
-            <h6>Upload</h6>
-            <small>Select CSV file</small>
+            <h6>{% trans "Upload" %}</h6>
+            <small>{% trans "Select CSV file" %}</small>
         </div>
         <div class="step" id="step2">
-            <h6>Validate</h6>
-            <small>Check for errors</small>
+            <h6>{% trans "Validate" %}</h6>
+            <small>{% trans "Check for errors" %}</small>
         </div>
         <div class="step" id="step3">
-            <h6>Review</h6>
-            <small>Preview changes</small>
+            <h6>{% trans "Review" %}</h6>
+            <small>{% trans "Preview changes" %}</small>
         </div>
         <div class="step" id="step4">
-            <h6>Apply</h6>
-            <small>Import to database</small>
+            <h6>{% trans "Apply" %}</h6>
+            <small>{% trans "Import to database" %}</small>
         </div>
     </div>
     
@@ -45,15 +45,15 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Step 1: Upload CSV File</h5>
+                    <h5 class="mb-0">{% trans "Step 1: Upload CSV File" %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="rmc-banner rmc-banner--info">
-                        <strong>Expected CSV Format:</strong>
+                        <strong>{% trans "Expected CSV Format:" %}</strong>
                         <code>student_code, subject_assignment_id, term_id, teacher_username, seq1, seq2, exam, mock, practical, remarks</code>
                         <br>
                         <a href="{% url 'evals:grade_import_template' %}" class="btn btn-sm btn-info mt-2">
-                            <i class="bi bi-download"></i> Download Template
+                            <i class="bi bi-download"></i> {% trans "Download Template" %}
                         </a>
                     </div>
                     
@@ -82,7 +82,7 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Step 2: Validation Results</h5>
+                    <h5 class="mb-0">{% trans "Step 2: Validation Results" %}</h5>
                 </div>
                 <div class="card-body">
                     <!-- Summary Cards -->
@@ -91,7 +91,7 @@
                             <div class="card border-left-success">
                                 <div class="card-body text-center">
                                     <h3 class="text-success" id="validRowsCount">0</h3>
-                                    <small>Valid Rows</small>
+                                    <small>{% trans "Valid Rows" %}</small>
                                 </div>
                             </div>
                         </div>
@@ -99,15 +99,15 @@
                             <div class="card border-left-warning">
                                 <div class="card-body text-center">
                                     <h3 class="text-warning" id="warningRowsCount">0</h3>
-                                    <small>Rows with Warnings</small>
+                                    <small>{% trans "Rows with Warnings" %}</small>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="card border-left-danger">
                                 <div class="card-body text-center">
-                                    <h3 class="text-danger" id="invalidRowsCount" aria-label="Invalid rows to review and fix before import">0</h3>
-                                    <small>Invalid Rows &mdash; review and fix before import</small>
+                                    <h3 class="text-danger" id="invalidRowsCount" aria-label="{% trans 'Invalid rows to review and fix before import' %}">0</h3>
+                                    <small>{% trans "Invalid Rows — review and fix before import" %}</small>
                                 </div>
                             </div>
                         </div>
@@ -115,7 +115,7 @@
                             <div class="card border-left-primary">
                                 <div class="card-body text-center">
                                     <h3 class="text-primary" id="totalRowsCount">0</h3>
-                                    <small>Total Rows</small>
+                                    <small>{% trans "Total Rows" %}</small>
                                 </div>
                             </div>
                         </div>
@@ -126,14 +126,14 @@
                     
                     <!-- Validation Table -->
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover table-family align-middle rmc-data-table" id="validationTable" aria-label="Bulk grade import validation preview" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
+                        <table class="table table-sm table-hover table-family align-middle rmc-data-table" id="validationTable" aria-label="{% trans 'Bulk grade import validation preview' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
                             <thead class="bg-light">
                                 <tr>
-                                    <th scope="col" style="width: 50px;">Row #</th>
-                                    <th scope="col">Student Code</th>
-                                    <th scope="col">Assessment</th>
-                                    <th scope="col">Status</th>
-                                    <th scope="col">Issues</th>
+                                    <th scope="col" style="width: 50px;">{% trans "Row #" %}</th>
+                                    <th scope="col">{% trans "Student Code" %}</th>
+                                    <th scope="col">{% trans "Assessment" %}</th>
+                                    <th scope="col">{% trans "Status" %}</th>
+                                    <th scope="col">{% trans "Issues" %}</th>
                                 </tr>
                             </thead>
                             <tbody id="validationTableBody"></tbody>
@@ -143,10 +143,10 @@
                     <!-- Action Buttons -->
                     <div class="mt-4">
                         <button type="button" class="btn btn-primary" id="proceedButton" onclick="moveToStep3()">
-                            <i class="bi bi-arrow-right"></i> Proceed to Review
+                            <i class="bi bi-arrow-right"></i> {% trans "Proceed to Review" %}
                         </button>
                         <button type="button" class="btn btn-secondary" onclick="resetUpload()">
-                            <i class="bi bi-arrow-clockwise"></i> Upload New File
+                            <i class="bi bi-arrow-clockwise"></i> {% trans "Upload New File" %}
                         </button>
                     </div>
                 </div>
@@ -159,38 +159,38 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Step 3: Review & Confirm</h5>
+                    <h5 class="mb-0">{% trans "Step 3: Review & Confirm" %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="rmc-banner rmc-banner--warning">
-                        <strong><i class="bi bi-exclamation-triangle"></i> Important:</strong>
-                        You are about to import grades into the database. This will:
+                        <strong><i class="bi bi-exclamation-triangle"></i> {% trans "Important:" %}</strong>
+                        {% trans "You are about to import grades into the database. This will:" %}
                         <ul class="mb-0 mt-2">
-                            <li>Create new evaluations for students with no existing grade</li>
-                            <li>Update existing evaluations with new scores</li>
-                            <li>Trigger automatic grade conversions (letter grades, GPA)</li>
-                            <li>Create audit trail entries for all changes</li>
-                            <li>Send notifications to parents/guardians if configured</li>
+                            <li>{% trans "Create new evaluations for students with no existing grade" %}</li>
+                            <li>{% trans "Update existing evaluations with new scores" %}</li>
+                            <li>{% trans "Trigger automatic grade conversions (letter grades, GPA)" %}</li>
+                            <li>{% trans "Create audit trail entries for all changes" %}</li>
+                            <li>{% trans "Send notifications to parents/guardians if configured" %}</li>
                         </ul>
                     </div>
                     
                     <div class="summary-card success">
-                        <h6>Ready to import:</h6>
+                        <h6>{% trans "Ready to import:" %}</h6>
                         <p class="mb-0">
-                            <strong id="reviewCreatedCount">0</strong> valid rows will be imported (new evaluations created or existing ones updated)<br>
-                            <strong id="reviewIgnoredCount">0</strong> rows have issues and will be skipped
+                            {% blocktrans %}<strong id="reviewCreatedCount">0</strong> valid rows will be imported (new evaluations created or existing ones updated){% endblocktrans %}<br>
+                            {% blocktrans %}<strong id="reviewIgnoredCount">0</strong> rows have issues and will be skipped{% endblocktrans %}
                         </p>
                         <p class="mb-0 mt-2 text-muted small">
-                            Created vs. updated counts will be confirmed after import. <span id="reviewUpdatedCount" hidden>0</span>
+                            {% trans "Created vs. updated counts will be confirmed after import." %} <span id="reviewUpdatedCount" hidden>0</span>
                         </p>
                     </div>
                     
                     <div class="mt-4">
                         <button type="button" class="btn btn-lg btn-success" id="applyButton" onclick="applyImport()">
-                            <i class="bi bi-check2"></i> Confirm & Import
+                            <i class="bi bi-check2"></i> {% trans "Confirm & Import" %}
                         </button>
                         <button type="button" class="btn btn-lg btn-secondary" onclick="backToValidation()">
-                            <i class="bi bi-arrow-left"></i> Back
+                            <i class="bi bi-arrow-left"></i> {% trans "Back" %}
                         </button>
                     </div>
                 </div>
@@ -203,14 +203,14 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Step 4: Importing...</h5>
+                    <h5 class="mb-0">{% trans "Step 4: Importing..." %}</h5>
                 </div>
                 <div class="card-body text-center">
                     <div class="spinner-border text-primary mb-3" role="status">
-                        <span class="sr-only">Loading...</span>
+                        <span class="sr-only">{% trans "Loading..." %}</span>
                     </div>
-                    <h5>Processing grades...</h5>
-                    <p id="progressStatus" class="text-muted">Please wait, this may take a moment</p>
+                    <h5>{% trans "Processing grades..." %}</h5>
+                    <p id="progressStatus" class="text-muted">{% trans "Please wait, this may take a moment" %}</p>
                     
                     <div class="progress mt-4" style="height: 30px;">
                         <div id="importProgress" class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
@@ -228,24 +228,24 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="bi bi-check2-circle"></i> Import Complete</h5>
+                    <h5 class="mb-0"><i class="bi bi-check2-circle"></i> {% trans "Import Complete" %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="summary-card success">
-                        <h6>Import Summary:</h6>
+                        <h6>{% trans "Import Summary:" %}</h6>
                         <p class="mb-0">
-                            <strong><span id="completeCreatedCount">0</span> new evaluations created</strong><br>
-                            <strong><span id="completeUpdatedCount">0</span> evaluations updated</strong><br>
-                            <strong>Duration: <span id="completeDuration">0</span> seconds</strong>
+                            {% blocktrans %}<strong><span id="completeCreatedCount">0</span> new evaluations created</strong>{% endblocktrans %}<br>
+                            {% blocktrans %}<strong><span id="completeUpdatedCount">0</span> evaluations updated</strong>{% endblocktrans %}<br>
+                            {% blocktrans %}<strong>Duration: <span id="completeDuration">0</span> seconds</strong>{% endblocktrans %}
                         </p>
                     </div>
                     
                     <div class="mt-4">
                         <a href="{% url 'evals:compliance_dashboard' %}" class="btn btn-primary">
-                            <i class="bi bi-bar-chart"></i> View Compliance Dashboard
+                            <i class="bi bi-bar-chart"></i> {% trans "View Compliance Dashboard" %}
                         </a>
                         <button type="button" class="btn btn-secondary" onclick="resetUpload()">
-                            <i class="bi bi-cloud-upload"></i> Import Another File
+                            <i class="bi bi-cloud-upload"></i> {% trans "Import Another File" %}
                         </button>
                     </div>
                 </div>

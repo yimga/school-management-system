@@ -1,0 +1,20 @@
+{% load i18n static marketing_public_urls %}
+{% comment %}
+In-document admin workbench footer — gate-compliant alternative to the fixed civic
+ribbon (verify_django_admin_preview_parity forbids rmc_operator_footer_civic on /admin/).
+{% endcomment %}
+<footer class="rmc-admin-workbench-footer" role="contentinfo" data-rmc-admin-workbench-footer="1" aria-label="{% trans 'Platform gateway links' %}">
+  <div class="rmc-admin-workbench-footer__inner">
+    <div class="rmc-admin-workbench-footer__brand">
+      <strong>RunMyCampus</strong>
+      <span>{% trans "Backoffice" %}</span>
+    </div>
+    <nav class="rmc-admin-workbench-footer__links" aria-label="{% trans 'Operator gateway shortcuts' %}">
+      <a href="{% marketing_public_href 'status' %}">{% trans "Platform status" %}</a>
+      <a href="{% url 'accounts:login' %}?next=/super/">{% trans "Control plane" %}</a>
+      <a href="{% marketing_public_href 'find_school' %}">{% trans "Find campus" %}</a>
+      <a href="{{ public_site_url|default:'https://runmycampus.com' }}" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
+    </nav>
+    <p class="rmc-admin-workbench-footer__meta mb-0">{% trans "Model workbench · audit-grade configuration" %}</p>
+  </div>
+</footer>

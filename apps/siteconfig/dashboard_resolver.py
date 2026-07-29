@@ -22,6 +22,7 @@ def for_role(
     page: str | None = None,
     *,
     include_registry: bool = False,
+    request=None,
 ) -> dict[str, Any]:
     """
     Return composed dashboard for the given school/role (and optional user preference).
@@ -36,6 +37,13 @@ def for_role(
         )
 
     widget_keys = resolve_dashboard_widgets(role, preference)
+    if request is not None:
+        try:
+            from apps.siteconfig.dashboard_pack_resolver import filter_widget_keys_for_request
+
+            widget_keys = filter_widget_keys_for_request(request, widget_keys)
+        except (AttributeError, ImportError, TypeError, ValueError):
+            pass
 
     result = {
         "role": role,

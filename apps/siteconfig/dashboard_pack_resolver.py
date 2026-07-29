@@ -540,3 +540,56 @@ def overlay_role_home(role_home: dict[str, Any], request: Any) -> dict[str, Any]
         result["dashboard_theme"] = merged_theme
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# Portal widget grid: pack ``modules`` → legacy widget partial keys (depth slice).
+# Only modules explicitly set to ``False`` hide widgets; absent keys are unchanged.
+# ---------------------------------------------------------------------------
+PACK_MODULE_PORTAL_WIDGETS: dict[str, frozenset[str]] = {
+    "top_performing": frozenset({"performance", "analytics"}),
+    "attendance_today": frozenset({"attendance"}),
+    "outstanding_fees": frozenset({"finance"}),
+    "enrollment_trends": frozenset({"analytics"}),
+    "at_risk_students": frozenset({"referral", "analytics"}),
+    "recent_admissions": frozenset({"events"}),
+    "recent_activity": frozenset({"tasks", "system_status"}),
+    "ops_watch": frozenset({"system_status"}),
+    "admin_portal": frozenset({"access"}),
+    "planner": frozenset({"upcoming", "tasks"}),
+}
+
+
+def pack_modules_from_request(request: Any) -> dict[str, bool]:
+    """Effective pack module map for the request (empty when no pack/template)."""
+    try:
+        resolved = resolve_effective_template_cached(request)
+        schema = getattr(resolved.get("template"), "config_schema", None) or {}
+        modules = schema.get("modules") if isinstance(schema, dict) else None
+        if isinstance(modules, dict) and modules:
+            return {str(k): bool(v) for k, v in modules.items()}
+    except _RESOLVER_ERRORS:
+        return {}
+    return {}
+
+
+def apply_pack_modules_to_widget_keys(
+    widget_keys: list[str], pack_modules: dict[str, bool] | None
+) -> list[str]:
+    """Drop portal widget keys hidden by an active dashboard pack's module map."""
+    if not widget_keys or not pack_modules:
+        return list(widget_keys or [])
+    hidden: set[str] = set()
+    for mod_key, enabled in pack_modules.items():
+        if enabled is False:
+            hidden.update(PACK_MODULE_PORTAL_WIDGETS.get(mod_key, frozenset()))
+    if not hidden:
+        return list(widget_keys)
+    return [k for k in widget_keys if k not in hidden]
+
+
+def filter_widget_keys_for_request(request: Any, widget_keys: list[str]) -> list[str]:
+    """Apply pack module visibility to resolved portal widget keys."""
+    return apply_pack_modules_to_widget_keys(
+        widget_keys, pack_modules_from_request(request)
+    )

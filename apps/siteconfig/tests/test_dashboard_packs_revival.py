@@ -733,3 +733,95 @@ class DashboardPackSwitcherRenderTests(TestCase):
         self.assertIn("Your dashboards", html)  # primary group label
         self.assertIn("Other role dashboards", html)  # collapsible other-families
         self.assertIn("School default", html)  # reset option retained
+
+
+class DashboardPackBackendModuleTests(TestCase):
+    """Pack selection must visibly change backend module visibility."""
+
+    def setUp(self):
+        call_command("seed_workflow_dashboard_packs")
+        self.school = _make_school("module-school", sector="PRIVATE")
+        self.user = User.objects.create_user(
+            username="module_admin", password="testpass123", role=User.Role.ADMIN
+        )
+        DashboardUserPreference.objects.update_or_create(
+            user=self.user,
+            defaults={"role_dashboard_packs": {"ADMIN": "finance-office-ledger"}},
+        )
+        self.user = User.objects.select_related("dashboard_preferences").get(
+            pk=self.user.pk
+        )
+
+    def test_finance_pack_hides_analytics_modules(self):
+        pack = DashboardPack.objects.get(code="finance-office-ledger")
+        template = DashboardTemplate.objects.filter(
+            dashboard_pack=pack, is_active=True
+        ).first()
+        TenantLayoutAssignment.objects.create(
+            school=self.school, role="ADMIN", template=template, is_active=True
+        )
+        result = resolver.overlay_role_home(
+            {"eyebrow": "x", "title": "t"}, _fake_request(self.school, self.user)
+        )
+        modules = result.get("dashboard_modules") or {}
+        self.assertFalse(modules.get("top_performing", True))
+        self.assertFalse(modules.get("attendance_today", True))
+
+
+class DashboardPackWidgetFilterTests(TestCase):
+    """Pack module map filters legacy portal widget keys."""
+
+    def test_finance_false_hides_finance_widget(self):
+        from apps.siteconfig.dashboard_pack_resolver import apply_pack_modules_to_widget_keys
+
+        keys = ["attendance", "finance", "events"]
+        out = apply_pack_modules_to_widget_keys(
+            keys, {"outstanding_fees": False, "attendance_today": True}
+        )
+        self.assertEqual(out, ["attendance", "events"])
+
+    def test_parent_family_modules_hide_performance_and_access(self):
+        from apps.siteconfig.dashboard_pack_resolver import apply_pack_modules_to_widget_keys
+
+        parent_modules = {
+            "admin_portal": False,
+            "ops_watch": False,
+            "top_performing": False,
+            "outstanding_fees": False,
+        }
+        keys = [
+            "attendance",
+            "performance",
+            "finance",
+            "access",
+            "system_status",
+        ]
+        out = apply_pack_modules_to_widget_keys(keys, parent_modules)
+        self.assertEqual(out, ["attendance"])
+
+
+class DashboardPackHeroContextTests(TestCase):
+    """Switcher context exposes pack hero copy for portal landings."""
+
+    def setUp(self):
+        call_command("seed_workflow_dashboard_packs")
+        self.school = _make_school("hero-school", sector="PRIVATE")
+        self.user = User.objects.create_user(
+            username="hero_teacher", password="testpass123", role=User.Role.TEACHER
+        )
+        DashboardUserPreference.objects.update_or_create(
+            user=self.user,
+            defaults={"role_dashboard_packs": {"TEACHER": "teacher-planner"}},
+        )
+        self.user = User.objects.select_related("dashboard_preferences").get(
+            pk=self.user.pk
+        )
+
+    def test_switcher_context_includes_pack_hero_and_active_code(self):
+        from apps.siteconfig.context_processors import dashboard_pack_switcher_context
+
+        ctx = dashboard_pack_switcher_context(_fake_request(self.school, self.user))
+        self.assertEqual(ctx["dashboard_pack_active"], "teacher-planner")
+        hero = ctx.get("dashboard_pack_hero") or {}
+        self.assertTrue(hero.get("purpose"))
+        self.assertIn("teacher__gradebook_trend", ctx["dashboard_pack_hidden_sections"])

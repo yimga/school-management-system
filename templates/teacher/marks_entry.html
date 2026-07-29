@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% load evals_extras static region_format i18n terminology_tags glocal_tags %}
-{% block title %}Enter Marks{% endblock %}
+{% block title %}{% trans "Enter Marks" %}{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -15,14 +15,14 @@
     {% comment %} Aesthetic-v2 page-header grammar. Styled by patterns.css. {% endcomment %}
     <div class="eyebrow">{% if year and term %}{{ year.name }} · {{ term.get_name_display }}{% else %}{% trans "Mark entry" %}{% endif %}</div>
     <div class="d-flex align-items-center gap-2">
-      <h1 class="page-h1 mb-0">Enter Marks</h1>
+      <h1 class="page-h1 mb-0">{% trans "Enter Marks" %}</h1>
       {% include "components/pin_to_quick_access.html" with sidebar_item_id="marks_entry" %}
     </div>
-    <p class="page-sub mb-0">Bulk entry — select your class and subject to begin.</p>
+    <p class="page-sub mb-0">{% trans "Bulk entry — select your class and subject to begin." %}</p>
   </div>
   <div class="d-flex gap-2">
-    <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_dashboard' %}">Dashboard</a>
-    <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_marks_list' %}">My Marks</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_dashboard' %}">{% trans "Dashboard" %}</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_marks_list' %}">{% trans "My Marks" %}</a>
   </div>
 </div>
 
@@ -50,10 +50,10 @@
 
 <form method="get" class="card mb-3" data-rmc-autosubmit="1">
   <div class="card-body">
-    <label class="form-label"><b>Select your assigned {% term_lower "class" %}/subject</b></label>
+    <label class="form-label"><b>{% trans "Select your assigned class/subject" %}</b></label>
     <div class="d-flex gap-2">
       <select class="form-select" name="subject_assignment_id" required {% if locked %}disabled{% endif %}>
-        <option value="">-- choose --</option>
+        <option value="">{% trans "-- choose --" %}</option>
         {% for ta in teacher_assignments %}
           <option value="{{ ta.subject_assignment.id }}" {% if selected_sa_id == ta.subject_assignment.id|stringformat:"s" %}selected{% endif %}>
             {{ ta.subject_assignment.subject.name }} —
@@ -63,7 +63,7 @@
           </option>
         {% endfor %}
       </select>
-      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %} data-action="marks-load-roster" data-task-step="marks:filter-class" data-rmc-autosubmit-hide-when-js>Load {% term "student" plural=True capitalize=True %}</button>
+      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %} data-action="marks-load-roster" data-task-step="marks:filter-class" data-rmc-autosubmit-hide-when-js>{% trans "Load" %} {% term "student" plural=True capitalize=True %}</button>
     </div>
   </div>
 </form>
@@ -76,20 +76,20 @@
     </div>
     <div>
       {% if show_missing %}
-        <a class="btn btn-outline-secondary btn-sm" href="?subject_assignment_id={{ selected_sa.id }}">Show all</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?subject_assignment_id={{ selected_sa.id }}">{% trans "Show all" %}</a>
       {% else %}
-        <a class="btn btn-outline-secondary btn-sm" href="?subject_assignment_id={{ selected_sa.id }}&missing=1">Show missing only</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?subject_assignment_id={{ selected_sa.id }}&missing=1">{% trans "Show missing only" %}</a>
       {% endif %}
     </div>
   </div>
   <div class="card mb-3">
     <div class="card-header">
       <div class="d-flex justify-content-between align-items-center">
-        <span>Upload Marksheet (OCR)</span>
+        <span>{% trans "Upload Marksheet (OCR)" %}</span>
         {% if marksheet_ocr_enabled %}
-          <span class="rmc-badge rmc-badge--success">Live</span>
+          <span class="rmc-badge rmc-badge--success">{% trans "Live" %}</span>
         {% else %}
-          <span class="rmc-badge">Disabled</span>
+          <span class="rmc-badge">{% trans "Disabled" %}</span>
         {% endif %}
       </div>
     </div>
@@ -115,7 +115,7 @@
           {{ upload_form.marksheet_file }}
         </div>
         <button class="btn btn-outline-primary" type="submit" {% if not marksheet_ocr_enabled or not marksheet_ocr_ready %}disabled{% endif %}>
-          Create server review proposal
+          {% trans "Create server review proposal" %}
         </button>
         <button
           class="btn btn-outline-secondary ms-2"
@@ -126,7 +126,7 @@
           data-lang-path="{% static 'js/vendor/tesseract/' %}"
           {% if not marksheet_ocr_enabled %}disabled{% endif %}
         >
-          Run on this device
+          {% trans "Run on this device" %}
         </button>
         {% if marksheet_mobile_upload_allowed %}
           <small class="text-muted ms-2">Works on mobile - choose or capture a photo directly.</small>
@@ -173,11 +173,11 @@
             <caption class="visually-hidden">{% trans "Enter Marks" %}</caption>
             <thead>
               <tr>
-                <th scope="col">Code</th>
+                <th scope="col">{% trans "Code" %}</th>
                 <th scope="col">{% trans "Student" %}</th>
-                <th scope="col">Scores (editable)</th>
-                <th scope="col">Confidence</th>
-                <th scope="col">Extracted line</th>
+                <th scope="col">{% trans "Scores (editable)" %}</th>
+                <th scope="col">{% trans "Confidence" %}</th>
+                <th scope="col">{% trans "Extracted line" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -238,10 +238,10 @@
             <div class="form-check mt-3">
               <input class="form-check-input" type="checkbox" value="1" name="confirm_human_review" id="confirm-human-ocr-review" required>
               <label class="form-check-label" for="confirm-human-ocr-review">
-                I reviewed the {% term_lower "student" %} matches and every proposed score.
+                {% blocktrans %}I reviewed the student matches and every proposed score.{% endblocktrans %}
               </label>
             </div>
-            <button class="btn btn-primary mt-2" type="submit" data-action="marks-ocr-apply" data-task-step="marks:ocr-commit">Apply teacher-confirmed proposal</button>
+            <button class="btn btn-primary mt-2" type="submit" data-action="marks-ocr-apply" data-task-step="marks:ocr-commit">{% trans "Apply teacher-confirmed proposal" %}</button>
             <span class="ms-2 text-muted">This explicit confirmation is required.</span>
           </form>
         {% endif %}
@@ -259,7 +259,7 @@
           {% for req in grade_approval_requests %}
             <li>
               {{ req.get_status_display }} · {{ req.requested_at|format_date }} {{ req.requested_at|time:"H:i" }}
-              <a href="{% url 'evals:grade_approval_detail' req.id %}">View</a>
+              <a href="{% url 'evals:grade_approval_detail' req.id %}">{% trans "View" %}</a>
             </li>
           {% endfor %}
         </ul>
@@ -313,7 +313,7 @@
               <th scope="col">{% trans "Student" %}</th>
               <th scope="col" class="num" style="width:110px;">{% term "sequence" %} 1</th>
               <th scope="col" class="num" style="width:110px;">{% term "sequence" %} 2</th>
-              <th scope="col" class="num" style="width:110px;">Exam</th>
+              <th scope="col" class="num" style="width:110px;">{% trans "Exam" %}</th>
               <th scope="col">{% trans "More scores" %}</th>
             </tr>
           </thead>
@@ -338,9 +338,9 @@
                 <td class="num"><input class="mark-cell" name="exam_{{ s.id }}" data-rmc-ocr-field="exam_score" value="{% if e %}{{ e.exam_score }}{% endif %}" inputmode="decimal" min="0" max="{{ max_score|default:20 }}" {% if locked %}disabled{% endif %}></td>
                 <td>
                   <div class="d-flex flex-wrap gap-1 align-items-center">
-                    <label class="visually-hidden" for="mock_{{ s.id }}">Mock</label>
+                    <label class="visually-hidden" for="mock_{{ s.id }}">{% trans "Mock" %}</label>
                     <input id="mock_{{ s.id }}" class="mark-cell" name="mock_{{ s.id }}" data-rmc-ocr-field="mock_score" value="{% if e %}{{ e.mock_score }}{% endif %}" inputmode="decimal" min="0" max="{{ max_score|default:20 }}" placeholder="Mock" {% if locked %}disabled{% endif %}>
-                    <label class="visually-hidden" for="practical_{{ s.id }}">Practical</label>
+                    <label class="visually-hidden" for="practical_{{ s.id }}">{% trans "Practical" %}</label>
                     <input id="practical_{{ s.id }}" class="mark-cell" name="practical_{{ s.id }}" data-rmc-ocr-field="practical_score" value="{% if e %}{{ e.practical_score }}{% endif %}" inputmode="decimal" min="0" max="{{ max_score|default:20 }}" placeholder="Prac." {% if locked %}disabled{% endif %}>
                     <input class="form-control form-control-sm flex-grow-1" name="remarks_{{ s.id }}" value="{% if e %}{{ e.remarks }}{% endif %}" placeholder="{% trans 'Remarks' %}" {% if locked %}disabled{% endif %}>
                   </div>
@@ -351,10 +351,10 @@
           </tbody>
         </table>
 
-        <button class="btn btn-success" type="submit" {% if locked %}disabled{% endif %} data-action="marks-save-all" data-task-step="marks:save">Save All Marks</button>
+        <button class="btn btn-success" type="submit" {% if locked %}disabled{% endif %} data-action="marks-save-all" data-task-step="marks:save">{% trans "Save All Marks" %}</button>
         {% if grade_approval_enabled %}
           <button class="btn btn-outline-warning ms-2" type="submit" name="action" value="submit_for_approval" {% if locked %}disabled{% endif %} data-action="marks-submit-approval" data-task-step="marks:approval">
-            Submit for Review
+            {% trans "Submit for Review" %}
           </button>
         {% endif %}
         <p class="small text-muted mt-2 mb-0">Draft is saved automatically in your browser. If the power or tab closes, return here and choose &quot;Restore draft&quot; when prompted.</p>

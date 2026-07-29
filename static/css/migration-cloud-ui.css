@@ -397,3 +397,20 @@ body.control-plane-shell #cp-main-content .cp-page-body:has(.rmc-page--migration
     padding: 1rem;
   }
 }
+
+/* Connector wizard (source platform selection) — allow long forms to scroll. */
+:where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]) {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: none;
+  padding-bottom: 2rem;
+}
+
+:where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]) .rmc-card,
+:where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]) form {
+  overflow: visible;
+}
+
+:where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]) select.form-select {
+  max-height: none;
+}

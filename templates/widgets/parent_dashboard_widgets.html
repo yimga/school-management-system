@@ -1,93 +1,101 @@
 {% load admin_health %}
-{% load region_format %}
+{% load region_format i18n %}
 {% if widget_data %}
+{% with widgets=display_widgets %}
   {% admin_health as health %}
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="row g-3 mb-4 rmc-reveal-stagger">
     {% with attendance=widget_data.attendance performance=widget_data.performance finance=widget_data.finance events=widget_data.events %}
+      {% if not widgets or "attendance" in widgets %}
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-primary shadow-sm">
           <div class="card-body">
-            <div class="text-muted small mb-1">Attendance snapshot</div>
+            <div class="text-muted small mb-1">{% trans "Attendance snapshot" %}</div>
             {% if attendance.today is not None %}
               <div class="d-flex align-items-end gap-2">
                 <span class="display-6">{{ attendance.today }}%</span>
-                <span class="text-muted small">today</span>
+                <span class="text-muted small">{% trans "today" %}</span>
               </div>
               <div class="text-muted small">
-                Overall {{ attendance.overall }}% &middot; Missing {{ attendance.missing }} evaluations
+                {% blocktrans with overall=attendance.overall missing=attendance.missing %}Overall {{ overall }}% · Missing {{ missing }} evaluations{% endblocktrans %}
               </div>
               <div class="text-muted small mt-2">
                 {{ attendance.label }}
               </div>
             {% else %}
-              <div class="text-muted small">No attendance data available.</div>
+              <div class="text-muted small">{% trans "No attendance data available." %}</div>
             {% endif %}
           </div>
         </div>
       </div>
+      {% endif %}
 
+      {% if not widgets or "performance" in widgets %}
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-success shadow-sm">
           <div class="card-body">
-            <div class="text-muted small mb-1">Performance overview</div>
+            <div class="text-muted small mb-1">{% trans "Performance overview" %}</div>
             {% if performance.average is not None %}
               <h3 class="fw-bold mb-1">{{ performance.average|default:"-" }}</h3>
               {% if performance.top_student %}
                 <div class="small text-muted">
-                  Top: {{ performance.top_student.student }} &middot; {{ performance.top_student.average|format_number:2 }}
+                  {% blocktrans with student=performance.top_student.student average=performance.top_student.average %}Top: {{ student }} · {{ average }}{% endblocktrans %}
                 </div>
               {% endif %}
               <div class="text-muted small">
-                Trend: {{ performance.trend }}
+                {% blocktrans with trend=performance.trend %}Trend: {{ trend }}{% endblocktrans %}
               </div>
               <div class="text-muted small mt-2">
                 {{ performance.label }}
               </div>
             {% else %}
-              <div class="text-muted small">No performance data available.</div>
+              <div class="text-muted small">{% trans "No performance data available." %}</div>
             {% endif %}
           </div>
         </div>
       </div>
+      {% endif %}
 
+      {% if not widgets or "finance" in widgets %}
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-warning shadow-sm">
           <div class="card-body">
-            <div class="text-muted small mb-1">Financial summary</div>
+            <div class="text-muted small mb-1">{% trans "Financial summary" %}</div>
             {% if finance.total_due is not None %}
               <div class="display-6 mb-1">{{ finance.total_due|format_number:2 }}</div>
-              <div class="small text-muted">Due / Paid / Balance</div>
+              <div class="small text-muted">{% trans "Due / Paid / Balance" %}</div>
               <div class="d-flex justify-content-between mt-2">
-                <small>Paid</small>
+                <small>{% trans "Paid" %}</small>
                 <small class="fw-semibold">{{ finance.paid|format_number:2 }}</small>
               </div>
               <div class="d-flex justify-content-between">
-                <small>Balance</small>
+                <small>{% trans "Balance" %}</small>
                 <small class="fw-semibold">{{ finance.balance|format_number:2 }}</small>
               </div>
               <div class="text-muted small mt-2">
-                {{ finance.label }} &middot; Overdue invoices: {{ finance.overdue }}
+                {% blocktrans with label=finance.label overdue=finance.overdue %}{{ label }} · Overdue invoices: {{ overdue }}{% endblocktrans %}
               </div>
             {% else %}
-              <div class="text-muted small">No finance data available.</div>
+              <div class="text-muted small">{% trans "No finance data available." %}</div>
             {% endif %}
             <div class="d-flex gap-2 mt-3">
               <a class="btn btn-sm btn-outline-primary" href="{% url 'finance:dashboard' %}">
-                Pay fees
+                {% trans "Pay fees" %}
               </a>
               <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:payments' %}">
-                View receipts
+                {% trans "View receipts" %}
               </a>
             </div>
           </div>
         </div>
       </div>
+      {% endif %}
 
+      {% if not widgets or "events" in widgets %}
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-info shadow-sm">
           <div class="card-body">
-            <div class="text-muted small mb-1">Upcoming events & alerts</div>
+            <div class="text-muted small mb-1">{% trans "Upcoming events & alerts" %}</div>
             {% if events %}
               <ul class="list-unstyled mb-1 small">
                 {% for event in events %}
@@ -98,14 +106,15 @@
                 {% endfor %}
               </ul>
             {% else %}
-              <p class="small text-muted mb-1">No queued deadlines yet.</p>
+              <p class="small text-muted mb-1">{% trans "No queued deadlines yet." %}</p>
             {% endif %}
             <div class="text-muted small">
-              {{ events|length }} reminders scheduled.
+              {% blocktrans count n=events|length %}{{ n }} reminder scheduled.{% plural %}{{ n }} reminders scheduled.{% endblocktrans %}
             </div>
           </div>
         </div>
       </div>
+      {% endif %}
     {% endwith %}
   </div>
 
@@ -114,13 +123,13 @@
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-secondary shadow-sm">
           <div class="card-body">
-            <div class="text-muted small mb-1">System status</div>
+            <div class="text-muted small mb-1">{% trans "System status" %}</div>
             <ul class="list-unstyled small mb-2">
-              <li>Unpublished terms: {{ health.unpublished_terms }}</li>
-              <li>Overdue invoices: {{ health.overdue_invoices }}</li>
-              <li>Draft invoices: {{ health.draft_invoices }}</li>
-              <li>Reminders due: {{ health.reminders_due }}</li>
-              <li>Parent portal: {{ health.portal_parent_enabled|yesno:"On,Off" }}</li>
+              <li>{% blocktrans with count=health.unpublished_terms %}Unpublished terms: {{ count }}{% endblocktrans %}</li>
+              <li>{% blocktrans with count=health.overdue_invoices %}Overdue invoices: {{ count }}{% endblocktrans %}</li>
+              <li>{% blocktrans with count=health.draft_invoices %}Draft invoices: {{ count }}{% endblocktrans %}</li>
+              <li>{% blocktrans with count=health.reminders_due %}Reminders due: {{ count }}{% endblocktrans %}</li>
+              <li>{% trans "Parent portal:" %} {% if health.portal_parent_enabled %}{% trans "On" %}{% else %}{% trans "Off" %}{% endif %}</li>
             </ul>
           </div>
         </div>
@@ -128,11 +137,11 @@
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-danger shadow-sm">
           <div class="card-body">
-            <div class="text-muted small mb-1">Task tracker</div>
+            <div class="text-muted small mb-1">{% trans "Task tracker" %}</div>
             <div class="fw-semibold display-5 mb-1">{{ tasks.pending_evaluations }}</div>
-            <div class="text-muted small">Missing evaluations</div>
+            <div class="text-muted small">{% trans "Missing evaluations" %}</div>
             <div class="fw-semibold display-5 mt-3">{{ tasks.pending_payments }}</div>
-            <div class="text-muted small">Pending payments</div>
+            <div class="text-muted small">{% trans "Pending payments" %}</div>
             <div class="text-muted small mt-2">{{ tasks.description }}</div>
           </div>
         </div>
@@ -141,16 +150,16 @@
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-info shadow-sm">
           <div class="card-body">
-            <div class="text-muted small mb-1">Referrals & parent data</div>
+            <div class="text-muted small mb-1">{% trans "Referrals & parent data" %}</div>
             <div class="d-flex align-items-center gap-2 mb-2">
-              <span class="rmc-badge rmc-badge--brand">Code: {{ referral.code|default:"Pending" }}</span>
+              <span class="rmc-badge rmc-badge--brand">{% trans "Code:" %} {{ referral.code|default:_("Pending") }}</span>
             </div>
-            <div class="small text-muted mb-1">Profile completeness</div>
+            <div class="small text-muted mb-1">{% trans "Profile completeness" %}</div>
             <div class="progress mb-2" style="height: 6px;">
               <div class="progress-bar" role="progressbar" style="width: {{ referral.completeness_avg }}%;"></div>
             </div>
             <div class="small text-muted mb-0">
-              Avg completeness {{ referral.completeness_avg }}%. {{ referral.note }}
+              {% blocktrans with avg=referral.completeness_avg note=referral.note %}Avg completeness {{ avg }}%. {{ note }}{% endblocktrans %}
             </div>
           </div>
         </div>
@@ -159,13 +168,13 @@
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-secondary shadow-sm">
           <div class="card-body">
-            <div class="text-muted small mb-1">Portal access</div>
+            <div class="text-muted small mb-1">{% trans "Portal access" %}</div>
             <div class="d-flex flex-wrap gap-2">
               {% for link in access %}
                 <a class="btn btn-sm btn-outline-dark" href="{{ link.url }}">{{ link.label }}</a>
               {% endfor %}
             </div>
-            <div class="text-muted small mt-2">Quick shortcuts to results, fees, and stats.</div>
+            <div class="text-muted small mt-2">{% trans "Quick shortcuts to results, fees, and stats." %}</div>
           </div>
         </div>
       </div>
@@ -173,20 +182,20 @@
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-info shadow-sm">
           <div class="card-body" data-sms-offline-read-cache-key="parent_timetable_{{ user.id }}">
-            <div class="text-muted small mb-1">Class timetable</div>
+            <div class="text-muted small mb-1">{% trans "Class timetable" %}</div>
             {% if timetable %}
               <ul class="list-unstyled mb-1 small">
                 {% for session in timetable %}
                   <li class="mb-2">
                     <span class="fw-semibold">{{ session.subject }}</span><br>
-                    <span class="text-muted">{{ session.classroom }} · coef {{ session.coefficient|format_number:1 }}</span>
+                    <span class="text-muted">{% blocktrans with classroom=session.classroom coefficient=session.coefficient|format_number:1 %}{{ classroom }} · coef {{ coefficient }}{% endblocktrans %}</span>
                   </li>
                 {% endfor %}
               </ul>
             {% else %}
-              <p class="small text-muted mb-1">Schedule fills once timetables are finalized.</p>
+              <p class="small text-muted mb-1">{% trans "Schedule fills once timetables are finalized." %}</p>
             {% endif %}
-            <div class="text-muted small">Shows next subjects for your linked classrooms.</div>
+            <div class="text-muted small">{% trans "Shows next subjects for your linked classrooms." %}</div>
           </div>
         </div>
       </div>
@@ -194,7 +203,7 @@
       <div class="col-lg-6 col-xl-3 rmc-reveal">
         <div class="card h-100 border-success shadow-sm">
           <div class="card-body" data-sms-offline-read-cache-key="parent_contacts_{{ user.id }}">
-            <div class="text-muted small mb-1">Communication center</div>
+            <div class="text-muted small mb-1">{% trans "Communication center" %}</div>
             {% if communication.items %}
               <ul class="list-unstyled mb-1 small">
                 {% for item in communication.items %}
@@ -205,7 +214,7 @@
                 {% endfor %}
               </ul>
             {% else %}
-              <p class="small text-muted mb-1">Add contact details in site settings.</p>
+              <p class="small text-muted mb-1">{% trans "Add contact details in site settings." %}</p>
             {% endif %}
             {% if communication.links %}
               <div class="d-flex flex-wrap gap-2 mt-2">
@@ -221,7 +230,7 @@
                 {% endfor %}
               </div>
             {% else %}
-              <p class="small text-muted mt-2">Add contact details in site settings.</p>
+              <p class="small text-muted mt-2">{% trans "Add contact details in site settings." %}</p>
             {% endif %}
             <div class="text-muted small mt-2">{{ communication.note }}</div>
           </div>
@@ -229,8 +238,8 @@
       </div>
     </div>
   {% endwith %}
-{% endif %}
 
+{% if not widgets or "analytics" in widgets %}
 {% if widget_data.analytics %}
   <div class="row g-3 mb-4">
     <div class="col-12">
@@ -243,7 +252,7 @@
                 <div class="widget-card border">
                   <div class="fw-semibold">{{ item.subject }}</div>
                   <div class="display-6 text-success">{{ item.average }}</div>
-                  <div class="text-muted small">Top subject</div>
+                  <div class="text-muted small">{% trans "Top subject" %}</div>
                 </div>
               {% endfor %}
             </div>
@@ -254,7 +263,7 @@
                 <div class="widget-card border">
                   <div class="fw-semibold">{{ item.subject }}</div>
                   <div class="display-6 text-danger">{{ item.average }}</div>
-                  <div class="text-muted small">Needs attention</div>
+                  <div class="text-muted small">{% trans "Needs attention" %}</div>
                 </div>
               {% endfor %}
             </div>
@@ -263,4 +272,7 @@
       </div>
     </div>
   </div>
+{% endif %}
+{% endif %}
+{% endwith %}
 {% endif %}

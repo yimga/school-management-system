@@ -157,7 +157,18 @@
   padding: 2px 8px; border-radius: var(--radius-pill, 999px);
   background: var(--school-primary-light, var(--surface-overlay));
   color: var(--school-primary);
-  margin: 1px 2px;
+  margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.rmc-oc-role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: flex-start;
+  min-width: 0;
+  max-width: 100%;
 }
 .rmc-oc-role--owner { background: var(--surface-sunken, var(--surface-canvas)); color: var(--text-secondary); }
 .rmc-oc-role--warn {

@@ -60,7 +60,7 @@
                   <label class="form-check-label" for="id_user_role-roles_{{ role.pk }}">
                     <span class="fw-medium rbac-role-title">{{ role.code }} &mdash; {{ role.name }}</span>
                     {% if role.permissions.all %}
-                    <span class="d-block small text-muted mt-0 rbac-role-perms" title="{% for p in role.permissions.all %}{{ p.code }}{% if not forloop.last %}, {% endif %}{% endfor %}">{% for p in role.permissions.all %}<span class="rmc-badge rmc-badge--muted rbac-badge">{{ p.code }}</span>{% endfor %}</span>
+                    <span class="d-block small text-muted mt-0 rbac-role-perms rmc-rbac-perm-chips" title="{% for p in role.permissions.all %}{{ p.code }}{% if not forloop.last %}, {% endif %}{% endfor %}">{% for p in role.permissions.all %}<span class="rmc-badge rmc-badge--muted rbac-badge">{{ p.code }}</span>{% endfor %}</span>
                     {% endif %}
                   </label>
                 </div>
@@ -73,7 +73,7 @@
                   <label class="form-check-label" for="id_user_role-roles_{{ role.pk }}">
                     <span class="fw-medium rbac-role-title">{{ role.code }} &mdash; {{ role.name }}</span>
                     {% if role.permissions.all %}
-                    <span class="d-block small text-muted mt-0 rbac-role-perms">{% for p in role.permissions.all %}<span class="rmc-badge rmc-badge--muted rbac-badge">{{ p.code }}</span>{% endfor %}</span>
+                    <span class="d-block small text-muted mt-0 rbac-role-perms rmc-rbac-perm-chips">{% for p in role.permissions.all %}<span class="rmc-badge rmc-badge--muted rbac-badge">{{ p.code }}</span>{% endfor %}</span>
                     {% endif %}
                   </label>
                 </div>
@@ -284,10 +284,10 @@
       <h5 class="mb-3">{% trans "Existing Roles" %}</h5>
       {% if roles %}
         <div class="table-responsive">
-          <table class="table align-middle mb-0 table-family rmc-data-table" aria-label="Existing RBAC roles" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <table class="table align-middle mb-0 table-family rmc-data-table" aria-label="Existing RBAC roles" data-rmc-table-5col="1">
             <thead class="table-light">
               <tr>
-                <th scope="col">Code</th>
+                <th scope="col">{% trans "Code" %}</th>
                 <th scope="col">{% trans "Name" %}</th>
                 <th scope="col">{% trans "Description" %}</th>
                 <th scope="col" class="rbac-perms-cell">{% trans "Permissions" %}</th>

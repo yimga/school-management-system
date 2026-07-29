@@ -346,6 +346,13 @@ class TenantRuntime:
         try:
             from apps.siteconfig.dashboard_resolver import for_role
 
-            return for_role(self._school, role or "", user=user, **kwargs)
+            return for_role(
+                self._school,
+                role or "",
+                user=user,
+                request=kwargs.get("request"),
+                page=kwargs.get("page"),
+                include_registry=kwargs.get("include_registry", False),
+            )
         except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
             return {"role": role or "", "widget_keys": [], "page": kwargs.get("page")}

@@ -1009,13 +1009,14 @@ def parent_dashboard(request: HttpRequest):
     runtime = getattr(request, "tenant_runtime", None)
     if runtime is not None and getattr(runtime, "_school", None):
         dash = runtime.dashboard_for(
-            role=get_user_role(request.user), user=request.user
+            role=get_user_role(request.user), user=request.user, request=request
         )
     else:
         dash = dashboard_for_role(
             getattr(request, "school", None),
             get_user_role(request.user),
             user=request.user,
+            request=request,
         )
     display_widgets = dash["widget_keys"]
     certification_stats = {}

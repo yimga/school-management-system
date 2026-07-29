@@ -12,7 +12,7 @@ Config-driven PORTAL_SIDEBAR_ITEMS grouped by section with collapsible <details>
          data-rmc-portal-sidebar-group="{{ group.grouper|default:'navigation'|slugify }}">
   <summary class="cp-sidebar__section cp-sidebar__group-toggle{% if forloop.first %} cp-sidebar__section--first{% endif %}">{{ group.grouper|default:_("Navigation") }}</summary>
   {% for item in group.list %}
-    {% if item.url %}
+    {% if item.url and item.id not in PINNED_SIDEBAR_IDS %}
   <a class="cp-sidebar__item{% if item.is_current %} cp-sidebar__item--current{% endif %}"
      href="{{ item.url }}"
      {% if item.is_current %}aria-current="page"{% endif %}

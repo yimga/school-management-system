@@ -331,11 +331,15 @@ def super_tenant_360(request, school_id):
         provisioning_progress = resolve_provisioning_progress(school)
     except ImportError:
         provisioning_progress = {}
+    from apps.schools.super_views_owner_email import _active_owner_users
+
+    owner_users = _active_owner_users(school)
     return render(
         request,
         "schools/super_tenant_360.html",
         {
             "school": school,
+            "owner_users": owner_users,
             "provisioning_progress": provisioning_progress,
             "lifecycle": get_lifecycle_snapshot(school),
             "identity": identity,

@@ -43,17 +43,38 @@ logger = logging.getLogger(__name__)
 
 
 def _user_can_manage(request: HttpRequest) -> bool:
-    """School admins / principals / proprietors can manage integrations."""
+    """School admins, owners, and admin-like roles can manage integrations."""
     user = getattr(request, "user", None)
+    school = getattr(request, "school", None)
     if not user or not user.is_authenticated:
         return False
     if user.is_staff or user.is_superuser:
         return True
-    role = (getattr(user, "role", "") or "").lower()
-    # role-string-allow: tenant operator gate mirrors views_lexicon._user_can_edit;
-    # canonical role names live in apps.accounts.permissions / role_registry which
-    # the SOT scanner already exempts.
-    return role in {"admin", "principal", "proprietor"}
+    role = (getattr(user, "role", "") or "").upper()
+    from apps.accounts.auth_backends_role_perms import ADMIN_LIKE_ROLES
+
+    if role in ADMIN_LIKE_ROLES:
+        return True
+    if school is not None:
+        try:
+            from apps.accounts.effective_access import school_permission_access
+
+            if school_permission_access(user, school, "admin"):
+                return True
+        except Exception:  # noqa: BLE001 — degrade to membership check only
+            pass
+        try:
+            from apps.schools.models import SchoolMembership
+
+            return SchoolMembership.objects.filter(
+                school=school,
+                user=user,
+                is_school_owner=True,
+                suspended_at__isnull=True,
+            ).exists()
+        except Exception:  # noqa: BLE001
+            return False
+    return False
 
 
 def _resolve_campus(school, campus_id):

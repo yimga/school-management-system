@@ -564,7 +564,12 @@
   }
 
   function isInteractiveTarget(target) {
-    return !!(target && target.closest('input, select, textarea, button, a, label, form'));
+    return !!(
+      target &&
+      target.closest(
+        'input, select, textarea, button, a, label, form, summary, details, .rmc-row-disclosure, .rmc-row-disclosure__body'
+      )
+    );
   }
 
   function prepareAutoRows(table) {

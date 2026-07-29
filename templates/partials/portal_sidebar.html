@@ -107,7 +107,7 @@ SiteSettings.cockpit_payload.
         {% include "partials/portal_sidebar_v8_groups.html" %}
       {% else %}
       {% for item in PORTAL_SIDEBAR_ITEMS %}
-        {% if item.url %}
+        {% if item.url and item.id not in PINNED_SIDEBAR_IDS %}
           {% ifchanged item.section %}
             <div class="sidebar-section-title">{{ item.section }}</div>
           {% endifchanged %}

@@ -14,15 +14,15 @@
         </div>
         <div class="d-flex align-items-center flex-wrap gap-2" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
           <span class="rmc-badge rmc-badge--muted border px-3 py-2">
-            <span class="text-success fw-semibold">{{ active_count }}</span><span class="text-muted">/{{ total_count }}</span> active
+            <span class="text-success fw-semibold">{{ active_count }}</span><span class="text-muted">/{{ total_count }}</span> {% trans "active" %}
           </span>
-          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-1"></i>Audit Log</a>
-          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_export' %}"><i class="bi bi-download me-1"></i>Export</a>
-          <a class="btn btn-outline-secondary btn-sm" href="{% url 'studio_os:experience' %}">Customizer</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-1"></i>{% trans "Audit Log" %}</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_export' %}"><i class="bi bi-download me-1"></i>{% trans "Export" %}</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'studio_os:experience' %}">{% trans "Customizer" %}</a>
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Configuration Control Center" %}</a>
           {% if SUPER_ADMIN_UI_ENABLED %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
           {% if request.public_host_kind == 'manager' and not request.school %}
-          <a class="btn btn-primary btn-sm" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-1"></i>Schools</a>
+          <a class="btn btn-primary btn-sm" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-1"></i>{% trans_term "Schools" key="school" plural=True %}</a>
           {% endif %}
           {% endif %}{% endif %}
         </div>
@@ -41,7 +41,7 @@
       </div>
       {% if last_saved %}
       <p class="text-muted small mb-0 mt-2">
-        <i class="bi bi-clock-history"></i> Last saved by {{ last_saved.by }} — {{ last_saved.at }}
+        <i class="bi bi-clock-history"></i> {% blocktrans with user=last_saved.by at=last_saved.at %}Last saved by {{ user }} — {{ at }}{% endblocktrans %}
       </p>
       {% endif %}
     </div>
@@ -59,11 +59,11 @@
       {% endif %}
       <div class="row mb-3 g-2 rmc-command-strip">
         <div class="col-12 col-md-6">
-          <label for="featureSearch" class="form-label small text-muted">Search features</label>
-          <input type="text" id="featureSearch" class="form-control form-control-sm" placeholder="Filter by name or description..." aria-label="Search features">
+          <label for="featureSearch" class="form-label small text-muted">{% trans "Search features" %}</label>
+          <input type="text" id="featureSearch" class="form-control form-control-sm" placeholder="{% trans 'Filter by name or description...' %}" aria-label="{% trans 'Search features' %}">
         </div>
         <div class="col-12 col-md-6">
-          <label class="form-label small text-muted d-block">Quick presets</label>
+          <label class="form-label small text-muted d-block">{% trans "Quick presets" %}</label>
           <div class="d-flex flex-wrap gap-1">
             {% for preset_id, preset in bulk_presets.items %}
             <button type="button" class="btn btn-outline-secondary btn-sm preset-btn" data-preset="{{ preset_id }}" title="{{ preset.description }}">
@@ -74,7 +74,7 @@
         </div>
       </div>
       <div id="noSearchResults" class="rmc-banner py-3 d-none" role="status">
-        <i class="bi bi-search me-2"></i>No features match your search. Try different keywords.
+        <i class="bi bi-search me-2"></i>{% trans "No features match your search. Try different keywords." %}
       </div>
 
       {% comment %} v2.63 (Wave A1): segmented category tabs replace the 3-col grid that {% endcomment %}
@@ -116,16 +116,16 @@
         <div class="border rounded-3 p-3 mb-4" style="background: var(--bs-tertiary-bg, #f8f9fa);">
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <div>
-              <h2 class="h6 mb-1">Header Weather Location</h2>
-              <p class="text-muted small mb-0">Select country then city from the global catalog (all ISO countries; search loads up to 500 cities). Coordinates and timezone resolve automatically.</p>
+              <h2 class="h6 mb-1">{% trans "Header Weather Location" %}</h2>
+              <p class="text-muted small mb-0">{% trans "Select country then city from the global catalog (all ISO countries; search loads up to 500 cities). Coordinates and timezone resolve automatically." %}</p>
             </div>
             <span class="rmc-badge rmc-badge--muted border" id="weatherLocationPreview">
-              {{ weather_state.label|default:"Weather location" }}
+              {% if weather_state.label %}{{ weather_state.label }}{% else %}{% trans "Weather location" %}{% endif %}
             </span>
           </div>
           <div class="row g-3">
             <div class="col-12 col-md-3">
-              <label for="weatherCountrySelect" class="form-label small text-muted">Country</label>
+              <label for="weatherCountrySelect" class="form-label small text-muted">{% trans "Country" %}</label>
               <select class="form-select form-select-sm" id="weatherCountrySelect" name="weather_country_code">
                 {% for country in weather_countries %}
                 <option value="{{ country.code }}" {% if country.code == weather_state.country_code %}selected{% endif %}>
@@ -135,12 +135,12 @@
               </select>
             </div>
             <div class="col-12 col-md-3">
-              <label for="weatherCitySelect" class="form-label small text-muted">City</label>
+              <label for="weatherCitySelect" class="form-label small text-muted">{% trans "City" %}</label>
               <input
                 type="search"
                 class="form-control form-control-sm mb-2"
                 id="weatherCitySearch"
-                placeholder="Search city..."
+                placeholder="{% trans 'Search city...' %}"
                 autocomplete="off"
               >
               <select class="form-select form-select-sm" id="weatherCitySelect" name="weather_city_id">
@@ -158,22 +158,22 @@
               </select>
             </div>
             <div class="col-12 col-md-3">
-              <label class="form-label small text-muted">Resolved timezone</label>
+              <label class="form-label small text-muted">{% trans "Resolved timezone" %}</label>
               <div class="form-control form-control-sm bg-body-tertiary" id="weatherTimezonePreview">{{ weather_state.timezone|default:"UTC" }}</div>
             </div>
             <div class="col-12 col-md-3">
-              <label for="backendListDensity" class="form-label small text-muted">Backend list density</label>
+              <label for="backendListDensity" class="form-label small text-muted">{% trans "Backend list density" %}</label>
               <select class="form-select form-select-sm" id="backendListDensity" name="backend_layout_max_items_per_list">
-                <option value="3" {% if backend_layout_max_items_per_list == 3 %}selected{% endif %}>3 items per list</option>
-                <option value="4" {% if backend_layout_max_items_per_list == 4 %}selected{% endif %}>4 items per list</option>
-                <option value="5" {% if backend_layout_max_items_per_list == 5 %}selected{% endif %}>5 items per list</option>
-                <option value="6" {% if backend_layout_max_items_per_list == 6 %}selected{% endif %}>6 items per list</option>
-                <option value="7" {% if backend_layout_max_items_per_list == 7 %}selected{% endif %}>7 items per list</option>
-                <option value="8" {% if backend_layout_max_items_per_list == 8 %}selected{% endif %}>8 items per list</option>
-                <option value="9" {% if backend_layout_max_items_per_list == 9 %}selected{% endif %}>9 items per list</option>
-                <option value="10" {% if backend_layout_max_items_per_list == 10 %}selected{% endif %}>10 items per list</option>
-                <option value="11" {% if backend_layout_max_items_per_list == 11 %}selected{% endif %}>11 items per list</option>
-                <option value="12" {% if backend_layout_max_items_per_list == 12 %}selected{% endif %}>12 items per list</option>
+                <option value="3" {% if backend_layout_max_items_per_list == 3 %}selected{% endif %}>{% blocktrans %}3 items per list{% endblocktrans %}</option>
+                <option value="4" {% if backend_layout_max_items_per_list == 4 %}selected{% endif %}>{% blocktrans %}4 items per list{% endblocktrans %}</option>
+                <option value="5" {% if backend_layout_max_items_per_list == 5 %}selected{% endif %}>{% blocktrans %}5 items per list{% endblocktrans %}</option>
+                <option value="6" {% if backend_layout_max_items_per_list == 6 %}selected{% endif %}>{% blocktrans %}6 items per list{% endblocktrans %}</option>
+                <option value="7" {% if backend_layout_max_items_per_list == 7 %}selected{% endif %}>{% blocktrans %}7 items per list{% endblocktrans %}</option>
+                <option value="8" {% if backend_layout_max_items_per_list == 8 %}selected{% endif %}>{% blocktrans %}8 items per list{% endblocktrans %}</option>
+                <option value="9" {% if backend_layout_max_items_per_list == 9 %}selected{% endif %}>{% blocktrans %}9 items per list{% endblocktrans %}</option>
+                <option value="10" {% if backend_layout_max_items_per_list == 10 %}selected{% endif %}>{% blocktrans %}10 items per list{% endblocktrans %}</option>
+                <option value="11" {% if backend_layout_max_items_per_list == 11 %}selected{% endif %}>{% blocktrans %}11 items per list{% endblocktrans %}</option>
+                <option value="12" {% if backend_layout_max_items_per_list == 12 %}selected{% endif %}>{% blocktrans %}12 items per list{% endblocktrans %}</option>
               </select>
             </div>
         </div>
@@ -213,8 +213,8 @@
                   <span class="rmc-badge rmc-badge--muted ms-1" data-cat-active-count="{{ cat.id }}">{{ cat.items|length }} {% trans "features" %}</span>
                 </div>
                 <div class="btn-group btn-group-sm">
-                  <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 enable-all-cat" data-cat="{{ cat.id }}" title="Enable all">On</button>
-                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 disable-all-cat" data-cat="{{ cat.id }}" title="Disable all">Off</button>
+                  <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 enable-all-cat" data-cat="{{ cat.id }}" title="{% trans 'Enable all' %}">{% trans "On" %}</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 disable-all-cat" data-cat="{{ cat.id }}" title="{% trans 'Disable all' %}">{% trans "Off" %}</button>
                 </div>
               </div>
               <ul class="list-unstyled mb-0">
@@ -240,15 +240,15 @@
                       <span class="text-muted small d-block feature-desc">{{ item.description }}</span>
                       {% endif %}
                       {% if item.when_disabled %}
-                      <span class="text-muted small d-block mt-1" title="When disabled"><i class="bi bi-info-circle me-1"></i><em>{{ item.when_disabled }}</em></span>
+                      <span class="text-muted small d-block mt-1" title="{% trans 'When disabled' %}"><i class="bi bi-info-circle me-1"></i><em>{{ item.when_disabled }}</em></span>
                       {% endif %}
                     </div>
                     {% if item.critical %}
-                    <span class="rmc-badge rmc-badge--warning flex-shrink-0 mt-1" style="font-size: var(--type-size-micro);" title="Disabling may affect user access">!</span>
+                    <span class="rmc-badge rmc-badge--warning flex-shrink-0 mt-1" style="font-size: var(--type-size-micro);" title="{% trans 'Disabling may affect user access' %}">!</span>
                     {% endif %}
                   </div>
                   <span class="badge flex-shrink-0 status-badge align-self-center {% if item.enabled %}bg-success{% else %}bg-secondary{% endif %}" style="font-size: var(--type-size-micro);">
-                    {% if item.enabled %}On{% else %}Off{% endif %}
+                    {% if item.enabled %}{% trans "On" %}{% else %}{% trans "Off" %}{% endif %}
                   </span>
                 </li>
                 {% endfor %}
@@ -260,23 +260,23 @@
 
         <div class="mt-4 pt-3 border-top d-flex flex-wrap gap-2 align-items-center flex-sm-row">
           <button type="submit" class="btn btn-primary" id="btnSave">
-            <i class="bi bi-check2-circle me-1"></i>Save changes
+            <i class="bi bi-check2-circle me-1"></i>{% trans "Save changes" %}
           </button>
-          <button type="button" class="btn btn-outline-info btn-sm" id="btnPreviewDiff" title="See what would change">
-            <i class="bi bi-eye me-1"></i>Preview changes
+          <button type="button" class="btn btn-outline-info btn-sm" id="btnPreviewDiff" title="{% trans 'See what would change' %}">
+            <i class="bi bi-eye me-1"></i>{% trans "Preview changes" %}
           </button>
           {% if can_revert %}
           <button type="submit" name="action" value="revert" class="btn btn-outline-warning" formnovalidate>
-            <i class="bi bi-arrow-counterclockwise me-1"></i>Revert last change
+            <i class="bi bi-arrow-counterclockwise me-1"></i>{% trans "Revert last change" %}
           </button>
           {% endif %}
           <div class="d-inline-flex align-items-center gap-1">
             <input type="file" id="importFile" name="import_file" accept=".json" class="d-none">
-            <button type="button" class="btn btn-outline-secondary btn-sm" id="importTrigger"><i class="bi bi-upload me-1"></i>Import</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="importTrigger"><i class="bi bi-upload me-1"></i>{% trans "Import" %}</button>
           </div>
-          <a class="btn btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}">Cancel</a>
+          <a class="btn btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}">{% trans "Cancel" %}</a>
           <span class="text-muted small ms-sm-auto mt-2 mt-sm-0">
-            <kbd class="bg-light border rounded px-1">Ctrl+S</kbd> Save · <kbd class="bg-light border rounded px-1">Esc</kbd> Cancel
+            <kbd class="bg-light border rounded px-1">Ctrl+S</kbd> {% trans "Save" %} · <kbd class="bg-light border rounded px-1">Esc</kbd> {% trans "Cancel" %}
           </span>
         </div>
       </form>
@@ -285,11 +285,11 @@
     <div class="card-footer bg-light border-top py-2 px-4">
       <p class="small text-muted mb-0">
         <i class="bi bi-exclamation-triangle me-1"></i>
-        Critical features affect user access. Disabling shows a confirmation. Batch save: toggle multiple, then Save once.
+        {% blocktrans %}Critical features affect user access. Disabling shows a confirmation. Batch save: toggle multiple, then Save once.{% endblocktrans %}
       </p>
       <p class="small text-muted mb-0 mt-2">
         <i class="bi bi-cloud-arrow-up me-1"></i>
-        <strong>Offline sync:</strong> When the server is reachable again, queued data (attendance, grades, entity/API writes) syncs automatically. Users can click <strong>Sync now</strong> in the portal header to sync manually. A reachability check runs before showing "Syncing…". For platform-wide offline and data integrity with concurrent users, see <strong>Offline platform &amp; data integrity</strong> in docs.
+        {% blocktrans %}<strong>Offline sync:</strong> When the server is reachable again, queued data (attendance, grades, entity/API writes) syncs automatically. Users can click <strong>Sync now</strong> in the portal header to sync manually. A reachability check runs before showing "Syncing…". For platform-wide offline and data integrity with concurrent users, see <strong>Offline platform &amp; data integrity</strong> in docs.{% endblocktrans %}
       </p>
     </div>
   </div>
@@ -356,15 +356,15 @@
   <div class="modal-dialog modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="diffModalLabel"><i class="bi bi-git me-2"></i>Preview changes</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title" id="diffModalLabel"><i class="bi bi-git me-2"></i>{% trans "Preview changes" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
       </div>
       <div class="modal-body" id="diffModalBody">
-        <p class="text-muted">No changes to preview.</p>
+        <p class="text-muted">{% trans "No changes to preview." %}</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="diffModalSave">Save these changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+        <button type="button" class="btn btn-primary" id="diffModalSave">{% trans "Save these changes" %}</button>
       </div>
     </div>
   </div>

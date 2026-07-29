@@ -199,12 +199,12 @@ class TenantStudioDay1Act1View(LoginRequiredMixin, View):
         cockpit_url = _tenant_reverse("school_studio")
         logo_upload_url = _siteconfig_reverse("tenant_studio_day1_act1_logo_upload")
 
-        # Prefer the inline data URI (renders without media serving) so a
-        # previously uploaded logo shows on reload even on hosts without object
-        # storage. Falls back to the stored URL for served-media deployments.
+        # Prefer a served media URL so the page never paints megabytes of base64
+        # as img src (or leaks it into error text). Fall back to the inline data
+        # URI only when object storage is unavailable.
         _branding_meta = getattr(school, "branding_metadata", None) or {}
-        logo_display_url = _branding_meta.get("logo_data_uri") or getattr(
-            school, "logo_url", ""
+        logo_display_url = getattr(school, "logo_url", "") or _branding_meta.get(
+            "logo_data_uri", ""
         )
 
         return render(
@@ -345,6 +345,15 @@ class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
     def post(self, request: HttpRequest) -> HttpResponse:
         school, denied = _require_tenant_operator(request)
         if denied is not None:
+            if request.headers.get("Accept", "").startswith("application/json"):
+                return JsonResponse(
+                    {
+                        "ok": False,
+                        "error_code": "forbidden",
+                        "error_message": _("School administrator access required."),
+                    },
+                    status=403,
+                )
             return denied
 
         uploaded = request.FILES.get("logo") if hasattr(request, "FILES") else None

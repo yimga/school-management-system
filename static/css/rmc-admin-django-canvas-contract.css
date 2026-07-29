@@ -4064,3 +4064,75 @@ html[data-rmc-admin-html="unfold"] body.admin-premium-shell #cp-main-content
   line-height: 1.2 !important;
   letter-spacing: -0.01em !important;
 }
+
+/* Boolean / radio widgets — prevent overlap bleed on Unfold change forms. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-form-contract="premium-form-frame"]
+  :is(.form-row, .fieldBox, .aligned)
+  :is(input[type="checkbox"], input[type="radio"]) {
+  width: auto !important;
+  max-width: 1.25rem !important;
+  min-width: 1rem !important;
+  height: 1.25rem !important;
+  flex: 0 0 auto !important;
+  margin-inline-end: 0.5rem !important;
+  position: static !important;
+  opacity: 1 !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-form-contract="premium-form-frame"]
+  .help.timezonewarning,
+  [data-rmc-admin-form-contract="premium-form-frame"] .datetime .timezonewarning {
+  display: block !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.35rem !important;
+  position: static !important;
+  z-index: auto !important;
+  pointer-events: none;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-form-contract="premium-form-frame"]
+  .datetime :is(input, select) {
+  margin-top: 0.25rem !important;
+}
+
+/* In-document admin workbench footer (gate-compliant; not the fixed civic ribbon). */
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer {
+  margin-top: 1.5rem;
+  padding: 1rem clamp(0.85rem, 1.55vw, 1.6rem) 1.25rem;
+  border-top: 1px solid var(--hairline, rgba(148, 163, 184, 0.22));
+  background: var(--surface-canvas, var(--color-base-900));
+  color: var(--text-secondary, var(--color-base-300));
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__inner {
+  display: grid;
+  gap: 0.65rem;
+  max-width: none;
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  color: var(--text-primary, var(--color-base-50));
+  font-size: 0.92rem;
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  font-size: 0.82rem;
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__links a {
+  color: var(--text-link, var(--school-primary));
+  text-decoration: none;
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__links a:hover {
+  text-decoration: underline;
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__meta {
+  font-size: 0.75rem;
+  color: var(--text-tertiary, var(--color-base-400));
+}

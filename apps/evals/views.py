@@ -689,13 +689,14 @@ def teacher_dashboard(request: HttpRequest):
     runtime = getattr(request, "tenant_runtime", None)
     if runtime is not None and getattr(runtime, "_school", None):
         dash = runtime.dashboard_for(
-            role=getattr(request.user, "role", None), user=request.user
+            role=getattr(request.user, "role", None), user=request.user, request=request
         )
     else:
         dash = dashboard_for_role(
             getattr(request, "school", None),
             getattr(request.user, "role", None),
             user=request.user,
+            request=request,
         )
     display_widgets = dash["widget_keys"]
     class_announcements = class_announcements_for_teacher(

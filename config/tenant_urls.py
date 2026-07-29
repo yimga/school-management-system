@@ -729,6 +729,13 @@ urlpatterns = [
             namespace="platform_runtime",
         ),
     ),
+    path(
+        "integrations/",
+        include(
+            ("apps.integrations_marketplace.urls", "integrations_marketplace"),
+            namespace="integrations_marketplace",
+        ),
+    ),
     path("finance/", include(("apps.finance.urls", "finance"), namespace="finance")),
     path("payroll/", include(("apps.payroll.urls", "payroll"), namespace="payroll")),
     path(

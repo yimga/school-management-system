@@ -482,6 +482,30 @@ def site_settings(request):
             user_visual_preset = dashboard_pref.get_visual_preset(
                 getattr(user, "role", None)
             )
+            # When the user picked a dashboard pack, its theme preset wins unless
+            # they explicitly saved a per-role visual preset.
+            role_code = (getattr(user, "role", "") or "").upper()
+            role_presets = dict(getattr(dashboard_pref, "role_visual_presets", None) or {})
+            if not role_presets.get(role_code):
+                try:
+                    from apps.siteconfig.dashboard_pack_resolver import (
+                        resolve_effective_template_cached,
+                    )
+
+                    _resolved = resolve_effective_template_cached(request)
+                    if (_resolved.get("source") or "") == "user":
+                        _template = _resolved.get("template")
+                        _schema = getattr(_template, "config_schema", None) or {}
+                        if isinstance(_schema, dict):
+                            _theme = _schema.get("theme")
+                            if isinstance(_theme, dict):
+                                _pack_preset = (
+                                    (_theme.get("visual_preset") or "").strip()
+                                )
+                                if _pack_preset:
+                                    user_visual_preset = _pack_preset
+                except (AttributeError, ImportError, LookupError, TypeError, ValueError):
+                    pass
         except DatabaseError:
             _reset_db_state()
             theme_pref = "system"
@@ -1888,6 +1912,9 @@ def dashboard_pack_switcher_context(request):
             "role": "",
         },
         "dashboard_pack_hidden_sections": [],
+        "dashboard_pack_active": "",
+        "dashboard_pack_hero": {},
+        "dashboard_pack_modules": {},
     }
     user = getattr(request, "user", None)
     school = getattr(request, "school", None)
@@ -1896,6 +1923,9 @@ def dashboard_pack_switcher_context(request):
     out = {
         "dashboard_pack_switcher": dict(empty["dashboard_pack_switcher"]),
         "dashboard_pack_hidden_sections": [],
+        "dashboard_pack_active": "",
+        "dashboard_pack_hero": {},
+        "dashboard_pack_modules": {},
     }
     try:
         from apps.siteconfig.dashboard_pack_resolver import (
@@ -1908,12 +1938,29 @@ def dashboard_pack_switcher_context(request):
         # Portal cockpit sections the effective pack hides (independent of the switcher).
         resolved = resolve_effective_template_cached(request)
         schema = getattr(resolved.get("template"), "config_schema", None) or {}
+        out["dashboard_pack_active"] = str(resolved.get("pack_code") or "")
         if isinstance(schema, dict):
             sections = schema.get("sections")
             if isinstance(sections, dict):
                 out["dashboard_pack_hidden_sections"] = [
                     str(k) for k, v in sections.items() if v is False
                 ]
+            role_home = schema.get("role_home")
+            if isinstance(role_home, dict):
+                out["dashboard_pack_hero"] = {
+                    "eyebrow": str(role_home.get("eyebrow") or "").strip(),
+                    "purpose": str(role_home.get("purpose") or "").strip(),
+                    "focus_areas": [
+                        str(f)
+                        for f in (role_home.get("focus_areas") or [])
+                        if str(f).strip()
+                    ],
+                }
+            modules = schema.get("modules")
+            if isinstance(modules, dict) and modules:
+                out["dashboard_pack_modules"] = {
+                    str(k): bool(v) for k, v in modules.items()
+                }
 
         # The switcher itself — only when the role has more than one pack to switch between.
         available = available_packs_for_user(user)

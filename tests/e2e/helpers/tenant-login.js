@@ -62,31 +62,29 @@ const TENANT_USE_SUBDOMAIN =
 
 const TENANT_BASE_URL = (
   EXPLICIT_TENANT_BASE ||
-  (TENANT_USE_SUBDOMAIN ? TENANT_SUBDOMAIN_BASE : TENANT_PATH_BASE)
+  (TENANT_USE_SUBDOMAIN ? TENANT_SUBDOMAIN_BASE : TENANT_SUBDOMAIN_BASE)
 ).replace(/\/$/, '');
 
 /**
- * Keep path-tenant sessions on 127.0.0.1 after Django canonical subdomain redirects.
+ * Keep tenant E2E on the canonical subdomain after Django redirects off /t/<slug>/.
+ * Chromium maps *.runmycampus.com → 127.0.0.1 via playwright.config.js host rules.
  * @param {import('@playwright/test').Page} page
  */
-async function ensurePathTenantHost(page) {
-  if (TENANT_USE_SUBDOMAIN || !TENANT_BASE_URL.includes('127.0.0.1')) {
-    return;
-  }
+async function ensureTenantCanonicalHost(page) {
   let current;
   try {
     current = new URL(page.url());
   } catch (_e) {
     return;
   }
-  if (current.hostname === '127.0.0.1') {
+  const canonicalHost = TENANT_HOST.toLowerCase();
+  if (current.hostname.toLowerCase() === canonicalHost) {
     return;
   }
-  // tenant-phase-chromium maps *.runmycampus.com → 127.0.0.1; canonical subdomain URLs are valid.
-  if (current.hostname.endsWith('.runmycampus.com')) {
+  if (current.hostname !== '127.0.0.1' && current.hostname !== 'localhost') {
     return;
   }
-  const cookieUrl = `http://127.0.0.1:${TENANT_PORT}/`;
+  const cookieUrl = `${TENANT_SUBDOMAIN_BASE}/`;
   const cookies = await page.context().cookies();
   const promoted = cookies
     .filter((cookie) => String(cookie.value || '').trim())
@@ -105,10 +103,15 @@ async function ensurePathTenantHost(page) {
   const pathSuffix = suffix.startsWith(`/t/${TENANT_SLUG}`)
     ? suffix.slice(`/t/${TENANT_SLUG}`.length) || '/'
     : suffix;
-  await page.goto(`${TENANT_PATH_BASE}${pathSuffix}`, {
+  await page.goto(`${TENANT_SUBDOMAIN_BASE}${pathSuffix}`, {
     waitUntil: 'domcontentloaded',
     timeout: 120000,
   });
+}
+
+/** @deprecated Use ensureTenantCanonicalHost — path /t/ URLs redirect to subdomain. */
+async function ensurePathTenantHost(page) {
+  return ensureTenantCanonicalHost(page);
 }
 
 function resolvePython() {
@@ -354,7 +357,7 @@ async function completeTenantSecurityPostureIfPresent(page) {
     }
   });
   await leftReview;
-  await ensurePathTenantHost(page);
+  await ensureTenantCanonicalHost(page);
 }
 
 /**
@@ -371,15 +374,67 @@ async function completeTenantMfaIfPresent(page, username) {
   if (!/\/authentication\/mfa\/verify/i.test(pathname)) {
     return;
   }
+  await ensureTenantCanonicalHost(page);
+  try {
+    pathname = new URL(page.url()).pathname;
+  } catch (_e) {
+    pathname = '';
+  }
+  if (!/\/authentication\/mfa\/verify/i.test(pathname)) {
+    return;
+  }
   await waitForRevealArmed(page);
   await page
     .evaluate(() => {
       document.documentElement.setAttribute('data-rmc-reveal-armed', '1');
     })
     .catch(() => {});
+  const otpRoot = page.locator('[data-rmc-mfa-otp]');
+  const legacyTokenInput = page.locator('input[name="token"]:not([type="hidden"])');
+  await Promise.race([
+    otpRoot.waitFor({ state: 'visible', timeout: 60000 }),
+    legacyTokenInput.waitFor({ state: 'visible', timeout: 60000 }),
+  ]).catch(async () => {
+    await page
+      .locator('[data-rmc-security-checkpoint="mfa-verify"]')
+      .waitFor({ state: 'visible', timeout: 60000 });
+  });
   const tokenInput = page.locator('input[name="token"]');
-  await tokenInput.waitFor({ state: 'visible', timeout: 60000 });
   const mfaForm = page.locator('form[method="post"]').filter({ has: tokenInput }).first();
+
+  /** @param {string} token */
+  async function fillMfaToken(token) {
+    const digits = String(token || '').replace(/\D/g, '');
+    const filled = await page.evaluate((code) => {
+      const root = document.querySelector('[data-rmc-mfa-otp]');
+      if (!root) return false;
+      const hidden = root.querySelector('[data-rmc-mfa-otp-value]');
+      const cells = root.querySelectorAll('.rmc-mfa-otp__cell');
+      if (!cells.length) return false;
+      const slice = String(code || '').replace(/\D/g, '').slice(0, cells.length);
+      for (let i = 0; i < cells.length; i += 1) {
+        cells[i].value = slice[i] || '';
+        cells[i].dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (hidden) {
+        hidden.value = slice;
+        hidden.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      return slice.length >= cells.length;
+    }, digits);
+    if (filled) {
+      return;
+    }
+    const cells = page.locator('.rmc-mfa-otp__cell');
+    if (await cells.count()) {
+      await cells.first().click({ timeout: 10000 });
+      await page.keyboard.type(digits, { delay: 40 });
+      return;
+    }
+    if (await legacyTokenInput.count()) {
+      await legacyTokenInput.fill(digits);
+    }
+  }
 
   const submitMfa = async () => {
     const dirtyDiscard = page.locator('.rmc-fi-savebar.is-dirty button').filter({ hasText: /discard/i });
@@ -388,7 +443,7 @@ async function completeTenantMfaIfPresent(page, username) {
     }
     const bypassMfa = process.env.RMC_E2E_BYPASS_MFA === '1';
     const token = bypassMfa ? '123456' : fetchTenantTotpToken(username);
-    await tokenInput.fill(token);
+    await fillMfaToken(token);
     const remember = page.locator('input[name="remember_device"]');
     if (await remember.count()) {
       await remember.check({ timeout: 3000 }).catch(() => {});
@@ -407,13 +462,18 @@ async function completeTenantMfaIfPresent(page, username) {
       .waitFor({ state: 'visible', timeout: 30000 })
       .catch(() => null);
     if (await mfaForm.count()) {
-      await mfaForm.evaluate((form) => {
-        if (typeof form.requestSubmit === 'function') {
-          form.requestSubmit();
-        } else {
-          form.submit();
-        }
-      });
+      const verifyBtn = page.getByRole('button', { name: /verify and continue/i });
+      if (await verifyBtn.count()) {
+        await verifyBtn.first().click({ timeout: 30000 });
+      } else {
+        await mfaForm.evaluate((form) => {
+          if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+          } else {
+            form.submit();
+          }
+        });
+      }
     } else {
       await page
         .locator('form[method="post"] button[type="submit"]')
@@ -421,7 +481,7 @@ async function completeTenantMfaIfPresent(page, username) {
         .click({ timeout: 30000 });
     }
     await Promise.race([leftMfa, shellAfterMfa, page.waitForLoadState('domcontentloaded')]);
-    await ensurePathTenantHost(page);
+    await ensureTenantCanonicalHost(page);
   };
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -553,7 +613,7 @@ async function loginTenant(page, opts = {}) {
         `Alert: ${alertText.trim().slice(0, 120)} Body: ${bodyText.slice(0, 200)}`,
     );
   }
-  await ensurePathTenantHost(page);
+  await ensureTenantCanonicalHost(page);
   await completeTenantMfaIfPresent(page, username);
   await completeTenantSecurityPostureIfPresent(page);
   await page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
@@ -588,6 +648,7 @@ module.exports = {
   loginTenant,
   openTenantUserMenu,
   openAdminUserMenu,
+  ensureTenantCanonicalHost,
   ensurePathTenantHost,
   completeTenantMfaIfPresent,
   completeTenantSecurityPostureIfPresent,

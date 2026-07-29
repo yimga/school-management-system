@@ -36,7 +36,7 @@
       var code = checked ? checked.value : "";
       var current = root.getAttribute("data-selected") || "";
       if (code === current) {
-        setStatus("");
+        setStatus("Already applied.");
         return;
       }
       if (applyBtn) {
@@ -61,6 +61,13 @@
           return resp.json();
         })
         .then(function () {
+          try {
+            localStorage.setItem("rmc-dashboard-pack-applied", code || "__default__");
+          } catch (e) { /* ignore quota */ }
+          root.classList.add("rmc-dpk--applying");
+          if (document.documentElement) {
+            document.documentElement.setAttribute("data-rmc-dashboard-pack-applying", "1");
+          }
           setStatus("Applied. Refreshing…");
           window.location.reload();
         })

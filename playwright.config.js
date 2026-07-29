@@ -107,6 +107,7 @@ module.exports = defineConfig({
         '**/phase1-architecture-navigation.spec.js',
         '**/phase2-portal-navigation.spec.js',
         '**/tenant-portal-experience.spec.js',
+        '**/dashboard-pack-backend-grid.spec.js',
       ],
       timeout: 120000,
       workers: 1,

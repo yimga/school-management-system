@@ -256,11 +256,35 @@ body.portal-backend-dark .workflow-card,
 body.portal-backend-dark .workflow-hero {
   background: var(--surface-canvas, var(--color-base-700)) !important;
   border-color: rgba(168, 160, 146, 0.25) !important; /* off-token-allow: warm-neutral-overlay */
-  color: var(--text-tertiary, var(--color-base-200)) !important;
+  color: var(--text-secondary, var(--color-base-200)) !important;
+}
+
+/* Workflow surfaces must stay readable — tertiary text washed out hero KPIs. */
+body.portal-backend-dark .workflow-card,
+body.portal-backend-dark .workflow-hero,
+body.portal-backend-dark .tp-workflow-hero,
+body.portal-backend-dark .tp-workflow-portal,
+body.portal-backend-dark .tp-workflow-metric,
+body.portal-backend-dark .tp-workflow-step,
+body.portal-backend-dark [data-rmc-teacher-workflow-redesign="1"] {
+  color: var(--text-primary, var(--color-base-50)) !important;
 }
 
 body.portal-backend-dark .workflow-hero h2,
 body.portal-backend-dark .workflow-title,
+body.portal-backend-dark .workflow-card .card-title,
+body.portal-backend-dark .tp-workflow-hero h1,
+body.portal-backend-dark .tp-workflow-hero h2,
+body.portal-backend-dark .tp-workflow-metric strong {
+  color: var(--text-primary, var(--color-base-50)) !important;
+}
+
+body.portal-backend-dark .workflow-subtitle,
+body.portal-backend-dark .tp-workflow-hero .text-muted,
+body.portal-backend-dark .workflow-card .text-muted {
+  color: var(--text-secondary, var(--color-base-200)) !important;
+}
+
 body.portal-backend-dark .card-title,
 body.portal-backend-dark h1,
 body.portal-backend-dark h2,
@@ -268,7 +292,7 @@ body.portal-backend-dark h3,
 body.portal-backend-dark h4,
 body.portal-backend-dark h5,
 body.portal-backend-dark h6 {
-  color: var(--text-tertiary, var(--color-base-50)) !important;
+  color: var(--text-primary, var(--color-base-50)) !important;
 }
 
 /* Form labels and section labels */

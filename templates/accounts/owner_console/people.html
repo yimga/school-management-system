@@ -87,9 +87,11 @@
               <tr>
                 <td>{{ r.name }}{% if r.is_owner %} <span aria-hidden="true">👑</span>{% endif %}{% if r.suspended %} <span class="rmc-oc-role rmc-oc-role--warn">{% trans "Suspended" %}</span>{% endif %}</td>
                 <td>
+                  <div class="rmc-oc-role-chips">
                   {% if r.is_owner %}<span class="rmc-oc-role rmc-oc-role--owner">{% trans "Owner" %}</span>{% endif %}
                   <span class="rmc-oc-role">{{ r.base_role }}</span>
                   {% for ar in r.access_roles %}<span class="rmc-oc-role">{{ ar }}</span>{% endfor %}
+                  </div>
                 </td>
                 <td>{% if r.url %}<a href="{{ r.url }}">{% trans "Manage" %}</a>{% endif %}</td>
               </tr>

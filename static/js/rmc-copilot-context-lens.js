@@ -385,10 +385,22 @@
     openLensChrome();
   }
 
+  function shouldAutoOpenLensOnRow() {
+    if (document.documentElement.getAttribute("data-rmc-copilot-lens-auto") === "0") {
+      return false;
+    }
+    if (document.querySelector("[data-rmc-copilot-page-lens]")) {
+      return true;
+    }
+    return document.documentElement.getAttribute("data-rmc-copilot-lens-auto") === "1";
+  }
+
   function onRowOpen(ev) {
     var detail = ev.detail || {};
     renderSelection(detail);
-    openLensChrome();
+    if (shouldAutoOpenLensOnRow()) {
+      openLensChrome();
+    }
     document.dispatchEvent(new CustomEvent("rmc:cockpit:context-changed", { bubbles: true }));
   }
 

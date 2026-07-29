@@ -2,7 +2,7 @@
 {% load static i18n phase8_tags %}
 {% load terminology_tags %}
 
-{% block backend_title %}Entity Console{% endblock %}
+{% block backend_title %}{% trans "Entity Console" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -19,31 +19,31 @@
   {% phase8_dashboard_declaration "accounts/entity_console.html" %}
   {% include 'components/admin_nav_bridge.html' %}
   <div data-rmc-scroll-policy="paginate" class="mb-4">
-    <h1 class="fw-bold mb-1">Entity Console</h1>
-    <p class="text-muted">Manage students from the frontend using the new headless APIs. RBAC/claims gate visibility.</p>
+    <h1 class="fw-bold mb-1">{% trans "Entity Console" %}</h1>
+    <p class="text-muted">{% trans "Manage students from the frontend using the new headless APIs. RBAC/claims gate visibility." %}</p>
   </div>
 
   <div class="row g-4 rmc-reveal-stagger" data-dashboard-column="main">
     <div class="col-lg-6 rmc-reveal" data-widget-id="entity-create-update">
       <div class="card shadow-sm">
         <div class="card-body">
-          <h5 class="mb-2">Create student</h5>
+          <h5 class="mb-2">{% trans "Create student" %}</h5>
           <form id="createStudentForm" class="small">
             <div class="row g-2">
               <div class="col-6">
-                <label class="form-label text-muted small">First name</label>
+                <label class="form-label text-muted small">{% trans "First name" %}</label>
                 <input name="first_name" class="form-control form-control-sm" required>
               </div>
               <div class="col-6">
-                <label class="form-label text-muted small">Last name</label>
+                <label class="form-label text-muted small">{% trans "Last name" %}</label>
                 <input name="last_name" class="form-control form-control-sm" required>
               </div>
               <div class="col-6">
-                <label class="form-label text-muted small">Admission #</label>
+                <label class="form-label text-muted small">{% trans "Admission #" %}</label>
                 <input name="admission_number" class="form-control form-control-sm" placeholder="{% trans 'Optional' %}">
               </div>
               <div class="col-6">
-                <label class="form-label text-muted small">Status</label>
+                <label class="form-label text-muted small">{% trans "Status" %}</label>
                 <select name="status" class="form-select form-select-sm">
                   <option value="NEW">NEW</option>
                   <option value="RETURNING">RETURNING</option>
@@ -51,16 +51,16 @@
                 </select>
               </div>
               <div class="col-6">
-                <label class="form-label text-muted small">Academic year ID</label>
-                <input name="academic_year" class="form-control form-control-sm" type="number" placeholder="Optional">
+                <label class="form-label text-muted small">{% trans "Academic year ID" %}</label>
+                <input name="academic_year" class="form-control form-control-sm" type="number" placeholder="{% trans 'Optional' %}">
               </div>
               <div class="col-6">
-                <label class="form-label text-muted small">Classroom ID</label>
+                <label class="form-label text-muted small">{% trans "Classroom ID" %}</label>
                 <input name="classroom" class="form-control form-control-sm" type="number" placeholder="{% trans 'Optional' %}">
               </div>
             </div>
             <div class="d-flex gap-2 align-items-center mt-3">
-              <button class="btn btn-primary btn-sm" type="submit">Create</button>
+              <button class="btn btn-primary btn-sm" type="submit">{% trans "Create" %}</button>
               <div id="createStatus" class="small text-muted"></div>
             </div>
           </form>
@@ -68,17 +68,17 @@
       </div>
       <div class="card shadow-sm mt-4">
         <div class="card-body">
-          <h5 class="mb-2">Update / Delete student</h5>
+          <h5 class="mb-2">{% trans "Update / Delete student" %}</h5>
           <form id="updateStudentForm" class="small">
             <div class="row g-2">
               <div class="col-4">
-                <label class="form-label text-muted small">Student ID</label>
+                <label class="form-label text-muted small">{% trans "Student ID" %}</label>
                 <input name="id" class="form-control form-control-sm" required>
               </div>
               <div class="col-4">
-                <label class="form-label text-muted small">Status</label>
+                <label class="form-label text-muted small">{% trans "Status" %}</label>
                 <select name="status" class="form-select form-select-sm">
-                  <option value="">(no change)</option>
+                  <option value="">{% trans "(no change)" %}</option>
                   <option value="NEW">NEW</option>
                   <option value="RETURNING">RETURNING</option>
                   <option value="PROBATION">PROBATION</option>
@@ -86,13 +86,13 @@
                 </select>
               </div>
               <div class="col-4">
-                <label class="form-label text-muted small">Classroom ID</label>
+                <label class="form-label text-muted small">{% trans "Classroom ID" %}</label>
                 <input name="classroom" class="form-control form-control-sm" type="number" placeholder="{% trans 'Optional' %}">
               </div>
             </div>
             <div class="d-flex gap-2 align-items-center mt-3">
-              <button class="btn btn-outline-primary btn-sm" type="submit">Update</button>
-              <button class="btn btn-outline-danger btn-sm" id="deleteStudentBtn" type="button">Delete</button>
+              <button class="btn btn-outline-primary btn-sm" type="submit">{% trans "Update" %}</button>
+              <button class="btn btn-outline-danger btn-sm" id="deleteStudentBtn" type="button">{% trans "Delete" %}</button>
               <div id="updateStatus" class="small text-muted"></div>
             </div>
           </form>
@@ -103,23 +103,23 @@
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="mb-0">Students</h5>
-            <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshStudents">Refresh</button>
+            <h5 class="mb-0">{% trans_term "Students" key="student" plural=True %}</h5>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshStudents">{% trans "Refresh" %}</button>
           </div>
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <caption class="visually-hidden">{% trans_term "Students" key="student" plural=True %}</caption>
               <thead>
                 <tr class="text-muted">
-                  <th scope="col">ID</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Classroom</th>
-                  <th scope="col">Status</th>
+                  <th scope="col">{% trans "ID" %}</th>
+                  <th scope="col">{% trans "Name" %}</th>
+                  <th scope="col">{% trans "Classroom" %}</th>
+                  <th scope="col">{% trans "Status" %}</th>
                   <th scope="col"></th>
                 </tr>
               </thead>
               <tbody id="studentRows">
-                <tr><td colspan="4" class="text-muted">Loading…</td></tr>
+                <tr><td colspan="4" class="text-muted">{% trans "Loading…" %}</td></tr>
               </tbody>
             </table>
           </div>

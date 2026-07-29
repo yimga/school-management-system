@@ -61,7 +61,19 @@ def resend_owner_setup_email_view(request, school_id):
         messages.error(request, _("School not found."))
         return redirect("super:dashboard")
 
-    result = dispatch_setup_email_for_school(school)
+    owner_user_ids = None
+    raw_ids = request.POST.getlist("owner_user_ids")
+    if raw_ids:
+        parsed = []
+        for raw in raw_ids:
+            try:
+                parsed.append(int(raw))
+            except (TypeError, ValueError):
+                continue
+        if parsed:
+            owner_user_ids = parsed
+
+    result = dispatch_setup_email_for_school(school, owner_user_ids=owner_user_ids)
 
     log_control_plane_action(
         request,

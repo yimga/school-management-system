@@ -3,7 +3,7 @@
 
 {% block page_archetype %}kb-article{% endblock %}
 
-{% block title %}{{ article.title }} - Knowledge Base{% endblock %}
+{% block title %}{{ article.title }} - {% trans "Knowledge Base" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -56,25 +56,25 @@
                             {% endif %}
                             {% if article.is_featured %}
                             <span class="rmc-badge rmc-badge--warning ml-2">
-                                <i class="bi bi-star"></i> Featured
+                                <i class="bi bi-star"></i> {% trans "Featured" %}
                             </span>
                             {% endif %}
                         </div>
                         <div class="d-flex gap-2">
                         {% if article.odt_file %}
                         <a href="{% url 'kb:kb_article_download_docx' article.slug %}" class="btn btn-outline-primary btn-sm" download>
-                            <i class="bi bi-file-earmark-word"></i> Download Word (DOCX)
+                            <i class="bi bi-file-earmark-word"></i> {% trans "Download Word (DOCX)" %}
                         </a>
                         <a href="{% url 'kb:kb_article_download_odt' article.slug %}" class="btn btn-outline-success btn-sm" download>
-                            <i class="bi bi-file-earmark-word"></i> Download ODT (LibreOffice)
+                            <i class="bi bi-file-earmark-word"></i> {% trans "Download ODT (LibreOffice)" %}
                         </a>
                         <a href="{% url 'kb:kb_article_download_pdf' article.slug %}" class="btn btn-outline-danger btn-sm" download>
-                            <i class="bi bi-file-earmark-pdf"></i> Download as PDF
+                            <i class="bi bi-file-earmark-pdf"></i> {% trans "Download as PDF" %}
                         </a>
                         {% endif %}
                         {% if user.is_authenticated %}
-                        <button type="button" id="shareArticleBtn" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#shareModal" aria-label="Share this article">
-                            <i class="bi bi-share"></i> Share
+                        <button type="button" id="shareArticleBtn" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#shareModal" aria-label="{% trans 'Share this article' %}">
+                            <i class="bi bi-share"></i> {% trans "Share" %}
                         </button>
                         {% endif %}
                         </div>
@@ -87,13 +87,13 @@
                             {{ article.updated_at|format_date }}
                         </div>
                         <div class="col-md-6 text-right">
-                            <i class="bi bi-clock"></i> {{ article.read_time }} min read
+                            <i class="bi bi-clock"></i> {% blocktrans with minutes=article.read_time %}{{ minutes }} min read{% endblocktrans %}
                         </div>
                         <div class="col-md-6 mt-2">
-                            <i class="bi bi-eye"></i> {{ article.views }} views
+                            <i class="bi bi-eye"></i> {% blocktrans with count=article.views %}{{ count }} views{% endblocktrans %}
                         </div>
                         <div class="col-md-6 mt-2 text-right">
-                            <i class="bi bi-person"></i> By {{ article.author.get_full_name|default:article.author.username }}
+                            <i class="bi bi-person"></i> {% blocktrans with author=article.author.get_full_name|default:article.author.username %}By {{ author }}{% endblocktrans %}
                         </div>
                     </div>
                 </div>
@@ -103,16 +103,16 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <!-- Table of Contents (dynamic from headings) -->
-                    <div class="article-toc mb-4 p-3 bg-light rounded" id="article-toc" aria-label="On this page">
-                        <h6>On this page</h6>
+                    <div class="article-toc mb-4 p-3 bg-light rounded" id="article-toc" aria-label="{% trans 'On this page' %}">
+                        <h6>{% trans "On this page" %}</h6>
                         <ul class="kb-toc-list small mb-0 list-unstyled"></ul>
                         <noscript>
                             <ul class="small mb-0">
-                                <li><a href="#content">Overview</a></li>
+                                <li><a href="#content">{% trans "Overview" %}</a></li>
                                 {% if article.attachments.count %}
-                                <li><a href="#attachments">Visuals & Screenshots</a></li>
+                                <li><a href="#attachments">{% trans "Visuals & Screenshots" %}</a></li>
                                 {% endif %}
-                                <li><a href="#comments">Comments</a></li>
+                                <li><a href="#comments">{% trans "Comments" %}</a></li>
                             </ul>
                         </noscript>
                     </div>
@@ -126,7 +126,7 @@
                     {% if article.attachments.count %}
                     <div id="attachments" class="mt-4 pt-4 border-top">
                         <h5 class="mb-3">
-                            <i class="bi bi-images"></i> Screenshots & Visuals
+                            <i class="bi bi-images"></i> {% trans "Screenshots & Visuals" %}
                         </h5>
                         <div class="row">
                             {% for attachment in article.attachments.all %}
@@ -143,7 +143,7 @@
                                     <div class="card-body">
                                         <p class="card-text small">{{ attachment.caption }}</p>
                                         <a href="{{ attachment.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener noreferrer">
-                                            <i class="bi bi-download"></i> Download
+                                            <i class="bi bi-download"></i> {% trans "Download" %}
                                         </a>
                                     </div>
                                 </div>
@@ -156,7 +156,7 @@
                     <!-- Tags -->
                     {% if article.tags.all %}
                     <div class="mt-4 pt-4 border-top">
-                        <strong>Tags:</strong><br>
+                        <strong>{% trans "Tags:" %}</strong><br>
                         {% for tag in article.tags.all %}
                         <a href="{% url 'kb:kb_search' %}?q={{ tag.name }}" class="rmc-badge rmc-badge--info">
                             {{ tag.name }}
@@ -172,7 +172,7 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="bi bi-link-45deg"></i> Related Articles
+                        <i class="bi bi-link-45deg"></i> {% trans "Related Articles" %}
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
@@ -181,7 +181,7 @@
                        class="list-group-item list-group-item-action">
                         <h6 class="mb-1">{{ related.title }}</h6>
                         <small class="text-muted">
-                            <i class="bi bi-clock"></i> {{ related.read_time }} min read
+                            <i class="bi bi-clock"></i> {% blocktrans with minutes=related.read_time %}{{ minutes }} min read{% endblocktrans %}
                         </small>
                     </a>
                     {% endfor %}
@@ -193,7 +193,7 @@
             <div id="comments" class="card shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="bi bi-chat-dots"></i> Comments ({{ article.comments.count }})
+                        <i class="bi bi-chat-dots"></i> {% blocktrans with count=article.comments.count %}Comments ({{ count }}){% endblocktrans %}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -202,19 +202,19 @@
                     <form method="post" action="{% url 'kb:kb_comment_add' article.id %}" class="mb-4">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="comment">Add a Comment</label>
+                            <label for="comment">{% trans "Add a Comment" %}</label>
                             <textarea class="form-control" id="comment" name="text" rows="3" 
-                                      placeholder="Share your thoughts or questions..." required></textarea>
+                                      placeholder="{% trans 'Share your thoughts or questions...' %}" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="bi bi-chat-dots"></i> Post Comment
+                            <i class="bi bi-chat-dots"></i> {% trans "Post Comment" %}
                         </button>
                     </form>
                     {% else %}
                     <p class="text-muted">
                         <a href="{% url 'accounts:login' %}?next={% url 'kb:kb_article' article.slug %}">
-                            Login
-                        </a> to leave a comment
+                            {% trans "Login" %}
+                        </a> {% trans "to leave a comment" %}
                     </p>
                     {% endif %}
 
@@ -232,7 +232,7 @@
                                 </div>
                                 {% if comment.is_helpful %}
                                 <span class="rmc-badge rmc-badge--success">
-                                    <i class="bi bi-check2"></i> Helpful
+                                    <i class="bi bi-check2"></i> {% trans "Helpful" %}
                                 </span>
                                 {% endif %}
                             </div>
@@ -240,14 +240,14 @@
                             {% if user.is_authenticated and not comment.is_helpful %}
                             <button type="button" class="btn btn-sm btn-outline-success mark-helpful-btn" 
                                     data-comment-id="{{ comment.id }}">
-                                <i class="bi bi-hand-thumbs-up"></i> Mark as helpful
+                                <i class="bi bi-hand-thumbs-up"></i> {% trans "Mark as helpful" %}
                             </button>
                             {% endif %}
                         </div>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <p class="text-muted">No comments yet. Be the first to comment!</p>
+                    <p class="text-muted">{% trans "No comments yet. Be the first to comment!" %}</p>
                     {% endif %}
                 </div>
             </div>
@@ -259,22 +259,22 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="bi bi-person"></i> Article Info
+                        <i class="bi bi-person"></i> {% trans "Article Info" %}
                     </h6>
                 </div>
                 <div class="card-body">
                     <small>
-                        <strong>Author:</strong> {{ article.author.get_full_name|default:article.author.username }}<br>
+                        <strong>{% trans "Author:" %}</strong> {{ article.author.get_full_name|default:article.author.username }}<br>
                         {% if article.contributors.count %}
-                        <strong>Contributors:</strong> {{ article.contributors.count }}<br>
+                        <strong>{% trans "Contributors:" %}</strong> {{ article.contributors.count }}<br>
                         {% endif %}
-                        <strong>Category:</strong> 
+                        <strong>{% trans "Category:" %}</strong> 
                         {% if article.category %}
                         <a href="{% url 'kb:kb_category' article.category.slug %}">
                             {{ article.category.name }}
                         </a>
                         {% else %}
-                        Uncategorized
+                        {% trans "Uncategorized" %}
                         {% endif %}
                     </small>
                 </div>
@@ -286,22 +286,22 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="bi bi-bar-chart"></i> Engagement
+                        <i class="bi bi-bar-chart"></i> {% trans "Engagement" %}
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-4">
                             <strong>{{ article.views }}</strong><br>
-                            <small class="text-muted">Views</small>
+                            <small class="text-muted">{% trans "Views" %}</small>
                         </div>
                         <div class="col-4">
                             <strong>{{ article.helpful_votes }}</strong><br>
-                            <small class="text-muted">Helpful</small>
+                            <small class="text-muted">{% trans "Helpful" %}</small>
                         </div>
                         <div class="col-4">
                             <strong>{{ article.comments.count }}</strong><br>
-                            <small class="text-muted">Comments</small>
+                            <small class="text-muted">{% trans "Comments" %}</small>
                         </div>
                     </div>
                 </div>
@@ -311,15 +311,15 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="bi bi-book"></i> Knowledge Base
+                        <i class="bi bi-book"></i> {% trans "Knowledge Base" %}
                     </h6>
                 </div>
                 <div class="card-body">
                     <p class="small text-muted mb-2">
-                        Explore more articles and guides.
+                        {% trans "Explore more articles and guides." %}
                     </p>
                     <a href="{% url 'kb:kb_home' %}" class="btn btn-outline-primary btn-sm btn-block">
-                        Browse KB
+                        {% trans "Browse KB" %}
                     </a>
                 </div>
             </div>
@@ -328,15 +328,15 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-info text-white">
                     <h6 class="mb-0">
-                        <i class="bi bi-question-circle"></i> Quick Answers
+                        <i class="bi bi-question-circle"></i> {% trans "Quick Answers" %}
                     </h6>
                 </div>
                 <div class="card-body">
                     <p class="small text-muted mb-2">
-                        Need a quick answer? Check our FAQ.
+                        {% trans "Need a quick answer? Check our FAQ." %}
                     </p>
                     <a href="{% url 'kb:faq_list' %}" class="btn btn-info btn-sm btn-block">
-                        View FAQ
+                        {% trans "View FAQ" %}
                     </a>
                 </div>
             </div>
@@ -350,17 +350,17 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="shareModalTitle">Share Article</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close share dialog"></button>
+                <h5 class="modal-title" id="shareModalTitle">{% trans "Share Article" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close share dialog' %}"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label for="articleUrl" class="form-label">Article URL</label>
+                    <label for="articleUrl" class="form-label">{% trans "Article URL" %}</label>
                     <div class="input-group">
                         <input type="text" class="form-control" id="articleUrl" 
                                value="{{ request.build_absolute_uri }}" readonly aria-describedby="copyUrlBtn">
-                        <button type="button" class="btn btn-outline-secondary" id="copyUrlBtn" onclick="copyUrl()" aria-label="Copy URL to clipboard">
-                            <i class="bi bi-clipboard"></i> Copy
+                        <button type="button" class="btn btn-outline-secondary" id="copyUrlBtn" onclick="copyUrl()" aria-label="{% trans 'Copy URL to clipboard' %}">
+                            <i class="bi bi-clipboard"></i> {% trans "Copy" %}
                         </button>
                     </div>
                 </div>

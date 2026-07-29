@@ -2886,6 +2886,8 @@ a.card:hover {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: var(--space-4, 1rem);
   align-items: stretch;
+  justify-content: center;
+  justify-items: stretch;
 }
 
 .bento-grid > * {

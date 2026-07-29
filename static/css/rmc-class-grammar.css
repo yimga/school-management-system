@@ -5598,6 +5598,15 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 /* Groups: the user's own family (primary, always shown) + one collapsible
    "Other role dashboards" section holding every other family in a full grid. */
 .rmc-dpk-group { display: grid; gap: var(--space-2, 0.5rem); }
+.rmc-dpk--applying {
+  opacity: 0.72;
+  pointer-events: none;
+  transition: opacity var(--motion-fast, 120ms) var(--ease-out, ease-out);
+}
+.rmc-dpk-focus-areas .rmc-badge {
+  font-size: var(--type-size-0, 0.75rem);
+  font-weight: 500;
+}
 .rmc-dpk-group--primary { gap: var(--space-3, 0.75rem); }
 .rmc-dpk-group__label {
   margin: 0;

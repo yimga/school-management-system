@@ -2,6 +2,36 @@
 {% load static %}
 {% load i18n %}
 {% block backend_title %}{% trans "Institution profile" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<style nonce="{{ csp_nonce }}">
+  .content-max-960 .form-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.35rem;
+    border-radius: var(--radius-md, 0.5rem);
+    border: 1px solid var(--hairline, rgba(148, 163, 184, 0.25));
+    background: var(--surface-elevated, rgba(255, 255, 255, 0.04));
+    overflow: visible;
+  }
+  .content-max-960 .form-check-input {
+    flex: 0 0 1.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-top: 0.2rem;
+    margin-left: 0;
+    position: static;
+    opacity: 1;
+  }
+  .content-max-960 .form-check-label {
+    flex: 1 1 auto;
+    color: var(--text-primary);
+    line-height: 1.45;
+  }
+</style>
+{% endblock %}
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>

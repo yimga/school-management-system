@@ -449,6 +449,11 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[ari
    tallest control); the full name + role still live inside the dropdown menu */
 #portalHeader .user-dropdown-trigger .user-info { display: none !important; }
 
+#portalHeader .user-dropdown-menu {
+  min-width: 360px;
+  max-width: min(420px, calc(100vw - 24px));
+}
+
 /* ============================================================
    Tenant header edge-spread (2026-07-22, corrected 2026-07-22)
    ------------------------------------------------------------

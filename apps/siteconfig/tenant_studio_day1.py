@@ -607,9 +607,45 @@ class Day1MagicService:
             getattr(by_user, "pk", None) if by_user is not None else None,
         )
 
+        # 5b. Derive favicon from uploaded logo so browser tab matches tenant brand.
+        try:
+            from io import BytesIO
+
+            from django.core.files.base import ContentFile
+            from PIL import Image
+
+            from apps.schools.school_brand_assets import persist_school_brand_favicon
+
+            fav_src = working_bytes
+            img = Image.open(BytesIO(fav_src))
+            img.load()
+            img.thumbnail((32, 32), Image.LANCZOS)
+            if img.mode not in ("RGBA", "RGB"):
+                img = img.convert("RGBA")
+            fav_buf = BytesIO()
+            img.save(fav_buf, "PNG", optimize=True)
+            fav_buf.seek(0)
+            fav_file = ContentFile(fav_buf.read(), name="favicon.png")
+            fav_file.content_type = "image/png"
+            persist_school_brand_favicon(school=school, uploaded_file=fav_file)
+        except Exception:
+            logger.warning(
+                "day1: favicon derive failed tenant=%s — logo still saved",
+                _school_log_label(school),
+                exc_info=False,
+            )
+
+        # Never return inline base64 in the JSON logo_url — clients bind it to
+        # <img src> and some shells surface parse failures as raw text. The
+        # upload widget already holds a local blob preview; persisted display
+        # uses school.logo_url on reload.
+        api_logo_url = (public_url or "").strip()
+        if not api_logo_url and logo_data_uri.startswith("data:"):
+            api_logo_url = ""
+
         return LogoUploadResult(
             ok=True,
-            logo_url=logo_data_uri,
+            logo_url=api_logo_url or None,
             seed_hex=seed_hex,
             dominant_colors=dominant_hexes,
             source="logo",

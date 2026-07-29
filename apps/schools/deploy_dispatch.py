@@ -18,18 +18,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def _active_owner_emails(school) -> list[str]:
+def _active_owner_emails(school, *, user_ids=None) -> list[str]:
     from apps.schools.models import SchoolMembership
 
     emails: list[str] = []
     seen: set[str] = set()
-    rows = (
-        SchoolMembership.objects.filter(
-            school=school, is_school_owner=True, suspended_at__isnull=True
-        )
-        .select_related("user")
-        .order_by("-is_primary", "user__pk")
-    )
+    rows = SchoolMembership.objects.filter(
+        school=school, is_school_owner=True, suspended_at__isnull=True
+    ).select_related("user")
+    if user_ids:
+        rows = rows.filter(user_id__in=list(user_ids))
+    rows = rows.order_by("-is_primary", "user__pk")
     for m in rows:
         email = (getattr(m.user, "email", "") or "").strip()
         if email and email.lower() not in seen:
@@ -38,7 +37,7 @@ def _active_owner_emails(school) -> list[str]:
     return emails
 
 
-def dispatch_setup_email_for_school(school) -> dict:
+def dispatch_setup_email_for_school(school, *, owner_user_ids=None) -> dict:
     """Resend the owner-setup email to every ACTIVE owner of a resolved ``school``.
 
     Operator-initiated sibling of :func:`dispatch_setup_email_for_slug`: takes a
@@ -71,7 +70,7 @@ def dispatch_setup_email_for_school(school) -> dict:
                 getattr(school, "pk", None),
             )
 
-        emails = _active_owner_emails(school)
+        emails = _active_owner_emails(school, user_ids=owner_user_ids)
         result["recipients"] = len(emails)
         for email in emails:
             try:
@@ -139,7 +138,7 @@ def dispatch_setup_email_for_slug(slug: str) -> dict:
                 slug,
             )
 
-        emails = _active_owner_emails(school)
+        emails = _active_owner_emails(school, user_ids=owner_user_ids)
         result["recipients"] = len(emails)
         for email in emails:
             try:

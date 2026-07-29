@@ -30,6 +30,8 @@
     "test:e2e:phase2-portal": "playwright test tests/e2e/phase2-portal-navigation.spec.js --project=tenant-phase-chromium",
     "test:e2e:tenant-portal-experience": "playwright test tests/e2e/tenant-portal-experience.spec.js --project=tenant-phase-chromium --workers=1",
     "test:e2e:tenant-portal-experience:armed": "node scripts/run_tenant_portal_experience_e2e.mjs",
+    "test:e2e:dashboard-pack-backend-grid": "playwright test tests/e2e/dashboard-pack-backend-grid.spec.js --project=tenant-phase-chromium",
+    "test:e2e:dashboard-pack-backend-grid:armed": "node scripts/run_dashboard_pack_backend_grid_e2e.mjs",
     "test:e2e:phase-architecture-portal": "node scripts/run_tenant_phase_e2e.mjs",
     "test:e2e:marketplace-publisher-install": "playwright test tests/e2e/marketplace-publisher-install.spec.js",
     "test:e2e:ui": "playwright test --ui",

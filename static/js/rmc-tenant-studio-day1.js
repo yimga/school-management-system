@@ -312,13 +312,20 @@
   function applyServerResultToDom(root, payload) {
     // Replace the placeholder/logo image with the new one.
     var frame = document.querySelector("[data-rmc-day1-logo-frame]");
-    if (frame && payload && payload.logo_url) {
+    var logoSrc = payload && payload.logo_url;
+    if (!logoSrc && root) {
+      var previewImg = root.querySelector("[data-rmc-day1-logo-preview-img]");
+      if (previewImg && previewImg.src) {
+        logoSrc = previewImg.src;
+      }
+    }
+    if (frame && logoSrc) {
       frame.innerHTML = "";
       var img = document.createElement("img");
       img.className = "rmc-day1-logo-img";
       img.setAttribute("data-rmc-day1-logo-img", "1");
       img.alt = "";
-      img.src = payload.logo_url;
+      img.src = logoSrc;
       frame.appendChild(img);
     }
     // Tell the operator when we auto-resized an oversized logo. The notice
@@ -366,13 +373,31 @@
       headers: {
         "X-CSRFToken": token,
         Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
       },
     })
       .then(function (r) {
+        var ctype = (r.headers.get("content-type") || "").toLowerCase();
+        if (ctype.indexOf("application/json") === -1) {
+          return {
+            status: r.status,
+            payload: {
+              ok: false,
+              error_code: "bad_response",
+              error_message:
+                "Upload failed — the server returned an unexpected page. Refresh and try again.",
+            },
+          };
+        }
         return r
           .json()
           .catch(function () {
-            return { ok: false, error_code: "bad_response", error_message: "" };
+            return {
+              ok: false,
+              error_code: "bad_response",
+              error_message:
+                "Upload failed — the server returned unreadable data. Refresh and try again.",
+            };
           })
           .then(function (payload) {
             return { status: r.status, payload: payload };

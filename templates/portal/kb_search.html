@@ -3,7 +3,7 @@
 
 {% block page_archetype %}kb-search{% endblock %}
 
-{% block title %}Search - Help Center{% endblock %}
+{% block title %}{% trans "Search" %} - {% trans "Help Center" %}{% endblock %}
 
 {% block content %}
 {% include "components/next_action_strip.html" %}
@@ -20,7 +20,7 @@
     <div class="row mb-4">
         <div class="col-lg-10 mx-auto">
             <h1 class="h2 mb-4" id="kb-search-heading">
-                <i class="bi bi-search"></i> Search Results
+                <i class="bi bi-search"></i> {% trans "Search Results" %}
             </h1>
 
             <!-- Search Form -->
@@ -28,12 +28,12 @@
                 <input type="text" 
                        name="q" 
                        class="form-control" 
-                       placeholder="Search FAQs and Knowledge Base..." 
+                       placeholder="{% trans 'Search FAQs and Knowledge Base...' %}" 
                        value="{{ query }}"
                        autocomplete="off">
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="submit">
-                        <i class="bi bi-search"></i> Search
+                        <i class="bi bi-search"></i> {% trans "Search" %}
                     </button>
                 </div>
             </form>
@@ -41,8 +41,8 @@
             <!-- Search Info -->
             {% if query %}
             <p class="text-muted">
-                Results for: <strong>"{{ query }}"</strong>
-                <span class="rmc-badge rmc-badge--info">{{ total_results }} result{{ total_results|pluralize }}</span>
+                {% blocktrans with q=query %}Results for: <strong>"{{ q }}"</strong>{% endblocktrans %}
+                <span class="rmc-badge rmc-badge--info">{% blocktrans count counter=total_results %}{{ counter }} result{% plural %}{{ counter }} results{% endblocktrans %}</span>
             </p>
             {% endif %}
         </div>
@@ -54,7 +54,7 @@
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="bi bi-funnel"></i> Filters
+                        <i class="bi bi-funnel"></i> {% trans "Filters" %}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -63,13 +63,13 @@
                         
                         <!-- Content Type Filter -->
                         <div class="mb-3">
-                            <label class="form-label font-weight-bold">Content Type</label>
+                            <label class="form-label font-weight-bold">{% trans "Content Type" %}</label>
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input filter-checkbox" 
                                        id="filterFAQ" name="type" value="faq"
                                        {% if 'faq' in selected_types %}checked{% endif %}>
                                 <label class="custom-control-label" for="filterFAQ">
-                                    FAQ Questions
+                                    {% trans "FAQ Questions" %}
                                 </label>
                             </div>
                             <div class="custom-control custom-checkbox">
@@ -77,20 +77,20 @@
                                        id="filterArticle" name="type" value="article"
                                        {% if 'article' in selected_types %}checked{% endif %}>
                                 <label class="custom-control-label" for="filterArticle">
-                                    KB Articles
+                                    {% trans "KB Articles" %}
                                 </label>
                             </div>
                         </div>
 
                         <!-- Difficulty Filter -->
                         <div class="mb-3">
-                            <label class="form-label font-weight-bold">Difficulty</label>
+                            <label class="form-label font-weight-bold">{% trans "Difficulty" %}</label>
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input filter-checkbox" 
                                        id="diffBeginner" name="difficulty" value="BEGINNER"
                                        {% if 'BEGINNER' in selected_difficulties %}checked{% endif %}>
                                 <label class="custom-control-label" for="diffBeginner">
-                                    <span class="rmc-badge rmc-badge--success">Beginner</span>
+                                    <span class="rmc-badge rmc-badge--success">{% trans "Beginner" %}</span>
                                 </label>
                             </div>
                             <div class="custom-control custom-checkbox">
@@ -98,7 +98,7 @@
                                        id="diffIntermediate" name="difficulty" value="INTERMEDIATE"
                                        {% if 'INTERMEDIATE' in selected_difficulties %}checked{% endif %}>
                                 <label class="custom-control-label" for="diffIntermediate">
-                                    <span class="rmc-badge rmc-badge--warning">Intermediate</span>
+                                    <span class="rmc-badge rmc-badge--warning">{% trans "Intermediate" %}</span>
                                 </label>
                             </div>
                             <div class="custom-control custom-checkbox">
@@ -106,32 +106,32 @@
                                        id="diffAdvanced" name="difficulty" value="ADVANCED"
                                        {% if 'ADVANCED' in selected_difficulties %}checked{% endif %}>
                                 <label class="custom-control-label" for="diffAdvanced">
-                                    <span class="rmc-badge rmc-badge--danger">Advanced</span>
+                                    <span class="rmc-badge rmc-badge--danger">{% trans "Advanced" %}</span>
                                 </label>
                             </div>
                         </div>
 
                         <!-- Sort Options -->
                         <div class="mb-3">
-                            <label for="sortBy" class="form-label font-weight-bold">Sort By</label>
+                            <label for="sortBy" class="form-label font-weight-bold">{% trans "Sort By" %}</label>
                             <select class="form-control form-control-sm" name="sort" id="sortBy">
                                 <option value="relevance" {% if sort == 'relevance' %}selected{% endif %}>
-                                    Relevance
+                                    {% trans "Relevance" %}
                                 </option>
                                 <option value="newest" {% if sort == 'newest' %}selected{% endif %}>
-                                    Newest
+                                    {% trans "Newest" %}
                                 </option>
                                 <option value="views" {% if sort == 'views' %}selected{% endif %}>
-                                    Most Viewed
+                                    {% trans "Most Viewed" %}
                                 </option>
                                 <option value="helpful" {% if sort == 'helpful' %}selected{% endif %}>
-                                    Most Helpful
+                                    {% trans "Most Helpful" %}
                                 </option>
                             </select>
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-block btn-sm">
-                            <i class="bi bi-check2"></i> Apply Filters
+                            <i class="bi bi-check2"></i> {% trans "Apply Filters" %}
                         </button>
                     </form>
                 </div>
@@ -147,7 +147,7 @@
                     <div class="mb-5">
                         <h4 class="mb-3">
                             <i class="bi bi-question-circle text-primary"></i>
-                            FAQ Results ({{ faq_results.count }})
+                            {% blocktrans with count=faq_results.count %}FAQ Results ({{ count }}){% endblocktrans %}
                         </h4>
                         {% for faq in faq_results %}
                         <div class="card shadow-sm mb-3 result-card transition">
@@ -167,11 +167,11 @@
                                     </span>
                                     {% endif %}
                                     <span class="rmc-badge rmc-badge--muted">
-                                        <i class="bi bi-eye"></i> {{ faq.views }} views
+                                        <i class="bi bi-eye"></i> {% blocktrans with count=faq.views %}{{ count }} views{% endblocktrans %}
                                     </span>
                                     {% if faq.is_featured %}
                                     <span class="rmc-badge rmc-badge--success">
-                                        <i class="bi bi-star"></i> Featured
+                                        <i class="bi bi-star"></i> {% trans "Featured" %}
                                     </span>
                                     {% endif %}
                                 </div>
@@ -186,7 +186,7 @@
                     <div>
                         <h4 class="mb-3">
                             <i class="bi bi-book text-info"></i>
-                            Knowledge Base Results ({{ article_results.count }})
+                            {% blocktrans with count=article_results.count %}Knowledge Base Results ({{ count }}){% endblocktrans %}
                         </h4>
                         {% for article in article_results %}
                         <div class="card shadow-sm mb-3 result-card transition">
@@ -216,17 +216,17 @@
                                             </span>
                                             {% endif %}
                                             <span class="rmc-badge rmc-badge--muted">
-                                                <i class="bi bi-clock"></i> {{ article.read_time }} min
+                                                <i class="bi bi-clock"></i> {% blocktrans with minutes=article.read_time %}{{ minutes }} min{% endblocktrans %}
                                             </span>
                                         </div>
                                     </div>
                                     <div class="col-lg-3 text-right">
                                         <small class="text-muted d-block">
-                                            <i class="bi bi-eye"></i> {{ article.views }} views
+                                            <i class="bi bi-eye"></i> {% blocktrans with count=article.views %}{{ count }} views{% endblocktrans %}
                                         </small>
                                         <a href="{% url 'kb:kb_article' article.slug %}" 
                                            class="btn btn-sm btn-outline-primary mt-2">
-                                            Read <i class="bi bi-arrow-right"></i>
+                                            {% trans "Read" %} <i class="bi bi-arrow-right"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -240,33 +240,33 @@
                     {% if is_paginated %}
                     {% comment %} v3.57.x adoption-wave: layered rmc-pagination* classes
                        alongside Bootstrap markup — see components/pagination.html. {% endcomment %}
-                    <nav aria-label="Search results pagination" class="rmc-pagination" data-rmc-component="pagination">
+                    <nav aria-label="{% trans 'Search results pagination' %}" class="rmc-pagination" data-rmc-component="pagination">
                         <ul class="pagination rmc-pagination__list justify-content-center mt-4">
                             {% if page_obj.has_previous %}
                             <li class="page-item">
-                                <a class="page-link rmc-pagination__link" href="?page=1">First</a>
+                                <a class="page-link rmc-pagination__link" href="?page=1">{% trans "First" %}</a>
                             </li>
                             <li class="page-item">
                                 <a class="page-link rmc-pagination__link" href="?page={{ page_obj.previous_page_number }}">
-                                    Previous
+                                    {% trans "Previous" %}
                                 </a>
                             </li>
                             {% endif %}
 
                             <li class="page-item disabled">
                                 <span class="page-link rmc-pagination__link is-active" aria-current="page">
-                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    {% blocktrans with page=page_obj.number total=page_obj.paginator.num_pages %}Page {{ page }} of {{ total }}{% endblocktrans %}
                                 </span>
                             </li>
 
                             {% if page_obj.has_next %}
                             <li class="page-item">
                                 <a class="page-link rmc-pagination__link" href="?page={{ page_obj.next_page_number }}">
-                                    Next
+                                    {% trans "Next" %}
                                 </a>
                             </li>
                             <li class="page-item">
-                                <a class="page-link rmc-pagination__link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                                <a class="page-link rmc-pagination__link" href="?page={{ page_obj.paginator.num_pages }}">{% trans "Last" %}</a>
                             </li>
                             {% endif %}
                         </ul>
@@ -283,14 +283,14 @@
                     <!-- Suggestions -->
                     <div class="card shadow-sm mt-4">
                         <div class="card-header">
-                            <h6 class="mb-0">Browse by Category</h6>
+                            <h6 class="mb-0">{% trans "Browse by Category" %}</h6>
                         </div>
                         <div class="list-group list-group-flush">
                             <a href="{% url 'kb:faq_list' %}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-question-circle"></i> View All FAQs
+                                <i class="bi bi-question-circle"></i> {% trans "View All FAQs" %}
                             </a>
                             <a href="{% url 'kb:kb_home' %}" class="list-group-item list-group-item-action">
-                                <i class="bi bi-book"></i> View Knowledge Base
+                                <i class="bi bi-book"></i> {% trans "View Knowledge Base" %}
                             </a>
                         </div>
                     </div>
@@ -299,7 +299,7 @@
                 <!-- Initial State -->
                 <div class="rmc-banner" role="alert">
                     <i class="bi bi-search"></i>
-                    <strong>Start searching</strong> to find FAQs and articles
+                    {% blocktrans %}<strong>Start searching</strong> to find FAQs and articles{% endblocktrans %}
                 </div>
             {% endif %}
         </div>

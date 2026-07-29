@@ -258,15 +258,74 @@ PACK_PROFILE_OVERRIDES: dict[str, dict] = {
 # portal CONTENT, not just chrome.
 PACK_HIDDEN_SECTIONS: dict[str, list[str]] = {
     # Parent
-    "parent-mobile-feed": ["parent__life_event_timeline", "parent__sibling_compare", "parent__activity_timeline"],
-    "parent-payments": ["parent__achievements_card", "parent__teacher_spotlight_card", "parent__sibling_compare", "parent__life_event_timeline"],
-    "parent-student-progress": ["parent__financial_timeline", "parent__sibling_compare", "parent__life_event_timeline"],
+    "parent-mobile-feed": [
+        "parent__life_event_timeline",
+        "parent__sibling_compare",
+        "parent__activity_timeline",
+        "parent__financial_timeline",
+    ],
+    "parent-payments": [
+        "parent__achievements_card",
+        "parent__teacher_spotlight_card",
+        "parent__sibling_compare",
+        "parent__life_event_timeline",
+        "parent__year_progress",
+    ],
+    "parent-student-progress": [
+        "parent__financial_timeline",
+        "parent__sibling_compare",
+        "parent__life_event_timeline",
+        "parent__parent_teacher_thread",
+    ],
     # Student
-    "student-focus-today": ["student__achievements_card", "student__teacher_spotlight_card", "student__activity_timeline", "student__gradebook_trend", "student__attendance_heatmap"],
-    "student-progress-tracker": ["student__quick_actions_grid", "student__lesson_of_day", "student__ai_study_buddy"],
+    "student-focus-today": [
+        "student__achievements_card",
+        "student__teacher_spotlight_card",
+        "student__activity_timeline",
+        "student__gradebook_trend",
+        "student__attendance_heatmap",
+        "student__realtime_presence",
+    ],
+    "student-progress-tracker": [
+        "student__quick_actions_grid",
+        "student__lesson_of_day",
+        "student__ai_study_buddy",
+        "student__realtime_presence",
+    ],
+    "student-self-service": [
+        "student__achievements_card",
+        "student__teacher_spotlight_card",
+        "student__ai_study_buddy",
+    ],
     # Teacher
-    "teacher-gradebook-quick": ["teacher__lesson_of_day", "teacher__achievements_card", "teacher__teacher_spotlight_card", "teacher__activity_timeline"],
-    "teacher-planner": ["teacher__gradebook_trend", "teacher__attendance_heatmap", "teacher__realtime_presence"],
+    "teacher-gradebook-quick": [
+        "teacher__lesson_of_day",
+        "teacher__achievements_card",
+        "teacher__teacher_spotlight_card",
+        "teacher__activity_timeline",
+        "teacher__year_progress",
+    ],
+    "teacher-planner": [
+        "teacher__gradebook_trend",
+        "teacher__attendance_heatmap",
+        "teacher__realtime_presence",
+    ],
+    "teacher-command-center": [
+        "teacher__year_progress",
+        "teacher__realtime_presence",
+    ],
+    # Low-bandwidth / compact trims analytics-heavy cockpit rails everywhere.
+    "low-bandwidth-compact": [
+        "parent__life_event_timeline",
+        "parent__sibling_compare",
+        "parent__year_progress",
+        "parent__teacher_spotlight_card",
+        "student__ai_study_buddy",
+        "student__realtime_presence",
+        "teacher__gradebook_trend",
+        "teacher__attendance_heatmap",
+        "teacher__realtime_presence",
+    ],
 }
 
 
