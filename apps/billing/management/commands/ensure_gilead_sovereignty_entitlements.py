@@ -11,11 +11,27 @@ from django.utils import timezone
 GILEAD_SLUGS = ("gilead-tech", "gilead_tech", "gilead-tech-high")
 
 
+def _collect_platform_feature_codes() -> set[str]:
+    """Union plan-catalog features, module registry codes, and plan row features."""
+    from apps.billing.management.commands.seed_subscription_catalog import PLAN_CATALOG
+    from apps.schools.feature_registry import FEATURE_REGISTRY
+
+    codes: set[str] = set()
+    for row in PLAN_CATALOG:
+        for feat in row.get("features") or []:
+            if feat:
+                codes.add(str(feat))
+    for module in FEATURE_REGISTRY:
+        code = (module.get("code") or "").strip()
+        if code:
+            codes.add(code)
+    return codes
+
+
 class Command(BaseCommand):
     help = "Bind gilead-tech to sovereign-self-hosted and materialize all platform features."
 
     def handle(self, *args, **options):
-        from apps.billing.management.commands.seed_subscription_catalog import PLAN_CATALOG
         from apps.billing.models import Entitlement, TenantSubscription
         from apps.billing.services import (
             ensure_subscription_for_school,
@@ -30,23 +46,35 @@ class Command(BaseCommand):
             if school is not None:
                 break
         if school is None:
-            self.stderr.write(self.style.ERROR("Gilead-Tech school not found (tried: %s)" % ", ".join(GILEAD_SLUGS)))
+            self.stderr.write(
+                self.style.ERROR(
+                    "Gilead-Tech school not found (tried: %s)" % ", ".join(GILEAD_SLUGS)
+                )
+            )
             return
 
         plan = Plan.objects.filter(slug="sovereign-self-hosted").first()
         if plan is None:
-            self.stderr.write(self.style.ERROR("Plan sovereign-self-hosted missing — run seed_subscription_catalog first."))
+            self.stderr.write(
+                self.style.ERROR(
+                    "Plan sovereign-self-hosted missing — run seed_subscription_catalog first."
+                )
+            )
             return
 
-        all_features: set[str] = set()
-        for row in PLAN_CATALOG:
-            for feat in row.get("features") or []:
-                if feat:
-                    all_features.add(str(feat))
+        all_features = _collect_platform_feature_codes()
 
         with transaction.atomic():
             school.plan = plan
-            school.save(update_fields=["plan", "updated_at"])
+            school.billing_type = "COMPLIMENTARY"
+            school.save(update_fields=["plan", "billing_type", "updated_at"])
+
+            features = dict(getattr(school, "features", None) or {})
+            for code in sorted(all_features):
+                features[code] = True
+            school.features = features
+            school.save(update_fields=["features", "updated_at"])
+
             account, subscription, _created = ensure_subscription_for_school(school)
             if subscription.plan_id != plan.pk:
                 subscription.plan = plan
@@ -72,7 +100,8 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                "Gilead-Tech (%s) on sovereign-self-hosted with %d feature entitlements."
+                "Gilead-Tech (%s) on sovereign-self-hosted with %d feature entitlements "
+                "(billing_type=COMPLIMENTARY, modules enabled)."
                 % (school.slug, len(all_features))
             )
         )

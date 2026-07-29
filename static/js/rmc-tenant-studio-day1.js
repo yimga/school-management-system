@@ -340,6 +340,25 @@
         showElement(notice);
       }
     }
+    if (payload && payload.favicon_url) {
+      var faviconHref = payload.favicon_url;
+      if (faviconHref.indexOf("?") === -1) {
+        faviconHref += "?v=" + Date.now();
+      } else {
+        faviconHref += "&v=" + Date.now();
+      }
+      var iconLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+      if (iconLinks.length) {
+        iconLinks.forEach(function (link) {
+          link.setAttribute("href", faviconHref);
+        });
+      } else {
+        var newIcon = document.createElement("link");
+        newIcon.rel = "icon";
+        newIcon.href = faviconHref;
+        document.head.appendChild(newIcon);
+      }
+    }
     // Repaint the seed chip if a hex came back.
     if (payload && payload.seed_hex) {
       var chip = document.querySelector("[data-rmc-day1-seed-chip]");
@@ -360,6 +379,10 @@
     var endpoint = root.getAttribute("data-rmc-day1-logo-upload-url") || "";
     if (!endpoint && form) {
       endpoint = form.getAttribute("action") || "";
+    }
+    if (!endpoint) {
+      setErrorText(errorEl, "Upload is unavailable — refresh the page and try again.");
+      return Promise.resolve();
     }
     var token = getCsrfToken(form);
     var fd = new FormData();

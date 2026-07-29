@@ -2,7 +2,7 @@
 {% load i18n static glocal_tags %}
 {% load region_format %}
 
-{% block title %}Syllabus approval queue – {{ SITE.site_name|default:"Portal" }}{% endblock %}
+{% block title %}{% trans "Syllabus approval queue" %} – {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -14,10 +14,10 @@
   <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
-        <h1 class="h4 mb-1">Syllabus approval queue</h1>
-        <div class="text-muted small">Pending syllabi awaiting your approval</div>
+        <h1 class="h4 mb-1">{% trans "Syllabus approval queue" %}</h1>
+        <div class="text-muted small">{% trans "Pending syllabi awaiting your approval" %}</div>
       </div>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'studio_os:workflow_center' %}">Workflow center</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow center" %}</a>
     </div>
 
     {% if pending %}
@@ -28,11 +28,11 @@
               <caption class="visually-hidden">{% trans "Syllabus approval queue" %}</caption>
               <thead>
                 <tr>
-                  <th scope="col">Subject</th>
-                  <th scope="col">Class</th>
-                  <th scope="col">Term</th>
-                  <th scope="col">Submitted</th>
-                  <th scope="col"></th>
+                  <th scope="col">{% trans "Subject" %}</th>
+                  <th scope="col">{% trans "Class" %}</th>
+                  <th scope="col">{% trans "Term" %}</th>
+                  <th scope="col">{% trans "Submitted" %}</th>
+                  <th scope="col"><span class="visually-hidden">{% trans "Actions" %}</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -46,16 +46,16 @@
           <details class="rmc-row-disclosure">
             <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
             <div class="rmc-row-disclosure__body mt-1">
-<a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:syllabus_preview' s.subject_assignment_id %}">Preview</a>
+<a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:syllabus_preview' s.subject_assignment_id %}">{% trans "Preview" %}</a>
                       <form method="post" action="{% url 'academics:syllabus_approve' s.subject_assignment_id %}" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="notes" value="">
-                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                        <button type="submit" class="btn btn-success btn-sm">{% trans "Approve" %}</button>
                       </form>
                       <form method="post" action="{% url 'academics:syllabus_reject' s.subject_assignment_id %}" class="d-inline">
                         {% csrf_token %}
-                        <input type="text" name="notes" placeholder="Reason (optional)" class="form-control form-control-sm d-inline-block w-auto">
-                        <button type="submit" class="btn btn-warning btn-sm">Return for revision</button>
+                        <input type="text" name="notes" placeholder="{% trans 'Reason (optional)' %}" class="form-control form-control-sm d-inline-block w-auto">
+                        <button type="submit" class="btn btn-warning btn-sm">{% trans "Return for revision" %}</button>
                       </form>
             </div>
           </details></td>
@@ -70,5 +70,4 @@
       {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("No syllabi pending approval.") message=_("Nothing here yet — check back after your school adds data.") %}
     {% endif %}
   </div>
-{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

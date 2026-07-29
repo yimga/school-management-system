@@ -345,7 +345,10 @@ class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
     def post(self, request: HttpRequest) -> HttpResponse:
         school, denied = _require_tenant_operator(request)
         if denied is not None:
-            if request.headers.get("Accept", "").startswith("application/json"):
+            if (
+                request.headers.get("Accept", "").startswith("application/json")
+                or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            ):
                 return JsonResponse(
                     {
                         "ok": False,
@@ -427,6 +430,7 @@ class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
                     if result.resized
                     else ""
                 ),
+                "favicon_url": result.favicon_url or "",
             },
             status=200,
         )

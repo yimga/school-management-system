@@ -1,86 +1,6 @@
 {
-  "finding_count": 1376,
+  "finding_count": 1355,
   "findings": [
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "tag": "a",
-      "text": "Preview"
-    },
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "tag": "a",
-      "text": "Workflow center"
-    },
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "tag": "button",
-      "text": "Approve"
-    },
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "tag": "button",
-      "text": "Return for revision"
-    },
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "tag": "h1",
-      "text": "Syllabus approval queue"
-    },
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "tag": "th",
-      "text": "Class"
-    },
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "tag": "th",
-      "text": "Subject"
-    },
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "tag": "th",
-      "text": "Submitted"
-    },
-    {
-      "path": "templates/academics/syllabus_approval_queue.html",
-      "tag": "th",
-      "text": "Term"
-    },
-    {
-      "path": "templates/academics/syllabus_clone.html",
-      "tag": "a",
-      "text": "Back to syllabi"
-    },
-    {
-      "path": "templates/academics/syllabus_clone.html",
-      "tag": "a",
-      "text": "Back to syllabi"
-    },
-    {
-      "path": "templates/academics/syllabus_clone.html",
-      "tag": "a",
-      "text": "Cancel"
-    },
-    {
-      "path": "templates/academics/syllabus_clone.html",
-      "tag": "button",
-      "text": "Clone"
-    },
-    {
-      "path": "templates/academics/syllabus_clone.html",
-      "tag": "h1",
-      "text": "Clone syllabus"
-    },
-    {
-      "path": "templates/academics/syllabus_clone.html",
-      "tag": "label",
-      "text": "Target class"
-    },
-    {
-      "path": "templates/academics/syllabus_clone.html",
-      "tag": "option",
-      "text": "-- Select --"
-    },
     {
       "path": "templates/academics/syllabus_preview.html",
       "tag": "a",
@@ -95,31 +15,6 @@
       "path": "templates/academics/syllabus_preview.html",
       "tag": "h1",
       "text": "Syllabus preview"
-    },
-    {
-      "path": "templates/academics/syllabus_upload.html",
-      "tag": "a",
-      "text": "Back to syllabi"
-    },
-    {
-      "path": "templates/academics/syllabus_upload.html",
-      "tag": "a",
-      "text": "Cancel"
-    },
-    {
-      "path": "templates/academics/syllabus_upload.html",
-      "tag": "button",
-      "text": "Upload"
-    },
-    {
-      "path": "templates/academics/syllabus_upload.html",
-      "tag": "h1",
-      "text": "Upload syllabus"
-    },
-    {
-      "path": "templates/academics/syllabus_upload.html",
-      "tag": "label",
-      "text": "PDF or Word document"
     },
     {
       "path": "templates/academics/teacher_syllabus_hub.html",
@@ -6882,7 +6777,7 @@
       "text": "light_mode"
     }
   ],
-  "generated_at": "2026-07-29T13:51:53+00:00",
+  "generated_at": "2026-07-29T14:31:58+00:00",
   "label_tags": [
     "button",
     "a",

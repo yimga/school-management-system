@@ -414,3 +414,40 @@ body.control-plane-shell #cp-main-content .cp-page-body:has(.rmc-page--migration
 :where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]) select.form-select {
   max-height: none;
 }
+
+/* Intake + canonical template picker — scroll inside tenant canvas shell. */
+:where(
+  .rmc-page--migration-cloud-intake,
+  .rmc-page--canonical-template-picker,
+  [data-mc-intake-v2]
+) {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: none;
+  min-height: 0;
+  padding-bottom: 2rem;
+}
+
+body[data-rmc-cp-scroll="canvas"] :where(
+  .rmc-page--migration-cloud-intake,
+  .rmc-page--canonical-template-picker,
+  [data-mc-intake-v2]
+) {
+  overflow-y: visible;
+}
+
+body[data-rmc-cp-scroll="canvas"] :where(
+  .rmc-page--migration-cloud-intake,
+  .rmc-page--canonical-template-picker
+) .rmc-intake-method-grid,
+body[data-rmc-cp-scroll="canvas"] :where(
+  .rmc-page--migration-cloud-intake,
+  .rmc-page--canonical-template-picker
+) .rmc-intake-panel,
+body[data-rmc-cp-scroll="canvas"] .rmc-page--canonical-template-picker .rmc-card-grid {
+  overflow: visible;
+}
+
+body[data-rmc-cp-scroll="canvas"] .rmc-intake-method-select select.rmc-input--select {
+  max-height: none;
+}

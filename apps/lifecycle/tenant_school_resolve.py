@@ -120,18 +120,28 @@ def can_access_tenant_lifecycle(request: HttpRequest, school) -> bool:
     if school_permission_access(user, school, "admin"):
         return True
     membership = SchoolMembership.objects.filter(
-        user_id=user.pk, school_id=school.pk
+        user_id=user.pk, school_id=school.pk, suspended_at__isnull=True
     ).first()
+    if membership is not None and getattr(membership, "is_school_owner", False):
+        return True
     if membership is None:
         return False
     return str(membership.role or "").strip().upper() in _LIFECYCLE_MEMBERSHIP_ROLES
 
 
 def lifecycle_access_denied_response(request: HttpRequest):
-    from django.http import HttpResponseForbidden
+    from django.http import HttpResponseForbidden, JsonResponse
     from django.utils.translation import gettext as _
 
-    return HttpResponseForbidden(_("School administrator access required."))
+    message = _("School administrator access required.")
+    if request.headers.get("Accept", "").startswith("application/json") or (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    ):
+        return JsonResponse(
+            {"ok": False, "error_code": "forbidden", "error_message": str(message)},
+            status=403,
+        )
+    return HttpResponseForbidden(message)
 
 
 def require_tenant_lifecycle_school(request: HttpRequest):

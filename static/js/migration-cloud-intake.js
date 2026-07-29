@@ -414,6 +414,31 @@
     });
   }
 
+  function scrollTargetIntoView(target) {
+    if (!target) return;
+    var topOffset = 72;
+    var rootStyle = getComputedStyle(document.documentElement);
+    var chromePx = parseInt(rootStyle.getPropertyValue("--rmc-cp-chrome-offset"), 10);
+    if (!Number.isNaN(chromePx) && chromePx > 0) {
+      topOffset = chromePx + 8;
+    }
+    var container =
+      window.RMC && window.RMC.getScrollContainer
+        ? window.RMC.getScrollContainer()
+        : null;
+    var y =
+      target.getBoundingClientRect().top +
+      (container ? container.scrollTop : window.scrollY) -
+      topOffset;
+    if (window.RMC && window.RMC.scrollToY) {
+      window.RMC.scrollToY(container, Math.max(0, y), "smooth");
+    } else if (container) {
+      container.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    } else {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   function bindIntakeStepper() {
     var stepper = document.querySelector("[data-mc-intake-stepper]");
     if (!stepper) return;
@@ -427,10 +452,14 @@
         var target = document.querySelector(href);
         if (!target) return;
         event.preventDefault();
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        scrollTargetIntoView(target);
       });
     });
     if (!window.IntersectionObserver) return;
+    var scrollRoot =
+      window.RMC && window.RMC.getScrollContainer
+        ? window.RMC.getScrollContainer()
+        : null;
     var sections = links
       .map(function (link) {
         var id = (link.getAttribute("href") || "").replace(/^#/, "");
@@ -455,7 +484,7 @@
           if (match) setActive(match);
         });
       },
-      { rootMargin: "-18% 0px -52% 0px", threshold: 0.12 }
+      { root: scrollRoot, rootMargin: "-18% 0px -52% 0px", threshold: 0.12 }
     );
     sections.forEach(function (section) { observer.observe(section); });
 
@@ -465,7 +494,7 @@
           entry.target.classList.toggle("is-in-view", entry.isIntersecting);
         });
       },
-      { rootMargin: "-15% 0px -60% 0px", threshold: 0.08 }
+      { root: scrollRoot, rootMargin: "-15% 0px -60% 0px", threshold: 0.08 }
     );
     document.querySelectorAll(".rmc-intake-panel").forEach(function (panel) {
       panelObserver.observe(panel);

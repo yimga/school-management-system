@@ -253,6 +253,19 @@ class Command(BaseCommand):
 
         self._seed_members_maybe_tenant_context(school, opts)
 
+        slug_lower = (school.slug or "").lower()
+        if slug_lower in {"gilead-tech", "gilead_tech", "gilead-tech-high"}:
+            try:
+                from django.core.management import call_command
+
+                call_command("ensure_gilead_sovereignty_entitlements")
+            except Exception as exc:  # noqa: BLE001 — report, never fail the seed
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Sovereign entitlements step failed ({exc}); accounts are still seeded."
+                    )
+                )
+
         if owner_email and opts.get("send_owner_email") and owner_user is not None:
             try:
                 from django.core.management import call_command

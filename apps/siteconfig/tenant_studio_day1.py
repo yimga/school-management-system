@@ -127,6 +127,7 @@ class LogoUploadResult:
     # True when the uploaded logo was larger than DAY1_LOGO_MAX_DIMENSION and
     # was automatically shrunk to fit, so the UI can tell the operator.
     resized: bool = False
+    favicon_url: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -608,6 +609,7 @@ class Day1MagicService:
         )
 
         # 5b. Derive favicon from uploaded logo so browser tab matches tenant brand.
+        favicon_url = ""
         try:
             from io import BytesIO
 
@@ -627,12 +629,12 @@ class Day1MagicService:
             fav_buf.seek(0)
             fav_file = ContentFile(fav_buf.read(), name="favicon.png")
             fav_file.content_type = "image/png"
-            persist_school_brand_favicon(school=school, uploaded_file=fav_file)
+            favicon_url = persist_school_brand_favicon(school=school, uploaded_file=fav_file) or ""
         except Exception:
             logger.warning(
                 "day1: favicon derive failed tenant=%s — logo still saved",
                 _school_log_label(school),
-                exc_info=False,
+                exc_info=True,
             )
 
         # Never return inline base64 in the JSON logo_url — clients bind it to
@@ -650,6 +652,7 @@ class Day1MagicService:
             dominant_colors=dominant_hexes,
             source="logo",
             resized=was_resized,
+            favicon_url=favicon_url or None,
         )
 
     # -- Act 2 ------------------------------------------------------------

@@ -32,6 +32,16 @@ ROUTE_HELP_OVERRIDES: dict[str, dict[str, Any]] = {
         "surface": "tenant",
         "fields": (),
     },
+    "tenant_app_catalog": {
+        "title": _("App catalog"),
+        "body": _(
+            "Browse governed marketplace apps for your school. Install to sandbox first, "
+            "review consent scopes and billing impact, then promote to live use. SSO "
+            "Identity opens your school's connection settings — not the compliance dashboard."
+        ),
+        "surface": "tenant",
+        "fields": (),
+    },
     "accounts:substitute_handover_create": {
         "title": _("Substitute handover"),
         "body": _(

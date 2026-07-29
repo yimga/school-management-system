@@ -62,7 +62,7 @@ SANDBOX_EMBED_REGISTRY: dict[str, tuple[SandboxEmbedSpec, ...]] = {
     "sso-identity": (
         SandboxEmbedSpec(
             widget_id="sso_security_preview",
-            url_name="school_security",
+            url_name="accounts:sso_connections",
             title="Security & SSO",
             surface="settings",
         ),

@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--canonical-template-picker" id="main" data-rmc-core-context="1">
+<main class="rmc-page rmc-page--canonical-template-picker" id="main" data-rmc-core-context="1" data-rmc-page-fold-nav="required" data-rmc-section-nav="auto">
   <header class="rmc-page__header">
     <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_new' %}{% else %}{% url 'migration_cloud_super:bundle_new' %}{% endif %}"
        class="rmc-back">{% trans "← Back to intake wizard" %}</a>

@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
 
-{% block title %}Clone syllabus – {{ source_assignment.subject.name }}{% endblock %}
+{% block title %}{% blocktrans with subject=source_assignment.subject.name %}Clone syllabus – {{ subject }}{% endblocktrans %}{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -12,10 +12,10 @@
   <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
-        <h1 class="h4 mb-1">Clone syllabus</h1>
-        <div class="text-muted small">From {{ source_assignment.classroom.name }} → choose target class (same subject & term)</div>
+        <h1 class="h4 mb-1">{% trans "Clone syllabus" %}</h1>
+        <div class="text-muted small">{% blocktrans with classroom=source_assignment.classroom.name %}From {{ classroom }} → choose target class (same subject & term){% endblocktrans %}</div>
       </div>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">Back to syllabi</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">{% trans "Back to syllabi" %}</a>
     </div>
 
     <div class="card shadow-sm">
@@ -24,20 +24,20 @@
           <form method="post" action="">
             {% csrf_token %}
             <div class="mb-3">
-              <label for="id_target" class="form-label">Target class</label>
+              <label for="id_target" class="form-label">{% trans "Target class" %}</label>
               <select name="target_assignment" id="id_target" class="form-select">
-                <option value="">-- Select --</option>
+                <option value="">{% trans "— Select —" %}</option>
                 {% for ta in target_assignments %}
-                  <option value="{{ ta.pk }}">{{ ta.classroom.name }} ({{ ta.term.label }})</option>
+                  <option value="{{ ta.pk }}">{% blocktrans with classroom=ta.classroom.name term=ta.term.label %}{{ classroom }} ({{ term }}){% endblocktrans %}</option>
                 {% endfor %}
               </select>
             </div>
-            <button type="submit" class="btn btn-primary">Clone</button>
-            <a class="btn btn-outline-secondary" href="{% url 'academics:teacher_syllabus_hub' %}">Cancel</a>
+            <button type="submit" class="btn btn-primary">{% trans "Clone" %}</button>
+            <a class="btn btn-outline-secondary" href="{% url 'academics:teacher_syllabus_hub' %}">{% trans "Cancel" %}</a>
           </form>
         {% else %}
-          <p class="text-muted mb-0">No other class (same subject and term) without a syllabus found. Create syllabi for other classes first or choose another source.</p>
-          <a class="btn btn-outline-secondary btn-sm mt-2" href="{% url 'academics:teacher_syllabus_hub' %}">Back to syllabi</a>
+          <p class="text-muted mb-0">{% trans "No other class (same subject and term) without a syllabus found. Create syllabi for other classes first or choose another source." %}</p>
+          <a class="btn btn-outline-secondary btn-sm mt-2" href="{% url 'academics:teacher_syllabus_hub' %}">{% trans "Back to syllabi" %}</a>
         {% endif %}
       </div>
     </div>
