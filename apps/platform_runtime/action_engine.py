@@ -33,6 +33,21 @@ from apps.platform_runtime.control_plane_page_intel import (
 _REVERSE_ERRORS = (NoReverseMatch, ValueError, TypeError)
 
 
+def _sanitize_system_action_description(text: str) -> str:
+    """Strip gateway echo / dict repr from user-visible next-action copy."""
+    s = (text or "").strip()
+    if not s:
+        return ""
+    lowered = s.lower()
+    if "request received:" in lowered:
+        return ""
+    if "setup_needed" in s and "onboarding_percent" in s:
+        return ""
+    if s.startswith("{") and "}" in s and ":" in s:
+        return ""
+    return s
+
+
 def _safe_reverse(viewname: str, *args: Any, **kwargs: Any) -> Optional[str]:
     try:
         return reverse(viewname, args=args, kwargs=kwargs)
@@ -204,6 +219,7 @@ def _collect_ai_registry_actions(user, school: Any, bucket: str) -> list[SystemA
         desc = expl
         if prop:
             desc = f"{expl} {prop}".strip()[:400]
+        desc = _sanitize_system_action_description(desc)
         if not title or not desc:
             continue
 

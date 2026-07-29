@@ -587,6 +587,21 @@ body.rmc-cmdk-open { overflow: hidden; }
 /* ===== Settings hub (Phase U, 2026-05-12) =========================================
    Apple Settings-app pattern: left rail of categories + right pane with entries.
    Each entry is a clickable row with icon + label + description + chevron. */
+[data-page-archetype="settings-hub"] .rmc-reveal,
+.page-wrap[data-page-archetype="settings-hub"] .rmc-reveal {
+  opacity: 1 !important;
+  transform: none !important;
+}
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] [data-page-archetype="settings-hub"] .rmc-settings-rail {
+  position: sticky;
+  top: 0.75rem;
+  max-height: calc(
+    100dvh - var(--rmc-tenant-header-h, 3.25rem) - var(--rmc-tenant-footer-h, 4.75rem) - 2rem
+  );
+}
+html[data-rmc-tp-v3-shell="1"] body[data-rmc-cp-scroll="canvas"] [data-page-archetype="settings-hub"] .rmc-settings-pane {
+  min-width: 0;
+}
 .rmc-settings-layout {
   display: grid;
   grid-template-columns: 260px 1fr;

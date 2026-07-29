@@ -1,7 +1,7 @@
 {
   "build_id": "2026-07-24-v15.8",
   "cache_bust": "20260724-admin-os-v158",
-  "sw_version": "sms-v4.06.14-admin-os-runtime-parity-2026-07-24",
+  "sw_version": "sms-v4.06.15-configure-hub-static-chrome-2026-07-29",
   "seal": "2026-07-24-admin-os-v158",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",

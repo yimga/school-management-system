@@ -30,7 +30,7 @@ UNFOLD = ROOT / "templates" / "unfold"
 REPORT = ROOT / "var" / "django_admin_miss_nothing_audit.json"
 
 EXPECTED_CACHE_BUST = "20260724-admin-os-v158"
-EXPECTED_SW = "sms-v4.06.14-admin-os-runtime-parity-2026-07-24"
+EXPECTED_SW = "sms-v4.06.15-configure-hub-static-chrome-2026-07-29"
 
 REQUIRED_SEALS = (
     "2026-07-19-tools-no-span-explode",

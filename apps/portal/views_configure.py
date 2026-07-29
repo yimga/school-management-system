@@ -254,5 +254,8 @@ def portal_configure_hub(request: HttpRequest) -> HttpResponse:
             "categories": visible,
             "active_category": request.GET.get("category", visible[0].slug if visible else ""),
             "search_q": request.GET.get("q", ""),
+            # Settings hub is self-contained navigation — hide the multi-step flow
+            # launchpad band (YOUR FLOW) that stacks AI nudges on task pages.
+            "rmc_conversion_single_action_enforced": True,
         },
     )

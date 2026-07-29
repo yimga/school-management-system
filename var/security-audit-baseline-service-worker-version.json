@@ -1,12 +1,12 @@
 {
-  "date": "2026-07-24",
-  "generated_at": "2026-07-24T17:43:37+00:00",
+  "date": "2026-07-29",
+  "generated_at": "2026-07-29T11:32:04+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 14,
-  "raw": "sms-v4.06.14-admin-os-runtime-parity-2026-07-24",
+  "patch": 15,
+  "raw": "sms-v4.06.15-configure-hub-static-chrome-2026-07-29",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-os-runtime-parity",
+  "slug": "configure-hub-static-chrome",
   "valid": true
 }

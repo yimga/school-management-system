@@ -5,11 +5,23 @@
 (function () {
   "use strict";
 
+  function resolveScrollRoot() {
+    var canvas = document.getElementById("main-content");
+    if (canvas && document.body && document.body.getAttribute("data-rmc-cp-scroll") === "canvas") {
+      var oy = window.getComputedStyle(canvas).overflowY;
+      if (oy === "auto" || oy === "scroll" || oy === "overlay") {
+        return canvas;
+      }
+    }
+    return null;
+  }
+
   function init() {
     var input = document.querySelector(".rmc-settings-search input[name='q']");
     var entries = Array.prototype.slice.call(document.querySelectorAll(".rmc-settings-entry"));
     var sections = Array.prototype.slice.call(document.querySelectorAll(".rmc-settings-section"));
     var railLinks = Array.prototype.slice.call(document.querySelectorAll(".rmc-settings-rail__item"));
+    var scrollRoot = resolveScrollRoot();
 
     function filter(q) {
       var query = (q || "").trim().toLowerCase();
@@ -45,7 +57,11 @@
         railLinks.forEach(function (a) {
           a.classList.toggle("is-active", a.getAttribute("data-rmc-settings-cat") === slug);
         });
-      }, { rootMargin: "-80px 0px -55% 0px", threshold: [0, 0.3, 1] });
+      }, {
+        root: scrollRoot,
+        rootMargin: "-80px 0px -55% 0px",
+        threshold: [0, 0.3, 1],
+      });
       sections.forEach(function (s) { io.observe(s); });
     }
 
@@ -57,8 +73,13 @@
         var target = document.querySelector(hash);
         if (!target) { return; }
         e.preventDefault();
-        var y = target.getBoundingClientRect().top + window.scrollY - 72;
-        window.scrollTo({ top: y, behavior: "smooth" });
+        if (scrollRoot) {
+          var offset = target.getBoundingClientRect().top - scrollRoot.getBoundingClientRect().top + scrollRoot.scrollTop - 72;
+          scrollRoot.scrollTo({ top: offset, behavior: "smooth" });
+        } else {
+          var y = target.getBoundingClientRect().top + window.scrollY - 72;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
         history.replaceState(null, "", hash);
       });
     });
