@@ -31,7 +31,7 @@ from apps.marketplace.models import (
     PublisherOrganization,
     ScopeGrant,
 )
-from apps.marketplace.permissions import tenant_may_manage_marketplace
+from apps.marketplace.permissions import tenant_marketplace_manage_required
 from apps.marketplace.ecosystem_links import build_phase9_ecosystem_links
 from apps.marketplace.listing_display import catalog_listing_display
 from apps.marketplace.manifest_schema import (
@@ -1040,7 +1040,7 @@ def package_promote(request):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @require_GET
 def tenant_installed_apps(request):
     """
@@ -1140,7 +1140,7 @@ def tenant_installed_apps(request):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @require_GET
 def tenant_app_catalog(request):
     """Tenant: browse installable apps for current school and install with scope consent."""
@@ -1285,7 +1285,7 @@ def tenant_app_catalog(request):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @require_GET
 def tenant_install_impact_preview(request):
     """N17: JSON impact preview before sandbox install (tenant school context)."""
@@ -1318,7 +1318,7 @@ def super_install_impact_preview(request):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_install_app(request):
@@ -1423,7 +1423,7 @@ def tenant_install_app(request):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_uninstall_app(request):
@@ -1448,7 +1448,7 @@ def tenant_uninstall_app(request):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @require_GET
 def tenant_scope_consent(request):
     """Tenant: list pending scope grants and approve (elevated approval for sensitive scopes)."""
@@ -1517,7 +1517,7 @@ def tenant_scope_consent(request):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_approve_scope(request):
@@ -1542,7 +1542,7 @@ def tenant_approve_scope(request):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_save_installation_config(request):
@@ -1596,7 +1596,7 @@ def tenant_save_installation_config(request):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @enforce_tenant_security(action="admin", require_school=False)
 @require_GET
 def app_purchase_intent(request, app_id: int):
@@ -1660,7 +1660,7 @@ def app_purchase_intent(request, app_id: int):
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @enforce_tenant_security(action="admin", require_school=False)
 @require_POST
 def tenant_activate_installation(request):

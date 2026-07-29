@@ -4,7 +4,7 @@
   "major": 4,
   "minor": 6,
   "patch": 17,
-  "raw": "sms-v4.06.17-tenant-i18n-user-menu-2026-07-29",
+  "raw": "sms-v4.06.18-tenant-owner-marketplace-ux-2026-07-29",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
   "slug": "tenant-i18n-user-menu",

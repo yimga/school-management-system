@@ -9,7 +9,7 @@ the choice to api:dashboard-pack-preference (PATCH) via static/js/dashboard-pack
 preview-before-apply (select a card, then Apply). See docs/DASHBOARD_PACKS_REVIVAL_PLAN.md.
 {% endcomment %}
 {% if dashboard_pack_switcher.enabled %}
-<details class="rmc-dashboard-pack-switcher"{% if dashboard_pack_switcher.selected %} data-rmc-dashboard-pack-collapsed="1"{% else %} open{% endif %}
+<details class="rmc-dashboard-pack-switcher" open
          data-rmc-dashboard-pack-switcher
          data-endpoint="{{ dashboard_pack_switcher.endpoint }}"
          data-selected="{{ dashboard_pack_switcher.selected }}">

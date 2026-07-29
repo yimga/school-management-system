@@ -6,19 +6,19 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_GET
 
 from apps.marketplace.models import AppInstallation, MarketplaceMonetizationLedgerEntry
-from apps.marketplace.permissions import tenant_may_manage_marketplace
+from apps.marketplace.permissions import tenant_marketplace_manage_required
 from apps.marketplace.settlement_truth import blocked_settlement_reason_from_entry
 
 
 @login_required
-@user_passes_test(tenant_may_manage_marketplace)
+@tenant_marketplace_manage_required
 @require_GET
 def monetization_dashboard(request):
     school = getattr(request, "school", None)

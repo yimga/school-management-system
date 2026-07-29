@@ -541,8 +541,11 @@ def module_market(request):
     from apps.siteconfig.tenant_experience_policy import (
         user_may_manage_backend_config,
     )
+    from apps.accounts.decorators import user_is_tenant_admin
 
-    if not user_may_manage_backend_config(request.user):
+    if not user_is_tenant_admin(request.user, school) and not user_may_manage_backend_config(
+        request.user
+    ):
         return HttpResponseForbidden(
             "You do not have permission to manage school modules."
         )

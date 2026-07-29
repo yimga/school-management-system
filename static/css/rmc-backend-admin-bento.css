@@ -120,13 +120,13 @@ body.tp-v3-role-home .rmc-admin-onboarding[data-rmc-preview-live-admin="1"] .rmc
 /* Bento-focus preset: live Command Center matches style-gallery hero grid (batch 1731). */
 body.dashboard-preset-bento-focus[data-dashboard-page] .rmc-admin-bento .rmc-dh-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(148px, 100%), 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
 body.dashboard-preset-bento-focus[data-dashboard-page] .rmc-admin-bento .rmc-dh-grid2 {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
   align-items: start;
 }

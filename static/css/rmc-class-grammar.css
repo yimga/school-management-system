@@ -1785,6 +1785,13 @@
 }
 .studio-os__card--disclosure[open] summary::before { transform: rotate(90deg); }
 
+/* Institution profile wizard checkbox stack (templates/accounts/institution_profile_wizard.html). */
+.rmc-institution-checks {
+  isolation: isolate;
+  display: grid;
+  gap: 0.35rem;
+}
+
 /* Parallel work — institutional stamp partial (templates/partials/notifications/_institutional_stamp.html). */
 .rmc-institutional-stamp {
   display: inline-flex;

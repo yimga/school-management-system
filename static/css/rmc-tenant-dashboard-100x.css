@@ -95,9 +95,15 @@
 /* ============================ KPI tiles ============================ */
 .rmc-dh-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--rmc-dh-gap);
   margin-bottom: var(--rmc-dh-gap);
+}
+@media (max-width: 1100px) {
+  .rmc-dh-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .rmc-dh-tiles { grid-template-columns: 1fr; }
 }
 .rmc-dh-tile {
   position: relative;
@@ -246,7 +252,7 @@
 /* ============================ Layout: 2-col grid ============================ */
 .rmc-dh-grid2 {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--rmc-dh-gap);
   align-items: start;
 }

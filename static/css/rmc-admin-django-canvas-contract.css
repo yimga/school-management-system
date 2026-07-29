@@ -4105,6 +4105,14 @@ body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer 
   border-top: 1px solid var(--hairline, rgba(148, 163, 184, 0.22));
   background: var(--surface-canvas, var(--color-base-900));
   color: var(--text-secondary, var(--color-base-300));
+  min-height: 4.5rem;
+}
+body.admin-manager-shell .rmc-admin-workbench-footer {
+  background: var(--surface-elevated, var(--color-base-850, #1e293b));
+  color: var(--text-secondary, #cbd5e1);
+}
+body.admin-manager-shell .rmc-admin-workbench-footer__brand {
+  color: var(--text-primary, #f8fafc);
 }
 body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__inner {
   display: grid;

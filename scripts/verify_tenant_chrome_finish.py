@@ -74,7 +74,7 @@ def main() -> int:
             "rmc-platform-vertical-compact.css must force 360px when copilot is expanded"
         )
 
-    if "sms-v4.06.17-tenant-i18n-user-menu-2026-07-29" not in sw:
+    if "sms-v4.06.18-tenant-owner-marketplace-ux-2026-07-29" not in sw:
         findings.append("service-worker CACHE_VERSION must bump for chrome rootfix")
 
     # Keep onboarding auto-expand (preview parity); width seal prevents crush.

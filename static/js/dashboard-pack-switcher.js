@@ -15,6 +15,35 @@
     return match ? match[1] : "";
   }
 
+  function expandSelectedPack(root, form) {
+    var selected = root.getAttribute("data-selected") || "";
+    try {
+      var stored = localStorage.getItem("rmc-dashboard-pack-applied");
+      if (stored && stored !== "__default__" && !selected) {
+        selected = stored;
+      }
+    } catch (e) { /* ignore quota */ }
+    root.setAttribute("open", "");
+    if (!selected || !form) {
+      return;
+    }
+    var radios = form.querySelectorAll('input[name="dashboard_pack"]');
+    var matched = null;
+    for (var r = 0; r < radios.length; r++) {
+      if (radios[r].value === selected) {
+        radios[r].checked = true;
+        matched = radios[r];
+        break;
+      }
+    }
+    if (matched) {
+      var moreGroup = root.querySelector(".rmc-dpk-group--more");
+      if (moreGroup && !matched.closest(".rmc-dpk-group--primary")) {
+        moreGroup.setAttribute("open", "");
+      }
+    }
+  }
+
   function wire(root) {
     var endpoint = root.getAttribute("data-endpoint") || "";
     var form = root.querySelector("[data-rmc-dashboard-pack-form]");
@@ -23,6 +52,8 @@
     if (!endpoint || !form) {
       return;
     }
+
+    expandSelectedPack(root, form);
 
     function setStatus(message) {
       if (status) {
