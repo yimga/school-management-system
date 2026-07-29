@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n workflow_guidance_tags %}
 
-{% block title %}Year-end rollover{% endblock %}
+{% block title %}{% trans "Year-end rollover" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -13,46 +13,44 @@
 
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
-  <nav aria-label="breadcrumb" class="mb-3">
+  <nav aria-label="{% trans 'Breadcrumb' %}" class="mb-3">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">Workflow Center</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Year-end rollover</li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Year-end rollover" %}</li>
     </ol>
   </nav>
 
   <div class="card shadow-sm mb-3">
     <div class="card-body">
-      <h1 class="h5 mb-3">Year-end rollover</h1>
+      <h1 class="h5 mb-3">{% trans "Year-end rollover" %}</h1>
       <p class="text-muted small mb-3">
-        Move students from the source year to the target year and assign their next classroom.
-        Select source and target year, then choose the next class for each student (or keep the suggestion) and apply.
-        Optionally lock the source year after rollover to prevent further grade edits.
+        {% trans "Move students from the source year to the target year and assign their next classroom. Select source and target year, then choose the next class for each student (or keep the suggestion) and apply. Optionally lock the source year after rollover to prevent further grade edits." %}
       </p>
       <p class="mb-2 small">
-        <a href="{% url 'accounts:rollover_queue' %}">Rollover queue</a> — prepare a proposal, review suggested classes, approve, then apply.
+        <a href="{% url 'accounts:rollover_queue' %}">{% trans "Rollover queue" %}</a> — {% trans "prepare a proposal, review suggested classes, approve, then apply." %}
       </p>
       <form method="get" action="" class="row g-3 align-items-end mb-0" data-rmc-autosubmit="1">
         <div class="col-md-4">
-          <label for="source_year" class="form-label">Source year (current)</label>
+          <label for="source_year" class="form-label">{% trans "Source year (current)" %}</label>
           <select name="source_year" id="source_year" class="form-select" required>
-            <option value="">— Select —</option>
+            <option value="">{% trans "— Select —" %}</option>
             {% for y in years %}
-            <option value="{{ y.id }}" {% if source_year and source_year.id == y.id %}selected{% endif %}>{{ y.name }}{% if y.is_locked %} (locked){% endif %}</option>
+            <option value="{{ y.id }}" {% if source_year and source_year.id == y.id %}selected{% endif %}>{{ y.name }}{% if y.is_locked %} ({% trans "locked" %}){% endif %}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-4">
-          <label for="target_year" class="form-label">Target year (next)</label>
+          <label for="target_year" class="form-label">{% trans "Target year (next)" %}</label>
           <select name="target_year" id="target_year" class="form-select" required>
-            <option value="">— Select —</option>
+            <option value="">{% trans "— Select —" %}</option>
             {% for y in years %}
             <option value="{{ y.id }}" {% if target_year and target_year.id == y.id %}selected{% endif %}>{{ y.name }}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-2">
-          <button type="submit" class="btn btn-outline-primary w-100" data-rmc-autosubmit-hide-when-js>Show students</button>
+          <button type="submit" class="btn btn-outline-primary w-100" data-rmc-autosubmit-hide-when-js>{% trans "Show students" %}</button>
         </div>
       </form>
       {% if source_year and target_year and not source_year.is_locked %}
@@ -60,7 +58,7 @@
         {% csrf_token %}
         <input type="hidden" name="source_year" value="{{ source_year.id }}">
         <input type="hidden" name="target_year" value="{{ target_year.id }}">
-        <button type="submit" class="btn btn-outline-secondary">Prepare and add to queue</button>
+        <button type="submit" class="btn btn-outline-secondary">{% trans "Prepare and add to queue" %}</button>
       </form>
       {% endif %}
     </div>
@@ -70,7 +68,7 @@
   {% if checklist %}
   <div class="card shadow-sm mb-3 border-info">
     <div class="card-header py-2">
-      <span class="small fw-bold">Pre-rollover checklist</span>
+      <span class="small fw-bold">{% trans "Pre-rollover checklist" %}</span>
     </div>
     <div class="card-body py-2">
       <ul class="mb-0 small">
@@ -96,27 +94,27 @@
     <input type="hidden" name="target_year" value="{{ target_year.id }}">
     <div class="card shadow-sm">
       <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <span>Students in {{ source_year.name }} → assign to {{ target_year.name }}</span>
+        <span>{% blocktrans with source=source_year.name target=target_year.name %}Students in {{ source }} → assign to {{ target }}{% endblocktrans %}</span>
         <div class="d-flex flex-wrap gap-3">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="notify_parents" id="notify_parents" value="on">
-            <label class="form-check-label small" for="notify_parents">Notify parents after rollover</label>
+            <label class="form-check-label small" for="notify_parents">{% trans "Notify parents after rollover" %}</label>
           </div>
           {% if block_promotion_if_outstanding_returns %}
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="allow_outstanding_returns" id="allow_outstanding_returns" value="on">
-            <label class="form-check-label small" for="allow_outstanding_returns">Allow rollover despite outstanding returns</label>
+            <label class="form-check-label small" for="allow_outstanding_returns">{% trans "Allow rollover despite outstanding returns" %}</label>
           </div>
           {% endif %}
           {% if carry_forward_arrears_on_rollover %}
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="carry_forward_arrears" id="carry_forward_arrears" value="on">
-            <label class="form-check-label small" for="carry_forward_arrears">Carry forward unpaid fees to next year</label>
+            <label class="form-check-label small" for="carry_forward_arrears">{% trans "Carry forward unpaid fees to next year" %}</label>
           </div>
           {% endif %}
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="lock_source" id="lock_source" value="on">
-            <label class="form-check-label small" for="lock_source">Lock source year after rollover</label>
+            <label class="form-check-label small" for="lock_source">{% trans "Lock source year after rollover" %}</label>
           </div>
         </div>
       </div>
@@ -145,7 +143,7 @@
                 </td>
                 <td>
                   <select name="classroom_{{ row.student.id }}" class="form-select form-select-sm" style="min-width:160px;">
-                    <option value="__graduate__">— Graduate (Alumni) —</option>
+                    <option value="__graduate__">{% trans "— Graduate (Alumni) —" %}</option>
                     {% for c in target_classrooms %}
                     <option value="{{ c.id }}" {% if row.suggested_classroom and c.id == row.suggested_classroom.id %}selected{% endif %}>{{ c.name }}</option>
                     {% endfor %}
@@ -153,15 +151,15 @@
                 </td>
               </tr>
               {% empty %}
-              <tr><td colspan="5" class="text-muted">No active students in {{ source_year.name }}.</td></tr>
+              <tr><td colspan="5" class="text-muted">{% blocktrans with year=source_year.name %}No active students in {{ year }}.{% endblocktrans %}</td></tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
       </div>
       <div class="card-footer">
-        <button type="submit" class="btn btn-primary">Apply rollover</button>
-        <a href="{% url 'studio_os:workflow_center' %}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">{% trans "Apply rollover" %}</button>
+        <a href="{% url 'studio_os:workflow_center' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
       </div>
     </div>
   </form>

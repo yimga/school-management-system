@@ -1,5 +1,5 @@
 {
-  "finding_count": 1442,
+  "finding_count": 1424,
   "findings": [
     {
       "path": "templates/academics/syllabus_approval_queue.html",
@@ -1020,96 +1020,6 @@
       "path": "templates/accounts/rollover_queue.html",
       "tag": "th",
       "text": "Status"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "a",
-      "text": "Backend"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "a",
-      "text": "Cancel"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "a",
-      "text": "Rollover queue"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "a",
-      "text": "Workflow Center"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "button",
-      "text": "Apply rollover"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "button",
-      "text": "Prepare and add to queue"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "button",
-      "text": "Show students"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "h1",
-      "text": "Year-end rollover"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "label",
-      "text": "Allow rollover despite outstanding returns"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "label",
-      "text": "Carry forward unpaid fees to next year"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "label",
-      "text": "Lock source year after rollover"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "label",
-      "text": "Notify parents after rollover"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "label",
-      "text": "Source year (current)"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "label",
-      "text": "Target year (next)"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "option",
-      "text": "(locked)"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "option",
-      "text": "— Graduate (Alumni) —"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "option",
-      "text": "— Select —"
-    },
-    {
-      "path": "templates/accounts/rollover_year.html",
-      "tag": "option",
-      "text": "— Select —"
     },
     {
       "path": "templates/admin/base_site.html",
@@ -7212,7 +7122,7 @@
       "text": "light_mode"
     }
   ],
-  "generated_at": "2026-07-29T13:43:49+00:00",
+  "generated_at": "2026-07-29T13:47:21+00:00",
   "label_tags": [
     "button",
     "a",
