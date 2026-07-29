@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
 
-{% block title %}Preview – {{ subject_assignment.subject.name }}{% endblock %}
+{% block title %}{% trans "Preview" %} – {{ subject_assignment.subject.name }}{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -12,23 +12,23 @@
   <div class="container py-4" data-page-archetype="record-detail">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
-        <h1 class="h4 mb-1">Syllabus preview</h1>
+        <h1 class="h4 mb-1">{% trans "Syllabus preview" %}</h1>
         <div class="text-muted small">{{ subject_assignment.subject.name }} · {{ subject_assignment.classroom.name }} · {{ subject_assignment.term.label }}</div>
       </div>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">Back to syllabi</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">{% trans "Back to syllabi" %}</a>
     </div>
 
     <div class="card shadow-sm">
       <div class="card-body">
-        <p class="text-muted small">Status: <strong>{{ syllabus.get_status_display }}</strong></p>
+        <p class="text-muted small">{% trans "Status:" %} <strong>{{ syllabus.get_status_display }}</strong></p>
         {% if syllabus.uploaded_file %}
-          <p><a href="{{ syllabus.uploaded_file.url }}" target="_blank" rel="noopener noreferrer">Open uploaded file</a></p>
+          <p><a href="{{ syllabus.uploaded_file.url }}" target="_blank" rel="noopener noreferrer">{% trans "Open uploaded file" %}</a></p>
         {% endif %}
         {% if syllabus.builder_data %}
           <pre class="bg-light p-3 rounded small">{{ syllabus.builder_data }}</pre>
         {% endif %}
         {% if not syllabus.uploaded_file and not syllabus.builder_data %}
-          <p class="text-muted">No content yet. Use Builder or Upload to add content.</p>
+          <p class="text-muted">{% trans "No content yet. Use Builder or Upload to add content." %}</p>
         {% endif %}
       </div>
     </div>

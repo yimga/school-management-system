@@ -76,7 +76,7 @@
                the just-proven device defaults to trusted (remember_device_default),
                so the period is pre-selected; otherwise it defaults to "Don't trust".
                No separate checkbox to forget. {% endcomment %}
-            <div class="rmc-security-checkpoint__trust d-flex align-items-center gap-2 mt-2">
+            <div class="rmc-security-checkpoint__trust mt-2">
               <label for="mfa-setup-trust-days">{% trans "Skip MFA prompts on this browser for" %}</label>
               <select id="mfa-setup-trust-days" name="trust_days" class="form-select form-select-sm">
                 <option value="0"{% if not remember_device_default %} selected{% endif %}>{% trans "Don't trust this browser (ask every time)" %}</option>

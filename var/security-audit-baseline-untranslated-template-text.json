@@ -1,56 +1,6 @@
 {
-  "finding_count": 1355,
+  "finding_count": 1345,
   "findings": [
-    {
-      "path": "templates/academics/syllabus_preview.html",
-      "tag": "a",
-      "text": "Back to syllabi"
-    },
-    {
-      "path": "templates/academics/syllabus_preview.html",
-      "tag": "a",
-      "text": "Open uploaded file"
-    },
-    {
-      "path": "templates/academics/syllabus_preview.html",
-      "tag": "h1",
-      "text": "Syllabus preview"
-    },
-    {
-      "path": "templates/academics/teacher_syllabus_hub.html",
-      "tag": "a",
-      "text": "Builder"
-    },
-    {
-      "path": "templates/academics/teacher_syllabus_hub.html",
-      "tag": "a",
-      "text": "Clone"
-    },
-    {
-      "path": "templates/academics/teacher_syllabus_hub.html",
-      "tag": "a",
-      "text": "Preview"
-    },
-    {
-      "path": "templates/academics/teacher_syllabus_hub.html",
-      "tag": "a",
-      "text": "Teacher dashboard"
-    },
-    {
-      "path": "templates/academics/teacher_syllabus_hub.html",
-      "tag": "a",
-      "text": "Upload"
-    },
-    {
-      "path": "templates/academics/teacher_syllabus_hub.html",
-      "tag": "button",
-      "text": "Submit"
-    },
-    {
-      "path": "templates/academics/teacher_syllabus_hub.html",
-      "tag": "h1",
-      "text": "Course syllabi"
-    },
     {
       "path": "templates/accounts/academic_rules.html",
       "tag": "a",
@@ -6777,7 +6727,7 @@
       "text": "light_mode"
     }
   ],
-  "generated_at": "2026-07-29T14:31:58+00:00",
+  "generated_at": "2026-07-29T14:41:13+00:00",
   "label_tags": [
     "button",
     "a",
