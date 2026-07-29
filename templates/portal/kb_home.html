@@ -3,7 +3,7 @@
 
 {% block page_archetype %}kb-home{% endblock %}
 
-{% block title %}Knowledge Base - Help Center{% endblock %}
+{% block title %}{% trans "Knowledge Base - Help Center" %}{% endblock %}
 
 {% block content %}
 {% include "components/next_action_strip.html" %}
@@ -25,10 +25,10 @@
         <div class="row align-items-center">
             <div class="col-md-8">
                 <h1 class="h2 mb-2" id="kb-home-heading">
-                    <i class="bi bi-journal-text"></i> Knowledge Base
+                    <i class="bi bi-journal-text"></i> {% trans "Knowledge Base" %}
                 </h1>
                 <p class="lead mb-0 opacity-90">
-                    Guides, tutorials, and step-by-step instructions for all features
+                    {% trans "Guides, tutorials, and step-by-step instructions for all features" %}
                 </p>
             </div>
             <div class="col-md-4 text-md-end">
@@ -42,18 +42,18 @@
     <!-- Search Bar - full width -->
     <div class="row mb-4">
         <div class="col-12">
-            <form method="get" action="{% url 'kb:kb_search' %}" class="input-group input-group-lg" role="search" aria-label="Knowledge base search">
-                <label for="kb-search-input" class="visually-hidden">Search articles and FAQs</label>
+            <form method="get" action="{% url 'kb:kb_search' %}" class="input-group input-group-lg" role="search" aria-label="{% trans 'Knowledge base search' %}">
+                <label for="kb-search-input" class="visually-hidden">{% trans "Search articles and FAQs" %}</label>
                 <input id="kb-search-input"
                        type="search"
                        name="q"
                        class="form-control"
-                       placeholder="Search for an article, FAQ, or more..."
+                       placeholder="{% trans 'Search for an article, FAQ, or more...' %}"
                        value="{{ query }}"
                        autocomplete="off"
-                       aria-label="Search articles and FAQs">
-                <button class="btn btn-primary" type="submit" aria-label="Submit search">
-                    <i class="bi bi-search"></i> Search
+                       aria-label="{% trans 'Search articles and FAQs' %}">
+                <button class="btn btn-primary" type="submit" aria-label="{% trans 'Submit search' %}">
+                    <i class="bi bi-search"></i> {% trans "Search" %}
                 </button>
             </form>
             <div class="d-flex flex-wrap gap-2 mt-3">
@@ -71,7 +71,7 @@
     <div class="row mb-5">
         <div class="col-12 mb-3">
             <h2 class="h4 mb-0">
-                <i class="bi bi-star text-warning"></i> Featured Articles
+                <i class="bi bi-star text-warning"></i> {% trans "Featured Articles" %}
             </h2>
         </div>
         {% for article in featured_articles %}

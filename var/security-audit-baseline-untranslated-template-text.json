@@ -1,5 +1,5 @@
 {
-  "finding_count": 1502,
+  "finding_count": 1442,
   "findings": [
     {
       "path": "templates/academics/syllabus_approval_queue.html",
@@ -970,106 +970,6 @@
       "path": "templates/accounts/profile.html",
       "tag": "a",
       "text": "View portal"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "a",
-      "text": "Back to queue"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "a",
-      "text": "Back to queue"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "a",
-      "text": "Backend"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "a",
-      "text": "Cancel"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "a",
-      "text": "Rollover queue"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "a",
-      "text": "Workflow Center"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "a",
-      "text": "Year-end rollover"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "button",
-      "text": "Apply rollover"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "button",
-      "text": "Approve proposal"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "label",
-      "text": "Allow rollover despite outstanding returns"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "label",
-      "text": "Carry forward unpaid fees to next year"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "label",
-      "text": "Lock source year after rollover"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "label",
-      "text": "Notify parents"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "th",
-      "text": "Avg"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "th",
-      "text": "Current class"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "th",
-      "text": "Graduate"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "th",
-      "text": "Next class"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "th",
-      "text": "Promotion"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "th",
-      "text": "Returns"
-    },
-    {
-      "path": "templates/accounts/rollover_proposal_detail.html",
-      "tag": "th",
-      "text": "Student"
     },
     {
       "path": "templates/accounts/rollover_queue.html",
@@ -2707,101 +2607,6 @@
       "text": "Processing"
     },
     {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "button",
-      "text": "Keep Online Version"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "button",
-      "text": "Keep This Version"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "h1",
-      "text": "Resolve Offline Conflict"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "h5",
-      "text": "Offline Entry"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "h5",
-      "text": "Online Entry"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Entered:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Exam:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Exam:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Mock:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Mock:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Practical:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Practical:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Remarks:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Remarks:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Seq 1:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Seq 1:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Seq 2:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Seq 2:"
-    },
-    {
-      "path": "templates/evals/resolve_offline_conflict.html",
-      "tag": "th",
-      "text": "Updated:"
-    },
-    {
       "path": "templates/evals/school_ranking.html",
       "tag": "button",
       "text": "View"
@@ -3375,91 +3180,6 @@
       "path": "templates/finance/payment_readiness_setup.html",
       "tag": "h2",
       "text": "Setup checklist"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "a",
-      "text": "Cash closure"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "a",
-      "text": "Export CSV"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "a",
-      "text": "Export PDF"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "a",
-      "text": "Receipt"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "a",
-      "text": "Scan Teller"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "a",
-      "text": "Split payment"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "a",
-      "text": "View invoice"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "button",
-      "text": "Filter"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "label",
-      "text": "From date"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "label",
-      "text": "Method"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "label",
-      "text": "Sort by"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "label",
-      "text": "To date"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "option",
-      "text": "All"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "th",
-      "text": "Actions"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "th",
-      "text": "Amount"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "th",
-      "text": "Method"
-    },
-    {
-      "path": "templates/finance/payments.html",
-      "tag": "th",
-      "text": "Paid at"
     },
     {
       "path": "templates/finance/receipt.html",
@@ -5253,23 +4973,8 @@
     },
     {
       "path": "templates/portal/kb_home.html",
-      "tag": "button",
-      "text": "Search"
-    },
-    {
-      "path": "templates/portal/kb_home.html",
-      "tag": "h1",
-      "text": "Knowledge Base"
-    },
-    {
-      "path": "templates/portal/kb_home.html",
       "tag": "h2",
       "text": "Browse by Category"
-    },
-    {
-      "path": "templates/portal/kb_home.html",
-      "tag": "h2",
-      "text": "Featured Articles"
     },
     {
       "path": "templates/portal/kb_home.html",
@@ -5290,11 +4995,6 @@
       "path": "templates/portal/kb_home.html",
       "tag": "h5",
       "text": "Looking for Quick Answers?"
-    },
-    {
-      "path": "templates/portal/kb_home.html",
-      "tag": "label",
-      "text": "Search articles and FAQs"
     },
     {
       "path": "templates/portal/office_document_list.html",
@@ -7512,7 +7212,7 @@
       "text": "light_mode"
     }
   ],
-  "generated_at": "2026-07-29T13:11:11+00:00",
+  "generated_at": "2026-07-29T13:43:49+00:00",
   "label_tags": [
     "button",
     "a",

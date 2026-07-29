@@ -159,3 +159,21 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Workflow + operational workbench: cards render sharp on first paint (no scroll-reveal wash). */
+#workflow-main .rmc-reveal,
+.tp-workflow-portal .rmc-reveal,
+[data-rmc-command-workspace="workflow-center"] .rmc-reveal,
+[data-rmc-teacher-workflow-redesign="1"] .rmc-reveal,
+[data-rmc-operational-workbench="1"] .rmc-reveal {
+  opacity: 1 !important;
+  transform: none !important;
+}
+html[data-rmc-reveal-armed] #workflow-main .rmc-reveal:not(.is-revealed),
+html[data-rmc-reveal-armed] .tp-workflow-portal .rmc-reveal:not(.is-revealed),
+html[data-rmc-reveal-armed] [data-rmc-command-workspace="workflow-center"] .rmc-reveal:not(.is-revealed),
+html[data-rmc-reveal-armed] [data-rmc-teacher-workflow-redesign="1"] .rmc-reveal:not(.is-revealed),
+html[data-rmc-reveal-armed] [data-rmc-operational-workbench="1"] .rmc-reveal:not(.is-revealed) {
+  opacity: 1 !important;
+  transform: none !important;
+}

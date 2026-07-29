@@ -4,10 +4,10 @@
 {% with widgets=display_widgets %}
   {% admin_health as health %}
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="row g-3 mb-4 rmc-reveal-stagger">
+<div class="row g-3 mb-4">
     {% with attendance=widget_data.attendance performance=widget_data.performance finance=widget_data.finance events=widget_data.events %}
       {% if not widgets or "attendance" in widgets %}
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-primary shadow-sm">
           <div class="card-body">
             <div class="text-muted small mb-1">{% trans "Attendance snapshot" %}</div>
@@ -31,7 +31,7 @@
       {% endif %}
 
       {% if not widgets or "performance" in widgets %}
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-success shadow-sm">
           <div class="card-body">
             <div class="text-muted small mb-1">{% trans "Performance overview" %}</div>
@@ -57,7 +57,7 @@
       {% endif %}
 
       {% if not widgets or "finance" in widgets %}
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-warning shadow-sm">
           <div class="card-body">
             <div class="text-muted small mb-1">{% trans "Financial summary" %}</div>
@@ -92,7 +92,7 @@
       {% endif %}
 
       {% if not widgets or "events" in widgets %}
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-info shadow-sm">
           <div class="card-body">
             <div class="text-muted small mb-1">{% trans "Upcoming events & alerts" %}</div>
@@ -119,8 +119,8 @@
   </div>
 
   {% with tasks=widget_data.tasks access=widget_data.access timetable=widget_data.timetable communication=widget_data.communication referral=widget_data.referral %}
-    <div class="row g-3 mb-4 rmc-reveal-stagger">
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+    <div class="row g-3 mb-4">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-secondary shadow-sm">
           <div class="card-body">
             <div class="text-muted small mb-1">{% trans "System status" %}</div>
@@ -134,7 +134,7 @@
           </div>
         </div>
       </div>
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-danger shadow-sm">
           <div class="card-body">
             <div class="text-muted small mb-1">{% trans "Task tracker" %}</div>
@@ -147,7 +147,7 @@
         </div>
       </div>
 
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-info shadow-sm">
           <div class="card-body">
             <div class="text-muted small mb-1">{% trans "Referrals & parent data" %}</div>
@@ -165,7 +165,7 @@
         </div>
       </div>
 
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-secondary shadow-sm">
           <div class="card-body">
             <div class="text-muted small mb-1">{% trans "Portal access" %}</div>
@@ -179,7 +179,7 @@
         </div>
       </div>
 
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-info shadow-sm">
           <div class="card-body" data-sms-offline-read-cache-key="parent_timetable_{{ user.id }}">
             <div class="text-muted small mb-1">{% trans "Class timetable" %}</div>
@@ -200,7 +200,7 @@
         </div>
       </div>
 
-      <div class="col-lg-6 col-xl-3 rmc-reveal">
+      <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-success shadow-sm">
           <div class="card-body" data-sms-offline-read-cache-key="parent_contacts_{{ user.id }}">
             <div class="text-muted small mb-1">{% trans "Communication center" %}</div>
@@ -245,8 +245,8 @@
     <div class="col-12">
       <div class="card border-0 shadow-sm p-3">
         <div class="widget-title mb-2">{{ widget_data.analytics.label }}</div>
-        <div class="row g-3 rmc-reveal-stagger">
-          <div class="col-md-6 rmc-reveal">
+        <div class="row g-3">
+          <div class="col-md-6">
             <div class="widget-grid">
               {% for item in widget_data.analytics.highlights %}
                 <div class="widget-card border">
@@ -257,7 +257,7 @@
               {% endfor %}
             </div>
           </div>
-          <div class="col-md-6 rmc-reveal">
+          <div class="col-md-6">
             <div class="widget-grid">
               {% for item in widget_data.analytics.lowlights %}
                 <div class="widget-card border">

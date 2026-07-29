@@ -167,7 +167,17 @@
     }, 1200);
   }
 
+  function revealOperationalWorkspaces() {
+    var roots = document.querySelectorAll(
+      "#workflow-main, .tp-workflow-portal, [data-rmc-command-workspace='workflow-center'], [data-rmc-teacher-workflow-redesign='1'], [data-rmc-operational-workbench='1']"
+    );
+    roots.forEach(function (root) {
+      root.querySelectorAll(".rmc-reveal:not(.is-revealed)").forEach(revealNow);
+    });
+  }
+
   function init() {
+    revealOperationalWorkspaces();
     if (prefersReducedMotion()) {
       // Respect the user. CSS already strips the transition; just flip the class.
       document.querySelectorAll(SELECTOR).forEach(revealNow);

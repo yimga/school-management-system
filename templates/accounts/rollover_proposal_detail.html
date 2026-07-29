@@ -3,27 +3,27 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}Rollover proposal — {{ proposal.source_year.name }} → {{ proposal.target_year.name }}{% endblock %}
+{% block title %}{% blocktrans with source=proposal.source_year.name target=proposal.target_year.name %}Rollover proposal — {{ source }} → {{ target }}{% endblocktrans %}{% endblock %}
 
 {% block backend_page %}
 {% include "components/next_action_strip.html" %}
 
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
-  <nav aria-label="breadcrumb" class="mb-3">
+  <nav aria-label="{% trans 'Breadcrumb' %}" class="mb-3">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">Workflow Center</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'accounts:rollover_year' %}">Year-end rollover</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'accounts:rollover_queue' %}">Rollover queue</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Proposal {{ proposal.id }}</li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:rollover_year' %}">{% trans "Year-end rollover" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:rollover_queue' %}">{% trans "Rollover queue" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% blocktrans with pid=proposal.id %}Proposal {{ pid }}{% endblocktrans %}</li>
     </ol>
   </nav>
 
   <div class="card shadow-sm mb-3">
     <div class="card-body">
       <h1 class="h5 mb-2">{{ proposal.source_year.name }} → {{ proposal.target_year.name }}</h1>
-      <p class="text-muted small mb-0">Status: <span class="badge {% if proposal.status == 'PENDING' %}bg-warning text-dark{% elif proposal.status == 'APPROVED' %}bg-success{% else %}bg-secondary{% endif %}">{{ proposal.get_status_display }}</span></p>
+      <p class="text-muted small mb-0">{% trans "Status:" %} <span class="badge {% if proposal.status == 'PENDING' %}bg-warning text-dark{% elif proposal.status == 'APPROVED' %}bg-success{% else %}bg-secondary{% endif %}">{{ proposal.get_status_display }}</span></p>
     </div>
   </div>
 
@@ -32,7 +32,7 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="approve">
     <div class="card shadow-sm mb-3">
-      <div class="card-header">Review and override next class (then click Approve)</div>
+      <div class="card-header">{% trans "Review and override next class (then click Approve)" %}</div>
       <div class="card-body p-0">
         <div class="table-responsive">
           <!-- large-collection-allow: rollover-approval-inline-grid -->
@@ -40,13 +40,13 @@
             <caption class="visually-hidden">{% trans "Review and override next class (then click Approve)" %}</caption>
             <thead class="table-light">
               <tr>
-                <th scope="col">Student</th>
-                <th scope="col">Current class</th>
-                <th scope="col">Avg</th>
-                <th scope="col">Promotion</th>
-                <th scope="col">Returns</th>
-                <th scope="col">Next class</th>
-                <th scope="col">Graduate</th>
+                <th scope="col">{% trans "Student" %}</th>
+                <th scope="col">{% trans "Current class" %}</th>
+                <th scope="col">{% trans "Avg" %}</th>
+                <th scope="col">{% trans "Promotion" %}</th>
+                <th scope="col">{% trans "Returns" %}</th>
+                <th scope="col">{% trans "Next class" %}</th>
+                <th scope="col">{% trans "Graduate" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -67,15 +67,15 @@
                 <td><input type="checkbox" name="graduate_{{ item.id }}" value="on" {% if item.is_graduate %}checked{% endif %} class="form-check-input"></td>
               </tr>
               {% empty %}
-              <tr><td colspan="7" class="text-muted">No students in this proposal.</td></tr>
+              <tr><td colspan="7" class="text-muted">{% trans "No students in this proposal." %}</td></tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
       </div>
       <div class="card-footer">
-        <button type="submit" class="btn btn-primary">Approve proposal</button>
-        <a href="{% url 'accounts:rollover_queue' %}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">{% trans "Approve proposal" %}</button>
+        <a href="{% url 'accounts:rollover_queue' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
       </div>
     </div>
   </form>
@@ -86,35 +86,35 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="apply">
     <div class="card shadow-sm mb-3">
-      <div class="card-header">Apply rollover</div>
+      <div class="card-header">{% trans "Apply rollover" %}</div>
       <div class="card-body">
-        <p class="mb-2">This will move students to {{ proposal.target_year.name }} and assign the approved next class.</p>
+        <p class="mb-2">{% blocktrans with year=proposal.target_year.name %}This will move students to {{ year }} and assign the approved next class.{% endblocktrans %}</p>
         <div class="form-check">
           <input class="form-check-input" type="checkbox" name="lock_source" id="lock_source" value="on">
-          <label class="form-check-label" for="lock_source">Lock source year after rollover</label>
+          <label class="form-check-label" for="lock_source">{% trans "Lock source year after rollover" %}</label>
         </div>
         <div class="form-check">
           <input class="form-check-input" type="checkbox" name="notify_parents" id="notify_parents" value="on">
-          <label class="form-check-label" for="notify_parents">Notify parents</label>
+          <label class="form-check-label" for="notify_parents">{% trans "Notify parents" %}</label>
         </div>
         <div class="form-check">
           <input class="form-check-input" type="checkbox" name="allow_outstanding_returns" id="allow_outstanding_returns" value="on">
-          <label class="form-check-label" for="allow_outstanding_returns">Allow rollover despite outstanding returns</label>
+          <label class="form-check-label" for="allow_outstanding_returns">{% trans "Allow rollover despite outstanding returns" %}</label>
         </div>
         <div class="form-check">
           <input class="form-check-input" type="checkbox" name="carry_forward_arrears" id="carry_forward_arrears" value="on">
-          <label class="form-check-label" for="carry_forward_arrears">Carry forward unpaid fees to next year</label>
+          <label class="form-check-label" for="carry_forward_arrears">{% trans "Carry forward unpaid fees to next year" %}</label>
         </div>
       </div>
       <div class="card-footer">
-        <button type="submit" class="btn btn-success">Apply rollover</button>
-        <a href="{% url 'accounts:rollover_queue' %}" class="btn btn-outline-secondary">Back to queue</a>
+        <button type="submit" class="btn btn-success">{% trans "Apply rollover" %}</button>
+        <a href="{% url 'accounts:rollover_queue' %}" class="btn btn-outline-secondary">{% trans "Back to queue" %}</a>
       </div>
     </div>
   </form>
   {% endif %}
 
-  <a href="{% url 'accounts:rollover_queue' %}" class="btn btn-outline-secondary">Back to queue</a>
+  <a href="{% url 'accounts:rollover_queue' %}" class="btn btn-outline-secondary">{% trans "Back to queue" %}</a>
 </div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

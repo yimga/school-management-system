@@ -1,12 +1,12 @@
 {
   "date": "2026-07-29",
-  "generated_at": "2026-07-29T11:32:04+00:00",
+  "generated_at": "2026-07-29T13:45:22+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 15,
-  "raw": "sms-v4.06.15-configure-hub-static-chrome-2026-07-29",
+  "patch": 16,
+  "raw": "sms-v4.06.16-tenant-blur-i18n-workflow-2026-07-29",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "configure-hub-static-chrome",
+  "slug": "tenant-blur-i18n-workflow",
   "valid": true
 }

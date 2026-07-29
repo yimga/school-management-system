@@ -1,7 +1,7 @@
 {% extends 'backend_base.html' %}
 {% load static i18n %}
 
-{% block title %}Resolve Offline Conflict{% endblock %}
+{% block title %}{% trans "Resolve Offline Conflict" %}{% endblock %}
 
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -14,13 +14,12 @@
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">
-                <i class="bi bi-exclamation-triangle text-warning"></i> Resolve Offline Conflict
+                <i class="bi bi-exclamation-triangle text-warning"></i> {% trans "Resolve Offline Conflict" %}
             </h1>
             
             <div class="rmc-banner rmc-banner--warning">
-                <strong>Conflict Detected:</strong> There are conflicting mark entries for 
-                <strong>{{ student_name }}</strong> in <strong>{{ subject_name }}</strong>.
-                Please choose which version to keep.
+                <strong>{% trans "Conflict Detected:" %}</strong>
+                {% blocktrans with student=student_name subject=subject_name %}There are conflicting mark entries for <strong>{{ student }}</strong> in <strong>{{ subject }}</strong>. Please choose which version to keep.{% endblocktrans %}
             </div>
             
             <div class="row">
@@ -29,44 +28,44 @@
                     <div class="card border-danger">
                         <div class="card-header bg-danger text-white">
                             <h5 class="mb-0">
-                                <i class="bi bi-phone"></i> Offline Entry
+                                <i class="bi bi-phone"></i> {% trans "Offline Entry" %}
                             </h5>
                         </div>
                         <div class="card-body">
                             <table class="table table-sm table-family align-middle">
-                              <caption class="visually-hidden">{% trans "Resolve Offline Conflict" %}</caption>
+                              <caption class="visually-hidden">{% trans "Offline mark entry details" %}</caption>
                                 <tr>
-                                    <th scope="row">Seq 1:</th>
+                                    <th scope="row">{% trans "Seq 1:" %}</th>
                                     <td>{{ offline_entry.seq1_score }}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Seq 2:</th>
+                                    <th scope="row">{% trans "Seq 2:" %}</th>
                                     <td>{{ offline_entry.seq2_score }}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Exam:</th>
+                                    <th scope="row">{% trans "Exam:" %}</th>
                                     <td>{{ offline_entry.exam_score }}</td>
                                 </tr>
                                 {% if offline_entry.mock_score %}
                                 <tr>
-                                    <th scope="row">Mock:</th>
+                                    <th scope="row">{% trans "Mock:" %}</th>
                                     <td>{{ offline_entry.mock_score }}</td>
                                 </tr>
                                 {% endif %}
                                 {% if offline_entry.practical_score %}
                                 <tr>
-                                    <th scope="row">Practical:</th>
+                                    <th scope="row">{% trans "Practical:" %}</th>
                                     <td>{{ offline_entry.practical_score }}</td>
                                 </tr>
                                 {% endif %}
                                 <tr>
-                                    <th scope="row">Remarks:</th>
+                                    <th scope="row">{% trans "Remarks:" %}</th>
                                     <td>
-                                        <em>{{ offline_entry.remarks|default:"(no remarks)" }}</em>
+                                        {% if offline_entry.remarks %}<em>{{ offline_entry.remarks }}</em>{% else %}<em>{% trans "(no remarks)" %}</em>{% endif %}
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Entered:</th>
+                                    <th scope="row">{% trans "Entered:" %}</th>
                                     <td>
                                         <small class="text-muted">
                                             {{ offline_entry.created_offline_at }}
@@ -75,7 +74,7 @@
                                 </tr>
                             </table>
                             <button type="button" class="btn btn-danger btn-block" onclick="document.getElementById('choice').value='offline'; document.getElementById('conflictForm').submit();">
-                                <i class="bi bi-check2-circle"></i> Keep This Version
+                                <i class="bi bi-check2-circle"></i> {% trans "Keep This Version" %}
                             </button>
                         </div>
                     </div>
@@ -86,45 +85,45 @@
                     <div class="card border-success">
                         <div class="card-header bg-success text-white">
                             <h5 class="mb-0">
-                                <i class="bi bi-cloud"></i> Online Entry
+                                <i class="bi bi-cloud"></i> {% trans "Online Entry" %}
                             </h5>
                         </div>
                         <div class="card-body">
                             {% if online_entry %}
                             <table class="table table-sm table-family align-middle">
-                              <caption class="visually-hidden">{% trans "Resolve Offline Conflict" %}</caption>
+                              <caption class="visually-hidden">{% trans "Online mark entry details" %}</caption>
                                 <tr>
-                                    <th scope="row">Seq 1:</th>
+                                    <th scope="row">{% trans "Seq 1:" %}</th>
                                     <td>{{ online_entry.seq1_score }}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Seq 2:</th>
+                                    <th scope="row">{% trans "Seq 2:" %}</th>
                                     <td>{{ online_entry.seq2_score }}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Exam:</th>
+                                    <th scope="row">{% trans "Exam:" %}</th>
                                     <td>{{ online_entry.exam_score }}</td>
                                 </tr>
                                 {% if online_entry.mock_score %}
                                 <tr>
-                                    <th scope="row">Mock:</th>
+                                    <th scope="row">{% trans "Mock:" %}</th>
                                     <td>{{ online_entry.mock_score }}</td>
                                 </tr>
                                 {% endif %}
                                 {% if online_entry.practical_score %}
                                 <tr>
-                                    <th scope="row">Practical:</th>
+                                    <th scope="row">{% trans "Practical:" %}</th>
                                     <td>{{ online_entry.practical_score }}</td>
                                 </tr>
                                 {% endif %}
                                 <tr>
-                                    <th scope="row">Remarks:</th>
+                                    <th scope="row">{% trans "Remarks:" %}</th>
                                     <td>
-                                        <em>{{ online_entry.remarks|default:"(no remarks)" }}</em>
+                                        {% if online_entry.remarks %}<em>{{ online_entry.remarks }}</em>{% else %}<em>{% trans "(no remarks)" %}</em>{% endif %}
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Updated:</th>
+                                    <th scope="row">{% trans "Updated:" %}</th>
                                     <td>
                                         <small class="text-muted">
                                             {{ online_entry.updated_at }}
@@ -134,11 +133,11 @@
                             </table>
                             {% else %}
                             <div class="rmc-banner rmc-banner--info">
-                                <strong>No online entry exists.</strong> You can choose to import the offline entry.
+                                <strong>{% trans "No online entry exists." %}</strong> {% trans "You can choose to import the offline entry." %}
                             </div>
                             {% endif %}
                             <button type="button" class="btn btn-success btn-block" onclick="document.getElementById('choice').value='online'; document.getElementById('conflictForm').submit();">
-                                <i class="bi bi-check2-circle"></i> Keep Online Version
+                                <i class="bi bi-check2-circle"></i> {% trans "Keep Online Version" %}
                             </button>
                         </div>
                     </div>

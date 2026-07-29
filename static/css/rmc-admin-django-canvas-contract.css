@@ -4136,3 +4136,30 @@ body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer_
   font-size: 0.75rem;
   color: var(--text-tertiary, var(--color-base-400));
 }
+
+/* Tenant change-form readability: academic year and other admin forms must stay
+   sharp — no stranded glass overlays or scroll-reveal opacity on fieldsets. */
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+  [data-rmc-django-workspace="change-form"]
+  :is(.form-row, fieldset, .aligned, .field-box, .datetime) {
+  filter: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  .rmc-admin-os-sheet[hidden] {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+  [data-rmc-django-workspace="change-form"]
+  .help,
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+  [data-rmc-django-workspace="change-form"]
+  .helptext {
+  opacity: 1 !important;
+  color: var(--text-secondary, var(--color-base-500)) !important;
+}
