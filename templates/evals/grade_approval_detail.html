@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
-{% load region_format glocal_tags terminology_tags %}
-{% block title %}Grade Approval{% if approval.subject_assignment %} · {{ approval.subject_assignment.subject.name }}{% endif %}{% endblock %}
+{% load i18n region_format glocal_tags terminology_tags %}
+{% block title %}{% trans "Grade Approval" %}{% if approval.subject_assignment %} · {{ approval.subject_assignment.subject.name }}{% endif %}{% endblock %}
 
 {% block content %}
 {% include "components/next_action_strip.html" %}
@@ -9,49 +9,49 @@
 <div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
-    <h1 class="mb-0">Grade Approval Request</h1>
+    <h1 class="mb-0">{% trans "Grade Approval Request" %}</h1>
     <p class="text-muted small mb-0">
-      Submitted by {{ approval.teacher.user.get_full_name|default:approval.teacher.user.username }} on {{ approval.requested_at|date:"d/m/Y" }} {{ approval.requested_at|time:"H:i" }}.
+      {% blocktrans with name=approval.teacher.user.get_full_name|default:approval.teacher.user.username date=approval.requested_at|date:"d/m/Y" time=approval.requested_at|time:"H:i" %}Submitted by {{ name }} on {{ date }} {{ time }}.{% endblocktrans %}
     </p>
   </div>
-  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'evals:grade_approval_list' %}"><i class="bi bi-arrow-left me-1"></i>Back to list</a>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'evals:grade_approval_list' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to list" %}</a>
 </div>
 
-<div class="row g-3 mb-4 rmc-reveal-stagger">
-  <div class="col-md-6 rmc-reveal">
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
     <div class="card">
       <div class="card-body">
-        <p class="mb-1"><strong>Subject:</strong> {{ approval.subject_assignment }}</p>
-        <p class="mb-1"><strong>Term:</strong> {% if approval.term %}{{ approval.term.label }}{% else %}—{% endif %}</p>
-        <p class="mb-1"><strong>Academic Year:</strong> {% if approval.academic_year %}{{ approval.academic_year.name }}{% else %}—{% endif %}</p>
+        <p class="mb-1"><strong>{% trans "Subject:" %}</strong> {{ approval.subject_assignment }}</p>
+        <p class="mb-1"><strong>{% trans "Term:" %}</strong> {% if approval.term %}{{ approval.term.label }}{% else %}—{% endif %}</p>
+        <p class="mb-1"><strong>{% trans "Academic Year:" %}</strong> {% if approval.academic_year %}{{ approval.academic_year.name }}{% else %}—{% endif %}</p>
         <p class="mb-0">
-          <strong>Status:</strong>
+          <strong>{% trans "Status:" %}</strong>
           <span class="rmc-badge rmc-badge--info text-uppercase">{{ approval.get_status_display }}</span>
         </p>
       </div>
     </div>
   </div>
-  <div class="col-md-6 rmc-reveal">
+  <div class="col-md-6">
     <div class="card">
       <div class="card-body">
-        <p class="mb-1"><strong>Rows submitted:</strong> {{ approval.summary.submitted_rows }} / {{ approval.summary.total_students }}</p>
-        <p class="mb-0"><strong>Reviewer notes:</strong> {{ approval.reviewer_notes|default:"None" }}</p>
+        <p class="mb-1"><strong>{% trans "Rows submitted:" %}</strong> {{ approval.summary.submitted_rows }} / {{ approval.summary.total_students }}</p>
+        <p class="mb-0"><strong>{% trans "Reviewer notes:" %}</strong> {% if approval.reviewer_notes %}{{ approval.reviewer_notes }}{% else %}{% trans "None" %}{% endif %}</p>
         {% if approval.is_bypassed %}
           <hr class="my-2">
-          <p class="mb-1 text-danger"><strong>Bypassed:</strong> Yes</p>
-          <p class="mb-1"><strong>Bypassed by:</strong> {{ approval.bypassed_by.get_full_name|default:approval.bypassed_by.username }}</p>
-          <p class="mb-0"><strong>Bypass reason:</strong> {{ approval.bypass_reason|default:"—" }}</p>
+          <p class="mb-1 text-danger"><strong>{% trans "Bypassed:" %}</strong> {% trans "Yes" %}</p>
+          <p class="mb-1"><strong>{% trans "Bypassed by:" %}</strong> {{ approval.bypassed_by.get_full_name|default:approval.bypassed_by.username }}</p>
+          <p class="mb-0"><strong>{% trans "Bypass reason:" %}</strong> {{ approval.bypass_reason|default:"—" }}</p>
         {% endif %}
-</div>
-</div>
-</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% if deadline_display %}
 <div class="alert alert-outline-primary mb-4 d-flex justify-content-between align-items-center">
   <div>
-    <strong>Decision deadline:</strong> {{ deadline_display }}
-    {% if deadline_overdue %}<span class="rmc-badge rmc-badge--danger ms-2">Overdue</span>{% endif %}
+    <strong>{% trans "Decision deadline:" %}</strong> {{ deadline_display }}
+    {% if deadline_overdue %}<span class="rmc-badge rmc-badge--danger ms-2">{% trans "Overdue" %}</span>{% endif %}
     {% if deadline_note %}<div class="small text-muted">{{ deadline_note }}</div>{% endif %}
   </div>
 </div>
@@ -59,7 +59,7 @@
 
 {% if validation_flags %}
 <div class="rmc-banner rmc-banner--warning mb-4">
-  <strong>Validation flags:</strong>
+  <strong>{% trans "Validation flags:" %}</strong>
   <ul class="mb-0 mt-2">
     {% for flag in validation_flags %}
     <li>{{ flag.message }}</li>
@@ -70,23 +70,23 @@
 
 {% if final_roles %}
 <div class="rmc-banner rmc-banner--info mb-4">
-  Final decision roles: {{ final_roles|join:", " }}
+  {% blocktrans with roles=final_roles|join:", " %}Final decision roles: {{ roles }}{% endblocktrans %}
 </div>
 {% endif %}
 
 <div class="card mb-4">
   <div class="card-header">
-    <strong>Submitted marks</strong>
+    <strong>{% trans "Submitted marks" %}</strong>
   </div>
   <div class="table-responsive">
-    <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Submitted marks for approval: student and score components" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+    <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Submitted marks for approval: student and score components' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
           <th scope="col">{% trans_term "Student" key="student" %}</th>
-          <th scope="col" class="num">Seq1</th>
-          <th scope="col" class="num">Seq2</th>
-          <th scope="col" class="num">Exam</th>
-          <th scope="col">Remarks</th>
+          <th scope="col" class="num">{% trans "Seq1" %}</th>
+          <th scope="col" class="num">{% trans "Seq2" %}</th>
+          <th scope="col" class="num">{% trans "Exam" %}</th>
+          <th scope="col">{% trans "Remarks" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -115,14 +115,14 @@
 
 <div class="card">
   <div class="card-header">
-    <strong>Reviewer decision</strong>
+    <strong>{% trans "Reviewer decision" %}</strong>
   </div>
   <div class="card-body">
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="action" value="decide">
       {{ form.as_p }}
-      <button class="btn btn-primary" type="submit">Save decision</button>
+      <button class="btn btn-primary" type="submit">{% trans "Save decision" %}</button>
     </form>
   </div>
 </div>
@@ -130,17 +130,17 @@
 {% if bypass_allowed %}
 <div class="card mt-3 border-warning">
   <div class="card-header bg-warning-subtle">
-    <strong>Bypass / Escalate</strong>
+    <strong>{% trans "Bypass / Escalate" %}</strong>
   </div>
   <div class="card-body">
     <p class="text-muted small mb-3">
-      Use this only when the normal approver is unavailable. A bypass is fully audited.
+      {% trans "Use this only when the normal approver is unavailable. A bypass is fully audited." %}
     </p>
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="action" value="bypass">
       {{ bypass_form.as_p }}
-      <button class="btn btn-warning" type="submit">Bypass and finalize</button>
+      <button class="btn btn-warning" type="submit">{% trans "Bypass and finalize" %}</button>
     </form>
   </div>
 </div>

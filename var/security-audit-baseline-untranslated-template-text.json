@@ -1,5 +1,5 @@
 {
-  "finding_count": 1424,
+  "finding_count": 1376,
   "findings": [
     {
       "path": "templates/academics/syllabus_approval_queue.html",
@@ -790,86 +790,6 @@
       "path": "templates/accounts/messages.html",
       "tag": "h1",
       "text": "Messaging"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "a",
-      "text": "Change"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "button",
-      "text": "Clear and start over"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "button",
-      "text": "Next"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "button",
-      "text": "Run import"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "button",
-      "text": "Upload preview"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "button",
-      "text": "Validate only (dry run)"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "h1",
-      "text": "Step 1: Choose your current system"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "h2",
-      "text": "Step 2: Map columns → target fields"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "h2",
-      "text": "Step 2: Upload"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "h2",
-      "text": "Step 3: Run import"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "label",
-      "text": "CSV or XLSX file"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "label",
-      "text": "Import type"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "label",
-      "text": "Where are you migrating from?"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "option",
-      "text": "— Skip —"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "th",
-      "text": "CSV column"
-    },
-    {
-      "path": "templates/accounts/migration_wizard.html",
-      "tag": "th",
-      "text": "→ Target field"
     },
     {
       "path": "templates/accounts/my_delegations.html",
@@ -2367,81 +2287,6 @@
       "text": "Reason for Extension:"
     },
     {
-      "path": "templates/evals/grade_approval_detail.html",
-      "tag": "a",
-      "text": "Back to list"
-    },
-    {
-      "path": "templates/evals/grade_approval_detail.html",
-      "tag": "button",
-      "text": "Bypass and finalize"
-    },
-    {
-      "path": "templates/evals/grade_approval_detail.html",
-      "tag": "button",
-      "text": "Save decision"
-    },
-    {
-      "path": "templates/evals/grade_approval_detail.html",
-      "tag": "h1",
-      "text": "Grade Approval Request"
-    },
-    {
-      "path": "templates/evals/grade_approval_detail.html",
-      "tag": "th",
-      "text": "Exam"
-    },
-    {
-      "path": "templates/evals/grade_approval_detail.html",
-      "tag": "th",
-      "text": "Remarks"
-    },
-    {
-      "path": "templates/evals/grade_approval_detail.html",
-      "tag": "th",
-      "text": "Seq1"
-    },
-    {
-      "path": "templates/evals/grade_approval_detail.html",
-      "tag": "th",
-      "text": "Seq2"
-    },
-    {
-      "path": "templates/evals/grade_approval_list.html",
-      "tag": "a",
-      "text": "Review"
-    },
-    {
-      "path": "templates/evals/grade_approval_list.html",
-      "tag": "button",
-      "text": "Apply"
-    },
-    {
-      "path": "templates/evals/grade_approval_list.html",
-      "tag": "h1",
-      "text": "Grade Approval Requests"
-    },
-    {
-      "path": "templates/evals/grade_approval_list.html",
-      "tag": "label",
-      "text": "Filter by status"
-    },
-    {
-      "path": "templates/evals/grade_approval_list.html",
-      "tag": "th",
-      "text": "Requested"
-    },
-    {
-      "path": "templates/evals/grade_approval_list.html",
-      "tag": "th",
-      "text": "Status"
-    },
-    {
-      "path": "templates/evals/grade_approval_list.html",
-      "tag": "th",
-      "text": "Subject"
-    },
-    {
       "path": "templates/evals/import_job_monitor.html",
       "tag": "a",
       "text": "View Compliance Dashboard"
@@ -3605,91 +3450,6 @@
       "path": "templates/parent/link_child.html",
       "tag": "a",
       "text": "Request invite (WhatsApp)"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "a",
-      "text": "Call"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "a",
-      "text": "Cancel"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "a",
-      "text": "Email"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "a",
-      "text": "WhatsApp"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "button",
-      "text": "Back"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "button",
-      "text": "Complete Setup"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "button",
-      "text": "Continue"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h1",
-      "text": "Link a Child"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h3",
-      "text": "Step 1: Identify Your Child"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h3",
-      "text": "Step 2: Contact & Permissions"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h3",
-      "text": "Step 3: Additional Details (Optional)"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h6",
-      "text": "Access Permissions"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h6",
-      "text": "Linking to:"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h6",
-      "text": "Linking to:"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h6",
-      "text": "Need Help?"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h6",
-      "text": "Student Found"
-    },
-    {
-      "path": "templates/parent/link_child_wizard.html",
-      "tag": "h6",
-      "text": "Student Information"
     },
     {
       "path": "templates/parent/medal_case.html",
@@ -7122,7 +6882,7 @@
       "text": "light_mode"
     }
   ],
-  "generated_at": "2026-07-29T13:47:21+00:00",
+  "generated_at": "2026-07-29T13:51:53+00:00",
   "label_tags": [
     "button",
     "a",

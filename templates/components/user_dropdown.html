@@ -143,13 +143,6 @@
       </li>
 
       {% comment %} v4.01.43: theme + aesthetic live in profile dropdown (same menu as logout). {% endcomment %}
-      <li class="dropdown-section-header">
-        <i class="bi bi-palette"></i> {% trans "Appearance" %}
-      </li>
-      <li class="px-3 py-2 user-dropdown-appearance">
-        {% include "components/header_theme_chip.html" with theme_chip_layout="dropdown" %}
-      </li>
-
       <li>
         <a class="dropdown-item" href="{% url 'accounts:user_profile' %}">
           <i class="bi bi-person-circle"></i>
@@ -168,6 +161,10 @@
         </a>
         {% endif %}
       </li>
+
+      <li class="dropdown-section-header">
+        <i class="bi bi-shield-lock"></i> {% trans "Security" %}
+      </li>
       {% if security_posture_review_due and security_posture_review_url %}
       <li>
         <a class="dropdown-item text-warning" href="{{ security_posture_review_url }}">
@@ -184,6 +181,14 @@
           {% if mfa_setup_needed %}<span class="rmc-badge rmc-badge--warning ms-auto">{% trans "Set up" %}</span>{% elif mfa_enrolled %}<span class="rmc-badge rmc-badge--success ms-auto">{% trans "On" %}</span>{% endif %}
         </a>
       </li>
+
+      <li class="dropdown-section-header">
+        <i class="bi bi-palette"></i> {% trans "Appearance" %}
+      </li>
+      <li class="px-3 py-2 user-dropdown-appearance">
+        {% include "components/header_theme_chip.html" with theme_chip_layout="dropdown" %}
+      </li>
+
       <li>
         <a class="dropdown-item" href="{% url 'accounts:user_notifications' %}">
           <i class="bi bi-bell"></i>
@@ -340,7 +345,7 @@
       <li><hr class="dropdown-divider"></li>
 
       <!-- Logout -->
-      <li>
+      <li class="user-dropdown-logout-group">
         <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}" data-rmc-nav-logout="1">
           <i class="bi bi-box-arrow-right"></i>
           <span>{% trans "Logout" %}</span>

@@ -150,8 +150,30 @@ html[data-surface="tenant"] .tp-header .tp-header__vrule {
 /* Profile chip flush on dark chrome */
 html[data-surface="tenant"] .tp-header .rmc-user-chip,
 html[data-surface="tenant"] .tp-header .user-dropdown-toggle,
-html[data-surface="tenant"] .tp-header [data-rmc-user-menu] {
+html[data-surface="tenant"] .tp-header .user-dropdown-trigger,
+html[data-surface="tenant"] .tp-header [data-rmc-user-menu],
+html[data-rmc-tp-v3-shell="1"] #portalHeader .user-dropdown-trigger {
   color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
+}
+
+html[data-surface="tenant"] .tp-header .user-dropdown-trigger,
+html[data-rmc-tp-v3-shell="1"] #portalHeader .user-dropdown-trigger {
+  border-color: rgba(255, 255, 255, 0.28) !important; /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, 0.06) !important; /* off-token-allow: white-overlay */
+}
+
+html[data-surface="tenant"] .tp-header .user-dropdown-trigger:hover,
+html[data-surface="tenant"] .tp-header .user-dropdown-trigger[aria-expanded="true"],
+html[data-rmc-tp-v3-shell="1"] #portalHeader .user-dropdown-trigger:hover,
+html[data-rmc-tp-v3-shell="1"] #portalHeader .user-dropdown-trigger[aria-expanded="true"] {
+  color: #ffffff !important; /* off-token-allow: hex-literal-decorative */
+  border-color: rgba(255, 255, 255, 0.45) !important; /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, 0.12) !important; /* off-token-allow: white-overlay */
+}
+
+html[data-surface="tenant"] .tp-header .user-dropdown-trigger .dropdown-arrow,
+html[data-rmc-tp-v3-shell="1"] #portalHeader .user-dropdown-trigger .dropdown-arrow {
+  color: rgba(255, 255, 255, 0.78); /* off-token-allow: white-overlay */
 }
 
 /* LIVE / ticker strip under header stays dark-adjacent */

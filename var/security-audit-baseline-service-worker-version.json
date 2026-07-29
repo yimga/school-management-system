@@ -1,12 +1,12 @@
 {
   "date": "2026-07-29",
-  "generated_at": "2026-07-29T13:45:22+00:00",
+  "generated_at": "2026-07-29T13:51:53+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 16,
-  "raw": "sms-v4.06.16-tenant-blur-i18n-workflow-2026-07-29",
+  "patch": 17,
+  "raw": "sms-v4.06.17-tenant-i18n-user-menu-2026-07-29",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "tenant-blur-i18n-workflow",
+  "slug": "tenant-i18n-user-menu",
   "valid": true
 }

@@ -454,6 +454,29 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[ari
   max-width: min(420px, calc(100vw - 24px));
 }
 
+/* Operator parity: identity block + logout group emphasis on tenant header */
+#portalHeader .user-dropdown-identity {
+  padding: 10px 14px 4px;
+}
+#portalHeader .user-dropdown-identity__name {
+  font-size: var(--type-size-md, 15px);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+#portalHeader .user-dropdown-identity__role {
+  font-size: var(--type-size-sm, 12px);
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+#portalHeader .user-dropdown-menu .user-dropdown-logout-group,
+#portalHeader .user-dropdown-menu .user-dropdown-logout-group + li {
+  margin-top: 0.15rem;
+}
+#portalHeader .user-dropdown-menu .user-dropdown-logout-group .dropdown-item.text-danger {
+  font-weight: 600;
+}
+
 /* ============================================================
    Tenant header edge-spread (2026-07-22, corrected 2026-07-22)
    ------------------------------------------------------------
