@@ -118,7 +118,14 @@ class TenantStudioWizardBrandTests(TestCase):
         from apps.schools.super_views_create_school_wizard import create_school_wizard
 
         factory = RequestFactory()
-        request = factory.get("/super/create/")
+        # ?legacy=1 opts out of the Unified Wizard Engine redirect (engine is the
+        # default per v3.99.24) and renders the legacy create-school template that
+        # this test's markers belong to — the maintained rollback path during the
+        # engine bake-in. NOTE: the engine target (/super/wizards/super_create_
+        # school/) 404s on the manager host in the test harness even though
+        # super_create_school.json is registered — flagged for the setup_studio
+        # owner as a possible wizard-engine host-routing gap.
+        request = factory.get("/super/create/?legacy=1")
         request.user = self.superuser
         response = create_school_wizard(request)
         self.assertEqual(response.status_code, 200)

@@ -55,7 +55,12 @@ class TenantStaffControlPlaneBoundaryTests(TestCase):
     def test_public_login_stays_on_marketing_host_not_manager(self):
         client = Client(HTTP_HOST="runmycampus.com")
         response = client.get("/authentication/login/", follow=False)
-        self.assertEqual(response.status_code, 200)
+        # Apex is discovery-only (slug-only credential auth): /authentication/
+        # login/ redirects to /discover/ on the SAME marketing host — the point
+        # of this guard is that it must never bounce to the manager host.
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/discover/", response["Location"])
+        self.assertNotIn("manager.", response["Location"])
         self.assertEqual(
             response.wsgi_request.META.get("HTTP_HOST"), "runmycampus.com"
         )

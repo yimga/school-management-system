@@ -291,9 +291,17 @@ def purge_public_school_dependencies(school) -> dict[str, int]:
         match_value = _scalar_school_match_value(model, field_name, school_pk)
         try:
             with transaction.atomic():
-                _deleted, _detail = model._default_manager.filter(
-                    **{field_name: match_value}
-                ).delete()
+                qs = model._default_manager.filter(**{field_name: match_value})
+                # Never sweep a workflow run that is still RUNNING — the purge's
+                # OWN ``tenant_school_purge`` run shares this school's ``school_id``,
+                # so deleting it here (it CASCADEs its steps) and then writing the
+                # remaining purge/finalize steps orphans them against a deleted run.
+                # On Postgres that step write fails immediately and is swallowed
+                # (losing purge telemetry); under SQLite the FK check is deferred to
+                # commit and aborts the whole purge. Completed/failed runs still go.
+                if model._meta.label == "platform_runtime.WorkflowRun":
+                    qs = qs.exclude(status__in=["running", "stuck"])
+                _deleted, _detail = qs.delete()
         except Exception as exc:  # noqa: BLE001 - mirror the broad best-effort skip above
             logger.warning(
                 "tenant_offboarding purge skip scalar %s after DB error (%s): %s",
