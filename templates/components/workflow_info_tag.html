@@ -5,12 +5,12 @@
    tone (neutral|info|success|warn|danger), optional icon, optional aria_label.
    Accessibility: the tag is a span not a link; text label is always rendered visibly;
    icon is wrapped with aria-hidden so the screen reader announces only the label. {% endcomment %}
-{% with safe_tone=tag.tone|default:"neutral" safe_key=tag.key|default:"info" safe_label=tag.label|default:"" %}
+{% with safe_tone=tag.tone|default:"neutral" safe_key=tag.key|default:"info" %}
 <span class="rmc-workflow-tag"
       data-rmc-workflow-tag="{{ safe_key }}"
       data-rmc-workflow-tag-tone="{{ safe_tone }}"
       role="status"
-      aria-label="{{ tag.aria_label|default:safe_label }}">
+      aria-label="{% firstof tag.aria_label tag.label %}">
   {% if tag.icon %}<span class="rmc-workflow-tag__icon" aria-hidden="true">{{ tag.icon }}</span>{% endif %}
   <span class="rmc-workflow-tag__label">{{ tag.label }}</span>
 </span>
