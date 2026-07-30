@@ -80,7 +80,7 @@ class SeverityRoutingTests(SimpleTestCase):
     def test_info_severity_log_only(self):
         from apps.migration_cloud import alerts
         with mock.patch.object(alerts.urllib.request, "urlopen") as urlopen, \
-             mock.patch("django.core.mail.send_mail") as send_mail:
+             mock.patch("apps.schoolops.email_compat.send_mail") as send_mail:
             alerts.alert(
                 severity="info",
                 title="info ping",
@@ -103,7 +103,7 @@ class SeverityRoutingTests(SimpleTestCase):
         fake_resp.getcode.return_value = 200
         fake_resp.status = 200
         with mock.patch.object(alerts.urllib.request, "urlopen") as urlopen, \
-             mock.patch("django.core.mail.send_mail") as send_mail:
+             mock.patch("apps.schoolops.email_compat.send_mail") as send_mail:
             urlopen.return_value.__enter__.return_value = fake_resp
             alerts.alert(
                 severity="warning",
@@ -129,7 +129,7 @@ class SeverityRoutingTests(SimpleTestCase):
         fake_resp.getcode.return_value = 200
         fake_resp.status = 200
         with mock.patch.object(alerts.urllib.request, "urlopen") as urlopen, \
-             mock.patch("django.core.mail.send_mail") as send_mail:
+             mock.patch("apps.schoolops.email_compat.send_mail") as send_mail:
             urlopen.return_value.__enter__.return_value = fake_resp
             alerts.alert(
                 severity="critical",
@@ -161,7 +161,7 @@ class DryRunTests(SimpleTestCase):
     def test_dry_run_logs_but_does_not_post(self):
         from apps.migration_cloud import alerts
         with mock.patch.object(alerts.urllib.request, "urlopen") as urlopen, \
-             mock.patch("django.core.mail.send_mail") as send_mail, \
+             mock.patch("apps.schoolops.email_compat.send_mail") as send_mail, \
              self.assertLogs("apps.migration_cloud.alerts", level="INFO") as cap:
             alerts.alert(
                 severity="critical",
