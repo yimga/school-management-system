@@ -21,7 +21,7 @@
         <strong>{% if link.email %}{{ link.email }}{% else %}{% trans "(no email on file)" %}{% endif %}</strong>
       </div>
       <label class="form-label small" for="setup-link-{{ forloop.counter }}">{% trans "One-time claim link" %}</label>
-      <input id="setup-link-{{ forloop.counter }}" class="form-control form-control-sm" type="text" readonly value="{{ link.url }}" onfocus="this.select();">
+      <input id="setup-link-{{ forloop.counter }}" class="form-control form-control-sm" type="text" readonly value="{{ link.url }}" data-rmc-select-on-focus>
     </div>
   </div>
   {% endfor %}

@@ -8,7 +8,7 @@
 <div class="container-fluid py-2">
   <div class="d-print-none d-flex flex-wrap gap-2 mb-2">
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:tenant_join_codes' %}">{% trans "Back to join codes" %}</a>
-    <button type="button" class="btn btn-primary btn-sm" onclick="window.print()"><i class="bi bi-printer me-1" aria-hidden="true"></i>{% trans "Print" %}</button>
+    <button type="button" class="btn btn-primary btn-sm" data-rmc-print><i class="bi bi-printer me-1" aria-hidden="true"></i>{% trans "Print" %}</button>
   </div>
 
   <div class="border rounded-4 p-4 text-center mx-auto" style="max-width:620px">

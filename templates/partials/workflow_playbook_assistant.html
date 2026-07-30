@@ -9,7 +9,7 @@
   </div>
   <div class="card-body pt-2">
     <p class="small text-muted mb-2">{{ playbook_hint|default:_("Ask about checklist order, exports, or launch blockers.") }}</p>
-    <form data-rmc-playbook-form onsubmit="return false">
+    <form data-rmc-playbook-form data-rmc-noop-submit>
       {% csrf_token %}
       <label class="visually-hidden" for="rmc-playbook-q-{{ playbook_mode }}">{% trans "Question" %}</label>
       <textarea id="rmc-playbook-q-{{ playbook_mode }}" class="form-control form-control-sm mb-2" rows="2" maxlength="500"

@@ -31,7 +31,7 @@
 
   <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <label for="connector-filter" class="form-label small text-muted mb-0">{% trans "Filter by connector" %}:</label>
-    <select id="connector-filter" name="connector" class="form-select form-select-sm" onchange="this.form.submit()">
+    <select id="connector-filter" name="connector" class="form-select form-select-sm" data-rmc-submit-on-change>
       <option value="">{% trans "All connectors" %}</option>
       {% for slug in available_filters %}
         <option value="{{ slug }}" {% if connector_filter == slug %}selected{% endif %}>{{ slug }}</option>

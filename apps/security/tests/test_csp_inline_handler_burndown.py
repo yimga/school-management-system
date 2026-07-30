@@ -74,22 +74,40 @@ class CspHandlerModuleTests(SimpleTestCase):
     def test_handler_module_exists_with_core_capabilities(self):
         self.assertTrue(_HANDLER_JS.exists(), str(_HANDLER_JS))
         src = _HANDLER_JS.read_text(encoding="utf-8")
-        # Capabilities this module OWNS (async-CSS flip + delegated print/reload/img).
+        # Capabilities this module OWNS (async-CSS flip + delegated print/reload/img,
+        # plus the STEP-2c generic form/field delegations).
         for marker in (
             "data-rmc-async-style",
             "data-rmc-print",
             "data-rmc-reload",
             "data-rmc-img-fallback",
+            "data-rmc-submit-on-change",
+            "data-rmc-select-on-click",
+            "data-rmc-select-on-focus",
+            "data-rmc-noop-submit",
         ):
             self.assertIn(marker, src, marker)
 
+    def test_async_style_handles_both_media_and_preload_flips(self):
+        # data-rmc-async-style must promote BOTH deferred patterns: media 'print'->'all'
+        # AND rel 'preload'->'stylesheet' (the marketing_landing loadCSS pattern).
+        src = _HANDLER_JS.read_text(encoding="utf-8")
+        self.assertIn("'stylesheet'", src)
+        self.assertIn("preload", src)
+
     def test_module_does_not_double_handle_confirm(self):
         # data-rmc-confirm is owned by rmc-modal-intelligence.js (a rich sheet).
-        # This module must NOT register a submit-confirm listener, or forms would
-        # get BOTH the modal AND a native confirm().
+        # This module must never CONSUME that marker (as a selector / hasAttribute)
+        # or call a native confirm(), or forms would get BOTH the modal AND a native
+        # prompt. (A delegated `submit` listener DOES exist now — for
+        # data-rmc-noop-submit — but it only preventDefaults a JS-driven form; it
+        # never confirms.) The docstring may still NAME the marker to explain the
+        # boundary, so we test the executable-consumption forms, not the mention.
         src = _HANDLER_JS.read_text(encoding="utf-8")
-        self.assertNotIn("addEventListener('submit'", src)
+        for consumed in ("data-rmc-confirm'", 'data-rmc-confirm"', "data-rmc-confirm]"):
+            self.assertNotIn(consumed, src, consumed)
         self.assertNotIn("window.confirm", src)
+        self.assertNotIn(".confirm(", src)
 
     def test_modal_engine_submits_forms_on_confirm(self):
         # The rich confirm handler re-dispatches via el.click(), a no-op on a
@@ -135,3 +153,65 @@ class DeferredCssBurndownTests(SimpleTestCase):
                 path.read_text(encoding="utf-8"),
                 f"{path} must mark async stylesheets with data-rmc-async-style",
             )
+
+
+# STEP 2c — generic delegated conversions: onchange="this.form.submit()",
+# onclick="this.select()", onfocus="this.select()", onsubmit="return false",
+# plus window.print() / deferred-CSS on pages reached via a handler-loaded shell.
+# Each tuple: (relative path, [inline strings that must be GONE], [data-* markers that must be PRESENT]).
+_BATCH1_CONVERSIONS = [
+    ("templates/migration_cloud/operator/smoke_history.html", ['this.form.submit()'], ["data-rmc-submit-on-change"]),
+    ("templates/reports/statistical_return.html", ['this.form.submit()'], ["data-rmc-submit-on-change"]),
+    ("templates/reports/promotion_preview.html", ['this.form.submit()'], ["data-rmc-submit-on-change"]),
+    ("templates/base.html", ['this.form.submit()'], ["data-rmc-submit-on-change"]),
+    ("templates/migration_cloud/customer/intake_list.html", ['this.form.submit()'], ["data-rmc-submit-on-change"]),
+    ("templates/integrations_marketplace/events.html", ['this.form.submit()'], ["data-rmc-submit-on-change"]),
+    ("templates/integrations_marketplace/hub.html", ['this.form.submit()'], ["data-rmc-submit-on-change"]),
+    ("templates/integrations_marketplace/rejections.html", ['this.form.submit()'], ["data-rmc-submit-on-change"]),
+    ("templates/integrations_marketplace/manager_rollup.html", ['this.form.submit()'], ["data-rmc-submit-on-change"]),
+    ("templates/migration_cloud/connector/provisioning_token_result.html", ['onclick="this.select()"'], ["data-rmc-select-on-click"]),
+    ("templates/migration_cloud/connector/provisioning_webhooks.html", ['onclick="this.select()"'], ["data-rmc-select-on-click"]),
+    ("templates/schools/super_owner_setup_link.html", ['onfocus="this.select'], ["data-rmc-select-on-focus"]),
+    ("templates/siteconfig/tenant_studio_hub.html", ['onsubmit="return false"'], ["data-rmc-noop-submit"]),
+    ("templates/portal/partner_documentation_assistant.html", ['onsubmit="return false"'], ["data-rmc-noop-submit"]),
+    ("templates/partials/workflow_playbook_assistant.html", ['onsubmit="return false"'], ["data-rmc-noop-submit"]),
+    ("templates/siteconfig/partials/ai_center_body.html", ['onsubmit="return false"'], ["data-rmc-noop-submit"]),
+    ("templates/accounts/join_code_poster.html", ['onclick="window.print()"'], ["data-rmc-print"]),
+    ("templates/reports/term_report.html", ['onclick="window.print()"'], ["data-rmc-print"]),
+    ("templates/reports/annual_report.html", ['onclick="window.print()"'], ["data-rmc-print"]),
+    ("templates/schools/marketing_landing.html", ["onload=\"this.onload=null"], ["data-rmc-async-style"]),
+]
+
+# Standalone documents (own <html>, no shell) that must load the handler module
+# directly for their data-* markers to work.
+_STANDALONE_LOADS_HANDLER = [
+    "templates/reports/term_report.html",
+    "templates/reports/annual_report.html",
+]
+
+
+class Batch1DelegatedConversionTests(SimpleTestCase):
+    def test_inline_handlers_removed_and_markers_present(self):
+        for rel, removed, added in _BATCH1_CONVERSIONS:
+            body = (_REPO / rel).read_text(encoding="utf-8")
+            for gone in removed:
+                self.assertNotIn(gone, body, f"{rel} still ships inline handler {gone!r}")
+            for marker in added:
+                self.assertIn(marker, body, f"{rel} missing declarative marker {marker!r}")
+
+    def test_standalone_print_docs_load_handler_module(self):
+        for rel in _STANDALONE_LOADS_HANDLER:
+            body = (_REPO / rel).read_text(encoding="utf-8")
+            self.assertIn(
+                "js/rmc-csp-handlers.js",
+                body,
+                f"{rel} is a standalone doc — it must load the handler module for data-rmc-print",
+            )
+
+    def test_500_minimal_uses_anchor_not_inline_reload(self):
+        # The minimal 500 renders via handler500 with NO shell and possibly no
+        # csp_nonce context, so it must not depend on JS at all: the retry control
+        # is a plain same-URL anchor, and no inline onclick reload survives.
+        body = (_REPO / "templates/errors/500_minimal.html").read_text(encoding="utf-8")
+        self.assertNotIn("onclick=", body)
+        self.assertIn('<a class="primary" href="">', body)

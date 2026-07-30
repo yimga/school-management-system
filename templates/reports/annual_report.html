@@ -1,9 +1,10 @@
-{% load i18n region_format terminology_tags %}
+{% load i18n region_format terminology_tags static %}
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
   {% include "reports/_report_styles.html" %}
+  <script src="{% static 'js/rmc-csp-handlers.js' %}" defer></script>
 </head>
 <body class="rmc-print-v2" data-page-archetype="record-detail" data-rmc-zero-click-exempt="print-document">
   <h1 class="visually-hidden">{% trans "Annual academic report" %}</h1>
@@ -13,7 +14,7 @@
   {% trans "Annual academic report" as report_title %}
   {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=student_name report_meta_left=generated_at|format_date report_meta_right=school %}
   <nav class="ds-action-bar d-print-none mb-2" aria-label="{% trans 'Report actions' %}">
-    <button type="button" class="btn btn-sm btn-primary ds-btn" onclick="window.print()">{% trans "Print or save as PDF" %}</button>
+    <button type="button" class="btn btn-sm btn-primary ds-btn" data-rmc-print>{% trans "Print or save as PDF" %}</button>
   </nav>
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="letterhead">

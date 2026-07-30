@@ -297,7 +297,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.path }}">
                 <label for="actAsSelect" class="small text-white mb-0">Act as</label>
-                <select name="role" id="actAsSelect" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select name="role" id="actAsSelect" class="form-select form-select-sm" data-rmc-submit-on-change>
                   <option value="">Clear</option>
                   {% for option in PREVIEW_ACT_AS_CHOICES %}
                     <option value="{{ option.value }}" {% if option.value == PREVIEW_ACT_AS_ROLE %}selected{% endif %}>

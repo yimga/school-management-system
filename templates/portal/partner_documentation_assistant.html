@@ -25,7 +25,7 @@
 
   <section class="card border-0 shadow-sm">
     <div class="card-body">
-      <form data-rmc-partner-interop-form onsubmit="return false">
+      <form data-rmc-partner-interop-form data-rmc-noop-submit>
         {% csrf_token %}
         <label class="form-label" for="partner-interop-q">{% trans "Question" %}</label>
         <textarea id="partner-interop-q" class="form-control form-control-sm mb-2" rows="3" maxlength="2000"

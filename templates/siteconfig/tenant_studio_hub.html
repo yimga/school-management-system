@@ -147,7 +147,7 @@
       </ul>
       {% endif %}
       {% if setup_assistant_api_url %}
-      <form class="mb-0" data-rmc-ai-guided data-ai-url="{{ setup_assistant_api_url }}" data-api-kind="onboarding_assistant" onsubmit="return false">
+      <form class="mb-0" data-rmc-ai-guided data-ai-url="{{ setup_assistant_api_url }}" data-api-kind="onboarding_assistant" data-rmc-noop-submit>
         <label class="form-label visually-hidden" for="tenantStudioAiQuery">{% trans "Ask about setup" %}</label>
         <textarea id="tenantStudioAiQuery" class="form-control form-control-sm mb-2" rows="2" data-rmc-ai-query
           placeholder="{% trans 'e.g. What should we configure before importing students?' %}"></textarea>

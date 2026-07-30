@@ -17,7 +17,7 @@ Every href is a pre-resolved context var (tokens_url) so no cross-host reverse.
 
   <div class="mb-3">
     <label class="form-label" for="mc-token-plaintext">{% trans "Your API token" %}</label>
-    <input type="text" class="form-control font-monospace" id="mc-token-plaintext" value="{{ plaintext }}" readonly onclick="this.select()">
+    <input type="text" class="form-control font-monospace" id="mc-token-plaintext" value="{{ plaintext }}" readonly data-rmc-select-on-click>
   </div>
 
   <dl class="row small text-muted mb-3">

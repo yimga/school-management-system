@@ -24,7 +24,7 @@ Subscriptions are bound to the caller's own school server-side.
     {% blocktrans %}Copy this signing secret now — it is shown only once. Use it to verify the HMAC signature on each delivery.{% endblocktrans %}
   </div>
   <label class="form-label" for="mc-webhook-secret">{% trans "Signing secret" %}</label>
-  <input type="text" class="form-control font-monospace" id="mc-webhook-secret" value="{{ result.plaintext }}" readonly onclick="this.select()">
+  <input type="text" class="form-control font-monospace" id="mc-webhook-secret" value="{{ result.plaintext }}" readonly data-rmc-select-on-click>
 </section>
 {% endif %}
 

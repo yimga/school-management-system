@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-narrative-phase10.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-global-os.css' %}">
   {% comment %} CWV: below-fold live-flow CSS loads non-blocking {% endcomment %}
-  <link rel="preload" href="{% static 'css/mkt-live-flow.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="{% static 'css/mkt-live-flow.css' %}" as="style" data-rmc-async-style>
   <noscript><link rel="stylesheet" href="{% static 'css/mkt-live-flow.css' %}"></noscript>
 {% endblock %}
   {% block extrahead %}

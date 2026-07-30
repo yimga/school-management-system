@@ -21,7 +21,7 @@
   <form method="get" class="mb-3">
     <div class="d-flex gap-2 align-items-center">
       <label for="state_filter" class="form-label mb-0">{% trans "State" %}</label>
-      <select id="state_filter" name="state" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+      <select id="state_filter" name="state" class="form-select form-select-sm w-auto" data-rmc-submit-on-change>
         <option value="">{% trans "All" %}</option>
         {% for value, label in all_states %}
           <option value="{{ value }}"{% if value == active_state_filter %} selected{% endif %}>{{ label }}</option>

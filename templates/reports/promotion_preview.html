@@ -29,7 +29,7 @@
       <form method="get" action="" class="row g-3 align-items-end">
         <div class="col-md-3">
           <label for="year" class="form-label">Academic year</label>
-          <select name="year" id="year" class="form-select" onchange="this.form.submit()">
+          <select name="year" id="year" class="form-select" data-rmc-submit-on-change>
             <option value="">— Select —</option>
             {% for y in years %}
             <option value="{{ y.id }}" {% if year and year.id == y.id %}selected{% endif %}>{{ y.name }}</option>
@@ -39,7 +39,7 @@
         {% if year and classrooms %}
         <div class="col-md-3">
           <label for="classroom" class="form-label">Classroom</label>
-          <select name="classroom" id="classroom" class="form-select" onchange="this.form.submit()">
+          <select name="classroom" id="classroom" class="form-select" data-rmc-submit-on-change>
             <option value="">All classrooms</option>
             {% for c in classrooms %}
             <option value="{{ c.id }}" {% if selected_classroom == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>

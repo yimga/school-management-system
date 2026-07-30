@@ -34,7 +34,7 @@
   <form method="get" class="rmc-filters" aria-label="{% trans 'Smoke filters' %}">
     <label class="rmc-filter">
       <span>{% trans "Status" %}</span>
-      <select name="status" onchange="this.form.submit()">
+      <select name="status" data-rmc-submit-on-change>
         <option value="">{% trans "All" %}</option>
         {% for s in distinct_statuses %}
           <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>

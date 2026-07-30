@@ -41,7 +41,7 @@
   {% if available_campuses %}
     <form method="get" class="d-flex align-items-center gap-2 mb-3" data-rmc-scope-picker>
       <label for="campus-scope" class="form-label small text-muted mb-0">{% trans "Scope" %}:</label>
-      <select id="campus-scope" name="campus" class="form-select form-select-sm" onchange="this.form.submit()">
+      <select id="campus-scope" name="campus" class="form-select form-select-sm" data-rmc-submit-on-change>
         <option value="">{% trans "Whole school (all campuses)" %}</option>
         {% for c in available_campuses %}
           <option value="{{ c.pk }}" {% if selected_campus and selected_campus.pk == c.pk %}selected{% endif %}>

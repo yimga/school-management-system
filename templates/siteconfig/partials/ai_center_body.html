@@ -178,7 +178,7 @@ OLLAMA_MODEL=llama3</code></pre>
             {% if help_center_url %}data-helpdesk-url="{{ help_center_url }}"{% endif %}
             {% if ai_feedback_url %}data-feedback-url="{{ ai_feedback_url }}"{% endif %}
             {% if default_assistant.studio_mode %}data-studio-mode="{{ default_assistant.studio_mode }}"{% endif %}
-            onsubmit="return false"
+            data-rmc-noop-submit
           >
             <label class="form-label visually-hidden" for="aiCenterQuery">{% trans "Question" %}</label>
             <textarea
