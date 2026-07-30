@@ -26,6 +26,7 @@
 #
 # No-op on SQLite and when USE_DJANGO_TENANTS=True (schema-per-tenant mode).
 
+from django.apps import apps as django_apps
 from django.db import connection, migrations
 
 from apps.schools.rls import should_apply_rls
@@ -58,60 +59,81 @@ def force_rls(apps, schema_editor):
             )
 
 
+# Depend on every first-party app leaf so this sweep runs after all RLS
+# enable/policy migrations, landing dead last.
+#
+# A few first-party apps (payment, plans_entitlements) live ONLY in the base
+# INSTALLED_APPS and are deliberately excluded from SHARED_APPS/TENANT_APPS, so
+# under schema-per-tenant mode (USE_DJANGO_TENANTS=1) their migrations are never
+# loaded into the graph. A static dependency on such a leaf dangles with
+# NodeNotFoundError and aborts `migrate_schemas` on a fresh Postgres. We filter
+# the leaf list to the apps actually installed in the current mode:
+#   * RLS mode (USE_DJANGO_TENANTS=0): every app is installed, so all leaves are
+#     kept and the "runs after every RLS enable/policy" ordering is preserved --
+#     test_rls_force_coverage stays honest.
+#   * schema mode: the force sweep is a no-op anyway (should_apply_rls is False),
+#     so dropping the excluded (and unloadable) leaves changes nothing except
+#     letting the graph resolve.
+_ALL_LEAF_DEPENDENCIES = [
+    ("academics", "0072_enable_rls_curriculum_room_timeslot"),
+    ("accounts", "0055_loginmagiclink"),
+    ("analytics", "0030_rls_policy_default_deny"),
+    ("api", "0002_offline_global_ops"),
+    ("apicenter", "0011_rls_policy_default_deny"),
+    ("assist_dock", "0004_impersonationgrant_impersonationsession_and_more"),
+    ("athletics", "0005_clubs_rls"),
+    ("automation", "0021_rls_policy_default_deny"),
+    ("billing", "0020_processorrevenueshareaccrual"),
+    ("brand_experience", "0004_template_assignment_and_audit_event"),
+    ("communication", "0032_ensure_school_fk_columns"),
+    ("compliance", "0023_auditlog_impersonation_context"),
+    ("customers", "0004_world_engine"),
+    ("customersuccess", "0006_rls_policy_default_deny"),
+    ("emis", "0002_emis_export_tenant_upload_to"),
+    ("evals", "0038_ensure_school_fk_columns"),
+    ("events", "0008_rls_policy_default_deny"),
+    ("feedback", "0009_rls_policy_default_deny"),
+    ("finance", "0079_fractionalpaymentledger_tax_component"),
+    ("global_registries", "0001_proxy_owner_models"),
+    ("governance", "0006_rls_policy_default_deny"),
+    ("integrations_marketplace", "0006_tenantretentionoverride"),
+    ("lifecycle", "0005_rls_policy_default_deny"),
+    ("marketplace", "0015_rls_policy_default_deny"),
+    ("metadata", "0016_dynamicfielddefinition_validation_json"),
+    ("migration_cloud", "0043_cutoverrunbook_rls"),
+    ("observability", "0006_incident_update_timeline"),
+    ("orchestration", "0004_rls_policy_default_deny"),
+    ("packages", "0008_rls_policy_default_deny"),
+    ("payment", "0001_regional_payment_rail_catalog"),
+    ("payroll", "0008_ensure_offline_capture_table"),
+    ("people", "0071_backfill_enrollment_from_student_row"),
+    ("plans_entitlements", "0002_entitlement_proxy"),
+    ("platform_runtime", "0100_heavy_work_outbox_kind_choices"),
+    ("policies", "0010_seed_iam_baseline_pdp_rules"),
+    ("portal", "0043_ensure_school_fk_columns"),
+    ("registries", "0011_seed_currency_country_registries"),
+    ("reports", "0025_enrollment_first_class"),
+    ("requests", "0005_rls_policy_default_deny"),
+    ("runtime_blueprints", "0001_proxy_owner_models"),
+    ("sales", "0003_lead_decision_maker_and_owner"),
+    ("school_events", "0003_rls_policy_default_deny"),
+    ("schoolops", "0036_substitute_market_shift"),
+    ("schools", "0082_ensure_advancement_offline_id"),
+    ("setup_studio", "0004_rls_policy_default_deny"),
+    ("siteconfig", "0207_seed_country_grading_profiles"),
+    ("social_media", "0003_rls_policy_default_deny"),
+    ("student360", "0001_immutable_transcript"),
+    ("studio_os", "0004_rls_policy_default_deny"),
+]
+
+# Evaluated at graph-build time, after django.setup() has populated the app
+# registry (the migration loader imports this module well after apps are ready).
+_INSTALLED_APP_LABELS = {config.label for config in django_apps.get_app_configs()}
+
+
 class Migration(migrations.Migration):
-    # Depend on every first-party app leaf so this sweep runs after all RLS
-    # enable/policy migrations. Reverse is a no-op: un-forcing is a security
-    # downgrade and forced-with-policy is always the safe resting state.
     dependencies = [
-        ("academics", "0072_enable_rls_curriculum_room_timeslot"),
-        ("accounts", "0055_loginmagiclink"),
-        ("analytics", "0030_rls_policy_default_deny"),
-        ("api", "0002_offline_global_ops"),
-        ("apicenter", "0011_rls_policy_default_deny"),
-        ("assist_dock", "0004_impersonationgrant_impersonationsession_and_more"),
-        ("athletics", "0005_clubs_rls"),
-        ("automation", "0021_rls_policy_default_deny"),
-        ("billing", "0020_processorrevenueshareaccrual"),
-        ("brand_experience", "0004_template_assignment_and_audit_event"),
-        ("communication", "0032_ensure_school_fk_columns"),
-        ("compliance", "0023_auditlog_impersonation_context"),
-        ("customers", "0004_world_engine"),
-        ("customersuccess", "0006_rls_policy_default_deny"),
-        ("emis", "0002_emis_export_tenant_upload_to"),
-        ("evals", "0038_ensure_school_fk_columns"),
-        ("events", "0008_rls_policy_default_deny"),
-        ("feedback", "0009_rls_policy_default_deny"),
-        ("finance", "0079_fractionalpaymentledger_tax_component"),
-        ("global_registries", "0001_proxy_owner_models"),
-        ("governance", "0006_rls_policy_default_deny"),
-        ("integrations_marketplace", "0006_tenantretentionoverride"),
-        ("lifecycle", "0005_rls_policy_default_deny"),
-        ("marketplace", "0015_rls_policy_default_deny"),
-        ("metadata", "0016_dynamicfielddefinition_validation_json"),
-        ("migration_cloud", "0043_cutoverrunbook_rls"),
-        ("observability", "0006_incident_update_timeline"),
-        ("orchestration", "0004_rls_policy_default_deny"),
-        ("packages", "0008_rls_policy_default_deny"),
-        ("payment", "0001_regional_payment_rail_catalog"),
-        ("payroll", "0008_ensure_offline_capture_table"),
-        ("people", "0071_backfill_enrollment_from_student_row"),
-        ("plans_entitlements", "0002_entitlement_proxy"),
-        ("platform_runtime", "0100_heavy_work_outbox_kind_choices"),
-        ("policies", "0010_seed_iam_baseline_pdp_rules"),
-        ("portal", "0043_ensure_school_fk_columns"),
-        ("registries", "0011_seed_currency_country_registries"),
-        ("reports", "0025_enrollment_first_class"),
-        ("requests", "0005_rls_policy_default_deny"),
-        ("runtime_blueprints", "0001_proxy_owner_models"),
-        ("sales", "0003_lead_decision_maker_and_owner"),
-        ("school_events", "0003_rls_policy_default_deny"),
-        ("schoolops", "0036_substitute_market_shift"),
-        ("schools", "0082_ensure_advancement_offline_id"),
-        ("setup_studio", "0004_rls_policy_default_deny"),
-        ("siteconfig", "0207_seed_country_grading_profiles"),
-        ("social_media", "0003_rls_policy_default_deny"),
-        ("student360", "0001_immutable_transcript"),
-        ("studio_os", "0004_rls_policy_default_deny"),
+        dep for dep in _ALL_LEAF_DEPENDENCIES if dep[0] in _INSTALLED_APP_LABELS
     ]
 
     operations = [
