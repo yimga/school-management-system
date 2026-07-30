@@ -27,12 +27,23 @@ class SiteSettingsHelpersImportSurfaceTests(unittest.TestCase):
             if rel in (
                 "apps/platform_runtime/helpers.py",
                 "apps/platform_runtime/site_settings_read_access.py",
+                # config_resolver is the canonical single-key facade (Wave A); it
+                # wraps get_effective_site_settings to build get_effective_config,
+                # so it legitimately imports the raw helper like config_service.
+                "apps/platform_runtime/config_resolver.py",
                 "apps/siteconfig/config_service.py",
             ):
                 continue
             try:
                 text = path.read_text(encoding="utf-8", errors="replace")
             except OSError:
+                continue
+            # Honor the same reviewed-exception marker the config-resolver
+            # fragmentation scanner uses: a file that carries a
+            # `# config-resolver-allow:` marker has a documented reason to read the
+            # raw effective namespace (e.g. dynamic getattr projection over a
+            # public_keys tuple) that config_service can't express.
+            if "config-resolver-allow" in text:
                 continue
             for m in HELPERS_IMPORT_RE.finditer(text):
                 block = m.group(1) or ""
