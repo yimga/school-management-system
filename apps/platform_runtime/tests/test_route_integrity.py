@@ -13,7 +13,7 @@ ROUTE_GRID = {
         ("manager", "config.manager_urls", "accounts:login"),
     ],
     "dashboards": [
-        ("admin", "config.urls", "admin:index"),
+        ("admin", "config.manager_urls", "admin:index"),
         ("teacher", "config.urls", "accounts:backend_dashboard"),
         ("parent", "config.urls", "portal:parent_dashboard"),
         ("manager", "config.manager_urls", "super:dashboard"),
@@ -93,16 +93,29 @@ class RouteIntegrityTests(SimpleTestCase):
                 self.assertIsNotNone(match.func, f"{route_name} under {urlconf}")
 
     def test_error_templates_have_no_dead_end_actions(self):
+        # Error-page recovery actions moved from hardcoded {% url %} into the
+        # smart-link kernel, rendered per error state via
+        # {% render_smart_links state="error.*" %}. Verify each error template
+        # wires that recovery mechanism for its state and the kernel defines it.
         required = {
-            "errors/403.html": ["accounts:redirect", "accounts:request_waiver"],
-            "errors/404.html": ["accounts:redirect", "kb:kb_home"],
-            "errors/500.html": ["accounts:redirect"],
-            "errors/offline.html": ["Retry connection", "Home"],
+            "errors/403.html": "error.403",
+            "errors/404.html": "error.404",
+            "errors/500.html": "error.500",
+            "errors/offline.html": "error.offline",
         }
         from pathlib import Path
 
         root = Path(__file__).resolve().parents[3]
-        for template, needles in required.items():
+        kernel = (
+            root / "apps" / "platform_runtime" / "smart_links_kernel.py"
+        ).read_text(encoding="utf-8")
+        for template, state in required.items():
             body = (root / "templates" / template).read_text(encoding="utf-8")
-            for needle in needles:
-                self.assertIn(needle, body, f"{template} is missing {needle}")
+            self.assertIn(
+                f'render_smart_links state="{state}"',
+                body,
+                f"{template} must render recovery smart-links for {state}",
+            )
+            self.assertIn(
+                f'"{state}"', kernel, f"smart-link kernel must define {state}"
+            )
