@@ -53,7 +53,7 @@
             <i class="bi bi-cpu rmc-empty-state__icon" aria-hidden="true"></i>
             <p class="rmc-empty-state__title">{% trans "No regional AI configurations yet" %}</p>
             <p class="rmc-empty-state__body">{% trans "Add a region with its Ollama endpoint, default model, and fallback to begin routing AI traffic." %}</p>
-            <a class="btn btn-sm btn-outline-primary rmc-empty-state__cta" href="/admin/siteconfig/regionalaiconfig/add/">{% trans "Add regional config" %}</a>
+            <a class="btn btn-sm btn-outline-primary rmc-empty-state__cta" href="/admin/siteconfig/regionalaiconfig/add/" aria-label="{% trans 'Advanced admin: add a regional AI config in Django admin' %}">{% trans "Add regional config" %}</a>
           </td></tr>
           {% endfor %}
         </tbody>

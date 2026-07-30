@@ -5,6 +5,7 @@ from django.test import Client, TestCase, override_settings
 from apps.accounts.models import User
 from apps.platform_runtime.models import ConfigurationChangeRequest
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*", "manager.runmycampus.com"], ROOT_URLCONF="config.urls")
@@ -14,8 +15,9 @@ class ApprovalAwareUITests(TestCase):
         self.operator = User.objects.create_user(username="approval_ui_operator", password="x" * 8, role=User.Role.SUPERADMIN, is_staff=True, is_superuser=True)
 
     def test_high_risk_pack_page_shows_request_approval(self):
-        client = Client(HTTP_HOST="manager.runmycampus.com", raise_request_exception=False)
-        client.login(username="approval_ui_operator", password="x" * 8)
+        # Manager-host operator page: needs confirmed device + verified MFA on a
+        # manager-bound session (a bare client.login bounces 302 to MFA setup).
+        client = login_manager_client(self.operator, password="x" * 8)
 
         response = client.get(f"/configuration/dashboard-packs/network-operator/apply/?school={self.school.slug}")
 
@@ -23,8 +25,9 @@ class ApprovalAwareUITests(TestCase):
         self.assertIn("Request approval", response.content.decode("utf-8", errors="replace"))
 
     def test_post_creates_change_request(self):
-        client = Client(HTTP_HOST="manager.runmycampus.com", raise_request_exception=False)
-        client.login(username="approval_ui_operator", password="x" * 8)
+        # Manager-host operator page: needs confirmed device + verified MFA on a
+        # manager-bound session (a bare client.login bounces 302 to MFA setup).
+        client = login_manager_client(self.operator, password="x" * 8)
 
         response = client.post(f"/configuration/dashboard-packs/network-operator/apply/?school={self.school.slug}", {"action": "request_approval", "reason": "Night rollout"})
 

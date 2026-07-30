@@ -119,7 +119,9 @@ class BindContextBoundaryTests(SimpleTestCase):
 
     def test_bridge_does_not_import_gateway_directly(self):
         import pathlib
-        p = pathlib.Path(__file__).resolve().parents[2] / "ai_workflow_bridge.py"
+        # tests/ live one level below the app package, so the module is at
+        # parents[1] (apps/platform_runtime/), not parents[2] (apps/).
+        p = pathlib.Path(__file__).resolve().parents[1] / "ai_workflow_bridge.py"
         txt = p.read_text(encoding="utf-8")
         self.assertNotIn("from services.ai_gateway", txt)
         self.assertNotIn("import services.ai_gateway", txt)

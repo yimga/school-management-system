@@ -814,12 +814,20 @@ def _strict_admin_fallback_labels_product_templates() -> str | None:
             s = line.strip()
             if s.startswith("{#") or s.startswith("<!--") or s.startswith("{% comment"):
                 continue
+            # The ``{% url 'admin:...' as <var> %}`` capture form is a variable
+            # assignment, NOT a rendered admin link — the cross-host-safe pattern
+            # that avoids NoReverseMatch by binding the url then rendering the <a>
+            # (with its Advanced/Admin aria-label) only when it resolves. The label
+            # belongs on that consuming anchor; requiring it on the assignment line
+            # is a false positive (and the anchor's ``href="{{ var }}"`` carries no
+            # literal admin url for the href check below to see either).
             if (
                 "{% url" in line
                 and (
                     "{% url 'admin:" in line
                     or '{% url "admin:' in line
                 )
+                and " as " not in line
                 and not _line_has_operator_admin_fallback_label(line)
             ):
                 return f"{rel}:{i}: admin url line missing Advanced/Admin fallback label"

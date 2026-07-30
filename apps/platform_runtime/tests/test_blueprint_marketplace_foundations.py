@@ -3,19 +3,21 @@ from __future__ import annotations
 from django.test import Client, TestCase, override_settings
 
 from apps.accounts.models import User
+from apps.test_utils.http_clients import login_manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*", "manager.runmycampus.com"], ROOT_URLCONF="config.urls")
 class BlueprintMarketplaceFoundationsTests(TestCase):
     def test_blueprint_facade_lists_required_blueprints_preview_first(self):
-        client = Client(HTTP_HOST="manager.runmycampus.com", raise_request_exception=False)
-        User.objects.create_user(
+        operator = User.objects.create_user(
             username="blueprint_operator",
             password="x" * 8,
             role=User.Role.SUPERADMIN,
             is_staff=True,
         )
-        client.login(username="blueprint_operator", password="x" * 8)
+        # Manager-host operator page: confirmed device + verified MFA on a
+        # manager-bound session (a bare client.login bounces 302 to MFA setup).
+        client = login_manager_client(operator, password="x" * 8)
 
         response = client.get("/configuration/blueprints/")
 
