@@ -18,10 +18,20 @@ class PremiumVisualSystemPolishTests(SimpleTestCase):
             ROOT / "templates" / "control_plane_base.html",
         ]
 
+        # base / control_plane_base link rmc-premium-polish.css directly;
+        # portal_base + base_marketing load it via the v4.02.45 deferred CSS
+        # bundle (scripts/portal_css_bundle_manifest.json), so accept either.
+        bundle_manifest = (
+            ROOT / "scripts" / "portal_css_bundle_manifest.json"
+        ).read_text(encoding="utf-8")
         for path in shell_paths:
             with self.subTest(path=path.name):
                 html = path.read_text(encoding="utf-8")
-                self.assertIn("css/rmc-premium-polish.css", html)
+                self.assertTrue(
+                    "css/rmc-premium-polish.css" in html
+                    or "rmc-premium-polish.css" in bundle_manifest,
+                    f"{path.name} must load premium polish css (direct or via bundle)",
+                )
                 self.assertRegex(html, r"data-rmc-(?:premium|os)-shell")
 
     def test_premium_css_keeps_fonts_safe_and_token_driven(self):
