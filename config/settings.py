@@ -4110,6 +4110,12 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.migration_cloud.apps.MigrationCloudConfig",
         "apps.requests",
         "apps.billing",
+        # Global country -> payment-rail catalog (RegionalPaymentRailCatalog). No
+        # school FK, one row per country -> public schema. Must be here (not just the
+        # base INSTALLED_APPS) or under schema-per-tenant mode its table is never
+        # created and `payment.models` import raises RuntimeError. See
+        # schools/0083's registry-filtered dependency list.
+        "payment",
         "apps.sales.apps.SalesConfig",
         "apps.metadata.apps.MetadataConfig",
         "emis",
