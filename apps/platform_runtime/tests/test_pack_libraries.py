@@ -3,19 +3,21 @@ from __future__ import annotations
 from django.test import Client, TestCase, override_settings
 
 from apps.accounts.models import User
+from apps.test_utils.http_clients import login_manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*", "manager.runmycampus.com"], ROOT_URLCONF="config.urls")
 class PackLibrariesTests(TestCase):
     def setUp(self):
-        self.client = Client(HTTP_HOST="manager.runmycampus.com", raise_request_exception=False)
-        User.objects.create_user(
+        operator = User.objects.create_user(
             username="pack_operator",
             password="x" * 8,
             role=User.Role.SUPERADMIN,
             is_staff=True,
         )
-        self.client.login(username="pack_operator", password="x" * 8)
+        # Manager-host operator page: confirmed device + verified MFA on a
+        # manager-bound session (a bare client.login bounces 302 to MFA setup).
+        self.client = login_manager_client(operator, password="x" * 8)
 
     def test_pack_facades_render_required_pack_categories(self):
         for path, expected in {
