@@ -7,10 +7,50 @@ import logging
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.views import PasswordResetConfirmView
 from django.db.models import Q
 from django.template import loader
 
 logger = logging.getLogger(__name__)
+
+
+class PortalPasswordResetConfirmView(PasswordResetConfirmView):
+    """Django's reset-confirm, plus: claiming a NEVER-CLAIMED account activates it.
+
+    A never-claimed account (created with ``set_unusable_password`` at
+    provisioning / bulk import) can be ``is_active=False``. ``get_users`` above
+    now issues such an account a reset/claim link, but Django's stock confirm
+    view only SETS the password — it never flips ``is_active`` — so the owner
+    could set a password and STILL be bounced at ``/login/`` by ``is_active`` (the
+    exact gilead-tech dead-end: "we sent a link, you clicked it, and it still says
+    invalid"). Setting a password via the token IS the activation: the link
+    proved control of the on-file address.
+
+    We only activate accounts that had NO usable password BEFORE this set, so a
+    normal active user's reset is unchanged, and a deactivated account with a real
+    password is never silently re-enabled — such an account is never handed a
+    token in the first place (``get_users`` excludes it).
+    """
+
+    def form_valid(self, form):
+        user = getattr(self, "user", None)
+        # Captured BEFORE super() saves the new password — reflects the pre-claim
+        # (unusable-password) state.
+        was_unclaimed = user is not None and not user.has_usable_password()
+        response = super().form_valid(form)
+        if was_unclaimed and user is not None and not user.is_active:
+            user.is_active = True
+            try:
+                user.save(update_fields=["is_active"])
+                logger.info(
+                    "accounts.password_reset.activated_on_claim user_id=%s", user.pk
+                )
+            except Exception:  # noqa: BLE001 — password is already set; never 500 the claim
+                logger.warning(
+                    "accounts.password_reset.activate_on_claim_failed user_id=%s",
+                    getattr(user, "pk", None),
+                )
+        return response
 
 
 class PortalPasswordResetForm(PasswordResetForm):
@@ -142,13 +182,17 @@ class PortalPasswordResetForm(PasswordResetForm):
         if not identifier:
             return []
         User = get_user_model()
-        active = User.objects.filter(is_active=True)
-        matches = active.filter(
+        matches = User.objects.filter(
             Q(email__iexact=identifier) | Q(username__iexact=identifier)
         )
-        # Include never-activated owners (created with set_unusable_password at
-        # provisioning) — Django's default filter drops them, which silently
-        # locks out exactly the new-owner population. The reset-confirm view lets
-        # them set a password regardless of current state, so this is their
-        # recovery path when the original onboarding link expired.
-        return list(matches)
+        # Send to active accounts as usual. ALSO include NEVER-CLAIMED accounts
+        # (created with set_unusable_password at provisioning / bulk import) even
+        # when is_active=False. Django's default filter — and the prior
+        # is_active=True filter here — drops them, which silently strands exactly
+        # the new-user population: login shows the generic "invalid username or
+        # password" wall and the reset email NEVER arrives (the exact report on
+        # gilead-tech). A never-claimed account has no password to protect and the
+        # reset-confirm view is its intended claim path, so this is safe. A
+        # DEACTIVATED account WITH a real usable password stays excluded, so
+        # disabling an established account still fully locks it (and blocks reset).
+        return [u for u in matches if u.is_active or not u.has_usable_password()]

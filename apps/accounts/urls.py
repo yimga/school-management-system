@@ -9,7 +9,7 @@ from django.contrib.auth.views import (
 )
 from django_ratelimit.decorators import ratelimit
 
-from .password_reset import PortalPasswordResetForm
+from .password_reset import PortalPasswordResetConfirmView, PortalPasswordResetForm
 from .views_step_up import step_up_challenge
 
 from .views import (
@@ -776,7 +776,11 @@ urlpatterns = [
         # Throttle the token+new-password POST so the reset token can't be brute
         # forced from a single IP.
         ratelimit(key="ip", rate="5/m", method="POST", block=True)(
-            PasswordResetConfirmView.as_view(
+            # PortalPasswordResetConfirmView == Django's confirm view, plus it
+            # ACTIVATES a never-claimed (unusable-password) account on claim so an
+            # is_active=False owner who sets a password via the link can actually
+            # log in (see apps/accounts/password_reset.py).
+            PortalPasswordResetConfirmView.as_view(
                 template_name="registration/password_reset_confirm.html",
                 success_url=reverse_lazy("accounts:password_reset_complete"),
             )

@@ -76,12 +76,24 @@ def _is_passkey_only(user) -> bool:
 
 
 def find_unactivated_account(identifier: str):
-    """Return an ACTIVE, no-usable-password user matching username OR email.
+    """Return a no-usable-password user matching username OR email.
 
     Prefers an exact username match (mirrors ``EmailOrUsernameModelBackend``)
     when an email is shared by more than one row. Passkey-only roles and
     usable-password accounts are excluded. Returns ``None`` when nothing
     qualifies — the caller then falls back to the normal wrong-password path.
+
+    ``is_active`` is deliberately NOT required. A never-claimed account (created
+    with ``set_unusable_password`` at provisioning / bulk import) can end up
+    ``is_active=False`` — a partial provision, an import that left the row
+    disabled, or an admin who parked it pre-activation. Such an account has NO
+    password to protect, and a set-password link IS its intended onboarding
+    path, so gating recovery on ``is_active`` is exactly what strands the
+    new-user population behind a generic "invalid username or password" wall
+    with no email ever arriving. We still exclude accounts with a REAL usable
+    password (a genuine wrong-password stays a wrong password) and passkey-only
+    roles (a password link is useless to them), so deactivating an established
+    account still fully locks it.
     """
     ident = (identifier or "").strip()
     if not ident:
@@ -92,7 +104,6 @@ def find_unactivated_account(identifier: str):
             # tenant-isolation-allow: login-recovery system-wide user lookup (auth is system-wide)
             User.objects.filter(
                 Q(**{f"{User.USERNAME_FIELD}__iexact": ident}) | Q(email__iexact=ident),
-                is_active=True,
             )[:10]  # magic-number-allow: bounded fan-out for a shared-email identifier
         )
     except DatabaseError:

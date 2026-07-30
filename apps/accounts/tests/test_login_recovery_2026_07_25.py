@@ -49,9 +49,26 @@ class FindUnactivatedAccountTests(TestCase):
         self._make("owner2", "owner2@x.edu", usable=True)
         self.assertIsNone(lr.find_unactivated_account("owner2@x.edu"))
 
-    def test_ignores_inactive_account(self):
-        self._make("owner3", "owner3@x.edu", usable=False, active=False)
-        self.assertIsNone(lr.find_unactivated_account("owner3@x.edu"))
+    def test_recovers_inactive_never_claimed_account(self):
+        # Intentional behavior change (2026-07-30): a NEVER-CLAIMED account
+        # (unusable password) that ended up is_active=False — a partial provision,
+        # a bulk-import quirk, or a pre-activation park — is exactly the
+        # gilead-tech lockout: authenticate() rejects it, and the old is_active=True
+        # gate meant recovery ignored it too, so it hit the generic "invalid
+        # username or password" wall and NO email ever arrived. It has no password
+        # to protect (the set-password link IS its intended claim path), so
+        # recovery now reaches it. The reset-confirm view activates it on claim.
+        u = self._make("owner3", "owner3@x.edu", usable=False, active=False)
+        self.assertEqual(lr.find_unactivated_account("owner3@x.edu"), u)
+
+    def test_ignores_inactive_account_with_usable_password(self):
+        # Security invariant PRESERVED: a DEACTIVATED established account (real
+        # usable password + is_active=False) stays fully locked — disabling it is a
+        # deliberate action and it is never a "never-claimed" account. The
+        # not-has_usable_password() filter still excludes it, so recovery cannot
+        # re-open a genuinely-disabled account.
+        self._make("owner3b", "owner3b@x.edu", usable=True, active=False)
+        self.assertIsNone(lr.find_unactivated_account("owner3b@x.edu"))
 
     def test_ignores_passkey_only_role(self):
         self._make("owner4", "owner4@x.edu", usable=False, role=User.Role.SUPERADMIN)
