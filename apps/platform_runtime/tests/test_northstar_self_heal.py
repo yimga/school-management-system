@@ -11,6 +11,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.test_utils.http_clients import login_manager_client
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS = REPO_ROOT / "scripts"
@@ -83,7 +84,9 @@ class FounderDashboardStripTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.user)
+        # Manager-host operator page: confirmed device + verified MFA on a
+        # manager-bound session (bare force_login bounces 302 through the MFA wall).
+        self.client = login_manager_client(self.user, password="x" * 8)
         self.host = "manager.runmycampus.com"
         self.env = mock.patch.dict(
             os.environ,
