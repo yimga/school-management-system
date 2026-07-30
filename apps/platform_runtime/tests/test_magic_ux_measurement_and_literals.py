@@ -37,8 +37,11 @@ class MagicUxTemplateLiteralMarkersTests(SimpleTestCase):
     def test_installation_health_strict_hero(self):
         path = Path(settings.BASE_DIR) / "templates" / "marketplace" / "installation_health.html"
         text = path.read_text(encoding="utf-8", errors="replace")
-        self.assertIn("data-rmc-install-health-primary", text)
-        self.assertIn("rmc-conversion-more-actions", text)
+        # installation_health adopted the shared operational-center frame; the
+        # bespoke hero markers were replaced by the frame's masthead primary CTA
+        # (primary_url/primary_label) + jump nav.
+        self.assertIn("rmc_operational_center_frame.html", text)
+        self.assertIn('primary_label=_("View health")', text)
 
     def test_tenant_installed_apps_links_catalog(self):
         path = Path(settings.BASE_DIR) / "templates" / "marketplace" / "tenant_installed_apps.html"
