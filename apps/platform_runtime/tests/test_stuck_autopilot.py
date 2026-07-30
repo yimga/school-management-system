@@ -123,7 +123,11 @@ class TryAutoApplyOnStuckTests(StuckAutopilotMixin, TestCase):
     def test_circuit_breaker_opens_after_max_attempts(self):
         self._enable_provision_autopilot()
         for _ in range(3):
-            r = _stuck_run(school_id=self.school_id)
+            # Prior attempts are FINALIZED (failed), not concurrently active — the
+            # uniq_active_provision_run_per_school constraint allows only one
+            # running/stuck run per school+key. The circuit counts apply-logs
+            # across all runs for the school+key regardless of run status.
+            r = _stuck_run(school_id=self.school_id, status="failed")
             WorkflowAutopilotApplyLog.objects.create(
                 run_id=r.pk,
                 workflow_key="tenant_school_provision",
