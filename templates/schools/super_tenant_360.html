@@ -164,27 +164,31 @@
         {% endif %}
         <a class="btn btn-sm btn-outline-primary" href="{% url 'platform_runtime:workflow_progress_flight_deck' %}">{% trans "Open Flight Deck" %}</a>
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:tenant_health' %}">{% trans "Tenant health" %}</a>
-        {% with owners=owner_users|default_if_none:"" %}
-        <form method="post" action="{% url 'super:resend_owner_setup_email' school.id %}" class="d-inline-flex flex-wrap align-items-center gap-2">
+        {% with member_opts=member_options|default_if_none:"" %}
+        <form method="post" action="{% url 'super:resend_owner_setup_email' school.id %}" class="d-flex flex-column gap-2" style="min-width:16rem;max-width:22rem;">
           {% csrf_token %}
-          {% if owners %}
-          <label class="visually-hidden" for="owner-user-ids">{% trans "Owner recipients" %}</label>
-          {% if owners|length == 1 %}
-          {% with sole_owner=owners|first %}
-          <input type="hidden" name="owner_user_ids" value="{{ sole_owner.pk }}">
-          <span class="small text-muted">{{ sole_owner.email|default:sole_owner.get_username }}</span>
-          {% endwith %}
+          {% if member_opts %}
+          <div>
+            <label class="form-label small mb-1" for="setup-user-ids">{% trans "Send setup email to" %}</label>
+            <select id="setup-user-ids" name="user_ids" class="form-select form-select-sm" multiple size="{% if member_opts|length < 8 %}{{ member_opts|length }}{% else %}8{% endif %}" aria-label="{% trans 'Select who receives the setup email' %}">
+              {% for opt in member_opts %}
+              <option value="{{ opt.pk }}"{% if opt.is_owner %} selected{% endif %}>{{ opt.label }} — {{ opt.role }}{% if opt.is_owner %} · {% trans "owner" %}{% endif %}{% if opt.pending %} · {% trans "not claimed" %}{% endif %}</option>
+              {% endfor %}
+            </select>
+            <div class="form-text small">{% trans "Owners are preselected. Hold Ctrl/⌘ to pick several." %}</div>
+            {% if member_options_truncated %}
+            <div class="form-text small text-warning">{% trans "Showing the first staff members only — reach anyone else by email below." %}</div>
+            {% endif %}
+          </div>
           {% else %}
-          <select id="owner-user-ids" name="owner_user_ids" class="form-select form-select-sm" multiple size="{{ owners|length }}" style="min-width:14rem;max-width:20rem;" aria-label="{% trans 'Select owner recipients' %}">
-            {% for owner in owners %}
-            <option value="{{ owner.pk }}" selected>{{ owner.email|default:owner.get_username }}</option>
-            {% endfor %}
-          </select>
+          <span class="small text-warning">{% trans "No staff members on file — reach a specific person by email below." %}</span>
           {% endif %}
-          {% else %}
-          <span class="small text-warning">{% trans "No active school owners on file." %}</span>
-          {% endif %}
-          <button type="submit" class="btn btn-sm btn-outline-secondary"{% if not owners %} disabled{% endif %}>{% trans "Resend owner setup email" %}</button>
+          <div>
+            <label class="form-label small mb-1" for="setup-recipient-identifier">{% trans "Or a specific email / username" %}</label>
+            <input type="text" id="setup-recipient-identifier" name="recipient_identifier" class="form-control form-control-sm" autocomplete="off" placeholder="{% trans 'name@school.edu' %}" aria-label="{% trans 'Resend setup email to a specific member by email or username' %}">
+            <div class="form-text small">{% trans "Any member of this school — staff, parent, or student." %}</div>
+          </div>
+          <button type="submit" class="btn btn-sm btn-outline-secondary align-self-start">{% trans "Resend setup email" %}</button>
         </form>
         {% endwith %}
         <form method="post" action="{% url 'super:reveal_owner_setup_link' school.id %}" class="d-inline">
