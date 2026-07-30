@@ -884,7 +884,7 @@ msgid "Archive selected articles"
 msgstr ""
 
 msgid "Archived"
-msgstr ""
+msgstr "Archivé"
 
 msgid "Are you sure you want to delete"
 msgstr ""
@@ -2791,7 +2791,7 @@ msgid "Desktop"
 msgstr ""
 
 msgid "Detail"
-msgstr ""
+msgstr "Détail"
 
 msgid "Detailed configuration domains"
 msgstr ""
@@ -3484,7 +3484,7 @@ msgid "ExperiencePack definitions — pairs with rollout & catalog"
 msgstr ""
 
 msgid "Expired"
-msgstr ""
+msgstr "Expiré"
 
 msgid "Expires"
 msgstr ""
@@ -5343,7 +5343,7 @@ msgid ""
 msgstr ""
 
 msgid "Manager"
-msgstr ""
+msgstr "Gestionnaire"
 
 msgid "Manager / platform"
 msgstr ""
@@ -6540,7 +6540,7 @@ msgid "Only in B:"
 msgstr ""
 
 msgid "Open"
-msgstr ""
+msgstr "Ouvrir"
 
 msgid "Open API Center"
 msgstr ""
@@ -6925,7 +6925,7 @@ msgid "Overview metrics will appear here when configured."
 msgstr ""
 
 msgid "Owner"
-msgstr ""
+msgstr "Propriétaire"
 
 msgid "P95 latency (ms)"
 msgstr ""
@@ -9861,7 +9861,7 @@ msgid "Solutions by segment"
 msgstr ""
 
 msgid "Something went wrong"
-msgstr ""
+msgstr "Une erreur est survenue"
 
 msgid ""
 "Something went wrong on our side. Please try again in a moment. If it keeps "
@@ -10329,7 +10329,7 @@ msgid "Support ticket reference"
 msgstr ""
 
 msgid "Switch account"
-msgstr ""
+msgstr "Changer de compte"
 
 msgid ""
 "Switch style, report type, and student sample. The preview updates "
@@ -20723,7 +20723,7 @@ msgid "App × compatibility"
 msgstr ""
 
 msgid "Appearance"
-msgstr ""
+msgstr "Apparence"
 
 msgid "Applications & Sections"
 msgstr ""
@@ -21591,7 +21591,7 @@ msgid "Edit delegation"
 msgstr ""
 
 msgid "Edit profile"
-msgstr ""
+msgstr "Modifier le profil"
 
 msgid "Edit role permissions"
 msgstr ""
@@ -29720,7 +29720,7 @@ msgid "No webhook subscriptions"
 msgstr ""
 
 msgid "Not started"
-msgstr ""
+msgstr "Non commencé"
 
 msgid "Nothing shipped in the last 30 days."
 msgstr ""
@@ -39582,7 +39582,7 @@ msgid ""
 msgstr ""
 
 msgid "Okay"
-msgstr ""
+msgstr "D'accord"
 
 msgid "Onboarding & launch"
 msgstr ""
@@ -45456,7 +45456,7 @@ msgid "Confirm purge — actually delete"
 msgstr ""
 
 msgid "Deleted"
-msgstr ""
+msgstr "Supprimé"
 
 msgid "Diag-action retention preview"
 msgstr ""
@@ -47206,7 +47206,7 @@ msgid "Submit request (needs a second approver)"
 msgstr ""
 
 msgid "Suspended"
-msgstr ""
+msgstr "Suspendu"
 
 msgid "Tenant status colour key"
 msgstr ""
@@ -48503,71 +48503,73 @@ msgstr ""
 
 #: flight-deck-wave (manual catalog append)
 msgid "Cross-tenant signals"
-msgstr ""
+msgstr "Signaux inter-locataires"
 
 #: flight-deck-wave (manual catalog append)
 msgid "Needs operator"
-msgstr ""
+msgstr "Nécessite un opérateur"
 
 #: flight-deck-wave (manual catalog append)
 msgid "No runs."
-msgstr ""
+msgstr "Aucune exécution."
 
 #: flight-deck-wave (manual catalog append)
 msgid "No correlated incidents."
-msgstr ""
+msgstr "Aucun incident corrélé."
 
 #: flight-deck-wave (manual catalog append)
 msgid "No automated fix available — inspect run detail or Tenant 360."
 msgstr ""
+"Aucun correctif automatique disponible — consultez le détail de l'exécution "
+"ou Tenant 360."
 
 #: flight-deck-wave (manual catalog append)
 msgid "Could not load Flight Deck."
-msgstr ""
+msgstr "Impossible de charger le poste de pilotage."
 
 #: flight-deck-wave (manual catalog append)
 msgid "Action failed"
-msgstr ""
+msgstr "Échec de l'action"
 
 #: flight-deck-wave (manual catalog append)
 msgid "runs"
-msgstr ""
+msgstr "exécutions"
 
 #: flight-deck-wave (manual catalog append)
 msgid "tenants"
-msgstr ""
+msgstr "locataires"
 
 #: flight-deck-wave (manual catalog append)
 msgid "Apply fix to all eligible runs"
-msgstr ""
+msgstr "Appliquer le correctif à toutes les exécutions éligibles"
 
 #: flight-deck-wave (manual catalog append)
 msgid "Applying fixes…"
-msgstr ""
+msgstr "Application des correctifs…"
 
 #: flight-deck-wave (manual catalog append)
 msgid "Bulk apply finished."
-msgstr ""
+msgstr "Application en lot terminée."
 
 #: flight-deck-wave (manual catalog append)
 msgid "Back to Flight Deck"
-msgstr ""
+msgstr "Retour au poste de pilotage"
 
 #: flight-deck-wave (manual catalog append)
 msgid "View JSON"
-msgstr ""
+msgstr "Voir le JSON"
 
 #: flight-deck-wave (manual catalog append)
 msgid "Last heartbeat"
-msgstr ""
+msgstr "Dernier signal"
 
 #: flight-deck-wave (manual catalog append)
 msgid "Remediation"
-msgstr ""
+msgstr "Remédiation"
 
 #: flight-deck-wave (manual catalog append)
 msgid "Steps"
-msgstr ""
+msgstr "Étapes"
 
 #: flight-deck-wave (manual catalog append)
 msgid "Duration"
@@ -48575,11 +48577,11 @@ msgstr "Durée"
 
 #: flight-deck-wave (manual catalog append)
 msgid "No step breakdown recorded for this run."
-msgstr ""
+msgstr "Aucun détail d'étape enregistré pour cette exécution."
 
 #: flight-deck-wave (manual catalog append)
 msgid "Fix applied successfully."
-msgstr ""
+msgstr "Correctif appliqué avec succès."
 
 #: flight-deck-wave (manual catalog append)
 msgid "Action did not complete: %(reason)s"
@@ -48587,7 +48589,7 @@ msgstr ""
 
 #: flight-deck-wave (manual catalog append)
 msgid "Provision queue"
-msgstr ""
+msgstr "File de provisionnement"
 
 msgid "%(code)s — global readiness tier"
 msgstr ""
@@ -53549,7 +53551,7 @@ msgid "Primary workflow"
 msgstr ""
 
 msgid "Principal"
-msgstr ""
+msgstr "Directeur"
 
 msgid "Priorities"
 msgstr ""
@@ -57722,7 +57724,7 @@ msgid ""
 msgstr ""
 
 msgid "Cancelled"
-msgstr ""
+msgstr "Annulé"
 
 msgid ""
 "Chronological change log for this record. Return to the form to continue "
@@ -58697,11 +58699,11 @@ msgstr ""
 
 #: templates/accounts/direct_compose.html
 msgid "(PDF, Office or images, up to 10&nbsp;MB each)"
-msgstr ""
+msgstr "(PDF, Office ou images, jusqu'à 10&nbsp;Mo chacun)"
 
 #: templates/accounts/entity_console.html
 msgid "(no change)"
-msgstr ""
+msgstr "(inchangé)"
 
 #: templates/evals/resolve_offline_conflict.html
 msgid "(no remarks)"
@@ -58734,6 +58736,8 @@ msgstr ""
 #: templates/accounts/tenant_identity_invite.html
 msgid "A one-time accept link is emailed and shown after creation."
 msgstr ""
+"Un lien d'acceptation à usage unique est envoyé par e-mail et affiché après "
+"la création."
 
 #: templates/schools/super_workflow_simulator.html
 msgid "ADMIN"
@@ -58773,7 +58777,7 @@ msgstr "Années scolaires"
 
 #: templates/accounts/entity_console.html
 msgid "Academic year ID"
-msgstr ""
+msgstr "ID de l'année scolaire"
 
 #: templates/parent/link_child_wizard.html
 msgid "Access Permissions"
@@ -58801,7 +58805,7 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Active & recent codes"
-msgstr ""
+msgstr "Codes actifs et récents"
 
 #: templates/portal/document_upload.html
 msgid "Active (visible to users)"
@@ -58817,11 +58821,11 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Add a connection"
-msgstr ""
+msgstr "Ajouter une connexion"
 
 #: templates/accounts/sso_connections.html
 msgid "Add connection"
-msgstr ""
+msgstr "Ajouter une connexion"
 
 #: templates/widgets/parent_dashboard_widgets.html
 msgid "Add contact details in site settings."
@@ -58843,7 +58847,7 @@ msgstr ""
 
 #: templates/accounts/tenant_identity_invite.html
 msgid "Add school staff or parent"
-msgstr ""
+msgstr "Ajouter un membre du personnel ou un parent"
 
 #: templates/components/ai_copilot.html
 msgid "Add widget"
@@ -58851,19 +58855,19 @@ msgstr ""
 
 #: templates/accounts/certification_session_detail.html
 msgid "Admin Override"
-msgstr ""
+msgstr "Dérogation administrateur"
 
 #: templates/accounts/certification_session_detail.html
 msgid "Admin override"
-msgstr ""
+msgstr "Dérogation administrateur"
 
 #: templates/admin/components/theme_preview_section.html
 msgid "Administrator"
-msgstr ""
+msgstr "Administrateur"
 
 #: templates/accounts/entity_console.html
 msgid "Admission #"
-msgstr ""
+msgstr "N° d'admission"
 
 #: templates/schools/super_ai_model_hub.html
 msgid "Advanced admin: add a regional AI config in Django admin"
@@ -58887,7 +58891,7 @@ msgstr ""
 
 #: templates/accounts/certification_bulk_add_candidates.html
 msgid "All sessions"
-msgstr ""
+msgstr "Toutes les sessions"
 
 #: templates/finance/suspense_queue.html
 msgid "Allocation JSON"
@@ -58895,7 +58899,7 @@ msgstr ""
 
 #: templates/accounts/rollover_proposal_detail.html
 msgid "Allow rollover despite outstanding returns"
-msgstr ""
+msgstr "Autoriser le passage malgré les retours en attente"
 
 #: templates/schools/signup_school.html
 msgid "Alma SIS"
@@ -58923,7 +58927,7 @@ msgstr ""
 
 #: templates/accounts/certification_session_detail.html
 msgid "Apply override"
-msgstr ""
+msgstr "Appliquer la dérogation"
 
 #: templates/siteconfig/customizer.html
 msgid "Apply pack in Site Settings"
@@ -58931,7 +58935,7 @@ msgstr ""
 
 #: templates/accounts/rollover_proposal_detail.html
 msgid "Apply rollover"
-msgstr ""
+msgstr "Appliquer le passage d'année"
 
 #: templates/teacher/marks_entry.html
 msgid "Apply teacher-confirmed proposal"
@@ -58951,7 +58955,7 @@ msgstr ""
 
 #: templates/accounts/rollover_proposal_detail.html
 msgid "Approve proposal"
-msgstr ""
+msgstr "Approuver la proposition"
 
 #: templates/marketing/partials/mkt_ascension_arena.html
 msgid "Arbor / SIMS"
@@ -58987,11 +58991,13 @@ msgstr ""
 
 #: templates/accounts/join_school.html
 msgid "At least 8 characters."
-msgstr ""
+msgstr "Au moins 8 caractères."
 
 #: templates/accounts/tenant_identity_invite.html
 msgid "At least 8 characters. The user must change it on first sign-in."
 msgstr ""
+"Au moins 8 caractères. L'utilisateur devra le changer à la première "
+"connexion."
 
 #: templates/analytics/executive_dashboard.html
 msgid "At-Risk dashboard"
@@ -59051,15 +59057,15 @@ msgstr ""
 
 #: templates/accounts/join_code_poster.html
 msgid "Back to join codes"
-msgstr ""
+msgstr "Retour aux codes d'accès"
 
 #: templates/accounts/rollover_queue.html
 msgid "Back to rollover"
-msgstr ""
+msgstr "Retour au passage d'année"
 
 #: templates/accounts/certification_bulk_add_candidates.html
 msgid "Back to session"
-msgstr ""
+msgstr "Retour à la session"
 
 #: templates/siteconfig/request_custom_requirement.html
 msgid "Back to settings"
@@ -59067,7 +59073,7 @@ msgstr ""
 
 #: templates/accounts/tenant_identity_invite.html
 msgid "Back to staff identity"
-msgstr ""
+msgstr "Retour à l'identité du personnel"
 
 #: templates/siteconfig/feature_control_panel_content.html
 msgid "Backend list density"
@@ -59094,6 +59100,8 @@ msgid ""
 "Best for staff or parents without reliable email. Share the temporary "
 "password securely."
 msgstr ""
+"Idéal pour le personnel ou les parents sans e-mail fiable. Partagez le mot "
+"de passe temporaire de manière sécurisée."
 
 #: templates/platform_runtime/pack_installation_detail.html
 msgid "Blueprint link"
@@ -59143,7 +59151,7 @@ msgstr ""
 
 #: templates/accounts/certification_bulk_add_candidates.html
 msgid "Bulk add candidates"
-msgstr ""
+msgstr "Ajouter des candidats en lot"
 
 #: templates/teacher/marks_entry.html
 msgid "Bulk entry — select your class and subject to begin."
@@ -59155,7 +59163,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Button label"
-msgstr ""
+msgstr "Libellé du bouton"
 
 #: templates/evals/grade_approval_detail.html
 msgid "Bypass / Escalate"
@@ -59179,7 +59187,7 @@ msgstr ""
 
 #: templates/accounts/certification_session_detail.html
 msgid "CA submission deadline"
-msgstr ""
+msgstr "Date limite de soumission du contrôle continu"
 
 #: templates/marketing/partials/_mkt_gradebook_interactive.html
 msgid "CAIE"
@@ -59191,11 +59199,11 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "CSV column"
-msgstr ""
+msgstr "Colonne CSV"
 
 #: templates/accounts/migration_wizard.html
 msgid "CSV or XLSX file"
-msgstr ""
+msgstr "Fichier CSV ou XLSX"
 
 #: templates/portal/cahier_list.html
 msgid "Cahier de Texte"
@@ -59211,11 +59219,11 @@ msgstr ""
 
 #: templates/accounts/certification_session_detail.html
 msgid "Candidates"
-msgstr ""
+msgstr "Candidats"
 
 #: templates/accounts/rollover_proposal_detail.html
 msgid "Carry forward unpaid fees to next year"
-msgstr ""
+msgstr "Reporter les frais impayés sur l'année suivante"
 
 #: templates/finance/cash_office_closure.html
 msgid "Cash Office Closure"
@@ -59263,7 +59271,7 @@ msgstr ""
 
 #: templates/accounts/join_school.html
 msgid "Choose a password"
-msgstr ""
+msgstr "Choisissez un mot de passe"
 
 #: templates/siteconfig/report_library.html
 msgid "Choose format"
@@ -59287,15 +59295,15 @@ msgstr "Salle de classe *"
 
 #: templates/accounts/entity_console.html
 msgid "Classroom ID"
-msgstr ""
+msgstr "ID de la salle de classe"
 
 #: templates/accounts/certification_bulk_add_candidates.html
 msgid "Classrooms (required)"
-msgstr ""
+msgstr "Salles de classe (obligatoire)"
 
 #: templates/accounts/migration_wizard.html
 msgid "Clear and start over"
-msgstr ""
+msgstr "Effacer et recommencer"
 
 #: templates/portal/faq_list.html
 msgid "Clear filter"
@@ -59311,7 +59319,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Client ID"
-msgstr ""
+msgstr "ID client"
 
 #: templates/academics/syllabus_clone.html
 msgid "Clone"
@@ -59319,7 +59327,7 @@ msgstr ""
 
 #: templates/accounts/clone_year_setup.html
 msgid "Clone previous year"
-msgstr ""
+msgstr "Cloner l'année précédente"
 
 #: templates/academics/syllabus_clone.html
 msgid "Clone syllabus"
@@ -59331,7 +59339,7 @@ msgstr ""
 
 #: templates/accounts/direct_thread.html
 msgid "Close conversation"
-msgstr ""
+msgstr "Fermer la conversation"
 
 #: templates/portal/kb_article.html
 msgid "Close share dialog"
@@ -59347,7 +59355,7 @@ msgstr "Code:"
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Comma-separated. Leave blank to allow any email."
-msgstr ""
+msgstr "Séparés par des virgules. Laissez vide pour autoriser tout e-mail."
 
 #: templates/portal/kb_article.html
 msgid "Comments"
@@ -59355,7 +59363,7 @@ msgstr "Commentaires"
 
 #: templates/accounts/entity_import.html
 msgid "Commit preview"
-msgstr ""
+msgstr "Valider l'aperçu"
 
 #: templates/widgets/parent_dashboard_widgets.html
 msgid "Communication center"
@@ -59387,11 +59395,11 @@ msgstr ""
 
 #: templates/partials/admin_tenant_workbench_footer.html
 msgid "Configuration & records"
-msgstr ""
+msgstr "Configuration et données"
 
 #: templates/partials/admin_tenant_workbench_footer.html
 msgid "Configuration shortcuts"
-msgstr ""
+msgstr "Raccourcis de configuration"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Confirm & Import"
@@ -59443,7 +59451,7 @@ msgstr ""
 
 #: templates/partials/admin_tenant_workbench_footer.html
 msgid "Control-plane shortcuts"
-msgstr ""
+msgstr "Raccourcis du plan de contrôle"
 
 #: templates/feedback/voice_of_customer.html
 msgid "Convert"
@@ -59471,7 +59479,7 @@ msgstr ""
 
 #: templates/accounts/certification_home.html
 msgid "Create Exam Session"
-msgstr ""
+msgstr "Créer une session d'examen"
 
 #: templates/components/quick_actions.html
 msgid "Create Invoice New billing"
@@ -59495,11 +59503,11 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Create a join code"
-msgstr ""
+msgstr "Créer un code d'accès"
 
 #: templates/accounts/join_school.html
 msgid "Create account & join"
-msgstr ""
+msgstr "Créer un compte et rejoindre"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Create audit trail entries for all changes"
@@ -59507,11 +59515,11 @@ msgstr ""
 
 #: templates/accounts/certification_bulk_add_candidates.html
 msgid "Create candidates"
-msgstr ""
+msgstr "Créer des candidats"
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Create code"
-msgstr ""
+msgstr "Créer un code"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Create new evaluations for students with no existing grade"
@@ -59519,7 +59527,7 @@ msgstr ""
 
 #: templates/accounts/tenant_identity_invite.html
 msgid "Create now with a temporary password"
-msgstr ""
+msgstr "Créer maintenant avec un mot de passe temporaire"
 
 #: templates/teacher/marks_entry.html
 msgid "Create server review proposal"
@@ -59527,7 +59535,7 @@ msgstr ""
 
 #: templates/accounts/entity_console.html
 msgid "Create student"
-msgstr ""
+msgstr "Créer un élève"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Created vs. updated counts will be confirmed after import."
@@ -59551,7 +59559,7 @@ msgstr ""
 
 #: templates/partials/tenant/hero_greeting.html
 msgid "Dashboard focus areas"
-msgstr ""
+msgstr "Domaines prioritaires du tableau de bord"
 
 #: templates/evals/import_job_monitor.html
 msgid "Date Range:"
@@ -59559,11 +59567,11 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Deactivate this code?"
-msgstr ""
+msgstr "Désactiver ce code ?"
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Deactivated"
-msgstr ""
+msgstr "Désactivé"
 
 #: templates/finance/trial_balance.html
 msgid "Debit"
@@ -59583,11 +59591,11 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Default role for new users"
-msgstr ""
+msgstr "Rôle par défaut des nouveaux utilisateurs"
 
 #: templates/accounts/academic_rules.html
 msgid "Demote"
-msgstr ""
+msgstr "Rétrograder"
 
 #: templates/communication/group_list.html
 msgid "Department Groups"
@@ -59639,7 +59647,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Discovery URL or issuer"
-msgstr ""
+msgstr "URL de découverte ou émetteur"
 
 #: templates/finance/cash_office_closure.html
 msgid "Discrepancy"
@@ -59667,7 +59675,7 @@ msgstr ""
 
 #: templates/accounts/partials/mfa_setup_page_body.html
 msgid "Don't trust this browser (ask every time)"
-msgstr ""
+msgstr "Ne pas faire confiance à ce navigateur (demander à chaque fois)"
 
 #: templates/portal/kb_article.html
 msgid "Download ODT (LibreOffice)"
@@ -59683,7 +59691,7 @@ msgstr ""
 
 #: templates/accounts/import_hub.html
 msgid "Download template"
-msgstr ""
+msgstr "Télécharger le modèle"
 
 #: templates/portal/signature_sign.html
 msgid "Draw Your Signature"
@@ -59723,7 +59731,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Edit connection"
-msgstr ""
+msgstr "Modifier la connexion"
 
 #: templates/portal/signature_sign.html
 msgid "Electronic Signature"
@@ -59735,11 +59743,11 @@ msgstr ""
 
 #: templates/accounts/tenant_identity_invite.html
 msgid "Email an invite link"
-msgstr ""
+msgstr "Envoyer un lien d'invitation par e-mail"
 
 #: templates/accounts/magic_link_request.html
 msgid "Email me a sign-in link"
-msgstr ""
+msgstr "M'envoyer un lien de connexion par e-mail"
 
 #: templates/admin/portal/partials/syllabus_student_preview.html
 msgid "Embed inline preview"
@@ -59752,6 +59760,7 @@ msgstr ""
 #: templates/accounts/join_school.html
 msgid "Enter the join code your school shared, then create your account."
 msgstr ""
+"Saisissez le code d'accès partagé par votre école, puis créez votre compte."
 
 #: templates/accounts/magic_link_request.html
 msgid ""
@@ -59765,11 +59774,11 @@ msgstr ""
 
 #: templates/accounts/import_hub.html
 msgid "Entity Import"
-msgstr ""
+msgstr "Importation d'entités"
 
 #: templates/accounts/entity_import.html
 msgid "Entity import (beta)"
-msgstr ""
+msgstr "Importation d'entités (bêta)"
 
 #: templates/evals/import_job_monitor.html
 msgid "Error Log:"
@@ -59785,7 +59794,7 @@ msgstr ""
 
 #: templates/accounts/certification_home.html
 msgid "Exam sessions"
-msgstr ""
+msgstr "Sessions d'examen"
 
 #: templates/evals/resolve_offline_conflict.html
 msgid "Exam:"
@@ -59809,7 +59818,7 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Expires in (days)"
-msgstr ""
+msgstr "Expire dans (jours)"
 
 #: templates/portal/kb_article.html
 msgid "Explore more articles and guides."
@@ -59997,15 +60006,15 @@ msgstr ""
 
 #: templates/accounts/approval_workflow_hub.html
 msgid "Grade Approvals"
-msgstr ""
+msgstr "Approbations des notes"
 
 #: templates/accounts/import_hub.html
 msgid "Grade Import"
-msgstr ""
+msgstr "Importation des notes"
 
 #: templates/accounts/import_hub.html
 msgid "Grade Template"
-msgstr ""
+msgstr "Modèle de notes"
 
 #: templates/evals/grade_approval_list.html
 msgid "Grade approval requests: subject, teacher, status, and actions"
@@ -60021,7 +60030,7 @@ msgstr ""
 
 #: templates/accounts/rollover_proposal_detail.html
 msgid "Graduate"
-msgstr ""
+msgstr "Diplômé"
 
 #: templates/schools/mat_group_hub/edit.html
 msgid "Group"
@@ -60049,7 +60058,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Group → role map"
-msgstr ""
+msgstr "Correspondance groupe → rôle"
 
 #: templates/portal/kb_article_submit.html
 msgid "Guidelines for Quality Articles"
@@ -60083,7 +60092,7 @@ msgstr ""
 
 #: templates/accounts/join_school.html
 msgid "I already have an account"
-msgstr ""
+msgstr "J'ai déjà un compte"
 
 #: templates/people/transfer_consent/landing.html
 msgid "I consent to this transfer"
@@ -60091,15 +60100,15 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "IdP SSO URL"
-msgstr ""
+msgstr "URL SSO de l'IdP"
 
 #: templates/accounts/sso_connections.html
 msgid "IdP entity ID"
-msgstr ""
+msgstr "ID d'entité de l'IdP"
 
 #: templates/accounts/sso_connections.html
 msgid "IdP signing certificate (PEM)"
-msgstr ""
+msgstr "Certificat de signature de l'IdP (PEM)"
 
 #: templates/parent/link_child_wizard.html
 msgid "Identify"
@@ -60107,7 +60116,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Identity provider"
-msgstr ""
+msgstr "Fournisseur d'identité"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Import Another File"
@@ -60131,7 +60140,7 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "Import type"
-msgstr ""
+msgstr "Type d'importation"
 
 #: templates/portal/stats.html
 msgid "Improving students"
@@ -60147,7 +60156,7 @@ msgstr ""
 
 #: templates/accounts/certification_bulk_add_candidates.html
 msgid "Include inactive"
-msgstr ""
+msgstr "Inclure les inactifs"
 
 #: templates/platform_runtime/pack_detail.html
 msgid "Included Items"
@@ -60191,23 +60200,23 @@ msgstr ""
 
 #: templates/accounts/join_school.html
 msgid "Join code"
-msgstr ""
+msgstr "Code d'accès"
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Join codes"
-msgstr ""
+msgstr "Codes d'accès"
 
 #: templates/accounts/join_code_poster.html
 msgid "Join poster"
-msgstr ""
+msgstr "Affiche d'adhésion"
 
 #: templates/accounts/join_school.html
 msgid "Join with a code"
-msgstr ""
+msgstr "Rejoindre avec un code"
 
 #: templates/accounts/join_school.html
 msgid "Join your school"
-msgstr ""
+msgstr "Rejoignez votre école"
 
 #: templates/marketing/components/_currency_switcher.html
 msgid "KES (Ksh)"
@@ -60255,7 +60264,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Leave blank to keep the current secret."
-msgstr ""
+msgstr "Laissez vide pour conserver le secret actuel."
 
 #: templates/payroll/employee_leave.html
 msgid "Leave type"
@@ -60274,7 +60283,7 @@ msgstr ""
 
 #: templates/accounts/certification_home.html
 msgid "Level"
-msgstr ""
+msgstr "Niveau"
 
 #: templates/siteconfig/report_library.html
 msgid "LibreOffice (ODS)"
@@ -60290,7 +60299,7 @@ msgstr ""
 
 #: templates/accounts/rollover_proposal_detail.html
 msgid "Lock source year after rollover"
-msgstr ""
+msgstr "Verrouiller l'année source après le passage"
 
 #: templates/portal/kb_category.html
 msgid "Login & Contribute"
@@ -60330,7 +60339,7 @@ msgstr "Masculin"
 
 #: templates/accounts/messages.html
 msgid "Manage groups"
-msgstr ""
+msgstr "Gérer les groupes"
 
 #: templates/portal/feature_page.html
 msgid "Manage library"
@@ -60367,7 +60376,7 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Max uses"
-msgstr ""
+msgstr "Utilisations max."
 
 #: templates/evals/evidence_upload.html
 msgid "Media Type"
@@ -60387,7 +60396,7 @@ msgstr "Messagerie"
 
 #: templates/accounts/sso_connections.html
 msgid "Microsoft tenant"
-msgstr ""
+msgstr "Locataire Microsoft"
 
 #: templates/schools/super_migration_cloud.html
 msgid "Migration Profile Registry"
@@ -60395,7 +60404,7 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "Migration scorecard"
-msgstr ""
+msgstr "Tableau de bord de migration"
 
 #: templates/widgets/parent_dashboard_widgets.html
 msgid "Missing evaluations"
@@ -60415,7 +60424,7 @@ msgstr ""
 
 #: templates/partials/admin_workbench_footer.html
 msgid "Model workbench · audit-grade configuration"
-msgstr ""
+msgstr "Atelier de modèles · configuration de niveau audit"
 
 #: templates/admin/submit_line.html
 msgid "More save options"
@@ -60491,7 +60500,7 @@ msgstr ""
 
 #: templates/accounts/direct_compose.html
 msgid "New message"
-msgstr ""
+msgstr "Nouveau message"
 
 #: templates/emails/operator_tenant_signup_created.html
 msgid "New school signup on RunMyCampus"
@@ -60509,6 +60518,8 @@ msgstr ""
 msgid ""
 "No SSO connections yet. Add one to enable single sign-on on your login page."
 msgstr ""
+"Aucune connexion SSO pour le moment. Ajoutez-en une pour activer "
+"l'authentification unique sur votre page de connexion."
 
 #: templates/schools/super_tenant_360.html
 msgid "No active school owners on file."
@@ -60554,6 +60565,8 @@ msgstr ""
 #: templates/accounts/tenant_join_codes.html
 msgid "No join codes yet. Create one to let people self-join."
 msgstr ""
+"Aucun code d'accès pour le moment. Créez-en un pour permettre l'auto-"
+"inscription."
 
 #: templates/evals/resolve_offline_conflict.html
 msgid "No online entry exists."
@@ -60579,7 +60592,7 @@ msgstr ""
 
 #: templates/accounts/rollover_proposal_detail.html
 msgid "No students in this proposal."
-msgstr ""
+msgstr "Aucun élève dans cette proposition."
 
 #: templates/finance/generate_fees.html
 msgid "Notify guardians"
@@ -60587,11 +60600,11 @@ msgstr ""
 
 #: templates/accounts/rollover_proposal_detail.html
 msgid "Notify parents"
-msgstr ""
+msgstr "Notifier les parents"
 
 #: templates/accounts/rollover_year.html
 msgid "Notify parents after rollover"
-msgstr ""
+msgstr "Notifier les parents après le passage d'année"
 
 #: templates/portal/kb_home.html
 msgid "Office Docs"
@@ -60607,7 +60620,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "On login page"
-msgstr ""
+msgstr "Sur la page de connexion"
 
 #: templates/emails/newsletter_verify.html
 msgid "One click away"
@@ -60645,7 +60658,7 @@ msgstr ""
 
 #: templates/accounts/import_hub.html
 msgid "Open Entity Import"
-msgstr ""
+msgstr "Ouvrir l'importation d'entités"
 
 #: templates/payroll/dashboard.html
 msgid "Open Run"
@@ -60653,7 +60666,7 @@ msgstr ""
 
 #: templates/accounts/automation_hub.html
 msgid "Open Site Settings"
-msgstr ""
+msgstr "Ouvrir les paramètres du site"
 
 #: templates/finance/scan_teller_placeholder.html
 msgid "Open Suspense Queue"
@@ -60685,7 +60698,7 @@ msgstr ""
 
 #: templates/partials/admin_tenant_workbench_footer.html
 msgid "Operator home"
-msgstr ""
+msgstr "Accueil opérateur"
 
 #: templates/finance/payment_readiness_setup.html
 msgid "Operator playbook"
@@ -60693,7 +60706,7 @@ msgstr ""
 
 #: templates/partials/admin_tenant_workbench_footer.html
 msgid "Operator-scoped · control plane"
-msgstr ""
+msgstr "Périmètre opérateur · plan de contrôle"
 
 #: templates/academics/syllabus_builder.html
 msgid "Optional: link this syllabus to curriculum standards (topics/units)."
@@ -60705,11 +60718,11 @@ msgstr ""
 
 #: templates/accounts/delegation_catch_up.html
 msgid "Out of Office"
-msgstr ""
+msgstr "Absent du bureau"
 
 #: templates/accounts/my_delegations.html
 msgid "Out of Office / Delegation"
-msgstr ""
+msgstr "Absence / Délégation"
 
 #: templates/portal/signature_requests_manage.html
 msgid "Output Studio"
@@ -60725,7 +60738,7 @@ msgstr ""
 
 #: templates/accounts/certification_session_detail.html
 msgid "Override type"
-msgstr ""
+msgstr "Type de dérogation"
 
 #: templates/schools/super_tenant_360.html
 msgid "Owner recipients"
@@ -60765,7 +60778,7 @@ msgstr ""
 
 #: templates/accounts/magic_link_request.html
 msgid "Passwordless sign-in"
-msgstr ""
+msgstr "Connexion sans mot de passe"
 
 #: templates/finance/scan_teller_placeholder.html
 msgid "Payment method hint"
@@ -60825,11 +60838,11 @@ msgstr ""
 
 #: templates/partials/admin_tenant_workbench_footer.html
 msgid "Platform control plane"
-msgstr ""
+msgstr "Plan de contrôle de la plateforme"
 
 #: templates/partials/admin_tenant_workbench_footer.html
 msgid "Platform control-plane footer"
-msgstr ""
+msgstr "Pied de page du plan de contrôle"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Please wait, this may take a moment"
@@ -60857,11 +60870,11 @@ msgstr ""
 
 #: templates/accounts/rollover_year.html
 msgid "Pre-rollover checklist"
-msgstr ""
+msgstr "Liste de vérification avant passage d'année"
 
 #: templates/accounts/rollover_year.html
 msgid "Prepare and add to queue"
-msgstr ""
+msgstr "Préparer et ajouter à la file"
 
 #: templates/admin/components/theme_preview_section.html
 msgid "Preview as:"
@@ -60869,7 +60882,7 @@ msgstr ""
 
 #: templates/accounts/entity_import.html
 msgid "Preview guardians"
-msgstr ""
+msgstr "Aperçu des tuteurs"
 
 #: templates/admin/compliance/partials/document_preview.html
 msgid "Preview layout"
@@ -60877,11 +60890,11 @@ msgstr ""
 
 #: templates/accounts/entity_import.html
 msgid "Preview students"
-msgstr ""
+msgstr "Aperçu des élèves"
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Print QR poster"
-msgstr ""
+msgstr "Imprimer l'affiche QR"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Proceed to Review"
@@ -60909,11 +60922,11 @@ msgstr ""
 
 #: templates/accounts/academic_rules.html
 msgid "Promote ≥"
-msgstr ""
+msgstr "Promouvoir ≥"
 
 #: templates/accounts/academic_rules.html
 msgid "Promotion &amp; grading settings"
-msgstr ""
+msgstr "Paramètres de promotion et de notation"
 
 #: templates/reports/promotion_preview.html
 msgid "Promotion preview / borderline list"
@@ -60933,7 +60946,7 @@ msgstr ""
 
 #: templates/accounts/join_code_poster.html
 msgid "QR code to join"
-msgstr ""
+msgstr "Code QR pour rejoindre"
 
 #: templates/schools/super_migration_cloud.html
 msgid "Quarantine rows"
@@ -60957,7 +60970,7 @@ msgstr ""
 
 #: templates/accounts/automation_hub.html
 msgid "Quick tips"
-msgstr ""
+msgstr "Conseils rapides"
 
 #: templates/schools/super_usage.html
 msgid "Quota limits"
@@ -61089,7 +61102,7 @@ msgstr ""
 
 #: templates/accounts/certification_session_detail.html
 msgid "Registration lock"
-msgstr ""
+msgstr "Verrouillage des inscriptions"
 
 #: templates/analytics/executive_dashboard.html
 msgid "Regulatory export"
@@ -61113,7 +61126,7 @@ msgstr "Observations:"
 
 #: templates/accounts/sso_connections.html
 msgid "Remove this SSO connection?"
-msgstr ""
+msgstr "Supprimer cette connexion SSO ?"
 
 #: templates/siteconfig/report_library.html
 msgid "Report Packs"
@@ -61185,7 +61198,7 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Restrict to email domains"
-msgstr ""
+msgstr "Restreindre aux domaines de messagerie"
 
 #: templates/academics/syllabus_approval_queue.html
 msgid "Return for revision"
@@ -61197,7 +61210,7 @@ msgstr ""
 
 #: templates/accounts/rollover_proposal_detail.html
 msgid "Returns"
-msgstr ""
+msgstr "Retours"
 
 #: templates/siteconfig/feature_control_panel_content.html
 msgid "Revert last change"
@@ -61205,7 +61218,7 @@ msgstr ""
 
 #: templates/accounts/approval_workflow_hub.html
 msgid "Review access requests"
-msgstr ""
+msgstr "Examiner les demandes d'accès"
 
 #: templates/migration_cloud/emails/guardian/consent_reminder.html
 msgid "Review and respond"
@@ -61213,15 +61226,15 @@ msgstr ""
 
 #: templates/accounts/automation_hub.html
 msgid "Review approval queue"
-msgstr ""
+msgstr "Examiner la file d'approbation"
 
 #: templates/accounts/approval_workflow_hub.html
 msgid "Review contact requests"
-msgstr ""
+msgstr "Examiner les demandes de contact"
 
 #: templates/accounts/approval_workflow_hub.html
 msgid "Review grade approvals"
-msgstr ""
+msgstr "Examiner les approbations de notes"
 
 #: templates/evals/grade_approval_list.html
 msgid "Review teacher submissions before publishing the final grades."
@@ -61237,7 +61250,7 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Role for joiners"
-msgstr ""
+msgstr "Rôle des nouveaux membres"
 
 #: templates/platform_runtime/pack_installation_detail.html
 msgid "Rollback or deactivate"
@@ -61374,6 +61387,7 @@ msgstr ""
 #: templates/accounts/join_code_poster.html
 msgid "Scan the code, or go to the link below and enter the code."
 msgstr ""
+"Scannez le code, ou rendez-vous sur le lien ci-dessous et saisissez le code."
 
 #: templates/widgets/parent_dashboard_widgets.html
 msgid "Schedule fills once timetables are finalized."
@@ -61393,7 +61407,7 @@ msgstr ""
 
 #: templates/partials/admin_tenant_workbench_footer.html
 msgid "School configuration footer"
-msgstr ""
+msgstr "Pied de page de configuration de l'école"
 
 #: templates/school_events/event_hub.html
 msgid "School events"
@@ -61457,7 +61471,7 @@ msgstr ""
 
 #: templates/accounts/direct_compose.html
 msgid "Select a user..."
-msgstr ""
+msgstr "Sélectionnez un utilisateur..."
 
 #: templates/siteconfig/feature_control_panel_content.html
 msgid ""
@@ -61475,7 +61489,7 @@ msgstr ""
 
 #: templates/accounts/tenant_identity_invite.html
 msgid "Self-service join codes"
-msgstr ""
+msgstr "Codes d'accès en libre-service"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Send notifications to parents/guardians if configured"
@@ -61483,7 +61497,7 @@ msgstr ""
 
 #: templates/accounts/magic_link_request.html
 msgid "Send sign-in link"
-msgstr ""
+msgstr "Envoyer le lien de connexion"
 
 #: templates/admin/portal/partials/communication_test_preview.html
 msgid "Send test preview"
@@ -61507,11 +61521,11 @@ msgstr ""
 
 #: templates/accounts/certification_session_detail.html
 msgid "Set override"
-msgstr ""
+msgstr "Définir la dérogation"
 
 #: templates/accounts/onboarding_profile.html
 msgid "Set up your profile"
-msgstr ""
+msgstr "Configurez votre profil"
 
 #: templates/emails/tenant_admin_signup_completed.html
 msgid "Set your password &amp; open your portal"
@@ -61562,11 +61576,11 @@ msgstr ""
 
 #: templates/accounts/rollover_year.html
 msgid "Show students"
-msgstr ""
+msgstr "Afficher les élèves"
 
 #: templates/accounts/sso_connections.html
 msgid "Show this connection on the login page"
-msgstr ""
+msgstr "Afficher cette connexion sur la page de connexion"
 
 #: templates/widgets/parent_dashboard_widgets.html
 msgid "Shows next subjects for your linked classrooms."
@@ -61586,7 +61600,7 @@ msgstr ""
 
 #: templates/accounts/magic_link_request.html
 msgid "Sign in with a password"
-msgstr ""
+msgstr "Se connecter avec un mot de passe"
 
 #: templates/portal/signature_requests_manage.html
 msgid "Signature Requests Management"
@@ -61598,19 +61612,19 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Single sign-on (SSO)"
-msgstr ""
+msgstr "Authentification unique (SSO)"
 
 #: templates/accounts/automation_hub.html
 msgid "Site Settings"
-msgstr ""
+msgstr "Paramètres du site"
 
 #: templates/accounts/partials/mfa_setup_page_body.html
 msgid "Skip MFA prompts on this browser for"
-msgstr ""
+msgstr "Ignorer les demandes MFA sur ce navigateur pendant"
 
 #: templates/accounts/certification_bulk_add_candidates.html
 msgid "Skip students who already have a candidate in this session"
-msgstr ""
+msgstr "Ignorer les élèves ayant déjà un candidat dans cette session"
 
 #: templates/schools/signup_school.html
 msgid "Skyward"
@@ -61622,15 +61636,15 @@ msgstr ""
 
 #: templates/accounts/clone_year_setup.html
 msgid "Source year (copy from)"
-msgstr ""
+msgstr "Année source (copier depuis)"
 
 #: templates/accounts/rollover_year.html
 msgid "Source year (current)"
-msgstr ""
+msgstr "Année source (actuelle)"
 
 #: templates/accounts/certification_bulk_add_candidates.html
 msgid "Specialties (optional)"
-msgstr ""
+msgstr "Spécialités (facultatif)"
 
 #: templates/finance/payments.html
 msgid "Split payment"
@@ -61646,7 +61660,7 @@ msgstr ""
 
 #: templates/accounts/import_hub.html
 msgid "Start wizard"
-msgstr ""
+msgstr "Démarrer l'assistant"
 
 #: templates/analytics/executive_dashboard.html
 msgid "Statistical return"
@@ -61662,7 +61676,7 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "Step 1: Choose your current system"
-msgstr ""
+msgstr "Étape 1 : Choisissez votre système actuel"
 
 #: templates/parent/link_child_wizard.html
 msgid "Step 1: Identify Your Child"
@@ -61686,7 +61700,7 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "Step 2: Upload"
-msgstr ""
+msgstr "Étape 2 : Téléverser"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Step 2: Validation Results"
@@ -61710,7 +61724,7 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "Step 3: Run import"
-msgstr ""
+msgstr "Étape 3 : Lancer l'importation"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Step 4: Importing..."
@@ -61754,7 +61768,7 @@ msgstr ""
 
 #: templates/accounts/direct_compose.html
 msgid "Subject (optional)"
-msgstr ""
+msgstr "Objet (facultatif)"
 
 #: templates/portal/stats.html
 msgid "Subject weak spots"
@@ -61766,7 +61780,7 @@ msgstr "Matière:"
 
 #: templates/accounts/certification_home.html
 msgid "Submit Registration Data"
-msgstr ""
+msgstr "Soumettre les données d'inscription"
 
 #: templates/portal/signature_sign.html
 msgid "Submit Signature"
@@ -61842,11 +61856,11 @@ msgstr ""
 
 #: templates/accounts/clone_year_setup.html
 msgid "Target year (copy to)"
-msgstr ""
+msgstr "Année cible (copier vers)"
 
 #: templates/accounts/rollover_year.html
 msgid "Target year (next)"
-msgstr ""
+msgstr "Année cible (suivante)"
 
 #: templates/widgets/parent_dashboard_widgets.html
 msgid "Task tracker"
@@ -61858,7 +61872,7 @@ msgstr ""
 
 #: templates/accounts/profile.html
 msgid "Teacher Dashboard"
-msgstr ""
+msgstr "Tableau de bord enseignant"
 
 #: templates/teacher/onboarding_wizard.html
 msgid "Teacher Onboarding"
@@ -61866,11 +61880,11 @@ msgstr ""
 
 #: templates/accounts/tenant_identity_invite.html
 msgid "Temporary password"
-msgstr ""
+msgstr "Mot de passe temporaire"
 
 #: templates/partials/admin_tenant_workbench_footer.html
 msgid "Tenant-scoped records · RBAC enforced"
-msgstr ""
+msgstr "Données limitées au locataire · RBAC appliqué"
 
 #: templates/emis/dashboard.html
 msgid "Term (Optional)"
@@ -61962,7 +61976,7 @@ msgstr ""
 
 #: templates/emails/_legal_footer.html
 msgid "Unsubscribe"
-msgstr ""
+msgstr "Se désabonner"
 
 #: templates/widgets/teacher_dashboard_widgets.html
 msgid "Upcoming classes"
@@ -61974,7 +61988,7 @@ msgstr ""
 
 #: templates/accounts/entity_console.html
 msgid "Update / Delete student"
-msgstr ""
+msgstr "Mettre à jour / Supprimer l'élève"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Update existing evaluations with new scores"
@@ -61986,7 +62000,7 @@ msgstr "Mis à jour:"
 
 #: templates/accounts/migration_wizard.html
 msgid "Upload & preview"
-msgstr ""
+msgstr "Téléverser et prévisualiser"
 
 #: templates/evals/evidence_upload.html
 msgid "Upload Evidence"
@@ -62006,7 +62020,7 @@ msgstr ""
 
 #: templates/accounts/import_hub.html
 msgid "Upload grades"
-msgstr ""
+msgstr "Téléverser les notes"
 
 #: templates/portal/document_upload.html
 msgid "Upload guide"
@@ -62024,15 +62038,15 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Used up"
-msgstr ""
+msgstr "Épuisé"
 
 #: templates/accounts/profile.html
 msgid "User management (RBAC)"
-msgstr ""
+msgstr "Gestion des utilisateurs (RBAC)"
 
 #: templates/accounts/tenant_join_codes.html
 msgid "Uses"
-msgstr ""
+msgstr "Utilisations"
 
 #: templates/evals/grade_import_upload_v2.html
 msgid "Valid Rows"
@@ -62040,7 +62054,7 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "Validate only (dry run)"
-msgstr ""
+msgstr "Valider uniquement (test à blanc)"
 
 #: templates/evals/audit_trail.html
 msgid "Validated"
@@ -62052,7 +62066,7 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "Validation issues (drill-down)"
-msgstr ""
+msgstr "Problèmes de validation (détail)"
 
 #: templates/portal/kb_search.html
 msgid "View All FAQs"
@@ -62072,7 +62086,7 @@ msgstr ""
 
 #: templates/accounts/profile.html
 msgid "View Finance"
-msgstr ""
+msgstr "Voir les finances"
 
 #: templates/portal/signature_pending_list.html
 msgid "View Form"
@@ -62100,7 +62114,7 @@ msgstr "Voir les détails"
 
 #: templates/accounts/automation_hub.html
 msgid "View execution log"
-msgstr ""
+msgstr "Voir le journal d'exécution"
 
 #: templates/finance/generate_fees.html
 msgid "View invoices"
@@ -62108,7 +62122,7 @@ msgstr ""
 
 #: templates/accounts/profile.html
 msgid "View portal"
-msgstr ""
+msgstr "Voir le portail"
 
 #: templates/widgets/parent_dashboard_widgets.html
 msgid "View receipts"
@@ -62176,11 +62190,11 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "Where are you migrating from?"
-msgstr ""
+msgstr "Depuis quel système migrez-vous ?"
 
 #: templates/accounts/delegation_catch_up.html
 msgid "Who (acting)"
-msgstr ""
+msgstr "Qui (en action)"
 
 #: templates/emails/report_ready_yo.html
 msgid "Wo Iwe-Ìsìrò"
@@ -62212,7 +62226,7 @@ msgstr ""
 
 #: templates/accounts/join_code_poster.html
 msgid "You'll create your account and be added to the school automatically."
-msgstr ""
+msgstr "Vous créerez votre compte et serez automatiquement ajouté à l'école."
 
 #: templates/emails/newsletter_confirmed.html
 msgid "You're in 🎉"
@@ -62238,7 +62252,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "Your connections"
-msgstr ""
+msgstr "Vos connexions"
 
 #: templates/marketing/components/_currency_switcher.html
 msgid "ZAR (R)"
@@ -62290,15 +62304,15 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "dry run"
-msgstr ""
+msgstr "test à blanc"
 
 #: templates/accounts/tenant_join_codes.html
 msgid "e.g. Grade 7 parents"
-msgstr ""
+msgstr "p. ex. parents de 7e année"
 
 #: templates/accounts/sso_connections.html
 msgid "e.g. Sign in with Google"
-msgstr ""
+msgstr "p. ex. Se connecter avec Google"
 
 #: templates/schools/super_migration_profile_registry.html
 msgid "for the full profile library."
@@ -62326,7 +62340,7 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "never"
-msgstr ""
+msgstr "jamais"
 
 #: templates/automation/visual_workflow_designer.html
 msgid "offline_action_conflict"
@@ -62342,11 +62356,11 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "optional for Google/Microsoft"
-msgstr ""
+msgstr "facultatif pour Google/Microsoft"
 
 #: templates/accounts/sso_connections.html
 msgid "optional, JSON"
-msgstr ""
+msgstr "facultatif, JSON"
 
 #: templates/schools/partials/manager_kb_bulk_ops_body.html
 msgid "pandoc"
@@ -62371,6 +62385,8 @@ msgstr ""
 #: templates/accounts/rollover_year.html
 msgid "prepare a proposal, review suggested classes, approve, then apply."
 msgstr ""
+"préparez une proposition, examinez les classes suggérées, approuvez, puis "
+"appliquez."
 
 #: templates/migration_cloud/emails/guardian/consent_confirmed.html
 msgid "privacy@runmycampus.com"
@@ -62410,7 +62426,7 @@ msgstr ""
 
 #: templates/accounts/tenant_join_codes.html
 msgid "unlimited"
-msgstr ""
+msgstr "illimité"
 
 #: templates/emails/newsletter_confirmed.html
 msgid "unsubscribe"
@@ -62418,7 +62434,7 @@ msgstr ""
 
 #: templates/accounts/rollover_year.html
 msgid "— Graduate (Alumni) —"
-msgstr ""
+msgstr "— Diplômé (Ancien élève) —"
 
 #: templates/student360/transcript_archive.html
 msgid "— Select year —"
@@ -62430,7 +62446,7 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "— Skip —"
-msgstr ""
+msgstr "— Ignorer —"
 
 #: templates/portal/at_risk_labeling/queue.html
 msgid "— select —"
@@ -62438,7 +62454,7 @@ msgstr ""
 
 #: templates/accounts/sso_connections.html
 msgid "•••••• (unchanged)"
-msgstr ""
+msgstr "•••••• (inchangé)"
 
 #: templates/schools/advancement_donor_detail.html
 msgid "← All donors"
@@ -62446,7 +62462,7 @@ msgstr ""
 
 #: templates/accounts/migration_wizard.html
 msgid "→ Target field"
-msgstr ""
+msgstr "→ Champ cible"
 
 #: templates/evals/import_job_monitor.html
 msgid "✓ Completed"
