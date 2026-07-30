@@ -13,6 +13,8 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
+from apps.test_utils.http_clients import login_manager_client
+
 User = get_user_model()
 
 
@@ -109,8 +111,9 @@ class WedgeWorldClassImplementedTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        client = Client()
-        client.force_login(admin)
+        # Manager-host operator page: confirmed device + verified MFA on a
+        # manager-bound session (bare force_login bounces 302 through the MFA wall).
+        client = login_manager_client(admin, password="x")
         with self.settings(ROOT_URLCONF="config.manager_urls"):
             url = reverse("super:geography")
             response = client.get(url, HTTP_HOST="manager.runmycampus.com")

@@ -63,8 +63,11 @@ class TenantWorkspaceHandoffTests(TestCase):
     def test_tenant_subdomain_still_serves_login_form(self):
         client = Client(HTTP_HOST="handoff-school.runmycampus.com")
         response = client.get(reverse("accounts:login"), follow=False)
+        # Unlike the apex (which redirects to /discover/), the tenant subdomain
+        # still serves the credential login form. The heading was reworded from
+        # "Secure sign in" to "Sign in"; assert on that stable login marker.
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Secure sign in", status_code=200)
+        self.assertContains(response, "Sign in", status_code=200)
 
     def test_school_picker_posts_to_tenant_workspace(self):
         other = School.objects.create(
