@@ -66,3 +66,56 @@
   grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)) !important;
   justify-content: center;
 }
+
+/* ------------------------------------------------------------
+   Second retrofit wave — the `.rmc-dh-*` "dashboard hub" grammar.
+   This is the grammar the admin BACKEND dashboard AND every role
+   home (teacher / parent / student) actually use for their KPI and
+   card rows (templates/accounts/_rmc_dh_admin_overview.html,
+   templates/{teacher,parent,student}/_rmc_dh_*_home.html). It was
+   never converted alongside the `.tp-*` grammars above, so it still
+   left-packs: fixed `repeat(N, 1fr)` tracks and `auto-fill` (which
+   keeps phantom empty tracks) both cluster a short row against the
+   left edge — the exact "everything is left-oriented" complaint.
+
+   Same balanced model as above: `auto-fit` fills the row for ANY
+   card count, `justify-content: center` centres a short final row
+   instead of jamming it left. Layout-only, no colour / brand tokens,
+   so tenant theming is untouched. `!important` to win over the
+   per-surface source (rmc-tenant-dashboard-100x.css) regardless of
+   stylesheet load order.
+   ------------------------------------------------------------ */
+
+/* Primary KPI tile row (admin overview + all three role homes). */
+.rmc-dh-tiles {
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)) !important;
+  justify-content: center;
+}
+
+/* Action / class card grids (parent home, admin). auto-fill -> auto-fit. */
+.rmc-dh-cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)) !important;
+  justify-content: center;
+}
+.rmc-dh-cards--wide {
+  /* More specific than .rmc-dh-cards so the wider floor wins for wide grids. */
+  grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr)) !important;
+}
+
+/* Subject-progress grid (student / teacher). auto-fill -> auto-fit. */
+.rmc-dh-subj {
+  grid-template-columns: repeat(auto-fit, minmax(min(155px, 100%), 1fr)) !important;
+  justify-content: center;
+}
+
+/* Two-column body: a single populated column should fill the width
+   instead of leaving a dead right half (right column is conditional). */
+.rmc-dh-grid2 {
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)) !important;
+}
+
+/* v3 role-home "signals" row — fixed 3-track -> balanced auto-fit. */
+.tp-experience-command__signals {
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)) !important;
+  justify-content: center;
+}
