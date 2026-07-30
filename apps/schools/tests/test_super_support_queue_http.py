@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.platform_runtime.models import PlatformOperatorSupportDashboardLink
+from apps.test_utils.http_clients import login_manager_client
 from apps.schools.models import School
 from apps.siteconfig.models_feature_controls import (
     GlobalSupportTicket,
@@ -52,7 +53,7 @@ class SuperSupportQueueHttpTests(TestCase):
         self.env.stop()
 
     def test_support_dashboard_get(self):
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/", HTTP_HOST="manager.runmycampus.com"
         )
@@ -61,7 +62,7 @@ class SuperSupportQueueHttpTests(TestCase):
 
     def test_support_dashboard_phase_h_skip_link_targets_main(self):
         """Batch 25 #286 — Phase H skip target for support mission control (manager host)."""
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/", HTTP_HOST="manager.runmycampus.com"
         )
@@ -77,7 +78,7 @@ class SuperSupportQueueHttpTests(TestCase):
             href="/super/pulse/",
             sort_order=0,
         )
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/", HTTP_HOST="manager.runmycampus.com"
         )
@@ -87,7 +88,7 @@ class SuperSupportQueueHttpTests(TestCase):
         self.assertIn('href="/super/pulse/"', body)
 
     def test_support_queue_fragment_get(self):
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/queue/", HTTP_HOST="manager.runmycampus.com"
         )
@@ -95,7 +96,7 @@ class SuperSupportQueueHttpTests(TestCase):
         self.assertContains(response, "Queue item")
 
     def test_support_tickets_export_csv(self):
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/export.csv",
             HTTP_HOST="manager.runmycampus.com",
@@ -117,7 +118,7 @@ class SuperSupportQueueHttpTests(TestCase):
             body="B",
             status=GlobalSupportTicket.Status.OPEN,
         )
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/?status=OPEN",
             HTTP_HOST="manager.runmycampus.com",
@@ -137,7 +138,7 @@ class SuperSupportQueueHttpTests(TestCase):
             body="x",
             status=GlobalSupportTicket.Status.OPEN,
         )
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/export.csv",
             {"status": "OPEN"},
@@ -160,7 +161,7 @@ class SuperSupportQueueHttpTests(TestCase):
             status=GlobalSupportTicket.Status.OPEN,
             priority=GlobalSupportTicket.Priority.URGENT,
         )
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/export.csv",
             {"priority": "URGENT"},
@@ -185,7 +186,7 @@ class SuperSupportQueueHttpTests(TestCase):
             status=GlobalSupportTicket.Status.OPEN,
         )
         self.assertIsNone(ticket.first_response_at)
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         url = reverse("super:support_ticket_detail", kwargs={"ticket_id": ticket.pk})
         response = self.client.post(
             url,
@@ -202,7 +203,7 @@ class SuperSupportQueueHttpTests(TestCase):
         self.assertIsNotNone(ticket.first_response_at)
 
     def test_support_csat_dashboard_get(self):
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/csat/",
             HTTP_HOST="manager.runmycampus.com",
@@ -212,7 +213,7 @@ class SuperSupportQueueHttpTests(TestCase):
 
     def test_support_csat_dashboard_phase_h_skip_link_targets_main(self):
         """Batch 26 #301 — Phase H skip target for global support CSAT (manager host)."""
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         response = self.client.get(
             "/super/support/csat/",
             HTTP_HOST="manager.runmycampus.com",
@@ -235,7 +236,7 @@ class SuperSupportQueueHttpTests(TestCase):
             body="b",
             status=GlobalSupportTicket.Status.OPEN,
         )
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         still_open = GlobalSupportTicket.objects.get(subject="Still open for assign test")
         response = self.client.post(
             f"{reverse('super:support_assign_ticket')}?status=OPEN",

@@ -7,6 +7,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.test_utils.http_clients import login_manager_client
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
@@ -19,7 +20,9 @@ class SuperSiteSettingsPhaseBWritesTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.user)
+        # Manager-host operator page: bind the manager session with confirmed +
+        # verified MFA (bare force_login bounces 302 through RequireMFAMiddleware).
+        self.client = login_manager_client(self.user, password="testpass123")
         self.host = "manager.runmycampus.com"
         cache.clear()
 

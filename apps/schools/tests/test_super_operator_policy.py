@@ -6,6 +6,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.test_utils.http_clients import login_manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -17,7 +18,7 @@ class SuperOperatorPolicyViewTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(user)
+        self.client = login_manager_client(user, password="x")
         url = reverse("super:operator_policy")
         r = self.client.get(url, HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(r.status_code, 200)
@@ -31,7 +32,7 @@ class SuperOperatorPolicyViewTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(user)
+        self.client = login_manager_client(user, password="x")
         url = reverse("super:backlog_unlock_center")
         r = self.client.get(url, HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(r.status_code, 200)
@@ -44,7 +45,7 @@ class SuperOperatorPolicyViewTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(user)
+        self.client = login_manager_client(user, password="x")
         url = reverse("super:fleet_governed_changes")
         r = self.client.get(url, HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(r.status_code, 200)
@@ -58,7 +59,7 @@ class SuperOperatorPolicyViewTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(user)
+        self.client = login_manager_client(user, password="x")
         url = reverse("super:backlog_unlock_center")
         r = self.client.post(
             url,

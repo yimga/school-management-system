@@ -14,6 +14,7 @@ from django.urls import reverse
 from apps.accounts.models import User
 from apps.schools.models import School
 from apps.siteconfig.models import RegionConfig
+from apps.test_utils.http_clients import login_manager_client
 
 _MANAGER_HOST = "manager.runmycampus.com"
 
@@ -35,11 +36,9 @@ class SuperOffboardingHttpTests(TransactionTestCase):
             is_superuser=True,
         )
         self.host = _MANAGER_HOST
-        self.client = Client(HTTP_HOST=self.host)
-        self.assertTrue(
-            self.client.login(username=self.user.username, password=self.password),
-            "manager control-plane login failed",
-        )
+        # Manager-host operator pages need a confirmed device + verified MFA on a
+        # manager-bound session; a bare client.login() bounces 302 to MFA setup.
+        self.client = login_manager_client(self.user, password=self.password)
         cache.clear()
         self.region = RegionConfig.get_default()
         self.school = School.objects.create(

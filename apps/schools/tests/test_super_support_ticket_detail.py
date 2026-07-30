@@ -8,6 +8,7 @@ from apps.communication.models import Message
 from apps.platform_runtime.models import PlatformEventLog
 from apps.schools.models import School
 from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+from apps.test_utils.http_clients import login_manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
@@ -41,15 +42,15 @@ class SuperSupportTicketDetailTests(TestCase):
             body="Please advise.",
             status=GlobalSupportTicket.Status.OPEN,
         )
-        PlatformEventLog.objects.filter(
-            event_type__startswith="support_desk_"
-        ).delete()
+        # PlatformEventLog is append-only (bulk .delete() now raises
+        # AppendOnlyDeleteError) — and each TestCase starts from an empty event
+        # log, so the prior defensive clear is both forbidden and unnecessary.
 
     def tearDown(self):
         self.env.stop()
 
     def test_detail_get_does_not_spam_view_audit(self):
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         url = f"/super/support/ticket/{self.ticket.pk}/"
         response = self.client.get(url, HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 200)
@@ -61,7 +62,7 @@ class SuperSupportTicketDetailTests(TestCase):
         )
 
     def test_detail_post_updates_and_audits(self):
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         url = f"/super/support/ticket/{self.ticket.pk}/"
         response = self.client.post(
             url,
@@ -80,10 +81,9 @@ class SuperSupportTicketDetailTests(TestCase):
         self.assertIn("internal_notes", payload.get("changed_fields") or [])
 
     def test_assign_posts_emit_assignment_event(self):
-        self.client.force_login(self.superuser)
-        PlatformEventLog.objects.filter(
-            event_type="support_desk_ticket_assignment_changed"
-        ).delete()
+        self.client = login_manager_client(self.superuser, password="pass1234")
+        # PlatformEventLog is append-only; the TestCase starts from an empty log,
+        # so the pre-clear is both forbidden (AppendOnlyDeleteError) and moot.
         self.client.post(
             "/super/support/assign/",
             {"ticket_id": str(self.ticket.pk), "action": "assign_me"},
@@ -109,6 +109,12 @@ class SuperSupportTicketDetailTests(TestCase):
             "communication_message_id": msg.pk,
             "ai_triage": {
                 "at": "2026-03-27T12:00:00",
+                # support_ai_triage always stamps model + provider (empty string
+                # when the gateway omits them); the detail template reads
+                # ai_triage.model|default:ai_triage.provider, and a missing
+                # provider key raises VariableDoesNotExist in the filter arg.
+                "model": "test-model",
+                "provider": "test-provider",
                 "suggestions": {
                     "category": "BILLING",
                     "priority": "NORMAL",
@@ -119,7 +125,7 @@ class SuperSupportTicketDetailTests(TestCase):
             },
         }
         self.ticket.save(update_fields=["metadata"])
-        self.client.force_login(self.superuser)
+        self.client = login_manager_client(self.superuser, password="pass1234")
         url = f"/super/support/ticket/{self.ticket.pk}/"
         response = self.client.get(url, HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 200)
