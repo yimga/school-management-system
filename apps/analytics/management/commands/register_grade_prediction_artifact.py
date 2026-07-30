@@ -69,24 +69,32 @@ class Command(BaseCommand):
         holdout_metrics: dict = {}
         try:
             import joblib  # type: ignore
-
-            bundle = joblib.load(artifact_path)
-            if isinstance(bundle, dict):
-                ts_raw = bundle.get("trained_at")
-                if isinstance(ts_raw, str):
-                    try:
-                        trained_at = datetime.fromisoformat(
-                            ts_raw.replace("Z", "+00:00")
-                        )
-                    except ValueError:
-                        pass
-                feature_order = list(bundle.get("feature_order") or [])
-                training_row_count = int(bundle.get("training_row_count") or 0)
-                holdout_metrics = dict(bundle.get("holdout_metrics") or {})
         except ImportError:
             self.stdout.write(
                 "joblib not installed — bundle metadata not extracted."
             )
+        else:
+            try:
+                bundle = joblib.load(artifact_path)
+                if isinstance(bundle, dict):
+                    ts_raw = bundle.get("trained_at")
+                    if isinstance(ts_raw, str):
+                        try:
+                            trained_at = datetime.fromisoformat(
+                                ts_raw.replace("Z", "+00:00")
+                            )
+                        except ValueError:
+                            pass
+                    feature_order = list(bundle.get("feature_order") or [])
+                    training_row_count = int(bundle.get("training_row_count") or 0)
+                    holdout_metrics = dict(bundle.get("holdout_metrics") or {})
+            except Exception as exc:  # noqa: BLE001
+                # Best-effort metadata: a corrupt / non-bundle artifact must not
+                # sink registration — record the path + supplied metadata only.
+                self.stdout.write(
+                    f"artifact bundle metadata not extractable "
+                    f"({exc.__class__.__name__})."
+                )
 
         mae = holdout_metrics.get("mae")
         rmse = holdout_metrics.get("rmse")

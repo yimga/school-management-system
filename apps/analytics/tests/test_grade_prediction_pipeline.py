@@ -62,14 +62,6 @@ class GradeDriftCommandTests(TestCase):
             default_region=self.region,
         )
         from apps.academics.models import AcademicYear, Subject, Term
-        u = User.objects.create_user(
-            username=f"gd_s_{uid}",
-            email="s@example.com", password="p",
-        )
-        student = StudentProfile.objects.create(
-            school=self.school, user=u, first_name="GD", last_name="S",
-            student_code=f"GD-{uid % 9999}",
-        )
         year = AcademicYear.objects.create(
             name=f"GDY-{uid}",
             start_date=timezone.now().date(),
@@ -81,9 +73,19 @@ class GradeDriftCommandTests(TestCase):
             end_date=(timezone.now() + timezone.timedelta(days=90)).date(),
         )
         subj = Subject.objects.create(name=f"M-{uid}")
-        for grade in (10, 20, 30, 40, 50, 60, 70, 80, 90, 95):
+        # GradePrediction is unique per (student, subject, academic_year, term), so a
+        # distribution of predicted grades needs one student per prediction row.
+        for idx, grade in enumerate((10, 20, 30, 40, 50, 60, 70, 80, 90, 95)):
+            su = User.objects.create_user(
+                username=f"gd_s_{uid}_{idx}",
+                email=f"s{idx}@example.com", password="p",
+            )
+            stud = StudentProfile.objects.create(
+                school=self.school, user=su, first_name=f"GD{idx}", last_name="S",
+                student_code=f"GD-{uid % 9999}-{idx}",
+            )
             GradePrediction.objects.create(
-                school=self.school, student=student, subject=subj,
+                school=self.school, student=stud, subject=subj,
                 academic_year=year, term=term, predicted_grade=grade,
             )
         self._tmp = tempfile.TemporaryDirectory()
@@ -244,7 +246,7 @@ class GradeRegisterPromoteTests(TestCase):
 class ShadowGradePredictionTests(TestCase):
     def _seed(self):
         from apps.academics.models import (
-            AcademicYear, Classroom, Department, Subject,
+            AcademicYear, Classroom, Department, Specialty, Subject,
             SubjectAssignment, Term,
         )
         from apps.people.models import StudentProfile
@@ -282,9 +284,12 @@ class ShadowGradePredictionTests(TestCase):
             academic_year=year, department=dept,
         )
         subj = Subject.objects.create(name=f"M-{uid}")
+        specialty = Specialty.objects.create(
+            department=dept, name=f"Spec-{uid}", code=f"SPC{uid % 9999}",
+        )
         SubjectAssignment.objects.create(
             academic_year=year, term=term,
-            classroom=classroom, subject=subj,
+            classroom=classroom, subject=subj, specialty=specialty,
         )
         for i in range(3):
             u = User.objects.create_user(
@@ -424,6 +429,11 @@ class ShouldRetrainGradePredictionTests(TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.artifact = os.path.join(self.tmp.name, "g.joblib")
         open(self.artifact, "wb").write(b"x")
+        # should_retrain_grade_prediction anchors "new labels since training" on
+        # the artifact's trained_at (mtime fallback for this placeholder bundle).
+        # Backdate it an hour so the labels created above count as new (age 0 days).
+        _anchor = (timezone.now() - timezone.timedelta(hours=1)).timestamp()
+        os.utime(self.artifact, (_anchor, _anchor))
 
     def tearDown(self):
         self.tmp.cleanup()
