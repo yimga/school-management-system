@@ -27,6 +27,7 @@
 # No-op on SQLite and when USE_DJANGO_TENANTS=True (schema-per-tenant mode).
 
 from django.apps import apps as django_apps
+from django.conf import settings
 from django.db import connection, migrations
 
 from apps.schools.rls import should_apply_rls
@@ -130,10 +131,28 @@ _ALL_LEAF_DEPENDENCIES = [
 # registry (the migration loader imports this module well after apps are ready).
 _INSTALLED_APP_LABELS = {config.label for config in django_apps.get_app_configs()}
 
+# Leaves to drop from the dependency set under schema-per-tenant mode
+# (USE_DJANGO_TENANTS=1, i.e. prod). The force sweep is a no-op there
+# (should_apply_rls is False), so its ordering vs these leaves is irrelevant --
+# yet a dependency on either breaks `migrate_schemas --shared`:
+#   * payment: moved INTO SHARED_APPS AFTER this migration had already been
+#     applied on prod, so a now-active dependency on payment.0001 (which is
+#     unapplied on a DB where 0083 is applied) trips InconsistentMigrationHistory.
+#   * plans_entitlements: base-only, never loaded under schema mode, so a static
+#     dependency on its leaf would dangle with NodeNotFoundError.
+# RLS mode (USE_DJANGO_TENANTS=0, CI/tests) keeps EVERY leaf so the sweep still
+# lands dead-last after all RLS enable/policy work and test_rls_force_coverage
+# stays honest.
+_SCHEMA_MODE_DROP_LEAVES = {"payment", "plans_entitlements"}
+_SCHEMA_PER_TENANT = bool(getattr(settings, "USE_DJANGO_TENANTS", False))
+
 
 class Migration(migrations.Migration):
     dependencies = [
-        dep for dep in _ALL_LEAF_DEPENDENCIES if dep[0] in _INSTALLED_APP_LABELS
+        dep
+        for dep in _ALL_LEAF_DEPENDENCIES
+        if dep[0] in _INSTALLED_APP_LABELS
+        and not (_SCHEMA_PER_TENANT and dep[0] in _SCHEMA_MODE_DROP_LEAVES)
     ]
 
     operations = [
