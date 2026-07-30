@@ -1043,3 +1043,8 @@ body.admin-premium-shell:not(.admin-manager-shell) .rmc-admin-workbench-footer--
   border-top: 1px solid var(--hairline, rgba(148, 163, 184, 0.25));
   background: var(--surface-elevated, #fff);
 }
+
+body.admin-manager-shell .rmc-admin-workbench-footer--operator {
+  border-top: 1px solid var(--hairline, rgba(148, 163, 184, 0.25));
+  background: var(--surface-elevated, #fff);
+}
