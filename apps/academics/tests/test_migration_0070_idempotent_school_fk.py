@@ -44,15 +44,20 @@ class Academics0070IdempotentSchoolFkTests(unittest.TestCase):
         self.assertIn("timeslot", state_models)
 
     def test_ensure_skips_when_column_already_exists(self):
+        # The idempotency helper was refactored from a generic
+        # _ensure_live_school_fk("Room") to _ensure_school_fk_column(
+        # apps, model_attr, related_name), wrapped by ensure_room_school_fk /
+        # ensure_timeslot_school_fk. The guarantee is unchanged: when school_id
+        # already exists (0065 healed it), the helper must return WITHOUT opening
+        # a schema_editor to re-add the field.
         mod = _load_migration()
+        apps_stub = MagicMock()
         with (
             patch.object(mod, "_column_exists", return_value=True),
-            patch("django.db.connection") as conn,
+            patch.object(mod.connection, "schema_editor") as schema_editor,
         ):
-            conn.schema_editor.return_value.__enter__ = MagicMock(
-                side_effect=AssertionError("must not add_field when column exists")
-            )
-            mod._ensure_live_school_fk("Room")
+            mod._ensure_school_fk_column(apps_stub, "Room", "academic_rooms")
+            schema_editor.assert_not_called()
 
 
 if __name__ == "__main__":
