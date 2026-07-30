@@ -12,6 +12,7 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.siteconfig.models_feature_controls import FeatureToggleDefinition
+from apps.test_utils.http_clients import login_manager_client  # noqa: E402
 from apps.siteconfig.models_global_experience import GradingScaleConfig
 from apps.siteconfig.models_platform_catalog import (
     CountryMultiplier,
@@ -34,7 +35,10 @@ class SuperCatalogDeletePostTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.user)
+        # Manager-host operator POSTs: bind the manager session with confirmed +
+        # verified MFA, else the delete POST bounces 302 to /authentication/mfa/
+        # setup/ and the row is never deleted.
+        self.client = login_manager_client(self.user, password="testpass123")
 
     def _post_delete(self, url_name: str, *, kwargs: dict | None = None):
         if kwargs is None:

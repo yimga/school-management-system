@@ -15,6 +15,10 @@ from apps.schools.super_dashboard_registry import (
 class SuperDashboardRegistryTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
+        # The clean snapshot seeds the gilead-school provisioning husk; clear it
+        # so these fleet-metric / registry assertions run against a known fleet
+        # (subdomain is unique=True, so seeded rows would also collide on "").
+        School.objects.all().delete()
 
     def test_parse_registry_page_size_defaults_and_clamps(self):
         request = self.factory.get("/super/", {"page_size": "999"})
@@ -31,8 +35,12 @@ class SuperDashboardRegistryTests(TestCase):
         self.assertEqual(metrics.countries_live_count, 0)
 
     def test_paginate_registry_returns_page(self):
-        School.objects.create(name="Alpha Academy", slug="alpha", is_approved=True)
-        School.objects.create(name="Beta School", slug="beta", is_approved=True)
+        School.objects.create(
+            name="Alpha Academy", slug="alpha", subdomain="alpha", is_approved=True
+        )
+        School.objects.create(
+            name="Beta School", slug="beta", subdomain="beta", is_approved=True
+        )
         request = self.factory.get("/super/", {"page_size": "25"})
         page, search, state, page_size, extra = paginate_registry(
             request,
@@ -48,8 +56,12 @@ class SuperDashboardRegistryTests(TestCase):
         self.assertEqual(search, "")
 
     def test_apply_registry_filters_search(self):
-        School.objects.create(name="Unique Zephyr", slug="zephyr", is_approved=True)
-        School.objects.create(name="Other", slug="other", is_approved=True)
+        School.objects.create(
+            name="Unique Zephyr", slug="zephyr", subdomain="zephyr", is_approved=True
+        )
+        School.objects.create(
+            name="Other", slug="other", subdomain="other", is_approved=True
+        )
         qs = apply_registry_filters(
             build_registry_queryset(),
             search="zephyr",
