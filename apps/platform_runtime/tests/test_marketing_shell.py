@@ -58,7 +58,9 @@ class PortalBaseTenantShellTests(unittest.TestCase):
         if not template.is_file():
             self.skipTest("templates/portal_base.html not found")
         text = template.read_text(encoding="utf-8", errors="replace")
-        self.assertIn('data-surface="tenant"', text)
+        # data-surface is now host-conditional: control-plane on the manager host,
+        # tenant everywhere else (the default portal surface).
+        self.assertIn("control-plane{% else %}tenant", text)
         for required in (
             "css/design-system-unified.css",
             "css/platform-responsive-touch.css",
@@ -360,7 +362,8 @@ class ShellWaveBatch989PlusContractTests(unittest.TestCase):
     def test_admin_nav_bridge_shell(self):
         root = Path(__file__).resolve().parent.parent.parent.parent
         text = (root / "templates" / "components" / "admin_nav_bridge.html").read_text(encoding="utf-8", errors="replace")
-        self.assertIn('data-shell-nav-bridge="manager-admin"', text)
+        # nav-bridge value was renamed manager-admin → tenant-admin.
+        self.assertIn('data-shell-nav-bridge="tenant-admin"', text)
 
     def test_marketplace_tenant_catalog_shell(self):
         root = Path(__file__).resolve().parent.parent.parent.parent
