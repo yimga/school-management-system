@@ -23,7 +23,7 @@ from django.utils import timezone
 
 from apps.api.views_v1 import ScheduledReportDetailView, ScheduledReportsListView
 from apps.reports.models import TenantReportSchedule
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.models import Plan
 
 User = get_user_model()
@@ -169,6 +169,12 @@ class TenantReportScheduleApiTests(TestCase):
             password="x",
             role="ADMIN",
         )
+        # The scheduled-reports API gate (_require_super_or_school) admits a
+        # tenant admin only when they hold a SchoolMembership on request.school
+        # (role alone is insufficient), so bind the admin to the tenant.
+        SchoolMembership.objects.create(
+            user=self.user, school=self.school, role=self.user.role, is_primary=True
+        )
         now = timezone.now()
         self.schedule = TenantReportSchedule.objects.create(
             school=self.school,
@@ -288,6 +294,12 @@ class TenantReportScheduleApiTests(TestCase):
             subdomain="other-sched",
             is_active=True,
             plan=self.plan,
+        )
+        # The user must be a member of ``other`` to reach its endpoint (the gate
+        # requires membership); the isolation being proven here is that ``other``
+        # has none of ``self.school``'s schedules — the list filters by tenant.
+        SchoolMembership.objects.create(
+            user=self.user, school=other, role=self.user.role
         )
         request = self.factory.get("/api/v1/reports/scheduled")
         request.user = self.user

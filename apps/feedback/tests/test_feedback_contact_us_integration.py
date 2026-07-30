@@ -68,16 +68,21 @@ class FeedbackContactUsIntegrationTests(FeedbackTestCase):
         self.assertContains(response, "Bulk receipt resend")
 
     def test_parent_and_student_do_not_enter_feature_center_complexity(self):
+        # Non-staff are steered out of the feature-center by the help-governance
+        # guard (``should_redirect_feature_center_for_request``: "feature voting
+        # is for staff"), which fires ahead of the role-specific redirects and
+        # sends parents/students to the Help Center.
+        help_center_url = reverse("feedback:help_center")
         self.force_login_with_mfa(self.parent)
         response = self.client.get(reverse("feedback:feature_center"))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("feedback:parent_feedback"))
+        self.assertEqual(response.url, help_center_url)
 
         self.client.logout()
         self.force_login_with_mfa(self.student)
         response = self.client.get(reverse("feedback:feature_center"))
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("feedback:student_feedback"))
+        self.assertEqual(response.url, help_center_url)
 
     def test_contextual_feedback_endpoint_accepts_post(self):
         self.force_login_with_mfa(self.teacher)

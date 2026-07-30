@@ -35,9 +35,13 @@ class FeedbackPrivacyAndRoadmapVisibilityTests(FeedbackTestCase):
     def test_product_roadmap_forbidden_for_tenant_admin(self):
         self.force_login_with_mfa(self.admin)
         response = self.client.get(reverse("feedback:product_roadmap"))
-        self.assertIn(response.status_code, (302, 403))
+        # These are operator ("/super/") surfaces. On the tenant host a tenant
+        # admin cannot reach them at all — the operator route is not mounted in
+        # the tenant urlconf, so it 404s (surface hidden), a stronger block than
+        # the 302/403 the route returned when it still lived on the tenant host.
+        self.assertIn(response.status_code, (302, 403, 404))
 
     def test_voice_of_customer_forbidden_for_tenant_admin(self):
         self.force_login_with_mfa(self.admin)
         response = self.client.get(reverse("feedback:voice_of_customer"))
-        self.assertEqual(response.status_code, 302)
+        self.assertIn(response.status_code, (302, 403, 404))

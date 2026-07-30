@@ -52,6 +52,11 @@ class HelpCenterV3GearTests(FeedbackHelpCenterTestCase):
     def test_feature_request_ack_email_on_create(self, mock_send):
         from apps.feedback.services import submit_feature_request
 
+        # The ack-email handler only writes to a submitter who has an email
+        # address (post_save _email_submitter_on_feature_request); the shared
+        # base admin is created without one, so set it for this notification path.
+        self.admin.email = "admin-ack@example.test"
+        self.admin.save(update_fields=["email"])
         submit_feature_request(
             school=self.school_a,
             user=self.admin,

@@ -4,8 +4,9 @@ Tests for report publish term view: RBAC and approved-grades settings.
 
 from datetime import date
 
-from django.test import TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.academics.models import (
@@ -35,6 +36,13 @@ class PublishTermRBACTestCase(TestCase):
         )
         self.staff.role = User.Role.ADMIN
         self.staff.save(update_fields=["role"])
+        # ADMIN carries baseline strict MFA — RequireMFAMiddleware bounces the
+        # staff to /authentication/mfa/setup/ without a confirmed device and to
+        # /verify/ without a per-session flag. Give a confirmed device here and
+        # mark the session verified in _login_staff().
+        TOTPDevice.objects.get_or_create(
+            user=self.staff, name="test-mfa", defaults={"confirmed": True}
+        )
         self.year = AcademicYear.objects.create(
             name="2024-2025",
             start_date=date(2024, 9, 1),
@@ -92,6 +100,12 @@ class PublishTermRBACTestCase(TestCase):
             },
         )
 
+    def _login_staff(self):
+        self.client.force_login(self.staff)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+
     def _create_evaluation(self):
         return Evaluation.objects.create(
             academic_year=self.year,
@@ -122,18 +136,32 @@ class PublishTermRBACTestCase(TestCase):
             requested_by=self.teacher_user,
         )
 
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", "pub-deny.runmycampus.com"],
+        MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    )
     def test_publish_term_requires_staff(self):
+        from apps.schools.models import School
+
+        # The RBAC boundary can only be proven against a real tenant context:
+        # on the default host request.school is None, so @require_permission's
+        # school-scoped check degrades and cannot deny a non-admin. Bind the
+        # request to a tenant host where the parent has no membership.
+        school = School.objects.create(
+            name="Pub Deny", slug="pub-deny", subdomain="pub-deny", is_active=True,
+        )
         parent = User.objects.create_user(
             username="parent_pub",
             password="testpass123",
             role=User.Role.PARENT,
         )
-        self.client.force_login(parent)
-        response = self.client.get(reverse("reports:publish_term_results"))
+        client = Client(HTTP_HOST=f"{school.subdomain}.runmycampus.com")
+        client.force_login(parent)
+        response = client.get(reverse("reports:publish_term_results"))
         self.assertIn(response.status_code, (302, 403))
 
     def test_publish_term_page_loads_for_staff(self):
-        self.client.force_login(self.staff)
+        self._login_staff()
         response = self.client.get(reverse("reports:publish_term_results"))
         self.assertEqual(response.status_code, 200)
 
@@ -153,7 +181,7 @@ class PublishTermRBACTestCase(TestCase):
             position=1,
             is_active=True,
         )
-        self.client.force_login(self.staff)
+        self._login_staff()
         url = reverse("reports:publish_term_results")
         response = self.client.get(
             url, {"year": year_empty.id, "term": term_empty.id}
@@ -165,7 +193,7 @@ class PublishTermRBACTestCase(TestCase):
         self.assertIn("Try again", body)
 
     def test_publish_blocks_when_approval_request_is_missing(self):
-        self.client.force_login(self.staff)
+        self._login_staff()
         self._create_evaluation()
 
         response = self.client.post(
@@ -185,7 +213,7 @@ class PublishTermRBACTestCase(TestCase):
         )
 
     def test_publish_blocks_when_latest_approval_is_not_final(self):
-        self.client.force_login(self.staff)
+        self._login_staff()
         self._create_evaluation()
         self._create_approval(GradeApprovalRequest.Status.APPROVED)
         self._create_approval(GradeApprovalRequest.Status.REVISION_REQUESTED)
@@ -207,7 +235,7 @@ class PublishTermRBACTestCase(TestCase):
         )
 
     def test_publish_allows_when_latest_approval_is_approved(self):
-        self.client.force_login(self.staff)
+        self._login_staff()
         self._create_evaluation()
         self._create_approval(GradeApprovalRequest.Status.APPROVED)
 
@@ -227,7 +255,7 @@ class PublishTermRBACTestCase(TestCase):
         )
 
     def test_unpublish_is_allowed_even_when_approvals_are_not_ready(self):
-        self.client.force_login(self.staff)
+        self._login_staff()
         self._create_evaluation()
         TermPublishStatus.objects.create(
             academic_year=self.year,
@@ -251,7 +279,7 @@ class PublishTermRBACTestCase(TestCase):
         self.assertFalse(school_status.is_published)
 
     def test_class_scope_publish_checks_only_selected_classrooms(self):
-        self.client.force_login(self.staff)
+        self._login_staff()
         self._create_evaluation()
         self._create_approval(GradeApprovalRequest.Status.APPROVED)
 
